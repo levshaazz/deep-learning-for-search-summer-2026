@@ -9,6 +9,7 @@ export function getStaticPaths() {
 }
 const { lang } = Astro.params;
 const m = course.meta;
+const BOOK_READY = ['02']; // lectures with a built Book chapter (Phase 3 proof)
 const showFallbackNotice = lang === 'tt'; // Phase 1: TT renders mostly via fallback
 const cover = withBase('/Lectures/assets/img/_char/cover.png');
 ---
@@ -50,7 +51,8 @@ const cover = withBase('/Lectures/assets/img/_char/cover.png');
             <div class="when">{t(lec.when, lang)}</div>
             {lec.status === 'ready' && (
               <div class="links">
-                <a href={withBase('/' + lec.deckFile)}>{t(ui.labels.openSlides, lang)} →</a>
+                {BOOK_READY.includes(lec.id) && <a href={localizedPath(lang, `book/${lec.id}`)}>{t(ui.labels.readBook, lang)} →</a>}
+                <a href={withBase('/' + lec.deckFile)}>{t(ui.labels.openSlides, lang)}</a>
               </div>
             )}
           </div>

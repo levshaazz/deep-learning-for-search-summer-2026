@@ -1,0 +1,113 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { LOCALES, t, withBase, localizedPath } from '../../../i18n/locales.js';
+import { ui } from '../../../i18n/ui.js';
+import { course } from '../../../lib/course.js';
+import cosineData from '../../../../data/l2-cosine.json';
+import cosineI18n from '../../../../widgets/cosine-sphere/i18n.json';
+import '../../../../widgets/cosine-sphere/style.css';
+
+// Phase-3 proof: only the L2 cosine-sphere climb chapter exists so far.
+export function getStaticPaths() {
+  const ids = ['02'];
+  return LOCALES.flatMap((lang) => ids.map((id) => ({ params: { lang, id } })));
+}
+const { lang, id } = Astro.params;
+const lec = course.lectures.find((l) => l.id === id);
+
+// Resolve the widget's labels for THIS locale (build-time fallback tt -> ru -> en),
+// and the figure data. Both are handed to the client island via a JSON <script>.
+const labels = Object.fromEntries(Object.entries(cosineI18n).map(([k, v]) => [k, t(v, lang)]));
+const payload = { data: cosineData, labels: { ...labels, role: 'img' } };
+
+// scroll steps = the widget steps; each prose block is the step's i18n caption (s0..s4).
+const steps = [0, 1, 2, 3, 4];
+const intro = {
+  en: "I'm Serega, and I've got a problem. Length keeps lying to me — a longer sentence isn't “more meaning.” So I stopped asking how far apart two vectors are, and started asking which way they point. Scroll on.",
+  ru: 'Я Серёга, и у меня проблема. Длина постоянно врёт — длинное предложение не значит «больше смысла». Поэтому я перестал спрашивать, насколько далеки два вектора, и начал спрашивать, куда они смотрят. Листай дальше.',
+};
+const outro = {
+  en: 'Sir Cosine wins on the sphere: direction is what carries meaning. Next chapter — where do those directions come from? Embeddings.',
+  ru: 'Сэр Косинус побеждает на сфере: смысл несёт направление. Следующая глава — откуда берутся эти направления? Эмбеддинги.',
+};
+const showFallbackNotice = lang === 'tt';
+---
+<BaseLayout lang={lang} page={`book/${id}`} title={`${lec.catchphrase} · ${t(course.meta.title, lang)}`}>
+  <article class="book">
+    <header class="book-head wrap">
+      <div class="book-kick">{t(ui.nav.book, lang)} · {lec.id} · {lec.catchphrase}</div>
+      <h1>{t(lec.title, lang)}</h1>
+      {showFallbackNotice && <p class="notice">{t(ui.translationInProgress, lang)}</p>}
+      <p class="book-lead">{t(intro, lang)}</p>
+      <p class="book-xref">
+        <a href={withBase('/' + lec.deckFile)}>{t(ui.labels.openSlides, lang)} →</a>
+      </p>
+    </header>
+
+    <!-- scrollytelling: sticky figure (left) + scrolling prose (right). SAME widget as the slide. -->
+    <div class="scrolly">
+      <figure class="scrolly-graphic">
+        <div id="cs-fig" class="cs-mount"></div>
+      </figure>
+      <div class="scrolly-steps">
+        {steps.map((k) => (
+          <section class="scroll-step" data-step={k}>
+            <p>{labels['s' + k]}</p>
+          </section>
+        ))}
+      </div>
+    </div>
+
+    <footer class="book-foot wrap">
+      <p class="book-lead">{t(outro, lang)}</p>
+      <p class="book-xref"><a href={localizedPath(lang)}>← {t(ui.sections.lectures, lang)}</a></p>
+    </footer>
+  </article>
+
+  <script type="application/json" id="cs-payload" set:html={JSON.stringify(payload)}></script>
+  <script>
+    import { mountCosineSphere } from '../../../../widgets/cosine-sphere/logic.js';
+    import scrollama from 'scrollama';
+    const payload = JSON.parse(document.getElementById('cs-payload').textContent);
+    const fig = mountCosineSphere(document.getElementById('cs-fig'), payload);
+    window.__fig = fig; // headless verification hook
+    const sc = scrollama();
+    sc.setup({ step: '.scroll-step', offset: 0.6 }).onStepEnter(({ element }) => {
+      fig.setStep(Number(element.dataset.step));
+    });
+    addEventListener('resize', () => sc.resize());
+  </script>
+
+  <!-- global: the widget's caption/counter are injected at runtime, so they don't get
+       Astro's scoped attribute — hide them in scroll context via a global rule. -->
+  <style is:global>
+    .scrolly .cs-caption, .scrolly .cs-counter { display: none; }
+  </style>
+
+  <style>
+    .book { --gap: var(--ws-5); }
+    .book-head, .book-foot { padding-top: var(--ws-5); padding-bottom: var(--ws-3); }
+    .book-kick { font-family: var(--font-mono); font-size: var(--fz-tiny); letter-spacing: 2px;
+      text-transform: uppercase; color: var(--warm-ink); }
+    .book h1 { font-family: var(--font-serif); font-size: var(--fz-h1); margin: 8px 0 14px; }
+    .book-lead { font-size: var(--fz-lead); color: var(--ink-2); max-width: var(--ws-measure); line-height: 1.6; }
+    .book-xref { font-family: var(--font-mono); font-size: var(--fz-small); margin-top: var(--ws-3); }
+
+    .scrolly { display: grid; grid-template-columns: var(--ws-book-graphic) 1fr;
+      gap: var(--ws-5); max-width: var(--ws-page); margin: 0 auto; padding: 0 var(--ws-4); }
+    .scrolly-graphic { position: sticky; top: 12vh; align-self: start; height: 76vh;
+      display: flex; align-items: center; margin: 0; }
+    .cs-mount { width: 100%; }
+    .scrolly-steps { display: flex; flex-direction: column; }
+    .scroll-step { min-height: 78vh; display: flex; align-items: center; }
+    .scroll-step p { font-size: var(--fz-lead); line-height: 1.55; color: var(--ink);
+      max-width: 46ch; border-left: 3px solid var(--accent-soft); padding-left: var(--ws-3); }
+
+    @media (max-width: 820px) {
+      .scrolly { grid-template-columns: 1fr; gap: var(--ws-2); }
+      .scrolly-graphic { position: sticky; top: 0; height: auto; padding: var(--ws-2) 0;
+        background: var(--bg); z-index: 5; }
+      .scroll-step { min-height: 70vh; }
+    }
+  </style>
+</BaseLayout>
