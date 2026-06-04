@@ -1,0 +1,1997 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lecture 02 — NLP, Tokenization &amp; Similarity</title>
+
+  <!-- Apply saved theme/lang BEFORE first paint to avoid a flash of the
+       wrong theme. Mirrors tools.js prefs key. -->
+  <script>
+    try {
+      var __p = JSON.parse(localStorage.getItem('lecture.template.prefs.v1') || '{}');
+      var __de = document.documentElement;
+      if (__p.theme === 'dark' || __p.theme === 'light') __de.setAttribute('data-theme', __p.theme);
+      if (__p.lang === 'ru' || __p.lang === 'en') {
+        __de.setAttribute('data-lang', __p.lang);
+        __de.setAttribute('lang', __p.lang);
+      }
+    } catch (e) {}
+  </script>
+
+  <!-- Asset-load failure banner. If a vendored dependency fails to load
+       (e.g. the vendor/ folder was lost when copying the deck), tell the
+       lecturer in plain language instead of silently degrading. -->
+  <script>
+    window.__assetFail = (function () {
+      var failed = [];
+      return function (name) {
+        if (failed.indexOf(name) !== -1) return;
+        failed.push(name);
+        function show() {
+          if (!document.body) { document.addEventListener('DOMContentLoaded', show); return; }
+          var el = document.getElementById('__asset-banner');
+          if (!el) {
+            el = document.createElement('div');
+            el.id = '__asset-banner';
+            el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:2147483647;' +
+              'background:#D7522C;color:#fff;font:600 15px/1.4 system-ui,sans-serif;' +
+              'padding:10px 16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.3)';
+            el.addEventListener('click', function () { el.remove(); });
+            document.body.appendChild(el);
+          }
+          el.textContent = 'Не загрузились ресурсы: ' + failed.join(', ') +
+            '. Формулы/подсветка/QR могут не отрисоваться — запустите офлайн-файл ' +
+            '«Lecture Template (Standalone).html». · Failed to load: ' + failed.join(', ') +
+            ' — use the Standalone file. (клик чтобы скрыть)';
+        }
+        show();
+      };
+    })();
+  </script>
+
+  <!-- Fonts — vendored locally (run `node build-vendor.mjs` to refresh). -->
+  <link href="vendor/fonts/fonts.css" rel="stylesheet"
+        onerror="window.__assetFail&&window.__assetFail('Шрифты/Fonts')" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/template.css?v=6" />
+  <link rel="stylesheet" href="css/slides.css?v=6" />
+  <link rel="stylesheet" href="css/components.css?v=6" />
+  <link rel="stylesheet" href="css/presenter.css?v=6" />
+  <link rel="stylesheet" href="css/tweaks.css?v=6" />
+  <link rel="stylesheet" href="css/e2e.css?v=6" />
+  <link rel="stylesheet" href="css/lab.css?v=6" />
+  <link rel="stylesheet" href="css/archflow.css?v=6" />
+  <link rel="stylesheet" href="css/sysdesign.css?v=6" />
+  <link rel="stylesheet" href="css/preflight.css?v=6" />
+  <link rel="stylesheet" href="css/wbw-art.css?v=1" />
+
+  <!-- KaTeX — vendored locally (zero runtime CDN). 4× faster + lighter than
+       MathJax; handles 99% of CS/ML formulas. See README to swap to MathJax. -->
+  <link rel="stylesheet" href="vendor/katex/katex.min.css"
+        onerror="window.__assetFail&&window.__assetFail('KaTeX')">
+  <script defer src="vendor/katex/katex.min.js"
+        onerror="window.__assetFail&&window.__assetFail('KaTeX')"></script>
+  <script defer src="vendor/katex/auto-render.min.js"
+    onerror="window.__assetFail&&window.__assetFail('KaTeX')"
+    onload="renderMathInElement(document.body, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '\\[', right: '\\]', display: true },
+        { left: '\\(', right: '\\)', display: false }
+      ],
+      throwOnError: false,
+      strict: 'ignore'
+    });
+    document.dispatchEvent(new CustomEvent('katex:done'));"></script>
+
+  <!-- Prism — vendored core + python/bash/yaml/json. The autoloader is
+       intentionally dropped: it fetches grammars from a CDN at runtime,
+       which defeats the zero-network goal. Long-tail languages won't
+       highlight; add their grammar files to vendor/prism/ if needed. -->
+  <script src="vendor/prism/prism-core.min.js"
+        onerror="window.__assetFail&&window.__assetFail('Prism')"></script>
+  <script src="vendor/prism/prism-python.min.js"></script>
+  <script src="vendor/prism/prism-bash.min.js"></script>
+  <script src="vendor/prism/prism-yaml.min.js"></script>
+  <script src="vendor/prism/prism-json.min.js"></script>
+
+  <!-- QR code generator — vendored. -->
+  <script src="vendor/qrcode/qrcode.js"
+        onerror="window.__assetFail&&window.__assetFail('QR')"></script>
+</head>
+
+<body>
+  <!-- Bundler thumbnail (shown while standalone-HTML unpacks; also no-JS fallback) -->
+  <template id="__bundler_thumbnail">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#FBFAF6"/>
+          <stop offset="1" stop-color="#DCE8F8"/>
+        </linearGradient>
+      </defs>
+      <rect width="600" height="600" fill="url(#bg)"/>
+      <g transform="translate(180,180)">
+        <rect x="0" y="0" width="240" height="240" rx="20" fill="#2A6FDB"/>
+        <text x="120" y="160" font-family="Georgia, serif" font-size="120" font-weight="500"
+              text-anchor="middle" fill="white">∇</text>
+      </g>
+      <text x="300" y="490" font-family="Georgia, serif" font-size="40" font-weight="500"
+            text-anchor="middle" fill="#14181F">Lecture Template</text>
+      <text x="300" y="528" font-family="ui-monospace, monospace" font-size="18"
+            text-anchor="middle" fill="#6B7280" letter-spacing="3">LOADING…</text>
+    </svg>
+  </template>
+
+  <!-- Logo template — edit once, reused on every slide -->
+  <template id="tpl-logo">
+    <div class="logo-mark">DLS</div>
+    <span>
+      INNOPOLIS UNIVERSITY
+    </span>
+  </template>
+
+  <!-- Deck -->
+  <div class="deck">
+    <div class="stage">
+      <div class="slides" data-course-ru="Deep Learning for Search · Summer 2026" data-course-en="Deep Learning for Search · Summer 2026">
+
+        <!-- ============================================ 01 · TITLE ============================================ -->
+        <section class="slide" data-type="title" data-screen-label="01 Title">
+          <div class="title-header">
+            <div class="course-tag">DEEP LEARNING FOR SEARCH · SUMMER 2026</div>
+            <div data-logo-slot></div>
+          </div>
+          <div class="title-body">
+            <div class="eyebrow">Lecture 02 · Week 1 / Pair 2</div>
+            <h1>Introduction to NLP ·<br />Tokenization · Similarity</h1>
+            <p class="subtitle">Turning language into something a machine can compute.</p>
+          </div>
+          <div class="title-footer">
+            <div><div class="meta-label">Lecturer</div><div class="meta-value">Albert Nasybullin</div></div>
+            <div><div class="meta-label">Date</div><div class="meta-value">03.06.2026</div></div>
+            <div><div class="meta-label">Room</div><div class="meta-value">106</div></div>
+          </div>
+          <aside class="slide-notes">First contact. <strong>Serega</strong>, the doodle guide from the briefing, is back — and this time he wakes up alone, light-years from home, with another mind beside him but no shared words, no alphabet, no grammar. That is exactly the problem a machine faces with human language. Today we take the first two steps toward making a machine "understand": cut messy text into computable units (tokenization), and measure how close two meanings are (similarity).</aside>
+        </section>
+
+        <!-- ============================================ 02 · AGENDA ============================================ -->
+        <section class="slide" data-type="agenda" data-screen-label="02 Agenda">
+          <div class="slide-header">
+            <h2>Lecture Outline</h2>
+            <span class="slide-kicker">Agenda</span>
+          </div>
+          <div class="agenda-grid">
+            <a class="toc-item" href="#/5">
+              <span class="toc-num">01</span>
+              <span class="toc-text">
+                <span class="toc-title">Teaching a machine to read</span>
+                <span class="toc-sub">why text is hard · Zipf &amp; Heaps · the NLP pipeline</span>
+              </span>
+            </a>
+            <a class="toc-item" href="#/17">
+              <span class="toc-num">02</span>
+              <span class="toc-text">
+                <span class="toc-title">Tokenization</span>
+                <span class="toc-sub">char / word / subword · BPE · WordPiece · Unigram</span>
+              </span>
+            </a>
+            <a class="toc-item" href="#/37">
+              <span class="toc-num">03</span>
+              <span class="toc-text">
+                <span class="toc-title">Where tokenizers break</span>
+                <span class="toc-sub">digits · fertility tax · glitch tokens · search</span>
+              </span>
+            </a>
+            <a class="toc-item" href="#/49">
+              <span class="toc-num">04</span>
+              <span class="toc-text">
+                <span class="toc-title">Measures of similarity</span>
+                <span class="toc-sub">cosine · dot · Euclidean · Jaccard · high-d pitfalls</span>
+              </span>
+            </a>
+          </div>
+          <aside class="slide-notes">Four movements. Each part follows the same shape: a problem the alien presents us, the idea that cracks it, then the detailed mechanics. Parts 1–3 are tokenization (turn text into units); Part 4 is similarity (measure closeness of the resulting vectors). Click any item to jump.</aside>
+        </section>
+
+        <!-- ============================================ 03 · OBJECTIVES ============================================ -->
+        <section class="slide" data-type="objectives" data-screen-label="03 Objectives">
+          <div class="slide-header">
+            <h2>Learning objectives</h2>
+            <span class="slide-kicker">Objectives</span>
+          </div>
+          <ul class="obj-list">
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">✓</span><span class="obj-text">Explain <em>why</em> raw text is hard for computers — discreteness, variable length, ambiguity, and the Zipf/Heaps argument that a fixed word vocabulary can <em>never</em> cover real text.</span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">✓</span><span class="obj-text">Describe the normalization-and-tokenization pipeline used in NLP and search.</span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">✓</span><span class="obj-text">Trace a <strong>BPE</strong> and a <strong>WordPiece</strong> run by hand, and contrast BPE / WordPiece / Unigram.</span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">✓</span><span class="obj-text">Predict tokenization corner cases — digits, code, multilingual fertility, glitch tokens — and their cost.</span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">✓</span><span class="obj-text">Define and compute cosine similarity \(\cos\theta\), dot product, Euclidean / Manhattan, Jaccard, and edit distance.</span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">✓</span><span class="obj-text">Choose an appropriate measure, and reason about high-dimensional failure modes (concentration, hubness, anisotropy).</span></li>
+          </ul>
+          <aside class="slide-notes">These are measurable outcomes — by the end you should be able to do each one on paper. Distinct from the agenda, which is just the route.</aside>
+        </section>
+
+        <!-- ============================================ 04 · QUOTE · WHERE WE ARE ============================================ -->
+        <section class="slide" data-type="quote" data-screen-label="04 Where we are">
+          <div>
+            <div class="quote-mark">"</div>
+            <blockquote>NLP turns text into numbers.<br />Today: two "how?"s — <em>tokenization</em> and <em>similarity</em>.</blockquote>
+            <div class="quote-attr">the spine of the course · get data → measure similarity → rank</div>
+          </div>
+          <aside class="slide-notes">Recall the spine from Lecture 1: get data, measure similarity, rank a response. Every box had a "How?" on it. Today we answer the first two. Tokenization is how we get computable data out of raw text; similarity is how we measure closeness once we have vectors. Ranking — the third box — is next lecture.</aside>
+        </section>
+
+        <!-- ============================================ 05 · DIVIDER · PART 01 ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="05 Divider P1">
+          <div>
+            <div class="divider-num">Part 01</div>
+            <h1>Teaching a machine<br />to read</h1>
+            <p class="divider-sub">Two minds, no shared symbols. Before meaning, before grammar — we need units.</p>
+          </div>
+
+          <img src="assets/img/_char/serega-cameo-point.png?v=1" alt="" aria-hidden="true" class="cameo br" />
+
+          <aside class="slide-notes">The hero is stranded with Rocky, an alien engineer. Neither knows a word of the other's language. The breakthrough is mechanical, not magical: pin a symbol to a thing, then build up. A machine reading text starts in the same place — it sees a stream of bytes, not words.</aside>
+        </section>
+
+        <!-- ============================================ 06 · QUOTE · HOOK (first contact) ============================================ -->
+        <section class="slide" data-type="quote" data-screen-label="06 Hook">
+          <div>
+            <div class="quote-mark">"</div>
+            <blockquote>Two minds, no shared symbols.<br />Step one: turn utterances into units.</blockquote>
+            <div class="quote-attr">first contact · the language barrier</div>
+            <div class="viz-frame" style="height:auto; max-height:42vh; aspect-ratio:16/9; margin:var(--sp-3) auto 0; max-width:58%;">
+              <img src="assets/img/L2/L2-06-first-contact.png?v=1" alt="Serega and a friendly alien facing each other with a cloud of question marks: no shared symbols"
+                   style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+            </div>
+          </div>
+          <aside class="slide-notes">When Rocky and Grace first talk, they do not exchange sentences — they exchange single tones mapped to single quantities. That is tokenization in disguise: chop the signal into discrete pieces you can name and reuse. Until you have units, you have nothing to compute on.</aside>
+        </section>
+
+        <!-- ============================================ 07 · DEFINITION · NLP ============================================ -->
+        <section class="slide" data-type="definition" data-screen-label="07 Definition NLP">
+          <div class="slide-header">
+            <h2>Key term</h2>
+            <span class="slide-kicker">Definition</span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag">Definition</span>
+            <div class="def-term">Natural Language Processing<span class="term-en">NLP</span></div>
+            <div class="def-body">
+              <p>The field concerned with getting computers to <strong>process</strong>, <strong>understand</strong>, and <strong>generate</strong> human language.</p>
+              <p class="small muted">It sits between linguistics and machine learning: the raw material is messy human text, and the goal is to make it computable — and useful — for tasks like search, translation, and question answering.</p>
+            </div>
+          </div>
+          <aside class="slide-notes">NLP is our toolkit for the first-contact problem. Note the three verbs: process (clean it), understand (represent meaning), generate (produce language back). Today is mostly about the first two.</aside>
+        </section>
+
+        <!-- ============================================ 08 · VIZ · Discreteness ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="08 Discreteness">
+          <div class="slide-header">
+            <h2>Pixels interpolate; symbols do not</h2>
+            <span class="slide-kicker">Obstacle 1 · discreteness</span>
+          </div>
+          <div class="split-art art-left">
+            <div class="split-art__body">
+              <svg viewBox="0 0 720 460" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;max-height:54vh" role="img" aria-label="Continuous grey bar vs three discrete word-boxes for cat and dog with no halfway word">
+                <!-- top: continuous gradient bar with arrow -->
+                <text x="20" y="36" font-family="var(--font-mono)" font-size="22" fill="var(--ink-2)">pixel space — continuous</text>
+                <defs>
+                  <linearGradient id="lerp" x1="0" x2="1" y1="0" y2="0">
+                    <stop offset="0" stop-color="#14181F" />
+                    <stop offset="1" stop-color="#FBFAF6" />
+                  </linearGradient>
+                </defs>
+                <rect x="20" y="56" width="680" height="46" fill="url(#lerp)" stroke="var(--ink)" stroke-width="2" />
+                <text x="20" y="128" font-family="var(--font-mono)" font-size="20" fill="var(--ink-3)">black</text>
+                <text x="346" y="128" text-anchor="middle" font-family="var(--font-mono)" font-size="20" fill="var(--accent)">↑ a real, meaningful grey</text>
+                <text x="700" y="128" text-anchor="end" font-family="var(--font-mono)" font-size="20" fill="var(--ink-3)">white</text>
+
+                <!-- bottom: discrete word-tokens -->
+                <text x="20" y="200" font-family="var(--font-mono)" font-size="22" fill="var(--ink-2)">symbol space — discrete</text>
+                <g font-family="var(--font-sans)" font-size="34" fill="var(--ink)">
+                  <rect x="20"  y="230" width="170" height="80" rx="10" ry="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2" />
+                  <text x="105" y="282" text-anchor="middle">cat</text>
+                  <rect x="510" y="230" width="170" height="80" rx="10" ry="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2" />
+                  <text x="595" y="282" text-anchor="middle">dog</text>
+                  <!-- the "halfway" slot, crossed out -->
+                  <rect x="270" y="230" width="170" height="80" rx="10" ry="10" fill="none" stroke="var(--ink-3)" stroke-width="2" stroke-dasharray="6 6" />
+                  <text x="355" y="277" text-anchor="middle" font-family="var(--font-mono)" font-size="22" fill="var(--ink-3)">??? not a word</text>
+                  <line x1="270" y1="230" x2="440" y2="310" stroke="var(--c-red)" stroke-width="3" />
+                  <line x1="270" y1="310" x2="440" y2="230" stroke="var(--c-red)" stroke-width="3" />
+                </g>
+                <text x="355" y="360" text-anchor="middle" font-family="var(--font-mono)" font-size="20" fill="var(--ink-3)">no point lives between two strings</text>
+                <text x="355" y="412" text-anchor="middle" font-family="var(--font-sans)" font-size="22" fill="var(--c-red)" font-style="italic">strings have no inherent metric — we must <tspan font-weight="700">manufacture</tspan> one</text>
+              </svg>
+            </div>
+            <figure class="split-art__fig">
+              <img src="assets/img/L2/L2-08-discreteness.png?v=1" alt="Stick figure pointing to cat / dog word-boxes; a crossed-out 'not a word' box shows the missing midpoint" />
+              <figcaption class="split-art__cap">The same point as a doodle.</figcaption>
+            </figure>
+          </div>
+          <p class="viz-caption">A grey halfway between black and white is meaningful; a "word halfway between cat and dog" is not. Symbols have no inherent metric — that is the core motivation for representation learning.</p>
+          <aside class="slide-notes">This is the deepest obstacle. Pixel space is continuous and already has a metric; you can interpolate and the result is valid. Symbol space is discrete: "cat" and "dog" share no letters with their meanings, and there is no valid point "between" them. So we cannot read distance off the strings — we must manufacture a vector space where similar meanings sit close. Hold that thought; it is exactly Part 4.</aside>
+        </section>
+
+        <!-- ============================================ 09 · TWO-COL · Ambiguity ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="09 Ambiguity">
+          <div class="slide-header">
+            <h2>Ambiguity lives at every level</h2>
+            <span class="slide-kicker">Obstacle 2 · one string, many meanings</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Lexical</strong> — "bank" (river / money); "bat" (animal / sport).</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Syntactic / attachment</strong> — "I saw the man with the telescope." Who has the telescope?</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Semantic / scope</strong> — "Every student read a book." One book, or one each?</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Referential</strong> — the Winograd schema below.</span></li>
+              </ul>
+            </div>
+            <div class="twocol-col">
+              <div class="callout" data-kind="warn">
+                <div class="callout-icon">!</div>
+                <div class="callout-body">
+                  <strong>Winograd schema</strong>
+                  <p>"The trophy didn't fit in the suitcase because <em>it</em> was too big." — <em>it</em> = the trophy.</p>
+                  <p>Flip one word: "…because <em>it</em> was too <strong>small</strong>." — now <em>it</em> = the suitcase.</p>
+                  <p class="small muted">The string barely changed; the meaning of the pronoun flipped. Resolving this needs world knowledge, not just the symbols.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <aside class="slide-notes">Ambiguity is not an edge case; it is the normal state of language. The Winograd schema is the cleanest demo: a single adjective flip moves the referent. No purely lexical system can solve it — you need a model of the world (big things don't fit in small containers). This is why "understanding" is hard and why context-sensitive embeddings matter later.</aside>
+        </section>
+
+        <!-- ============================================ 10 · VIZ · Zipf's law ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="10 Zipf">
+          <div class="slide-header">
+            <h2>Zipf's law: a few words do all the work</h2>
+            <span class="slide-kicker">Obstacle 3 · the long tail</span>
+          </div>
+          <div class="viz-frame">
+            <img src="assets/img/L2/L2-10-zipf.png?v=1" alt="Steep Zipf bar chart: the, of, and tower over a long flat tail of words seen once" style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+          </div>
+          <p class="viz-caption">The frequency of the \(r\)-th most common word is \(\propto r^{-1}\). On 20&nbsp;Newsgroups (~3.7 M tokens), the empirical log–log slope is <strong>−1.02</strong>: the top&nbsp;10 words cover <strong>20.6%</strong> of the corpus, the top&nbsp;100 cover <strong>47.3%</strong>, and the top&nbsp;1000 cover <strong>71.4%</strong> — leaving a vast tail of words seen once (<em>hapax legomena</em>).</p>
+          <aside class="slide-notes">Zipf is steep. "the", "of", "and" eat enormous probability mass; then a power-law tail of rare words, most of which appear only once in a given corpus. The slope and coverage numbers cited here are not invented — they are computed by `_research/data/zipf.py` on sklearn's 20 Newsgroups corpus (public domain, headers/footers/quotes stripped). Empirical slope on the top-1000 is −1.018, which is textbook Zipf within rounding. Practical consequence: you can never collect enough text to see every word "enough" times. This is the empirical setup for the punchline two slides on.</aside>
+        </section>
+
+        <!-- ============================================ 11 · DEFINITION/VIZ · Heaps' law ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="11 Heaps">
+          <div class="slide-header">
+            <h2>Heaps' law: the vocabulary never saturates</h2>
+            <span class="slide-kicker">The argument for subwords</span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1600 580" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">
+              <line x1="120" y1="500" x2="1540" y2="500" stroke="var(--rule)" stroke-width="2"/>
+              <line x1="120" y1="500" x2="120" y2="40" stroke="var(--rule)" stroke-width="2"/>
+              <!-- vocab grows sublinearly but never saturates -->
+              <path d="M 120 500 Q 500 230 900 150 T 1540 70" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round"/>
+              <text x="980" y="120" font-family="var(--font-mono)" font-size="40" fill="var(--accent)">V ∝ N^β</text>
+              <text x="980" y="170" font-family="var(--font-sans)" font-size="26" fill="var(--ink-2)">β ≈ 0.59 — measured, grows forever</text>
+              <text x="1180" y="545" font-family="var(--font-mono)" font-size="22" fill="var(--ink-3)">tokens read N →</text>
+              <text x="20" y="60" font-family="var(--font-mono)" font-size="22" fill="var(--ink-3)">vocab V</text>
+              <line x1="120" y1="120" x2="1540" y2="120" stroke="var(--c-red)" stroke-width="2" stroke-dasharray="10 8"/>
+              <text x="130" y="108" font-family="var(--font-sans)" font-size="24" fill="var(--c-red)">a fixed word vocabulary — always falls short</text>
+            </svg>
+          </div>
+          <p class="viz-caption">As you read more text \(N\), the number of distinct types \(V\) keeps growing as \(V \propto N^{\beta}\) — sublinear, but <strong>unbounded</strong>. Measured on 3.66 M tokens of 20 Newsgroups: \(\beta \approx 0.59\), still <strong>94 287</strong> distinct types and climbing (\(R^2=0.998\)). No finite word list ever covers everything.</p>
+          <aside class="slide-notes">Heaps and Zipf are two views of the same fact. The punchline — say it loud: a fixed WORD vocabulary can never cover real text. New names, typos, compounds, hashtags, code identifiers arrive forever. That is the direct, non-negotiable argument for SUBWORD tokenization: bound the vocabulary, and rebuild any unseen word from pieces. Everything in Part 2 follows from this slide. Numbers grounded by <code>_research/data/heaps.py</code>: β≈0.59, K≈12.7, R²=0.998, 94 287 types on 3.66 M tokens of 20 Newsgroups (same corpus as the Zipf slide — the type counts match).</aside>
+        </section>
+
+        <!-- ============================================ 12 · TWO-COL · Morphology & multilinguality ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="12 Morphology">
+          <div class="slide-header">
+            <h2>"Split on spaces" is an English-centric assumption</h2>
+            <span class="slide-kicker">Obstacle 4 · morphology &amp; the world's scripts</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>Morphology stacks meaning</h3>
+              <p>Turkish, agglutinative:</p>
+              <div class="callout" data-kind="info">
+                <div class="callout-icon">i</div>
+                <div class="callout-body">
+                  <strong>evlerinizden</strong> = ev + ler + iniz + den
+                  <p class="small muted">"from your houses" — one written word, four morphemes. A word vocabulary would need a separate entry for every such combination.</p>
+                </div>
+              </div>
+            </div>
+            <div class="twocol-col">
+              <h3>No canonical word boundaries</h3>
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">~7000 languages; many scripts; right-to-left (Arabic, Hebrew).</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">Chinese has <strong>no spaces</strong>: 今天我很高兴 ("I am happy today") — segmentation is learned and ambiguous.</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">Thai: no spaces. Japanese: mixes kanji / hiragana / katakana.</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">Even English: "New York", "can't", URLs, #hashtags.</span></li>
+              </ul>
+            </div>
+          </div>
+          <aside class="slide-notes">Most of the planet does not put a space between every meaning-unit. Agglutinative languages glue morphemes; CJK and Thai have no spaces at all. So "tokenize = split on whitespace" is parochial. This pushes us toward a method that learns its units from data and works on any script — which is exactly what subword tokenizers (especially SentencePiece) do.</aside>
+        </section>
+
+        <!-- ============================================ 13 · ARCH · text → model pipeline ============================================ -->
+        <section class="slide" data-type="arch" data-screen-label="13 Pipeline">
+          <div class="slide-header">
+            <h2>The text → model pipeline</h2>
+            <span class="slide-kicker">High-level view</span>
+          </div>
+          <div class="arch-diagram">
+            <div class="arch-node" data-color="violet"><div class="arch-icon">"…"</div><div class="arch-name">Raw text</div><div class="arch-shape">a string</div></div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node"><div class="arch-icon">aA</div><div class="arch-name">Normalization</div><div class="arch-shape">unicode · case · strip</div></div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node" data-color="cyan"><div class="arch-icon">★</div><div class="arch-name">Tokenization</div><div class="arch-shape">text \(\to\) tokens</div></div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node"><div class="arch-icon">#</div><div class="arch-name">Numericalization</div><div class="arch-shape">token \(\to\) id</div></div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node" data-color="green"><div class="arch-icon">★</div><div class="arch-name">Vectors</div><div class="arch-shape">embeddings \(\in\mathbb{R}^d\)</div></div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node" data-color="amber"><div class="arch-icon">f(·)</div><div class="arch-name">Model</div><div class="arch-shape">search · rank · …</div></div>
+          </div>
+          <p class="small muted mt-4 center">Today we go deep on the two starred boxes: <strong>tokenization</strong>, and the <strong>similarity</strong> that vectors finally make possible.</p>
+          <aside class="slide-notes">This is the whole map (after Raschka's "LLMs from scratch"). Normalization is housekeeping; tokenization turns strings into reusable units; numericalization just looks up integer ids; embeddings turn ids into vectors (next weeks). Once we are in vector space, "relevant" becomes "close" — and that is Part 4. Concretely: "This is an example." might become ids like [40134, 2052, 133, 389, 12].</aside>
+        </section>
+
+        <!-- ============================================ 14 · TWO-COL · Normalization ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="14 Normalization">
+          <div class="slide-header">
+            <h2>Normalization: invisible differences that break matching</h2>
+            <span class="slide-kicker">Unicode · case · accents</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>Same glyph, different bytes</h3>
+              <div class="callout" data-kind="warn">
+                <div class="callout-icon">!</div>
+                <div class="callout-body">
+                  <strong>"é" has two encodings</strong>
+                  <p>NFC: <code>U+00E9</code> (one code point). NFD: <code>e</code> + <code>U+0301</code> (combining accent). Visually identical; byte-different → they <em>fail to match</em>.</p>
+                </div>
+              </div>
+              <p class="small muted">Forms: <strong>NFC</strong> (compose, storage), <strong>NFD</strong> (decompose), <strong>NFKC/NFKD</strong> (fold look-alikes: "ﬁ"→"fi", full-width "Ａ"→"A", "²"→"2"; aggressive, lossy).</p>
+            </div>
+            <div class="twocol-col">
+              <h3>The over-normalization trap</h3>
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">Lowercasing collapses "US" (country) and "us" (pronoun); "Apple" and "apple".</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">NFKC rewrites chemistry / math superscripts (\(x^{2}\) → "x2") — destroys signal.</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">Modern LLM tokenizers (GPT-2/4) do <strong>almost no</strong> normalization (byte-level, case-preserving). BERT-uncased lowercases + strips accents.</span></li>
+              </ul>
+              <p class="small muted">Pattern: NFC + minimal folding for generation; heavy NFKC + casefold only for lexical search-index keys.</p>
+            </div>
+          </div>
+          <aside class="slide-notes">Normalization is a double-edged knife. Too little and "café" written two Unicode ways never matches; too much and you erase the very distinctions you need (U.S. vs us, code, superscripts). The right amount depends on the job: a generation model preserves nearly everything; a BM25 search index folds aggressively because recall beats precision on surface form. This tension recurs in Part 3 when we discuss query/doc mismatch.</aside>
+        </section>
+
+        <!-- ============================================ 15 · STEMMING & LEMMATIZATION ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="15 Stemming &amp; Lemmatization">
+          <div class="slide-header">
+            <h2>Stemming vs. lemmatization</h2>
+            <span class="slide-kicker">collapsing word forms to a root</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>Stemming</h3>
+              <p>A crude, rule-based <strong>chopping of suffixes</strong> (e.g. the Porter stemmer). Fast and language-light — but the output is a <em>stem</em>, not always a real word.</p>
+              <div class="callout" data-kind="info">
+                <div class="callout-icon">i</div>
+                <div class="callout-body">
+                  <strong><code>studies → studi</code> · <code>caring → car</code></strong>
+                  <p>Can over-merge: <code>universe</code>, <code>university</code> both → <code>univers</code>.</p>
+                </div>
+              </div>
+            </div>
+            <div class="twocol-col">
+              <h3>Lemmatization</h3>
+              <p>Maps a word to its dictionary <em>lemma</em> using a vocabulary + morphology (often with the part of speech). Slower, but the output is always a valid word.</p>
+              <div class="callout" data-kind="info">
+                <div class="callout-icon">i</div>
+                <div class="callout-body">
+                  <strong><code>studies → study</code> · <code>drove → drive</code> · <code>better → good</code></strong>
+                  <p>Needs POS: <code>saw</code> → <code>see</code> (verb) or <code>saw</code> (noun).</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="small muted center mt-3">Both shrink <code>open / opened / opens / opening</code> to one form so a query matches every variant — the classic fix for the <strong>lexical gap</strong>. Sparse retrieval (BM25) still relies on them; neural / subword models usually skip them and let the tokenizer + embeddings handle morphology.</p>
+          <aside class="slide-notes">The two classic ways to normalize <em>word forms</em> (after the character-level normalization on the previous slide). Stemming is a fast heuristic that just lops off endings — cheap, but it can produce non-words and over-merge unrelated terms. Lemmatization is principled: it uses a lexicon and morphology (and ideally the POS tag) to return the true dictionary form. The payoff is the same — a search for "running" should match "ran" — which is exactly the lexical-gap problem from Lecture 1. Key modern caveat: deep models rarely stem or lemmatize; subword tokenization plus learned embeddings absorb morphology, so this lives mostly on the classical-IR/BM25 side of the course.</aside>
+        </section>
+
+        <!-- ============================================ 16 · QUIZ · why text is harder ============================================ -->
+        <section class="slide" data-type="quiz" data-screen-label="16 Quiz P1">
+          <div class="slide-header">
+            <h2>Quick check</h2>
+            <span class="slide-kicker">Audience question</span>
+          </div>
+          <div class="quiz-frame">
+            <div class="quiz-q">Why is raw text fundamentally harder for ML than images?</div>
+            <div class="quiz-options">
+              <div class="quiz-option" data-correct="true"><span class="quiz-letter">A</span><span>Symbols are discrete, length varies, vocabulary is open.</span><span></span></div>
+              <div class="quiz-option" data-correct="false"><span class="quiz-letter">B</span><span>Text files are larger than image files.</span><span></span></div>
+              <div class="quiz-option" data-correct="false"><span class="quiz-letter">C</span><span>Images come pre-labelled, text never does.</span><span></span></div>
+            </div>
+            <details class="hidden-answer mt-4">
+              <summary>Reveal explanation</summary>
+              <div class="ha-content"><strong>A</strong>. Three structural facts behind the kernel claim: <em>discreteness</em> (no built-in metric on symbols), <em>variable length</em> (inputs aren't a fixed-size grid), and an <em>open vocabulary</em> (Zipf's steep tail, Heaps' never-saturating \(V \propto N^{\beta}\)). Images are continuous, fixed-grid, interpolatable; text isn't. B is about storage, not learnability; C is false (text labels exist, just at a different granularity).</div>
+            </details>
+          </div>
+          <aside class="slide-notes">Let them commit. The point is to consolidate Part 1: the difficulty is structural, not about file sizes or hardware. These three facts are exactly what tokenization and embeddings exist to fix.</aside>
+        </section>
+
+        <!-- ============================================ 16 · DIVIDER · PART 02 ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="17 Divider P2">
+          <div>
+            <div class="divider-num">Part 02</div>
+            <h1>Breaking the code:<br />Tokenization</h1>
+            <p class="divider-sub">The problem: a string is one long blob. The fix: cut it into units the model can reuse.</p>
+          </div>
+          <aside class="slide-notes">Rocky and Grace cannot trade whole speeches — they trade atoms of meaning and rebuild from there. A machine needs the same: a finite, reusable inventory of pieces. How we cut decides everything downstream.</aside>
+        </section>
+
+        <!-- ============================================ 17 · DEFINITION · token / tokenization ============================================ -->
+        <section class="slide" data-type="definition" data-screen-label="18 Definition Token">
+          <div class="slide-header">
+            <h2>Key term</h2>
+            <span class="slide-kicker">Definition</span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag">Definition</span>
+            <div class="def-term">Token · Tokenization<span class="term-en">token · tokenization</span></div>
+            <div class="def-body">
+              <p><strong>Tokenization</strong> splits raw text into <strong>tokens</strong> — the atomic units the model consumes.</p>
+              <p class="small muted">A token may be a <strong>word</strong>, a <strong>subword</strong>, or a single <strong>character</strong> / byte. The choice of granularity is a design decision with real trade-offs — that is the next few slides.</p>
+            </div>
+          </div>
+          <aside class="slide-notes">Stress that a "token" is not the same as a "word". This trips students constantly. The model never sees words — it sees a sequence of token ids, whatever we defined a token to be. Rule of thumb for English: roughly 4 characters per token, ~0.75 words per token (100 tokens ≈ 75 words).</aside>
+        </section>
+
+        <!-- ============================================ 18 · VIZ · token-ID strip ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="19 Token IDs">
+          <div class="slide-header">
+            <h2>Tokens become integer ids</h2>
+            <span class="slide-kicker">"students opened their books"</span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1600 460" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">
+              <g font-family="var(--font-mono)" font-size="40">
+                <rect x="80"  y="80" width="300" height="100" rx="12" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+                <text x="230" y="145" text-anchor="middle" fill="var(--accent-ink)">students</text>
+                <rect x="420" y="80" width="300" height="100" rx="12" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+                <text x="570" y="145" text-anchor="middle" fill="var(--accent-ink)">opened</text>
+                <rect x="760" y="80" width="300" height="100" rx="12" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+                <text x="910" y="145" text-anchor="middle" fill="var(--accent-ink)">their</text>
+                <rect x="1100" y="80" width="300" height="100" rx="12" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+                <text x="1250" y="145" text-anchor="middle" fill="var(--accent-ink)">books</text>
+              </g>
+              <g stroke="var(--ink-3)" stroke-width="2" marker-end="url(#tk)">
+                <line x1="230" y1="190" x2="230" y2="260"/>
+                <line x1="570" y1="190" x2="570" y2="260"/>
+                <line x1="910" y1="190" x2="910" y2="260"/>
+                <line x1="1250" y1="190" x2="1250" y2="260"/>
+              </g>
+              <defs><marker id="tk" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-3)"/></marker></defs>
+              <g font-family="var(--font-mono)" font-size="48" font-weight="700">
+                <rect x="120" y="280" width="220" height="100" rx="12" fill="var(--c-violet-soft,#ece9fb)" stroke="var(--c-violet,#7c5cff)" stroke-width="2"/>
+                <text x="230" y="348" text-anchor="middle" fill="var(--c-violet,#7c5cff)">11</text>
+                <rect x="460" y="280" width="220" height="100" rx="12" fill="var(--c-violet-soft,#ece9fb)" stroke="var(--c-violet,#7c5cff)" stroke-width="2"/>
+                <text x="570" y="348" text-anchor="middle" fill="var(--c-violet,#7c5cff)">298</text>
+                <rect x="800" y="280" width="220" height="100" rx="12" fill="var(--c-violet-soft,#ece9fb)" stroke="var(--c-violet,#7c5cff)" stroke-width="2"/>
+                <text x="910" y="348" text-anchor="middle" fill="var(--c-violet,#7c5cff)">34</text>
+                <rect x="1140" y="280" width="220" height="100" rx="12" fill="var(--c-violet-soft,#ece9fb)" stroke="var(--c-violet,#7c5cff)" stroke-width="2"/>
+                <text x="1250" y="348" text-anchor="middle" fill="var(--c-violet,#7c5cff)">567</text>
+              </g>
+              <text x="80" y="440" font-family="var(--font-sans)" font-size="26" fill="var(--ink-2)">Each token maps to a fixed integer id — a row index into the embedding matrix.</text>
+            </svg>
+          </div>
+          <p class="viz-caption">"students opened their books" → tokens → ids <code>11 | 298 | 34 | 567</code>. The id is just a lookup index; the meaning is in the embedding it points to.</p>
+          <aside class="slide-notes">Concrete and reassuring: tokenization plus a vocabulary is just a dictionary from token-string to integer. The integers are arbitrary — what matters is that the same token always gets the same id, so the embedding lookup is consistent. The semantics live entirely in the embedding vectors, which we learn later.</aside>
+        </section>
+
+        <!-- ============================================ 19 · VIZ · tradeoff triangle + real numbers ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="20 Tradeoff">
+          <div class="slide-header">
+            <h2>The granularity trade-off triangle</h2>
+            <span class="slide-kicker">vocab size ↔ sequence length ↔ OOV</span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1600 560" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">
+              <polygon points="800,70 200,500 1400,500" fill="none" stroke="var(--rule)" stroke-width="3"/>
+              <!-- vertices -->
+              <circle cx="800" cy="70" r="14" fill="var(--accent)"/>
+              <text x="800" y="50" text-anchor="middle" font-family="var(--font-sans)" font-size="32" fill="var(--ink)">Character / byte</text>
+              <circle cx="200" cy="500" r="14" fill="var(--c-red)"/>
+              <text x="200" y="540" text-anchor="middle" font-family="var(--font-sans)" font-size="32" fill="var(--ink)">Word</text>
+              <circle cx="1400" cy="500" r="14" fill="var(--c-green)"/>
+              <text x="1400" y="540" text-anchor="middle" font-family="var(--font-sans)" font-size="32" fill="var(--ink)">Subword (sweet spot)</text>
+              <!-- edge labels — placed OUTSIDE each edge so no line crosses text -->
+              <text x="475" y="248" text-anchor="end" font-family="var(--font-mono)" font-size="23" fill="var(--ink-2)">tiny vocab,</text>
+              <text x="475" y="278" text-anchor="end" font-family="var(--font-mono)" font-size="23" fill="var(--ink-2)">very long seq</text>
+              <text x="1125" y="248" font-family="var(--font-mono)" font-size="23" fill="var(--ink-2)">no OOV,</text>
+              <text x="1125" y="278" font-family="var(--font-mono)" font-size="23" fill="var(--ink-2)">bounded vocab</text>
+              <text x="800" y="468" text-anchor="middle" font-family="var(--font-mono)" font-size="23" fill="var(--ink-2)">huge vocab · OOV/UNK · short seq</text>
+              <text x="800" y="300" text-anchor="middle" font-family="var(--font-sans)" font-size="26" fill="var(--c-green)" font-style="italic">modern default lives here</text>
+            </svg>
+          </div>
+          <figure class="art-strip">
+            <img src="assets/img/L2/L2-20-tradeoff.png?v=1" alt="A stick-figure juggler with three balls labelled vocab, seq len, OOV — only two can stay in the air at once" />
+          </figure>
+          <p class="viz-caption">Real vocab sizes: GPT-2 <strong>50,257</strong>; cl100k (GPT-3.5/4) <strong>~100k</strong>; o200k (GPT-4o) <strong>~200k</strong>; BERT <strong>30,522</strong>; LLaMA / T5 (SentencePiece) <strong>32k</strong>. English ≈ <strong>4 chars/token</strong>.</p>
+          <aside class="slide-notes">You cannot win on all three corners. Push toward characters: vocabulary shrinks to ~256 bytes and OOV vanishes, but sequences blow up ~4–5×, which is brutal under O(n²) attention. Push toward words: sequences are short, but the vocabulary is unbounded (Heaps) and OOV is severe. Subword sits in the interior — a bounded vocab of 30k–200k, moderate sequence length, near-zero OOV. Bigger vocab → fewer tokens per text → shorter sequences and lower cost, but a bigger embedding matrix and softmax.</aside>
+        </section>
+
+        <!-- ============================================ 20 · WALKTHROUGH · granularity on one sentence ============================================ -->
+        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="21 Granularity">
+          <div class="slide-header">
+            <h2>Granularity on one sentence</h2>
+            <span class="slide-kicker">"unhappiness is unbearable"</span>
+          </div>
+          <p class="small muted mt-2">Same sentence, three ways to cut it. Watch vocabulary size and sequence length trade off.</p>
+          <div class="walk-flow">
+            <div class="walk-step" data-step="1" data-color="violet">
+              <div class="walk-num">01</div>
+              <div class="walk-content"><div class="walk-label">Character level</div><div class="walk-detail"><code>u·n·h·a·p·p·i·n·e·s·s·…</code> — tiny vocabulary, very long sequence. No OOV ever.</div></div>
+              <div class="walk-state">vocab \(\sim 10^{2}\)</div>
+            </div>
+            <div class="walk-step" data-step="2" data-color="amber">
+              <div class="walk-num">02</div>
+              <div class="walk-content"><div class="walk-label">Word level</div><div class="walk-detail"><code>unhappiness · is · unbearable</code> — short sequence, but a <strong>huge</strong> vocabulary, and any unseen word becomes <span class="term">[UNK]</span> (the OOV problem).</div></div>
+              <div class="walk-state">vocab \(\sim 10^{6}\), OOV</div>
+            </div>
+            <div class="walk-step" data-step="3" data-color="cyan">
+              <div class="walk-num">03</div>
+              <div class="walk-content"><div class="walk-label">Subword (BPE / WordPiece)</div><div class="walk-detail"><code>un · happiness</code>, or <code>un · happ · iness</code> — the middle ground. Common words stay whole; rare words decompose into known pieces.</div></div>
+              <div class="walk-state">vocab \(\sim 3\times10^{4}\)</div>
+            </div>
+            <div class="walk-step" data-step="4" data-final="true">
+              <div class="walk-num">→</div>
+              <div class="walk-content"><div class="walk-label">Verdict</div><div class="walk-detail">Subword wins for an open vocabulary: bounded size, reasonable sequence length, graceful handling of unseen words.</div></div>
+              <div class="walk-state">✓ subword</div>
+            </div>
+          </div>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">←</button>
+            <span class="step-counter">4/4</span>
+            <button data-step-act="next" aria-label="Next step">→</button>
+          </div>
+          <aside class="slide-notes">Walk it one row at a time. Character-level: trivially no OOV, but a 20-word sentence becomes 100+ tokens and the model must learn spelling. Word-level: clean and short, but you can never enumerate every word, and morphology ("unhappiness" = un + happy + ness) is invisible. Subword is the practical compromise nearly every modern model uses.</aside>
+        </section>
+
+        <!-- ============================================ 21 · VIZ · word-level pain + OOV/UNK ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="22 Word pain">
+          <div class="slide-header">
+            <h2>Word-level wastes the vocabulary — and still breaks</h2>
+            <span class="slide-kicker">inflection blow-up · OOV → [UNK]</span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1600 540" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">
+              <text x="80" y="70" font-family="var(--font-sans)" font-size="30" fill="var(--ink)">One stem → four unrelated entries:</text>
+              <g font-family="var(--font-mono)" font-size="32">
+                <rect x="80"  y="100" width="280" height="80" rx="10" fill="var(--accent-soft)" stroke="var(--accent)"/>
+                <text x="220" y="152" text-anchor="middle" fill="var(--accent-ink)">open</text>
+                <rect x="400" y="100" width="280" height="80" rx="10" fill="var(--accent-soft)" stroke="var(--accent)"/>
+                <text x="540" y="152" text-anchor="middle" fill="var(--accent-ink)">opened</text>
+                <rect x="720" y="100" width="280" height="80" rx="10" fill="var(--accent-soft)" stroke="var(--accent)"/>
+                <text x="860" y="152" text-anchor="middle" fill="var(--accent-ink)">opens</text>
+                <rect x="1040" y="100" width="320" height="80" rx="10" fill="var(--accent-soft)" stroke="var(--accent)"/>
+                <text x="1200" y="152" text-anchor="middle" fill="var(--accent-ink)">opening</text>
+              </g>
+              <text x="80" y="240" font-family="var(--font-sans)" font-size="24" fill="var(--ink-2)">→ four separate ids, four separate embeddings — the model can't see they're related.</text>
+              <text x="80" y="340" font-family="var(--font-sans)" font-size="30" fill="var(--c-red)">OOV: a Welsh place name the model never saw —</text>
+              <g font-family="var(--font-mono)" font-size="32">
+                <rect x="80" y="370" width="640" height="80" rx="10" fill="none" stroke="var(--ink-3)" stroke-dasharray="6 6"/>
+                <text x="400" y="422" text-anchor="middle" fill="var(--ink-2)">"Hen Gapel Lligwy"</text>
+                <text x="760" y="422" font-size="44" fill="var(--c-red)">→</text>
+                <rect x="820" y="370" width="540" height="80" rx="10" fill="var(--c-red)" opacity="0.12" stroke="var(--c-red)"/>
+                <text x="1090" y="422" text-anchor="middle" fill="var(--c-red)">&lt;unk&gt; &lt;unk&gt; &lt;unk&gt;</text>
+              </g>
+              <text x="80" y="500" font-family="var(--font-sans)" font-size="24" fill="var(--ink-2)">Word-level discards all information about rare words and named entities.</text>
+            </svg>
+          </div>
+          <p class="viz-caption">Word-level treats open / opened / opens / opening as four unrelated types, yet still collapses anything unseen to <span class="term">[UNK]</span>. Subword fixes both at once.</p>
+          <aside class="slide-notes">Two complaints in one slide. First, morphological waste: the four forms of "open" share an obvious stem, but word-level gives them independent embeddings, so the model relearns "open-ness" four times. Second, the OOV cliff: a rare Welsh place name has no entry and collapses to UNK — all information lost. Subword pieces ("open" + "##ed") solve both: shared stems, and unseen words rebuilt from known pieces.</aside>
+        </section>
+
+        <!-- ============================================ 22 · DEFINITION · BPE ============================================ -->
+        <section class="slide" data-type="definition" data-screen-label="23 Definition BPE">
+          <div class="slide-header">
+            <h2>Key term</h2>
+            <span class="slide-kicker">Definition</span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag">Definition</span>
+            <div class="def-term">Byte-Pair Encoding<span class="term-en">BPE</span></div>
+            <div class="def-body">
+              <p>Start from single characters; <strong>repeatedly merge the most frequent adjacent pair</strong> into a new symbol, recording each merge rule, until the vocabulary reaches a target size.</p>
+              <p class="small muted">Origin: Philip Gage, <em>"A New Algorithm for Data Compression"</em> (1994). Brought to NLP by Sennrich, Haddow &amp; Birch (2016) for machine translation. Greedy, frequency-driven, deterministic.</p>
+            </div>
+          </div>
+          <div class="viz-frame" style="height:auto; max-height:32vh; aspect-ratio:16/9; margin:var(--sp-3) auto 0; max-width:46%;">
+            <img src="assets/img/L2/L2-23-tokenosaurus.png?v=1" alt="Tokenosaurus, a friendly dinosaur, snipping the word tokenization into sub-word chunks"
+                 style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+          </div>
+          <aside class="slide-notes">BPE began as a compression trick: replace the most common byte pair with an unused byte, repeat. Sennrich realized the same loop gives an open-vocabulary tokenizer for NMT. Two phases: TRAIN (learn an ordered list of merges from a corpus), and ENCODE (apply those merges in order to any new text). The next two slides are worked examples of the training loop. Picture <strong>Tokenosaurus</strong> — the friendly dino who snips long words into reusable chunks; BPE is just his rule for deciding where to bite.</aside>
+        </section>
+
+        <!-- ============================================ 23 · E2E · BPE toy aaabdaaabac ============================================ -->
+        <section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="24 BPE toy">
+          <div class="slide-header">
+            <h2>BPE, the compression intuition</h2>
+            <span class="slide-kicker">E2E · toy string aaabdaaabac</span>
+          </div>
+          <div class="e2e-arch">
+            <div class="e2e-arch-block" data-role="project" data-step-range="0" data-tooltip="The raw string: 11 characters."><div class="arch-name">raw</div><div class="arch-shape">11 chars</div></div>
+            <div class="e2e-arch-arrow" data-step-range="0..1"></div>
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="1" data-tooltip="Most frequent pair aa → Z."><div class="arch-name">merge aa→Z</div><div class="arch-shape">×1</div></div>
+            <div class="e2e-arch-arrow" data-step-range="1..2"></div>
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="2" data-tooltip="Next: ab → Y."><div class="arch-name">merge ab→Y</div><div class="arch-shape">×1</div></div>
+            <div class="e2e-arch-arrow" data-step-range="2..3"></div>
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="3" data-tooltip="Next: ZY → X."><div class="arch-name">merge ZY→X</div><div class="arch-shape">×1</div></div>
+            <div class="e2e-arch-arrow" data-step-range="3..4"></div>
+            <div class="e2e-arch-block" data-role="project" data-step-range="4" data-tooltip="Compressed: 5 symbols."><div class="arch-name">result</div><div class="arch-shape">5 symbols</div></div>
+            <div class="e2e-arch-legend"><span class="leg" data-role="project">state</span><span class="leg" data-role="nonlinear">merge</span></div>
+          </div>
+          <div class="e2e-twin">
+            <div class="e2e-panel e2e-math-panel">
+              <div class="panel-head">Rule applied</div>
+              <div class="e2e-step" data-step="0"><div class="step-formula">$$\texttt{aaabdaaabac}$$</div><p class="step-caption">Start: 11 characters. Press → to merge the most frequent adjacent pair each time.</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-formula">$$\texttt{aa} \to \texttt{Z}$$</div><p class="step-caption"><strong>Merge 1.</strong> The pair <code>aa</code> occurs twice — the most frequent. Replace it everywhere with a new symbol <code>Z</code>.</p></div>
+              <div class="e2e-step" data-step="2"><div class="step-formula">$$\texttt{ab} \to \texttt{Y}$$</div><p class="step-caption"><strong>Merge 2.</strong> Now <code>ab</code> occurs twice. Replace it with <code>Y</code>.</p></div>
+              <div class="e2e-step" data-step="3"><div class="step-formula">$$\texttt{ZY} \to \texttt{X}$$</div><p class="step-caption"><strong>Merge 3.</strong> The pair <code>ZY</code> occurs twice. Replace it with <code>X</code>.</p></div>
+              <div class="e2e-step" data-step="4"><div class="step-formula">$$\texttt{XdXac}$$</div><p class="step-caption"><strong>Result.</strong> 11 → 5 symbols. The merges <code>aa, ab, ZY</code> are the recorded vocabulary.</p></div>
+            </div>
+            <div class="e2e-panel e2e-example-panel">
+              <div class="panel-head">String state</div>
+              <div class="e2e-step" data-step="0"><div class="step-calc-row"><span class="matrix-label"><code>a a a b d a a a b a c</code></span></div></div>
+              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label"><code>Z a b d Z a b a c</code></span></div><p class="step-caption tiny">9 symbols.</p></div>
+              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label"><code>Z Y d Z Y a c</code></span></div><p class="step-caption tiny">7 symbols.</p></div>
+              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label"><code>X d X a c</code></span></div><p class="step-caption tiny">5 symbols.</p></div>
+              <div class="e2e-step" data-step="4"><div class="step-calc-row"><span class="matrix-label is-highlight"><code>X d X a c</code></span></div><p class="step-caption tiny">Done — no adjacent pair repeats.</p></div>
+            </div>
+          </div>
+          <div class="e2e-stepper">
+            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">←</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 4</span></div><button type="button" class="step-btn" data-step-act="next">→</button></div>
+            <span class="e2e-stage-name">overview</span>
+            <button type="button" class="e2e-toggle">Theory only</button>
+          </div>
+          <aside class="slide-notes">Gage's original compression example, exactly. aaabdaaabac (11) → Zabd Zabac (aa→Z) → ZYd ZYac (ab→Y) → XdXac (ZY→X), 5 symbols. The loop is trivial: count adjacent pairs, merge the top one, repeat. The same loop, run on a word corpus with frequencies, gives the subword tokenizer on the next slide.</aside>
+        </section>
+
+        <!-- ============================================ 24 · E2E · BPE real corpus ============================================ -->
+        <section class="slide" data-type="e2e" data-max-step="6" data-current-step="0" data-screen-label="25 BPE corpus">
+          <div class="slide-header">
+            <h2>BPE on a real word corpus</h2>
+            <span class="slide-kicker">E2E · {low, lower, newest, widest}</span>
+          </div>
+          <div class="e2e-arch">
+            <div class="e2e-arch-block" data-role="project" data-step-range="1" data-tooltip="Split each word into chars + end-of-word marker.">
+              <div class="arch-name">chars</div><div class="arch-shape">+ &lt;/w&gt;</div></div>
+            <div class="e2e-arch-arrow" data-step-range="1..2"></div>
+            <div class="e2e-arch-block" data-role="reduce" data-step-range="2" data-tooltip="Count adjacent pairs weighted by word frequency.">
+              <div class="arch-name">count pairs</div><div class="arch-shape">freq</div></div>
+            <div class="e2e-arch-arrow" data-step-range="2..5"></div>
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="3..5" data-tooltip="Merge the top pair; repeat.">
+              <div class="arch-name">merge top</div><div class="arch-shape">×K</div></div>
+            <div class="e2e-arch-arrow" data-step-range="5..6"></div>
+            <div class="e2e-arch-block" data-role="project" data-step-range="6" data-tooltip="Encode an unseen word from learned pieces.">
+              <div class="arch-name">generalize</div><div class="arch-shape">no UNK</div></div>
+            <div class="e2e-arch-legend"><span class="leg" data-role="project">setup / result</span><span class="leg" data-role="reduce">counting</span><span class="leg" data-role="nonlinear">merge</span></div>
+          </div>
+          <div class="e2e-twin">
+            <div class="e2e-panel e2e-math-panel">
+              <div class="panel-head">What happens</div>
+              <div class="e2e-step" data-step="0"><div class="step-formula">$$\{\,\texttt{low}^{5},\ \texttt{lower}^{2},\ \texttt{newest}^{6},\ \texttt{widest}^{3}\,\}$$</div><p class="step-caption">Four words with corpus frequencies (superscripts). <code>&lt;/w&gt;</code> marks end-of-word.</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-formula">$$\texttt{word}\to\text{chars}+\texttt{&lt;/w&gt;}$$</div><p class="step-caption">Initial vocabulary = the single characters plus the end marker.</p></div>
+              <div class="e2e-step" data-step="2"><div class="step-formula">$$\text{count pairs, weighted by freq}$$</div><p class="step-caption">The pair <code>e&nbsp;s</code> appears in <code>newest</code> (\(6\)) and <code>widest</code> (\(3\)) \(\Rightarrow 9\), the maximum.</p></div>
+              <div class="e2e-step" data-step="3"><div class="step-formula">$$\texttt{e}+\texttt{s}\to\texttt{es}\;(9),\quad \texttt{es}+\texttt{t}\to\texttt{est}\;(9)$$</div><p class="step-caption"><strong>Merges 1–2.</strong> Both have count \(9\) (from newest+widest).</p></div>
+              <div class="e2e-step" data-step="4"><div class="step-formula">$$\texttt{est}+\texttt{&lt;/w&gt;}\to\texttt{est&lt;/w&gt;}\;(9)$$</div><p class="step-caption"><strong>Merge 3.</strong> Still \(6+3=9\) — bind the suffix to the word boundary.</p></div>
+              <div class="e2e-step" data-step="5"><div class="step-formula">$$\texttt{l}+\texttt{o}\to\texttt{lo}\;(7),\quad \texttt{lo}+\texttt{w}\to\texttt{low}\;(7)$$</div><p class="step-caption"><strong>Merges 4–5.</strong> Count \(5+2=7\) (from low+lower).</p></div>
+              <div class="e2e-step" data-step="6"><div class="step-formula">$$\texttt{lowest}\;(\text{unseen})\to\texttt{low}\;\texttt{est&lt;/w&gt;}$$</div><p class="step-caption"><strong>Result.</strong> A word never in training is built from learned pieces — no <span class="term">[UNK]</span>.</p></div>
+            </div>
+            <div class="e2e-panel e2e-example-panel">
+              <div class="panel-head">Concrete state</div>
+              <div class="e2e-step" data-step="0"><p class="step-caption">↓ Token sequences update at every merge.</p></div>
+              <div class="e2e-step" data-step="1">
+                <div class="step-calc-row"><span class="matrix-label"><code>low</code><sup>5</sup></span><span class="matrix-label">→ <code>l o w &lt;/w&gt;</code></span></div>
+                <div class="step-calc-row"><span class="matrix-label"><code>lower</code><sup>2</sup></span><span class="matrix-label">→ <code>l o w e r &lt;/w&gt;</code></span></div>
+                <div class="step-calc-row"><span class="matrix-label"><code>newest</code><sup>6</sup></span><span class="matrix-label">→ <code>n e w e s t &lt;/w&gt;</code></span></div>
+                <div class="step-calc-row"><span class="matrix-label"><code>widest</code><sup>3</sup></span><span class="matrix-label">→ <code>w i d e s t &lt;/w&gt;</code></span></div>
+              </div>
+              <div class="e2e-step" data-step="2">
+                <p class="step-caption tiny">Top pair counts:</p>
+                <div class="step-calc-row"><span class="matrix-label"><code>e s</code></span><span class="matrix-label">= \(6+3=9\) ✓</span></div>
+                <div class="step-calc-row"><span class="matrix-label"><code>s t</code></span><span class="matrix-label">= \(6+3=9\)</span></div>
+                <div class="step-calc-row"><span class="matrix-label"><code>l o</code></span><span class="matrix-label">= \(5+2=7\)</span></div>
+              </div>
+              <div class="e2e-step" data-step="3">
+                <div class="step-calc-row"><span class="matrix-label"><code>newest</code></span><span class="matrix-label">→ <code>n e w <b>est</b> &lt;/w&gt;</code></span></div>
+                <div class="step-calc-row"><span class="matrix-label"><code>widest</code></span><span class="matrix-label">→ <code>w i d <b>est</b> &lt;/w&gt;</code></span></div>
+                <p class="step-caption tiny">Vocab gains <code>es</code>, <code>est</code>.</p>
+              </div>
+              <div class="e2e-step" data-step="4">
+                <div class="step-calc-row"><span class="matrix-label"><code>newest</code></span><span class="matrix-label">→ <code>n e w <b>est&lt;/w&gt;</b></code></span></div>
+                <div class="step-calc-row"><span class="matrix-label"><code>widest</code></span><span class="matrix-label">→ <code>w i d <b>est&lt;/w&gt;</b></code></span></div>
+                <p class="step-caption tiny">Vocab gains <code>est&lt;/w&gt;</code>.</p>
+              </div>
+              <div class="e2e-step" data-step="5">
+                <div class="step-calc-row"><span class="matrix-label"><code>low</code></span><span class="matrix-label">→ <code><b>low</b> &lt;/w&gt;</code></span></div>
+                <div class="step-calc-row"><span class="matrix-label"><code>lower</code></span><span class="matrix-label">→ <code><b>low</b> e r &lt;/w&gt;</code></span></div>
+                <p class="step-caption tiny">Vocab gains <code>lo</code>, <code>low</code>.</p>
+              </div>
+              <div class="e2e-step" data-step="6">
+                <div class="step-calc-row"><span class="matrix-label"><code>lowest</code><sup>(unseen)</sup></span></div>
+                <div class="step-calc-row"><span class="matrix-label">→ <code><b>low</b> <b>est&lt;/w&gt;</b></code></span></div>
+                <p class="step-caption tiny">Built from learned pieces — generalizes.</p>
+              </div>
+            </div>
+          </div>
+          <div class="e2e-stepper">
+            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">←</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 6</span></div><button type="button" class="step-btn" data-step-act="next">→</button></div>
+            <span class="e2e-stage-name">overview</span>
+            <button type="button" class="e2e-toggle">Theory only</button>
+          </div>
+          <aside class="slide-notes">The flagship. Five merges, all arithmetic on the right and self-consistent: es (9), est (9), est&lt;/w&gt; (9), lo (7), low (7). The es/st tie at 9 is broken by a fixed rule (here es first). The payoff at step 6: "lowest" was never in the corpus, yet it tokenizes cleanly as low · est&lt;/w&gt; from learned pieces — no UNK. That generalization is the whole reason subword tokenization won.</aside>
+          <aside data-notes-for-step="2">Ask the room which pair is most frequent before revealing. "e s" and "s t" tie at 9; ties broken by a fixed rule.</aside>
+          <aside data-notes-for-step="6">Merges apply in learned order — that is why "lowest" becomes low · est&lt;/w&gt; and nothing else.</aside>
+        </section>
+
+        <!-- ============================================ 25 · TWO-COL · byte-level BPE ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="26 Byte BPE">
+          <div class="slide-header">
+            <h2>Byte-level BPE: UNK becomes impossible</h2>
+            <span class="slide-kicker">GPT-2 and friends</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>Start from 256 bytes</h3>
+              <p>There are ~138,000 Unicode code points — too many to enumerate. GPT-2 instead starts BPE from the <strong>256 raw bytes</strong> and merges upward.</p>
+              <div class="callout" data-kind="info">
+                <div class="callout-icon">i</div>
+                <div class="callout-body">
+                  <strong>Any byte sequence is representable</strong>
+                  <p>Emoji, Chinese, source code, binary garbage — all decode to bytes, so <span class="term">[UNK]</span> is <em>mathematically impossible</em>.</p>
+                </div>
+              </div>
+            </div>
+            <div class="twocol-col">
+              <h3>Whitespace as a token</h3>
+              <p>A regex pre-tokenizer keeps the leading space attached, so <code>" the"</code> is a single token distinct from <code>"the"</code>.</p>
+              <p class="small muted">This makes encoding reversible (you can reconstruct the exact bytes) and is why a trailing space can change a model's behaviour — a corner case we return to in Part 3.</p>
+            </div>
+          </div>
+          <aside class="slide-notes">Byte-level BPE is the elegant fix to OOV: by grounding the base vocabulary in bytes, the worst case for any input is "fall back to bytes", never UNK. The leading-space trick (" the" vs "the") preserves reversibility and word boundaries without a language-specific pre-tokenizer. Remember the trailing-space gotcha — it comes straight from this design.</aside>
+        </section>
+
+        <!-- ============================================ 26 · MISCONCEPTION · BPE non-uniqueness ============================================ -->
+        <section class="slide" data-type="misconception" data-screen-label="27 BPE non-unique">
+          <div class="slide-header">
+            <h2>Common misconception</h2>
+            <span class="slide-kicker">Bust the myth</span>
+          </div>
+          <div class="misc-card">
+            <div class="misc-label">What students think</div>
+            <p class="misc-statement">&ldquo;A word has one correct BPE tokenization.&rdquo;</p>
+            <button class="misc-reveal-btn" type="button">Reveal truth</button>
+            <div class="misc-truth">In principle a word can be cut many ways — <code>"linear"</code> could be <code>li + near</code> or <code>li + n + ea + r</code>; <code>"algebra"</code> could be <code>al + ge + bra</code> or <code>al + g + e + bra</code>. BPE makes it deterministic only by fixing the <strong>order</strong> of learned merges and applying them greedily. Change the corpus (and thus the merge order) and the segmentation changes. The tokenization is a property of the trained merge table, not of the word.
+              <p class="misc-anchor">
+                <strong>Worked example.</strong> Word: <code>"singer"</code>.
+                <br>Merge table A: <code>{e+r→er, sin+g→sing}</code> &nbsp;→&nbsp; <code>[sing, er]</code> (2 tokens).
+                <br>Merge table B: <code>{s+i→si, n+g→ng}</code> &nbsp;→&nbsp; <code>[si, ng, e, r]</code> (4 tokens).
+                <br>Same word, two trained tokenizers, <strong>different segmentation, different token count, different model inputs.</strong>
+              </p>
+            </div>
+          </div>
+          <aside class="slide-notes">Students assume segmentation is intrinsic to the word. It is not — it is induced by the ordered merge list. BPE breaks the ambiguity by always applying merges in the order they were learned, greedily. This matters: two models with different tokenizers will cut the same word differently, which is one reason you cannot mix tokenizers across models, and it foreshadows Unigram's probabilistic, multi-segmentation view.</aside>
+        </section>
+
+        <!-- ============================================ 27 · DEFINITION · WordPiece ============================================ -->
+        <section class="slide" data-type="definition" data-screen-label="28 Definition WordPiece">
+          <div class="slide-header">
+            <h2>Key term</h2>
+            <span class="slide-kicker">Definition</span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag">Definition</span>
+            <div class="def-term">WordPiece<span class="term-en">BERT's tokenizer</span></div>
+            <div class="def-body">
+              <p>Like BPE, but it chooses each merge by a <strong>likelihood score</strong> rather than raw frequency, and marks word-internal pieces with a <code>##</code> continuation prefix.</p>
+              <p class="small muted">Schuster &amp; Nakajima (2012), for Japanese/Korean voice search; adopted by BERT. "playing" → <code>play</code> + <code>##ing</code>; "tokenization" → <code>token</code> + <code>##ization</code>.</p>
+            </div>
+          </div>
+          <aside class="slide-notes">WordPiece is BPE's cousin. The single conceptual difference: instead of merging the most FREQUENT pair, it merges the pair that most increases the likelihood of the corpus under a unigram model — i.e. pairs that co-occur more than chance. The ## marker tells the model "this piece continues the previous word", which preserves word boundaries for tasks like NER. Next slide: the exact score.</aside>
+        </section>
+
+        <!-- ============================================ 28 · FORMULA · WordPiece score ============================================ -->
+        <section class="slide" data-type="formula" data-screen-label="29 WP score">
+          <div class="slide-header" style="border:none; padding-bottom:0;">
+            <h2>WordPiece merge criterion</h2>
+            <span class="slide-kicker">Likelihood, not raw frequency</span>
+          </div>
+          <div class="formula-stage">
+            $$ \mathrm{score}(A,B) = \frac{\mathrm{freq}(AB)}{\mathrm{freq}(A)\cdot \mathrm{freq}(B)} $$
+          </div>
+          <div class="formula-caption">
+            <div class="var-block"><div class="var-symbol">\(\mathrm{freq}(AB)\)</div><div class="var-desc"><strong>Pair count</strong><br />how often \(A,B\) are adjacent</div></div>
+            <div class="var-block"><div class="var-symbol">\(\mathrm{freq}(A)\)</div><div class="var-desc"><strong>Unigram count</strong><br />of the left piece</div></div>
+            <div class="var-block"><div class="var-symbol">\(\mathrm{freq}(B)\)</div><div class="var-desc"><strong>Unigram count</strong><br />of the right piece</div></div>
+          </div>
+          <p class="small muted mt-3 center">Dividing by the marginal counts favours pairs that co-occur <em>more than chance</em> — a common piece like <code>##s</code> is penalised unless it sticks to one specific neighbour.</p>
+          <aside class="slide-notes">Read it as pointwise mutual information without the log. A pair of two very common pieces (say "th" + "e") has a big numerator but an even bigger denominator, so its score is modest. A pair where a rare piece always follows a specific piece scores high. This is why WordPiece tends to keep meaningful morphemes together. Note: some textbook variants multiply by |V|; with our toy corpus |V| works out so the headline scores are 29, 30, 31.</aside>
+        </section>
+
+        <!-- ============================================ 29 · E2E · WordPiece quick brown fox ============================================ -->
+        <section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="30 WP worked">
+          <div class="slide-header">
+            <h2>WordPiece, worked</h2>
+            <span class="slide-kicker">E2E · "the quick brown fox…"</span>
+          </div>
+          <div class="e2e-arch">
+            <div class="e2e-arch-block" data-role="reduce" data-step-range="1" data-tooltip="Score every candidate pair.">
+              <div class="arch-name">score pairs</div><div class="arch-shape">freq ratio</div></div>
+            <div class="e2e-arch-arrow" data-step-range="1..2"></div>
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="2" data-tooltip="Top score: (q,##u)=29 → qu.">
+              <div class="arch-name">merge top</div><div class="arch-shape">qu</div></div>
+            <div class="e2e-arch-arrow" data-step-range="2..3"></div>
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="3" data-tooltip="Grow it: qu+i, qui+c → quick.">
+              <div class="arch-name">grow</div><div class="arch-shape">→ quick</div></div>
+            <div class="e2e-arch-arrow" data-step-range="3..4"></div>
+            <div class="e2e-arch-block" data-role="project" data-step-range="4" data-tooltip="Encode greedily, longest match left→right.">
+              <div class="arch-name">encode</div><div class="arch-shape">greedy</div></div>
+            <div class="e2e-arch-legend"><span class="leg" data-role="reduce">scoring</span><span class="leg" data-role="nonlinear">merge</span><span class="leg" data-role="project">encode</span></div>
+          </div>
+          <div class="e2e-twin">
+            <div class="e2e-panel e2e-math-panel">
+              <div class="panel-head">Score &amp; merge</div>
+              <div class="e2e-step" data-step="0"><div class="step-formula" style="font-family:var(--font-mono); white-space:normal; overflow-wrap:anywhere; line-height:1.4;">corpus&nbsp;=&nbsp;<wbr>"the quick brown fox jumps over the lazy dog"</div><p class="step-caption">In this small corpus \(\texttt{q}\), \(\texttt{u}\), \(\texttt{i}\), \(\texttt{c}\) each occur once; the vocabulary size factor works out to \(29\).</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-formula">$$\mathrm{score}(\texttt{q},\texttt{\#\#u}) = \frac{1\cdot 29}{1\cdot 1} = 29$$</div><p class="step-caption">Highest score → merge into <code>qu</code>.</p></div>
+              <div class="e2e-step" data-step="2"><div class="step-formula">$$\mathrm{score}(\texttt{qu},\texttt{\#\#i}) = \frac{1\cdot 30}{1\cdot 1} = 30$$</div><p class="step-caption">Vocabulary grew by one, so the factor is now \(30\). Merge into <code>qui</code>.</p></div>
+              <div class="e2e-step" data-step="3"><div class="step-formula">$$\mathrm{score}(\texttt{qui},\texttt{\#\#c}) = \frac{1\cdot 31}{1\cdot 1} = 31 \to \texttt{quic} \to \texttt{quick}$$</div><p class="step-caption">Continue until the whole word <code>quick</code> is one token.</p></div>
+              <div class="e2e-step" data-step="4"><div class="step-formula">$$\texttt{quickness} \to \texttt{qu}\;\texttt{\#\#ick}\;\texttt{\#\#ness}$$</div><p class="step-caption"><strong>Encoding</strong> is greedy longest-match, left → right; the first piece is bare, the rest get <code>##</code>.</p></div>
+            </div>
+            <div class="e2e-panel e2e-example-panel">
+              <div class="panel-head">Numbers</div>
+              <div class="e2e-step" data-step="0"><p class="step-caption">↓ Each score is freq(AB)·|V| / (freq(A)·freq(B)).</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label is-highlight">\((\texttt{q},\texttt{\#\#u}) = (1\cdot 29)/(1\cdot 1) = 29\)</span></div></div>
+              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label is-highlight">\((\texttt{qu},\texttt{\#\#i}) = (1\cdot 30)/(1\cdot 1) = 30\)</span></div></div>
+              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label is-highlight">\((\texttt{qui},\texttt{\#\#c}) = (1\cdot 31)/(1\cdot 1) = 31\)</span></div><div class="step-calc-row"><span class="matrix-label">→ <code>quic</code> → <code>quick</code></span></div></div>
+              <div class="e2e-step" data-step="4"><div class="step-calc-row"><span class="matrix-label">unseen "quickness":</span></div><div class="step-calc-row"><span class="matrix-label"><code>qu ##ick ##ness</code></span></div><p class="step-caption tiny">No match → <code>[UNK]</code>; here every piece matches.</p></div>
+            </div>
+          </div>
+          <div class="e2e-stepper">
+            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">←</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 4</span></div><button type="button" class="step-btn" data-step-act="next">→</button></div>
+            <span class="e2e-stage-name">overview</span>
+            <button type="button" class="e2e-toggle">Theory only</button>
+          </div>
+          <aside class="slide-notes">Walk the three scores aloud: (q,##u) = (1·29)/(1·1) = 29; after merging, the vocabulary grows by one so the factor becomes 30, giving (qu,##i)=30; then (qui,##c)=31. The word "quick" assembles piece by piece. Inference is different from training: it is greedy longest-match, left to right — the first piece is bare, every continuation gets ##. If no piece matches, the whole word becomes [UNK] (unlike byte-level BPE).</aside>
+          <aside data-notes-for-step="1">Because q, u, i, c are each unique here, every numerator pair-count is 1 and the score is just the vocab factor — a clean demonstration of the formula.</aside>
+        </section>
+
+        <!-- ============================================ 30 · VIZ · WordPiece OOV ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="31 WP OOV">
+          <div class="slide-header">
+            <h2>WordPiece on unseen words</h2>
+            <span class="slide-kicker">reuse known pieces, else [UNK]</span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1600 480" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">
+              <text x="80" y="60" font-family="var(--font-mono)" font-size="28" fill="var(--ink-2)">"The fastest brown hare leaps over the sleepy cat"</text>
+              <g font-family="var(--font-mono)" font-size="30">
+                <rect x="80"  y="110" width="150" height="74" rx="8" fill="var(--c-green)" opacity="0.16" stroke="var(--c-green)"/>
+                <text x="155" y="156" text-anchor="middle" fill="var(--c-green)">the</text>
+                <rect x="250" y="110" width="180" height="74" rx="8" fill="var(--c-red)" opacity="0.14" stroke="var(--c-red)"/>
+                <text x="340" y="156" text-anchor="middle" fill="var(--c-red)">[UNK]</text>
+                <rect x="450" y="110" width="200" height="74" rx="8" fill="var(--c-green)" opacity="0.16" stroke="var(--c-green)"/>
+                <text x="550" y="156" text-anchor="middle" fill="var(--c-green)">brown</text>
+                <rect x="670" y="110" width="180" height="74" rx="8" fill="var(--c-red)" opacity="0.14" stroke="var(--c-red)"/>
+                <text x="760" y="156" text-anchor="middle" fill="var(--c-red)">[UNK]</text>
+                <rect x="870" y="110" width="140" height="74" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"/>
+                <text x="940" y="156" text-anchor="middle" fill="var(--accent-ink)">ju</text>
+                <rect x="1030" y="110" width="160" height="74" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"/>
+                <text x="1110" y="156" text-anchor="middle" fill="var(--accent-ink)">##mp</text>
+                <rect x="1210" y="110" width="140" height="74" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"/>
+                <text x="1280" y="156" text-anchor="middle" fill="var(--accent-ink)">##s</text>
+              </g>
+              <g font-family="var(--font-mono)" font-size="30">
+                <rect x="80"  y="210" width="150" height="74" rx="8" fill="var(--c-green)" opacity="0.16" stroke="var(--c-green)"/>
+                <text x="155" y="256" text-anchor="middle" fill="var(--c-green)">over</text>
+                <rect x="250" y="210" width="150" height="74" rx="8" fill="var(--c-green)" opacity="0.16" stroke="var(--c-green)"/>
+                <text x="325" y="256" text-anchor="middle" fill="var(--c-green)">the</text>
+                <rect x="420" y="210" width="180" height="74" rx="8" fill="var(--c-red)" opacity="0.14" stroke="var(--c-red)"/>
+                <text x="510" y="256" text-anchor="middle" fill="var(--c-red)">[UNK]</text>
+                <rect x="620" y="210" width="180" height="74" rx="8" fill="var(--c-red)" opacity="0.14" stroke="var(--c-red)"/>
+                <text x="710" y="256" text-anchor="middle" fill="var(--c-red)">[UNK]</text>
+              </g>
+              <text x="80" y="360" font-family="var(--font-sans)" font-size="26" fill="var(--ink-2)">"leaps" had no whole-word match, but reused subwords learned from "jumps": ju · ##mp · ##s.</text>
+              <text x="80" y="410" font-family="var(--font-sans)" font-size="24" fill="var(--ink-3)">Pieces with no match at all (fastest, hare, sleepy, cat — unseen here) → [UNK].</text>
+            </svg>
+          </div>
+          <p class="viz-caption">Greedy longest-match recycles pieces from training (<code>jumps</code> → <code>ju ##mp ##s</code> reused for "leaps"); whatever matches nothing collapses to <span class="term">[UNK]</span>.</p>
+          <aside class="slide-notes">This contrasts WordPiece with byte-level BPE. WordPiece can still emit [UNK] when no subword matches — its base alphabet is characters of the training data, not all bytes. But notice the partial win: "leaps" wasn't seen, yet its pieces ju/##mp/##s were learned from "jumps", so it is handled. The fully unseen words here (fastest, hare, sleepy, cat) fall to [UNK] in this tiny corpus.</aside>
+        </section>
+
+        <!-- ============================================ 31 · TWO-COL · Unigram / SentencePiece ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="32 Unigram">
+          <div class="slide-header">
+            <h2>Unigram LM &amp; SentencePiece</h2>
+            <span class="slide-kicker">prune, don't merge</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>Top-down, probabilistic</h3>
+              <p>Kudo (2018): start from a <strong>large</strong> seed vocabulary, fit a unigram language model, then iteratively <strong>prune</strong> the tokens whose removal least hurts corpus likelihood — until the target size.</p>
+              <p class="small muted">Opposite direction to BPE/WordPiece (which build up). Enables <em>subword regularization</em>: sample alternative segmentations as data augmentation.</p>
+            </div>
+            <div class="twocol-col">
+              <h3>SentencePiece, the wrapper</h3>
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">Treats whitespace as an ordinary character, rendered <code>▁</code> (U+2581): "Hello world" → <code>▁Hello ▁world</code>.</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">Fully <strong>reversible</strong> and <strong>language-agnostic</strong> — no pre-tokenizer, so it works on CJK and Thai out of the box.</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">Used by T5, ALBERT, XLNet, LLaMA, Mistral.</span></li>
+              </ul>
+            </div>
+          </div>
+          <aside class="slide-notes">Two ideas that are often conflated. Unigram is an ALGORITHM (prune a big vocab by likelihood loss). SentencePiece is a TOOLKIT that can run either BPE or Unigram and, crucially, treats the space as a normal symbol (▁), which removes the English-centric "split on spaces" assumption from Part 1. That reversibility is why SentencePiece dominates multilingual models.</aside>
+        </section>
+
+        <!-- ============================================ 32 · TABLE · BPE vs WordPiece vs Unigram ============================================ -->
+        <section class="slide" data-type="table" data-screen-label="33 Three algos">
+          <div class="slide-header">
+            <h2>BPE vs WordPiece vs Unigram</h2>
+            <span class="slide-kicker">one table</span>
+          </div>
+          <table class="cmp-table">
+            <thead>
+              <tr><th>Algorithm</th><th>Direction</th><th>Merge / prune criterion</th><th>Marker</th><th>Used by</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>BPE</td><td>bottom-up (merge)</td><td class="cell-meh">most frequent pair</td><td>—&nbsp;/ byte</td><td>GPT-2/4, RoBERTa</td></tr>
+              <tr><td>WordPiece</td><td>bottom-up (merge)</td><td class="cell-good">highest likelihood gain</td><td><code>##</code></td><td>BERT</td></tr>
+              <tr><td>Unigram</td><td>top-down (prune)</td><td class="cell-good">least likelihood loss</td><td><code>▁</code></td><td>T5, LLaMA, Mistral</td></tr>
+            </tbody>
+          </table>
+          <p class="small muted mt-3 center">One-liner: BPE merges by <strong>frequency</strong>; WordPiece merges by <strong>likelihood gain</strong>; Unigram prunes by <strong>likelihood loss</strong>.</p>
+          <aside class="slide-notes">The crispest summary of Part 2's machinery. All three end up with a bounded subword vocabulary; they differ in how they choose the inventory and how they mark continuations. If you remember one thing: frequency vs likelihood-gain vs likelihood-loss.</aside>
+        </section>
+
+        <!-- ============================================ TIMELINE · how tokenization evolved ============================================ -->
+        <section class="slide" data-type="timeline" data-screen-label="34 Timeline · Tokenization history">
+          <div class="slide-header">
+            <h2>How we learned to cut words</h2>
+            <span class="slide-kicker">Timeline</span>
+          </div>
+          <p class="lead" style="margin-top: 8px;">
+            From rule-based word splits to raw bytes. Each step kept the wins and patched one scar of the last.
+          </p>
+          <ol class="tl" data-density="dense">
+            <li class="tl-node">
+              <div class="tl-year">1993</div>
+              <div class="tl-card">
+                <div class="tl-kicker">Penn Treebank</div>
+                <h3 class="tl-what">Rule-based word split</h3>
+                <p class="tl-why">Regex on whitespace &amp; punctuation. Clean for English — but a fixed word vocabulary can <span class="wbw-mark">never</span> cover real text (Zipf).</p>
+              </div>
+            </li>
+            <li class="tl-node">
+              <div class="tl-year">1994</div>
+              <div class="tl-card">
+                <div class="tl-kicker">Gage</div>
+                <h3 class="tl-what">BPE — for compression</h3>
+                <p class="tl-why">Repeatedly merge the most frequent byte pair. Born to shrink files, not to tokenize.</p>
+              </div>
+            </li>
+            <li class="tl-node">
+              <div class="tl-year">2012</div>
+              <div class="tl-card">
+                <div class="tl-kicker">Schuster &amp; Nakajima</div>
+                <h3 class="tl-what">WordPiece</h3>
+                <p class="tl-why">Merge by likelihood <em>gain</em>, not raw frequency. Built for Japanese/Korean voice search.</p>
+              </div>
+            </li>
+            <li class="tl-node is-pivot">
+              <div class="tl-year">2016</div>
+              <div class="tl-card">
+                <div class="tl-kicker">Sennrich et al.</div>
+                <h3 class="tl-what">BPE → NLP</h3>
+                <p class="tl-why">Subwords crack rare/unknown words in translation. <span class="wbw-mark">Open-vocabulary</span> at last.</p>
+              </div>
+            </li>
+            <li class="tl-node">
+              <div class="tl-year">2018</div>
+              <div class="tl-card">
+                <div class="tl-kicker">Kudo</div>
+                <h3 class="tl-what">Unigram + SentencePiece</h3>
+                <p class="tl-why">Probabilistic subwords; language-agnostic, treats whitespace as a symbol (<code>▁</code>).</p>
+              </div>
+            </li>
+            <li class="tl-node is-pivot">
+              <div class="tl-year">2019</div>
+              <div class="tl-card">
+                <div class="tl-kicker">GPT-2 · Radford et al.</div>
+                <h3 class="tl-what">Byte-level BPE</h3>
+                <p class="tl-why">Operate on raw bytes — literally <span class="wbw-mark">zero OOV</span>, any language, any emoji.</p>
+              </div>
+            </li>
+            <li class="tl-node">
+              <div class="tl-year">2024+</div>
+              <div class="tl-card">
+                <div class="tl-kicker">tiktoken · frontier</div>
+                <h3 class="tl-what">Fast BPE at scale</h3>
+                <p class="tl-why">Production LLM tokenizers; the frontier explores token-free byte models (ByT5).</p>
+              </div>
+            </li>
+          </ol>
+          <aside class="slide-notes">The historical spine for Part 2. Note the 22-year gap between BPE-as-compression (Gage 1994) and BPE-as-tokenizer (Sennrich 2016) — the algorithm waited two decades for the right problem. Two pivots: Sennrich 2016 (subwords enter NLP) and GPT-2 2019 (byte-level kills OOV forever). The arc mirrors the lecture: word → subword → byte. Dates are grounded against the original papers.</aside>
+        </section>
+
+        <!-- ============================================ 33 · TWO-COL · special tokens ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="35 Special tokens">
+          <div class="slide-header">
+            <h2>Special tokens &amp; chat templates</h2>
+            <span class="slide-kicker">reserved ids the framework inserts</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>The classic set</h3>
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span class="term">[CLS]</span> — sequence-summary slot (BERT classification).</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span class="term">[SEP]</span> — separates two segments, e.g. <em>query | document</em> in a BERT reranker.</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span class="term">[PAD]</span> — batch filler, masked out of the loss.</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span class="term">[MASK]</span> — hidden position the MLM must predict (~15%).</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span class="term">[UNK]</span>, BOS / EOS (<code>&lt;s&gt;</code> / <code>&lt;/s&gt;</code>).</span></li>
+              </ul>
+            </div>
+            <div class="twocol-col">
+              <h3>Chat templates &amp; a pitfall</h3>
+              <p>ChatML uses <code>&lt;|im_start|&gt;</code> / <code>&lt;|im_end|&gt;</code>; LLaMA-3 uses <code>&lt;|begin_of_text|&gt;</code>, <code>&lt;|start_header_id|&gt;</code>, <code>&lt;|eot_id|&gt;</code>. Added by <code>tokenizer.apply_chat_template()</code>.</p>
+              <div class="callout" data-kind="warn">
+                <div class="callout-icon">!</div>
+                <div class="callout-body">
+                  <strong>Duplicate-BOS bug</strong>
+                  <p>Applying a chat template <em>and</em> <code>add_special_tokens=True</code> inserts BOS twice → degraded quality. Pick one.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <aside class="slide-notes">Special tokens are not learned by BPE — they are reserved ids the framework inserts. The [SEP] case is your bridge to search: a BERT cross-encoder reranker takes "[CLS] query [SEP] document [SEP]" and scores relevance, which is exactly next week's topic. The duplicate-BOS bug is a real, common foot-gun in production fine-tuning pipelines.</aside>
+        </section>
+
+        <!-- ============================================ 34 · CODE · HuggingFace tokenizer ============================================ -->
+        <section class="slide" data-type="code" data-screen-label="36 Code HF">
+          <div class="slide-header">
+            <h2>Using a tokenizer (HuggingFace)</h2>
+            <span class="slide-kicker">Python · transformers</span>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Python · tokenize.py</span><span class="badge" data-color="accent">transformers</span></div>
+            <pre><code class="language-python">from transformers import AutoTokenizer
+
+tok = AutoTokenizer.from_pretrained("bert-base-uncased")
+
+# Split a rare word into subword pieces (## = WordPiece continuation)
+tok.tokenize("unhappiness")
+# -> ['un', '##hap', '##pi', '##ness']
+
+# Encode to integer ids (adds [CLS] ... [SEP])
+tok.encode("unhappiness is unbearable")
+# -> [101, 4895, 24395, 8197, 2791, 2003, 4895, 4783, 6906, 3468, 102]
+
+# For untrusted text, disable special tokens to avoid injection
+tok.encode(user_text, add_special_tokens=False)</code></pre>
+          </div>
+          <p class="small muted mt-3">The <span class="term">##</span> prefix marks a WordPiece <strong>continuation</strong> — a piece that attaches to the previous token rather than starting a new word.</p>
+          <aside class="slide-notes">Live this if you have a kernel. "unhappiness" is one word to a human, four tokens to BERT. .tokenize gives pieces; .encode gives ids wrapped with [CLS]/[SEP]. The last line is the security note from the brief: untrusted input should be encoded with <code>add_special_tokens=False</code> so an attacker cannot smuggle role-control tokens like <code>&lt;|im_end|&gt;</code>. Ids shown are illustrative of shape, not memorized values.</aside>
+        </section>
+
+        <!-- ============================================ 35 · DIVIDER · PART 03 ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="37 Divider P3">
+          <div>
+            <div class="divider-num">Part 03</div>
+            <h1>Where tokenizers<br />break</h1>
+            <p class="divider-sub">The clever scheme has sharp edges — digits, code, other languages, glitch tokens.</p>
+          </div>
+          <aside class="slide-notes">Tokenization looks solved until you poke it. This part is the most memorable: every corner case is a real failure that costs accuracy, money, or fairness. The thread: a tokenizer is only as good as the distribution it was trained on, and it quietly imposes that distribution on everything downstream.</aside>
+        </section>
+
+        <!-- ============================================ 36 · VIZ · digits / arithmetic ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="38 Digits">
+          <div class="slide-header">
+            <h2>Numbers: a frequency artifact, not logic</h2>
+            <span class="slide-kicker">why LLMs are bad at arithmetic</span>
+          </div>
+          <div class="viz-frame">
+            <img src="assets/img/L2/L2-37-digits.png?v=1" alt="The number 327 scissored two different ways; place values do not line up" style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+          </div>
+          <p class="viz-caption">Train a byte-level BPE on 20&nbsp;Newsgroups and the literal split shifts with vocab size: at <strong>1k</strong> vocab "327" → <code>3 | 2 | 7</code> (3 tokens); at <strong>4k</strong> and <strong>16k</strong>, "327" → <code>32 | 7</code> (2 tokens). Place values stop lining up — and arithmetic suffers.</p>
+          <aside class="slide-notes">This is one of the most counter-intuitive results for students: LLMs are bad at arithmetic partly because of TOKENIZATION, not just reasoning. The split shown is not invented — it is the literal output of `_research/data/bpe_merges.py`, which trains a huggingface byte-level BPE on sklearn's 20 Newsgroups at three vocab sizes and records how "327" gets sliced. LLaMA and PaLM force single-digit tokens to fix this; Singh et al. 2024 show right-to-left comma grouping helps, and multiplication collapses to ~0 accuracy by about six digits.</aside>
+        </section>
+
+        <!-- ============================================ 37 · TWO-COL · code & whitespace ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="39 Code WS">
+          <div class="slide-header">
+            <h2>Code &amp; whitespace</h2>
+            <span class="slide-kicker">why GPT-4 got better at code</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>Indentation is semantic</h3>
+              <p>In Python, leading whitespace <em>is</em> the block structure. Early tokenizers spent one token per space, fragmenting indented code and wasting context.</p>
+              <div class="callout" data-kind="info">
+                <div class="callout-icon">i</div>
+                <div class="callout-body">
+                  <strong>Space-run tokens</strong>
+                  <p>GPT-3.5/4 added single tokens for runs of 4 / 8 / 16 spaces — a concrete reason they handle code far better.</p>
+                </div>
+              </div>
+            </div>
+            <div class="twocol-col">
+              <h3>Format choice = token cost</h3>
+              <p>YAML usually needs <strong>fewer tokens</strong> than JSON for the same data — less punctuation (no braces, fewer quotes/commas).</p>
+              <p class="small muted">Prompt-engineering tip: for token-tight prompts, prefer YAML or compact formats; every saved token is cheaper inference and more usable context.</p>
+            </div>
+          </div>
+          <aside class="slide-notes">Two practical levers. First, indentation: if every space is its own token, a deeply nested function explodes in length and the model loses structure — so adding multi-space tokens directly improved code ability. Second, serialization format matters: JSON's braces, quotes and commas cost tokens that YAML avoids. These are cheap wins once you know the tokenizer is the bottleneck.</aside>
+        </section>
+
+        <!-- ============================================ 38 · VIZ · emoji / CJK multi-byte ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="40 Emoji CJK">
+          <div class="slide-header">
+            <h2>One glyph, many tokens</h2>
+            <span class="slide-kicker">emoji ZWJ &amp; CJK</span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1600 460" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">
+              <text x="80" y="70" font-family="var(--font-sans)" font-size="30" fill="var(--ink)">A "family" emoji 👨‍👩‍👧 is ZWJ-joined code points:</text>
+              <g font-family="var(--font-mono)" font-size="26">
+                <rect x="80"  y="110" width="160" height="70" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"/><text x="160" y="153" text-anchor="middle" fill="var(--accent-ink)">👨</text>
+                <rect x="250" y="110" width="160" height="70" rx="8" fill="var(--ink-3)" opacity="0.2" stroke="var(--ink-3)"/><text x="330" y="153" text-anchor="middle" fill="var(--ink-2)">ZWJ</text>
+                <rect x="420" y="110" width="160" height="70" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"/><text x="500" y="153" text-anchor="middle" fill="var(--accent-ink)">👩</text>
+                <rect x="590" y="110" width="160" height="70" rx="8" fill="var(--ink-3)" opacity="0.2" stroke="var(--ink-3)"/><text x="670" y="153" text-anchor="middle" fill="var(--ink-2)">ZWJ</text>
+                <rect x="760" y="110" width="160" height="70" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"/><text x="840" y="153" text-anchor="middle" fill="var(--accent-ink)">👧</text>
+                <text x="960" y="153" font-family="var(--font-sans)" font-size="24" fill="var(--ink-3)">→ several byte tokens for one "character"</text>
+              </g>
+              <text x="80" y="280" font-family="var(--font-sans)" font-size="30" fill="var(--ink)">CJK under byte-level BPE:</text>
+              <g font-family="var(--font-mono)" font-size="34">
+                <rect x="80" y="320" width="100" height="80" rx="10" fill="var(--accent-soft)" stroke="var(--accent)"/><text x="130" y="372" text-anchor="middle" fill="var(--accent-ink)">高</text>
+                <text x="210" y="372" font-size="44" fill="var(--c-red)">→</text>
+                <rect x="270" y="320" width="120" height="80" rx="10" fill="var(--c-red)" opacity="0.12" stroke="var(--c-red)"/><text x="330" y="372" text-anchor="middle" fill="var(--c-red)">tok₁</text>
+                <rect x="410" y="320" width="120" height="80" rx="10" fill="var(--c-red)" opacity="0.12" stroke="var(--c-red)"/><text x="470" y="372" text-anchor="middle" fill="var(--c-red)">tok₂</text>
+                <rect x="550" y="320" width="120" height="80" rx="10" fill="var(--c-red)" opacity="0.12" stroke="var(--c-red)"/><text x="610" y="372" text-anchor="middle" fill="var(--c-red)">tok₃</text>
+                <text x="720" y="372" font-family="var(--font-sans)" font-size="24" fill="var(--ink-3)">one Chinese char ≈ 2–3 tokens</text>
+              </g>
+            </svg>
+          </div>
+          <p class="viz-caption">A single emoji can be several byte tokens (joined by zero-width joiners); one Chinese character is typically 2–3 byte-level tokens. Visual atom ≠ token atom.</p>
+          <aside class="slide-notes">"One character = one token" is a comfortable lie. Emoji are sequences of code points glued by zero-width joiners; a family emoji is really man+ZWJ+woman+ZWJ+girl. And under UTF-8, a Chinese character is 3 bytes, so byte-level BPE spends 2–3 tokens on it. This directly feeds the fertility / token-tax slide coming up.</aside>
+        </section>
+
+        <!-- ============================================ 39 · TWO-COL · German compound + Arabic root ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="41 Compounds">
+          <div class="slide-header">
+            <h2>Compounds &amp; non-concatenative morphology</h2>
+            <span class="slide-kicker">German · Arabic</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>German compounds</h3>
+              <p class="small" style="word-break:break-all;font-family:var(--font-mono)">Donaudampfschifffahrts&shy;gesellschaftskapitän</p>
+              <p>→ <code>Donau ##dampf ##schiff ##fahrt ##gesellschaft ##kapitän</code></p>
+              <p class="small muted">One orthographic word, six morphemes ("Danube steamship company captain"). Subwords recover the parts a word vocabulary would miss.</p>
+            </div>
+            <div class="twocol-col">
+              <h3>Arabic: root + pattern</h3>
+              <p>The triliteral root <code>k-t-b</code> ("write") interleaves with patterns:</p>
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><code>kataba</code> — he wrote</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><code>kattaba</code> — he made (someone) write</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><code>iktataba</code> — he subscribed</span></li>
+              </ul>
+              <p class="small muted">Meaning is woven <em>through</em> the root, not appended — so simple left-to-right merging fits poorly.</p>
+            </div>
+          </div>
+          <aside class="slide-notes">Two stress tests for subword merging. German concatenates freely, so words can be arbitrarily long — subwords handle this gracefully by recovering morphemes. Arabic is non-concatenative: the same root k-t-b appears with vowels and affixes woven inside it, so the "shared piece" is discontinuous and contiguous-merge tokenizers can't capture it cleanly. This is a known weak spot for BPE/WordPiece on Semitic languages.</aside>
+        </section>
+
+        <!-- ============================================ 40 · VIZ · fertility / token tax ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="42 Token tax">
+          <div class="slide-header">
+            <h2>The multilingual "token tax"</h2>
+            <span class="slide-kicker">fertility = tokens per word</span>
+          </div>
+          <div class="viz-frame">
+            <img src="assets/img/L2/L2-41-token-tax.png?v=1" alt="Token-coins per language: English short, Hindi/Telugu/Turkish tall; same sentence, bigger bill" style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+          </div>
+          <p class="viz-caption">Same content, more tokens in many languages. Train a 16k BPE on 20&nbsp;Newsgroups (mostly English) and the word <em>«привет»</em> (Russian "hello") takes <strong>12 byte-level tokens</strong>; English <em>"tokenization"</em> takes <strong>3</strong>. \(2\times\) fertility → roughly \(4\times\) training cost (\(O(n^{2})\)), ~\(2\times\) API price and latency, and a smaller effective context window.</p>
+          <aside class="slide-notes">This is a fairness story, not just an efficiency one. Fertility is tokens-per-word. A tokenizer trained mostly on English is cheap for English and expensive for Hindi, Telugu, Turkish — and Russian. The fertility numbers in the caption are not hand-waved: `_research/data/bpe_merges.py` trains a 16k-vocab byte-level BPE on 20 Newsgroups and reports the exact token-counts for English vs Russian demo strings. The Token Tax (2025) work: each extra token/word costs roughly 8–18 accuracy points and explains 20–50% of cross-lingual accuracy variance. Because attention is O(n²), 2× fertility is ~4× training compute; at inference it is ~2× the API bill, ~2× latency, and less room in the context window. Low-resource speakers literally pay more for worse service on identical information.</aside>
+        </section>
+
+        <!-- ============================================ 41 · MISCONCEPTION · glitch tokens ============================================ -->
+        <section class="slide" data-type="misconception" data-screen-label="43 Glitch tokens">
+          <div class="slide-header">
+            <h2>Common misconception</h2>
+            <span class="slide-kicker">Bust the myth</span>
+          </div>
+          <div class="split-art">
+            <div class="split-art__body">
+              <div class="misc-card">
+                <div class="misc-label">What students think</div>
+                <p class="misc-statement">&ldquo;Every token in the vocabulary has a sensible meaning.&rdquo;</p>
+                <button class="misc-reveal-btn" type="button">Reveal truth</button>
+                <div class="misc-truth">Some tokens are <strong>glitch tokens</strong> — e.g. <code>SolidGoldMagikarp</code> (a scraped Reddit username). It earned a vocabulary slot because it appeared while training the <em>tokenizer</em>, but was rare or absent when training the <em>model</em>, so its embedding stayed essentially <strong>untrained</strong>. Prompting it produces bizarre behaviour: the model repeats "distribute", refuses, or hallucinates. Lesson: the tokenizer's vocabulary and the model's training data must share the same distribution.
+                  <p class="misc-anchor">
+                    <strong>Concrete anchor.</strong> GPT-2 BPE token id <code>28666</code>. Rumbelow &amp; Watkins (LessWrong, Feb 2023) documented that asking GPT-3.5 to repeat the string would return <code>"distribute"</code> or other nonsense; the same vocabulary entry is inert in many later models because the username vanished from filtered training data.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <figure class="split-art__fig">
+              <img src="assets/img/L2/L2-42-glitch-token.png?v=1" alt="A dense cloud of embedding dots with one lonely SolidGoldMagikarp dot far off; a glitchy figure short-circuits" />
+            </figure>
+          </div>
+          <aside class="slide-notes">A vivid, famous bug. The tokenizer and the language model are trained on different (or differently filtered) corpora. A string can win a token slot during tokenizer training, then almost never appear during model training — leaving a token whose embedding never moved from initialization. Feed it in and the model behaves erratically. The takeaway is general: distribution mismatch between vocabulary and training data creates dead, dangerous tokens.</aside>
+        </section>
+
+        <!-- ============================================ 42 · TWO-COL · trailing space + spelling ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="44 Trailing space">
+          <div class="slide-header">
+            <h2>The model sees tokens, not letters</h2>
+            <span class="slide-kicker">trailing space · spelling</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>Trailing-space sensitivity</h3>
+              <p><code>" the"</code> and <code>"the"</code> are <strong>different tokens</strong>. A prompt ending in a trailing space lands off-distribution and degrades the completion.</p>
+              <div class="callout" data-kind="warn">
+                <div class="callout-icon">!</div>
+                <div class="callout-body">
+                  <strong>Watch your prompt endings</strong>
+                  <p>Trim trailing whitespace unless you specifically want the "continuation" token.</p>
+                </div>
+              </div>
+            </div>
+            <div class="twocol-col">
+              <h3>Why spelling is hard</h3>
+              <p>"How many R's in <em>strawberry</em>?" and "reverse this string" are hard because the model never sees individual letters — only opaque token chunks like <code>straw</code> + <code>berry</code>.</p>
+              <p class="small muted">Character-level operations require the model to have <em>memorized</em> the letter content of each token. It is not looking at letters at run time.</p>
+            </div>
+          </div>
+          <aside class="slide-notes">Both quirks come from the same fact: the model's atoms are tokens, not characters. " the" ≠ "the" because the leading-space token is a distinct id (byte-level BPE design from earlier). And counting letters in "strawberry" fails because the model sees "straw"+"berry", not s-t-r-a-w-... — it would have to have learned the spelling of each token. This is why letter-counting and string-reversal trip up otherwise strong models.</aside>
+        </section>
+
+        <!-- ============================================ 43 · TWO-COL · why it matters for SEARCH ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="45 Search">
+          <div class="slide-header">
+            <h2>Why tokenization matters for search</h2>
+            <span class="slide-kicker">query / doc mismatch</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>Vocabulary mismatch</h3>
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">Under exact BM25, query "ensembling" won't match document "ensemble" — plurals and tenses miss.</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">"car" ≠ "automobile"; BM25 needs per-language tokenization, stop-words, and stemming.</span></li>
+              </ul>
+            </div>
+            <div class="twocol-col">
+              <h3>Cross-lingual unit mismatch</h3>
+              <p>"euthanasia" is <strong>one</strong> BM25 term, but XLM-R splits it into several subwords. Sparse (BM25) and neural retrievers then disagree on units → hurts hybrid fusion.</p>
+              <p class="small muted">Multilingual fertility (Part 3) also drives <strong>truncation risk</strong> and uneven recall — a search-fairness problem across languages.</p>
+            </div>
+          </div>
+          <aside class="slide-notes">This is the explicit bridge to the IR weeks. Sparse retrieval (BM25) matches surface terms, so it is acutely sensitive to tokenization, stemming and stop-words — "ensembling" vs "ensemble" is a real miss. Worse, sparse and dense systems often tokenize differently (one BM25 term vs many subwords), so when you fuse them the units don't line up. And fertility means non-English queries are more likely to be truncated and under-retrieved. Tokenization is not a preprocessing detail; it shapes recall.</aside>
+        </section>
+
+        <!-- ============================================ 44 · QUIZ · corner cases ============================================ -->
+        <section class="slide" data-type="quiz" data-screen-label="46 Quiz P3">
+          <div class="slide-header">
+            <h2>Quick check</h2>
+            <span class="slide-kicker">Audience question</span>
+          </div>
+          <div class="quiz-frame">
+            <div class="quiz-q">A model counts the wrong number of R's in "strawberry". The best single explanation is:</div>
+            <div class="quiz-options">
+              <div class="quiz-option" data-correct="true"><span class="quiz-letter">A</span><span>It only sees opaque token chunks, never individual letters.</span><span></span></div>
+              <div class="quiz-option" data-correct="false"><span class="quiz-letter">B</span><span>The vocabulary is too small to contain "strawberry".</span><span></span></div>
+              <div class="quiz-option" data-correct="false"><span class="quiz-letter">C</span><span>Trailing spaces corrupted the input.</span><span></span></div>
+            </div>
+            <details class="hidden-answer mt-4">
+              <summary>Reveal explanation</summary>
+              <div class="ha-content"><strong>A</strong>. The atom of computation is the <em>token</em>, not the character — "strawberry" is typically split into <code>straw</code>+<code>berry</code>, so the model never inspects letters at run time; counting R's requires memorised spellings for every subword. B is false (byte-level fallback guarantees coverage, so an OOV "strawberry" can't happen); C is a different (real) bug.</div>
+            </details>
+          </div>
+          <aside class="slide-notes">Reinforces slide 42. The trap is C — students invoke OOV, but byte-level fallback means "strawberry" is always representable; the issue is granularity, not coverage.</aside>
+        </section>
+
+        <!-- ============================================ 45 · CODE · tools & live demos ============================================ -->
+        <section class="slide" data-type="code" data-screen-label="47 Tools">
+          <div class="slide-header">
+            <h2>Tools &amp; live demos</h2>
+            <span class="slide-kicker">tiktoken · Tiktokenizer · minBPE</span>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Python · explore.py</span><span class="badge" data-color="accent">tiktoken</span></div>
+            <pre><code class="language-python">import tiktoken
+enc = tiktoken.get_encoding("cl100k_base")   # GPT-3.5/4
+
+enc.encode("327")        # try also "67890"  -> watch the digit split
+enc.encode("strawberry") # -> ['str', 'aw', 'berry']  (no single 'r' to count)
+enc.encode(" the")       # leading space token != "the"
+len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</code></pre>
+          </div>
+          <p class="small muted mt-3">Live demos to run: <strong>Tiktokenizer</strong> (tiktokenizer.vercel.app — shows chat templates, digit splits, trailing spaces, glitch tokens), the OpenAI tokenizer playground, and Karpathy's <strong>minBPE</strong> to build BPE from scratch.</p>
+          <aside class="slide-notes">If you have a projector and a kernel, this is the fun part. Type "327" then "67890" and watch digit splits change; paste the same sentence in English and Hindi to show the fertility ratio jump 2–4×; type " SolidGoldMagikarp"; toggle a trailing space; compare JSON vs YAML token counts. Tiktokenizer is the quickest no-install option. minBPE is the homework-grade reference implementation.</aside>
+        </section>
+
+        <!-- ============================================ 46 · QUOTE · corpus handles it / token-free ============================================ -->
+        <section class="slide" data-type="quote" data-screen-label="48 Corpus quote">
+          <div>
+            <div class="quote-mark">"</div>
+            <blockquote>A large enough corpus handles these problems<br />(almost) by itself.</blockquote>
+            <div class="quote-attr">the practitioner's punchline · and the frontier: token-free models (ByT5)</div>
+          </div>
+          <aside class="slide-notes">The reassuring close to Part 3: most corner cases soften when the tokenizer trains on a big, diverse, well-balanced corpus — the digit, code, and rare-word problems shrink, though the multilingual tax and the letter-counting limit are structural and persist. The frontier response is to drop tokenization entirely: token-free, byte-to-byte models like ByT5 are robust to any language and any input, at the cost of much longer sequences. Not yet the industrial standard, but a live research direction.</aside>
+        </section>
+
+        <!-- ============================================ 47 · DIVIDER · PART 04 ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="49 Divider P4">
+          <div>
+            <div class="divider-num">Part 04</div>
+            <h1>How close are<br />two meanings?</h1>
+            <p class="divider-sub">Measures of similarity — a ruler for meaning.</p>
+          </div>
+          <div class="viz-frame" style="height:auto; max-height:40vh; aspect-ratio:16/9; margin:var(--sp-4) auto 0; max-width:50%;">
+            <img src="assets/img/L2/L2-48-sir-cosine.png?v=1" alt="Sir Cosine, a knight on the unit sphere, measuring the angle between two vector-lances"
+                 style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+          </div>
+          <aside class="slide-notes">We can now turn text into tokens, ids, and vectors. But search needs more than vectors — it needs to RANK, and to rank you must COMPARE. This is where the LOTR arc opens: <strong>Sir Cosine and the Knights of the Unit Sphere</strong> set out to measure the angle between meanings. This part builds the ruler, then stress-tests it in high dimensions where intuition fails.</aside>
+        </section>
+
+        <!-- ============================================ 48 · QUOTE · HOOK ============================================ -->
+        <section class="slide" data-type="quote" data-screen-label="50 Hook P4">
+          <div>
+            <div class="quote-mark">"</div>
+            <blockquote>Ranking needs a ruler for meaning.<br />If query and document are vectors,<br />"relevant" becomes "close".</blockquote>
+            <div class="quote-attr">from symbols to geometry</div>
+            <div class="viz-frame" style="height:auto; max-height:40vh; aspect-ratio:16/9; margin:var(--sp-3) auto 0; max-width:56%;">
+              <img src="assets/img/L2/L2-49-query-angle.png?v=1" alt="A query arrow and document arrows on a plane with a small angle wedge: relevant = close"
+                   style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+            </div>
+          </div>
+          <aside class="slide-notes">The conceptual hinge of the whole course. Search is "find the documents closest to the query". Once both are vectors, closeness is geometry — and geometry we can compute. The only question left is WHICH notion of close, and that choice has real consequences.</aside>
+        </section>
+
+        <!-- ============================================ 49 · DEFINITION · embedding ============================================ -->
+        <section class="slide" data-type="definition" data-screen-label="51 Definition Vector">
+          <div class="slide-header">
+            <h2>Key term</h2>
+            <span class="slide-kicker">Definition</span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag">Definition</span>
+            <div class="def-term">Vector representation · embedding<span class="term-en">embedding</span></div>
+            <div class="def-body">
+              <p>Represent a piece of text as a <strong>vector</strong> in \(\mathbb{R}^{d}\), such that <em>similar meanings map to nearby vectors</em>.</p>
+              <p class="small muted">How to <strong>learn</strong> good embeddings is the subject of coming weeks. Today we assume we already have vectors, and ask: <strong>how do we compare them?</strong></p>
+            </div>
+          </div>
+          <div class="numgrid" style="--cols:8; max-width:80%;">
+            <span class="ng-cell">0.50</span>
+            <span class="ng-cell is-hot">−0.58</span>
+            <span class="ng-cell is-dim">−0.14</span>
+            <span class="ng-cell">0.31</span>
+            <span class="ng-cell">0.20</span>
+            <span class="ng-cell">−0.31</span>
+            <span class="ng-cell">0.40</span>
+            <span class="ng-cell is-dim">0.08</span>
+          </div>
+          <div class="numgrid-zoom">Concretely, a vector <em>is</em> a row of numbers — here a <strong>real</strong> 8-dim embedding of a Newsgroups post (TF-IDF → LSA, L2-normalized so <code>‖v‖ = 1</code>). Production models use <code>d</code> = 384–4096.</div>
+          <aside class="slide-notes">Keep the scope tight: we are not learning embeddings today. We take the vector geometry as given and study the comparison operators that turn it into a ranking. The "manufacture a geometry" promise from slide 8 is now cashed in. The 8 numbers are real and reproducible — <code>_research/data/embedding_demo.py</code> (sklearn TruncatedSVD on 20 Newsgroups, L2-normalized); the same vector below is what every similarity measure on the next slides operates on.</aside>
+        </section>
+
+        <!-- ============================================ 50 · VIZ · similarity decision tree ============================================ -->
+        <section class="slide" data-type="table" data-screen-label="52 Choosing a measure">
+          <div class="slide-header">
+            <h2>Which measure? A decision guide</h2>
+            <span class="slide-kicker">match the measure to the data</span>
+          </div>
+          <table class="cmp-table">
+            <thead>
+              <tr><th>If your data is…</th><th>…and</th><th>then use</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Text / embeddings <span class="muted">(non-numerical)</span></td><td>direction matters, length should not</td><td class="cell-good">Cosine</td></tr>
+              <tr><td>Continuous features</td><td>on the <strong>same</strong> scale</td><td class="cell-good">Euclidean \(L_2\)</td></tr>
+              <tr><td>Continuous features</td><td>different scales / outliers</td><td class="cell-good">Manhattan \(L_1\)</td></tr>
+              <tr><td>Categorical / sets</td><td>overlap of members</td><td class="cell-good">Jaccard</td></tr>
+              <tr><td>Ordinal (ranks)</td><td>monotonic agreement</td><td class="cell-good">Spearman</td></tr>
+              <tr><td>Multivariate</td><td>correlated, mean-centred</td><td class="cell-good">Pearson</td></tr>
+            </tbody>
+          </table>
+          <p class="small muted center mt-3">Heuristic, not law — the real choice depends on how the embeddings were trained (next slides). It anchors the toolbox: cosine for direction/text, \(L_2\) for scaled features, \(L_1\) when scales differ or outliers bite, Jaccard for sets.</p>
+          <aside class="slide-notes">A rough but useful map (ported from Lecture 1). It is heuristic, not law — the real choice depends on how your embeddings were trained (next slides). But it anchors the toolbox: cosine for direction/text, L2 for scaled continuous features, L1 when scales differ or outliers bite, Jaccard for sets, Spearman/Pearson for ranks and correlated multivariate data.</aside>
+        </section>
+
+        <!-- ============================================ 51 · FORMULA · cosine + 3-angle panel ============================================ -->
+        <section class="slide" data-type="formula" data-screen-label="53 Cosine formula">
+          <div class="slide-header" style="border:none; padding-bottom:0;">
+            <h2>Cosine similarity</h2>
+            <span class="slide-kicker">Core formula</span>
+          </div>
+          <div class="formula-stage">
+            $$ \cos(\theta) = \frac{a\cdot b}{\lVert a\rVert\,\lVert b\rVert} = \frac{\sum_i a_i b_i}{\sqrt{\sum_i a_i^2}\,\sqrt{\sum_i b_i^2}} $$
+          </div>
+          <div class="formula-caption">
+            <div class="var-block"><div class="var-symbol">\(a\cdot b\)</div><div class="var-desc"><strong>Dot product</strong><br />\(\sum_i a_i b_i\)</div></div>
+            <div class="var-block"><div class="var-symbol">\(\lVert a\rVert\)</div><div class="var-desc"><strong>Norm</strong> — the length<br />\(\sqrt{\sum_i a_i^2}\)</div></div>
+            <div class="var-block"><div class="var-symbol">\(\theta\)</div><div class="var-desc"><strong>Angle</strong> between<br />\(a\) and \(b\)</div></div>
+          </div>
+          <div class="viz-frame" style="height:170px;margin-top:0.4rem">
+            <svg viewBox="0 0 1480 230" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">
+              <defs>
+                <marker id="cv-a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker>
+                <marker id="cv-b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--c-green)"/></marker>
+              </defs>
+              <!-- Panel 1 · similar -->
+              <line x1="60" y1="170" x2="380" y2="170" stroke="var(--rule)" stroke-width="2"/>
+              <line x1="110" y1="180" x2="110" y2="40" stroke="var(--rule)" stroke-width="2"/>
+              <line x1="110" y1="170" x2="300" y2="55" stroke="var(--accent)" stroke-width="6" stroke-linecap="round" marker-end="url(#cv-a)"/>
+              <line x1="110" y1="170" x2="330" y2="110" stroke="var(--c-green)" stroke-width="6" stroke-linecap="round" marker-end="url(#cv-b)"/>
+              <text x="306" y="48" font-family="var(--font-serif)" font-size="28" font-weight="700" fill="var(--accent)">a</text>
+              <text x="338" y="112" font-family="var(--font-serif)" font-size="28" font-weight="700" fill="var(--c-green)">b</text>
+              <text x="60" y="216" font-family="var(--font-mono)" font-size="23" fill="var(--ink)">cos θ ≈ 1 · aligned</text>
+              <!-- Panel 2 · orthogonal -->
+              <line x1="560" y1="170" x2="880" y2="170" stroke="var(--rule)" stroke-width="2"/>
+              <line x1="610" y1="180" x2="610" y2="40" stroke="var(--rule)" stroke-width="2"/>
+              <line x1="610" y1="170" x2="610" y2="50" stroke="var(--accent)" stroke-width="6" stroke-linecap="round" marker-end="url(#cv-a)"/>
+              <line x1="610" y1="170" x2="860" y2="170" stroke="var(--c-green)" stroke-width="6" stroke-linecap="round" marker-end="url(#cv-b)"/>
+              <path d="M 645 170 L 645 138 L 610 138" fill="none" stroke="var(--ink-3)" stroke-width="2"/>
+              <text x="586" y="46" font-family="var(--font-serif)" font-size="28" font-weight="700" fill="var(--accent)">a</text>
+              <text x="872" y="166" font-family="var(--font-serif)" font-size="28" font-weight="700" fill="var(--c-green)">b</text>
+              <text x="560" y="216" font-family="var(--font-mono)" font-size="23" fill="var(--ink)">cos θ = 0 · 90°</text>
+              <!-- Panel 3 · opposite -->
+              <line x1="1080" y1="120" x2="1420" y2="120" stroke="var(--rule)" stroke-width="2"/>
+              <line x1="1250" y1="180" x2="1250" y2="55" stroke="var(--rule)" stroke-width="2"/>
+              <line x1="1250" y1="120" x2="1415" y2="120" stroke="var(--accent)" stroke-width="6" stroke-linecap="round" marker-end="url(#cv-a)"/>
+              <line x1="1250" y1="120" x2="1085" y2="120" stroke="var(--c-green)" stroke-width="6" stroke-linecap="round" marker-end="url(#cv-b)"/>
+              <text x="1424" y="112" font-family="var(--font-serif)" font-size="28" font-weight="700" fill="var(--accent)">a</text>
+              <text x="1066" y="112" font-family="var(--font-serif)" font-size="28" font-weight="700" fill="var(--c-green)" text-anchor="end">b</text>
+              <text x="1080" y="216" font-family="var(--font-mono)" font-size="23" fill="var(--ink)">cos θ = −1 · 180°</text>
+            </svg>
+          </div>
+          <aside class="slide-notes">Range \([-1,1]\) in general; \([0,1]\) for non-negative vectors (e.g. word counts). Cosine is the cosine of the angle between vectors. Because it divides out both norms, it cares only about direction — a long document and a short one on the same topic can score 1.0. That magnitude-invariance is its defining feature and the source of the misconception later. The three-angle strip: aligned → 1, orthogonal → 0, opposite → −1.</aside>
+        </section>
+
+        <!-- ============================================ 52 · E2E · cosine worked ============================================ -->
+        <section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="54 Cosine E2E">
+          <div class="slide-header">
+            <h2>Compute cosine, step by step</h2>
+            <span class="slide-kicker">E2E · worked example</span>
+          </div>
+          <div class="e2e-arch">
+            <div class="e2e-arch-block" data-role="reduce" data-step-range="1" data-tooltip="Dot product: multiply componentwise and sum."><div class="arch-name">dot</div><div class="arch-shape">\(a\cdot b\)</div></div>
+            <div class="e2e-arch-arrow" data-step-range="1..2"></div>
+            <div class="e2e-arch-block" data-role="project" data-step-range="2" data-tooltip="Norms: square, sum, square-root."><div class="arch-name">norms</div><div class="arch-shape">\(\lVert a\rVert,\lVert b\rVert\)</div></div>
+            <div class="e2e-arch-arrow" data-step-range="2..3"></div>
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="3" data-tooltip="Divide dot by product of norms."><div class="arch-name">divide</div><div class="arch-shape">\(\cos\theta\)</div></div>
+            <div class="e2e-arch-arrow" data-step-range="3..4"></div>
+            <div class="e2e-arch-block" data-role="reduce" data-step-range="4" data-tooltip="Read the score on [-1,1]."><div class="arch-name">interpret</div><div class="arch-shape">\(\approx 0.6\)</div></div>
+            <div class="e2e-arch-legend"><span class="leg" data-role="reduce">reduction</span><span class="leg" data-role="project">lengths</span><span class="leg" data-role="nonlinear">combine</span></div>
+          </div>
+          <div class="e2e-twin">
+            <div class="e2e-panel e2e-math-panel">
+              <div class="panel-head">Math</div>
+              <div class="e2e-step" data-step="0"><div class="step-formula">$$a=(1,2,2),\quad b=(2,0,1)$$</div><p class="step-caption">Two tiny vectors in \(\mathbb{R}^{3}\). Press → to compute \(\cos\theta\).</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-formula">$$a\cdot b=\sum_i a_i b_i$$</div><p class="step-caption">Componentwise product, then sum.</p></div>
+              <div class="e2e-step" data-step="2"><div class="step-formula">$$\lVert a\rVert=\sqrt{\textstyle\sum_i a_i^2},\quad \lVert b\rVert=\sqrt{\textstyle\sum_i b_i^2}$$</div><p class="step-caption">Length of each vector.</p></div>
+              <div class="e2e-step" data-step="3"><div class="step-formula">$$\cos\theta=\dfrac{a\cdot b}{\lVert a\rVert\,\lVert b\rVert}$$</div><p class="step-caption">Divide.</p></div>
+              <div class="e2e-step" data-step="4"><div class="step-formula">$$\cos\theta\in[-1,1]$$</div><p class="step-caption">\(1\) same, \(0\) orthogonal, \(-1\) opposite.</p></div>
+            </div>
+            <div class="e2e-panel e2e-example-panel">
+              <div class="panel-head">Numbers</div>
+              <div class="e2e-step" data-step="0"><p class="step-caption">↓ Concrete arithmetic at each step.</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label">\(a\cdot b = 1\cdot2 + 2\cdot0 + 2\cdot1 = 4\)</span></div></div>
+              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label">\(\lVert a\rVert=\sqrt{1+4+4}=\sqrt{9}=3\)</span></div><div class="step-calc-row"><span class="matrix-label">\(\lVert b\rVert=\sqrt{4+0+1}=\sqrt{5}\approx2.236\)</span></div></div>
+              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label">\(\cos\theta=\dfrac{4}{3\sqrt{5}}=\dfrac{4}{6.708}\approx0.596\)</span></div></div>
+              <div class="e2e-step" data-step="4"><div class="step-calc-row"><span class="matrix-label is-highlight">\(\cos\theta\approx 0.60\)</span></div><p class="step-caption tiny">Moderately similar (angle \(\approx 53^\circ\)).</p></div>
+            </div>
+          </div>
+          <div class="e2e-stepper">
+            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">←</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 4</span></div><button type="button" class="step-btn" data-step-act="next">→</button></div>
+            <span class="e2e-stage-name">overview</span>
+            <button type="button" class="e2e-toggle">Theory only</button>
+          </div>
+          <aside class="slide-notes">Walk it aloud. Dot 4; norms 3 and √5; quotient 4/(3√5)≈0.596 ≈ 0.60, "moderately similar". √9 is exactly 3 by design; √5 stays irrational, a realistic case. arccos(0.596)≈53.4°.</aside>
+        </section>
+
+        <!-- ============================================ 53 · FORMULA/E2E · dot product ============================================ -->
+        <section class="slide" data-type="formula" data-screen-label="55 Dot product">
+          <div class="slide-header" style="border:none; padding-bottom:0;">
+            <h2>Dot product (inner product)</h2>
+            <span class="slide-kicker">direction <em>and</em> magnitude</span>
+          </div>
+          <div class="formula-stage">
+            $$ a\cdot b = \sum_i a_i b_i = \lVert a\rVert\,\lVert b\rVert\cos\theta $$
+          </div>
+          <div class="formula-caption">
+            <div class="var-block"><div class="var-symbol">range</div><div class="var-desc">\((-\infty,\infty)\)<br />not a metric</div></div>
+            <div class="var-block"><div class="var-symbol">worked</div><div class="var-desc">\(u=2i-3j,\ v=4i+2j\)<br />\(a\cdot b = 8-6 = 2\)</div></div>
+            <div class="var-block"><div class="var-symbol">MIPS</div><div class="var-desc">\(\arg\max\, a\cdot b\)<br />trained dual encoders</div></div>
+          </div>
+          <p class="small muted mt-3 center"><strong>When NOT to use it?</strong> When magnitude is a nuisance (e.g. raw TF-IDF where long documents score high just for being long) — then normalize and use cosine.</p>
+          <aside class="slide-notes">The dot product is cosine WITHOUT the normalization, so it rewards both alignment and length. Worked: u=2i−3j, v=4i+2j → 2·4 + (−3)·2 = 8 − 6 = 2. Max-inner-product search (MIPS) is argmax aᵀb and underlies trained dual-encoder retrieval (DPR), where the model deliberately learns meaningful norms. The caveat: don't use raw dot product when length is an artifact rather than signal.</aside>
+        </section>
+
+        <!-- ============================================ 54 · E2E · Euclidean + Manhattan + Minkowski ============================================ -->
+        <section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="56 L2 L1 Lp">
+          <div class="slide-header">
+            <h2>Euclidean, Manhattan, Minkowski</h2>
+            <span class="slide-kicker">E2E · worked + generalization</span>
+          </div>
+          <div class="e2e-arch">
+            <div class="e2e-arch-block" data-role="project" data-step-range="1" data-tooltip="Euclidean: straight-line distance."><div class="arch-name">L2</div><div class="arch-shape">\(\sqrt{\sum(\Delta)^2}\)</div></div>
+            <div class="e2e-arch-arrow" data-step-range="1..2"></div>
+            <div class="e2e-arch-block" data-role="reduce" data-step-range="2" data-tooltip="Manhattan: sum of absolute differences."><div class="arch-name">L1</div><div class="arch-shape">\(\sum|\Delta|\)</div></div>
+            <div class="e2e-arch-arrow" data-step-range="2..3"></div>
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="3..4" data-tooltip="Minkowski Lp unifies them."><div class="arch-name">Lp</div><div class="arch-shape">\((\sum|\Delta|^p)^{1/p}\)</div></div>
+            <div class="e2e-arch-legend"><span class="leg" data-role="project">L2</span><span class="leg" data-role="reduce">L1</span><span class="leg" data-role="nonlinear">general</span></div>
+          </div>
+          <div class="e2e-twin">
+            <div class="e2e-panel e2e-math-panel">
+              <div class="panel-head">Formula</div>
+              <div class="e2e-step" data-step="0"><div class="step-formula">$$d(x,y)=\Big(\textstyle\sum_i |x_i-y_i|^{p}\Big)^{1/p}$$</div><p class="step-caption">Minkowski \(L_p\). \(p=1\) Manhattan, \(p=2\) Euclidean, \(p\to\infty\) Chebyshev.</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-formula">$$d_2(P,Q)=\sqrt{(\Delta x)^2+(\Delta y)^2}$$</div><p class="step-caption"><strong>Euclidean.</strong> \(P(3,2),\,Q(4,1)\).</p></div>
+              <div class="e2e-step" data-step="2"><div class="step-formula">$$d_1(P,Q)=|\Delta x|+|\Delta y|$$</div><p class="step-caption"><strong>Manhattan.</strong> \(P(2,9),\,Q(3,5)\).</p></div>
+              <div class="e2e-step" data-step="3"><div class="step-formula">$$p=1,2,\infty$$</div><p class="step-caption">\(L_\infty=\max_i|x_i-y_i|\) (Chebyshev). \(0<p<1\) is a quasi-norm — violates the triangle inequality.</p></div>
+              <div class="e2e-step" data-step="4"><div class="step-formula">$$\text{high-}d:\ L_1\text{ keeps contrast better than }L_2$$</div><p class="step-caption">Aggarwal et al. 2001 — lower \(p\) resists distance concentration.</p></div>
+            </div>
+            <div class="e2e-panel e2e-example-panel">
+              <div class="panel-head">Numbers</div>
+              <div class="e2e-step" data-step="0"><p class="step-caption">↓ Two worked distances.</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label is-highlight">\(\sqrt{(4-3)^2+(1-2)^2}=\sqrt{1+1}=\sqrt{2}\approx 1.414\)</span></div></div>
+              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label is-highlight">\(|3-2|+|5-9| = 1+4 = 5\)</span></div></div>
+              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label">same \(P(2,9),Q(3,5)\):</span></div><div class="step-calc-row"><span class="matrix-label">\(L_\infty=\max(1,4)=4\)</span></div></div>
+              <div class="e2e-step" data-step="4"><div class="step-calc-row"><span class="matrix-label">use \(L_1\) when scales differ / outliers bite</span></div></div>
+            </div>
+          </div>
+          <div class="e2e-stepper">
+            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">←</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 4</span></div><button type="button" class="step-btn" data-step-act="next">→</button></div>
+            <span class="e2e-stage-name">overview</span>
+            <button type="button" class="e2e-toggle">Theory only</button>
+          </div>
+          <aside class="slide-notes">Fills the gap the old deck skipped (it cut Minkowski/Chebyshev for time). Euclidean P(3,2),Q(4,1): √((1)²+(−1)²)=√2≈1.414. Manhattan P(2,9),Q(3,5): 1+4=5. Minkowski unifies: p=1 L1, p=2 L2, p→∞ max. L1 is more robust to outliers (linear not quadratic penalty) and, per Aggarwal 2001, preserves contrast better in high dimensions — a teaser for the concentration slide. Fractional p<1 is NOT a metric.</aside>
+        </section>
+
+        <!-- ============================================ 55 · FORMULA/VIZ · cosine↔dot↔euclidean ============================================ -->
+        <section class="slide" data-type="formula" data-screen-label="57 Relationships">
+          <div class="slide-header" style="border:none; padding-bottom:0;">
+            <h2>How the three relate</h2>
+            <span class="slide-kicker">on the unit sphere they agree</span>
+          </div>
+          <div class="formula-stage">
+            $$ \lVert x-y\rVert^2 = \lVert x\rVert^2 + \lVert y\rVert^2 - 2\,x\cdot y \;\xrightarrow{\;\lVert x\rVert=\lVert y\rVert=1\;}\; 2\,(1-\cos\theta) $$
+          </div>
+          <p class="small muted center mt-2">On L2-normalized vectors, ranking by cosine \(\uparrow\) \(\Leftrightarrow\) dot \(\uparrow\) \(\Leftrightarrow\) squared-Euclidean \(\downarrow\) — <strong>identical</strong> nearest-neighbour ordering.</p>
+          <div class="viz-frame" style="height:300px; max-width:480px; margin:var(--sp-2) auto 0;">
+            <img src="assets/img/L2/L2-56-cosine-vs-euclid.png?v=1" alt="Arrows a=(1,1) and b=(10,10) on one ray: cosine identical (=1), but Euclidean distance very far (√162≈12.73)"
+                 style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+          </div>
+          <p class="small muted center">But NOT unit-norm: \(a=(1,1),b=(10,10)\) → \(\cos=1\) (identical direction) yet \(\lVert a-b\rVert=\sqrt{162}\approx 12.73\). <strong>Magnitude is where they part ways.</strong></p>
+          <aside class="slide-notes">The single most important relationship in vector search. Expand the squared distance; on the unit sphere it collapses to 2(1−cosθ), so cosine, dot, and (negative) Euclidean produce the SAME ranking — which is precisely why systems L2-normalize and then run a fast dot-product index. The counterexample shows where it breaks: a=(1,1), b=(10,10) are perfectly aligned (cos=1) but Euclidean says they are ~12.73 apart. cos = 20/(√2·√200) = 20/√400 = 20/20 = 1; ‖a−b‖ = √(81+81) = √162 ≈ 12.73. Both numbers are computed independently by `_research/data/cosine.py` (cosine_examples.json) so the worked arithmetic in this slide is reproducible. The same script also shows the effect on real text: TF-IDF on two 20-Newsgroup sci.space posts vs one rec.sport.hockey post — the same-topic cosine is HIGHER than the cross-topic cosine, which is the punchline of every dense-retrieval lecture.</aside>
+        </section>
+
+        <!-- ============================================ 56 · TABLE · the family ============================================ -->
+        <section class="slide" data-type="table" data-screen-label="58 Family table">
+          <div class="slide-header">
+            <h2>The similarity family</h2>
+            <span class="slide-kicker">captures · range · metric? · pitfall</span>
+          </div>
+          <table class="cmp-table">
+            <thead>
+              <tr><th>Measure</th><th>Captures</th><th>Range</th><th>Metric?</th><th>Pitfall</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Cosine</td><td>angle</td><td>\([-1,1]\)</td><td class="cell-bad">no (angular: yes)</td><td>zero vector; anisotropy</td></tr>
+              <tr><td>Dot</td><td>angle + magnitude</td><td>\((-\infty,\infty)\)</td><td class="cell-bad">no</td><td>length artifacts; MIPS</td></tr>
+              <tr><td>Euclidean</td><td>straight-line gap</td><td>\([0,\infty)\)</td><td class="cell-good">yes</td><td>scale; concentration</td></tr>
+              <tr><td>Jaccard</td><td>set overlap</td><td>\([0,1]\)</td><td class="cell-good">yes (distance)</td><td>set-size disparity</td></tr>
+              <tr><td>Edit (Levenshtein)</td><td>string ops</td><td>\([0,\max]\)</td><td class="cell-good">yes</td><td>\(O(nm)\) — short strings only</td></tr>
+              <tr><td>KL / JS</td><td>distribution gap</td><td>KL \([0,\infty)\)</td><td class="cell-bad">no (\(\sqrt{\mathrm{JS}}\): yes)</td><td>KL asymmetric; zero bins</td></tr>
+              <tr><td>Pearson</td><td>centered correlation</td><td>\([-1,1]\)</td><td class="cell-bad">no</td><td>= cosine of centered vectors</td></tr>
+            </tbody>
+          </table>
+          <aside class="slide-notes">The reference table — seven rows, keep it on screen while talking. Two facts students miss: (1) cosine and dot DISTANCE are not metrics (cosine fails the triangle inequality; the angular distance arccos(cos)/π is a metric); (2) Pearson is literally cosine after mean-centering, which is why it removes per-user rating bias in recommendation. Hamming and Mahalanobis are honorable mentions (binary codes; correlated/whitened features).</aside>
+        </section>
+
+        <!-- ============================================ 57 · DEFINITION/VIZ · Jaccard + MinHash ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="59 Jaccard">
+          <div class="slide-header">
+            <h2>Jaccard, MinHash &amp; SimHash</h2>
+            <span class="slide-kicker">the sparse / set regime</span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1600 460" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">
+              <circle cx="700" cy="230" r="185" fill="var(--accent)" opacity="0.18" stroke="var(--accent)" stroke-width="3"/>
+              <circle cx="900" cy="230" r="185" fill="var(--c-green)" opacity="0.18" stroke="var(--c-green)" stroke-width="3"/>
+              <text x="590" y="244" text-anchor="middle" font-family="var(--font-sans)" font-size="40" fill="var(--accent-ink)">A</text>
+              <text x="1010" y="244" text-anchor="middle" font-family="var(--font-sans)" font-size="40" fill="var(--c-green)">B</text>
+              <text x="800" y="212" text-anchor="middle" font-family="var(--font-sans)" font-size="28" fill="var(--ink)">A ∩ B</text>
+              <text x="800" y="250" text-anchor="middle" font-family="var(--font-mono)" font-size="22" fill="var(--ink-2)">overlap</text>
+            </svg>
+          </div>
+          <p class="viz-caption">\(J(A,B)=|A\cap B|/|A\cup B|\in[0,1]\); Jaccard <em>distance</em> \(1-J\) is a true metric. <strong>MinHash</strong> estimates \(J\) for set dedup (collision probability \(=J\)); <strong>SimHash</strong> estimates cosine for dense near-duplicates.</p>
+          <aside class="slide-notes">For sets and bags — shingled documents, user-item interactions, categorical features — Jaccard is the natural measure. The beautiful part is hashing: MinHash (Broder, AltaVista) builds signatures so that the probability two sketches collide equals their Jaccard, giving sublinear web-scale dedup still used to clean LLM training data. SimHash (Charikar) is the cosine analogue via random hyperplanes. Rule of thumb: MinHash ↔ Jaccard (sets); SimHash ↔ cosine (dense).</aside>
+        </section>
+
+        <!-- ============================================ 58 · E2E · Levenshtein DP ============================================ -->
+        <section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="60 Levenshtein">
+          <div class="slide-header">
+            <h2>Edit distance: HONDA × HYUNDAI</h2>
+            <span class="slide-kicker">E2E · Levenshtein DP</span>
+          </div>
+          <div class="e2e-arch">
+            <div class="e2e-arch-block" data-role="project" data-step-range="1" data-tooltip="Three operations: insert, delete, substitute."><div class="arch-name">ops</div><div class="arch-shape">ins/del/sub</div></div>
+            <div class="e2e-arch-arrow" data-step-range="1..2"></div>
+            <div class="e2e-arch-block" data-role="reduce" data-step-range="2" data-tooltip="Fill the DP matrix from corner."><div class="arch-name">DP fill</div><div class="arch-shape">min of 3</div></div>
+            <div class="e2e-arch-arrow" data-step-range="2..3"></div>
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="3" data-tooltip="Bottom-right cell = answer."><div class="arch-name">answer</div><div class="arch-shape">= 3</div></div>
+            <div class="e2e-arch-legend"><span class="leg" data-role="project">ops</span><span class="leg" data-role="reduce">fill</span><span class="leg" data-role="nonlinear">read</span></div>
+          </div>
+          <div class="e2e-twin">
+            <div class="e2e-panel e2e-math-panel">
+              <div class="panel-head">Recurrence</div>
+              <div class="e2e-step" data-step="0"><div class="step-formula">$$D[i,j]=\min\begin{cases}D[i\!-\!1,j]+1\\ D[i,j\!-\!1]+1\\ D[i\!-\!1,j\!-\!1]+\mathbb{1}[s_i\neq t_j]\end{cases}$$</div><p class="step-caption">Delete, insert, or substitute (free if the characters match).</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-formula">$$s=\texttt{HONDA},\quad t=\texttt{HYUNDAI}$$</div><p class="step-caption">Both share the leading <code>H</code> and the medial <code>N</code>, <code>D</code>, <code>A</code>.</p></div>
+              <div class="e2e-step" data-step="2"><div class="step-formula">$$\text{fill the }6\times 8\text{ grid}$$</div><p class="step-caption">Each cell is the min of its three neighbours, per the recurrence.</p></div>
+              <div class="e2e-step" data-step="3"><div class="step-formula">$$D[\,|s|,|t|\,] = 3$$</div><p class="step-caption">One alignment: insert <code>Y</code>, insert <code>U</code>, insert <code>I</code> — 3 edits.</p></div>
+            </div>
+            <div class="e2e-panel e2e-example-panel">
+              <div class="panel-head">Alignment</div>
+              <div class="e2e-step" data-step="0"><p class="step-caption">↓ Trace the cheapest path.</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label"><code>H _ _ O N D A _</code></span></div><div class="step-calc-row"><span class="matrix-label"><code>H Y U N D A &nbsp; I</code></span></div></div>
+              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label">insert <code>Y</code>, insert <code>U</code> … insert <code>I</code></span></div></div>
+              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label is-highlight">edit distance = 3</span></div><p class="step-caption tiny">Used for spell-check &amp; fuzzy matching.</p></div>
+            </div>
+          </div>
+          <div class="e2e-stepper">
+            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">←</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 3</span></div><button type="button" class="step-btn" data-step-act="next">→</button></div>
+            <span class="e2e-stage-name">overview</span>
+            <button type="button" class="e2e-toggle">Theory only</button>
+          </div>
+          <aside class="slide-notes">Ported from Lecture 1. Levenshtein is a true metric on strings via dynamic programming, O(nm). HONDA → HYUNDAI shares H...NDA; you need to insert Y, U, and I → 3 edits. (Equivalently: align HONDA to HYUNDA with two insertions, then append I.) Great for spell-check and fuzzy matching, but O(nm) makes it unsuitable for long documents — there you shingle and use MinHash instead. If a student wants the grid, the bottom-right cell of the 6×8 DP table is 3.</aside>
+        </section>
+
+        <!-- ============================================ 59 · TWO-COL · sparse vs dense ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="61 Sparse vs dense">
+          <div class="slide-header">
+            <h2>Sparse sets vs dense embeddings</h2>
+            <span class="slide-kicker">which measure, when</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>Sparse / sets</h3>
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">Shingled documents, user-item pairs, categorical features.</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Jaccard</strong> + <strong>MinHash</strong> for dedup; LSH banding → sublinear near-duplicate search.</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">You care <em>which</em> terms appear, not how dense the vector is.</span></li>
+              </ul>
+            </div>
+            <div class="twocol-col">
+              <h3>Dense embeddings</h3>
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">Learned sentence / document vectors in \(\mathbb{R}^{d}\).</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Cosine</strong> (most sentence models) or <strong>dot</strong> (trained dual encoders) + ANN (HNSW, IVF-PQ).</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">Magnitude may carry signal — see the dot-vs-cosine debate ahead.</span></li>
+              </ul>
+            </div>
+          </div>
+          <aside class="slide-notes">The practical fork. Sparse, high-dimensional, mostly-zero set representations want Jaccard and hashing (MinHash/SimHash + LSH) — that is how web-scale dedup and classic shingling work. Dense, low-dimensional learned embeddings want cosine or dot plus approximate nearest neighbour indexes. Picking the wrong family (e.g. cosine on raw sparse counts, or Jaccard on dense floats) gives meaningless rankings.</aside>
+        </section>
+
+        <!-- ============================================ 60 · DIVIDER · high-d pitfalls ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="62 Divider high-d">
+          <div>
+            <div class="divider-num">Part 04 · b</div>
+            <h1>When high dimensions<br />break intuition</h1>
+            <p class="divider-sub">Concentration · hubness · anisotropy — why naive nearest-neighbour can mislead.</p>
+          </div>
+          <div class="viz-frame" style="height:auto; max-height:32vh; aspect-ratio:16/9; margin:var(--sp-6) auto 0; max-width:46%;">
+            <img src="assets/img/L2/L2-61-wraith.png?v=1" alt="The Curse-of-Dimensionality Wraith crushing a wide histogram into a thin spike as knight Serega braces against it"
+                 style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+          </div>
+          <aside class="slide-notes">A short, sharp coda. The measures are clean in 2D; in the hundreds-to-thousands of dimensions where real embeddings live, three effects quietly degrade them. The knights' nemesis appears here — the <strong>Curse-of-Dimensionality Wraith</strong>, who flattens every distance until far and near look the same. Knowing these three effects separates someone who can plug in cosine from someone who can debug a retrieval system.</aside>
+        </section>
+
+        <!-- ============================================ 61 · VIZ · distance concentration ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="63 Concentration">
+          <div class="slide-header">
+            <h2>Distance concentration</h2>
+            <span class="slide-kicker">curse of dimensionality</span>
+          </div>
+          <div class="viz-frame">
+            <img src="assets/img/L2/L2-62-concentration.png?v=1" alt="Histograms d=2,10,100,1000 collapsing from a wide hill to a thin spike; everything equidistant" style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+          </div>
+          <p class="viz-caption">As \(d\to\infty\), the spread of pairwise distances collapses: nearest and farthest points become almost equidistant, so "nearest neighbour" loses meaning (Beyer et al. 1999). Affects all \(L_p\).</p>
+          <aside class="slide-notes">Concentration of measure: in very high dimensions, the histogram of distances from a query to all points narrows to a spike. The ratio (max−min)/min tends to zero, so the nearest neighbour is barely closer than the farthest — and tiny perturbations flip which point "wins". This is why high-d retrieval is fragile and why lower-p norms (Aggarwal 2001) retain a bit more contrast (though Mirkes 2020 shows fractional norms don't truly cure it).</aside>
+        </section>
+
+        <!-- ============================================ 62 · VIZ · hubness ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="64 Hubness">
+          <div class="slide-header">
+            <h2>Hubness</h2>
+            <span class="slide-kicker">a few points in everyone's kNN list</span>
+          </div>
+          <div class="viz-frame">
+            <img src="assets/img/L2/L2-63-hubness.png?v=1" alt="A crowd all pointing at two crowned hub figures; a few points hog all the neighbours" style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+          </div>
+          <p class="viz-caption">In high \(d\), the distribution of <em>k-occurrences</em> becomes right-skewed: a few <strong>hubs</strong> appear in almost everyone's nearest-neighbour list; <em>anti-hubs</em> in none (Radovanović et al. 2010).</p>
+          <aside class="slide-notes">A subtler high-d pathology than concentration. Some points become "popular" neighbours purely because of geometry — they sit in many kNN lists regardless of true relevance — while others are never retrieved. This skews kNN classification, retrieval, and recommendation. Fixes rescale local geometry: mutual proximity, local/global scaling, mutual-kNN graphs. Worth naming so students recognize the symptom (the same handful of documents keep getting returned).</aside>
+        </section>
+
+        <!-- ============================================ 63 · VIZ · anisotropy ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="65 Anisotropy">
+          <div class="slide-header">
+            <h2>Anisotropy of contextual embeddings</h2>
+            <span class="slide-kicker">a narrow cone inflates cosine</span>
+          </div>
+          <div class="viz-frame">
+            <img src="assets/img/L2/L2-64-anisotropy.png?v=1" alt="A narrow cone of arrows that all look similar versus a balanced whitened sphere of arrows" style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+          </div>
+          <p class="viz-caption">BERT / GPT-2 representations occupy a <strong>narrow cone</strong>, so two <em>random</em> tokens already have high cosine (Ethayarajh 2019) — raw cosine is inflated. Fix: whitening / standardization, or contrastive training.</p>
+          <aside class="slide-notes">The embeddings themselves are the problem here. Contextual reps from BERT/GPT-2 are squeezed into a narrow cone in space, so even unrelated tokens sit at a small angle and cosine reports them as "similar". This makes raw cosine on out-of-the-box LM embeddings misleading. Remedies push the cloud toward isotropy: whitening, BERT-flow, standardization, or contrastive objectives (sentence-transformers). Practical lesson: don't trust raw cosine on hidden states without calibration.</aside>
+        </section>
+
+        <!-- ============================================ 64 · MISCONCEPTION · cosine vs euclidean / Steck ============================================ -->
+        <section class="slide" data-type="misconception" data-screen-label="66 Cosine misconception">
+          <div class="slide-header">
+            <h2>Common misconception</h2>
+            <span class="slide-kicker">Bust the myth</span>
+          </div>
+          <div class="misc-card">
+            <div class="misc-label">What students think</div>
+            <p class="misc-statement">&ldquo;Cosine and Euclidean always rank the same — and cosine is always 'about similarity'.&rdquo;</p>
+            <button class="misc-reveal-btn" type="button">Reveal truth</button>
+            <div class="misc-truth">They agree <strong>only</strong> on L2-normalized vectors. Clean counterexample: query \(q=(1,0)\); candidates \(a=(0.9,0)\) and \(c=(2,0)\). Both have \(\cos=1\) with \(q\) (cosine cannot separate them), but Euclidean gives \(0.1\) vs \(1.0\) — it strictly prefers \(a\). And Steck et&nbsp;al. (2024): for regularized matrix factorization a diagonal "gauge" leaves <em>dot-product predictions</em> unchanged while making <em>cosine</em> values arbitrary — so cosine of learned embeddings can be non-unique. Fix: train against cosine, or prefer dot, or whiten first.
+              <p class="misc-anchor">
+                <strong>Worked counter-example</strong> (grounded · <code>_research/data/cosine_examples.py</code>, <code>classic_pairs[0]</code>).
+                Vectors \( u=(1,1) \) and \( v=(10,10) \) point the <em>same direction</em>.
+                <br>Cosine: \( u\!\cdot\!v / (\lVert u\rVert\lVert v\rVert) = 20 / (\sqrt{2}\cdot\sqrt{200}) = 20/20 = \mathbf{1.0} \) — identical.
+                <br>Euclidean: \( \lVert u-v\rVert = \sqrt{(1\!-\!10)^2 + (1\!-\!10)^2} = \sqrt{162} \approx \mathbf{12.73} \) — far apart.
+                <br>Same two vectors, ranked the same under cosine, ranked very differently under Euclidean. Steck et&nbsp;al. (2024) push the point further: under regularized MF a diagonal gauge leaves dot-product predictions invariant while making cosine arbitrary — so "cosine of learned embeddings" can be ill-defined unless the gauge is fixed (L2-normalize, or train against cosine, or whiten).
+              </p>
+            </div>
+          </div>
+
+          <img src="assets/img/_char/serega-cameo-puzzled.png?v=1" alt="" aria-hidden="true" class="cameo br" />
+
+          <aside class="slide-notes">Two myths in one. First the ranking myth: q=(1,0), a=(0.9,0), c=(2,0) — same direction so cosine ties at 1.0, but Euclidean is 0.1 vs 1.0 and strictly prefers a. Magnitude, not angle, decided. Always L2-normalize first if you want them to agree. Second, the deeper Steck 2024 critique: in a regularized linear MF model you can rescale dimensions (a diagonal gauge) without changing dot-product predictions, yet cosine similarities change arbitrarily — so "cosine of learned embeddings" is not well-defined unless you control the gauge. Good class debate; the 2026 rebuttal argues normalization removes the freedom.</aside>
+        </section>
+
+        <!-- ============================================ 65 · TABLE · applications ============================================ -->
+        <section class="slide" data-type="table" data-screen-label="67 Applications">
+          <div class="slide-header">
+            <h2>Applications → measure</h2>
+            <span class="slide-kicker">which tool for which job</span>
+          </div>
+          <table class="cmp-table">
+            <thead>
+              <tr><th>Task</th><th>Measure</th><th>Why</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Semantic search / RAG</td><td class="cell-good">cosine (normalized) / dot</td><td>dense embeddings; dot for trained dual encoders</td></tr>
+              <tr><td>Near-duplicate / dedup</td><td class="cell-good">Jaccard via MinHash</td><td>sets of shingles, web-scale, sublinear</td></tr>
+              <tr><td>Plagiarism</td><td>containment + edit distance</td><td>shingle overlap, then fine string alignment</td></tr>
+              <tr><td>Clustering</td><td>sq-Euclidean / cosine</td><td>k-means vs spherical k-means</td></tr>
+              <tr><td>Recommendation (CF)</td><td>Pearson / learned dot</td><td>centering removes per-user bias</td></tr>
+              <tr><td>Drift / monitoring</td><td>KL / JS (\(\sqrt{\mathrm{JS}}\)) / Wasserstein</td><td>compare distributions over time</td></tr>
+            </tbody>
+          </table>
+          <aside class="slide-notes">The "so what" table. The point is that measure choice is task-driven and tied to representation: dense → cosine/dot, sets → Jaccard+MinHash, ranks/CF → Pearson, distributions → KL/JS/Wasserstein. RAG and semantic search (cosine on normalized sentence embeddings) are the ones you will use most this course; drift monitoring returns when we discuss production systems.</aside>
+        </section>
+
+        <!-- ============================================ 66 · TWO-COL · FAISS / vector DBs / numerics ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="68 FAISS">
+          <div class="slide-header">
+            <h2>In practice: FAISS, vector DBs, numerics</h2>
+            <span class="slide-kicker">match the metric to the training</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>FAISS has no native cosine</h3>
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><code>METRIC_L2</code> returns <strong>squared</strong> \(L_2\) (no sqrt).</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><code>METRIC_INNER_PRODUCT</code> for dot.</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">Cosine = L2-normalize, then <code>IndexFlatIP</code>. Forget to normalize → silently wrong.</span></li>
+              </ul>
+            </div>
+            <div class="twocol-col">
+              <h3>Match &amp; guard</h3>
+              <p>Pick the vector-DB metric to match how the embedding model was <strong>trained</strong>: most sentence models → cosine; some retrievers → dot.</p>
+              <div class="callout" data-kind="warn">
+                <div class="callout-icon">!</div>
+                <div class="callout-body">
+                  <strong>Numerics</strong>
+                  <p>Cosine is undefined for a zero vector (add \(\varepsilon\)); KL needs smoothing for zero bins; pre-normalize once and store unit vectors.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <aside class="slide-notes">The deployment reality. FAISS returns squared L2 (cheaper, same ordering) and has no cosine metric — you L2-normalize and use inner product. The single most common production bug is forgetting to normalize, which silently turns your "cosine" search into dot-product search that rewards long vectors. And always match the index metric to the model's training objective; a cosine-trained sentence model behaves oddly under raw dot. Numerics: guard the zero vector with ε, smooth KL's zero bins.</aside>
+        </section>
+
+        <!-- ============================================ 67 · QUOTE · takeaway / bridge ============================================ -->
+        <section class="slide" data-type="quote" data-screen-label="69 Takeaway">
+          <div>
+            <div class="quote-mark">"</div>
+            <blockquote>text → tokens → ids → vectors → similarity → ranking.</blockquote>
+            <div class="quote-attr">the whole pipeline, in one line</div>
+          </div>
+          <aside class="slide-notes">Tie it together. We turned the first-contact problem into a chain: cut text into tokens, map tokens to ids, ids to vectors, then measure closeness to rank. Next lecture we make ranking concrete with Classical IR — TF-IDF and BM25, the first real ranking functions, which turn exactly these tokens and vectors into scores you can serve. Embeddings (the learned vectors) come shortly after.</aside>
+        </section>
+
+        <!-- ============================================ 68 · REFERENCES ============================================ -->
+        <section class="slide" data-type="refs" data-screen-label="70 References">
+          <div class="slide-header">
+            <h2>References &amp; further reading</h2>
+            <span class="slide-kicker">Read next</span>
+          </div>
+          <style>.refs-2col{display:block;columns:2;column-gap:48px;font-size:26px}.refs-2col li{break-inside:avoid;-webkit-column-break-inside:avoid;padding:6px 0}.refs-2col .ref-venue,.refs-2col .ref-year{font-size:22px}.refs-2col li::before{font-size:22px}</style>
+          <ol class="ref-list refs-2col">
+            <li><span class="ref-body"><span class="ref-authors">Jurafsky, D. &amp; Martin, J. H.</span> · <span class="ref-title">Speech and Language Processing (SLP3, draft)</span> · <span class="ref-venue">ch. 2, 6</span></span><span class="ref-year">2024</span></li>
+            <li><span class="ref-body"><span class="ref-authors">Sennrich, R., Haddow, B. &amp; Birch, A.</span> · <span class="ref-title">Neural MT of Rare Words with Subword Units (BPE)</span> · <span class="ref-venue">ACL · arXiv:1508.07909</span></span><span class="ref-year">2016</span></li>
+            <li><span class="ref-body"><span class="ref-authors">Kudo, T.</span> · <span class="ref-title">Subword Regularization (Unigram LM)</span> · <span class="ref-venue">ACL · arXiv:1804.10959</span></span><span class="ref-year">2018</span></li>
+            <li><span class="ref-body"><span class="ref-authors">Karpathy, A.</span> · <span class="ref-title">Let's build the GPT Tokenizer / minBPE</span> · <span class="ref-venue">github.com/karpathy/minbpe</span></span><span class="ref-year">2024</span></li>
+            <li><span class="ref-body"><span class="ref-authors">Steck, H., Ekanadham, C. &amp; Kallus, N.</span> · <span class="ref-title">Is Cosine-Similarity Really About Similarity?</span> · <span class="ref-venue">arXiv:2403.05440</span></span><span class="ref-year">2024</span></li>
+            <li><span class="ref-body"><span class="ref-authors">Aggarwal, Hinneburg &amp; Keim</span> · <span class="ref-title">On the Surprising Behavior of Distance Metrics in High-Dim. Space</span> · <span class="ref-venue">ICDT</span></span><span class="ref-year">2001</span></li>
+            <li><span class="ref-body"><span class="ref-authors">Ethayarajh, K.</span> · <span class="ref-title">How Contextual are Contextualized Word Representations? (anisotropy)</span> · <span class="ref-venue">EMNLP</span></span><span class="ref-year">2019</span></li>
+            <li><span class="ref-body"><span class="ref-authors">Manning, Raghavan &amp; Schütze</span> · <span class="ref-title">Introduction to Information Retrieval</span> · <span class="ref-venue">CUP · ch. 6</span></span><span class="ref-year">2008</span></li>
+            <li><span class="ref-body"><span class="ref-authors">"The Token Tax"</span> · <span class="ref-title">Multilingual Fertility Bias</span> · <span class="ref-venue">arXiv:2509.05486</span></span><span class="ref-year">2025</span></li>
+            <li><span class="ref-body"><span class="ref-authors">OpenAI / HuggingFace</span> · <span class="ref-title">tiktoken &amp; tokenizers documentation</span> · <span class="ref-venue">github.com/openai/tiktoken</span></span><span class="ref-year">2024</span></li>
+          </ol>
+          <aside class="slide-notes">Jurafsky &amp; Martin ch. 2 (tokenization) and ch. 6 (vector semantics) are the textbook spine; Sennrich and Kudo are the source papers for BPE and Unigram; Karpathy's minBPE is the best hands-on build; Steck 2024, Aggarwal 2001, and Ethayarajh 2019 back the high-dimensional caveats; Manning et al. for the IR similarity foundations we build on next week.</aside>
+        </section>
+
+        <!-- ============================================ 69 · FINAL / Q&A ============================================ -->
+        <section class="slide" data-type="final" data-screen-label="71 Final">
+          <div class="final-body">
+            <h1>Questions?</h1>
+            <p class="final-sub">Slides, homework and recording — via the QR code or the link below.</p>
+            <div class="contact-grid">
+              <div class="contact-item"><div class="contact-label">Email</div><div class="contact-value">a.nasibullin@innopolis.university</div></div>
+              <div class="contact-item"><div class="contact-label">Office hours</div><div class="contact-value">Wed 16:00–17:40 (before class)</div></div>
+              <div class="contact-item"><div class="contact-label">GitHub</div><div class="contact-value">github.com/levshaazz/deep-learning-for-search-summer-2026</div></div>
+            </div>
+            <div class="qr-block">
+              <div class="qr-canvas" data-qr="https://levshaazz.github.io/deep-learning-for-search-summer-2026/"></div>
+              <div class="qr-caption">Full lecture materials<span class="qr-url">levshaazz.github.io/deep-learning-for-search-summer-2026</span></div>
+            </div>
+          </div>
+
+          <img src="assets/img/L2/L2-70-first-contact-callback.png?v=1" alt="" aria-hidden="true"
+               class="cameo bl" style="width:300px; border-radius:14px;" />
+
+          <aside class="slide-notes">Q&amp;A. Serega's sign-off — <em>First Contact, made</em>: two minds with no shared symbols now trade meaning through a shared vector, and Sir Cosine has the ruler to compare them. Next lecture: Classical IR — TF-IDF and BM25 turn today's tokens and vectors into the first real ranking functions. QR points to the course hub.</aside>
+        </section>
+
+      </div><!-- /.slides -->
+    </div><!-- /.stage -->
+  </div><!-- /.deck -->
+
+  <!-- JS -->
+  <script src="js/deck.js"></script>
+  <script src="js/tools.js"></script>
+  <script src="js/pen.js"></script>
+  <script src="js/notes.js"></script>
+  <script src="js/handout.js"></script>
+  <script src="js/presenter.js"></script>
+  <script src="js/tweaks.js"></script>
+  <script src="js/demos.js"></script>
+  <script src="js/e2e.js"></script>
+  <script src="js/lab.js"></script>
+  <script src="js/archflow.js"></script>
+  <script src="js/sequence.js"></script>
+  <script src="js/budget.js"></script>
+  <script src="js/preflight.js"></script>
+</body>
+</html>

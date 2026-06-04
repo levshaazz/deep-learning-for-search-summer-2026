@@ -1,0 +1,764 @@
+/* =========================================================
+   SHARED COMPONENTS — callouts, badges, hidden, timer, etc.
+   ========================================================= */
+
+/* --- Section header (large slide title) ----------------- */
+.slide-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--sp-5);
+  padding-bottom: var(--sp-3);
+  border-bottom: var(--line-thick) solid var(--ink);
+  margin-bottom: var(--sp-4);
+}
+.slide-header h2 {
+  font-family: var(--font-serif);
+  font-size: var(--fs-h2);
+  line-height: 1.0;
+  letter-spacing: -0.015em;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.slide-header .slide-kicker {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  font-weight: 600;
+  white-space: nowrap;
+  flex: 0 0 auto;
+  align-self: baseline;
+}
+
+/* --- Callouts (key idea, warning, info, exercise) ------- */
+.callout {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-5);
+  border-radius: var(--r-md);
+  align-items: start;
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: 1.4;
+  background: var(--accent-soft);
+  color: var(--ink);
+  margin: var(--sp-3) 0;
+}
+.callout .callout-icon {
+  width: 72px; height: 72px;
+  border-radius: var(--r-md);
+  background: var(--accent);
+  color: white;
+  display: grid; place-items: center;
+  font-family: var(--font-serif);
+  font-size: 44px;
+  font-weight: 600;
+  font-style: italic;
+}
+.callout .callout-body strong { display: block; margin-bottom: 4px; }
+.callout p { margin: 0; font-size: inherit; }
+
+.callout[data-kind="key"]     { background: var(--c-amber-soft); }
+.callout[data-kind="key"]     .callout-icon { background: var(--c-amber); }
+.callout[data-kind="warn"]    { background: var(--c-red-soft); }
+.callout[data-kind="warn"]    .callout-icon { background: var(--c-red); }
+.callout[data-kind="info"]    { background: var(--c-cyan-soft); }
+.callout[data-kind="info"]    .callout-icon { background: var(--c-cyan); }
+.callout[data-kind="success"] { background: var(--c-green-soft); }
+.callout[data-kind="success"] .callout-icon { background: var(--c-green); }
+.callout[data-kind="exercise"]{ background: var(--c-violet-soft); }
+.callout[data-kind="exercise"] .callout-icon { background: var(--c-violet); }
+
+/* --- Badges & tags --------------------------------------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 6px 16px;
+  border-radius: var(--r-pill);
+  background: var(--bg-alt);
+  color: var(--ink-2);
+  border: var(--hairline) solid var(--rule);
+}
+.badge[data-color="accent"]  { background: var(--accent-soft);   color: var(--accent-ink); border-color: transparent; }
+.badge[data-color="red"]     { background: var(--c-red-soft);    color: var(--c-red); border-color: transparent; }
+.badge[data-color="green"]   { background: var(--c-green-soft);  color: var(--c-green-ink); border-color: transparent; }
+.badge[data-color="amber"]   { background: var(--c-amber-soft);  color: var(--c-amber-ink); border-color: transparent; }
+.badge[data-color="violet"]  { background: var(--c-violet-soft); color: var(--c-violet); border-color: transparent; }
+.badge[data-color="cyan"]    { background: var(--c-cyan-soft);   color: var(--c-cyan-ink); border-color: transparent; }
+
+/* --- HIDDEN ANSWER / spoiler ---------------------------- */
+/* Use a real <details>/<summary> for native a11y semantics — screen
+   readers announce expanded/collapsed state automatically. */
+details.hidden-answer {
+  display: block;
+  margin: var(--sp-3) 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+details.hidden-answer > summary {
+  display: block;
+  width: 100%;
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--bg-alt);
+  border: 2px dashed var(--rule-strong);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  color: var(--ink-3);
+  text-align: center;
+  letter-spacing: 0.04em;
+  transition: all var(--dur) var(--ease);
+  list-style: none;
+}
+details.hidden-answer > summary::-webkit-details-marker { display: none; }
+details.hidden-answer > summary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+details.hidden-answer > summary::before {
+  content: "⊕ ";
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+details.hidden-answer[open] > summary::before { content: "⊖ "; }
+details.hidden-answer > .ha-content {
+  margin-top: var(--sp-2);
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--c-green-soft);
+  border-left: 8px solid var(--c-green);
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: 1.4;
+  animation: revealIn var(--dur-slow) var(--ease) both;
+}
+@keyframes revealIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Back-compat — old <div.hidden-answer> markup still works */
+div.hidden-answer {
+  display: block;
+  margin: var(--sp-3) 0;
+}
+div.hidden-answer .ha-reveal {
+  display: block;
+  width: 100%;
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--bg-alt);
+  border: 2px dashed var(--rule-strong);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  color: var(--ink-3);
+  text-align: center;
+  letter-spacing: 0.04em;
+  transition: all var(--dur) var(--ease);
+}
+div.hidden-answer .ha-reveal:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+div.hidden-answer .ha-reveal::before {
+  content: "⊕ ";
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+div.hidden-answer .ha-content {
+  display: none;
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--c-green-soft);
+  border-left: 8px solid var(--c-green);
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: 1.4;
+  animation: revealIn var(--dur-slow) var(--ease) both;
+}
+div.hidden-answer.is-revealed .ha-reveal { display: none; }
+div.hidden-answer.is-revealed .ha-content { display: block; }
+
+/* --- TIMER / pomodoro ----------------------------------- */
+.timer {
+  display: inline-grid;
+  grid-template-columns: auto auto;
+  gap: var(--sp-3);
+  align-items: center;
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--bg-card);
+  border: var(--line) solid var(--ink);
+  border-radius: var(--r-md);
+  font-family: var(--font-mono);
+  box-shadow: 6px 6px 0 var(--c-amber-soft);
+}
+.timer .timer-display {
+  font-size: 88px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  min-width: 240px;
+}
+.timer .timer-controls {
+  display: grid;
+  gap: var(--sp-1);
+}
+.timer .timer-btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--r-sm);
+  padding: 10px 20px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 24px;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: filter var(--dur) var(--ease);
+}
+.timer .timer-btn:hover { filter: brightness(1.1); }
+.timer .timer-btn[data-act="reset"] {
+  background: var(--bg-alt);
+  color: var(--ink);
+}
+.timer.is-warning .timer-display { color: var(--c-amber); }
+.timer.is-finished .timer-display { color: var(--c-red); animation: pulseFlash 0.6s infinite; }
+@keyframes pulseFlash { 50% { opacity: 0.3; } }
+/* Reduced motion: stop the infinite strobe; keep the red finished color. */
+@media (prefers-reduced-motion: reduce) {
+  .timer.is-finished .timer-display { animation: none; }
+}
+
+/* --- QR CODE BLOCK -------------------------------------- */
+.qr-block {
+  display: inline-grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--sp-3);
+  align-items: center;
+  padding: var(--sp-3);
+  background: var(--bg-card);
+  border: var(--hairline) solid var(--rule);
+  border-radius: var(--r-md);
+}
+.qr-block .qr-canvas {
+  width: 220px; height: 220px;
+  background: white;
+  border-radius: var(--r-sm);
+  display: grid; place-items: center;
+  overflow: hidden;
+}
+.qr-block .qr-canvas svg { width: 100%; height: 100%; display: block; }
+.qr-block .qr-caption {
+  font-family: var(--font-sans);
+  font-size: 28px;
+  color: var(--ink-2);
+  max-width: 460px;
+  line-height: 1.3;
+}
+.qr-block .qr-caption .qr-url {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 22px;
+  color: var(--ink-3);
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+/* --- Stepper (for incremental animation) ---------------- */
+.step-controls {
+  position: absolute;
+  bottom: var(--sp-4);
+  right: var(--sp-4);
+  display: flex;
+  gap: var(--sp-1);
+  background: var(--bg-card);
+  border: var(--hairline) solid var(--rule);
+  border-radius: var(--r-pill);
+  padding: 4px;
+  box-shadow: var(--shadow-sm);
+  font-family: var(--font-mono);
+  z-index: 5;
+}
+.step-controls button {
+  background: transparent;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.step-controls button:hover { background: var(--bg-alt); }
+.step-controls .step-counter {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 16px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  font-size: 22px;
+}
+
+/* Step visibility — driven by data-step on slide.
+   JS sets `.is-step-hidden` on every [data-step] whose step number is
+   greater than the slide's data-current-step. Supports any number of steps. */
+[data-step] {
+  transition: opacity var(--dur) var(--ease);
+}
+[data-step].is-step-hidden {
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+/* --- Live code runner ----------------------------------- */
+.code-runner {
+  margin: var(--sp-3) 0;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  border: var(--hairline) solid var(--rule);
+}
+.code-runner .runner-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.code-runner .runner-editor {
+  background: var(--bg-inset);
+  padding: var(--sp-3) var(--sp-4);
+}
+:root[data-theme="dark"] .code-runner .runner-editor { background: #0B0E14; }
+.code-runner .runner-editor pre {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-code-sm);
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+.code-runner .runner-output {
+  background: var(--bg-card);
+  padding: var(--sp-3) var(--sp-4);
+  border-left: var(--hairline) solid var(--rule);
+  display: flex; flex-direction: column;
+}
+.code-runner .runner-output-head {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+  margin-bottom: var(--sp-2);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.code-runner .runner-run-btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--r-sm);
+  padding: 6px 14px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 22px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.code-runner .runner-out {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 26px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--ink);
+}
+.code-runner .runner-out .err { color: var(--c-red); }
+
+/* --- Pen / annotation overlay --------------------------- */
+.pen-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 80;
+}
+.pen-layer.is-active { pointer-events: auto; cursor: crosshair; }
+.pen-layer svg { width: 100%; height: 100%; display: block; }
+
+/* --- Progress bar --------------------------------------- */
+.progress-bar {
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 5px;
+  background: var(--bg-alt);
+  z-index: 50;
+  pointer-events: none;
+}
+.progress-bar .progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--c-cyan));
+  width: 0%;
+  transition: width var(--dur-slow) var(--ease);
+}
+
+/* --- Toolbar (lecturer tools) --------------------------- */
+.toolbar {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  background: rgba(20, 24, 31, 0.92);
+  backdrop-filter: blur(12px);
+  border-radius: 999px;
+  box-shadow: 0 12px 32px rgba(0,0,0,.4);
+  z-index: 200;
+  font-family: var(--font-sans);
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+  pointer-events: none;
+}
+.toolbar.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+.toolbar button {
+  background: transparent;
+  border: none;
+  width: 44px; height: 44px;
+  border-radius: 999px;
+  color: #DDD7C7;
+  cursor: pointer;
+  display: grid; place-items: center;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  transition: all var(--dur) var(--ease);
+}
+.toolbar button:hover { background: rgba(255,255,255,0.1); color: white; }
+.toolbar button.is-on { background: var(--accent); color: white; }
+.toolbar button svg { width: 22px; height: 22px; }
+.toolbar .toolbar-sep {
+  width: 1px; height: 24px;
+  background: rgba(255,255,255,0.15);
+  margin: 0 4px;
+}
+.toolbar .toolbar-slide-num {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: #DDD7C7;
+  font-variant-numeric: tabular-nums;
+  padding: 0 12px;
+  min-width: 72px;
+  text-align: center;
+}
+
+/* --- Overview mode -------------------------------------- */
+/* Strategy: wrap each .slide in a .slide-thumb container (done by JS
+   when entering overview). The thumb is the grid item with container
+   queries; the slide stays at its native 1920×1080 size and we scale
+   it via cqw units. All slides get `.is-active` while in overview so
+   their full layout (incl. grid-display title / divider / etc.) renders. */
+.slide-thumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  position: relative;
+  border-radius: 10px;
+  border: 3px solid transparent;
+  outline-offset: 2px;
+  cursor: pointer;
+  background: var(--bg);
+  container-type: inline-size;
+  transition:
+    border-color var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
+.slide-thumb:hover {
+  transform: translateY(-3px);
+  border-color: var(--c-amber);
+}
+.slide-thumb.is-current { border-color: var(--accent); }
+.slide-thumb.is-skipped { opacity: 0.35; }
+.slide-thumb::after {
+  content: attr(data-screen-label);
+  position: absolute;
+  bottom: 8px; left: 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: rgba(255,255,255,0.95);
+  background: rgba(10,13,19,0.78);
+  padding: 3px 10px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  pointer-events: none;
+  z-index: 2;
+  max-width: calc(100% - 24px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deck.is-overview {
+  /* Stage spans the viewport so the grid can scroll. */
+}
+.deck.is-overview .stage {
+  position: static !important;
+  transform: none !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: #0A0D13;
+  overflow: auto;
+  padding: 64px 40px 80px;
+  box-sizing: border-box;
+}
+.deck.is-overview .slides {
+  position: static;
+  inset: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+/* Each slide keeps its natural 1920×1080 layout — scaled to fit the
+   thumbnail container via container-query units. Note the `1920px` in
+   the divisor: `scale()` wants a unitless number, and `100cqw / 1920`
+   without the px on the rhs yields a length (invalid in `scale()`).
+   Dividing length-by-length gives the dimensionless ratio we need. */
+.deck.is-overview .slide-thumb .slide {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 1920px !important;
+  height: 1080px !important;
+  padding: var(--slide-pad-top) var(--slide-pad-x) var(--slide-pad-bottom) var(--slide-pad-x);
+  transform: scale(calc(100cqw / 1920px));
+  transform-origin: top left;
+  pointer-events: none;
+  background: var(--bg);
+}
+/* Hide chrome inside thumbnails — they're not interactive */
+.deck.is-overview .slide__frame,
+.deck.is-overview .pen-layer,
+.deck.is-overview .step-controls { display: none !important; }
+/* Reset any auto-fit transform on .slide-body in overview — the thumb
+   wraps the WHOLE slide so we don't want a second scale layer */
+.deck.is-overview .slide-body {
+  transform: none !important;
+  width: 100% !important;
+}
+.deck.is-overview .toolbar { display: none; }
+.deck.is-overview .progress-bar { display: none; }
+.deck.is-overview .presenter { display: none; }
+
+/* Legacy overview chrome — superseded by the inline element-based banner.
+   Both selectors are unreferenced in JS/HTML; collapsed to a single hidden
+   rule each (the old layout block was always overridden by display:none). */
+.overview-banner,
+.overview-header {
+  display: none !important;
+}
+
+/* --- Presenter notes panel ------------------------------ */
+.presenter {
+  position: fixed;
+  right: 20px;
+  bottom: 80px;
+  width: 460px;
+  max-height: 60vh;
+  background: rgba(20, 24, 31, 0.96);
+  backdrop-filter: blur(16px);
+  color: #DDD7C7;
+  border-radius: 16px;
+  box-shadow: 0 24px 64px rgba(0,0,0,.5);
+  padding: 20px 24px;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  z-index: 150;
+  overflow: auto;
+  display: none;
+}
+.presenter.is-visible { display: block; }
+.presenter .presenter-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #888;
+}
+.presenter .presenter-body { color: #ECE7D8; }
+.presenter .presenter-body p { font-size: 15px; margin: 0 0 8px; color: inherit; font-family: inherit; }
+.presenter .presenter-body em { color: var(--c-amber); font-style: normal; font-weight: 600; }
+
+/* --- Toolbar hint ('press T' on load) ------------------- */
+.kbd-hint {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: rgba(20, 24, 31, 0.85);
+  color: #ECE7D8;
+  padding: 12px 18px;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity var(--dur-slow) var(--ease);
+  pointer-events: none;
+}
+.kbd-hint.is-visible { opacity: 1; }
+.kbd-hint kbd {
+  display: inline-block;
+  padding: 2px 8px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  margin: 0 2px;
+}
+
+/* --- TOC nav popover (jump to slide) -------------------- */
+.toc-pop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,13,19,0.85);
+  backdrop-filter: blur(8px);
+  z-index: 300;
+  display: none;
+  padding: 60px;
+  overflow: auto;
+}
+.toc-pop.is-visible { display: block; }
+.toc-pop .toc-pop-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  background: var(--bg);
+  color: var(--ink);
+  border-radius: 24px;
+  padding: 48px 56px;
+}
+.toc-pop h3 {
+  font-family: var(--font-serif);
+  font-size: 44px;
+  margin: 0 0 24px;
+}
+.toc-pop .toc-pop-list {
+  display: grid;
+  gap: 4px;
+}
+.toc-pop .toc-pop-row {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  gap: 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 20px;
+  color: var(--ink);
+  transition: background var(--dur) var(--ease);
+  align-items: baseline;
+  text-decoration: none;
+}
+.toc-pop .toc-pop-row:hover { background: var(--bg-alt); }
+.toc-pop .toc-pop-row .pop-num {
+  font-family: var(--font-mono);
+  color: var(--accent);
+  font-weight: 600;
+}
+.toc-pop .toc-pop-row .pop-type {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+}
+
+/* ---- Mobile warning overlay ---- */
+.mobile-warning {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: none;
+  background: rgba(10,13,19,0.95);
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.mobile-warning.is-visible { display: flex; }
+.mobile-warning .mw-inner {
+  max-width: 480px;
+  background: var(--bg-card);
+  color: var(--ink);
+  border-radius: 16px;
+  padding: 32px 28px;
+  text-align: center;
+  font-family: var(--font-sans);
+}
+.mobile-warning .mw-icon {
+  font-size: 48px;
+  color: var(--c-amber);
+  margin-bottom: 12px;
+  font-family: var(--font-serif);
+}
+.mobile-warning h3 {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  line-height: 1.2;
+  margin: 0 0 12px;
+  font-weight: 500;
+}
+.mobile-warning p {
+  font-size: 14px;
+  line-height: 1.4;
+  margin: 0 0 20px;
+  color: var(--ink-2);
+}
+.mobile-warning .mw-dismiss {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 22px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.mobile-warning .mw-dismiss:hover { filter: brightness(1.1); }
+
+/* --- Misc utility --------------------------------------- */
+.row { display: flex; align-items: center; gap: var(--sp-3); }
+.row.gap-2 { gap: var(--sp-2); }
+.row.gap-5 { gap: var(--sp-5); }
+.col { display: flex; flex-direction: column; gap: var(--sp-3); }
+.center { text-align: center; }
+.mt-2 { margin-top: var(--sp-2); }
+.mt-3 { margin-top: var(--sp-3); }
+.mt-4 { margin-top: var(--sp-4); }
+.mt-5 { margin-top: var(--sp-5); }
+.mt-6 { margin-top: var(--sp-6); }
+.muted { color: var(--ink-3); }
