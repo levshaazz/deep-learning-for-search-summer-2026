@@ -1,0 +1,26 @@
+---
+// Root → redirect to a locale. Static page: honors a saved locale, else browser, else EN.
+import { DEFAULT_LOCALE, LOCALES, localizedPath } from '../i18n/locales.js';
+const target = localizedPath(DEFAULT_LOCALE);
+const map = Object.fromEntries(LOCALES.map((l) => [l, localizedPath(l)]));
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="refresh" content={`0; url=${target}`} />
+  <link rel="canonical" href={target} />
+  <title>Deep Learning for Search</title>
+  <script is:inline define:vars={{ map, fallback: target }}>
+    try {
+      const saved = localStorage.getItem('dls.lang');
+      const nav = (navigator.language || 'en').slice(0, 2);
+      const pick = map[saved] || map[nav] || fallback;
+      location.replace(pick);
+    } catch (e) { location.replace(fallback); }
+  </script>
+</head>
+<body>
+  <p>Redirecting… <a href={target}>Deep Learning for Search</a></p>
+</body>
+</html>

@@ -1,0 +1,74 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { LOCALES, t, withBase } from '../../i18n/locales.js';
+import { ui } from '../../i18n/ui.js';
+import { course } from '../../lib/course.js';
+
+export function getStaticPaths() {
+  return LOCALES.map((l) => ({ params: { lang: l } }));
+}
+const { lang } = Astro.params;
+const m = course.meta;
+const showFallbackNotice = lang === 'tt';
+---
+<BaseLayout lang={lang} page="syllabus" title={t(ui.nav.syllabus, lang)}>
+  <div class="wrap">
+    <section class="block">
+      <h2>{t(m.title, lang)}</h2>
+      <div class="kicker">{t(m.term, lang)} · {t(m.institution, lang)}</div>
+      <p class="sub">{t(m.tagline, lang)}</p>
+      {showFallbackNotice && <p class="notice">{t(ui.translationInProgress, lang)}</p>}
+      <div class="meta">
+        <div><div class="k">{t(ui.labels.instructor, lang)}</div><div class="v">{m.instructor}</div></div>
+        <div><div class="k">{t(ui.labels.firstLecture, lang)}</div><div class="v">{t(m.firstLecture, lang)}</div></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2>{t(ui.sections.lectures, lang)}</h2>
+      <table>
+        <thead><tr><th>#</th><th>{t(ui.labels.topics, lang)}</th><th>{t(ui.labels.week, lang)}</th></tr></thead>
+        <tbody>
+          {course.lectures.map((lec) => (
+            <tr>
+              <td>{lec.id}</td>
+              <td>
+                <strong>{t(lec.title, lang)}</strong><br />
+                <span style="color:var(--ink-3);font-size:var(--fz-tiny)">{lec.catchphrase} · {t(lec.blurb, lang)}</span>
+                {lec.status === 'ready' && <> · <a href={withBase('/' + lec.deckFile)}>{t(ui.labels.openSlides, lang)}</a></>}
+              </td>
+              <td class="d">{t(lec.when, lang)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="block">
+      <h2>{t(ui.sections.assessment, lang)}</h2>
+      <div class="kicker">{t(course.assessment.note, lang)}</div>
+      <table>
+        <thead><tr><th>{t(ui.labels.component, lang)}</th><th>{t(ui.labels.weight, lang)}</th></tr></thead>
+        <tbody>
+          {course.assessment.components.map((c) => (
+            <tr><td>{t(c.name, lang)}</td><td>{c.weight}</td></tr>
+          ))}
+          <tr><td><strong>{t(ui.labels.total, lang)}</strong></td><td><strong>{course.assessment.total}</strong></td></tr>
+        </tbody>
+      </table>
+      <p class="grade"><strong>{t(ui.labels.grades, lang)}:</strong>
+        {course.assessment.grades.map((g) => <span>{g.band} {g.range}</span>)}
+      </p>
+    </section>
+
+    <section class="block" style="border-bottom:none">
+      <h2>{t(ui.sections.reading, lang)}</h2>
+      <div class="kicker">{t(ui.sections.readingKicker, lang)}</div>
+      <ul class="reading">
+        {course.reading.map((r) => (
+          <li>{r.author} — <em>{r.title}</em>{r.publisher ? ` (${r.publisher}${r.year ? ', ' + r.year : ''})` : r.year ? ` (${r.year})` : ''}</li>
+        ))}
+      </ul>
+    </section>
+  </div>
+</BaseLayout>

@@ -1,0 +1,139 @@
+/* =============================================================================
+   design-tokens.css — THE SINGLE SOURCE OF DESIGN TOKENS
+   -----------------------------------------------------------------------------
+   One palette for the whole product: the slide decks (Lectures/), the Book
+   (scroll), the landing page, and every reference page. This file is the
+   authority that the future `token` gate (AUDIT_SITE G2) enforces — no other
+   surface may define a divergent `:root` color/font/radius token.
+
+   Layers:
+     [A] BRAND      — colors, fonts, radii, stroke, shadows, motion.
+                      Values are IDENTICAL to Lectures/css/template.css so the
+                      decks and the site share one palette. (Decks will @import
+                      this brand layer in a later phase; until then values match.)
+     [B] WEB SCALE  — a fluid type + spacing ramp for the WEBSITE (landing/Book/
+                      reference). Distinct names (--fz-*, --ws-*) from the deck's
+                      hall scale (--fs-*, 132px…) so the two never collide.
+     [C] DARK       — theme overrides (applied via :root[data-theme="dark"]).
+
+   Source of brand values: Lectures/css/template.css :root (verified 2026-06).
+   Added here (not in decks): --warm / --warm-* = the REDESIGN_BRIEF warm accent
+   (#E8743B), reserved for WBW marketing surfaces (hero, dividers, cast page).
+   ============================================================================= */
+
+:root {
+  /* ── [A] BRAND · surfaces ─────────────────────────────────────────────── */
+  --bg: #FBFAF6;          /* off-white paper — the default surface */
+  --bg-alt: #F2EFE6;
+  --bg-card: #FFFFFF;
+  --bg-inset: #EBE7DA;
+  --ink: #14181F;
+  --ink-2: #3D434E;
+  --ink-3: #6B7280;
+  --ink-4: #9CA3AF;
+  --rule: #DDD7C7;
+  --rule-strong: #B8B19E;
+
+  /* ── [A] BRAND · accent palette ───────────────────────────────────────── */
+  --accent: #2A6FDB;      /* primary course blue */
+  --accent-ink: #1B4FA0;  /* accessible blue text on --accent-soft */
+  --accent-soft: #DCE8F8;
+
+  /* Warm accent (REDESIGN_BRIEF second accent) — WBW hero/divider emphasis.
+     Deck warm fills use --c-red below; --warm is the brand orange for the site. */
+  --warm: #E8743B;
+  --warm-ink: #B4521F;
+  --warm-soft: #FBE6D8;
+
+  /* ── [A] BRAND · semantic / categorical ───────────────────────────────── */
+  --c-red: #D7522C;       --c-red-soft: #FBE3D8;
+  --c-green: #3A8A5C;     --c-green-soft: #DDEDDF;
+  --c-amber: #E0A82E;     --c-amber-soft: #F8ECCB;
+  --c-violet: #7D5BA6;    --c-violet-soft: #E7DEF1;
+  --c-cyan: #1AA7B5;      --c-cyan-soft: #D2EDEF;
+  --c-pink: #C9447A;      --c-pink-soft: #F6DCE5;
+
+  /* Accessible "ink" variants for colored TEXT on the matching *-soft bg
+     (>=4.5:1 WCAG AA); the plain --c-* are decorative fills/borders. */
+  --c-amber-ink: #8A5A00;
+  --c-green-ink: #1F6B40;
+  --c-cyan-ink:  #0A6F7A;
+
+  --good: var(--c-green);
+  --bad:  var(--c-red);
+
+  /* ── [A] BRAND · type families ────────────────────────────────────────── */
+  --font-sans:  "IBM Plex Sans", "Helvetica Neue", system-ui, -apple-system, sans-serif;
+  --font-serif: "Newsreader", "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-mono:  "JetBrains Mono", "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* ── [A] BRAND · radii / stroke ───────────────────────────────────────── */
+  --r-sm: 8px;  --r-md: 14px;  --r-lg: 24px;  --r-xl: 36px;  --r-pill: 999px;
+  --hairline: 1.5px;  --line: 2px;  --line-thick: 4px;
+
+  /* ── [A] BRAND · shadows ──────────────────────────────────────────────── */
+  --shadow-sm: 0 2px 6px rgba(16,24,40,.06), 0 1px 2px rgba(16,24,40,.04);
+  --shadow-md: 0 8px 24px rgba(16,24,40,.08), 0 2px 6px rgba(16,24,40,.04);
+  --shadow-lg: 0 24px 64px rgba(16,24,40,.12), 0 4px 12px rgba(16,24,40,.06);
+
+  /* ── [A] BRAND · motion ───────────────────────────────────────────────── */
+  --ease: cubic-bezier(.22,.61,.36,1);
+  --dur-fast: 120ms;  --dur: 220ms;  --dur-slow: 420ms;
+
+  /* ── [B] WEB type scale (fluid; for landing / Book / reference) ────────────
+     min/preferred/max via clamp() so it reads on phone → desktop. NOTE: the
+     deck's hall scale (--fs-display:132px …) is intentionally NOT here; the web
+     never uses 132px headings. Distinct prefix --fz-* avoids collisions. */
+  --fz-display: clamp(2.6rem, 1.6rem + 4.4vw, 4.2rem);  /* hero */
+  --fz-h1:      clamp(2.0rem, 1.4rem + 2.6vw, 3.0rem);
+  --fz-h2:      clamp(1.5rem, 1.2rem + 1.4vw, 2.1rem);
+  --fz-h3:      clamp(1.2rem, 1.05rem + 0.7vw, 1.5rem);
+  --fz-lead:    clamp(1.1rem, 1.0rem + 0.6vw, 1.35rem);  /* Book lead paragraph */
+  --fz-body:    clamp(1.0rem, 0.96rem + 0.2vw, 1.125rem);
+  --fz-small:   0.9rem;
+  --fz-tiny:    0.78rem;        /* kickers, meta, footers */
+
+  /* ── [B] WEB spacing & widths ─────────────────────────────────────────── */
+  --ws-1: 0.5rem;  --ws-2: 1rem;   --ws-3: 1.5rem;  --ws-4: 2rem;
+  --ws-5: 3rem;    --ws-6: 4rem;   --ws-7: 6rem;
+  --ws-measure: 65ch;           /* readable prose column (Book) */
+  --ws-page: 1040px;            /* landing / reference max width */
+  --ws-book-graphic: 46%;       /* sticky graphic column width (desktop scrolly) */
+}
+
+/* ── [C] DARK theme (deep ink-navy paper) ───────────────────────────────── */
+:root[data-theme="dark"] {
+  --bg: #10131A;
+  --bg-alt: #181C26;
+  --bg-card: #1A1F2B;
+  --bg-inset: #0A0D13;
+  --ink: #ECE7D8;
+  --ink-2: #BDB7A8;
+  --ink-3: #8B8675;
+  --ink-4: #5F5B4E;
+  --rule: #2A2F3C;
+  --rule-strong: #3E4452;
+
+  --accent: #6FA8FF;
+  --accent-ink: #A8C7FF;
+  --accent-soft: #1F2D4D;
+
+  --warm: #F0875A;
+  --warm-ink: #F7B492;
+  --warm-soft: #3A2114;
+
+  --c-red: #F08664;   --c-red-soft: #3D2018;
+  --c-green: #6BCB8E; --c-green-soft: #16321F;
+  --c-amber: #F4C975; --c-amber-soft: #382A0F;
+  --c-violet: #B89BE0;--c-violet-soft: #28203B;
+  --c-cyan: #5DD3DE;  --c-cyan-soft: #0E2A2E;
+  --c-pink: #E879A8;  --c-pink-soft: #34182A;
+
+  --c-amber-ink: #F4C975;
+  --c-green-ink: #6BCB8E;
+  --c-cyan-ink:  #5DD3DE;
+
+  --shadow-sm: 0 2px 6px rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.3);
+  --shadow-md: 0 8px 24px rgba(0,0,0,.45), 0 2px 6px rgba(0,0,0,.3);
+  --shadow-lg: 0 24px 64px rgba(0,0,0,.6), 0 4px 12px rgba(0,0,0,.3);
+}

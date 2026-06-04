@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { LOCALES, t } from '../../i18n/locales.js';
+import { ui } from '../../i18n/ui.js';
+import { course } from '../../lib/course.js';
+
+export function getStaticPaths() {
+  return LOCALES.map((l) => ({ params: { lang: l } }));
+}
+const { lang } = Astro.params;
+const showFallbackNotice = lang === 'tt';
+---
+<BaseLayout lang={lang} page="schedule" title={t(ui.nav.schedule, lang)}>
+  <div class="wrap">
+    <section class="block">
+      <h2>{t(ui.sections.schedule, lang)}</h2>
+      <div class="kicker">{t(course.meta.classTimes, lang)}</div>
+      {showFallbackNotice && <p class="notice">{t(ui.translationInProgress, lang)}</p>}
+      <table>
+        <thead><tr><th>{t(ui.labels.week, lang)}</th><th>{t(ui.labels.date, lang)}</th><th>{t(ui.labels.topics, lang)}</th></tr></thead>
+        <tbody>
+          {course.schedule.map((s) => (
+            <tr class={s.milestone ? 'milestone' : undefined}>
+              <td>{t(ui.labels.week, lang)} {s.week}</td>
+              <td class="d">{t(s.date, lang)}</td>
+              <td>{t(s.topics, lang)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  </div>
+</BaseLayout>
