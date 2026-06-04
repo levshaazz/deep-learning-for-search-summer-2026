@@ -1,0 +1,389 @@
+/* =========================================================
+   E2E WALKTHROUGH — architecture + math + numeric example,
+   all synced to data-current-step.
+
+   Layout (16:9, 1920×1080):
+   ┌──────────────────────────────────────────────────────┐
+   │  Slide header                                        │
+   ├──────────────────────────────────────────────────────┤
+   │  Architecture strip (multi-row, auto-wrap)           │
+   ├──────────────────────┬───────────────────────────────┤
+   │  Math panel (0.7fr)  │  Example panel (1fr)          │
+   ├──────────────────────┴───────────────────────────────┤
+   │  Step navigator (compact: prev / counter / next /    │
+   │                  theory toggle)                      │
+   └──────────────────────────────────────────────────────┘
+   ========================================================= */
+
+.slide[data-type="e2e"] .slide-body {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: var(--sp-3);
+  height: 100%;
+}
+
+/* ---- Architecture strip ---- */
+/* Three color categories instead of six (palette reduction). Maps to data-role: */
+/*   project — Q,K,V,W_O linear projections (blue)              */
+/*   nonlinear — softmax, normalization, etc. (amber)           */
+/*   reduce — attention-weighted sum, residual+LN (green)       */
+.e2e-arch {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;       /* multi-row auto-wrap */
+  gap: 10px;
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--bg-card);
+  border: var(--hairline) solid var(--rule);
+  border-radius: var(--r-md);
+  min-height: 120px;
+}
+.e2e-arch-block {
+  flex: 0 0 auto;
+  min-width: 130px;
+  padding: 14px 16px;
+  border: 2px solid var(--rule-strong);
+  border-radius: var(--r-md);
+  background: var(--bg);
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  transition:
+    border-color var(--dur) var(--ease),
+    background var(--dur) var(--ease),
+    opacity var(--dur) var(--ease);
+  opacity: 0.55;
+}
+.e2e-arch-block .arch-name {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  line-height: 1.05;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+.e2e-arch-block .arch-shape {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  color: var(--ink-3);
+  letter-spacing: 0.02em;
+}
+.e2e-arch-block:hover { opacity: 0.85; border-color: var(--ink-3); }
+.e2e-arch-block.is-current {
+  opacity: 1;
+  /* No pulse. Static highlight via border + bg. */
+}
+.e2e-arch-block.is-visited { opacity: 0.85; }
+/* Role-coded coloring — only 3 hues across the strip */
+.e2e-arch-block[data-role="project"].is-current {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.e2e-arch-block[data-role="nonlinear"].is-current {
+  border-color: var(--c-amber);
+  background: var(--c-amber-soft);
+}
+.e2e-arch-block[data-role="reduce"].is-current {
+  border-color: var(--c-green);
+  background: var(--c-green-soft);
+}
+/* Legend of roles, rendered as a tiny key in the strip */
+.e2e-arch-legend {
+  flex: 0 0 100%;
+  display: flex;
+  gap: 16px;
+  padding-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--ink-3);
+}
+.e2e-arch-legend .leg {
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.e2e-arch-legend .leg::before {
+  content: ""; width: 12px; height: 12px; border-radius: 3px;
+}
+.e2e-arch-legend .leg[data-role="project"]::before  { background: var(--accent); }
+.e2e-arch-legend .leg[data-role="nonlinear"]::before { background: var(--c-amber); }
+.e2e-arch-legend .leg[data-role="reduce"]::before    { background: var(--c-green); }
+
+/* Arrow between blocks — animated dashes when "active" */
+.e2e-arch-arrow {
+  flex: 1 1 24px;
+  min-width: 24px;
+  height: 4px;
+  background: var(--rule-strong);
+  position: relative;
+  align-self: center;
+  border-radius: 2px;
+}
+.e2e-arch-arrow::after {
+  content: "";
+  position: absolute;
+  right: -8px; top: 50%;
+  transform: translateY(-50%);
+  border: 8px solid transparent;
+  border-left-color: var(--rule-strong);
+}
+.e2e-arch-arrow.is-flowing {
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--accent) 0px, var(--accent) 8px,
+    transparent 8px, transparent 16px
+  );
+  animation: e2eFlow 0.8s linear infinite;
+}
+.e2e-arch-arrow.is-flowing::after { border-left-color: var(--accent); }
+@keyframes e2eFlow {
+  from { background-position-x: 0; }
+  to   { background-position-x: -16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .e2e-arch-arrow.is-flowing { animation: none; }
+}
+
+/* ---- Twin panels (math + example) — 0.7fr : 1fr ---- */
+.e2e-twin {
+  display: grid;
+  grid-template-columns: 0.72fr 1fr;
+  gap: var(--sp-3);
+  min-height: 0;
+}
+.slide[data-type="e2e"][data-hide-numeric="true"] .e2e-twin {
+  grid-template-columns: 1fr;
+}
+.slide[data-type="e2e"][data-hide-numeric="true"] .e2e-example-panel {
+  display: none;
+}
+.e2e-panel {
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  position: relative;
+  overflow: hidden;
+}
+.e2e-math-panel {
+  background: var(--c-amber-soft);
+  border-left: 6px solid var(--c-amber);
+}
+.e2e-example-panel {
+  background: var(--c-green-soft);
+  border-left: 6px solid var(--c-green);
+}
+.e2e-panel .panel-head {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: var(--sp-2);
+}
+.e2e-math-panel .panel-head { color: var(--c-amber-ink); }
+.e2e-example-panel .panel-head { color: var(--c-green-ink); }
+
+/* Step content */
+.e2e-step { display: none; }
+.e2e-step.is-current {
+  display: block;
+  animation: e2eStepIn var(--dur) var(--ease) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .e2e-step.is-current { animation: none; }
+}
+@keyframes e2eStepIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.e2e-step .step-formula {
+  font-family: var(--font-serif);
+  font-size: 30px;
+  line-height: 1.3;
+  margin-bottom: var(--sp-2);
+  color: var(--ink);
+}
+.e2e-step .step-formula .katex { font-size: 1em; }
+.e2e-step .step-caption {
+  font-family: var(--font-sans);
+  font-size: 24px;
+  line-height: 1.4;
+  color: var(--ink-2);
+  margin: 0 0 var(--sp-2);
+}
+/* Secondary annotation on the numeric example — kept legible from the back row.
+   22px is the smallest text on the flagship slide; the panel has headroom
+   (auto-fit stays at 1.0) so this does not force shrinking. */
+.e2e-step .step-caption.tiny { font-size: 22px; color: var(--ink-2); }
+
+/* Matrix renderer with mathematical brackets.
+   Usage:
+     <span class="matrix" data-label="Q">
+       <span class="m-row"><span class="m-cell">1</span><span class="m-cell">0</span></span>
+       <span class="m-row"><span class="m-cell">0</span><span class="m-cell">1</span></span>
+     </span>
+*/
+.matrix {
+  /* flex column of flex rows so any R×C shape lays out as a true 2D grid. */
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 12px;
+  position: relative;
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  margin: 4px 6px;
+  vertical-align: middle;
+  /* Bracket walls — drawn via pseudo-elements */
+}
+.matrix::before, .matrix::after {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 8px;
+  border: 2px solid var(--ink);
+  border-radius: 0;
+}
+.matrix::before { left: 0;  border-right: none; }
+.matrix::after  { right: 0; border-left: none; }
+.matrix .m-row {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  justify-content: center;
+}
+.matrix .m-cell {
+  min-width: 38px;
+  padding: 1px 4px;
+  text-align: center;
+}
+.matrix .m-cell.is-highlight {
+  color: var(--c-red);
+  font-weight: 700;
+}
+.matrix-label {
+  display: inline-block;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 24px;
+  color: var(--ink);
+  margin: 0 4px 0 0;
+  vertical-align: middle;
+}
+.matrix-eq, .matrix-op {
+  display: inline-block;
+  font-family: var(--font-serif);
+  font-size: 24px;
+  margin: 0 6px;
+  color: var(--ink);
+  vertical-align: middle;
+}
+
+.step-calc-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+/* ---- Tooltip ---- */
+.e2e-tooltip {
+  position: absolute;
+  background: var(--ink);
+  color: var(--bg);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.4;
+  max-width: 320px;
+  box-shadow: var(--shadow-md);
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+}
+.e2e-tooltip.is-visible { opacity: 1; }
+.e2e-tooltip::after {
+  content: "";
+  position: absolute;
+  bottom: -6px; left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 12px; height: 12px;
+  background: var(--ink);
+}
+
+/* ---- Step navigator — compact ---- */
+/* No more dot strip — architecture blocks are already the nav.
+   This bar just has prev/counter/next + theory toggle. */
+.e2e-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: 10px var(--sp-4);
+  background: var(--bg-alt);
+  border-radius: var(--r-md);
+  font-family: var(--font-mono);
+}
+.e2e-stepper .step-cluster {
+  display: inline-flex; align-items: center; gap: 12px;
+}
+.e2e-stepper button.step-btn {
+  background: var(--bg-card);
+  border: var(--hairline) solid var(--rule-strong);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 22px;
+  color: var(--ink-2);
+  cursor: pointer;
+  font-weight: 600;
+  min-width: 44px;
+}
+.e2e-stepper button.step-btn:hover { background: var(--bg); border-color: var(--ink-3); }
+.e2e-stepper button.step-btn:disabled { opacity: 0.3; cursor: default; }
+.e2e-counter {
+  font-size: 22px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  min-width: 80px;
+  text-align: center;
+}
+.e2e-counter .e2e-counter-label {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-3);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.e2e-stage-name {
+  font-size: 18px;
+  color: var(--ink-2);
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.e2e-toggle {
+  background: var(--bg-card);
+  border: var(--hairline) solid var(--rule);
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--ink-2);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.e2e-toggle.is-on { background: var(--accent); color: white; border-color: transparent; }
+.e2e-toggle::before {
+  content: "○ ";
+  font-weight: 600;
+}
+.e2e-toggle.is-on::before { content: "● "; }
+
+/* Backtrack indicator — when current step < max_visited_step */
+.slide[data-type="e2e"][data-backtracked="true"] .e2e-counter::after {
+  content: " ↺";
+  color: var(--c-amber);
+}

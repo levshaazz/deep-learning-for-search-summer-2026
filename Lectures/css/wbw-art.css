@@ -1,0 +1,647 @@
+/* =========================================================
+   wbw-art.css — Wait-But-Why illustration layouts (Serega edition).
+   Pure CSS, no engine changes. Figures sit on a pinned light card so the
+   off-white doodle art reads correctly in BOTH light and dark themes
+   (same trick as .viz-frame). Patterns:
+     .split-art   content + framed illustration (2-col, responsive intent)
+     .cameo       decorative corner mascot (direct child of .slide)
+     .art-hero    full-bleed narrative beat (data-type="art-hero")
+     .art-strip   thin companion band under a precise diagram
+   ========================================================= */
+
+/* --- light card shared by every art figure (reads on dark slides too) --- */
+.split-art__fig img,
+.art-hero__fig img,
+.art-strip img {
+  background: #FBFAF6;
+  border-radius: var(--r-md);
+  display: block;
+}
+
+/* --- split: keep existing content, add an illustration beside it --- */
+.split-art {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: var(--sp-5);
+  align-items: center;
+  margin-top: var(--sp-4);
+}
+.split-art.art-left  { grid-template-columns: 0.95fr 1.05fr; }
+.split-art.art-left .split-art__fig { order: -1; }
+.split-art__body { min-width: 0; }
+.split-art__body > :first-child { margin-top: 0; }
+.split-art__fig  { margin: 0; }
+.split-art__fig img {
+  width: 100%;
+  height: auto;
+  max-height: 62vh;
+  object-fit: contain;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, .12);
+}
+.split-art__cap {
+  font-size: var(--fs-small);
+  color: var(--ink-3);
+  text-align: center;
+  margin-top: var(--sp-2);
+}
+
+/* --- corner cameo: small decorative Serega, never interactive --- */
+.cameo {
+  position: absolute;
+  width: clamp(110px, 11vw, 168px);
+  height: auto;
+  pointer-events: none;
+  opacity: .96;
+  z-index: 2;
+  border-radius: 14px;
+  background: #FBFAF6;
+  box-shadow: 0 3px 16px rgba(0, 0, 0, .18);
+}
+.cameo.br { right: 48px; bottom: 44px; }
+.cameo.tr { right: 48px; top: 110px; }
+.cameo.bl { left: 48px; bottom: 44px; }
+
+/* --- full-bleed narrative art beat --- */
+.art-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: var(--sp-4);
+  text-align: center;
+}
+.art-hero__kicker {
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.art-hero__fig { margin: 0; max-width: 72%; }
+.art-hero__fig img {
+  width: 100%;
+  height: auto;
+  max-height: 64vh;
+  object-fit: contain;
+  margin: 0 auto;
+  border-radius: var(--r-lg);
+  box-shadow: 0 6px 30px rgba(0, 0, 0, .18);
+}
+.art-hero__cap {
+  font-family: var(--font-serif);
+  font-size: var(--fs-h2);
+  line-height: 1.15;
+  color: var(--ink);
+  max-width: 84%;
+}
+/* Pose-name strip under a character-sheet figure. Renders in DOM (kicker-sized,
+   ALL-CAPS, evenly spaced) so the pose names read at hall scale instead of
+   relying on tiny baked-in image labels. Use inside .art-hero__fig under the
+   <img>; one <span> per pose, in left-to-right order. */
+.poses-row {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: var(--sp-3);
+  margin-top: var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  text-align: center;
+}
+.poses-row > span {
+  border-top: var(--hairline) solid var(--rule);
+  padding-top: 6px;
+}
+
+/* --- thin companion strip under a precise diagram (keeps the diagram) --- */
+.art-strip {
+  margin-top: var(--sp-3);
+  display: flex;
+  justify-content: center;
+}
+.art-strip img {
+  max-height: 22vh;
+  width: auto;
+  max-width: 80%;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, .10);
+}
+
+/* =========================================================
+   TIMELINE template — data-type="timeline"
+   ---------------------------------------------------------
+   Horizontal historical arc with bead-on-a-string nodes. Each .tl-node
+   carries a year, a one-line "what", a short "why-it-mattered" note, and
+   an optional kicker (paper/figure/lab). Designed for the "history /
+   evolution" rubric dimension: classical IR → neural → vector DBs → RAG;
+   tokenization history; similarity history.
+   Author markup:
+     <section class="slide" data-type="timeline">
+       <div class="slide-header"><h2>…</h2><span class="slide-kicker">Timeline</span></div>
+       <ol class="tl">
+         <li class="tl-node">
+           <div class="tl-year">1958</div>
+           <div class="tl-card">
+             <div class="tl-kicker">Luhn · Auto-indexing</div>
+             <h3 class="tl-what">Term frequency</h3>
+             <p class="tl-why">Words that recur in a document mark its topic. The bedrock of every later weight.</p>
+           </div>
+         </li>
+         <!-- … more <li class="tl-node"> nodes … -->
+       </ol>
+     </section>
+   The CSS works in both light and dark themes; the rail is --ink, the
+   beads are course --accent.
+   ========================================================= */
+.slide[data-type="timeline"] {
+  display: none;
+}
+.slide[data-type="timeline"].is-active {
+  display: block;
+}
+.slide[data-type="timeline"] .tl {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--sp-4);
+  width: 100%;
+  margin-top: var(--sp-5);
+}
+/* The continuous rail: a black ink line drawn behind every node. Positioned
+   at the year-row baseline so beads sit ON the rail, not floating. */
+.slide[data-type="timeline"] .tl::before {
+  content: "";
+  position: absolute;
+  left: 1.4%;
+  right: 1.4%;
+  top: 78px;            /* aligns with the bead centre below */
+  height: var(--line);
+  background: var(--ink);
+  border-radius: 999px;
+  z-index: 0;
+}
+.slide[data-type="timeline"] .tl-node {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  row-gap: var(--sp-3);
+  align-items: start;
+}
+.slide[data-type="timeline"] .tl-year {
+  font-family: var(--font-mono);
+  font-size: 44px;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: center;
+}
+/* The bead: a circular accent dot sitting on the rail. */
+.slide[data-type="timeline"] .tl-node::before {
+  content: "";
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--bg);   /* ring out the rail crossing */
+  z-index: 2;
+}
+.slide[data-type="timeline"] .tl-node.is-pivot::before {
+  background: var(--c-red);
+  width: 22px;
+  height: 22px;
+  top: 68px;
+}
+.slide[data-type="timeline"] .tl-card {
+  margin-top: 22px;                  /* clears the bead */
+  padding: var(--sp-4);
+  background: var(--bg-card);
+  border: var(--hairline) solid var(--rule);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm);
+}
+.slide[data-type="timeline"] .tl-kicker {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: var(--sp-2);
+  line-height: 1.15;
+}
+.slide[data-type="timeline"] .tl-what {
+  font-family: var(--font-serif);
+  font-size: 36px;
+  line-height: 1.1;
+  margin: 0 0 var(--sp-3);
+  font-weight: 500;
+}
+.slide[data-type="timeline"] .tl-why {
+  font-family: var(--font-sans);
+  font-size: 26px;
+  line-height: 1.35;
+  color: var(--ink-2);
+  margin: 0;
+}
+.slide[data-type="timeline"] .tl-tag {
+  display: inline-block;
+  margin-top: var(--sp-3);
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-family: var(--font-mono);
+  font-size: 20px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+/* When the rail has many nodes, compress card paddings to keep all fully
+   visible in the 1920×1080 frame; auto-fit will scale further if needed.
+   Body (.tl-why) is held at 24px (above the 22px hall-legibility floor) by
+   shrinking the kicker so auto-fit doesn't have to crunch the body. */
+.slide[data-type="timeline"] .tl[data-density="dense"] .tl-card { padding: var(--sp-3); }
+.slide[data-type="timeline"] .tl[data-density="dense"] .tl-kicker { font-size: 18px; margin-bottom: 6px; }
+.slide[data-type="timeline"] .tl[data-density="dense"] .tl-what { font-size: 28px; margin-bottom: var(--sp-2); }
+.slide[data-type="timeline"] .tl[data-density="dense"] .tl-why  { font-size: 24px; line-height: 1.3; }
+.slide[data-type="timeline"] .tl[data-density="dense"] .tl-year { font-size: 36px; }
+
+/* =========================================================
+   WBW-PASS — gentle Wait-But-Why polish on the existing chrome.
+   Strictly additive: tweaks the FEEL (hand-drawn underlines on the slide
+   title rule, ink-pen kickers, sketchy divider strokes) without breaking
+   layout. The redesign brief calls for incremental, reversible polish —
+   this layer can be toggled by removing wbw-art.css from the deck.
+   ========================================================= */
+/* (1) Slide header rule — break the perfectly straight 4px line into a
+   slightly hand-drawn double-stroke. The thicker ink stays for back-row
+   legibility; a thin parallel hairline gives the "drawn twice in pen" feel. */
+.slide .slide-header {
+  border-bottom-width: 3px;
+  position: relative;
+}
+.slide .slide-header::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 14%;
+  bottom: -8px;
+  height: 2px;
+  background: var(--ink);
+  opacity: 0.55;
+  border-radius: 999px;
+  transform: rotate(-0.25deg);     /* subtle hand wobble */
+  pointer-events: none;
+}
+/* (2) Kicker — give it a small ink bracket so it reads as a label, not a
+   floating monospace word. */
+.slide .slide-header .slide-kicker {
+  position: relative;
+  padding-left: 14px;
+}
+.slide .slide-header .slide-kicker::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8%;
+  bottom: 8%;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 999px;
+}
+/* (3) Hand-drawn underline utility — opt-in via .wbw-mark on inline text. */
+.wbw-mark {
+  background-image: linear-gradient(transparent 60%, var(--c-amber-soft) 60%);
+  padding: 0 0.12em;
+}
+/* (4) Hand-drawn arrow utility — for inline "here → there" pointers. */
+.wbw-arrow::after { content: " →"; color: var(--accent); font-weight: 700; }
+/* (5) Sketch divider — a thin wavy line authors can drop with <hr class="wbw-rule">. */
+hr.wbw-rule {
+  border: none;
+  height: 14px;
+  background-image: radial-gradient(circle at 8px 6px, var(--ink) 1.6px, transparent 1.7px),
+                    radial-gradient(circle at 22px 8px, var(--ink) 1.6px, transparent 1.7px);
+  background-size: 28px 14px;
+  background-repeat: repeat-x;
+  opacity: 0.55;
+  margin: var(--sp-5) auto;
+  width: 60%;
+}
+/* (6) Page-margin doodle for art-hero slides — a torn-paper top edge.
+   Pure CSS, no asset, theme-aware. */
+.slide[data-type="art-hero"] .art-hero::before {
+  content: "";
+  display: block;
+  height: 10px;
+  width: 56%;
+  margin: 0 auto var(--sp-3);
+  background-image:
+    radial-gradient(circle at 6px 5px, var(--ink-3) 1.2px, transparent 1.5px);
+  background-size: 14px 10px;
+  background-repeat: repeat-x;
+  opacity: 0.45;
+}
+
+/* =========================================================
+   NUMGRID — data-as-a-grid-of-numbers (adapted from the CNN "image is a
+   grid of numbers" slide, generalized for search/NLP: token-IDs, embedding
+   floats, TF-IDF rows, cosine columns). Monospace cells, theme-aware,
+   optional .is-hot highlight + a .numgrid-zoom callout.
+   Markup:
+     <div class="numgrid" style="--cols:8">
+       <span class="ng-cell">101</span> … <span class="ng-cell is-hot">2088</span> …
+     </div>
+     <div class="numgrid-zoom">…caption / what these numbers mean…</div>
+   ========================================================= */
+.numgrid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 8), 1fr);
+  gap: 8px;
+  margin: var(--sp-4) auto 0;
+  max-width: 92%;
+}
+.numgrid .ng-cell {
+  font-family: var(--font-mono);
+  font-size: 30px;
+  text-align: center;
+  padding: 14px 8px;
+  background: var(--bg-card);
+  border: var(--hairline) solid var(--rule);
+  border-radius: var(--r-sm);
+  color: var(--ink);
+}
+.numgrid .ng-cell.is-hot {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 700;
+}
+.numgrid .ng-cell.is-dim { color: var(--ink-3); }
+.numgrid-zoom {
+  margin-top: var(--sp-3);
+  text-align: center;
+  font-size: var(--fs-small);
+  color: var(--ink-3);
+}
+.numgrid-zoom code { font-size: inherit; }
+
+/* =========================================================
+   WBW DISPLAY FACE — Patrick Hand on display headings only.
+   body text + KaTeX math are deliberately untouched (legibility). Latin-only
+   font → Cyrillic/accented heads fall back to the existing serif/sans.
+
+   Session-5 (finding #6): closing "final" slide H1 ("Questions?", "Let's
+   begin.") joins the marker-display set so the deck bookends the hand-feel
+   chrome it opens with on title + dividers. Without this rule the three
+   closing-slide H1s render in the editorial serif and feel like a different
+   deck. Lightweight 4-byte selector add; reversible (remove the line to
+   roll back).
+   ========================================================= */
+.slide[data-type="title"] .title-body h1,
+.slide[data-type="divider"] h1,
+.slide[data-type="final"] h1,
+.art-hero__cap,
+.art-hero__kicker,
+.slide-kicker,
+.tl-kicker {
+  font-family: 'Patrick Hand', var(--font-serif);
+}
+/* keep the kicker's mono rhythm but in the hand face: a touch more size, less tracking */
+.slide-kicker, .tl-kicker, .art-hero__kicker {
+  letter-spacing: 0.01em;
+  text-transform: none;       /* hand-lettered reads better mixed-case than ALL-CAPS */
+}
+
+/* Safety: any <img> inside a viz-frame must fit WITHIN it (never overflow the
+   overflow:hidden frame → no silent cropping). Belt-and-suspenders with the
+   inline max-* styles on each image. */
+.viz-frame > img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
+
+/* ROOT FIX for image cropping: .viz-frame is display:grid with no template, so its
+   single auto-track sizes to min-content and balloons larger than the frame — a
+   child img with %/max-% then resolves against the oversized cell and gets clipped
+   by the frame's overflow:hidden (the discreteness-slide bug). Pin the track to the
+   frame box with minmax(0,1fr) so children constrain to the real 1680×720 cell. */
+.viz-frame { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+
+/* =========================================================
+   WBW BODY REDESIGN — reference pass on content cards.
+   Hand-drawn "sketched box" border (irregular radius), a soft offset ink shadow,
+   and the hand-lettered face on the term. Theme-ADAPTIVE: the ink border + text
+   use --ink, so it reads in light (dark ink on paper) and dark (light ink on dark
+   card) without pinning. Reversible (lives in wbw-art.css).
+   ========================================================= */
+.def-card,
+.misc-card {
+  border: 2.5px solid var(--ink);
+  border-radius: 255px 14px 225px 16px / 16px 225px 18px 255px;  /* classic hand-drawn box */
+  box-shadow: 4px 5px 0 rgba(20, 24, 31, .10);
+}
+.def-card .def-term { font-family: 'Patrick Hand', var(--font-serif); }
+/* callouts get the sketch box too, keeping their kind-colour accent */
+.callout {
+  border-radius: 240px 16px 220px 14px / 14px 220px 16px 240px;
+  box-shadow: 3px 4px 0 rgba(20, 24, 31, .08);
+}
+
+/* =========================================================
+   WBW BODY REDESIGN — "medium" deck-wide pass (builds on the card reference above).
+   Tables get a sketched box; small labels get the hand face; section rules get a
+   warm sketch underline. Theme-adaptive (uses --ink), body copy + math untouched.
+   ========================================================= */
+/* small all-caps labels → hand-lettered (legible, characterful; NOT the big terms) */
+.def-tag, .misc-label { font-family: 'Patrick Hand', var(--font-mono); letter-spacing: .02em; }
+/* comparison tables → sketched box + hand-lettered header, warm header row */
+.cmp-table {
+  border: 2.5px solid var(--ink);
+  border-radius: 240px 14px 220px 16px / 16px 220px 14px 240px;
+  box-shadow: 4px 5px 0 rgba(20, 24, 31, .10);
+  overflow: hidden;
+}
+.cmp-table thead th {
+  font-family: 'Patrick Hand', var(--font-sans);
+  letter-spacing: .01em;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+/* the slide-header rule gets a warm highlighter swipe under the kicker side */
+.slide .slide-header::before {
+  content: "";
+  position: absolute;
+  right: 0; bottom: -7px; width: 22%; height: 6px;
+  background: var(--c-amber-soft);
+  border-radius: 999px;
+  transform: rotate(0.3deg);
+  pointer-events: none;
+  opacity: .8;
+}
+
+/* =========================================================
+   WBW BODY REDESIGN — session-2 additions (hand-drawn section ticks +
+   misconception-card alignment with definition-card). Reversible.
+   ========================================================= */
+/* the agenda jump-tile feels too rectangular for the WBW pass — give it the
+   sketched-corner treatment + a soft ink shadow, matching def/misc cards */
+.agenda-grid .toc-item {
+  border-radius: 200px 12px 220px 14px / 14px 220px 12px 200px;
+  box-shadow: 3px 4px 0 rgba(20, 24, 31, .08);
+  border-width: 2px;
+}
+.agenda-grid .toc-item:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 5px 0 rgba(20, 24, 31, .12);
+}
+/* divider slides get a hand-drawn underline beneath the part-number */
+.slide[data-type="divider"] .divider-num {
+  font-family: 'Patrick Hand', var(--font-serif);
+  position: relative;
+  display: inline-block;
+}
+.slide[data-type="divider"] .divider-num::after {
+  content: "";
+  position: absolute;
+  left: 4%; right: 4%; bottom: -2px;
+  height: 4px;
+  background: var(--accent);
+  border-radius: 999px;
+  opacity: .75;
+  transform: rotate(-0.6deg);
+  pointer-events: none;
+}
+/* objectives bullets — the small "·" check feels stark; give it the hand face
+   and a touch of the accent ink so the row reads as WBW without losing
+   hierarchy. Keeps the obj-text in the regular sans for legibility. */
+.obj-list .obj-check {
+  font-family: 'Patrick Hand', var(--font-sans);
+  color: var(--accent);
+  font-weight: 700;
+}
+/* split-art body lists hug the figure — tighten the gap a touch so the
+   restored "BOTH" slides (L1-14, L2-08) don't feel floaty */
+.split-art .obj-list { margin: var(--sp-2) 0 0 0; }
+.split-art .obj-list .obj-item { padding: 4px 0; }
+
+/* FIX (session-2 VLM blocker #1): divider subtitle was hard-coded white-65% in slides.css →
+   invisible on the cream divider canvas in DARK theme. Use the canvas-contrast colour (var(--bg),
+   same as the divider H1), muted. Theme-aware, readable in both themes.
+   FIX (session-3 finding #6): light-theme cream-on-ink subtitle read a touch thin at hall scale
+   because cream-on-ink optically loses ~5% vs ink-on-cream. Per-theme tokens: bump light to
+   opacity 0.85 (cream on dark canvas) while leaving dark at 0.72 (ink on cream canvas, where
+   ink-on-cream is already plenty solid). */
+.slide[data-type="divider"] .divider-sub { color: var(--bg); opacity: .85; }
+:root[data-theme="dark"] .slide[data-type="divider"] .divider-sub { opacity: .78; }
+
+/* FIX (session-3 finding #2): timeline kicker (PENN TREEBANK / SCHUSTER & NAKAJIMA / etc.) was
+   --ink-3 which in dark theme resolves to a warm tan (#8B8675) on near-black bg. It cleared
+   WCAG-AA on a contrast meter but read as a faint reddish ochre at hall scale. Theme-aware
+   bump using color-mix on --ink so the kicker reads as a confident muted ink in both themes.
+   Light: ink#14181F at 72% on cream → high contrast; Dark: cream#ECE7D8 at 72% on near-black
+   → also high contrast. Same treatment applied in dense mode (s34, the tokenization timeline). */
+.slide[data-type="timeline"] .tl-kicker {
+  color: color-mix(in srgb, var(--ink) 72%, transparent);
+}
+
+/* MISC-ANCHOR — promoted from a repeated inline-style pattern (session-3 used it 4×; session-4
+   reaches 7×) to a single class. Sub-panel inside .misc-truth that carries the WORKED example /
+   citation / counter-numbers behind the misconception. Promotion rule (TEMPLATE_CATALOG.md):
+   "promote inline patterns to a class once usage ≥6×". Same visual: tight left border in the
+   accent ink, small-type prose, snug to the reveal. */
+.misc-anchor {
+  margin-top: var(--sp-3);
+  padding-left: var(--sp-3);
+  border-left: 3px solid var(--accent);
+  font-size: var(--fs-small);
+  line-height: 1.45;
+}
+.misc-anchor > :first-child { margin-top: 0; }
+.misc-anchor code { font-family: var(--font-mono); font-size: 0.95em; }
+
+/* =========================================================
+   SESSION-5 polish — durable template-level rules driven by the session-4
+   VLM review. All adjust display-only chrome; all theme-aware; all reversible.
+   ========================================================= */
+
+/* (S5-1) Divider "PART NN" kicker thin at hall scale in DARK theme.
+   Cause: slides.css already pins the dark-theme colour to a deep amber
+   (#8a5d18) that clears WCAG-AA on cream, but the 36 px mono at weight 400
+   loses visual mass at ~15 m. Bump to 600 in dark only (light branch stays
+   at the regular weight against the strong amber-on-ink contrast) and
+   thicken the kicker's accent underline rule from 4 → 5 px so the part-break
+   reads at hall scale. Affects L1:s05 / L2:s05 / L2:s17 / L2:s37 / L2:s49 /
+   L2:s62 in dark theme. Light theme unchanged. */
+:root[data-theme="dark"] .slide[data-type="divider"] .divider-num {
+  font-weight: 600;
+  letter-spacing: 0.22em;
+}
+:root[data-theme="dark"] .slide[data-type="divider"] .divider-num::after {
+  height: 5px;
+  opacity: 0.9;
+}
+
+/* (S5-2) Title slide footer metadata ("LECTURER · Albert Nasybullin", "DATE
+   · 03.06.2026", "ROOM · 106") low-contrast in LIGHT theme on the cream
+   canvas. The session-2 dark-theme fix used `color-mix(--bg, 75%)` to lift
+   the ghost-text to a confident muted ink. Apply the same family-of-fixes
+   pattern to the title-row metadata in the light branch only — bump the
+   meta-label tone to a higher-contrast muted ink. Dark theme stays as-is
+   (the existing tokens already read on the inverted canvas). Caught by the
+   contrast detector now that its theme-aware sweep covers `.divider-sub`
+   and `.divider-num` — this rule extends the same care to title-meta and
+   adds it to the gate's text-selector list below. */
+.slide[data-type="title"] .title-footer .meta-label {
+  color: color-mix(in srgb, var(--ink) 72%, transparent);
+}
+.slide[data-type="title"] .title-footer .meta-value {
+  color: color-mix(in srgb, var(--ink) 92%, transparent);
+}
+
+/* (S5-3) L0:s10 "arc-of-course" arch slide — the arch-diagram pins to 660 px
+   height which leaves the 6-node row floating in a vast empty band with the
+   L0-08-coursearc stepping-stones doodle hanging at the bottom edge. Tighten
+   the frame to fit the node row tightly (~360 px) so the companion doodle
+   below can grow into the reclaimed ~300 px of vertical space; raises the
+   air/emphasis ratio toward the WBW feel without changing the node layout
+   itself. NOTE: this rule only applies on the L0 intro arc — L1:s17 ("full
+   pipeline") and L1:s49 packs many more nodes and uses the full 660 px
+   budget. Scope by parent data-screen-label so only the L0 arc tightens. */
+.slide[data-type="arch"][data-screen-label="10 Architecture"] .arch-diagram {
+  height: 360px;
+  padding: var(--sp-3);
+}
+.slide[data-type="arch"][data-screen-label="10 Architecture"] .art-strip {
+  margin-top: var(--sp-5);
+}
+.slide[data-type="arch"][data-screen-label="10 Architecture"] .art-strip img {
+  max-height: 32vh;
+  max-width: 88%;
+}
+
+/* (S5-4) L0:s08 pull-quote scene illustration — viz-frame at max-width 72%
+   max-height 36 vh reads as decorative bottom-edge ornament because the
+   quote container above sits centred with ~540 px of empty paper between
+   the page top and the quote's first line. The image is already aspect-
+   ratio-bound (16/9 inline), so growing max-height pushes the image off
+   the slide bottom edge — confirmed by a failed first-attempt that landed
+   the image at y=1120 (OFFFRAME). Better fix: keep the image size, pull the
+   quote MARKUP up by trimming the quote-mark gap so the composition centres
+   vertically (the existing ~480 px of empty paper above the quote was the
+   true offender). Selector pins to L0:s08 only (data-screen-label). */
+.slide[data-type="quote"][data-screen-label="08 Quote"] .quote-mark {
+  font-size: 200px;
+  line-height: 0.7;
+  margin-bottom: var(--sp-2);
+}
+.slide[data-type="quote"][data-screen-label="08 Quote"] blockquote {
+  margin-top: 0;
+  margin-bottom: var(--sp-3);
+}
