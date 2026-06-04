@@ -1,0 +1,121 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { LOCALES, t, withBase, localizedPath } from '../../i18n/locales.js';
+import { ui } from '../../i18n/ui.js';
+import { course } from '../../lib/course.js';
+
+export function getStaticPaths() {
+  return LOCALES.map((l) => ({ params: { lang: l } }));
+}
+const { lang } = Astro.params;
+const m = course.meta;
+const showFallbackNotice = lang === 'tt'; // Phase 1: TT renders mostly via fallback
+const cover = withBase('/Lectures/assets/img/_char/cover.png');
+---
+<BaseLayout lang={lang} page="">
+  <div class="cover-banner">
+    <img src={cover} alt="Course cover — Serega and the cast over the Galaxy of Information" loading="eager" />
+  </div>
+
+  <header class="hero-wrap site-header" style="border-bottom:none;background:none">
+    <div class="wrap hero">
+      <div class="eyebrow">{t(ui.graduateCourse, lang)}</div>
+      <h1>{t(m.title, lang)}</h1>
+      <p class="sub">{t(m.tagline, lang)}</p>
+      <div class="meta">
+        <div><div class="k">{t(ui.labels.institution, lang)}</div><div class="v">{t(m.institution, lang)}</div></div>
+        <div><div class="k">{t(ui.labels.instructor, lang)}</div><div class="v">{m.instructor}</div></div>
+        <div><div class="k">{t(ui.labels.term, lang)}</div><div class="v">{t(m.term, lang)}</div></div>
+        <div><div class="k">{t(ui.labels.firstLecture, lang)}</div><div class="v">{t(m.firstLecture, lang)}</div></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    {showFallbackNotice && <p class="notice">{t(ui.translationInProgress, lang)}</p>}
+
+    <section class="block" id="lectures">
+      <h2>{t(ui.sections.lectures, lang)}</h2>
+      <div class="kicker">{t(ui.sections.lecturesKicker, lang)}</div>
+      <div class="cards">
+        {course.lectures.map((lec) => (
+          <div class={`card${lec.status === 'ready' ? '' : ' soon'}`}>
+            <span class={`tag ${lec.status === 'ready' ? 'ready' : 'soon'}`}>
+              {lec.status === 'ready' ? t(ui.labels.ready, lang) : t(ui.labels.coming, lang)}
+            </span>
+            <div class="num">{lec.id}</div>
+            <div class="catch">{lec.catchphrase}</div>
+            <h3>{t(lec.title, lang)}</h3>
+            <p>{t(lec.blurb, lang)}</p>
+            <div class="when">{t(lec.when, lang)}</div>
+            {lec.status === 'ready' && (
+              <div class="links">
+                <a href={withBase('/' + lec.deckFile)}>{t(ui.labels.openSlides, lang)} →</a>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="block">
+      <h2>{t(ui.sections.schedule, lang)}</h2>
+      <div class="kicker">{t(m.classTimes, lang)}</div>
+      <table>
+        <thead><tr><th>{t(ui.labels.week, lang)}</th><th>{t(ui.labels.date, lang)}</th><th>{t(ui.labels.topics, lang)}</th></tr></thead>
+        <tbody>
+          {course.schedule.map((s) => (
+            <tr class={s.milestone ? 'milestone' : undefined}>
+              <td>{t(ui.labels.week, lang)} {s.week}</td>
+              <td class="d">{t(s.date, lang)}</td>
+              <td>{t(s.topics, lang)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="block">
+      <h2>{t(ui.sections.assessment, lang)}</h2>
+      <div class="kicker">{t(course.assessment.note, lang)}</div>
+      <table>
+        <thead><tr><th>{t(ui.labels.component, lang)}</th><th>{t(ui.labels.weight, lang)}</th></tr></thead>
+        <tbody>
+          {course.assessment.components.map((c) => (
+            <tr><td>{t(c.name, lang)}</td><td>{c.weight}</td></tr>
+          ))}
+          <tr><td><strong>{t(ui.labels.total, lang)}</strong></td><td><strong>{course.assessment.total}</strong></td></tr>
+        </tbody>
+      </table>
+      <p class="grade"><strong>{t(ui.labels.grades, lang)}:</strong>
+        {course.assessment.grades.map((g) => <span>{g.band} {g.range}</span>)}
+      </p>
+    </section>
+
+    <section class="block">
+      <h2>{t(ui.sections.instructor, lang)}</h2>
+      <div class="kicker">{t(ui.labels.bio, lang)}</div>
+      <div class="inst">
+        <img src={withBase('/Lectures/assets/me.jpeg')} alt={`Portrait of ${m.instructor}`} />
+        <div class="body">
+          <h3>{m.instructor}</h3>
+          <p style="margin:0;color:var(--ink-2)">{t(course.instructorBio, lang)}</p>
+          <p style="margin:10px 0 0;font-size:var(--fz-small)">
+            <strong>{t(ui.labels.contact, lang)}:</strong>
+            <a href={`mailto:${m.instructorEmail}`}>{m.instructorEmail}</a>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" style="border-bottom:none">
+      <h2>{t(ui.sections.reading, lang)}</h2>
+      <div class="kicker">{t(ui.sections.readingKicker, lang)}</div>
+      <ul class="reading">
+        {course.reading.map((r) => (
+          <li>{r.author} — <em>{r.title}</em>{r.publisher ? ` (${r.publisher}${r.year ? ', ' + r.year : ''})` : r.year ? ` (${r.year})` : ''}</li>
+        ))}
+      </ul>
+    </section>
+  </div>
+</BaseLayout>
