@@ -1,0 +1,319 @@
+/* =========================================================
+   ARCHFLOW — vector step-by-step architecture reveal.
+   Layout: a fixed-aspect coordinate canvas (tiles positioned in %, an SVG
+   wire layer sharing the same 1000×600 space) + a synced side panel.
+   ========================================================= */
+
+.slide[data-type="archflow"] > .slide-body { height: 100%; }
+
+.af-stage {
+  display: grid;
+  grid-template-columns: 1.55fr 1fr;
+  gap: var(--sp-5);
+  align-items: center;
+  height: 100%;
+}
+
+/* ---- Coordinate canvas: everything positions inside a 1000×600 space ---- */
+.af-canvas {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1000 / 600;
+  align-self: center;
+}
+.af-wires {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.af-wires path,
+.af-wires line {
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 3;
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+}
+.af-wires marker path { fill: var(--ink-3); stroke: none; }
+.af-wires path.is-shown,
+.af-wires line.is-shown { opacity: 0.9; }
+/* Edge kinds (system blueprints): async = dashed, control = dashed + muted. */
+.af-wires path.af-wire-async   { stroke-dasharray: 9 7; }
+.af-wires path.af-wire-control { stroke-dasharray: 3 5; stroke: var(--ink-4); }
+
+/* ---- Edge labels (HTML, distortion-free) ---- */
+.af-edge-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-mono);
+  font-size: 17px;
+  line-height: 1.1;
+  color: var(--ink-2);
+  background: var(--bg);
+  padding: 1px 7px;
+  border-radius: 5px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur) var(--ease);
+  z-index: 3;
+}
+.af-edge-label.is-shown { opacity: 1; }
+.af-edge-label-async   { color: var(--ink-3); font-style: italic; }
+.af-edge-label-control { color: var(--ink-4); }
+
+/* ---- Swim-lanes & group containers (behind nodes) ---- */
+.af-lane, .af-group {
+  position: absolute;
+  box-sizing: border-box;
+  border-radius: var(--r-md);
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+  z-index: 0;
+}
+.af-lane.is-shown, .af-group.is-shown { opacity: 1; }
+.af-lane {                       /* full-width band: offline vs online */
+  border: 1.5px dashed var(--rule-strong);
+  background: var(--bg-alt);
+}
+.af-lane[data-role="offline"] { background: color-mix(in srgb, var(--accent-soft) 45%, transparent); }
+.af-lane[data-role="online"]  { background: color-mix(in srgb, var(--c-green-soft) 45%, transparent); }
+.af-group {                      /* tight box around a cluster (e.g. Feature Store) */
+  border: 2px solid var(--rule-strong);
+  background: var(--bg-card);
+}
+.af-lane-label, .af-group-label {
+  position: absolute;
+  top: 8px; left: 12px;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* ---- Legend (C4 best practice: a key on every blueprint) ---- */
+.af-legend {
+  position: absolute;
+  box-sizing: border-box;
+  display: grid;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--rule);
+  border-radius: var(--r-sm);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  color: var(--ink-2);
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+  z-index: 3;
+}
+.af-legend.is-shown { opacity: 1; }
+.af-leg { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.af-leg .af-swatch { width: 22px; height: 14px; border-radius: 4px; flex: none; border: 1.5px solid var(--rule-strong); }
+.af-leg .af-swatch[data-role="input"]  { background: var(--c-amber-soft); border-color: var(--c-amber); }
+.af-leg .af-swatch[data-role="query"]  { background: var(--c-green-soft); border-color: var(--c-green); }
+.af-leg .af-swatch[data-role="key"]    { background: var(--accent-soft);  border-color: var(--accent); }
+.af-leg .af-swatch[data-role="value"]  { background: var(--c-violet-soft, #ECE4FA); border-color: var(--c-violet, #7C5CCF); }
+.af-leg .af-swatch[data-role="score"]  { background: var(--bg-alt); }
+.af-leg .af-swatch[data-role="output"] { background: var(--c-green-soft); border-color: var(--c-green); }
+.af-leg .af-swatch[data-role="source"]   { background: var(--c-amber-soft); border-color: var(--c-amber); }
+.af-leg .af-swatch[data-role="pipeline"] { background: var(--accent-soft);  border-color: var(--accent); }
+.af-leg .af-swatch[data-role="store"]    { background: var(--c-violet-soft, #ECE4FA); border-color: var(--c-violet, #7C5CCF); }
+.af-leg .af-swatch[data-role="serving"]  { background: var(--c-green-soft); border-color: var(--c-green); }
+.af-leg .af-swatch[data-role="external"] { background: var(--bg-alt); }
+.af-leg .af-swatch[data-role="monitor"]  { background: var(--c-red-soft, #F8DAD0); border-color: var(--c-red); }
+
+/* Horizontal in-flow legend bar (auto-generated from roles present). */
+.af-legend-bar {
+  position: static;
+  display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-5);
+  justify-content: center; align-items: center;
+  background: transparent; border: none; opacity: 1;
+  padding: 2px 0 6px; margin: 0 auto var(--sp-2);
+}
+.af-legend-bar .af-leg { font-size: 18px; }
+.af-leg .af-line { width: 26px; height: 0; border-top: 3px solid var(--ink-3); flex: none; }
+.af-leg .af-line.af-wire-async { border-top-style: dashed; }
+
+/* Blueprint variant: many nodes → compact tiles so they fit the lanes. */
+.af-canvas.af-blueprint .af-node {
+  font-size: 21px;
+  padding: 8px 12px;
+  min-width: 0;
+  line-height: 1.15;
+  text-align: center;
+}
+
+/* Stacking: lanes/groups (0) < wires (1) < nodes (2) < labels/legend (3) < ring (4) */
+.af-node { z-index: 2; }
+.af-focus { z-index: 4; }
+
+/* ---- Tiles ---- */
+.af-node {
+  position: absolute;
+  transform: translate(-50%, -50%) scale(0.92);
+  display: grid;
+  place-items: center;
+  min-width: 64px;
+  padding: 10px 14px;
+  border-radius: var(--r-sm);
+  background: var(--bg-card);
+  border: 2px solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: 30px;
+  color: var(--ink);
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.af-node.is-shown { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.af-node .katex { font-size: 0.92em; }
+
+/* Role colors — mirror the source deck's convention. */
+.af-node[data-role="input"]   { background: var(--c-amber-soft);  border-color: var(--c-amber); }
+.af-node[data-role="query"]   { background: var(--c-green-soft);  border-color: var(--c-green); }
+.af-node[data-role="key"]     { background: var(--accent-soft);   border-color: var(--accent); }
+.af-node[data-role="value"]   { background: var(--c-violet-soft, #ECE4FA); border-color: var(--c-violet, #7C5CCF); }
+.af-node[data-role="score"]   { background: var(--bg-alt);        border-color: var(--rule-strong); }
+.af-node[data-role="weight"]  { background: var(--accent-soft);   border-color: var(--accent); }
+.af-node[data-role="output"]  { background: var(--c-green-soft);  border-color: var(--c-green); font-weight: 600; }
+
+/* System-design role taxonomy (for blueprints) — coherent component types. */
+.af-node[data-role="source"]   { background: var(--c-amber-soft);  border-color: var(--c-amber); }
+.af-node[data-role="pipeline"] { background: var(--accent-soft);   border-color: var(--accent); }
+.af-node[data-role="store"]    { background: var(--c-violet-soft, #ECE4FA); border-color: var(--c-violet, #7C5CCF); }
+.af-node[data-role="serving"]  { background: var(--c-green-soft);  border-color: var(--c-green); }
+.af-node[data-role="external"] { background: var(--bg-alt);        border-color: var(--rule-strong); }
+.af-node[data-role="monitor"]  { background: var(--c-red-soft, #F8DAD0); border-color: var(--c-red); }
+
+/* Image node — a real picture (input image, CNN feature map, …) as a diagram
+   node. Reveal/focus work like any node; preflight requires alt text. */
+.af-node[data-role="image"] {
+  padding: 6px;
+  background: var(--bg-card);
+  border-color: var(--rule-strong);
+}
+.af-node[data-role="image"] img {
+  display: block;
+  max-width: 220px;
+  max-height: 160px;
+  width: auto; height: auto;
+  border-radius: calc(var(--r-sm) - 4px);
+}
+.af-node[data-role="image"] .af-imgcap {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--ink-3);
+  margin-top: 4px;
+  text-align: center;
+}
+
+/* Mini 3×3 matrix shown inside score / weight tiles. */
+.af-grid3 { display: grid; grid-template-columns: repeat(3, 16px); grid-auto-rows: 16px; gap: 4px; padding: 2px; }
+.af-grid3 i { display: block; border-radius: 3px; background: var(--rule-strong); }
+.af-node[data-role="weight"] .af-grid3 i { background: var(--accent); opacity: 0.8; }
+
+/* ---- Full matrix form: a node that is a grid of labelled cells ---- */
+.af-node.af-matrix {
+  padding: 7px;
+  grid-template-columns: repeat(var(--cols, 3), auto);
+  gap: 5px;
+  background: transparent;
+  border: none;
+  min-width: 0;
+}
+.af-matrix .af-cell {
+  min-width: 52px; min-height: 38px;
+  display: grid; place-items: center;
+  border-radius: 6px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: 19px;
+  color: var(--ink-2);
+}
+.af-node[data-role="input"].af-matrix  .af-cell { background: var(--c-amber-soft); border-color: var(--c-amber); }
+.af-node[data-role="query"].af-matrix  .af-cell { background: var(--c-green-soft); border-color: var(--c-green); }
+.af-node[data-role="key"].af-matrix    .af-cell { background: var(--accent-soft);  border-color: var(--accent); }
+.af-node[data-role="value"].af-matrix  .af-cell { background: var(--c-violet-soft, #ECE4FA); border-color: var(--c-violet, #7C5CCF); }
+.af-node[data-role="score"].af-matrix  .af-cell { background: var(--bg-alt); border-color: var(--rule-strong); }
+.af-node[data-role="weight"].af-matrix .af-cell { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
+.af-node[data-role="output"].af-matrix .af-cell { background: var(--c-green-soft); border-color: var(--c-green); font-weight: 600; }
+/* Row-wise softmax: emphasize one row of A (each row → a distribution, Σ=1). */
+.af-matrix .af-cell.is-rowhi { outline: 3px solid var(--accent); outline-offset: 1px; }
+
+/* A label chip (small caption under/over a group) */
+.af-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-sans);
+  font-size: 20px;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+  white-space: nowrap;
+}
+.af-label.is-shown { opacity: 1; }
+
+/* Focused element gets a subtle lift; the ring does the strong signal. */
+.af-node.is-focus { box-shadow: 0 0 0 3px var(--accent-soft); }
+
+/* ---- The moving focus ring ---- */
+.af-focus {
+  position: absolute;
+  left: 0; top: 0; width: 0; height: 0;
+  border: 3px solid var(--accent);
+  border-radius: var(--r-md);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+  opacity: 0;
+  pointer-events: none;
+  transition: left var(--dur) var(--ease), top var(--dur) var(--ease),
+              width var(--dur) var(--ease), height var(--dur) var(--ease),
+              opacity var(--dur) var(--ease);
+}
+.af-focus.is-on { opacity: 1; }
+
+/* ---- Side panel: one note per step, current only ---- */
+.af-panel {
+  align-self: center;
+  border-left: 3px solid var(--rule);
+  padding-left: var(--sp-5);
+  min-height: 360px;
+}
+.af-note { display: none; }
+.af-note.is-current { display: block; animation: afNoteIn var(--dur) var(--ease) both; }
+@keyframes afNoteIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.af-note .af-note-head {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--accent-ink);
+  margin-bottom: var(--sp-3);
+}
+.af-note .af-formula {
+  font-size: 34px;
+  margin: var(--sp-2) 0 var(--sp-3);
+}
+.af-note p { font-size: 26px; line-height: 1.45; color: var(--ink-2); }
+
+/* Stepper name readout (optional, reuses e2e-style chrome if present) */
+[data-af-stage-name] { font-family: var(--font-mono); color: var(--ink-3); }
+
+@media (prefers-reduced-motion: reduce) {
+  .af-node, .af-wires path, .af-wires line, .af-focus, .af-label { transition: none; }
+  .af-note.is-current { animation: none; }
+}
+
+/* ---- Print: reveal everything, drop the transient ring ---- */
+@media print {
+  .slide[data-type="archflow"] .af-node,
+  .slide[data-type="archflow"] .af-label { opacity: 1 !important; transform: translate(-50%, -50%) !important; }
+  .slide[data-type="archflow"] .af-wires [data-from] { opacity: 0.9 !important; }
+  .slide[data-type="archflow"] .af-focus { display: none !important; }
+  .slide[data-type="archflow"] .af-note { display: block !important; }
+}

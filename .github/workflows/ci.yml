@@ -1,0 +1,76 @@
+name: lecture-template-ci
+
+# Production gate: on every push / PR, rebuild the vendored assets + the
+# standalone bundle, then run the headless smoke gate. The build FAILS the PR
+# if the deck errors, math doesn't typeset, dark theme regresses, pre-flight
+# reports errors, or the standalone makes any network request offline.
+
+on:
+  push:
+    paths:
+      - 'Lectures Template/**'
+      - '_audit/**'
+      - '.github/workflows/ci.yml'
+  pull_request:
+    paths:
+      - 'Lectures Template/**'
+      - '_audit/**'
+  workflow_dispatch: {}
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: _audit
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install harness deps
+        run: npm install --no-audit --no-fund
+
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+
+      # Needs network at build time only — pulls KaTeX/Prism/fonts/QR into vendor/.
+      - name: Vendor runtime assets
+        working-directory: 'Lectures Template'
+        run: node build-vendor.mjs
+
+      - name: Build standalone bundle (offline-safe, reads vendor/)
+        working-directory: 'Lectures Template'
+        run: node build-standalone.mjs
+
+      # The gate itself runs fully offline (built-in static server + route-blocked
+      # standalone test), so it is a true offline-guarantee check.
+      - name: Smoke gate
+        run: node ci-gate.mjs
+
+      - name: Pre-flight corner-case checks
+        run: node preflight-corner.mjs
+
+      - name: Archflow geometry audit (overlaps / arrow connections / canvas / structure)
+        run: node archflow-audit.mjs
+
+      - name: Archflow negative tests (faults must be DETECTED, then deck clean)
+        run: node archflow-negative.mjs
+
+      - name: Sequence-diagram audit (chips/labels/bounds/budget)
+        run: node sequence-audit.mjs
+
+      - name: Budget accumulator audit (walk-budget total == Σ revealed chips)
+        run: node budget-audit.mjs
+
+      - name: Upload PDF + screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-debug-artifacts
+          path: |
+            _audit/deck.pdf
+            _audit/shots-fixed/
+          if-no-files-found: ignore

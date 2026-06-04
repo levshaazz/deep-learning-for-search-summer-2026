@@ -1,0 +1,2217 @@
+<!DOCTYPE html>
+<html lang="ru" data-lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lecture Template — Computer Science</title>
+
+  <!-- Apply saved theme/lang BEFORE first paint to avoid a flash of the
+       wrong theme. Mirrors tools.js prefs key. -->
+  <script>
+    try {
+      var __p = JSON.parse(localStorage.getItem('lecture.template.prefs.v1') || '{}');
+      var __de = document.documentElement;
+      if (__p.theme === 'dark' || __p.theme === 'light') __de.setAttribute('data-theme', __p.theme);
+      if (__p.lang === 'ru' || __p.lang === 'en') {
+        __de.setAttribute('data-lang', __p.lang);
+        __de.setAttribute('lang', __p.lang);
+      }
+    } catch (e) {}
+  </script>
+
+  <!-- Asset-load failure banner. If a vendored dependency fails to load
+       (e.g. the vendor/ folder was lost when copying the deck), tell the
+       lecturer in plain language instead of silently degrading. -->
+  <script>
+    window.__assetFail = (function () {
+      var failed = [];
+      return function (name) {
+        if (failed.indexOf(name) !== -1) return;
+        failed.push(name);
+        function show() {
+          if (!document.body) { document.addEventListener('DOMContentLoaded', show); return; }
+          var el = document.getElementById('__asset-banner');
+          if (!el) {
+            el = document.createElement('div');
+            el.id = '__asset-banner';
+            el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:2147483647;' +
+              'background:#D7522C;color:#fff;font:600 15px/1.4 system-ui,sans-serif;' +
+              'padding:10px 16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.3)';
+            el.addEventListener('click', function () { el.remove(); });
+            document.body.appendChild(el);
+          }
+          el.textContent = 'Не загрузились ресурсы: ' + failed.join(', ') +
+            '. Формулы/подсветка/QR могут не отрисоваться — запустите офлайн-файл ' +
+            '«Lecture Template (Standalone).html». · Failed to load: ' + failed.join(', ') +
+            ' — use the Standalone file. (клик чтобы скрыть)';
+        }
+        show();
+      };
+    })();
+  </script>
+
+  <!-- Fonts — vendored locally (run `node build-vendor.mjs` to refresh). -->
+  <link href="vendor/fonts/fonts.css" rel="stylesheet"
+        onerror="window.__assetFail&&window.__assetFail('Шрифты/Fonts')" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/template.css" />
+  <link rel="stylesheet" href="css/slides.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/presenter.css" />
+  <link rel="stylesheet" href="css/tweaks.css" />
+  <link rel="stylesheet" href="css/e2e.css" />
+  <link rel="stylesheet" href="css/lab.css" />
+  <link rel="stylesheet" href="css/archflow.css" />
+  <link rel="stylesheet" href="css/sysdesign.css" />
+  <link rel="stylesheet" href="css/preflight.css" />
+
+  <!-- KaTeX — vendored locally (zero runtime CDN). 4× faster + lighter than
+       MathJax; handles 99% of CS/ML formulas. See README to swap to MathJax. -->
+  <link rel="stylesheet" href="vendor/katex/katex.min.css"
+        onerror="window.__assetFail&&window.__assetFail('KaTeX')">
+  <script defer src="vendor/katex/katex.min.js"
+        onerror="window.__assetFail&&window.__assetFail('KaTeX')"></script>
+  <script defer src="vendor/katex/auto-render.min.js"
+    onerror="window.__assetFail&&window.__assetFail('KaTeX')"
+    onload="renderMathInElement(document.body, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '\\[', right: '\\]', display: true },
+        { left: '\\(', right: '\\)', display: false }
+      ],
+      throwOnError: false,
+      strict: 'ignore'
+    });
+    document.dispatchEvent(new CustomEvent('katex:done'));"></script>
+
+  <!-- Prism — vendored core + python/bash/yaml/json. The autoloader is
+       intentionally dropped: it fetches grammars from a CDN at runtime,
+       which defeats the zero-network goal. Long-tail languages won't
+       highlight; add their grammar files to vendor/prism/ if needed. -->
+  <script src="vendor/prism/prism-core.min.js"
+        onerror="window.__assetFail&&window.__assetFail('Prism')"></script>
+  <script src="vendor/prism/prism-python.min.js"></script>
+  <script src="vendor/prism/prism-bash.min.js"></script>
+  <script src="vendor/prism/prism-yaml.min.js"></script>
+  <script src="vendor/prism/prism-json.min.js"></script>
+
+  <!-- QR code generator — vendored. -->
+  <script src="vendor/qrcode/qrcode.js"
+        onerror="window.__assetFail&&window.__assetFail('QR')"></script>
+</head>
+
+<body>
+  <!-- Bundler thumbnail (shown while standalone-HTML unpacks; also no-JS fallback) -->
+  <template id="__bundler_thumbnail">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#FBFAF6"/>
+          <stop offset="1" stop-color="#DCE8F8"/>
+        </linearGradient>
+      </defs>
+      <rect width="600" height="600" fill="url(#bg)"/>
+      <g transform="translate(180,180)">
+        <rect x="0" y="0" width="240" height="240" rx="20" fill="#2A6FDB"/>
+        <text x="120" y="160" font-family="Georgia, serif" font-size="120" font-weight="500"
+              text-anchor="middle" fill="white">∇</text>
+      </g>
+      <text x="300" y="490" font-family="Georgia, serif" font-size="40" font-weight="500"
+            text-anchor="middle" fill="#14181F">Lecture Template</text>
+      <text x="300" y="528" font-family="ui-monospace, monospace" font-size="18"
+            text-anchor="middle" fill="#6B7280" letter-spacing="3">LOADING…</text>
+    </svg>
+  </template>
+
+  <!-- Logo template — edit once, reused on every slide -->
+  <template id="tpl-logo">
+    <div class="logo-mark">CS</div>
+    <span>
+      <span lang="ru">КАФЕДРА · CS DEPT</span>
+      <span lang="en">CS DEPARTMENT</span>
+    </span>
+  </template>
+
+  <!-- Deck -->
+  <div class="deck">
+    <div class="stage">
+      <div class="slides" data-course-ru="Машинное обучение · CS-310" data-course-en="Machine Learning · CS-310">
+
+        <!-- ============================================
+             01 · TITLE
+             ============================================ -->
+        <section class="slide" data-type="title" data-screen-label="01 Title">
+          <div class="title-header">
+            <div class="course-tag">
+              <span lang="ru">CS-310 · МАШИННОЕ ОБУЧЕНИЕ</span>
+              <span lang="en">CS-310 · MACHINE LEARNING</span>
+            </div>
+            <div data-logo-slot></div>
+          </div>
+          <div class="title-body">
+            <div class="eyebrow">
+              <span lang="ru">Лекция 05</span>
+              <span lang="en">Lecture 05</span>
+            </div>
+            <h1>
+              <span lang="ru">Градиентный спуск<br />и его варианты</span>
+              <span lang="en">Gradient Descent<br />and Its Variants</span>
+            </h1>
+            <p class="subtitle">
+              <span lang="ru">От batch GD к Adam: интуиция, формулы, поведение на практике.</span>
+              <span lang="en">From batch GD to Adam — intuition, formulas, behavior in practice.</span>
+            </p>
+          </div>
+          <div class="title-footer">
+            <div>
+              <div class="meta-label">
+                <span lang="ru">Лектор</span><span lang="en">Lecturer</span>
+              </div>
+              <div class="meta-value">Dr. A. Ivanov</div>
+            </div>
+            <div>
+              <div class="meta-label">
+                <span lang="ru">Дата</span><span lang="en">Date</span>
+              </div>
+              <div class="meta-value">27.05.2026</div>
+            </div>
+            <div>
+              <div class="meta-label">
+                <span lang="ru">Аудитория</span><span lang="en">Room</span>
+              </div>
+              <div class="meta-value">Large Lecture · Bld. 4</div>
+            </div>
+          </div>
+        
+          <aside class="slide-notes">Здравствуйте, коллеги. Это шаблон лекции — он покажет, как устроены 17 типов слайдов. Каждый слайд имеет атрибут data-type, по которому подтягивается layout.
+
+<em>Подсказка:</em> нажмите <strong>T</strong> чтобы вызвать тулбар, <strong>O</strong> — обзор всех слайдов, <strong>N</strong> — переключить эти заметки, <strong>P</strong> — режим рисования поверх слайда.</aside>
+        </section>
+
+        <!-- ============================================
+             02 · AGENDA
+             ============================================ -->
+        <section class="slide" data-type="agenda" data-screen-label="02 Agenda">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">План лекции</span>
+              <span lang="en">Lecture Outline</span>
+            </h2>
+            <span class="slide-kicker">Agenda</span>
+          </div>
+
+          <div class="agenda-grid">
+            <a class="toc-item" href="#/4">
+              <span class="toc-num">01</span>
+              <span class="toc-text">
+                <span class="toc-title">
+                  <span lang="ru">Зачем нужна оптимизация</span>
+                  <span lang="en">Why we need optimization</span>
+                </span>
+                <span class="toc-sub">
+                  <span lang="ru">мотивация, постановка задачи</span>
+                  <span lang="en">motivation, problem setup</span>
+                </span>
+              </span>
+            </a>
+            <a class="toc-item" href="#/7">
+              <span class="toc-num">02</span>
+              <span class="toc-text">
+                <span class="toc-title">
+                  <span lang="ru">Batch Gradient Descent</span>
+                  <span lang="en">Batch Gradient Descent</span>
+                </span>
+                <span class="toc-sub">
+                  <span lang="ru">алгоритм, сходимость, learning rate</span>
+                  <span lang="en">algorithm, convergence, learning rate</span>
+                </span>
+              </span>
+            </a>
+            <a class="toc-item" href="#/9">
+              <span class="toc-num">03</span>
+              <span class="toc-text">
+                <span class="toc-title">
+                  <span lang="ru">SGD и mini-batch</span>
+                  <span lang="en">SGD and mini-batch</span>
+                </span>
+                <span class="toc-sub">
+                  <span lang="ru">шум, генерализация</span>
+                  <span lang="en">noise, generalization</span>
+                </span>
+              </span>
+            </a>
+            <a class="toc-item" href="#/14">
+              <span class="toc-num">04</span>
+              <span class="toc-text">
+                <span class="toc-title">
+                  <span lang="ru">Adam и адаптивные методы</span>
+                  <span lang="en">Adam and adaptive methods</span>
+                </span>
+                <span class="toc-sub">
+                  <span lang="ru">momentum, RMSProp, Adam</span>
+                  <span lang="en">momentum, RMSProp, Adam</span>
+                </span>
+              </span>
+            </a>
+            <a class="toc-item" href="#/30">
+              <span class="toc-num">05</span>
+              <span class="toc-text">
+                <span class="toc-title">
+                  <span lang="ru">Обсуждение и Q&amp;A</span>
+                  <span lang="en">Discussion and Q&amp;A</span>
+                </span>
+                <span class="toc-sub">
+                  <span lang="ru">вопросы аудитории</span>
+                  <span lang="en">audience questions</span>
+                </span>
+              </span>
+            </a>
+          </div>
+        
+          <aside class="slide-notes">На слайде Agenda кликните по пункту, чтобы перейти к разделу. Список тоже редактируемый.</aside>
+        </section>
+
+        <!-- ============================================
+             03 · LEARNING OBJECTIVES
+             ============================================ -->
+        <section class="slide" data-type="objectives" data-screen-label="03 Objectives">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Чему вы научитесь</span>
+              <span lang="en">Learning objectives</span>
+            </h2>
+            <span class="slide-kicker">Objectives</span>
+          </div>
+
+          <ul class="obj-list">
+            <li class="obj-item">
+              <span class="obj-check" aria-hidden="true">✓</span>
+              <span class="obj-text">
+                <span lang="ru">Сформулировать обучение как минимизацию функции потерь по параметрам.</span>
+                <span lang="en">Frame model training as loss minimization over parameters.</span>
+              </span>
+            </li>
+            <li class="obj-item">
+              <span class="obj-check" aria-hidden="true">✓</span>
+              <span class="obj-text">
+                <span lang="ru">Вывести и реализовать шаг batch-градиентного спуска и понять роль learning rate.</span>
+                <span lang="en">Derive and implement a batch gradient-descent step and reason about the learning rate.</span>
+              </span>
+            </li>
+            <li class="obj-item">
+              <span class="obj-check" aria-hidden="true">✓</span>
+              <span class="obj-text">
+                <span lang="ru">Объяснить, почему SGD и mini-batch обменивают шум на скорость и генерализацию.</span>
+                <span lang="en">Explain how SGD and mini-batch trade noise for speed and generalization.</span>
+              </span>
+            </li>
+            <li class="obj-item">
+              <span class="obj-check" aria-hidden="true">✓</span>
+              <span class="obj-text">
+                <span lang="ru">Сравнить адаптивные методы (momentum, RMSProp, Adam) и выбрать оптимизатор под задачу.</span>
+                <span lang="en">Compare adaptive methods (momentum, RMSProp, Adam) and pick an optimizer for a task.</span>
+              </span>
+            </li>
+          </ul>
+
+          <aside class="slide-notes">Слайд целей обучения — что студент должен уметь к концу лекции. Отличается от agenda: это измеримые результаты, а не список разделов. Пункты редактируемы.</aside>
+        </section>
+
+        <!-- ============================================
+             04 · SECTION DIVIDER
+             ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="03 Divider">
+          <div>
+            <div class="divider-num">
+              <span lang="ru">Часть 01</span>
+              <span lang="en">Part 01</span>
+            </div>
+            <h1>
+              <span lang="ru">Зачем нужна<br />оптимизация</span>
+              <span lang="en">Why we need<br />optimization</span>
+            </h1>
+            <p class="divider-sub">
+              <span lang="ru">Обучение модели — это всегда минимизация функции потерь по параметрам.</span>
+              <span lang="en">Training a model is always loss minimization over parameters.</span>
+            </p>
+          </div>
+        
+          <aside class="slide-notes">Section divider — крупный заголовок раздела. Используйте его, чтобы дать аудитории визуальную паузу перед сменой темы.</aside>
+        </section>
+
+        <!-- ============================================
+             04 · DEFINITION
+             ============================================ -->
+        <section class="slide" data-type="definition" data-screen-label="04 Definition">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Ключевой термин</span>
+              <span lang="en">Key term</span>
+            </h2>
+            <span class="slide-kicker">Definition</span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag">
+              <span lang="ru">Определение</span>
+              <span lang="en">Definition</span>
+            </span>
+            <div class="def-term">
+              <span lang="ru">Градиентный спуск</span>
+              <span lang="en">Gradient Descent</span>
+              <span class="term-en">gradient descent · GD</span>
+            </div>
+            <div class="def-body">
+              <p lang="ru">Итеративный алгоритм минимизации функции <span class="term">L(θ)</span>, на каждом шаге сдвигающий параметры <em>против градиента</em>:</p>
+              <p lang="en">An iterative algorithm for minimizing a function <span class="term">L(θ)</span> that, at each step, moves parameters <em>against the gradient</em>:</p>
+              <p class="math-display math-big">$$\theta_{t+1} \;=\; \theta_t \;-\; \eta\, \nabla_\theta L(\theta_t)$$</p>
+              <p class="small muted">
+                <span lang="ru">где <span class="term">η</span> — скорость обучения (learning rate), <span class="term">∇L</span> — градиент функции потерь.</span>
+                <span lang="en">where <span class="term">η</span> is the learning rate and <span class="term">∇L</span> is the gradient of the loss.</span>
+              </p>
+            </div>
+          </div>
+        
+          <aside class="slide-notes">Слайд определения. Один термин, по-русски и по-английски. Старайтесь давать одно определение на слайд — не перегружать.</aside>
+        </section>
+
+        <!-- ============================================
+             05 · THEOREM / LEMMA / PROOF
+             ============================================ -->
+        <section class="slide" data-type="theorem" data-screen-label="05 Theorem">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Сходимость на выпуклых функциях</span>
+              <span lang="en">Convergence on convex functions</span>
+            </h2>
+            <span class="slide-kicker">Theorem · 1.1</span>
+          </div>
+
+          <div class="thm-card" data-kind="theorem">
+            <div class="thm-label">
+              <span lang="ru">Теорема 1.1 · L-гладкость + выпуклость</span>
+              <span lang="en">Theorem 1.1 · L-smooth + convex</span>
+            </div>
+            <div class="thm-statement">
+              <span lang="ru">Пусть <span class="term">L</span> — выпуклая, L-гладкая функция, и <span class="term">η ≤ 1/L</span>. Тогда после <strong>T шагов</strong> градиентного спуска: $$L(\theta_T) - L^* \;\le\; \frac{\|\theta_0 - \theta^*\|^2}{2\eta T}.$$</span>
+              <span lang="en">Let <span class="term">L</span> be a convex, L-smooth function and <span class="term">η ≤ 1/L</span>. Then after <strong>T steps</strong> of gradient descent: $$L(\theta_T) - L^* \;\le\; \frac{\|\theta_0 - \theta^*\|^2}{2\eta T}.$$</span>
+            </div>
+          </div>
+
+          <div class="thm-card" data-kind="proof">
+            <div class="thm-label">
+              <span lang="ru">Идея доказательства</span>
+              <span lang="en">Proof sketch</span>
+            </div>
+            <div class="thm-statement">
+              <span lang="ru">Из L-гладкости следует <em>спуск на каждом шаге</em>: <span class="math-display">$$L(\theta_{t+1}) \le L(\theta_t) - \tfrac{\eta}{2}\|\nabla L\|^2.$$</span> Суммирование по t и телескопирование даёт оценку. Скорость <strong>O(1/T)</strong> медленная — поэтому существуют ускоренные методы.</span>
+              <span lang="en">L-smoothness implies <em>descent at each step</em>: <span class="math-display">$$L(\theta_{t+1}) \le L(\theta_t) - \tfrac{\eta}{2}\|\nabla L\|^2.$$</span> Summing over t and telescoping gives the bound. The <strong>O(1/T)</strong> rate is slow — hence accelerated methods exist.</span>
+            </div>
+          </div>
+
+          <aside class="slide-notes">Теорема + доказательство. Цветовая маркировка: синий = теорема, фиолетовый = лемма, зелёный = следствие, серый = доказательство.</aside>
+        </section>
+
+        <!-- ============================================
+             06 · BIG FORMULA
+             ============================================ -->
+        <section class="slide" data-type="formula" data-screen-label="06 Formula">
+          <div class="slide-header" style="border:none; padding-bottom:0;">
+            <h2>
+              <span lang="ru">Правило обновления</span>
+              <span lang="en">Update rule</span>
+            </h2>
+            <span class="slide-kicker">Core formula</span>
+          </div>
+          <div class="formula-stage">
+            $$ \theta_{t+1} \;=\; \theta_t \;-\; \eta \cdot \nabla_\theta\, \mathcal{L}(\theta_t) $$
+          </div>
+          <div class="formula-caption">
+            <div class="var-block">
+              <div class="var-symbol">θ</div>
+              <div class="var-desc">
+                <span lang="ru"><strong>Параметры</strong> модели<br />(веса нейросети)</span>
+                <span lang="en"><strong>Parameters</strong> of the model<br />(network weights)</span>
+              </div>
+            </div>
+            <div class="var-block">
+              <div class="var-symbol">η</div>
+              <div class="var-desc">
+                <span lang="ru"><strong>Learning rate</strong><br />определяет размер шага</span>
+                <span lang="en"><strong>Learning rate</strong><br />sets the step size</span>
+              </div>
+            </div>
+            <div class="var-block">
+              <div class="var-symbol">∇ℒ</div>
+              <div class="var-desc">
+                <span lang="ru"><strong>Градиент</strong> функции потерь<br />указывает на рост</span>
+                <span lang="en"><strong>Gradient</strong> of the loss<br />points uphill</span>
+              </div>
+            </div>
+          </div>
+        
+          <aside class="slide-notes">Большая формула. Расшифровка переменных внизу — обязательно. Аудитория не знает, что значит θ, пока вы не скажете.</aside>
+        </section>
+
+        <!-- ============================================
+             07 · WALKTHROUGH (step-by-step worked example)
+             ============================================ -->
+        <section class="slide" data-type="walkthrough" data-max-step="5" data-current-step="0" data-screen-label="07 Walkthrough">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Один шаг GD на пальцах</span>
+              <span lang="en">One step of GD, on paper</span>
+            </h2>
+            <span class="slide-kicker">
+              <span lang="ru">Разбор · f(x) = x²</span>
+              <span lang="en">Worked example · f(x) = x²</span>
+            </span>
+          </div>
+
+          <p class="small muted mt-2">
+            <span lang="ru">Возьмём <span class="term">f(x) = x²</span>, <span class="term">η = 0.1</span>, начальное <span class="term">x₀ = 3</span>. Пройдём один шаг — пошагово.</span>
+            <span lang="en">Take <span class="term">f(x) = x²</span>, <span class="term">η = 0.1</span>, initial <span class="term">x₀ = 3</span>. Walk one step through, line by line.</span>
+          </p>
+
+          <div class="walk-flow">
+
+            <div class="walk-step" data-step="1" data-color="violet">
+              <div class="walk-num">01</div>
+              <div class="walk-content">
+                <div class="walk-label">
+                  <span lang="ru">Начнём с точки</span>
+                  <span lang="en">Start at a point</span>
+                </div>
+                <div class="walk-detail">
+                  <span lang="ru">Выбираем стартовую точку <code>x₀</code>. На практике — случайная инициализация весов.</span>
+                  <span lang="en">Pick a starting point <code>x₀</code>. In practice — random weight initialization.</span>
+                </div>
+              </div>
+              <div class="walk-state">x₀ = 3.0</div>
+            </div>
+
+            <div class="walk-step" data-step="2" data-color="accent">
+              <div class="walk-num">02</div>
+              <div class="walk-content">
+                <div class="walk-label">
+                  <span lang="ru">Считаем потерю</span>
+                  <span lang="en">Compute the loss</span>
+                </div>
+                <div class="walk-detail">
+                  <span lang="ru">Подставляем в <code>f</code>: <code>f(3) = 3² = 9</code>. Это forward pass.</span>
+                  <span lang="en">Plug into <code>f</code>: <code>f(3) = 3² = 9</code>. This is the forward pass.</span>
+                </div>
+              </div>
+              <div class="walk-state">L = 9.0</div>
+            </div>
+
+            <div class="walk-step" data-step="3" data-color="cyan">
+              <div class="walk-num">03</div>
+              <div class="walk-content">
+                <div class="walk-label">
+                  <span lang="ru">Берём градиент</span>
+                  <span lang="en">Take the gradient</span>
+                </div>
+                <div class="walk-detail">
+                  <span lang="ru"><code>f′(x) = 2x</code>, значит <code>f′(3) = 6</code>. Backprop = автоматическое дифференцирование.</span>
+                  <span lang="en"><code>f′(x) = 2x</code>, so <code>f′(3) = 6</code>. Backprop = automatic differentiation.</span>
+                </div>
+              </div>
+              <div class="walk-state">∇L = 6.0</div>
+            </div>
+
+            <div class="walk-step" data-step="4" data-color="amber">
+              <div class="walk-num">04</div>
+              <div class="walk-content">
+                <div class="walk-label">
+                  <span lang="ru">Применяем правило обновления</span>
+                  <span lang="en">Apply the update rule</span>
+                </div>
+                <div class="walk-detail">
+                  <span lang="ru"><code>x₁ = x₀ − η · ∇L = 3 − 0.1·6 = 2.4</code>. Сдвинулись против градиента.</span>
+                  <span lang="en"><code>x₁ = x₀ − η · ∇L = 3 − 0.1·6 = 2.4</code>. We moved against the gradient.</span>
+                </div>
+              </div>
+              <div class="walk-state">x₁ = 2.4</div>
+            </div>
+
+            <div class="walk-step" data-step="5" data-final="true">
+              <div class="walk-num">→</div>
+              <div class="walk-content">
+                <div class="walk-label">
+                  <span lang="ru">Проверяем — потеря упала</span>
+                  <span lang="en">Check — the loss decreased</span>
+                </div>
+                <div class="walk-detail">
+                  <span lang="ru"><code>f(x₁) = 2.4² = 5.76 &lt; 9</code>. Один шаг — и мы ближе к минимуму. Повторяем до сходимости.</span>
+                  <span lang="en"><code>f(x₁) = 2.4² = 5.76 &lt; 9</code>. One step — and we&rsquo;re closer to the minimum. Repeat until convergence.</span>
+                </div>
+              </div>
+              <div class="walk-state">9.0 → 5.76</div>
+            </div>
+
+          </div>
+
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">←</button>
+            <span class="step-counter">5/5</span>
+            <button data-step-act="next" aria-label="Next step">→</button>
+          </div>
+        
+          <aside class="slide-notes"><em>Пошаговый разбор</em> — ключевой тип слайда для лекций. Стрелками ←/→ можно раскрывать шаги по одному, удерживая внимание. Каждый шаг — одна мысль; цвет слева — смысловой маркер (фиолетовый = вход, голубой = вычисление градиента, янтарный = обновление, чёрный = итоговый результат).</aside>
+        </section>
+
+        <!-- ============================================
+             08 · CODE BLOCK (was 07 before walkthrough was added)
+             ============================================ -->
+        <section class="slide" data-type="code" data-screen-label="08 Code">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Минимальная реализация на PyTorch</span>
+              <span lang="en">Minimal PyTorch implementation</span>
+            </h2>
+            <span class="slide-kicker">Python · PyTorch</span>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Python · gradient_descent.py</span>
+              <span class="badge" data-color="accent">PyTorch</span>
+            </div>
+            <pre><code class="language-python">import torch
+
+def train_step(model, batch, optimizer, loss_fn):
+    optimizer.zero_grad()
+
+    # Forward — compute predictions
+    preds = model(batch.x)
+    loss  = loss_fn(preds, batch.y)
+
+    # Backward — compute ∂L/∂θ for every θ
+    loss.backward()
+
+    # Update: θ ← θ − η · ∇L
+    optimizer.step()
+    return loss.item()</code></pre>
+          </div>
+
+          <p class="small muted mt-3">
+            <span lang="ru">Под капотом <span class="term">optimizer.step()</span> делает именно то, что записано в формуле выше.</span>
+            <span lang="en">Under the hood, <span class="term">optimizer.step()</span> performs exactly what the formula above says.</span>
+          </p>
+        
+          <aside class="slide-notes">Блок кода Python. Подсветка синтаксиса от Prism. Заголовок блока показывает язык.</aside>
+        </section>
+
+        <!-- ============================================
+             09 · TWO-COLUMN (code + explanation)
+             ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="09 Two-column">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Stochastic Gradient Descent</span>
+              <span lang="en">Stochastic Gradient Descent</span>
+            </h2>
+            <span class="slide-kicker">Side-by-side</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>
+                <span lang="ru">Алгоритм</span>
+                <span lang="en">Algorithm</span>
+              </h3>
+              <div class="code-block">
+                <div class="code-header">
+                  <span class="code-lang">Pseudocode · SGD</span>
+                </div>
+                <pre><code class="language-python">for epoch in range(E):
+    shuffle(dataset)
+    for x_i, y_i in dataset:
+        g = ∇L(θ; x_i, y_i)
+        θ ← θ − η · g</code></pre>
+              </div>
+            </div>
+            <div class="twocol-col">
+              <h3>
+                <span lang="ru">Интуиция</span>
+                <span lang="en">Intuition</span>
+              </h3>
+              <p lang="ru">
+                Вместо <em>полного</em> градиента по всему датасету мы оцениваем его по <strong>одному примеру</strong>.
+              </p>
+              <p lang="en">
+                Instead of the <em>full</em> gradient over the dataset, we estimate it from <strong>one example</strong>.
+              </p>
+
+              <div class="callout" data-kind="info">
+                <div class="callout-icon">i</div>
+                <div class="callout-body">
+                  <strong>
+                    <span lang="ru">Что это даёт</span>
+                    <span lang="en">What this gives us</span>
+                  </strong>
+                  <p>
+                    <span lang="ru">В <span class="term">N</span> раз дешевле на шаг и добавляет полезный шум.</span>
+                    <span lang="en"><span class="term">N</span>× cheaper per step, plus useful noise.</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        
+          <aside class="slide-notes">Двухколоночный слайд — код слева, объяснение справа. Хорош для разбора реализации алгоритма построчно.</aside>
+        </section>
+
+        <!-- ============================================
+             10 · CHART / VIZ PLACEHOLDER
+             ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="10 Visualization">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Loss curves: batch vs SGD vs mini-batch</span>
+              <span lang="en">Loss curves: batch vs SGD vs mini-batch</span>
+            </h2>
+            <span class="slide-kicker">Chart</span>
+          </div>
+
+          <!-- Chart placeholder — drop in your real PNG/SVG, or render inline -->
+          <div class="viz-frame">
+            <svg viewBox="0 0 1600 660" preserveAspectRatio="none" style="width: 100%; height: 100%;">
+              <!-- axes -->
+              <line x1="80" y1="40" x2="80" y2="580" stroke="var(--rule)" stroke-width="2" />
+              <line x1="80" y1="580" x2="1560" y2="580" stroke="var(--rule)" stroke-width="2" />
+              <!-- gridlines -->
+              <line x1="80" y1="170" x2="1560" y2="170" stroke="var(--rule)" stroke-width="1" opacity="0.4" />
+              <line x1="80" y1="305" x2="1560" y2="305" stroke="var(--rule)" stroke-width="1" opacity="0.4" />
+              <line x1="80" y1="440" x2="1560" y2="440" stroke="var(--rule)" stroke-width="1" opacity="0.4" />
+              <!-- batch curve (smooth) -->
+              <path d="M 100 90 Q 350 100 600 220 T 1100 480 T 1540 540"
+                    fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round" />
+              <!-- mini-batch (slightly noisy) -->
+              <path d="M 100 110 L 200 130 L 280 180 L 360 200 L 460 240 L 560 290 L 680 330 L 800 370 L 920 410 L 1060 430 L 1200 460 L 1340 490 L 1540 510"
+                    fill="none" stroke="var(--c-green)" stroke-width="5" stroke-linecap="round" />
+              <!-- SGD (very noisy) -->
+              <path d="M 100 130 L 160 180 L 220 130 L 290 220 L 350 180 L 420 260 L 490 220 L 560 310 L 640 270 L 720 350 L 800 320 L 880 400 L 960 360 L 1040 430 L 1140 400 L 1240 470 L 1340 440 L 1440 500 L 1540 480"
+                    fill="none" stroke="var(--c-red)" stroke-width="4" stroke-linecap="round" opacity="0.85" />
+              <!-- legend -->
+              <g font-family="var(--font-sans)" font-size="28">
+                <circle cx="1170" cy="80" r="10" fill="var(--accent)" />
+                <text x="1190" y="90" fill="var(--ink)">Batch GD</text>
+                <circle cx="1330" cy="80" r="10" fill="var(--c-green)" />
+                <text x="1350" y="90" fill="var(--ink)">Mini-batch</text>
+                <circle cx="1490" cy="80" r="10" fill="var(--c-red)" />
+                <text x="1510" y="90" fill="var(--ink)">SGD</text>
+              </g>
+              <text x="80" y="620" font-family="var(--font-mono)" font-size="22" fill="var(--ink-3)">iterations →</text>
+              <text x="20" y="40" font-family="var(--font-mono)" font-size="22" fill="var(--ink-3)">L(θ)</text>
+            </svg>
+          </div>
+          <p class="viz-caption">
+            <span lang="ru">Batch — гладко, но дорого. SGD — шумно, но дёшево. Mini-batch — компромисс.</span>
+            <span lang="en">Batch — smooth but expensive. SGD — noisy but cheap. Mini-batch — the compromise.</span>
+          </p>
+        
+          <aside class="slide-notes">Слайд под график/визуализацию. Здесь должен быть placeholder — реальный график вы вставите как PNG/SVG или нарисуете canvas-ом.</aside>
+        </section>
+
+        <!-- ============================================
+             11 · INTERACTIVE DEMO (gradient descent)
+             ============================================ -->
+        <section class="slide" data-type="demo" data-screen-label="11 Demo">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Поиграйте с learning rate</span>
+              <span lang="en">Play with the learning rate</span>
+            </h2>
+            <span class="slide-kicker">Live demo · declarative</span>
+          </div>
+
+          <!-- Declarative interactive demo — no JS required.
+               The <interactive-demo> custom element reads <function>,
+               <param>, <readout> children and wires everything for
+               you. See js/demos.js for the registry of available
+               `kind` values (function-plot, distribution, etc.). -->
+          <interactive-demo kind="function-plot" algorithm="gradient-descent">
+            <function fn="0.4*x*x + 0.8" range="-5..5"></function>
+            <param name="lr"    label="learning rate η" min="0.01" max="1.5"  step="0.01" default="0.2"></param>
+            <param name="x0"    label="x₀ (start)"       min="-4"   max="4"    step="0.1"  default="3.5"></param>
+            <param name="iters" label="iterations"        min="1"    max="80"   step="1"    default="30"></param>
+            <readout name="loss"        label="L(x_T)"></readout>
+            <readout name="iters_used"  label="steps used"></readout>
+          </interactive-demo>
+
+          <aside class="slide-notes">Интерактивная демка. <em>Подвигайте слайдер learning rate</em> — траектория градиентного спуска пересчитается в реальном времени. Разметка декларативная — <code>&lt;interactive-demo kind="function-plot"&gt;</code>, не нужно писать JS.</aside>
+        </section>
+
+        <!-- ============================================
+             12 · QUIZ
+             ============================================ -->
+        <section class="slide" data-type="quiz" data-screen-label="12 Quiz">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Вопрос аудитории</span>
+              <span lang="en">Audience question</span>
+            </h2>
+            <span class="slide-kicker">Quick check</span>
+          </div>
+
+          <div class="quiz-frame">
+            <div class="quiz-q">
+              <span lang="ru">Что произойдёт, если <span class="term">η</span> слишком велик?</span>
+              <span lang="en">What happens if <span class="term">η</span> is too large?</span>
+            </div>
+
+            <div class="quiz-options">
+              <div class="quiz-option" data-correct="false">
+                <span class="quiz-letter">A</span>
+                <span><span lang="ru">Сойдёмся быстрее</span><span lang="en">We converge faster</span></span>
+                <span></span>
+              </div>
+              <div class="quiz-option" data-correct="true">
+                <span class="quiz-letter">B</span>
+                <span><span lang="ru">Можем расходиться или прыгать вокруг минимума</span><span lang="en">We may diverge or oscillate around the minimum</span></span>
+                <span></span>
+              </div>
+              <div class="quiz-option" data-correct="false">
+                <span class="quiz-letter">C</span>
+                <span><span lang="ru">Ничего не изменится</span><span lang="en">Nothing changes</span></span>
+                <span></span>
+              </div>
+              <div class="quiz-option" data-correct="false">
+                <span class="quiz-letter">D</span>
+                <span><span lang="ru">Градиент станет нулём</span><span lang="en">The gradient becomes zero</span></span>
+                <span></span>
+              </div>
+            </div>
+
+            <details class="hidden-answer mt-4">
+              <summary>
+                <span lang="ru">Показать пояснение</span>
+                <span lang="en">Reveal explanation</span>
+              </summary>
+              <div class="ha-content">
+                <span lang="ru"><strong>B</strong>. При большом <span class="term">η</span> шаг «перепрыгивает» минимум — траектория начинает осциллировать или вовсе уходит в бесконечность. Попробуйте поставить η = 1.4 в предыдущей демке.</span>
+                <span lang="en"><strong>B</strong>. With large <span class="term">η</span>, the step overshoots — the trajectory oscillates or diverges. Try η = 1.4 in the previous demo.</span>
+              </div>
+            </details>
+          </div>
+        
+          <aside class="slide-notes">Квиз — задайте вопрос аудитории. После того, как они подумают, кликните по правильному ответу, и он подсветится зелёным.</aside>
+        </section>
+
+        <!-- ============================================
+             13 · COMPARISON TABLE
+             ============================================ -->
+        <section class="slide" data-type="table" data-screen-label="13 Table">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Сравнение методов оптимизации</span>
+              <span lang="en">Comparing optimization methods</span>
+            </h2>
+            <span class="slide-kicker">Trade-offs</span>
+          </div>
+
+          <table class="cmp-table">
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th><span lang="ru">Скорость / шаг</span><span lang="en">Speed / step</span></th>
+                <th><span lang="ru">Память</span><span lang="en">Memory</span></th>
+                <th><span lang="ru">Качество минимума</span><span lang="en">Solution quality</span></th>
+                <th><span lang="ru">Чувств. к η</span><span lang="en">η sensitivity</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Batch GD</td>
+                <td class="cell-bad"><span lang="ru">медленно</span><span lang="en">slow</span></td>
+                <td class="cell-good">O(d)</td>
+                <td class="cell-good"><span lang="ru">точно</span><span lang="en">exact</span></td>
+                <td class="cell-meh"><span lang="ru">средняя</span><span lang="en">medium</span></td>
+              </tr>
+              <tr>
+                <td>SGD</td>
+                <td class="cell-good"><span lang="ru">быстро</span><span lang="en">fast</span></td>
+                <td class="cell-good">O(d)</td>
+                <td class="cell-meh"><span lang="ru">шумно</span><span lang="en">noisy</span></td>
+                <td class="cell-bad"><span lang="ru">высокая</span><span lang="en">high</span></td>
+              </tr>
+              <tr>
+                <td>Momentum</td>
+                <td class="cell-good"><span lang="ru">быстро</span><span lang="en">fast</span></td>
+                <td class="cell-meh">O(2d)</td>
+                <td class="cell-good"><span lang="ru">сглажено</span><span lang="en">smooth</span></td>
+                <td class="cell-meh"><span lang="ru">средняя</span><span lang="en">medium</span></td>
+              </tr>
+              <tr>
+                <td>Adam</td>
+                <td class="cell-good"><span lang="ru">очень быстро</span><span lang="en">very fast</span></td>
+                <td class="cell-bad">O(3d)</td>
+                <td class="cell-good"><span lang="ru">робастно</span><span lang="en">robust</span></td>
+                <td class="cell-good"><span lang="ru">низкая</span><span lang="en">low</span></td>
+              </tr>
+            </tbody>
+          </table>
+        
+          <aside class="slide-notes">Сравнительная таблица. Используйте классы cell-good / cell-bad для цветовой маркировки.</aside>
+        </section>
+
+        <!-- ============================================
+             14 · ARCHITECTURE DIAGRAM
+             ============================================ -->
+        <section class="slide" data-type="arch" data-screen-label="14 Architecture">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Pipeline обучения</span>
+              <span lang="en">Training pipeline</span>
+            </h2>
+            <span class="slide-kicker">High-level view</span>
+          </div>
+
+          <div class="arch-diagram">
+            <div class="arch-node" data-color="violet">
+              <div class="arch-icon">[x]</div>
+              <div class="arch-name">
+                <span lang="ru">Батч</span><span lang="en">Batch</span>
+              </div>
+              <div class="arch-shape">\((B, d_{\text{in}})\)</div>
+            </div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node">
+              <div class="arch-icon">f(·)</div>
+              <div class="arch-name">
+                <span lang="ru">Модель</span><span lang="en">Model</span>
+              </div>
+              <div class="arch-shape">\(\theta \in \mathbb{R}^p\)</div>
+            </div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node" data-color="green">
+              <div class="arch-icon">ŷ</div>
+              <div class="arch-name">
+                <span lang="ru">Предсказание</span><span lang="en">Prediction</span>
+              </div>
+              <div class="arch-shape">\((B, d_{\text{out}})\)</div>
+            </div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node" data-color="amber">
+              <div class="arch-icon">L</div>
+              <div class="arch-name">
+                <span lang="ru">Loss</span><span lang="en">Loss</span>
+              </div>
+              <div class="arch-shape">scalar</div>
+            </div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node" data-color="red">
+              <div class="arch-icon">∇θ</div>
+              <div class="arch-name">
+                <span lang="ru">Backprop</span><span lang="en">Backprop</span>
+              </div>
+              <div class="arch-shape">\(\mathrm{grad} \in \mathbb{R}^p\)</div>
+            </div>
+          </div>
+
+          <p class="small muted mt-4 center">
+            <span lang="ru">Каждая стрелка — это автоматическое дифференцирование (autograd).</span>
+            <span lang="en">Each arrow is automatic differentiation (autograd).</span>
+          </p>
+        
+          <aside class="slide-notes">Архитектурная диаграмма. Каждый узел — это data-color. Стрелки рисуются между ними автоматически.</aside>
+        </section>
+
+        <!-- ============================================
+             15 · QUOTE / KEY MESSAGE
+             ============================================ -->
+        <section class="slide" data-type="quote" data-screen-label="15 Quote">
+          <div>
+            <div class="quote-mark">"</div>
+            <blockquote>
+              <span lang="ru">Adam — это просто <em>SGD с моментумом</em>, где каждая координата<br />получает свой собственный learning rate.</span>
+              <span lang="en">Adam is just <em>SGD with momentum</em>,<br />where every coordinate gets its own learning rate.</span>
+            </blockquote>
+            <div class="quote-attr">
+              <span lang="ru">мнемоника · «one minute deep learning»</span>
+              <span lang="en">mnemonic · «one minute deep learning»</span>
+            </div>
+          </div>
+        
+          <aside class="slide-notes">Цитата или ключевая мысль — слайд-якорь. Минимум текста, максимум вес.</aside>
+        </section>
+
+        <!-- ============================================
+             16 · REFERENCES
+             ============================================ -->
+        <section class="slide" data-type="refs" data-screen-label="16 References">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Литература и ссылки</span>
+              <span lang="en">References &amp; further reading</span>
+            </h2>
+            <span class="slide-kicker">Read next</span>
+          </div>
+
+          <ol class="ref-list">
+            <li>
+              <span class="ref-body">
+                <span class="ref-authors">Kingma, D. &amp; Ba, J.</span> ·
+                <span class="ref-title">Adam: A Method for Stochastic Optimization</span> ·
+                <span class="ref-venue">ICLR</span>
+              </span>
+              <span class="ref-year">2015</span>
+            </li>
+            <li>
+              <span class="ref-body">
+                <span class="ref-authors">Goodfellow, I., Bengio, Y. &amp; Courville, A.</span> ·
+                <span class="ref-title">Deep Learning · Chapter 8: Optimization for Training Deep Models</span> ·
+                <span class="ref-venue">MIT Press</span>
+              </span>
+              <span class="ref-year">2016</span>
+            </li>
+            <li>
+              <span class="ref-body">
+                <span class="ref-authors">Ruder, S.</span> ·
+                <span class="ref-title">An Overview of Gradient Descent Optimization Algorithms</span> ·
+                <span class="ref-venue">arXiv:1609.04747</span>
+              </span>
+              <span class="ref-year">2017</span>
+            </li>
+            <li>
+              <span class="ref-body">
+                <span class="ref-authors">Wilson, A. C. et al.</span> ·
+                <span class="ref-title">The Marginal Value of Adaptive Gradient Methods</span> ·
+                <span class="ref-venue">NeurIPS</span>
+              </span>
+              <span class="ref-year">2017</span>
+            </li>
+            <li>
+              <span class="ref-body">
+                <span class="ref-authors">3Blue1Brown</span> ·
+                <span class="ref-title">Gradient Descent, How Neural Networks Learn</span> ·
+                <span class="ref-venue">YouTube</span>
+              </span>
+              <span class="ref-year">2017</span>
+            </li>
+          </ol>
+        
+          <aside class="slide-notes">Список литературы. Нумерация автоматическая через CSS counter.</aside>
+        </section>
+
+        <!-- ============================================
+             17 · E2E FORWARD-PASS WALKTHROUGH (extended)
+             Architecture + math + numeric example synced to
+             the slide's current step. Lecturer toggles the
+             numeric panel off for theory-only delivery.
+             ============================================ -->
+        <section class="slide" data-type="e2e" data-max-step="10" data-current-step="0" data-screen-label="17 E2E Forward Pass">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Forward pass через attention</span>
+              <span lang="en">Forward pass through attention</span>
+            </h2>
+            <span class="slide-kicker">E2E · Self-attention head</span>
+          </div>
+
+          <!-- Architecture strip — color-coded by ROLE not by block index.
+               -->
+          <div class="e2e-arch">
+            <div class="e2e-arch-block" data-role="project" data-step-range="1"
+                 data-tooltip="Input. Token embeddings + positional encoding. Shape (B, T, d).">
+              <div class="arch-name">Input</div>
+              <div class="arch-shape">(B, T, d)</div>
+            </div>
+            <div class="e2e-arch-arrow" data-step-range="1..2"></div>
+
+            <div class="e2e-arch-block" data-role="project" data-step-range="2..3"
+                 data-tooltip="Q, K, V projections. Three *separate* learned matrices — Q «query», K «key», V «value». In a real transformer this runs in parallel across h=8..16 heads.">
+              <div class="arch-name">Q, K, V proj</div>
+              <div class="arch-shape">(B, T, \(d_k\))</div>
+            </div>
+            <div class="e2e-arch-arrow" data-step-range="3..4"></div>
+
+            <div class="e2e-arch-block" data-role="reduce" data-step-range="4"
+                 data-tooltip="Attention scores. S_ij = how much token i attends to token j. Decoder-only models would apply a *causal mask* here to zero out future tokens.">
+              <div class="arch-name">Q · Kᵀ</div>
+              <div class="arch-shape">(B, T, T)</div>
+            </div>
+            <div class="e2e-arch-arrow" data-step-range="4..5"></div>
+
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="5..6"
+                 data-tooltip="Scale by √d_k to prevent softmax saturation, then softmax over rows → attention distribution.">
+              <div class="arch-name">scale · softmax</div>
+              <div class="arch-shape">(B, T, T)</div>
+            </div>
+            <div class="e2e-arch-arrow" data-step-range="6..7"></div>
+
+            <div class="e2e-arch-block" data-role="reduce" data-step-range="7"
+                 data-tooltip="Weighted sum of V along token axis using attention weights A.">
+              <div class="arch-name">A · V</div>
+              <div class="arch-shape">(B, T, \(d_k\))</div>
+            </div>
+            <div class="e2e-arch-arrow" data-step-range="7..8"></div>
+
+            <div class="e2e-arch-block" data-role="project" data-step-range="8"
+                 data-tooltip="Output projection. After multi-head: concat all heads, project back to dimension d.">
+              <div class="arch-name">\(W_O\)</div>
+              <div class="arch-shape">(B, T, d)</div>
+            </div>
+            <div class="e2e-arch-arrow" data-step-range="8..9"></div>
+
+            <div class="e2e-arch-block" data-role="reduce" data-step-range="9..10"
+                 data-tooltip="Residual + LayerNorm. The path shown here — add the residual, *then* normalize: LN(x + sublayer(x)) — is *post-LN* (original «Attention Is All You Need»). Modern models (GPT, LLaMA) use *pre-LN*: normalize *before* the sublayer, x + sublayer(LN(x)), leaving the residual un-normalized. Pre-LN trains more stably.">
+              <div class="arch-name">+ residual · LN</div>
+              <div class="arch-shape">(B, T, d)</div>
+            </div>
+
+            <div class="e2e-arch-legend">
+              <span class="leg" data-role="project"><span lang="ru">линейная проекция</span><span lang="en">linear projection</span></span>
+              <span class="leg" data-role="nonlinear"><span lang="ru">нелинейность</span><span lang="en">non-linearity</span></span>
+              <span class="leg" data-role="reduce"><span lang="ru">взвешенная сумма</span><span lang="en">weighted reduction</span></span>
+            </div>
+          </div>
+
+          <!-- Twin panels — math left (0.72fr), example right (1fr) -->
+          <div class="e2e-twin">
+            <div class="e2e-panel e2e-math-panel">
+              <div class="panel-head">
+                <span lang="ru">Математика</span><span lang="en">Math</span>
+              </div>
+
+              <!-- Step 0: TRUE overview, not stub -->
+              <div class="e2e-step" data-step="0">
+                <div class="step-formula">$$\mathrm{Attention}(Q,K,V) = \mathrm{softmax}\left(\tfrac{QK^\top}{\sqrt{d_k}}\right) V$$</div>
+                <p class="step-caption">
+                  <span lang="ru">Вход + 6 преобразований (см. полосу архитектуры), \(T=3\) токена, \(d_k=3\). Жмите → чтобы пройти forward pass пошагово, или кликните по блоку архитектуры наверху.</span>
+                  <span lang="en">Input + 6 transformations (see the architecture strip), \(T=3\) tokens, \(d_k=3\). Press → to step through, or click an architecture block.</span>
+                </p>
+              </div>
+
+              <div class="e2e-step" data-step="1">
+                <div class="step-formula">$$X \in \mathbb{R}^{T \times d}$$</div>
+                <p class="step-caption">
+                  <span lang="ru">Вход: матрица токен-эмбеддингов размера T × d.</span>
+                  <span lang="en">Input: token-embedding matrix, shape T × d.</span>
+                </p>
+              </div>
+
+              <div class="e2e-step" data-step="2">
+                <div class="step-formula">$$Q = X W_Q,\ \ K = X W_K,\ \ V = X W_V$$</div>
+                <p class="step-caption">
+                  <span lang="ru">Три <em>разные</em> обучаемые матрицы дают Q, K, V — каждая со своей ролью.</span>
+                  <span lang="en">Three <em>distinct</em> learned matrices produce Q, K, V — each plays a different role.</span>
+                </p>
+                <p class="step-caption tiny">
+                  <span lang="ru">В реальной модели параллельно \(h\) голов, каждая с своими \(W_Q, W_K, W_V\).</span>
+                  <span lang="en">A real model runs \(h\) heads in parallel, each with its own \(W_Q, W_K, W_V\).</span>
+                </p>
+              </div>
+
+              <div class="e2e-step" data-step="3">
+                <div class="step-formula">$$Q, K, V \in \mathbb{R}^{T \times d_k}$$</div>
+                <p class="step-caption">
+                  <span lang="ru"><strong>Q</strong> — что мы ищем, <strong>K</strong> — что у нас есть, <strong>V</strong> — что отдаём.</span>
+                  <span lang="en"><strong>Q</strong> — what we look for, <strong>K</strong> — what we have, <strong>V</strong> — what we return.</span>
+                </p>
+              </div>
+
+              <div class="e2e-step" data-step="4">
+                <div class="step-formula">$$S = Q K^\top \in \mathbb{R}^{T \times T}$$</div>
+                <p class="step-caption">
+                  <span lang="ru">Скоры внимания: dot-product между каждой парой токенов.</span>
+                  <span lang="en">Attention scores: dot-product between every pair of tokens.</span>
+                </p>
+                <p class="step-caption tiny">
+                  <span lang="ru">В decoder'е здесь применяют causal mask: \(S_{ij} = -\infty\) при \(j > i\).</span>
+                  <span lang="en">In decoder models a causal mask is applied here: \(S_{ij} = -\infty\) for \(j > i\).</span>
+                </p>
+              </div>
+
+              <div class="e2e-step" data-step="5">
+                <div class="step-formula">$$\tilde S = S / \sqrt{d_k}$$</div>
+                <p class="step-caption">
+                  <span lang="ru">Масштабируем — чтобы softmax не насыщался при больших \(d_k\).</span>
+                  <span lang="en">Scale down so softmax doesn&rsquo;t saturate at large \(d_k\).</span>
+                </p>
+              </div>
+
+              <div class="e2e-step" data-step="6">
+                <div class="step-formula">$$A_{ij} = \dfrac{e^{\tilde S_{ij}}}{\sum_k e^{\tilde S_{ik}}}$$</div>
+                <p class="step-caption">
+                  <span lang="ru">Softmax построчно — \(A_i\) становится распределением по \(T\) токенам.</span>
+                  <span lang="en">Row-wise softmax — \(A_i\) becomes a distribution over \(T\) tokens.</span>
+                </p>
+              </div>
+
+              <div class="e2e-step" data-step="7">
+                <div class="step-formula">$$Z = A V \in \mathbb{R}^{T \times d_k}$$</div>
+                <p class="step-caption">
+                  <span lang="ru">Взвешенная сумма V по весам внимания.</span>
+                  <span lang="en">Weighted sum of V using attention weights.</span>
+                </p>
+              </div>
+
+              <div class="e2e-step" data-step="8">
+                <div class="step-formula">$$Z' = Z W_O$$</div>
+                <p class="step-caption">
+                  <span lang="ru">Output-проекция возвращает в размерность \(d\) (для multi-head: concat голов перед \(W_O\)).</span>
+                  <span lang="en">Output projection brings us back to dimension \(d\) (for multi-head: concat heads first, then \(W_O\)).</span>
+                </p>
+              </div>
+
+              <div class="e2e-step" data-step="9">
+                <div class="step-formula">$$\mathrm{Out} = X + Z'$$</div>
+                <p class="step-caption">
+                  <span lang="ru">Residual connection: добавляем вход обратно. Критично для потока градиентов — без него глубокие трансформеры не обучаются.</span>
+                  <span lang="en">Residual connection: add the input back. Critical for gradient flow — without it deep transformers don&rsquo;t train.</span>
+                </p>
+              </div>
+
+              <div class="e2e-step" data-step="10">
+                <div class="step-formula">$$\mathrm{Out} = \mathrm{LN}(X + Z')$$</div>
+                <p class="step-caption">
+                  <span lang="ru">Нормализуем <em>после</em> residual — это <em>post-LN</em> (оригинал Vaswani et al.). Современные модели (GPT, LLaMA) используют <em>pre-LN</em>: нормализуют <em>до</em> attention, \(x + \mathrm{sublayer}(\mathrm{LN}(x))\), не трогая residual — так обучение стабильнее.</span>
+                  <span lang="en">We normalize <em>after</em> the residual — this is <em>post-LN</em> (Vaswani et al. original). Modern models (GPT, LLaMA) use <em>pre-LN</em>: normalize <em>before</em> attention, \(x + \mathrm{sublayer}(\mathrm{LN}(x))\), leaving the residual un-normalized — trains more stably.</span>
+                </p>
+              </div>
+            </div>
+
+            <div class="e2e-panel e2e-example-panel">
+              <div class="panel-head">
+                <span lang="ru">Пример (\(T=3,\ d_k=3\))</span><span lang="en">Example (\(T=3,\ d_k=3\))</span>
+              </div>
+
+              <div class="e2e-step" data-step="0">
+                <p class="step-caption">
+                  <span lang="ru">↓ Конкретные числа будут появляться на каждом шаге.</span>
+                  <span lang="en">↓ Concrete numbers appear at every step.</span>
+                </p>
+              </div>
+
+              <!-- Step 1: real input X (3 tokens × d=3) -->
+              <div class="e2e-step" data-step="1">
+                <div class="step-calc-row">
+                  <span class="matrix-label">\(X =\)</span>
+                  <span class="matrix">
+                    <span class="m-row"><span class="m-cell">1</span><span class="m-cell">0</span><span class="m-cell">1</span></span>
+                    <span class="m-row"><span class="m-cell">0</span><span class="m-cell">1</span><span class="m-cell">1</span></span>
+                    <span class="m-row"><span class="m-cell">1</span><span class="m-cell">1</span><span class="m-cell">0</span></span>
+                  </span>
+                </div>
+                <p class="step-caption tiny">3 токена × \(d=3\) (учебно сжатые embeddings)</p>
+              </div>
+
+              <!-- Step 2: NON-identity W_Q, W_K, W_V -->
+              <div class="e2e-step" data-step="2">
+                <div class="step-calc-row">
+                  <span class="matrix-label">\(W_Q =\)</span>
+                  <span class="matrix">
+                    <span class="m-row"><span class="m-cell">1</span><span class="m-cell">0</span><span class="m-cell">0</span></span>
+                    <span class="m-row"><span class="m-cell">0</span><span class="m-cell">1</span><span class="m-cell">0</span></span>
+                    <span class="m-row"><span class="m-cell">0</span><span class="m-cell">0</span><span class="m-cell">1</span></span>
+                  </span>
+                  <span class="matrix-label">\(W_K =\)</span>
+                  <span class="matrix">
+                    <span class="m-row"><span class="m-cell">0</span><span class="m-cell">1</span><span class="m-cell">0</span></span>
+                    <span class="m-row"><span class="m-cell">1</span><span class="m-cell">0</span><span class="m-cell">0</span></span>
+                    <span class="m-row"><span class="m-cell">0</span><span class="m-cell">0</span><span class="m-cell">1</span></span>
+                  </span>
+                  <span class="matrix-label">\(W_V =\)</span>
+                  <span class="matrix">
+                    <span class="m-row"><span class="m-cell">1</span><span class="m-cell">0</span><span class="m-cell">0</span></span>
+                    <span class="m-row"><span class="m-cell">0</span><span class="m-cell">1</span><span class="m-cell">0</span></span>
+                    <span class="m-row"><span class="m-cell">1</span><span class="m-cell">0</span><span class="m-cell">1</span></span>
+                  </span>
+                </div>
+                <p class="step-caption tiny">Q, K, V — <em>разные</em> матрицы. \(W_Q = I\), \(W_K\) меняет оси 1↔2, \(W_V\) подмешивает ось 1 в ось 3.</p>
+              </div>
+
+              <!-- Step 3: Q, K, V results -->
+              <div class="e2e-step" data-step="3">
+                <div class="step-calc-row">
+                  <span class="matrix-label">\(Q =\)</span>
+                  <span class="matrix">
+                    <span class="m-row"><span class="m-cell">1</span><span class="m-cell">0</span><span class="m-cell">1</span></span>
+                    <span class="m-row"><span class="m-cell">0</span><span class="m-cell">1</span><span class="m-cell">1</span></span>
+                    <span class="m-row"><span class="m-cell">1</span><span class="m-cell">1</span><span class="m-cell">0</span></span>
+                  </span>
+                  <span class="matrix-label">\(K =\)</span>
+                  <span class="matrix">
+                    <span class="m-row"><span class="m-cell">0</span><span class="m-cell">1</span><span class="m-cell">1</span></span>
+                    <span class="m-row"><span class="m-cell">1</span><span class="m-cell">0</span><span class="m-cell">1</span></span>
+                    <span class="m-row"><span class="m-cell">1</span><span class="m-cell">1</span><span class="m-cell">0</span></span>
+                  </span>
+                  <span class="matrix-label">\(V =\)</span>
+                  <span class="matrix">
+                    <span class="m-row"><span class="m-cell">2</span><span class="m-cell">0</span><span class="m-cell">1</span></span>
+                    <span class="m-row"><span class="m-cell">1</span><span class="m-cell">1</span><span class="m-cell">1</span></span>
+                    <span class="m-row"><span class="m-cell">1</span><span class="m-cell">1</span><span class="m-cell">0</span></span>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Step 4: Q · Kᵀ -->
+              <div class="e2e-step" data-step="4">
+                <div class="step-calc-row">
+                  <span class="matrix-label">\(S = Q\,K^\top =\)</span>
+                  <span class="matrix">
+                    <span class="m-row"><span class="m-cell">1</span><span class="m-cell">2</span><span class="m-cell">1</span></span>
+                    <span class="m-row"><span class="m-cell">2</span><span class="m-cell">1</span><span class="m-cell">1</span></span>
+                    <span class="m-row"><span class="m-cell">1</span><span class="m-cell">1</span><span class="m-cell">2</span></span>
+                  </span>
+                </div>
+                <p class="step-caption tiny">\(S_{ij} = \langle Q_i, K_j \rangle\). Токены 1 и 2 максимально похожи друг на друга (\(S = 2\)); токен 3 — сам на себя.</p>
+              </div>
+
+              <!-- Step 5: scale -->
+              <div class="e2e-step" data-step="5">
+                <div class="step-calc-row">
+                  <span class="matrix-label">\(\tilde S = S / \sqrt{3} \approx\)</span>
+                  <span class="matrix">
+                    <span class="m-row"><span class="m-cell">0.58</span><span class="m-cell">1.15</span><span class="m-cell">0.58</span></span>
+                    <span class="m-row"><span class="m-cell">1.15</span><span class="m-cell">0.58</span><span class="m-cell">0.58</span></span>
+                    <span class="m-row"><span class="m-cell">0.58</span><span class="m-cell">0.58</span><span class="m-cell">1.15</span></span>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Step 6: softmax -->
+              <div class="e2e-step" data-step="6">
+                <div class="step-calc-row">
+                  <span class="matrix-label">\(A = \mathrm{softmax}(\tilde S) =\)</span>
+                  <span class="matrix">
+                    <span class="m-row"><span class="m-cell">0.26</span><span class="m-cell is-highlight">0.47</span><span class="m-cell">0.26</span></span>
+                    <span class="m-row"><span class="m-cell is-highlight">0.47</span><span class="m-cell">0.26</span><span class="m-cell">0.26</span></span>
+                    <span class="m-row"><span class="m-cell">0.26</span><span class="m-cell">0.26</span><span class="m-cell is-highlight">0.47</span></span>
+                  </span>
+                </div>
+                <p class="step-caption tiny">Подсветка: токены 1↔2 «выбирают» друг друга, токен 3 — себя. Каждая строка суммируется в 1 (отклонения ±0.01 — округление до 2 знаков).</p>
+              </div>
+
+              <!-- Step 7: A · V -->
+              <div class="e2e-step" data-step="7">
+                <div class="step-calc-row">
+                  <span class="matrix-label">\(Z = A\,V =\)</span>
+                  <span class="matrix">
+                    <span class="m-row"><span class="m-cell">1.26</span><span class="m-cell">0.74</span><span class="m-cell">0.74</span></span>
+                    <span class="m-row"><span class="m-cell">1.47</span><span class="m-cell">0.53</span><span class="m-cell">0.74</span></span>
+                    <span class="m-row"><span class="m-cell">1.26</span><span class="m-cell">0.74</span><span class="m-cell">0.53</span></span>
+                  </span>
+                </div>
+                <p class="step-caption tiny">\(Z_i\) — взвешенный V по весам \(A_i\).</p>
+              </div>
+
+              <!-- Step 8: W_O -->
+              <div class="e2e-step" data-step="8">
+                <div class="step-calc-row">
+                  <span class="matrix-label">\(W_O =\)</span>
+                  <span class="matrix">
+                    <span class="m-row"><span class="m-cell">1</span><span class="m-cell">0</span><span class="m-cell">0</span></span>
+                    <span class="m-row"><span class="m-cell">0</span><span class="m-cell">1</span><span class="m-cell">0</span></span>
+                    <span class="m-row"><span class="m-cell">0</span><span class="m-cell">0</span><span class="m-cell">1</span></span>
+                  </span>
+                </div>
+                <div class="step-calc-row">
+                  <span class="matrix-label">\(Z' = Z\,W_O = Z\)</span>
+                </div>
+                <p class="step-caption tiny">У нас \(d_k = d = 3\), \(W_O = I\) — здесь \(Z'\) совпадает с \(Z\). В реальной multi-head модели \(W_O\) проецирует concat(heads) обратно в \(d\).</p>
+              </div>
+
+              <!-- Step 9: + residual -->
+              <div class="e2e-step" data-step="9">
+                <div class="step-calc-row">
+                  <span class="matrix-label">\(X + Z' =\)</span>
+                  <span class="matrix">
+                    <span class="m-row"><span class="m-cell">2.26</span><span class="m-cell">0.74</span><span class="m-cell">1.74</span></span>
+                    <span class="m-row"><span class="m-cell">1.47</span><span class="m-cell">1.53</span><span class="m-cell">1.74</span></span>
+                    <span class="m-row"><span class="m-cell">2.26</span><span class="m-cell">1.74</span><span class="m-cell">0.53</span></span>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Step 10: LayerNorm (over d=3 — non-degenerate) -->
+              <div class="e2e-step" data-step="10">
+                <div class="step-calc-row">
+                  <span class="matrix-label">\(\mathrm{LN}(\mathrm{Out}) \approx\)</span>
+                  <span class="matrix">
+                    <span class="m-row"><span class="m-cell">1.08</span><span class="m-cell">-1.33</span><span class="m-cell">0.25</span></span>
+                    <span class="m-row"><span class="m-cell">-0.95</span><span class="m-cell">-0.44</span><span class="m-cell">1.38</span></span>
+                    <span class="m-row"><span class="m-cell">1.04</span><span class="m-cell">0.31</span><span class="m-cell">-1.35</span></span>
+                  </span>
+                </div>
+                <p class="step-caption tiny">Каждая строка → (mean=0, std=1) по \(d=3\) признакам. Этот выход уходит в следующий блок энкодера.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Compact stepper: no dots, just prev/counter/next + toggle -->
+          <div class="e2e-stepper">
+            <div class="step-cluster">
+              <button type="button" class="step-btn" data-step-act="prev">←</button>
+              <div class="e2e-counter">
+                <span class="e2e-counter-label">step</span>
+                <span data-counter-val>0 / 10</span>
+              </div>
+              <button type="button" class="step-btn" data-step-act="next">→</button>
+            </div>
+            <span class="e2e-stage-name">overview</span>
+            <button type="button" class="e2e-toggle">
+              <span lang="ru">Без чисел</span><span lang="en">Theory only</span>
+            </button>
+          </div>
+
+          <!-- Per-step speaker notes: one main note + step-specific.
+               Presenter view picks up `.is-current-note` for the current step. -->
+          <aside class="slide-notes">E2E forward-pass walkthrough. Архитектура сверху, математика и числовой пример синхронно. <em>Клик по блоку архитектуры</em> — прыжок к его первому шагу. <em>Hover</em> — tooltip с тем, что в блоке. Кнопка «<strong>Без чисел</strong>» прячет правую панель для теоретической части.</aside>
+          <aside data-notes-for-step="1">Начать с напоминания: <em>что такое embeddings</em>. Эти три строки — это уже PROJECTED словарные индексы через embedding-таблицу + positional encoding.</aside>
+          <aside data-notes-for-step="2">Ключевой момент: <em>\(W_Q, W_K, W_V\) — три РАЗНЫЕ матрицы</em>. Спросить аудиторию «что было бы, если \(W_Q = W_K\)?» — ответ: attention стало бы симметричным, и было бы как PCA-проекция.</aside>
+          <aside data-notes-for-step="4">Если decoder-only лекция: <em>здесь упомянуть causal mask</em>. \(S_{ij} = -\infty\) для \(j &gt; i\) гарантирует, что softmax даст 0 для будущих токенов.</aside>
+          <aside data-notes-for-step="5">Спросить: <em>почему именно \(\sqrt{d_k}\)?</em> Ответ: дисперсия dot-product растёт как \(d_k\); деление на \(\sqrt{d_k}\) нормализует.</aside>
+          <aside data-notes-for-step="6">Подсветка в матрице A: токены 1 и 2 «тянутся друг к другу» — это результат K-проекции, которая зеркалит оси. Сильный момент для интуиции.</aside>
+          <aside data-notes-for-step="8">Здесь упомянуть multi-head: на самом деле concat голов перед \(W_O\). У нас \(h=1\) для compactness.</aside>
+          <aside data-notes-for-step="9">Residual — критически важно для градиентов. Без него глубокие трансформеры не обучатся.</aside>
+          <aside data-notes-for-step="10">Pre-LN vs post-LN: GPT, LLaMA — pre-LN. Оригинальный Vaswani — post-LN. Pre-LN обучается стабильнее, поэтому выиграл.</aside>
+        </section>
+
+        <!-- ============================================
+             17b · ARCHITECTURE WALK — three composable building blocks
+             on one slide:
+               • data-arch-step  → the inline-SVG layer lights up at its step
+                                    (deck.js applyStepVisibility, no per-slide JS)
+               • walk-step ledger → numbered rows + .walk-state result chip
+                                    + [data-final] dark answer row
+               • .walk-budget     → js/budget.js sums the revealed chips into a
+                                    running parameter total (over-cap → red)
+             Drive it with ←/→. Deep-link a step as #/18/3.
+             ============================================ -->
+        <section class="slide" data-type="walkthrough" data-max-step="5" data-current-step="0" data-screen-label="17b Arch Walk">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Forward pass · мини-CNN</span>
+              <span lang="en">Forward pass · a tiny CNN</span>
+            </h2>
+            <span class="slide-kicker">
+              <span lang="ru">шаги ←/→ · диаграмма + леджер + бюджет параметров</span>
+              <span lang="en">step ←/→ · diagram + ledger + parameter budget</span>
+            </span>
+          </div>
+
+          <div class="walk-layout">
+            <!-- LEFT: hand-authored SVG architecture; each layer carries
+                 data-arch-step so it highlights in lock-step with the ledger.
+                 SVG text stays "safe" (28×28×6); real math lives in the ledger. -->
+            <div class="walk-diagram">
+              <svg viewBox="0 0 320 430" role="img"
+                   aria-label="tiny CNN: input, conv, conv+pool, fully-connected, output">
+                <defs>
+                  <marker id="aw-arrow" viewBox="0 0 10 10" refX="9" refY="5"
+                          markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                    <path d="M0 0 L10 5 L0 10 z" fill="var(--ink-3)"></path>
+                  </marker>
+                </defs>
+                <g font-family="var(--font-mono)" text-anchor="middle" fill="var(--ink-2)">
+                  <rect data-arch-step="1" data-arch-color="violet" x="50" y="10"  width="220" height="60" rx="8"
+                        fill="var(--bg-alt)" stroke="var(--rule-strong)" stroke-width="2"></rect>
+                  <text x="160" y="36" font-size="18" font-weight="600" fill="var(--ink)">Input</text>
+                  <text x="160" y="57" font-size="15">28×28×1</text>
+
+                  <rect data-arch-step="2" data-arch-color="cyan" x="50" y="92" width="220" height="60" rx="8"
+                        fill="var(--bg-alt)" stroke="var(--rule-strong)" stroke-width="2"></rect>
+                  <text x="160" y="118" font-size="18" font-weight="600" fill="var(--ink)">Conv 5×5 · 6</text>
+                  <text x="160" y="139" font-size="15">24×24×6</text>
+
+                  <rect data-arch-step="3" data-arch-color="cyan" x="50" y="174" width="220" height="60" rx="8"
+                        fill="var(--bg-alt)" stroke="var(--rule-strong)" stroke-width="2"></rect>
+                  <text x="160" y="200" font-size="18" font-weight="600" fill="var(--ink)">Conv 5×5 · 16 + pool</text>
+                  <text x="160" y="221" font-size="15">8×8×16 → 1024</text>
+
+                  <rect data-arch-step="4" data-arch-color="amber" x="50" y="256" width="220" height="60" rx="8"
+                        fill="var(--bg-alt)" stroke="var(--rule-strong)" stroke-width="2"></rect>
+                  <text x="160" y="282" font-size="18" font-weight="600" fill="var(--ink)">FC</text>
+                  <text x="160" y="303" font-size="15">1024 → 120</text>
+
+                  <rect data-arch-step="5" data-arch-color="green" x="50" y="338" width="220" height="60" rx="8"
+                        fill="var(--bg-alt)" stroke="var(--rule-strong)" stroke-width="2"></rect>
+                  <text x="160" y="364" font-size="18" font-weight="600" fill="var(--ink)">Output · softmax</text>
+                  <text x="160" y="385" font-size="15">120 → 10</text>
+
+                  <path d="M160 70 L160 92"   stroke="var(--ink-3)" stroke-width="2" marker-end="url(#aw-arrow)"></path>
+                  <path d="M160 152 L160 174" stroke="var(--ink-3)" stroke-width="2" marker-end="url(#aw-arrow)"></path>
+                  <path d="M160 234 L160 256" stroke="var(--ink-3)" stroke-width="2" marker-end="url(#aw-arrow)"></path>
+                  <path d="M160 316 L160 338" stroke="var(--ink-3)" stroke-width="2" marker-end="url(#aw-arrow)"></path>
+                </g>
+              </svg>
+            </div>
+
+            <!-- RIGHT: the step ledger. Each row reveals at its step; the chip
+                 on the right is the running tensor shape; the dark row is the
+                 final prediction. -->
+            <div class="walk-flow">
+              <div class="walk-step" data-step="1" data-color="violet">
+                <div class="walk-num">01</div>
+                <div class="walk-content">
+                  <div class="walk-label"><span lang="ru">Вход</span><span lang="en">Input</span></div>
+                  <div class="walk-detail">
+                    <span lang="ru">Один канал \(28\times28\), значения в \([0,1]\).</span>
+                    <span lang="en">One channel \(28\times28\), values in \([0,1]\).</span>
+                  </div>
+                </div>
+                <div class="walk-state">\(28{\times}28{\times}1\)</div>
+              </div>
+
+              <div class="walk-step" data-step="2" data-color="cyan">
+                <div class="walk-num">02</div>
+                <div class="walk-content">
+                  <div class="walk-label"><span lang="ru">Свёртка \(5\times5\), 6 фильтров</span><span lang="en">Conv \(5\times5\), 6 filters</span></div>
+                  <div class="walk-detail">
+                    <span lang="ru">Веса: \((5\cdot5\cdot1+1)\cdot6=156\).</span>
+                    <span lang="en">Weights: \((5\cdot5\cdot1+1)\cdot6=156\).</span>
+                  </div>
+                </div>
+                <div class="walk-state">\(24{\times}24{\times}6\)</div>
+              </div>
+
+              <div class="walk-step" data-step="3" data-color="cyan">
+                <div class="walk-num">03</div>
+                <div class="walk-content">
+                  <div class="walk-label"><span lang="ru">Свёртка \(5\times5\), 16 + pool</span><span lang="en">Conv \(5\times5\), 16 + pool</span></div>
+                  <div class="walk-detail">
+                    <span lang="ru">\((5\cdot5\cdot6+1)\cdot16=2416\), затем \(2\times2\) pool.</span>
+                    <span lang="en">\((5\cdot5\cdot6+1)\cdot16=2416\), then \(2\times2\) pool.</span>
+                  </div>
+                </div>
+                <div class="walk-state">\(8{\times}8{\times}16\)</div>
+              </div>
+
+              <div class="walk-step" data-step="4" data-color="amber">
+                <div class="walk-num">04</div>
+                <div class="walk-content">
+                  <div class="walk-label"><span lang="ru">Полносвязный слой</span><span lang="en">Fully-connected</span></div>
+                  <div class="walk-detail">
+                    <span lang="ru">\(1024\to120\): \(1024\cdot120+120=48\,120\).</span>
+                    <span lang="en">\(1024\to120\): \(1024\cdot120+120=48\,120\).</span>
+                  </div>
+                </div>
+                <div class="walk-state">\(120\)</div>
+              </div>
+
+              <div class="walk-step" data-step="5" data-final="true">
+                <div class="walk-num">→</div>
+                <div class="walk-content">
+                  <div class="walk-label"><span lang="ru">Выход — 10 классов</span><span lang="en">Output — 10 classes</span></div>
+                  <div class="walk-detail">
+                    <span lang="ru">\(120\to10\): \(1210\) параметров; \(\operatorname{softmax}\to\hat{y}\).</span>
+                    <span lang="en">\(120\to10\): \(1210\) params; \(\operatorname{softmax}\to\hat{y}\).</span>
+                  </div>
+                </div>
+                <div class="walk-state">\(\hat{y}\in\mathbb{R}^{10}\)</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BUDGET: chips reveal with their step; budget.js writes the running
+               total. data-budget-cap turns the total red past the limit. -->
+          <div class="walk-budget" data-budget-format="si" data-budget-cap="200000">
+            <div class="walk-budget-head"><span lang="ru">бюджет параметров</span><span lang="en">parameter budget</span></div>
+            <div class="walk-budget-track">
+              <span class="walk-budget-item" data-step="1" data-budget="0">input <b>0</b></span>
+              <span class="walk-budget-item" data-step="2" data-budget="156">conv1 <b>156</b></span>
+              <span class="walk-budget-item" data-step="3" data-budget="2416">conv2 <b>2 416</b></span>
+              <span class="walk-budget-item" data-step="4" data-budget="48120">fc <b>48 120</b></span>
+              <span class="walk-budget-item" data-step="5" data-budget="1210">out <b>1 210</b></span>
+            </div>
+            <div class="walk-budget-total">Σ <span data-walk-total>0</span></div>
+          </div>
+
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">←</button>
+            <span class="step-counter">5/5</span>
+            <button data-step-act="next" aria-label="Next step">→</button>
+          </div>
+
+          <aside class="slide-notes">Демонстрация трёх композируемых блоков: <em>data-arch-step</em> подсвечивает слой SVG-диаграммы на своём шаге (без отдельного JS, любое число шагов); <em>walk-step</em>-леджер даёт нумерованные строки с чипом-результатом и тёмной финальной строкой; <em>.walk-budget</em> (js/budget.js) суммирует раскрытые чипы в бегущий итог параметров (Σ = 51 902 ≈ 51.9K; красный, если превысить data-budget-cap). Вся математика — KaTeX; подписи внутри SVG намеренно «безопасные» (28×28×6).</aside>
+        </section>
+
+        <!-- ============================================
+             ARCHFLOW · vector step-by-step architecture reveal.
+             A vector alternative to "a sequence of exported PNGs": one diagram
+             authored once; nodes/arrows reveal per step; a focus ring tracks
+             the active piece; the side panel shows synced KaTeX + bilingual
+             captions. Deep-linkable (#/N/M), themeable, accessible, crisp.
+             ============================================ -->
+        <section class="slide" data-type="archflow" data-max-step="5" data-current-step="0" data-screen-label="18b Archflow">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Attention-слой по шагам</span>
+              <span lang="en">Building the attention layer</span>
+            </h2>
+            <span class="slide-kicker">Archflow · vector reveal</span>
+          </div>
+
+          <div class="af-stage">
+            <div class="af-canvas">
+              <!-- Edges are DECLARATIVE: the engine routes each arrow between
+                   the referenced nodes' anchors (no hand coords). -->
+              <div class="af-edge" data-from-node="af-img" data-to-node="af-x" data-from="1" data-from-anchor="bottom" data-to-anchor="top"></div>
+              <div class="af-edge" data-from-node="af-x" data-to-node="af-q" data-from="2" data-from-anchor="right" data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-x" data-to-node="af-k" data-from="2" data-from-anchor="right" data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-x" data-to-node="af-v" data-from="2" data-from-anchor="right" data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-q" data-to-node="af-e" data-from="3" data-from-anchor="right" data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-k" data-to-node="af-e" data-from="3" data-from-anchor="right" data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-e" data-to-node="af-a" data-from="4" data-from-anchor="right" data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-a" data-to-node="af-y" data-from="5" data-from-anchor="right" data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-v" data-to-node="af-y" data-from="5" data-from-anchor="right" data-to-anchor="left"></div>
+
+              <!-- IMAGE node — a REAL image as a diagram node (here a tiny
+                   self-contained data-URI; swap src for your PNG / feature-map). -->
+              <div class="af-node" id="af-img" data-role="image" data-from="1" style="left:5%;top:18%">
+                <img alt="Сырое входное изображение — рукописная цифра 7×7 px, превращается в эмбеддинги X"
+                     src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='84'%20height='84'%20viewBox='0%200%207%207'%3E%3Crect%20width='7'%20height='7'%20fill='%23EFEAD9'/%3E%3Cg%20fill='%231E2330'%3E%3Crect%20x='1'%20y='1'%20width='4'%20height='1'/%3E%3Crect%20x='4'%20y='2'%20width='1'%20height='1'/%3E%3Crect%20x='3'%20y='3'%20width='1'%20height='1'/%3E%3Crect%20x='2'%20y='4'%20width='1'%20height='2'/%3E%3C/g%3E%3C/svg%3E">
+                <div class="af-imgcap">raw input</div>
+              </div>
+
+              <!-- INPUT matrix X (3 token row-vectors) -->
+              <div class="af-node af-matrix" id="af-x" data-role="input" data-from="1" data-focus="1" style="--cols:1;left:5%;top:50%">
+                <span class="af-cell">\(X_1\)</span><span class="af-cell">\(X_2\)</span><span class="af-cell">\(X_3\)</span>
+              </div>
+              <div class="af-label" data-from="1" style="left:5%;top:71%">\(X\!\in\!\mathbb{R}^{T\times d}\)</div>
+
+              <!-- Q, K, V matrices (each XW_*) -->
+              <div class="af-node af-matrix" id="af-q" data-role="query" data-from="2" data-focus="2" style="--cols:1;left:21%;top:22%">
+                <span class="af-cell">\(Q_1\)</span><span class="af-cell">\(Q_2\)</span><span class="af-cell">\(Q_3\)</span>
+              </div>
+              <div class="af-node af-matrix" id="af-k" data-role="key" data-from="2" data-focus="2" style="--cols:1;left:21%;top:50%">
+                <span class="af-cell">\(K_1\)</span><span class="af-cell">\(K_2\)</span><span class="af-cell">\(K_3\)</span>
+              </div>
+              <div class="af-node af-matrix" id="af-v" data-role="value" data-from="2" data-focus="2" style="--cols:1;left:21%;top:78%">
+                <span class="af-cell">\(V_1\)</span><span class="af-cell">\(V_2\)</span><span class="af-cell">\(V_3\)</span>
+              </div>
+
+              <!-- SCORE matrix E = QKᵀ/√d (3×3) -->
+              <div class="af-label" data-from="3" style="left:45%;top:12%">\(E=QK^\top/\sqrt{d_k}\)</div>
+              <div class="af-node af-matrix" id="af-e" data-role="score" data-from="3" data-focus="3" style="left:45%;top:42%">
+                <span class="af-cell">\(E_{11}\)</span><span class="af-cell">\(E_{12}\)</span><span class="af-cell">\(E_{13}\)</span>
+                <span class="af-cell">\(E_{21}\)</span><span class="af-cell">\(E_{22}\)</span><span class="af-cell">\(E_{23}\)</span>
+                <span class="af-cell">\(E_{31}\)</span><span class="af-cell">\(E_{32}\)</span><span class="af-cell">\(E_{33}\)</span>
+              </div>
+
+              <!-- WEIGHT matrix A = softmax(E) row-wise (first row highlighted) -->
+              <div class="af-label" data-from="4" style="left:70%;top:12%">\(A=\mathrm{softmax}_{\text{row}}(E)\)</div>
+              <div class="af-node af-matrix" id="af-a" data-role="weight" data-from="4" data-focus="4" style="left:70%;top:42%">
+                <span class="af-cell is-rowhi">\(A_{11}\)</span><span class="af-cell is-rowhi">\(A_{12}\)</span><span class="af-cell is-rowhi">\(A_{13}\)</span>
+                <span class="af-cell">\(A_{21}\)</span><span class="af-cell">\(A_{22}\)</span><span class="af-cell">\(A_{23}\)</span>
+                <span class="af-cell">\(A_{31}\)</span><span class="af-cell">\(A_{32}\)</span><span class="af-cell">\(A_{33}\)</span>
+              </div>
+              <div class="af-label" data-from="4" style="left:70%;top:72%">\(\textstyle\sum_j A_{1j}=1\)</div>
+
+              <!-- OUTPUT matrix Y = AV -->
+              <div class="af-node af-matrix" id="af-y" data-role="output" data-from="5" data-focus="5" style="--cols:1;left:93%;top:50%">
+                <span class="af-cell">\(Y_1\)</span><span class="af-cell">\(Y_2\)</span><span class="af-cell">\(Y_3\)</span>
+              </div>
+
+              <div class="af-focus"></div>
+            </div>
+
+            <div class="af-panel">
+              <div class="af-note is-current" data-step="0" data-label="overview">
+                <div class="af-formula">$$\mathrm{Attention}(Q,K,V)=\mathrm{softmax}\!\left(\tfrac{QK^\top}{\sqrt{d_k}}\right)V$$</div>
+                <p><span lang="ru">Соберём attention-слой по шагам. Жмите <kbd>→</kbd>.</span><span lang="en">Let's assemble the attention layer step by step. Press <kbd>→</kbd>.</span></p>
+              </div>
+              <div class="af-note" data-step="1" data-label="inputs">
+                <div class="af-note-head"><span lang="ru">Входы</span><span lang="en">Inputs</span></div>
+                <div class="af-formula">$$X \in \mathbb{R}^{T \times d}$$</div>
+                <p><span lang="ru">Сырой вход (картинка/текст) → <strong>T</strong> токенов, каждый — вектор размерности <strong>d</strong>.</span><span lang="en">Raw input (image/text) → <strong>T</strong> tokens, each a vector of dimension <strong>d</strong>.</span></p>
+              </div>
+              <div class="af-note" data-step="2" data-label="projections">
+                <div class="af-note-head"><span lang="ru">Проекции</span><span lang="en">Projections</span></div>
+                <div class="af-formula">$$Q=XW_Q,\ \ K=XW_K,\ \ V=XW_V$$</div>
+                <p><span lang="ru">Три обучаемые матрицы дают <strong>запросы</strong>, <strong>ключи</strong> и <strong>значения</strong>.</span><span lang="en">Three learned matrices give <strong>queries</strong>, <strong>keys</strong> and <strong>values</strong>.</span></p>
+              </div>
+              <div class="af-note" data-step="3" data-label="scores">
+                <div class="af-note-head"><span lang="ru">Скоры внимания</span><span lang="en">Attention scores</span></div>
+                <div class="af-formula">$$E_{ij}=\dfrac{Q_i\cdot K_j}{\sqrt{d_k}}$$</div>
+                <p><span lang="ru">Каждая ячейка \(E_{ij}\) — похожесть запроса \(i\) с ключом \(j\) (scaled dot-product). Матрица \(T\times T\).</span><span lang="en">Each cell \(E_{ij}\) — similarity of query \(i\) with key \(j\) (scaled dot-product). A \(T\times T\) matrix.</span></p>
+              </div>
+              <div class="af-note" data-step="4" data-label="weights">
+                <div class="af-note-head"><span lang="ru">Веса внимания</span><span lang="en">Attention weights</span></div>
+                <div class="af-formula">$$A_{ij}=\dfrac{e^{E_{ij}}}{\sum_{k} e^{E_{ik}}}$$</div>
+                <p><span lang="ru">Softmax <strong>по строкам</strong>: каждая строка \(E\) → распределение внимания, \(\sum_j A_{ij}=1\) (подсвечена строка&nbsp;1).</span><span lang="en">Softmax <strong>over rows</strong>: each row of \(E\) → an attention distribution, \(\sum_j A_{ij}=1\) (row&nbsp;1 highlighted).</span></p>
+              </div>
+              <div class="af-note" data-step="5" data-label="output">
+                <div class="af-note-head"><span lang="ru">Выход</span><span lang="en">Output</span></div>
+                <div class="af-formula">$$Y_i=\sum_j A_{ij}\,V_j$$</div>
+                <p><span lang="ru">Каждый выход \(Y_i\) — взвешенная сумма значений \(V_j\) по весам строки \(A_{i\cdot}\).</span><span lang="en">Each output \(Y_i\) — a weighted sum of values \(V_j\) using row \(A_{i\cdot}\).</span></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">←</button>
+            <span class="step-counter">0/5</span>
+            <button data-step-act="next" aria-label="Next step">→</button>
+          </div>
+
+          <aside class="slide-notes">Прототип типа <strong>archflow</strong> — векторная альтернатива «последовательности PNG». Диаграмма нарисована один раз; узлы/стрелки раскрываются по <kbd>→</kbd>, рамка-фокус ведёт к текущему элементу, правая панель синхронно показывает формулу (KaTeX) и двуязычную подпись. Чёткое, в теме, доступно, deep-link на шаг (#/N/M). Элементы помечены <code>data-from</code> (когда появиться) и <code>data-focus</code> (когда подсветить).</aside>
+        </section>
+
+        <!-- ============================================
+             ARCHFLOW · SYSTEM BLUEPRINT (production recsys).
+             Same engine, blueprint affordances: swim-lanes (offline/online),
+             a group container, declarative edges with LABELS and sync/async
+             KINDS, a feedback loop, and a legend. ML System Design ready.
+             ============================================ -->
+        <section class="slide" data-type="archflow" data-max-step="5" data-current-step="0" data-screen-label="19b Blueprint">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Продакшн recsys: офлайн ↔ онлайн</span>
+              <span lang="en">Production recsys: offline ↔ online</span>
+            </h2>
+            <span class="slide-kicker">Archflow · system blueprint</span>
+          </div>
+
+          <!-- auto-legend (engine fills role swatches + sync/async from the diagram) -->
+          <div class="af-legend af-legend-bar" data-auto></div>
+
+          <div class="af-stage">
+            <div class="af-canvas af-blueprint" data-layout="grid" data-routing="orthogonal">
+              <!-- swim-lanes (data-lane → also the grid bands for auto-layout) -->
+              <div class="af-lane" data-lane="offline" data-role="offline" data-from="1" style="left:1%;top:9%;width:98%;height:34%">
+                <div class="af-lane-label">offline · обучение</div>
+              </div>
+              <div class="af-lane" data-lane="online" data-role="online" data-from="3" style="left:1%;top:60%;width:98%;height:36%">
+                <div class="af-lane-label">online · serving</div>
+              </div>
+              <!-- group container nested in the offline lane -->
+              <div class="af-group" data-from="1" style="left:50%;top:11%;width:47%;height:30%">
+                <div class="af-group-label">model lifecycle</div>
+              </div>
+
+              <!-- EDGES (declarative; labeled + typed) -->
+              <div class="af-edge" data-from-node="af-logs" data-to-node="af-fpipe" data-from="1" data-from-anchor="right" data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-fpipe" data-to-node="af-train" data-from="1" data-from-anchor="right" data-to-anchor="left" data-label="training data"></div>
+              <div class="af-edge" data-from-node="af-train" data-to-node="af-registry" data-from="1" data-from-anchor="right" data-to-anchor="left" data-label="model"></div>
+              <div class="af-edge" data-from-node="af-fpipe" data-to-node="af-fs" data-from="2" data-from-anchor="bottom" data-to-anchor="top" data-kind="async" data-label="batch write"></div>
+              <div class="af-edge" data-from-node="af-req" data-to-node="af-cg" data-from="3" data-from-anchor="right" data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-cg" data-to-node="af-rank" data-from="3" data-from-anchor="right" data-to-anchor="left" data-label="~1000"></div>
+              <div class="af-edge" data-from-node="af-rank" data-to-node="af-rerank" data-from="3" data-from-anchor="right" data-to-anchor="left" data-label="~100"></div>
+              <div class="af-edge" data-from-node="af-rerank" data-to-node="af-resp" data-from="3" data-from-anchor="right" data-to-anchor="left" data-label="~10"></div>
+              <div class="af-edge" data-from-node="af-fs" data-to-node="af-cg" data-from="3" data-label="features · p99&lt;10ms"></div>
+              <div class="af-edge" data-from-node="af-fs" data-to-node="af-rank" data-from="3"></div>
+              <div class="af-edge" data-from-node="af-registry" data-to-node="af-rank" data-from="4" data-from-anchor="bottom" data-to-anchor="top" data-label="deploy"></div>
+              <!-- feedback (back-edges): NO data-route — the engine AUTO-detects
+                   them (target far upstream) and routes around the perimeter on
+                   separate nested tracks so the two parallel loops don't overlap. -->
+              <div class="af-edge" data-from-node="af-resp"   data-to-node="af-logs" data-from="5" data-kind="async" data-label="clicks"></div>
+              <div class="af-edge" data-from-node="af-rerank" data-to-node="af-logs" data-from="5" data-kind="async" data-label="served slate"></div>
+
+              <!-- OFFLINE nodes — auto-placed on the grid (data-lane + data-col) -->
+              <div class="af-node" id="af-logs"     data-role="source"   data-from="1" data-lane="offline" data-col="1">Event logs</div>
+              <div class="af-node" id="af-fpipe"    data-role="pipeline" data-from="1" data-lane="offline" data-col="2">Feature<br>pipeline</div>
+              <div class="af-node" id="af-train"    data-role="pipeline" data-from="1" data-focus="1" data-lane="offline" data-col="4">Training</div>
+              <div class="af-node" id="af-registry" data-role="store"    data-from="1" data-focus="4" data-lane="offline" data-col="5">Model<br>registry</div>
+
+              <!-- FEATURE STORE bridge — explicit position (no data-lane → not on the grid) -->
+              <div class="af-node" id="af-fs" data-role="store" data-from="2" data-focus="2" style="left:43%;top:50%">Feature<br>Store</div>
+
+              <!-- ONLINE nodes — auto-placed on the grid -->
+              <div class="af-node" id="af-req"    data-role="external" data-from="3" data-lane="online" data-col="1">Request</div>
+              <div class="af-node" id="af-cg"     data-role="serving"  data-from="3" data-lane="online" data-col="2">Candidate<br>gen</div>
+              <div class="af-node" id="af-rank"   data-role="serving"  data-from="3" data-focus="3" data-lane="online" data-col="3">Ranking</div>
+              <div class="af-node" id="af-rerank" data-role="serving"  data-from="3" data-lane="online" data-col="4">Re-rank</div>
+              <div class="af-node" id="af-resp"   data-role="external" data-from="3" data-focus="5" data-lane="online" data-col="5">Response</div>
+
+              <div class="af-focus"></div>
+            </div>
+
+            <div class="af-panel">
+              <div class="af-note is-current" data-step="0" data-label="overview">
+                <div class="af-note-head"><span lang="ru">Два мира</span><span lang="en">Two worlds</span></div>
+                <p><span lang="ru">Recsys в проде = <strong>офлайн</strong> (обучение) + <strong>онлайн</strong> (выдача), связанные Feature Store и петлёй обратной связи. Жмите <kbd>→</kbd>.</span><span lang="en">Production recsys = <strong>offline</strong> (training) + <strong>online</strong> (serving), linked by a Feature Store and a feedback loop. Press <kbd>→</kbd>.</span></p>
+              </div>
+              <div class="af-note" data-step="1" data-label="offline">
+                <div class="af-note-head"><span lang="ru">Офлайн (batch)</span><span lang="en">Offline (batch)</span></div>
+                <p><span lang="ru">Логи → инженерия фич → обучение → реестр моделей. Считается по расписанию, не на критическом пути запроса.</span><span lang="en">Logs → feature engineering → training → model registry. Runs on a schedule, off the request path.</span></p>
+              </div>
+              <div class="af-note" data-step="2" data-label="feature store">
+                <div class="af-note-head"><span lang="ru">Feature Store</span><span lang="en">Feature Store</span></div>
+                <p><span lang="ru">Единый источник фич: офлайн <strong>пишет</strong> (batch), онлайн <strong>читает</strong> с низкой задержкой. Убирает train/serving skew.</span><span lang="en">One source of features: offline <strong>writes</strong> (batch), online <strong>reads</strong> at low latency. Kills train/serving skew.</span></p>
+              </div>
+              <div class="af-note" data-step="3" data-label="online">
+                <div class="af-note-head"><span lang="ru">Онлайн (по запросу)</span><span lang="en">Online (per request)</span></div>
+                <p><span lang="ru">Каскад retrieval → ranking → re-rank, сужение <strong>~1000 → 100 → 10</strong>; фичи берутся из стора в реальном времени.</span><span lang="en">Cascade retrieval → ranking → re-rank, narrowing <strong>~1000 → 100 → 10</strong>; features pulled from the store in real time.</span></p>
+              </div>
+              <div class="af-note" data-step="4" data-label="deploy">
+                <div class="af-note-head"><span lang="ru">Выкатка модели</span><span lang="en">Model deploy</span></div>
+                <p><span lang="ru">Обученная модель из реестра выкатывается в ранкер: shadow → canary → full.</span><span lang="en">The trained model from the registry rolls out to the ranker: shadow → canary → full.</span></p>
+              </div>
+              <div class="af-note" data-step="5" data-label="flywheel">
+                <div class="af-note-head"><span lang="ru">Петля обратной связи</span><span lang="en">Feedback loop</span></div>
+                <p><span lang="ru">Клики/показы логируются <em>асинхронно</em> → возвращаются в данные → следующий цикл обучения. Это <strong>data flywheel</strong>.</span><span lang="en">Clicks/impressions are logged <em>asynchronously</em> → flow back into the data → next training cycle. The <strong>data flywheel</strong>.</span></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">←</button>
+            <span class="step-counter">0/5</span>
+            <button data-step-act="next" aria-label="Next step">→</button>
+          </div>
+
+          <aside class="slide-notes">Системный блюпринт на движке <strong>archflow</strong>: swim-lanes (offline/online), группа-контейнер (model lifecycle), декларативные стрелки с <strong>подписями</strong> и <strong>типами</strong> (sync сплошная / async пунктир), Feature Store как мост между мирами и <strong>петля обратной связи</strong> (data flywheel). Легенда — по практике C4. Геометрию проверяет <code>_audit/archflow-audit.mjs</code>.</aside>
+        </section>
+
+        <!-- ============================================
+             FUNNEL · multi-stage cascade that narrows (recsys retrieval→rank).
+             Pure CSS on the generic step engine (data-max-step / [data-step]).
+             ============================================ -->
+        <section class="slide" data-type="funnel" data-max-step="4" data-current-step="0" data-screen-label="19c Funnel">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Каскад рекомендаций: сужающаяся воронка</span>
+              <span lang="en">Recommendation cascade: the narrowing funnel</span>
+            </h2>
+            <span class="slide-kicker">Multi-stage retrieval → ranking</span>
+          </div>
+
+          <div class="funnel">
+            <div class="funnel-stage" data-step="1" style="--w:100%">
+              <div class="fn-bar" data-role="corpus">
+                <span class="fn-name"><span lang="ru">Каталог</span><span lang="en">Corpus</span></span>
+                <span class="fn-count">\(\sim 10^6\)</span>
+              </div>
+              <div class="fn-desc"><span lang="ru">весь инвентарь — слишком много, чтобы скорить дорого</span><span lang="en">the whole inventory — too many to score expensively</span></div>
+            </div>
+            <div class="funnel-stage" data-step="2" style="--w:64%">
+              <div class="fn-bar" data-role="retrieval">
+                <span class="fn-name"><span lang="ru">Retrieval</span><span lang="en">Retrieval</span></span>
+                <span class="fn-count">\(\sim 10^3\)</span>
+              </div>
+              <div class="fn-desc"><span lang="ru">two-tower / ANN — дёшево, высокий recall</span><span lang="en">two-tower / ANN — cheap, high recall</span></div>
+            </div>
+            <div class="funnel-stage" data-step="3" style="--w:42%">
+              <div class="fn-bar" data-role="rank">
+                <span class="fn-name"><span lang="ru">Ranking</span><span lang="en">Ranking</span></span>
+                <span class="fn-count">\(\sim 10^2\)</span>
+              </div>
+              <div class="fn-desc"><span lang="ru">тяжёлая модель, много фич — высокая precision</span><span lang="en">heavy model, many features — high precision</span></div>
+            </div>
+            <div class="funnel-stage" data-step="4" style="--w:26%">
+              <div class="fn-bar" data-role="rerank">
+                <span class="fn-name"><span lang="ru">Re-rank</span><span lang="en">Re-rank</span></span>
+                <span class="fn-count">\(\sim 10\)</span>
+              </div>
+              <div class="fn-desc"><span lang="ru">разнообразие, бизнес-правила, дедуп → показ</span><span lang="en">diversity, business rules, dedup → shown</span></div>
+            </div>
+          </div>
+
+          <p class="small muted center mt-3">
+            <span lang="ru">На каждой ступени модель <em>дороже и точнее</em>, а кандидатов <em>меньше</em>: предсказательная сила растёт там, где обрабатывается меньше элементов.</span>
+            <span lang="en">Each stage is <em>costlier and sharper</em> on <em>fewer</em> candidates: predictive power is spent where the count is small.</span>
+          </p>
+
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">←</button>
+            <span class="step-counter">0/4</span>
+            <button data-step-act="next" aria-label="Next step">→</button>
+          </div>
+
+          <aside class="slide-notes">Тип <strong>funnel</strong> — каскад «retrieval → ranking → re-rank», сужающийся от миллионов к десяткам (Netflix/YouTube/поиск/реклама). Чисто CSS на штатном степпере: ступени `.funnel-stage[data-step]` раскрываются по <kbd>→</kbd>. Ширина задаётся `--w`. Ключевая интуиция: чем дальше по воронке, тем дороже модель и меньше кандидатов.</aside>
+        </section>
+
+        <!-- ============================================
+             SEQUENCE · request flow + latency budget (online inference).
+             Lifelines + ordered messages (js/sequence.js); running SLA budget.
+             ============================================ -->
+        <section class="slide" data-type="sequence" data-max-step="5" data-current-step="0" data-budget="100" data-screen-label="19d Sequence">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Путь запроса и бюджет задержки</span>
+              <span lang="en">Request path & latency budget</span>
+            </h2>
+            <span class="slide-kicker">Online inference · SLA p99 &lt; 100ms</span>
+          </div>
+
+          <div class="seq-stage">
+            <div class="seq-canvas">
+              <div class="seq-actors">
+                <div class="seq-actor" data-actor="client"><span class="seq-actor-chip">Client</span></div>
+                <div class="seq-actor" data-actor="api"><span class="seq-actor-chip">API</span></div>
+                <div class="seq-actor" data-actor="fs"><span class="seq-actor-chip">Feature Store</span></div>
+                <div class="seq-actor" data-actor="model"><span class="seq-actor-chip">Model</span></div>
+                <div class="seq-actor" data-actor="cache"><span class="seq-actor-chip">Cache / log</span></div>
+              </div>
+              <svg class="seq-lines"></svg>
+              <div class="seq-msgs">
+                <div class="seq-msg" data-step="1" data-from="client" data-to="api" data-lat="2">
+                  <span class="seq-msg-label">GET /recommend</span><span class="seq-lat">+2ms</span>
+                </div>
+                <div class="seq-msg" data-step="2" data-from="api" data-to="fs" data-lat="12">
+                  <span class="seq-msg-label">fetch features</span><span class="seq-lat">+12ms</span>
+                </div>
+                <div class="seq-msg" data-step="3" data-from="api" data-to="model" data-lat="40">
+                  <span class="seq-msg-label">score ~100 candidates</span><span class="seq-lat">+40ms</span>
+                </div>
+                <div class="seq-msg" data-step="4" data-from="api" data-to="cache" data-lat="2" data-kind="async">
+                  <span class="seq-msg-label">cache + log (async)</span><span class="seq-lat">+2ms</span>
+                </div>
+                <div class="seq-msg" data-step="5" data-from="api" data-to="client" data-lat="3">
+                  <span class="seq-msg-label">top-K response</span><span class="seq-lat">+3ms</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="seq-budget">
+              <div class="seq-budget-head"><span lang="ru">бюджет задержки</span><span lang="en">latency budget</span></div>
+              <div class="seq-budget-row" data-step="1"><span>request</span><span class="seq-b-lat">2ms</span></div>
+              <div class="seq-budget-row" data-step="2"><span>features</span><span class="seq-b-lat">12ms</span></div>
+              <div class="seq-budget-row" data-step="3"><span>ranking</span><span class="seq-b-lat">40ms</span></div>
+              <div class="seq-budget-row" data-step="4"><span>cache/log</span><span class="seq-b-lat">2ms</span></div>
+              <div class="seq-budget-row" data-step="5"><span>response</span><span class="seq-b-lat">3ms</span></div>
+              <div class="seq-budget-total"><span><span lang="ru">итого</span><span lang="en">total</span></span><span class="seq-b-lat" data-seq-total>0</span></div>
+              <p class="small muted mt-3"><span lang="ru">SLA p99 = 100ms. Бюджет «съедает» в основном ранкер — отсюда и каскад: тяжёлую модель зовём на немногих кандидатах.</span><span lang="en">SLA p99 = 100ms. The ranker dominates the budget — hence the cascade: call the heavy model on few candidates.</span></p>
+            </div>
+          </div>
+
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">←</button>
+            <span class="step-counter">0/5</span>
+            <button data-step-act="next" aria-label="Next step">→</button>
+          </div>
+
+          <aside class="slide-notes">Тип <strong>sequence</strong> — поток запроса по lifelines (Client/API/Feature Store/Model/Cache) с упорядоченными сообщениями (<kbd>→</kbd> раскрывает по одному) и <strong>бегущим бюджетом задержки</strong> справа: сумма растёт, и если превысит `data-budget` (SLA), итог станет красным. Движок (`js/sequence.js`) сам раскладывает lifelines и стрелки из позиций акторов. Для serving/latency-темы.</aside>
+        </section>
+
+        <!-- ============================================
+             EXTRA: misconception · pause · derivation · reverse ·
+             counterfactual · arxiv · pyodide · devil's advocate.
+             Demonstration slides for the lab.js feature set.
+             ============================================ -->
+
+        <!-- LAB · MISCONCEPTION -->
+        <section class="slide" data-type="misconception" data-screen-label="18 Misconception">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Распространённое заблуждение</span>
+              <span lang="en">Common misconception</span>
+            </h2>
+            <span class="slide-kicker">Bust the myth</span>
+          </div>
+          <div class="misc-card">
+            <div class="misc-label">
+              <span lang="ru">Что думают студенты</span>
+              <span lang="en">What students think</span>
+            </div>
+            <p class="misc-statement">
+              <span lang="ru">«Attention — это просто dot-product Q и K. Зачем три матрицы?»</span>
+              <span lang="en">&ldquo;Attention is just dot-product of Q and K. Why three matrices?&rdquo;</span>
+            </p>
+            <button class="misc-reveal-btn" type="button">
+              <span lang="ru">Показать правду</span><span lang="en">Reveal truth</span>
+            </button>
+            <div class="misc-truth">
+              <span lang="ru">Три проекции дают разным токенам <strong>асимметричные роли</strong>: что я ищу (Q), что у меня есть (K), что я отдаю (V). Без них attention был бы симметричен (S = S<sup>T</sup>) и эквивалентен PCA-проекции. Информационная асимметрия — это и есть «внимание».</span>
+              <span lang="en">Three projections give tokens <strong>asymmetric roles</strong>: query, key, value. Without them attention would be symmetric (S = S<sup>T</sup>) and equivalent to a PCA projection. That asymmetry IS attention.</span>
+            </div>
+          </div>
+          <aside class="slide-notes">Use this slide BEFORE explaining the multi-matrix attention. Get the misconception out loud, then bust it.</aside>
+        </section>
+
+        <!-- LAB · DERIVATION (term-by-term FLIP morph) -->
+        <section class="slide" data-type="derivation" data-screen-label="19 Derivation">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Раскрытие квадрата</span>
+              <span lang="en">Expanding the square</span>
+            </h2>
+            <span class="slide-kicker">Choreographed algebra</span>
+          </div>
+          <div class="deriv-stage">
+            <div class="deriv-form">(a + b)²</div>
+          </div>
+          <div class="deriv-step-caption"></div>
+          <!-- Hidden steps — JS reads these and morphs deriv-form between them -->
+          <div class="deriv-step" data-step="0" data-caption="Исходное выражение" hidden>
+            <div class="deriv-content">
+              <span class="deriv-term" data-id="paren-open">(</span><span class="deriv-term" data-id="a">a</span> <span class="deriv-term" data-id="op-plus">+</span> <span class="deriv-term" data-id="b">b</span><span class="deriv-term" data-id="paren-close">)</span><span class="deriv-term" data-id="square">²</span>
+            </div>
+          </div>
+          <div class="deriv-step" data-step="1" data-caption="(a+b)(a+b) — раскрываем произведение" hidden>
+            <div class="deriv-content">
+              <span class="deriv-term" data-id="paren-open">(</span><span class="deriv-term" data-id="a">a</span> <span class="deriv-term" data-id="op-plus">+</span> <span class="deriv-term" data-id="b">b</span><span class="deriv-term" data-id="paren-close">)</span><span class="deriv-term" data-id="paren-open-2">(</span><span class="deriv-term" data-id="a2">a</span> <span class="deriv-term" data-id="op-plus-2">+</span> <span class="deriv-term" data-id="b2">b</span><span class="deriv-term" data-id="paren-close-2">)</span>
+            </div>
+          </div>
+          <div class="deriv-step" data-step="2" data-caption="Распределяем — четыре произведения" hidden>
+            <div class="deriv-content">
+              <span class="deriv-term" data-id="a">a</span><span class="deriv-term" data-id="a2">a</span> <span class="deriv-term" data-id="op-plus">+</span> <span class="deriv-term" data-id="a">a</span><span class="deriv-term" data-id="b2">b</span> <span class="deriv-term" data-id="op-plus-2">+</span> <span class="deriv-term" data-id="b">b</span><span class="deriv-term" data-id="a2">a</span> <span class="deriv-term" data-id="op-plus-3">+</span> <span class="deriv-term" data-id="b">b</span><span class="deriv-term" data-id="b2">b</span>
+            </div>
+          </div>
+          <div class="deriv-step" data-step="3" data-caption="Свернём квадраты и соединим средние члены" hidden>
+            <div class="deriv-content">
+              <span class="deriv-term is-highlight" data-id="a-sq">a²</span> <span class="deriv-term" data-id="op-plus">+</span> <span class="deriv-term is-highlight" data-id="2ab">2ab</span> <span class="deriv-term" data-id="op-plus-2">+</span> <span class="deriv-term is-highlight" data-id="b-sq">b²</span>
+            </div>
+          </div>
+          <aside class="slide-notes">Каждый шаг — отдельный CSS animation; одинаковые data-id'ы FLIP'ятся между позициями. Студент видит, КАК термы перемещаются.</aside>
+        </section>
+
+        <!-- LAB · PAUSE -->
+        <section class="slide" data-type="pause" data-pause-seconds="30" data-screen-label="20 Pause">
+          <div class="pause-phrase">
+            <span lang="ru">Подумайте 30 секунд:</span>
+            <span lang="en">Think for 30 seconds:</span>
+            <br>
+            <span lang="ru">что произойдёт при η → ∞?</span>
+            <span lang="en">what happens as η → ∞?</span>
+          </div>
+          <div class="pause-timer">00:30</div>
+          <div class="pause-controls">
+            <button type="button" data-pause-act="start">
+              <span lang="ru">Старт / стоп</span><span lang="en">Start / stop</span>
+            </button>
+            <button type="button" data-pause-act="skip">
+              <span lang="ru">Пропустить</span><span lang="en">Skip</span>
+            </button>
+          </div>
+          <aside class="slide-notes">Намеренная тишина. Лектор НЕ говорит. Дать студентам подумать. Когда таймер обнулится — обсудить ответы.</aside>
+        </section>
+
+        <!-- LAB · REVERSE rewind -->
+        <section class="slide" data-type="reverse" data-max-step="4" data-current-step="0" data-screen-label="21 Reverse">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">95% точности — как мы туда пришли?</span>
+              <span lang="en">95% accuracy — how did we get here?</span>
+            </h2>
+            <span class="slide-kicker">↺ reverse engineering</span>
+          </div>
+          <div class="reverse-stack">
+            <div class="reverse-layer" data-layer="0">
+              <div>
+                <div style="font-family:var(--font-mono);font-size:24px;color:var(--ink-3);margin-bottom:8px;">layer 0</div>
+                <div style="font-size:64px;font-family:var(--font-serif);">Raw pixels</div>
+                <div style="margin-top:16px;font-size:24px;color:var(--ink-3);">28 × 28 × 1 — просто числа</div>
+              </div>
+            </div>
+            <div class="reverse-layer" data-layer="1">
+              <div>
+                <div style="font-family:var(--font-mono);font-size:24px;color:var(--ink-3);margin-bottom:8px;">layer 1</div>
+                <div style="font-size:64px;font-family:var(--font-serif);">Conv + ReLU</div>
+                <div style="margin-top:16px;font-size:24px;color:var(--ink-3);">edges, простые градиенты</div>
+              </div>
+            </div>
+            <div class="reverse-layer" data-layer="2">
+              <div>
+                <div style="font-family:var(--font-mono);font-size:24px;color:var(--ink-3);margin-bottom:8px;">layer 2-3</div>
+                <div style="font-size:64px;font-family:var(--font-serif);">Conv-блоки</div>
+                <div style="margin-top:16px;font-size:24px;color:var(--ink-3);">контуры цифр, петли, штрихи</div>
+              </div>
+            </div>
+            <div class="reverse-layer" data-layer="3">
+              <div>
+                <div style="font-family:var(--font-mono);font-size:24px;color:var(--ink-3);margin-bottom:8px;">layer 4</div>
+                <div style="font-size:64px;font-family:var(--font-serif);">Flatten + FC</div>
+                <div style="margin-top:16px;font-size:24px;color:var(--ink-3);">128-мерное представление</div>
+              </div>
+            </div>
+            <div class="reverse-layer" data-layer="4">
+              <div>
+                <div style="font-family:var(--font-mono);font-size:24px;color:var(--ink-3);margin-bottom:8px;">layer 5</div>
+                <div style="font-size:64px;font-family:var(--font-serif);">Classifier (Softmax)</div>
+                <div style="margin-top:16px;font-size:30px;color:var(--c-green);font-weight:600;">P("4") = 0.95 ✓</div>
+              </div>
+            </div>
+          </div>
+          <div class="reverse-counter">
+            <span class="reverse-hint">
+              <span lang="ru"><kbd>→</kbd> отматывать к истокам · <kbd>←</kbd> обратно к результату</span>
+              <span lang="en"><kbd>→</kbd> rewind toward the input · <kbd>←</kbd> back to the result</span>
+            </span>
+            layer <span data-reverse-pos>5 / 5</span>
+          </div>
+          <aside class="slide-notes">Тип <strong>reverse</strong>: старт с финального результата (P=0.95). Жмёте <strong>→</strong> — слайд «отматывается» к raw pixels (сверху-вниз pedagogy: «как мы сюда пришли»). <strong>←</strong> возвращает к результату. → больше не выкидывает со слайда раньше времени — это исправлено. Зеркальный тип <strong>forward</strong> (следующий слайд) строит ту же сеть снизу-вверх.</aside>
+        </section>
+
+        <!-- LAB · FORWARD layer-by-layer build (mirror of reverse; same engine,
+             opposite narrative direction — lecturer picks the story). -->
+        <section class="slide" data-type="forward" data-max-step="4" data-current-step="0" data-screen-label="22b Forward">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Как сеть строит признаки — снизу вверх</span>
+              <span lang="en">How the network builds features — bottom-up</span>
+            </h2>
+            <span class="slide-kicker">→ forward build</span>
+          </div>
+          <div class="reverse-stack">
+            <div class="reverse-layer" data-layer="0">
+              <div>
+                <div style="font-family:var(--font-mono);font-size:24px;color:var(--ink-3);margin-bottom:8px;">layer 0</div>
+                <div style="font-size:64px;font-family:var(--font-serif);">Raw pixels</div>
+                <div style="margin-top:16px;font-size:24px;color:var(--ink-3);">28 × 28 — просто яркости, никакой структуры</div>
+              </div>
+            </div>
+            <div class="reverse-layer" data-layer="1">
+              <div>
+                <div style="font-family:var(--font-mono);font-size:24px;color:var(--ink-3);margin-bottom:8px;">layer 1</div>
+                <div style="font-size:64px;font-family:var(--font-serif);">Conv + ReLU</div>
+                <div style="margin-top:16px;font-size:24px;color:var(--ink-3);">локальные детекторы: края и градиенты</div>
+              </div>
+            </div>
+            <div class="reverse-layer" data-layer="2">
+              <div>
+                <div style="font-family:var(--font-mono);font-size:24px;color:var(--ink-3);margin-bottom:8px;">layer 2-3</div>
+                <div style="font-size:64px;font-family:var(--font-serif);">Conv-блоки ×2</div>
+                <div style="margin-top:16px;font-size:24px;color:var(--ink-3);">края складываются в дуги, углы, петли</div>
+              </div>
+            </div>
+            <div class="reverse-layer" data-layer="3">
+              <div>
+                <div style="font-family:var(--font-mono);font-size:24px;color:var(--ink-3);margin-bottom:8px;">layer 4</div>
+                <div style="font-size:64px;font-family:var(--font-serif);">Global pool + FC</div>
+                <div style="margin-top:16px;font-size:24px;color:var(--ink-3);">256-мерный вектор признаков всей цифры</div>
+              </div>
+            </div>
+            <div class="reverse-layer" data-layer="4">
+              <div>
+                <div style="font-family:var(--font-mono);font-size:24px;color:var(--ink-3);margin-bottom:8px;">layer 5</div>
+                <div style="font-size:64px;font-family:var(--font-serif);">Softmax</div>
+                <div style="margin-top:16px;font-size:30px;color:var(--c-green);font-weight:600;">P(класс) по 10 цифрам → argmax</div>
+              </div>
+            </div>
+          </div>
+          <div class="reverse-counter">
+            <span class="reverse-hint">
+              <span lang="ru"><kbd>→</kbd> раскрывать слой за слоем · <kbd>←</kbd> назад</span>
+              <span lang="en"><kbd>→</kbd> reveal layer by layer · <kbd>←</kbd> back</span>
+            </span>
+            layer <span data-reverse-pos>1 / 5</span>
+          </div>
+          <aside class="slide-notes">Тип <strong>forward</strong> — та же сеть и тот же движок, что у reverse-слайда, но повествование снизу-вверх: открывается на «Raw pixels», <strong>→</strong> раскрывает слой за слоем до классификатора. Используйте forward, когда строите интуицию «как из пикселей рождается ответ», и reverse — когда хотите начать с результата и спросить «как мы сюда пришли?».</aside>
+        </section>
+
+        <!-- LAB · COUNTERFACTUAL toggle + Devil's advocate + Typewriter + arXiv + Recall -->
+        <section class="slide" data-type="default" data-screen-label="22 Mix">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Лабораторные фичи в одном месте</span>
+              <span lang="en">Lab features showcase</span>
+            </h2>
+            <span class="slide-kicker">Mix</span>
+          </div>
+
+          <!-- Counterfactual toggle -->
+          <div class="cf-toggle-bar" data-cf-group="residual" data-cf-initial="with">
+            <button type="button" data-cf-value="with">
+              <span lang="ru">С residual</span><span lang="en">With residual</span>
+            </button>
+            <button type="button" data-cf-value="without">
+              <span lang="ru">Без residual</span><span lang="en">Without residual</span>
+            </button>
+          </div>
+          <div class="cf-variant" data-cf-group="residual" data-cf-value="with">
+            <p>Out = X + Z' — градиент проходит через identity, ResNet-like.</p>
+          </div>
+          <div class="cf-variant" data-cf-group="residual" data-cf-value="without">
+            <p>Out = Z' — градиент должен пройти через transformation. На 50+ слоях <strong>исчезает</strong>.</p>
+          </div>
+
+          <!-- Recall link -->
+          <p>
+            <span lang="ru">Напомним концепцию: </span>
+            <span lang="en">Recall the concept: </span>
+            <a class="recall-link" data-recall="6"><span lang="ru">Формула обновления</span><span lang="en">Update rule</span></a>
+          </p>
+
+          <!-- Typewriter -->
+          <p class="typewriter mt-4" data-tw-speed="0.045">
+            Этот текст печатается перед аудиторией со скоростью чтения — внимание не уходит.
+          </p>
+
+          <!-- arXiv-quote (commented out: requires live fetch which may
+               fail in sandboxed iframes; uncomment in production deck) -->
+          <!--
+          <arxiv-quote id-arxiv="1706.03762"></arxiv-quote>
+          -->
+
+          <!-- Devil's advocate overlay — press \ to show -->
+          <div class="devil-overlay">
+            <button class="devil-close" type="button">×</button>
+            <div class="devil-head">
+              <span lang="ru">Возражение</span><span lang="en">Counterargument</span>
+            </div>
+            <h3>
+              <span lang="ru">Residual connections — костыль</span>
+              <span lang="en">Residuals are a hack</span>
+            </h3>
+            <p>
+              <span lang="ru">Они скрывают, что сеть не может научиться identity-мэппингу самостоятельно. NormFormer, RealFormer, GhostNet ищут альтернативы. Может, нам нужны не residuals, а лучшая инициализация и регуляризация.</span>
+              <span lang="en">They hide that the network can&rsquo;t learn identity on its own. Maybe what we need is better init and regularization, not residuals.</span>
+            </p>
+          </div>
+
+          <p class="tiny mt-4 muted">
+            <span lang="ru">Нажмите <kbd>\</kbd> чтобы открыть/закрыть возражение оппонента.</span>
+            <span lang="en">Press <kbd>\</kbd> to toggle the devil&rsquo;s advocate panel.</span>
+          </p>
+
+          <aside class="slide-notes">Слайд-витрина для остальных lab-фич: counterfactual toggle, recall-link, typewriter, devil's advocate.</aside>
+        </section>
+
+        <!-- ============================================
+             18 · FINAL / Q&A
+             ============================================ -->
+        <section class="slide" data-type="final" data-screen-label="23 Final">
+          <div class="final-body">
+            <h1>
+              <span lang="ru">Вопросы?</span>
+              <span lang="en">Questions?</span>
+            </h1>
+            <p class="final-sub">
+              <span lang="ru">Материалы лекции, домашка и записи — по QR-коду или ссылке ниже.</span>
+              <span lang="en">Slides, homework and recording — via QR or the link below.</span>
+            </p>
+
+            <div class="contact-grid">
+              <div class="contact-item">
+                <div class="contact-label">Email</div>
+                <div class="contact-value">a.ivanov@univ.edu</div>
+              </div>
+              <div class="contact-item">
+                <div class="contact-label">Office hours</div>
+                <div class="contact-value"><span lang="ru">Ср 16:00–18:00</span><span lang="en">Wed 4–6 PM</span></div>
+              </div>
+              <div class="contact-item">
+                <div class="contact-label">GitHub</div>
+                <div class="contact-value">@cs-310-ml</div>
+              </div>
+            </div>
+
+            <div class="qr-block">
+              <div class="qr-canvas" data-qr="https://example.edu/cs-310/lecture-05"></div>
+              <div class="qr-caption">
+                <span lang="ru">Полные материалы лекции</span>
+                <span lang="en">Full lecture materials</span>
+                <span class="qr-url">example.edu/cs-310/lecture-05</span>
+              </div>
+            </div>
+          </div>
+        
+          <aside class="slide-notes">Финальный слайд. Q&amp;A, контакты, QR-код на материалы.</aside>
+        </section>
+
+      </div><!-- /.slides -->
+    </div><!-- /.stage -->
+  </div><!-- /.deck -->
+
+  <!-- JS -->
+  <script src="js/deck.js"></script>
+  <script src="js/tools.js"></script>
+  <script src="js/pen.js"></script>
+  <script src="js/notes.js"></script>
+  <script src="js/handout.js"></script>
+  <script src="js/presenter.js"></script>
+  <script src="js/tweaks.js"></script>
+  <script src="js/demos.js"></script>
+  <script src="js/e2e.js"></script>
+  <script src="js/lab.js"></script>
+  <script src="js/archflow.js"></script>
+  <script src="js/sequence.js"></script>
+  <script src="js/budget.js"></script>
+  <script src="js/preflight.js"></script>
+</body>
+</html>
