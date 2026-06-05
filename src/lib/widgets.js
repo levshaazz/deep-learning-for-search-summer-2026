@@ -9,17 +9,25 @@ import zhManifest from '../../widgets/zipf-heaps/manifest.json';
 import zhI18n from '../../widgets/zipf-heaps/i18n.json';
 import hdManifest from '../../widgets/highd-histogram/manifest.json';
 import hdI18n from '../../widgets/highd-histogram/i18n.json';
+import fnManifest from '../../widgets/retrieve-rank-funnel/manifest.json';
+import fnI18n from '../../widgets/retrieve-rank-funnel/i18n.json';
+import pbManifest from '../../widgets/pos-bias-curve/manifest.json';
+import pbI18n from '../../widgets/pos-bias-curve/i18n.json';
 
 import dCosine from '../../data/l2-cosine.json';
 import dCorpus from '../../data/l2-corpus-stats.json';
 import dBpe from '../../data/l2-bpe.json';
 import dHighd from '../../data/l2-highd.json';
+import dFunnel from '../../data/l1-funnel.json';
+import dClick from '../../data/l1-click-model.json';
 
 export const WIDGET_META = {
-  'cosine-sphere':    { manifest: csManifest, i18n: csI18n },
-  'bpe-merge-ledger': { manifest: bpeManifest, i18n: bpeI18n },
-  'zipf-heaps':       { manifest: zhManifest, i18n: zhI18n },
-  'highd-histogram':  { manifest: hdManifest, i18n: hdI18n },
+  'cosine-sphere':        { manifest: csManifest, i18n: csI18n },
+  'bpe-merge-ledger':     { manifest: bpeManifest, i18n: bpeI18n },
+  'zipf-heaps':           { manifest: zhManifest, i18n: zhI18n },
+  'highd-histogram':      { manifest: hdManifest, i18n: hdI18n },
+  'retrieve-rank-funnel': { manifest: fnManifest, i18n: fnI18n },
+  'pos-bias-curve':       { manifest: pbManifest, i18n: pbI18n },
 };
 
 export const DATA = {
@@ -27,4 +35,6 @@ export const DATA = {
   'l2-corpus-stats': dCorpus,
   'l2-bpe': dBpe,
   'l2-highd': dHighd,
+  'l1-funnel': dFunnel,
+  'l1-click-model': dClick,
 };
