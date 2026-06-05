@@ -58,8 +58,9 @@ async function run() {
   for (const f of sheets) {
     const { beats: sheetBeats, book } = parseSheet(readFileSync(join(NDIR, f), 'utf8'));
     if (!sheetBeats || !book) continue;             // only L<n>.md that opted in
-    const cfile = join(CDIR, `l${book.replace(/^0+/, '')}.js`);
-    if (!existsSync(cfile)) { report.push(`${f}: book ${book} declared but content/book/l${book.replace(/^0+/, '')}.js missing`); continue; }
+    const n = parseInt(book, 10);                   // "00"->0, "01"->1 (content files are l0.js, l1.js…)
+    const cfile = join(CDIR, `l${n}.js`);
+    if (!existsSync(cfile)) { report.push(`${f}: book ${book} declared but content/book/l${n}.js missing`); continue; }
     inspected++;
     const ch = (await import(pathToFileURL(cfile).href)).default;
     const contentBeats = ch.beats.map((b) => b.id);

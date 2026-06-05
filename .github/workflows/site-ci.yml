@@ -14,8 +14,7 @@ on:
       - 'narrative/**'
       - 'tokens/**'
       - '_research/check_claims.py'
-      - '_audit/scroll-step-gate.mjs'
-      - '_audit/beat-coverage-gate.mjs'
+      - '_audit/*-gate.mjs'
       - 'package.json'
       - 'package-lock.json'
       - 'astro.config.mjs'
@@ -29,8 +28,7 @@ on:
       - 'narrative/**'
       - 'tokens/**'
       - '_research/check_claims.py'
-      - '_audit/scroll-step-gate.mjs'
-      - '_audit/beat-coverage-gate.mjs'
+      - '_audit/*-gate.mjs'
   workflow_dispatch: {}
 
 jobs:
@@ -67,3 +65,26 @@ jobs:
         run: node _audit/beat-coverage-gate.mjs
       - name: G7 beat-coverage self-test
         run: node _audit/beat-coverage-gate.mjs --selftest
+
+      # G2 — one design-token source (no rogue :root; brand values match the decks).
+      - name: G2 token
+        run: node _audit/token-gate.mjs
+      - name: G2 token self-test
+        run: node _audit/token-gate.mjs --selftest
+
+      # G3 — translation coverage (HARD on EN holes; RU/TT reported for the badge).
+      - name: G3 i18n-coverage
+        run: node _audit/i18n-coverage-gate.mjs
+      - name: G3 i18n-coverage self-test
+        run: node _audit/i18n-coverage-gate.mjs --selftest
+
+      # G8 — the Book reads on phone/tablet (no horizontal overflow). Needs Playwright/Chromium.
+      - name: Install audit deps + Chromium
+        working-directory: _audit
+        run: npm install --no-audit --no-fund && npx playwright install --with-deps chromium
+      - name: G8 responsive
+        working-directory: _audit
+        run: node responsive-gate.mjs
+      - name: G8 responsive self-test
+        working-directory: _audit
+        run: node responsive-gate.mjs --selftest
