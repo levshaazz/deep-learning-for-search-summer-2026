@@ -66,6 +66,7 @@
   <link rel="stylesheet" href="css/sysdesign.css?v=6" />
   <link rel="stylesheet" href="css/preflight.css?v=6" />
   <link rel="stylesheet" href="css/wbw-art.css?v=1" />
+  <link rel="stylesheet" href="css/autofit.css?v=1" />
 
   <!-- KaTeX — vendored locally (zero runtime CDN). 4× faster + lighter than
        MathJax; handles 99% of CS/ML formulas. See README to swap to MathJax. -->
@@ -242,9 +243,9 @@
             <div class="quote-mark">"</div>
             <blockquote>Two minds, no shared symbols.<br />Step one: turn utterances into units.</blockquote>
             <div class="quote-attr">first contact · the language barrier</div>
-            <div class="viz-frame" style="height:auto; max-height:42vh; aspect-ratio:16/9; margin:var(--sp-3) auto 0; max-width:58%;">
+            <div class="viz-frame fig-fit" style="--fig-max:42cqh; --fig-w:58%; --fig-mt:var(--sp-3);">
               <img src="assets/img/L2/L2-06-first-contact.png?v=1" alt="Serega and a friendly alien facing each other with a cloud of question marks: no shared symbols"
-                   style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+                   />
             </div>
           </div>
           <aside class="slide-notes">When Rocky and Grace first talk, they do not exchange sentences — they exchange single tones mapped to single quantities. That is tokenization in disguise: chop the signal into discrete pieces you can name and reuse. Until you have units, you have nothing to compute on.</aside>
@@ -352,7 +353,7 @@
             <span class="slide-kicker">Obstacle 3 · the long tail</span>
           </div>
           <div class="viz-frame">
-            <img src="assets/img/L2/L2-10-zipf.png?v=1" alt="Steep Zipf bar chart: the, of, and tower over a long flat tail of words seen once" style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+            <img src="assets/img/L2/L2-10-zipf.png?v=1" alt="Steep Zipf bar chart: the, of, and tower over a long flat tail of words seen once" />
           </div>
           <p class="viz-caption">The frequency of the \(r\)-th most common word is \(\propto r^{-1}\). On 20&nbsp;Newsgroups (~3.7 M tokens), the empirical log–log slope is <strong>−1.02</strong>: the top&nbsp;10 words cover <strong>20.6%</strong> of the corpus, the top&nbsp;100 cover <strong>47.3%</strong>, and the top&nbsp;1000 cover <strong>71.4%</strong> — leaving a vast tail of words seen once (<em>hapax legomena</em>).</p>
           <aside class="slide-notes">Zipf is steep. "the", "of", "and" eat enormous probability mass; then a power-law tail of rare words, most of which appear only once in a given corpus. The slope and coverage numbers cited here are not invented — they are computed by `_research/data/zipf.py` on sklearn's 20 Newsgroups corpus (public domain, headers/footers/quotes stripped). Empirical slope on the top-1000 is −1.018, which is textbook Zipf within rounding. Practical consequence: you can never collect enough text to see every word "enough" times. This is the empirical setup for the punchline two slides on.</aside>
@@ -709,9 +710,9 @@
               <p class="small muted">Origin: Philip Gage, <em>"A New Algorithm for Data Compression"</em> (1994). Brought to NLP by Sennrich, Haddow &amp; Birch (2016) for machine translation. Greedy, frequency-driven, deterministic.</p>
             </div>
           </div>
-          <div class="viz-frame" style="height:auto; max-height:32vh; aspect-ratio:16/9; margin:var(--sp-3) auto 0; max-width:46%;">
+          <div class="viz-frame fig-fit" style="--fig-max:32cqh; --fig-w:46%; --fig-mt:var(--sp-3);">
             <img src="assets/img/L2/L2-23-tokenosaurus.png?v=1" alt="Tokenosaurus, a friendly dinosaur, snipping the word tokenization into sub-word chunks"
-                 style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+                 />
           </div>
           <aside class="slide-notes">BPE began as a compression trick: replace the most common byte pair with an unused byte, repeat. Sennrich realized the same loop gives an open-vocabulary tokenizer for NMT. Two phases: TRAIN (learn an ordered list of merges from a corpus), and ENCODE (apply those merges in order to any new text). The next two slides are worked examples of the training loop. Picture <strong>Tokenosaurus</strong> — the friendly dino who snips long words into reusable chunks; BPE is just his rule for deciding where to bite.</aside>
         </section>
@@ -906,7 +907,7 @@
 
         <!-- ============================================ 28 · FORMULA · WordPiece score ============================================ -->
         <section class="slide" data-type="formula" data-screen-label="29 WP score">
-          <div class="slide-header" style="border:none; padding-bottom:0;">
+          <div class="slide-header slide-header--flush">
             <h2>WordPiece merge criterion</h2>
             <span class="slide-kicker">Likelihood, not raw frequency</span>
           </div>
@@ -1202,7 +1203,7 @@ tok.encode(user_text, add_special_tokens=False)</code></pre>
             <span class="slide-kicker">why LLMs are bad at arithmetic</span>
           </div>
           <div class="viz-frame">
-            <img src="assets/img/L2/L2-37-digits.png?v=1" alt="The number 327 scissored two different ways; place values do not line up" style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+            <img src="assets/img/L2/L2-37-digits.png?v=1" alt="The number 327 scissored two different ways; place values do not line up" />
           </div>
           <p class="viz-caption">Train a byte-level BPE on 20&nbsp;Newsgroups and the literal split shifts with vocab size: at <strong>1k</strong> vocab "327" → <code>3 | 2 | 7</code> (3 tokens); at <strong>4k</strong> and <strong>16k</strong>, "327" → <code>32 | 7</code> (2 tokens). Place values stop lining up — and arithmetic suffers.</p>
           <aside class="slide-notes">This is one of the most counter-intuitive results for students: LLMs are bad at arithmetic partly because of TOKENIZATION, not just reasoning. The split shown is not invented — it is the literal output of `_research/data/bpe_merges.py`, which trains a huggingface byte-level BPE on sklearn's 20 Newsgroups at three vocab sizes and records how "327" gets sliced. LLaMA and PaLM force single-digit tokens to fix this; Singh et al. 2024 show right-to-left comma grouping helps, and multiplication collapses to ~0 accuracy by about six digits.</aside>
@@ -1301,7 +1302,7 @@ tok.encode(user_text, add_special_tokens=False)</code></pre>
             <span class="slide-kicker">fertility = tokens per word</span>
           </div>
           <div class="viz-frame">
-            <img src="assets/img/L2/L2-41-token-tax.png?v=1" alt="Token-coins per language: English short, Hindi/Telugu/Turkish tall; same sentence, bigger bill" style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+            <img src="assets/img/L2/L2-41-token-tax.png?v=1" alt="Token-coins per language: English short, Hindi/Telugu/Turkish tall; same sentence, bigger bill" />
           </div>
           <p class="viz-caption">Same content, more tokens in many languages. Train a 16k BPE on 20&nbsp;Newsgroups (mostly English) and the word <em>«привет»</em> (Russian "hello") takes <strong>12 byte-level tokens</strong>; English <em>"tokenization"</em> takes <strong>3</strong>. \(2\times\) fertility → roughly \(4\times\) training cost (\(O(n^{2})\)), ~\(2\times\) API price and latency, and a smaller effective context window.</p>
           <aside class="slide-notes">This is a fairness story, not just an efficiency one. Fertility is tokens-per-word. A tokenizer trained mostly on English is cheap for English and expensive for Hindi, Telugu, Turkish — and Russian. The fertility numbers in the caption are not hand-waved: `_research/data/bpe_merges.py` trains a 16k-vocab byte-level BPE on 20 Newsgroups and reports the exact token-counts for English vs Russian demo strings. The Token Tax (2025) work: each extra token/word costs roughly 8–18 accuracy points and explains 20–50% of cross-lingual accuracy variance. Because attention is O(n²), 2× fertility is ~4× training compute; at inference it is ~2× the API bill, ~2× latency, and less room in the context window. Low-resource speakers literally pay more for worse service on identical information.</aside>
@@ -1441,9 +1442,9 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
             <h1>How close are<br />two meanings?</h1>
             <p class="divider-sub">Measures of similarity — a ruler for meaning.</p>
           </div>
-          <div class="viz-frame" style="height:auto; max-height:40vh; aspect-ratio:16/9; margin:var(--sp-4) auto 0; max-width:50%;">
+          <div class="viz-frame fig-fit" style="--fig-max:40cqh; --fig-w:50%; --fig-mt:var(--sp-4);">
             <img src="assets/img/L2/L2-48-sir-cosine.png?v=1" alt="Sir Cosine, a knight on the unit sphere, measuring the angle between two vector-lances"
-                 style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+                 />
           </div>
           <aside class="slide-notes">We can now turn text into tokens, ids, and vectors. But search needs more than vectors — it needs to RANK, and to rank you must COMPARE. This is where the LOTR arc opens: <strong>Sir Cosine and the Knights of the Unit Sphere</strong> set out to measure the angle between meanings. This part builds the ruler, then stress-tests it in high dimensions where intuition fails.</aside>
         </section>
@@ -1454,9 +1455,9 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
             <div class="quote-mark">"</div>
             <blockquote>Ranking needs a ruler for meaning.<br />If query and document are vectors,<br />"relevant" becomes "close".</blockquote>
             <div class="quote-attr">from symbols to geometry</div>
-            <div class="viz-frame" style="height:auto; max-height:40vh; aspect-ratio:16/9; margin:var(--sp-3) auto 0; max-width:56%;">
+            <div class="viz-frame fig-fit" style="--fig-max:40cqh; --fig-w:56%; --fig-mt:var(--sp-3);">
               <img src="assets/img/L2/L2-49-query-angle.png?v=1" alt="A query arrow and document arrows on a plane with a small angle wedge: relevant = close"
-                   style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+                   />
             </div>
           </div>
           <aside class="slide-notes">The conceptual hinge of the whole course. Search is "find the documents closest to the query". Once both are vectors, closeness is geometry — and geometry we can compute. The only question left is WHICH notion of close, and that choice has real consequences.</aside>
@@ -1515,7 +1516,7 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
 
         <!-- ============================================ 51 · FORMULA · cosine + 3-angle panel ============================================ -->
         <section class="slide" data-type="formula" data-screen-label="53 Cosine formula">
-          <div class="slide-header" style="border:none; padding-bottom:0;">
+          <div class="slide-header slide-header--flush">
             <h2>Cosine similarity</h2>
             <span class="slide-kicker">Core formula</span>
           </div>
@@ -1607,7 +1608,7 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
 
         <!-- ============================================ 53 · FORMULA/E2E · dot product ============================================ -->
         <section class="slide" data-type="formula" data-screen-label="55 Dot product">
-          <div class="slide-header" style="border:none; padding-bottom:0;">
+          <div class="slide-header slide-header--flush">
             <h2>Dot product (inner product)</h2>
             <span class="slide-kicker">direction <em>and</em> magnitude</span>
           </div>
@@ -1665,7 +1666,7 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
 
         <!-- ============================================ 55 · FORMULA/VIZ · cosine↔dot↔euclidean ============================================ -->
         <section class="slide" data-type="formula" data-screen-label="57 Relationships">
-          <div class="slide-header" style="border:none; padding-bottom:0;">
+          <div class="slide-header slide-header--flush">
             <h2>How the three relate</h2>
             <span class="slide-kicker">on the unit sphere they agree</span>
           </div>
@@ -1675,7 +1676,7 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
           <p class="small muted center mt-2">On L2-normalized vectors, ranking by cosine \(\uparrow\) \(\Leftrightarrow\) dot \(\uparrow\) \(\Leftrightarrow\) squared-Euclidean \(\downarrow\) — <strong>identical</strong> nearest-neighbour ordering.</p>
           <div class="viz-frame" style="height:300px; max-width:480px; margin:var(--sp-2) auto 0;">
             <img src="assets/img/L2/L2-56-cosine-vs-euclid.png?v=1" alt="Arrows a=(1,1) and b=(10,10) on one ray: cosine identical (=1), but Euclidean distance very far (√162≈12.73)"
-                 style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+                 />
           </div>
           <p class="small muted center">But NOT unit-norm: \(a=(1,1),b=(10,10)\) → \(\cos=1\) (identical direction) yet \(\lVert a-b\rVert=\sqrt{162}\approx 12.73\). <strong>Magnitude is where they part ways.</strong></p>
           <aside class="slide-notes">The single most important relationship in vector search. Expand the squared distance; on the unit sphere it collapses to 2(1−cosθ), so cosine, dot, and (negative) Euclidean produce the SAME ranking — which is precisely why systems L2-normalize and then run a fast dot-product index. The counterexample shows where it breaks: a=(1,1), b=(10,10) are perfectly aligned (cos=1) but Euclidean says they are ~12.73 apart. cos = 20/(√2·√200) = 20/√400 = 20/20 = 1; ‖a−b‖ = √(81+81) = √162 ≈ 12.73. Both numbers are computed independently by `_research/data/cosine.py` (cosine_examples.json) so the worked arithmetic in this slide is reproducible. The same script also shows the effect on real text: TF-IDF on two 20-Newsgroup sci.space posts vs one rec.sport.hockey post — the same-topic cosine is HIGHER than the cross-topic cosine, which is the punchline of every dense-retrieval lecture.</aside>
@@ -1796,9 +1797,9 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
             <h1>When high dimensions<br />break intuition</h1>
             <p class="divider-sub">Concentration · hubness · anisotropy — why naive nearest-neighbour can mislead.</p>
           </div>
-          <div class="viz-frame" style="height:auto; max-height:32vh; aspect-ratio:16/9; margin:var(--sp-6) auto 0; max-width:46%;">
+          <div class="viz-frame fig-fit" style="--fig-max:32cqh; --fig-w:46%; --fig-mt:var(--sp-6);">
             <img src="assets/img/L2/L2-61-wraith.png?v=1" alt="The Curse-of-Dimensionality Wraith crushing a wide histogram into a thin spike as knight Serega braces against it"
-                 style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+                 />
           </div>
           <aside class="slide-notes">A short, sharp coda. The measures are clean in 2D; in the hundreds-to-thousands of dimensions where real embeddings live, three effects quietly degrade them. The knights' nemesis appears here — the <strong>Curse-of-Dimensionality Wraith</strong>, who flattens every distance until far and near look the same. Knowing these three effects separates someone who can plug in cosine from someone who can debug a retrieval system.</aside>
         </section>
@@ -1810,7 +1811,7 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
             <span class="slide-kicker">curse of dimensionality</span>
           </div>
           <div class="viz-frame">
-            <img src="assets/img/L2/L2-62-concentration.png?v=1" alt="Histograms d=2,10,100,1000 collapsing from a wide hill to a thin spike; everything equidistant" style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+            <img src="assets/img/L2/L2-62-concentration.png?v=1" alt="Histograms d=2,10,100,1000 collapsing from a wide hill to a thin spike; everything equidistant" />
           </div>
           <p class="viz-caption">As \(d\to\infty\), the spread of pairwise distances collapses: nearest and farthest points become almost equidistant, so "nearest neighbour" loses meaning (Beyer et al. 1999). Affects all \(L_p\).</p>
           <aside class="slide-notes">Concentration of measure: in very high dimensions, the histogram of distances from a query to all points narrows to a spike. The ratio (max−min)/min tends to zero, so the nearest neighbour is barely closer than the farthest — and tiny perturbations flip which point "wins". This is why high-d retrieval is fragile and why lower-p norms (Aggarwal 2001) retain a bit more contrast (though Mirkes 2020 shows fractional norms don't truly cure it).</aside>
@@ -1823,7 +1824,7 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
             <span class="slide-kicker">a few points in everyone's kNN list</span>
           </div>
           <div class="viz-frame">
-            <img src="assets/img/L2/L2-63-hubness.png?v=1" alt="A crowd all pointing at two crowned hub figures; a few points hog all the neighbours" style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+            <img src="assets/img/L2/L2-63-hubness.png?v=1" alt="A crowd all pointing at two crowned hub figures; a few points hog all the neighbours" />
           </div>
           <p class="viz-caption">In high \(d\), the distribution of <em>k-occurrences</em> becomes right-skewed: a few <strong>hubs</strong> appear in almost everyone's nearest-neighbour list; <em>anti-hubs</em> in none (Radovanović et al. 2010).</p>
           <aside class="slide-notes">A subtler high-d pathology than concentration. Some points become "popular" neighbours purely because of geometry — they sit in many kNN lists regardless of true relevance — while others are never retrieved. This skews kNN classification, retrieval, and recommendation. Fixes rescale local geometry: mutual proximity, local/global scaling, mutual-kNN graphs. Worth naming so students recognize the symptom (the same handful of documents keep getting returned).</aside>
@@ -1836,7 +1837,7 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
             <span class="slide-kicker">a narrow cone inflates cosine</span>
           </div>
           <div class="viz-frame">
-            <img src="assets/img/L2/L2-64-anisotropy.png?v=1" alt="A narrow cone of arrows that all look similar versus a balanced whitened sphere of arrows" style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+            <img src="assets/img/L2/L2-64-anisotropy.png?v=1" alt="A narrow cone of arrows that all look similar versus a balanced whitened sphere of arrows" />
           </div>
           <p class="viz-caption">BERT / GPT-2 representations occupy a <strong>narrow cone</strong>, so two <em>random</em> tokens already have high cosine (Ethayarajh 2019) — raw cosine is inflated. Fix: whitening / standardization, or contrastive training.</p>
           <aside class="slide-notes">The embeddings themselves are the problem here. Contextual reps from BERT/GPT-2 are squeezed into a narrow cone in space, so even unrelated tokens sit at a small angle and cosine reports them as "similar". This makes raw cosine on out-of-the-box LM embeddings misleading. Remedies push the cloud toward isotropy: whitening, BERT-flow, standardization, or contrastive objectives (sentence-transformers). Practical lesson: don't trust raw cosine on hidden states without calibration.</aside>
