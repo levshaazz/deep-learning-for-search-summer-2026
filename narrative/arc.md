@@ -54,29 +54,34 @@ NARRATIVE_METHOD **P11** made physical — the same question threads the whole c
 | **0** | Introduction | **The Briefing** | sci-fi | *whole map* | Serega briefs the crew before the flight; lays out the galaxy (the spine) and the rules. Finale = the captain's send-off ("I will make your life miserable" line). |
 | **1** | Search & IR · ML System Design | **The Lost Record** | sci-fi | Rank-anchored (+all) | One record among billions must be found — *and kept findable forever*. IR = find it; ML System Design = build the machine that keeps finding it. Creatures: **Lexical Gremlin**, **Goodhart**, the **Iceberg** (hidden ML debt). |
 | **2** | NLP · Tokenization · Similarity | **First Contact** | sci-fi → LOTR | Get Data → Measure | Teach a machine to understand an alien's speech (tokenize), then to tell when two meanings are *close* (similarity). **Tokenosaurus**; **Sir Cosine & the Knights of the Unit Sphere** vs the **Curse-of-Dimensionality Wraith**. |
-| **3** | Classical IR (TF-IDF, BM25, inverted index) · Ranking Metrics | **The Star Catalog** | sci-fi | Measure + Rank | You can't scan every star — build the **inverted index** (the catalog) so any record is found instantly; **BM25** = the trusty old sextant; **metrics** = how you grade your navigation. |
-| **4** | Intro DL for Search · Word embeddings · dim. reduction | **The Map of Meaning** | LOTR/quest | Get Data | Words get *coordinates* — meaning becomes a place you can travel. Dimensionality reduction = folding the great map small enough to carry. **Callback:** the alien from First Contact finally gets a position on the map. |
-| **5** | Dense & contextual embeddings · contrastive learning · Transformers & Attention | **The Council of Attention** | sci-fi | Get Data → Measure | The crew learns *who to listen to* (attention). Contrastive learning pulls synonyms together and pushes impostors apart — **the weapon that finally cages the Lexical Gremlin** (callback to L1). |
-| **6** | Bi-encoders (DPR, SBERT) · Cross-encoders & reranking · multi-stage | **Scouts and Judges** | LOTR/quest | Rank | Two kinds of crew: **Scouts** (bi-encoders) sweep fast and wide; **Judges** (cross-encoders) deliberate slowly on the few. The neural cascade is born (callback to The Lost Record's funnel). |
-| **7** | Late interaction (ColBERT) · SPLADE · hybrid & RRF · Learning to Rank | **The Alliance** | LOTR/quest | Rank | Sparse and dense armies were fighting alone; **hybrid + RRF** unite them under one banner (the council fuses their votes). **Learning to Rank** = training the captain to order the host. |
-| — | **Midterm** | **The First Trial** | — | — | The crew is tested before the deep galaxy. |
-| **8** | ANN: HNSW, IVF, PQ · FAISS · vector DBs · Production | **Hyperspace Lanes** | sci-fi | Rank / serving | Linear scan dies at galaxy scale — open **hyperspace lanes** (HNSW = navigable small-world jump-gates); **PQ** compresses the star-maps to fit; production keeps the Ship fast and cheap. |
-| **9** | RAG fundamentals · chunking · query understanding & rewriting | **The Oracle** | sci-fi | Rank → Generate | The Ship stops merely *finding* and starts *answering*: retrieve, then speak. Query rewriting = hearing what the captain *really* asked. |
-| **10** | RAG evaluation (RAGAS, LLM-as-judge) · Agentic RAG (ReAct, Self-RAG, CRAG) | **Judging the Oracle** | sci-fi | Measure (eval) | How do you grade an Oracle that sounds confident either way? **Goodhart returns** (the LLM-judge can be gamed). The agentic loop = the Ship that critiques and corrects itself. |
-| **11** | Advanced RAG (multi-hop, GraphRAG) · Multimodal (CLIP, ColPali) · ethics & safety | **The Deep Field** | LOTR/quest | Rank → Generate (frontier) | The longest quest: multi-hop reasoning across many records; **GraphRAG** = the constellation map; multimodal = learning to *see*, not only read; ethics = the captain's responsibility for what the Ship says. |
-| — | **Final** | **The Final Trial** | — | — | The galaxy's last test. |
+| **3** | Classical IR (TF-IDF, BM25, inverted index) · Full-text Ranking & **Rank Fusion** | **The Star Catalog** | sci-fi | Measure + Rank | You can't scan every star — build the **inverted index** (the catalog) so any record is found instantly; **BM25** = the trusty old sextant; **Rank Fusion (RRF)** = fuse two rankers' votes into one robust order. |
+| **4** | **Ranking Metrics** (Recall@k, Precision@k, MRR, MAP, nDCG) | **The Proving Grounds** | sci-fi | Measure | Two systems — which is better? You can't eyeball quality. Build an honest scoreboard (qrels + metrics); **Goodhart the Trickster** shows how a metric, once a target, starts to lie. |
+| **5** | Intro DL for Search · Word embeddings · dim. reduction | **The Map of Meaning** | LOTR/quest | Get Data | Words get *coordinates* — meaning becomes a place you can travel. Dimensionality reduction = folding the great map small enough to carry. **Callback:** the alien from First Contact finally gets a position on the map. |
+| **6** | Dense & contextual embeddings · contrastive learning · Transformers & Attention | **The Council of Attention** | sci-fi | Get Data → Measure | The crew learns *who to listen to* (attention). Contrastive learning pulls synonyms together and pushes impostors apart — **the weapon that finally cages the Lexical Gremlin** (callback to L1). |
+| **7** | Bi-encoders (DPR, SBERT) · Cross-encoders & reranking · multi-stage | **Scouts and Judges** | LOTR/quest | Rank | Two kinds of crew: **Scouts** (bi-encoders) sweep fast and wide; **Judges** (cross-encoders) deliberate slowly on the few. The neural cascade is born (callback to The Lost Record's funnel). |
+| **8** | Late interaction (ColBERT) · SPLADE · hybrid · Learning to Rank | **The Alliance** | LOTR/quest | Rank | Sparse and dense armies were fighting alone; **hybrid** unites them under one banner. **Learning to Rank** = training the captain to order the host. (Rank Fusion/RRF now lives in L3.) |
+| — | **Midterm** | **The First Trial** | — | — | The crew is tested before the deep galaxy (covers L0–L8). |
+| **9** | ANN: HNSW, IVF, PQ · FAISS · vector DBs · Production | **Hyperspace Lanes** | sci-fi | Rank / serving | Linear scan dies at galaxy scale — open **hyperspace lanes** (HNSW = navigable small-world jump-gates); **PQ** compresses the star-maps to fit; production keeps the Ship fast and cheap. |
+| **10** | RAG fundamentals · chunking · query understanding & rewriting | **The Oracle** | sci-fi | Rank → Generate | The Ship stops merely *finding* and starts *answering*: retrieve, then speak. Query rewriting = hearing what the captain *really* asked. |
+| **11** | RAG evaluation (RAGAS, LLM-as-judge) · Agentic RAG (ReAct, Self-RAG, CRAG) | **Judging the Oracle** | sci-fi | Measure (eval) | How do you grade an Oracle that sounds confident either way? **Goodhart returns** (the LLM-judge can be gamed). The agentic loop = the Ship that critiques and corrects itself. |
+| **12** | Advanced RAG (multi-hop, GraphRAG) · Multimodal (CLIP, ColPali) · ethics & safety | **The Deep Field** | LOTR/quest | Rank → Generate (frontier) | The longest quest: multi-hop reasoning across many records; **GraphRAG** = the constellation map; multimodal = learning to *see*, not only read; ethics = the captain's responsibility for what the Ship says. |
+| — | **Final** | **The Final Trial** | — | — | The galaxy's last test (covers L0–L12). |
 | — | **Project Defense** | **You Take the Helm** | — | — | Serega steps back. The student is now the captain; the Ship is theirs. Callback to The Briefing. |
+
+> **Numbering note (L3/L4 split):** L3 'The Star Catalog' = Classical IR + Full-text Ranking + Rank
+> Fusion; L4 'The Proving Grounds' = Ranking Metrics (a dedicated lecture). The old L4–L11 shifted to
+> L5–L12; Rank Fusion (RRF) moved from the old 'Alliance' into L3. Built chapters so far: L0, L1, L2.
 
 ## 5. Creature roster across the arc (the payoff chains — P2)
 
 | Creature | Personifies | Introduced | Returns / pays off |
 |----------|-------------|------------|---------------------|
-| **Lexical Gremlin** | vocabulary mismatch ("couch" ≠ "sofa") | L1 (problem) | **L5** — *caged by contrastive learning* (the satisfying defeat) |
-| **Goodhart the Trickster** | a measure that became a target | L1 (metrics) | **L3** (ranking metrics), **L10** (gaming the LLM-judge) — the recurring villain of *Measure* |
-| **Tokenosaurus** | sub-word splitting | L2 | cameo whenever tokenization matters (L9 chunking) |
-| **Sir Cosine & the Knights** | cosine similarity / angle on the sphere | L2 (hero) | **L4–L7** — the Knights ride wherever similarity is scored |
-| **Curse-of-Dimensionality Wraith** | distance concentration in high-d | L2 (catch) | **L8** — why exact NN dies and ANN/PQ are needed |
-| **The Iceberg** | hidden technical debt (Sculley) | L1 | **L8/L9** — production/serving is the 90% below the water |
+| **Lexical Gremlin** | vocabulary mismatch ("couch" ≠ "sofa") | L1 (problem) | **L3** (BM25's blind spot, cameo) → **L6** *caged by contrastive learning* (the satisfying defeat) |
+| **Goodhart the Trickster** | a measure that became a target | L1 (metrics) | **L4** (ranking metrics — his home) → **L11** (gaming the LLM-judge) — the recurring villain of *Measure* |
+| **Tokenosaurus** | sub-word splitting | L2 | cameo whenever tokenization matters (L10 chunking) |
+| **Sir Cosine & the Knights** | cosine similarity / angle on the sphere | L2 (hero) | **L5–L8** — the Knights ride wherever similarity is scored |
+| **Curse-of-Dimensionality Wraith** | distance concentration in high-d | L2 (catch) | **L9** — why exact NN dies and ANN/PQ are needed |
+| **The Iceberg** | hidden technical debt (Sculley) | L1 | **L9/L10** — production/serving is the 90% below the water |
 
 Rule: a creature has **one tell, one job**, and is **reused, never duplicated** (NARRATIVE_METHOD P2).
 Creatures appear only on hooks/metaphor/viz beats — **never on precision (Climb) beats** (P9).

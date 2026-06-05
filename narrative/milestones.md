@@ -9,8 +9,8 @@
 - **Frame:** the crew is tested before the deep galaxy.
 - **Beats:** `hook-trial` (Serega: "before we go deeper, the galaxy tests you") → `recap`
   (a spine-map recap: which territories/Ship parts are covered — Get Data + the start of Measure/Rank,
-  L0–L7) → `payoff` ("survive this and the hyperspace lanes open").
-- **Covers:** L0–L7 (IR, system design, tokenization, similarity, classical IR + metrics, embeddings,
+  L0–L8) → `payoff` ("survive this and the hyperspace lanes open").
+- **Covers:** L0–L8 (IR, system design, tokenization, similarity, classical IR + metrics, embeddings,
   attention/contrastive, encoders, ColBERT/hybrid/LTR).
 - **Reference:** exam scope + format on `/schedule`; no new `data/` or widgets.
 
@@ -18,7 +18,7 @@
 - **Frame:** the galaxy's last test.
 - **Beats:** `hook-final-trial` → `recap` (full spine map lit; the whole Ship assembled) → `payoff`
   ("one more flight — and then she's yours").
-- **Covers:** the whole course (L0–L11), weighted toward the second half (ANN/serving, RAG, eval,
+- **Covers:** the whole course (L0–L12), weighted toward the second half (ANN/serving, RAG, eval,
   agentic, advanced/multimodal).
 
 ## You Take the Helm — Project Defense (Week 7 Wed)
