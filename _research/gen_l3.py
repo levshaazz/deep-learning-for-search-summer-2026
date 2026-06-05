@@ -264,6 +264,35 @@ def main():
                       f" = {numer:.1f}/{denom:.4f} = {Bfac:.4f}"),
         })
 
+    # per-cell B-factors for every NON-ZERO (doc, term) cell of the displayed table rows (top-3:
+    # D2, D3, D0) so the whole table is reproducible by hand. Same B formula; deterministic.
+    q2_cells = []
+    for did in [r for r in bm25_rank2][:3]:
+        d = next(dd for dd in docs if dd["id"] == did)
+        d_len = d["len"]
+        d_len_ratio = d_len / avgdl
+        d_bracket = (1 - B) + B * d_len_ratio
+        for t in QUERY2:
+            f = d["tokens"].count(t)
+            if not f:
+                continue
+            numer = (K1 + 1) * f
+            denom = K1 * d_bracket + f
+            Bfac = numer / denom
+            weight = Bfac * idf2[t]
+            q2_cells.append({
+                "doc": did, "t": t, "tf": f, "len": d_len,
+                "lenRatio": round(d_len_ratio, 4),
+                "bracket": round(d_bracket, 4),
+                "numer": round(numer, 4),
+                "denom": round(denom, 4),
+                "B": round(Bfac, 4),
+                "idf": round(idf2[t], 4),
+                "weight": round(weight, 4),
+                "Bexpr": (f"({K1}+1)·{f} / ({K1}·[(1-{B})+{B}·{d_len}/{avgdl:.3f}]+{f})"
+                          f" = {numer:.1f}/{denom:.4f} = {Bfac:.4f}"),
+            })
+
     # ── NEW: postings-compression worked example (gaps + variable-byte) ─────────────────────────────
     def varbyte_len(n):  # bytes a non-negative gap takes in variable-byte coding (7 bits/byte)
         if n == 0:
@@ -493,7 +522,9 @@ def main():
                 "l3-bm25-q2.json; same corpus, k1=1.5, b=0.75, avgdl as l3-bm25.json). (a) substituted idf "
                 "pieces for both terms (N=8); (b) len of the top docs + corpus avgdl; (c) the full "
                 "B-factor sub-parts for the WINNING doc D2 (shuttle tf=3, nasa tf=1) with B·idf and the "
-                "row sum 2.8151. B = (k1+1)·f / (k1·[(1-b)+b·len/avgdl] + f).",
+                "row sum 2.8151; (d) 'cells' — the same per-cell B-factor breakdown for EVERY non-zero "
+                "(doc,term) cell of the displayed top-3 rows (D2, D3, D0) so the whole table reproduces by "
+                "hand. B = (k1+1)·f / (k1·[(1-b)+b·len/avgdl] + f).",
         "_source": prov + " · intermediate-step derivation",
         "query": QUERY2, "k1": K1, "b": B, "N": N, "avgdl": round(avgdl, 3),
         "idfSteps": q2_idf_steps,
@@ -505,6 +536,7 @@ def main():
             "rowSum": round(q2_d2_sum, 4),
             "rowSumExpr": " + ".join(f"{ts['weight']:.4f}" for ts in q2_d2_terms) + f" = {q2_d2_sum:.4f}",
         },
+        "cells": q2_cells,
     }, indent=2, ensure_ascii=False) + "\n")
 
     print(f"[gen_l3] N={N} avgdl={avgdl:.2f} query={query}")
