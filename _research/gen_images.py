@@ -110,6 +110,47 @@ ANTIPATTERN = (
 
 # (group, filename, aspect, has_serega, scene)
 JOBS = [
+    # ---- L3 · The Star Catalog (Classical IR + Rank Fusion) ----
+    ("L3", "L3/L3-00-star-catalog.png", "16:9", True,
+     "Serega the star-cartographer stands before a huge wall of tiny index cards that double as a "
+     "star map; thin threads link little word-cards to clusters of stars, like a card catalogue laid "
+     "over a night sky. He holds a quill, mid-plotting, delighted. Two accent colours only."),
+    ("L3", "L3/L3-01-linear-scan-doom.png", "16:9", True,
+     "a tiny Serega in a small rowboat paddling past an endless wall of identical stacked "
+     "document-crates that stretch to the horizon, exhausted, checking each crate by hand, with a "
+     "comic sweat-drop. Conveys that scanning every document is hopeless."),
+    ("L3", "L3/L3-02-bm25-sextant.png", "4:3", True,
+     "Serega squinting through a trusty brass sextant up at a few bright stars, ranking them by how "
+     "bright each one looks; the sextant reads as an old reliable instrument. Warm-accent brass, blue stars."),
+    ("L3", "L3/L3-03-rank-fusion-council.png", "16:9", True,
+     "Serega and one other small crew member each hold up a different star-chart that orders the same "
+     "stars differently; their two light-beams meet and merge into a single brighter agreed "
+     "constellation in the middle. Conveys two rankers' votes fused into one result."),
+    ("L3", "L3/L3-04-lexical-gremlin-wall.png", "16:9", True,
+     "the Lexical Gremlin, a small mischievous gremlin, wedges a brick wall between two "
+     "identical-looking couches drawn on either side (a sofa shape on the left, a couch shape on the "
+     "right, no words); Serega peeks over the wall looking puzzled. Keep the same gremlin design as earlier lectures."),
+
+    # ---- L4 · The Proving Grounds (Ranking Metrics) ----
+    ("L4", "L4/L4-00-proving-grounds.png", "16:9", True,
+     "two little spaceships on a test-track arena; Serega in a referee cap holds up a blank "
+     "scoreboard placard with no numbers, about to judge which ship's run was better. An arena of judgement."),
+    ("L4", "L4/L4-01-cant-eyeball.png", "4:3", True,
+     "Serega buried under a tall toppling stack of blank result-printouts, googly-eyed, trying and "
+     "failing to eyeball which ranking is best. Conveys you cannot judge quality by eye at scale."),
+    ("L4", "L4/L4-02-qrels-referee.png", "16:9", True,
+     "Serega as a referee stamping documents with a big check mark or a big cross, sorting a pile into "
+     "a relevant stack and a not-relevant stack. The act of making ground truth."),
+    ("L4", "L4/L4-03-goodhart-trickster.png", "16:9", False,
+     "Goodhart the Trickster, a grinning trickster, yanks a chart-line sharply upward with a "
+     "fishing-rod clickbait hook, while a second true line stays flat and sad beside it. Conveys a "
+     "measure that became a target and now lies. Keep the same trickster design as earlier lectures. "
+     "No narrator figure in this one."),
+    ("L4", "L4/L4-04-ndcg-ideal-vs-actual.png", "4:3", True,
+     "two ladders side by side made of result-rungs; the left 'ideal' ladder has its biggest gems on "
+     "the top rungs, the right 'actual' ladder has them scattered lower; Serega compares the two with "
+     "a measuring tape. Conveys nDCG as actual versus ideal ordering."),
+
     # ---- course cover (banner + GitHub social card) ----
     ("char", "_char/cover.png", "16:9", True,
      "the course cover banner for a graduate course called 'Deep Learning for Search'. Wide "

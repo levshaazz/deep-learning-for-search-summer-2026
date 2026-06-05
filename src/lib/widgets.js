@@ -21,6 +21,8 @@ import bmManifest from '../../widgets/bm25-calc/manifest.json';
 import bmI18n from '../../widgets/bm25-calc/i18n.json';
 import rfManifest from '../../widgets/rrf-fusion/manifest.json';
 import rfI18n from '../../widgets/rrf-fusion/i18n.json';
+import rmManifest from '../../widgets/ranking-metrics/manifest.json';
+import rmI18n from '../../widgets/ranking-metrics/i18n.json';
 
 import dCosine from '../../data/l2-cosine.json';
 import dCorpus from '../../data/l2-corpus-stats.json';
@@ -31,6 +33,7 @@ import dClick from '../../data/l1-click-model.json';
 import dIndex from '../../data/l3-index.json';
 import dBm25 from '../../data/l3-bm25.json';
 import dRrf from '../../data/l3-rrf.json';
+import dMetrics from '../../data/l4-metrics.json';
 
 export const WIDGET_META = {
   'cosine-sphere':        { manifest: csManifest, i18n: csI18n },
@@ -43,6 +46,7 @@ export const WIDGET_META = {
   'inverted-index':       { manifest: iiManifest, i18n: iiI18n },
   'bm25-calc':            { manifest: bmManifest, i18n: bmI18n },
   'rrf-fusion':           { manifest: rfManifest, i18n: rfI18n },
+  'ranking-metrics':      { manifest: rmManifest, i18n: rmI18n },
 };
 
 export const DATA = {
@@ -55,4 +59,5 @@ export const DATA = {
   'l3-index': dIndex,
   'l3-bm25': dBm25,
   'l3-rrf': dRrf,
+  'l4-metrics': dMetrics,
 };
