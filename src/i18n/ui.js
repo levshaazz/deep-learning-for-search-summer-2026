@@ -12,10 +12,16 @@ export const ui = {
     lectures: { en: 'Lectures', ru: 'Лекции' },
     syllabus: { en: 'Syllabus', ru: 'Программа' },
     schedule: { en: 'Schedule', ru: 'Расписание' },
+    assignments: { en: 'Assignments', ru: 'Задания' },
   },
 
   sections: {
     lectures: { en: 'Lectures', ru: 'Лекции' },
+    assignments: { en: 'Labs & Homework', ru: 'Лабораторные и домашние задания' },
+    assignmentsKicker: {
+      en: 'Lecture 03–04 · Classical IR & Ranking Metrics · implement by hand, measure, compare',
+      ru: 'Лекции 03–04 · Классический IR и метрики ранжирования · реализуй руками, измеряй, сравнивай',
+    },
     lecturesKicker: {
       en: 'Interactive slide decks · open in any browser · ← / → to navigate · O for overview',
       ru: 'Интерактивные слайды · открываются в любом браузере · ← / → навигация · O — обзор',
