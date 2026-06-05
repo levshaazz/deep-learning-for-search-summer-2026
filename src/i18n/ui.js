@@ -41,6 +41,10 @@ export const ui = {
   labels: {
     ready: { en: 'Ready', ru: 'Готово' },
     coming: { en: 'Coming', ru: 'Скоро' },
+    open: { en: 'Open', ru: 'Открыть' },
+    allAssignments: { en: 'All assignments', ru: 'Все задания' },
+    prev: { en: 'Prev', ru: 'Пред.' },
+    next: { en: 'Next', ru: 'След.' },
     openSlides: { en: 'Open slides', ru: 'Открыть слайды' },
     readBook: { en: 'Read in the Book', ru: 'Читать в Книге' },
     institution: { en: 'Institution', ru: 'Институт' },

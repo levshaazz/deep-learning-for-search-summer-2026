@@ -1,0 +1,75 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { LOCALES, t, localizedPath } from '../../../i18n/locales.js';
+import { ui } from '../../../i18n/ui.js';
+import { assignments, assignmentsMeta as M } from '../../../lib/assignments.js';
+
+export function getStaticPaths() {
+  return LOCALES.map((l) => ({ params: { lang: l } }));
+}
+const { lang } = Astro.params;
+const showFallbackNotice = lang === 'tt';
+
+// Group activities by kind, preserving declaration order.
+const kinds = ['lab', 'homework'];
+const grouped = kinds
+  .map((k) => ({ kind: k, items: assignments.filter((a) => a.kind === k) }))
+  .filter((g) => g.items.length);
+---
+<BaseLayout lang={lang} page="assignments" title={t(ui.nav.assignments, lang)}>
+  <div class="wrap">
+    <section class="block">
+      <h2>{t(ui.sections.assignments, lang)}</h2>
+      <div class="kicker">{t(ui.sections.assignmentsKicker, lang)}</div>
+      {showFallbackNotice && <p class="notice">{t(ui.translationInProgress, lang)}</p>}
+      <p class="lead">{t(M.intro, lang)}</p>
+      <p class="topic"><strong>{t(M.topic, lang)}</strong></p>
+    </section>
+
+    {grouped.map((g) => (
+      <section class="block">
+        <h3>{t(M.groups[g.kind], lang)}</h3>
+        <div class="cards">
+          {g.items.map((a) => (
+            <a class={`card act ${a.status === 'soon' ? 'soon' : ''}`} href={localizedPath(lang, 'assignments/' + a.slug)}>
+              <span class={`tag ${a.status}`}>{t(M.groups[a.kind], lang)}</span>
+              <div class="num">{a.code}</div>
+              <h4>{t(a.title, lang)}</h4>
+              <p>{t(a.blurb, lang)}</p>
+              <div class="when">{t(a.due, lang)}</div>
+              <span class="open">{t(ui.labels.open, lang)} →</span>
+            </a>
+          ))}
+        </div>
+      </section>
+    ))}
+
+    <section class="block setup">
+      <h3>{t(M.setup.heading, lang)}</h3>
+
+      <h4>{t(M.setup.rulesH, lang)}</h4>
+      <ul class="reading">{M.setup.rules.map((r) => <li>{t(r, lang)}</li>)}</ul>
+
+      <h4>{t(M.setup.dataH, lang)}</h4>
+      <p>{t(M.setup.dataLead, lang)}</p>
+      <pre><code>{M.setup.dataCode}</code></pre>
+      <p class="muted">{t(M.setup.dataNote, lang)}</p>
+
+      <h4>{t(M.setup.logiH, lang)}</h4>
+      <p>{t(M.setup.logi, lang)}</p>
+    </section>
+  </div>
+
+  <style>
+    .lead { font-size: var(--fz-lead); color: var(--ink-2); max-width: var(--ws-measure); }
+    .topic { max-width: var(--ws-measure); }
+    .block p, .block li { max-width: var(--ws-measure); }
+    a.card.act { text-decoration: none; color: inherit; display: flex; flex-direction: column; transition: border-color .15s, transform .15s; }
+    a.card.act:hover { border-color: var(--accent); transform: translateY(-2px); }
+    a.card.act .open { margin-top: auto; color: var(--accent); font-size: var(--fz-small); font-weight: 600; padding-top: var(--ws-2); }
+    pre { background: var(--bg-alt); border: 1px solid var(--rule); border-radius: var(--r-md); padding: var(--ws-3); overflow-x: auto; font-family: var(--font-mono); font-size: var(--fz-small); line-height: 1.5; }
+    pre code { font-family: var(--font-mono); white-space: pre; }
+    .muted { color: var(--ink-3); font-size: var(--fz-small); }
+    .setup { border-top: 1px solid var(--rule); }
+  </style>
+</BaseLayout>
