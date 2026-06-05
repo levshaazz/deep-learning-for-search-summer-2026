@@ -4,6 +4,7 @@ import { LOCALES, t, withBase, localizedPath } from '../../../i18n/locales.js';
 import { ui } from '../../../i18n/ui.js';
 import { course } from '../../../lib/course.js';
 import { WIDGET_META, DATA } from '../../../lib/widgets.js';
+import l0 from '../../../../content/book/l0.js';
 import l1 from '../../../../content/book/l1.js';
 import l2 from '../../../../content/book/l2.js';
 
@@ -15,13 +16,14 @@ import '../../../../widgets/zipf-heaps/style.css';
 import '../../../../widgets/highd-histogram/style.css';
 import '../../../../widgets/retrieve-rank-funnel/style.css';
 import '../../../../widgets/pos-bias-curve/style.css';
+import '../../../../widgets/course-map/style.css';
 
 // NOTE: getStaticPaths runs in isolation and may reference only imports (not frontmatter consts).
 export function getStaticPaths() {
-  const ids = [l1.id, l2.id];
+  const ids = [l0.id, l1.id, l2.id];
   return LOCALES.flatMap((lang) => ids.map((id) => ({ params: { lang, id } })));
 }
-const CHAPTERS = { '01': l1, '02': l2 };
+const CHAPTERS = { '00': l0, '01': l1, '02': l2 };
 const { lang, id } = Astro.params;
 const chapter = CHAPTERS[id];
 const lec = course.lectures.find((l) => l.id === id);
@@ -83,6 +85,7 @@ const proseText = (body) => (Array.isArray(body) ? body : [body]);
     import { mountHighdHistogram } from '../../../../widgets/highd-histogram/logic.js';
     import { mountRetrieveRankFunnel } from '../../../../widgets/retrieve-rank-funnel/logic.js';
     import { mountPosBiasCurve } from '../../../../widgets/pos-bias-curve/logic.js';
+    import { mountCourseMap } from '../../../../widgets/course-map/logic.js';
 
     const MOUNT = {
       'cosine-sphere': mountCosineSphere,
@@ -91,6 +94,7 @@ const proseText = (body) => (Array.isArray(body) ? body : [body]);
       'highd-histogram': mountHighdHistogram,
       'retrieve-rank-funnel': mountRetrieveRankFunnel,
       'pos-bias-curve': mountPosBiasCurve,
+      'course-map': mountCourseMap,
     };
     const payload = JSON.parse(document.getElementById('cs-payload').textContent);
     const figs = {};

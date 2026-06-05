@@ -13,6 +13,8 @@ import fnManifest from '../../widgets/retrieve-rank-funnel/manifest.json';
 import fnI18n from '../../widgets/retrieve-rank-funnel/i18n.json';
 import pbManifest from '../../widgets/pos-bias-curve/manifest.json';
 import pbI18n from '../../widgets/pos-bias-curve/i18n.json';
+import cmManifest from '../../widgets/course-map/manifest.json';
+import cmI18n from '../../widgets/course-map/i18n.json';
 
 import dCosine from '../../data/l2-cosine.json';
 import dCorpus from '../../data/l2-corpus-stats.json';
@@ -28,6 +30,7 @@ export const WIDGET_META = {
   'highd-histogram':      { manifest: hdManifest, i18n: hdI18n },
   'retrieve-rank-funnel': { manifest: fnManifest, i18n: fnI18n },
   'pos-bias-curve':       { manifest: pbManifest, i18n: pbI18n },
+  'course-map':           { manifest: cmManifest, i18n: cmI18n },
 };
 
 export const DATA = {
