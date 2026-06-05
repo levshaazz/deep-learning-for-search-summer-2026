@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lecture 04 — Ranking Metrics</title>
+
+  <!-- Apply saved theme/lang BEFORE first paint to avoid a flash of the
+       wrong theme. Mirrors tools.js prefs key. -->
+  <script>
+    try {
+      var __p = JSON.parse(localStorage.getItem('lecture.template.prefs.v1') || '{}');
+      var __de = document.documentElement;
+      if (__p.theme === 'dark' || __p.theme === 'light') __de.setAttribute('data-theme', __p.theme);
+      if (__p.lang === 'ru' || __p.lang === 'en') {
+        __de.setAttribute('data-lang', __p.lang);
+        __de.setAttribute('lang', __p.lang);
+      }
+    } catch (e) {}
+  </script>
+
+  <!-- Asset-load failure banner. If a vendored dependency fails to load
+       (e.g. the vendor/ folder was lost when copying the deck), tell the
+       lecturer in plain language instead of silently degrading. -->
+  <script>
+    window.__assetFail = (function () {
+      var failed = [];
+      return function (name) {
+        if (failed.indexOf(name) !== -1) return;
+        failed.push(name);
+        function show() {
+          if (!document.body) { document.addEventListener('DOMContentLoaded', show); return; }
+          var el = document.getElementById('__asset-banner');
+          if (!el) {
+            el = document.createElement('div');
+            el.id = '__asset-banner';
+            el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:2147483647;' +
+              'background:#D7522C;color:#fff;font:600 15px/1.4 system-ui,sans-serif;' +
+              'padding:10px 16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.3)';
+            el.addEventListener('click', function () { el.remove(); });
+            document.body.appendChild(el);
+          }
+          el.textContent = 'Не загрузились ресурсы: ' + failed.join(', ') +
+            '. Формулы/подсветка/QR могут не отрисоваться — запустите офлайн-файл ' +
+            '«Lecture Template (Standalone).html». · Failed to load: ' + failed.join(', ') +
+            ' — use the Standalone file. (клик чтобы скрыть)';
+        }
+        show();
+      };
+    })();
+  </script>
+
+  <!-- Fonts — vendored locally (run `node build-vendor.mjs` to refresh). -->
+  <link href="vendor/fonts/fonts.css" rel="stylesheet"
+        onerror="window.__assetFail&&window.__assetFail('Шрифты/Fonts')" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/template.css?v=6" />
+  <link rel="stylesheet" href="css/slides.css?v=6" />
+  <link rel="stylesheet" href="css/components.css?v=6" />
+  <link rel="stylesheet" href="css/presenter.css?v=6" />
+  <link rel="stylesheet" href="css/tweaks.css?v=6" />
+  <link rel="stylesheet" href="css/e2e.css?v=6" />
+  <link rel="stylesheet" href="css/lab.css?v=6" />
+  <link rel="stylesheet" href="css/archflow.css?v=6" />
+  <link rel="stylesheet" href="css/sysdesign.css?v=6" />
+  <link rel="stylesheet" href="css/preflight.css?v=6" />
+  <link rel="stylesheet" href="css/wbw-art.css?v=1" />
+
+  <!-- KaTeX — vendored locally (zero runtime CDN). 4× faster + lighter than
+       MathJax; handles 99% of CS/ML formulas. See README to swap to MathJax. -->
+  <link rel="stylesheet" href="vendor/katex/katex.min.css"
+        onerror="window.__assetFail&&window.__assetFail('KaTeX')">
+  <script defer src="vendor/katex/katex.min.js"
+        onerror="window.__assetFail&&window.__assetFail('KaTeX')"></script>
+  <script defer src="vendor/katex/auto-render.min.js"
+    onerror="window.__assetFail&&window.__assetFail('KaTeX')"
+    onload="renderMathInElement(document.body, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '\\[', right: '\\]', display: true },
+        { left: '\\(', right: '\\)', display: false }
+      ],
+      throwOnError: false,
+      strict: 'ignore'
+    });
+    document.dispatchEvent(new CustomEvent('katex:done'));"></script>
+
+  <!-- Prism — vendored core + python/bash/yaml/json. The autoloader is
+       intentionally dropped: it fetches grammars from a CDN at runtime,
+       which defeats the zero-network goal. Long-tail languages won't
+       highlight; add their grammar files to vendor/prism/ if needed. -->
+  <script src="vendor/prism/prism-core.min.js"
+        onerror="window.__assetFail&&window.__assetFail('Prism')"></script>
+  <script src="vendor/prism/prism-python.min.js"></script>
+  <script src="vendor/prism/prism-bash.min.js"></script>
+  <script src="vendor/prism/prism-yaml.min.js"></script>
+  <script src="vendor/prism/prism-json.min.js"></script>
+
+  <!-- QR code generator — vendored. -->
+  <script src="vendor/qrcode/qrcode.js"
+        onerror="window.__assetFail&&window.__assetFail('QR')"></script>
+</head>
+
+<body>
+  <!-- Bundler thumbnail (shown while standalone-HTML unpacks; also no-JS fallback) -->
+  <template id="__bundler_thumbnail">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#FBFAF6"/>
+          <stop offset="1" stop-color="#DCE8F8"/>
+        </linearGradient>
+      </defs>
+      <rect width="600" height="600" fill="url(#bg)"/>
+      <g transform="translate(180,180)">
+        <rect x="0" y="0" width="240" height="240" rx="20" fill="#2A6FDB"/>
+        <text x="120" y="160" font-family="Georgia, serif" font-size="120" font-weight="500"
+              text-anchor="middle" fill="white">∇</text>
+      </g>
+      <text x="300" y="490" font-family="Georgia, serif" font-size="40" font-weight="500"
+            text-anchor="middle" fill="#14181F">Lecture Template</text>
+      <text x="300" y="528" font-family="ui-monospace, monospace" font-size="18"
+            text-anchor="middle" fill="#6B7280" letter-spacing="3">LOADING…</text>
+    </svg>
+  </template>
+
+  <!-- Logo template — edit once, reused on every slide -->
+  <template id="tpl-logo">
+    <div class="logo-mark">DLS</div>
+    <span>
+      INNOPOLIS UNIVERSITY
+    </span>
+  </template>
+
+  <!-- Deck -->
+  <div class="deck">
+    <div class="stage">
+      <div class="slides" data-course-ru="Deep Learning for Search · Summer 2026" data-course-en="Deep Learning for Search · Summer 2026">
+
+        <!-- ============================================ 01 · TITLE ============================================ -->
+        <section class="slide" data-type="title" data-screen-label="01 Title">
+          <div class="title-header">
+            <div class="course-tag">DEEP LEARNING FOR SEARCH · SUMMER 2026</div>
+            <div data-logo-slot></div>
+          </div>
+          <div class="title-body">
+            <div class="eyebrow">Lecture 04 · The Proving Grounds</div>
+            <h1>Ranking Metrics</h1>
+            <p class="subtitle">\(\mathrm{Recall}@k\), \(\mathrm{Precision}@k\), MRR, MAP, nDCG — putting an honest number on a ranking.</p>
+          </div>
+          <div class="title-footer">
+            <div><div class="meta-label">Lecturer</div><div class="meta-value">Albert Nasybullin</div></div>
+            <div><div class="meta-label">Affiliation</div><div class="meta-value">Innopolis University</div></div>
+            <div><div class="meta-label">Date</div><div class="meta-value">2026</div></div>
+          </div>
+          <aside class="slide-notes">Two search systems, same query. Which one is better? "Looks good to me" is not an answer. Today we learn to put an honest, comparable number on a ranking — so that every later claim ("neural beats BM25", "reranking helps") can be checked rather than asserted. Five metrics, one running example: a real BM25 ranking of eight documents from the catalog we built in Lecture 3.</aside>
+        </section>
+
+        <!-- ============================================ 02 · AGENDA ============================================ -->
+        <section class="slide" data-type="agenda" data-screen-label="02 Agenda">
+          <div class="slide-header">
+            <h2>Lecture Outline</h2>
+            <span class="slide-kicker">Agenda</span>
+          </div>
+          <div class="agenda-grid">
+            <a class="toc-item" href="#/3">
+              <span class="toc-num">01</span>
+              <span class="toc-text">
+                <span class="toc-title">The proving grounds</span>
+                <span class="toc-sub">two rankers, one query · you can't eyeball quality at scale</span>
+              </span>
+            </a>
+            <a class="toc-item" href="#/5">
+              <span class="toc-num">02</span>
+              <span class="toc-text">
+                <span class="toc-title">Relevance judgments (qrels)</span>
+                <span class="toc-sub">ground truth · the running example ranking</span>
+              </span>
+            </a>
+            <a class="toc-item" href="#/8">
+              <span class="toc-num">03</span>
+              <span class="toc-text">
+                <span class="toc-title">Counting metrics</span>
+                <span class="toc-sub">\(\mathrm{Recall}@k\) · \(\mathrm{Precision}@k\) · MRR · MAP</span>
+              </span>
+            </a>
+            <a class="toc-item" href="#/14">
+              <span class="toc-num">04</span>
+              <span class="toc-text">
+                <span class="toc-title">Graded relevance: nDCG</span>
+                <span class="toc-sub">DCG · IDCG · the discount · Goodhart's trap</span>
+              </span>
+            </a>
+          </div>
+          <aside class="slide-notes">Four movements. First the motivation: at scale you cannot judge quality by eye. Then ground truth: what "correct" even means. Then the family of counting metrics that score binary relevance. Finally the headline graded metric, nDCG, and a warning about gaming metrics. Click any item to jump.</aside>
+        </section>
+
+        <!-- ============================================ 03 · DIVIDER · PART 01 ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="03 Divider P1">
+          <div>
+            <div class="divider-num">Part 01</div>
+            <h1>The Proving<br />Grounds</h1>
+            <p class="divider-sub">Two search systems. Which one is better? "Looks good to me" is not an answer.</p>
+          </div>
+
+          <div class="viz-frame" style="height:auto; max-height:40vh; aspect-ratio:16/9; margin:var(--sp-3) auto 0; max-width:52%;">
+            <img src="assets/img/L4/L4-00-proving-grounds.png?v=1" alt="Serega at a proving-grounds scoreboard comparing two ships' search runs"
+                 style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+          </div>
+
+          <aside class="slide-notes">The proving grounds: the place where every system is tested before it earns trust. Serega stands at a scoreboard comparing two ships' runs. The whole spine of this course is Measure — and without an honest measure of ranking quality, every later claim is hot air. This part motivates why a single number is unavoidable.</aside>
+        </section>
+
+        <!-- ============================================ 04 · VIZ · can't eyeball ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="04 Can't eyeball">
+          <div class="slide-header">
+            <h2>You can't eyeball quality at scale</h2>
+            <span class="slide-kicker">why we need a number</span>
+          </div>
+          <div class="viz-frame">
+            <img src="assets/img/L4/L4-01-cant-eyeball.png?v=1" alt="One ranking is easy to skim; thousands of queries are impossible to judge by eye" style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+          </div>
+          <p class="viz-caption">Reading one ranking by eye is fine. Judging \(10^{4}\) queries by eye is not — and "looks good" cannot be averaged, compared, or trended over time. We need two things: a <strong>relevance label</strong> per result (ground truth), and a <strong>metric</strong> that turns a ranking into one comparable score.</p>
+          <aside class="slide-notes">The core problem. With one query you can skim the list and form an opinion. But a real evaluation set has thousands of queries, and opinions don't aggregate: you cannot average "looks good", you cannot tell whether yesterday's change helped, and you cannot compare two systems fairly. The fix is a number — but a number needs ground truth to compare against. That ground truth is the next part.</aside>
+        </section>
+
+        <!-- ============================================ 05 · DIVIDER · PART 02 ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="05 Divider P2">
+          <div>
+            <div class="divider-num">Part 02</div>
+            <h1>Relevance<br />judgments</h1>
+            <p class="divider-sub">Before you can score a ranking, you need to know which results are actually correct.</p>
+          </div>
+
+          <div class="viz-frame" style="height:auto; max-height:38vh; aspect-ratio:16/9; margin:var(--sp-3) auto 0; max-width:50%;">
+            <img src="assets/img/L4/L4-02-qrels-referee.png?v=1" alt="A referee stamping each query-document pair as relevant or not relevant"
+                 style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+          </div>
+
+          <aside class="slide-notes">Every metric in this lecture compares the system's ranking against a set of relevance judgments — qrels. The referee decides, for each (query, document) pair, whether it is relevant. Without this ground truth there is nothing to measure against.</aside>
+        </section>
+
+        <!-- ============================================ 06 · DEFINITION · qrels ============================================ -->
+        <section class="slide" data-type="definition" data-screen-label="06 Definition qrels">
+          <div class="slide-header">
+            <h2>Key term</h2>
+            <span class="slide-kicker">Definition</span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag">Definition</span>
+            <div class="def-term">Relevance judgments<span class="term-en">qrels</span></div>
+            <div class="def-body">
+              <p>A <strong>relevance label</strong> attached to each (query, document) pair: is this document a correct answer for this query?</p>
+              <p class="small muted">Ours are binary and come for free from the corpus: a document is <strong>relevant</strong> if it shares the query's <strong>20&nbsp;Newsgroups category</strong>. The running query has intent <em>space</em>, so relevant means category <code>sci.space</code> — the same labels-as-truth convention we used in Lectures 1–3.</p>
+            </div>
+          </div>
+          <aside class="slide-notes">Qrels are the answer key. In a production system humans annotate them; here we reuse the 20 Newsgroups category labels as ground truth, so a document about space (category sci.space) is relevant to a space query and anything else is not. Binary relevance for the counting metrics; we add graded relevance later for nDCG. This continuity with L1–L3 is deliberate: we grade the very catalog we already built.</aside>
+        </section>
+
+        <!-- ============================================ 07 · VIZ · running example ranking ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="07 Running example">
+          <div class="slide-header">
+            <h2>Our running example: a BM25 ranking of 8 docs</h2>
+            <span class="slide-kicker">query intent: space · relevant = sci.space</span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1600 460" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">
+              <text x="80" y="60" font-family="var(--font-sans)" font-size="28" fill="var(--ink)">Ranks 1 → 8 (best first). Relevant docs marked ✓.</text>
+              <g font-family="var(--font-mono)" font-size="30">
+                <!-- rank 1 D6 not rel -->
+                <rect x="80"  y="110" width="170" height="120" rx="10" fill="var(--ink-3)" opacity="0.14" stroke="var(--ink-3)"/>
+                <text x="165" y="150" text-anchor="middle" fill="var(--ink-2)">1</text>
+                <text x="165" y="195" text-anchor="middle" font-size="26" fill="var(--ink-2)">D6 ·</text>
+                <text x="165" y="225" text-anchor="middle" font-size="24" fill="var(--c-red)">0</text>
+                <!-- rank 2 D3 rel -->
+                <rect x="270" y="110" width="170" height="120" rx="10" fill="var(--c-green)" opacity="0.16" stroke="var(--c-green)"/>
+                <text x="355" y="150" text-anchor="middle" fill="var(--c-green)">2</text>
+                <text x="355" y="195" text-anchor="middle" font-size="26" fill="var(--c-green)">D3 ·</text>
+                <text x="355" y="225" text-anchor="middle" font-size="24" fill="var(--c-green)">✓</text>
+                <!-- rank 3 D7 not -->
+                <rect x="460" y="110" width="170" height="120" rx="10" fill="var(--ink-3)" opacity="0.14" stroke="var(--ink-3)"/>
+                <text x="545" y="150" text-anchor="middle" fill="var(--ink-2)">3</text>
+                <text x="545" y="195" text-anchor="middle" font-size="26" fill="var(--ink-2)">D7 ·</text>
+                <text x="545" y="225" text-anchor="middle" font-size="24" fill="var(--c-red)">0</text>
+                <!-- rank 4 D2 rel -->
+                <rect x="650" y="110" width="170" height="120" rx="10" fill="var(--c-green)" opacity="0.16" stroke="var(--c-green)"/>
+                <text x="735" y="150" text-anchor="middle" fill="var(--c-green)">4</text>
+                <text x="735" y="195" text-anchor="middle" font-size="26" fill="var(--c-green)">D2 ·</text>
+                <text x="735" y="225" text-anchor="middle" font-size="24" fill="var(--c-green)">✓</text>
+                <!-- rank 5 D5 not -->
+                <rect x="840" y="110" width="170" height="120" rx="10" fill="var(--ink-3)" opacity="0.14" stroke="var(--ink-3)"/>
+                <text x="925" y="150" text-anchor="middle" fill="var(--ink-2)">5</text>
+                <text x="925" y="195" text-anchor="middle" font-size="26" fill="var(--ink-2)">D5 ·</text>
+                <text x="925" y="225" text-anchor="middle" font-size="24" fill="var(--c-red)">0</text>
+                <!-- rank 6 D0 rel -->
+                <rect x="1030" y="110" width="170" height="120" rx="10" fill="var(--c-green)" opacity="0.16" stroke="var(--c-green)"/>
+                <text x="1115" y="150" text-anchor="middle" fill="var(--c-green)">6</text>
+                <text x="1115" y="195" text-anchor="middle" font-size="26" fill="var(--c-green)">D0 ·</text>
+                <text x="1115" y="225" text-anchor="middle" font-size="24" fill="var(--c-green)">✓</text>
+                <!-- rank 7 D4 not -->
+                <rect x="1220" y="110" width="170" height="120" rx="10" fill="var(--ink-3)" opacity="0.14" stroke="var(--ink-3)"/>
+                <text x="1305" y="150" text-anchor="middle" fill="var(--ink-2)">7</text>
+                <text x="1305" y="195" text-anchor="middle" font-size="26" fill="var(--ink-2)">D4 ·</text>
+                <text x="1305" y="225" text-anchor="middle" font-size="24" fill="var(--c-red)">0</text>
+                <!-- rank 8 D1 rel -->
+                <rect x="1410" y="110" width="170" height="120" rx="10" fill="var(--c-green)" opacity="0.16" stroke="var(--c-green)"/>
+                <text x="1495" y="150" text-anchor="middle" fill="var(--c-green)">8</text>
+                <text x="1495" y="195" text-anchor="middle" font-size="26" fill="var(--c-green)">D1 ·</text>
+                <text x="1495" y="225" text-anchor="middle" font-size="24" fill="var(--c-green)">✓</text>
+              </g>
+              <text x="80" y="320" font-family="var(--font-mono)" font-size="34" fill="var(--ink)">relevance pattern = [ 0, 1, 0, 1, 0, 1, 0, 1 ]</text>
+              <text x="80" y="380" font-family="var(--font-sans)" font-size="26" fill="var(--ink-2)">4 relevant docs in total; they land at ranks 2, 4, 6, 8 — relevant items are pushed down.</text>
+            </svg>
+          </div>
+          <p class="viz-caption">The relevance pattern is \([0,1,0,1,0,1,0,1]\): \(4\) relevant docs total, at ranks \(2,4,6,8\). Every metric today is computed on exactly this list, so you can watch them measure the same ranking from different angles.</p>
+          <aside class="slide-notes">This is the spine of the whole lecture. Eight documents returned by the BM25 ranker from Lecture 3 for a space query. The relevant ones (category sci.space) are D3, D2, D0, D1 — and BM25 unfortunately interleaved them with hockey docs, so they sit at the even ranks 2, 4, 6, 8. Four relevant out of four possible appear in the top eight. Keep this picture in mind: every number that follows is just a different summary of this one ranking.</aside>
+        </section>
+
+        <!-- ============================================ 08 · DIVIDER · PART 03 ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="08 Divider P3">
+          <div>
+            <div class="divider-num">Part 03</div>
+            <h1>Counting<br />metrics</h1>
+            <p class="divider-sub">Binary relevance, four lenses: \(\mathrm{Recall}@k\), \(\mathrm{Precision}@k\), MRR, MAP.</p>
+          </div>
+          <aside class="slide-notes">With ground truth fixed, we can count. These four metrics all treat relevance as yes/no. Recall and Precision answer "how much / how clean at a cutoff"; MRR asks "how soon the first hit"; MAP rolls precision over every hit into one number. All computed on the running ranking.</aside>
+        </section>
+
+        <!-- ============================================ 09 · FORMULA · Recall@k & Precision@k ============================================ -->
+        <section class="slide" data-type="formula" data-screen-label="09 Recall Precision">
+          <div class="slide-header" style="border:none; padding-bottom:0;">
+            <h2>\(\mathrm{Recall}@k\) and \(\mathrm{Precision}@k\)</h2>
+            <span class="slide-kicker">how much vs how clean, at a cutoff \(k\)</span>
+          </div>
+          <div class="formula-stage">
+            $$ \mathrm{Recall}@k = \frac{\#\{\text{relevant in top }k\}}{\#\{\text{relevant total}\}}, \qquad \mathrm{Precision}@k = \frac{\#\{\text{relevant in top }k\}}{k} $$
+          </div>
+          <div class="formula-caption">
+            <div class="var-block"><div class="var-symbol">\(k\)</div><div class="var-desc"><strong>Cutoff</strong><br />how far down the list we look</div></div>
+            <div class="var-block"><div class="var-symbol">\(\mathrm{Recall}@k\)</div><div class="var-desc"><strong>Coverage</strong><br />fraction of all relevant docs found by rank \(k\)</div></div>
+            <div class="var-block"><div class="var-symbol">\(\mathrm{Precision}@k\)</div><div class="var-desc"><strong>Purity</strong><br />fraction of the top \(k\) that is relevant</div></div>
+          </div>
+          <p class="small muted mt-3 center">Same numerator, different denominator: \(\mathrm{Recall}@k\) divides by total relevant, \(\mathrm{Precision}@k\) divides by \(k\).</p>
+          <aside class="slide-notes">Two sides of the same coin. Both count how many relevant docs sit in the top k; they differ only in what they divide by. Recall measures coverage — of everything relevant, how much did we surface — and rises monotonically toward 1 as k grows. Precision measures purity — of what we showed, how much was good — and tends to fall as k grows because you scrape further down. Next slide walks the exact values.</aside>
+        </section>
+
+        <!-- ============================================ 10 · WALKTHROUGH · Recall/Precision values ============================================ -->
+        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="10 R/P walked">
+          <div class="slide-header">
+            <h2>\(\mathrm{Recall}@k\) and \(\mathrm{Precision}@k\), step by step</h2>
+            <span class="slide-kicker">pattern \([0,1,0,1,0,1,0,1]\) · 4 relevant total</span>
+          </div>
+          <p class="small muted mt-2">Watch \(\mathrm{Recall}@k\) climb to \(1\) while \(\mathrm{Precision}@k\) drifts as \(k\) grows.</p>
+          <div class="walk-flow">
+            <div class="walk-step" data-step="1" data-color="violet">
+              <div class="walk-num">01</div>
+              <div class="walk-content"><div class="walk-label">\(k=1\)</div><div class="walk-detail">Top doc (rank 1) is <strong>not</strong> relevant. Relevant in top 1: \(0\). \(\mathrm{Recall}@1=0/4=0\); \(\mathrm{Precision}@1=0/1=0\).</div></div>
+              <div class="walk-state">\(0\ /\ 0\)</div>
+            </div>
+            <div class="walk-step" data-step="2" data-color="amber">
+              <div class="walk-num">02</div>
+              <div class="walk-content"><div class="walk-label">\(k=3\)</div><div class="walk-detail">Ranks 1–3 contain one relevant (rank 2). \(\mathrm{Recall}@3=1/4=0.25\); \(\mathrm{Precision}@3=1/3\approx 0.333\).</div></div>
+              <div class="walk-state">\(0.25\ /\ 0.333\)</div>
+            </div>
+            <div class="walk-step" data-step="3" data-color="cyan">
+              <div class="walk-num">03</div>
+              <div class="walk-content"><div class="walk-label">\(k=5\)</div><div class="walk-detail">Ranks 1–5 contain two relevant (ranks 2, 4). \(\mathrm{Recall}@5=2/4=0.5\); \(\mathrm{Precision}@5=2/5=0.4\).</div></div>
+              <div class="walk-state">\(0.5\ /\ 0.4\)</div>
+            </div>
+            <div class="walk-step" data-step="4" data-final="true">
+              <div class="walk-num">→</div>
+              <div class="walk-content"><div class="walk-label">\(k=8\)</div><div class="walk-detail">All 4 relevant are now in view. \(\mathrm{Recall}@8=4/4=1.0\) (everything found); \(\mathrm{Precision}@8=4/8=0.5\) (half the list is relevant).</div></div>
+              <div class="walk-state">\(1.0\ /\ 0.5\)</div>
+            </div>
+          </div>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">←</button>
+            <span class="step-counter">4/4</span>
+            <button data-step-act="next" aria-label="Next step">→</button>
+          </div>
+          <aside class="slide-notes">Walk it one row at a time, reading numerator/denominator aloud. Recall marches 0 → 0.25 → 0.5 → 1.0: by rank 8 we have found all four relevant docs. Precision tells a different story: 0 → 0.333 → 0.4 → 0.5 — it never gets high because the relevant docs are diluted by hockey docs at every odd rank. The two metrics disagree on purpose; that disagreement is exactly why we report both at chosen cutoffs.</aside>
+        </section>
+
+        <!-- ============================================ 11 · FORMULA · MRR ============================================ -->
+        <section class="slide" data-type="formula" data-screen-label="11 MRR">
+          <div class="slide-header" style="border:none; padding-bottom:0;">
+            <h2>Mean Reciprocal Rank (MRR)</h2>
+            <span class="slide-kicker">how soon does the first hit arrive?</span>
+          </div>
+          <div class="formula-stage">
+            $$ \mathrm{MRR} = \frac{1}{|Q|}\sum_{q\in Q} \frac{1}{\mathrm{rank}_1(q)} $$
+          </div>
+          <div class="formula-caption">
+            <div class="var-block"><div class="var-symbol">\(\mathrm{rank}_1(q)\)</div><div class="var-desc"><strong>First hit</strong><br />rank of the first relevant doc for query \(q\)</div></div>
+            <div class="var-block"><div class="var-symbol">\(\tfrac{1}{\mathrm{rank}_1}\)</div><div class="var-desc"><strong>Reciprocal rank</strong><br />\(1\) if first, \(0.5\) if second, \(\ldots\)</div></div>
+            <div class="var-block"><div class="var-symbol">\(|Q|\)</div><div class="var-desc"><strong>Query count</strong><br />average over the query set</div></div>
+          </div>
+          <p class="small muted mt-3 center">Our query: first relevant doc is at rank \(2\), so \(\mathrm{RR}=1/2=0.5\). With one query, \(\mathrm{MRR}=\mathrm{RR}=0.5\).</p>
+          <aside class="slide-notes">MRR cares about one thing only: how far you must scroll before the first correct answer. The reciprocal makes rank 1 worth 1.0, rank 2 worth 0.5, rank 10 worth 0.1 — it rewards getting something right immediately and ignores everything after the first hit. Perfect for "I need one good answer fast" tasks like question answering. For our ranking the first relevant doc (D3) is at rank 2, giving reciprocal rank 0.5; averaging over a single query leaves MRR at 0.5.</aside>
+        </section>
+
+        <!-- ============================================ 12 · FORMULA · MAP ============================================ -->
+        <section class="slide" data-type="formula" data-screen-label="12 MAP">
+          <div class="slide-header" style="border:none; padding-bottom:0;">
+            <h2>Mean Average Precision (MAP)</h2>
+            <span class="slide-kicker">precision, sampled at every hit</span>
+          </div>
+          <div class="formula-stage">
+            $$ \mathrm{AP} = \frac{1}{R}\sum_{k\,:\,\mathrm{rel}_k=1} \mathrm{Precision}@k, \qquad \mathrm{MAP} = \frac{1}{|Q|}\sum_{q\in Q}\mathrm{AP}(q) $$
+          </div>
+          <div class="formula-caption">
+            <div class="var-block"><div class="var-symbol">\(R\)</div><div class="var-desc"><strong>Relevant total</strong><br />here \(R=4\)</div></div>
+            <div class="var-block"><div class="var-symbol">\(\mathrm{rel}_k=1\)</div><div class="var-desc"><strong>Hit ranks</strong><br />sum \(\mathrm{Precision}@k\) only where a relevant doc lands</div></div>
+            <div class="var-block"><div class="var-symbol">\(\mathrm{AP}\)</div><div class="var-desc"><strong>Average precision</strong><br />one number per query; MAP averages it</div></div>
+          </div>
+          <p class="small muted mt-3 center">Unlike \(\mathrm{Precision}@k\), MAP looks at <em>every</em> rank where a relevant doc appears, so it rewards ranking relevant docs higher.</p>
+          <aside class="slide-notes">MAP is the workhorse of binary-relevance IR. Average Precision evaluates \(\mathrm{Precision}@k\) at each rank where a relevant document actually sits, then averages those values over the number of relevant docs. Because precision is higher when hits are near the top, AP rewards a system that surfaces relevant docs early. MAP is just AP averaged over all queries. Next slide shows the per-hit table for our ranking.</aside>
+        </section>
+
+        <!-- ============================================ 13 · TABLE · MAP per-hit ============================================ -->
+        <section class="slide" data-type="table" data-screen-label="13 MAP table">
+          <div class="slide-header">
+            <h2>Average Precision, per hit</h2>
+            <span class="slide-kicker">our ranking · \(R=4\)</span>
+          </div>
+          <table class="cmp-table">
+            <thead>
+              <tr><th>Hit #</th><th>Rank \(k\)</th><th>Relevant in top \(k\)</th><th>\(\mathrm{Precision}@k\)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>1</td><td>2</td><td>1</td><td class="cell-meh">\(1/2=0.5\)</td></tr>
+              <tr><td>2</td><td>4</td><td>2</td><td class="cell-meh">\(2/4=0.5\)</td></tr>
+              <tr><td>3</td><td>6</td><td>3</td><td class="cell-meh">\(3/6=0.5\)</td></tr>
+              <tr><td>4</td><td>8</td><td>4</td><td class="cell-meh">\(4/8=0.5\)</td></tr>
+            </tbody>
+          </table>
+          <p class="small muted mt-3 center">\(\mathrm{AP} = \dfrac{0.5+0.5+0.5+0.5}{4} = 0.5\); with one query, \(\mathrm{MAP}=0.5\). Every hit lands one rank below a non-relevant doc, so each precision is exactly \(0.5\).</p>
+          <aside class="slide-notes">The relevant docs sit at ranks 2, 4, 6, 8 — each immediately after a non-relevant doc — so \(\mathrm{Precision}@k\) at every hit is exactly one-half. Averaging four halves over the four relevant docs gives AP = 0.5, and MAP = 0.5 for this single query. The uniform 0.5 is a tidy artifact of the perfectly alternating pattern; on real query sets these values vary and MAP separates good systems from bad.</aside>
+        </section>
+
+        <!-- ============================================ 14 · DIVIDER · PART 04 ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="14 Divider P4">
+          <div>
+            <div class="divider-num">Part 04</div>
+            <h1>Graded relevance:<br />nDCG</h1>
+            <p class="divider-sub">Not all hits are equal, and a hit at rank 1 beats a hit at rank 8.</p>
+          </div>
+          <aside class="slide-notes">Counting metrics treat every relevant doc as equally good and only loosely reward position. nDCG fixes both: it uses graded gains (some docs are more relevant than others) and a smooth logarithmic position discount, then normalizes by the best possible ordering so the score lands in [0, 1] and is comparable across queries.</aside>
+        </section>
+
+        <!-- ============================================ 15 · FORMULA · DCG / IDCG / nDCG ============================================ -->
+        <section class="slide" data-type="formula" data-screen-label="15 nDCG formula">
+          <div class="slide-header" style="border:none; padding-bottom:0;">
+            <h2>DCG, IDCG, and nDCG</h2>
+            <span class="slide-kicker">gain, discounted by position, then normalized</span>
+          </div>
+          <div class="formula-stage">
+            $$ \mathrm{DCG}@k = \sum_{i=1}^{k} \frac{g_i}{\log_2(i+1)}, \qquad \mathrm{nDCG}@k = \frac{\mathrm{DCG}@k}{\mathrm{IDCG}@k} $$
+          </div>
+          <div class="formula-caption">
+            <div class="var-block"><div class="var-symbol">\(g_i\)</div><div class="var-desc"><strong>Gain</strong><br />graded relevance of the doc at rank \(i\)</div></div>
+            <div class="var-block"><div class="var-symbol">\(\log_2(i+1)\)</div><div class="var-desc"><strong>Discount</strong><br />deeper ranks are worth less</div></div>
+            <div class="var-block"><div class="var-symbol">\(\mathrm{IDCG}@k\)</div><div class="var-desc"><strong>Ideal DCG</strong><br />DCG of the best possible ordering</div></div>
+          </div>
+          <p class="small muted mt-3 center">Dividing by \(\mathrm{IDCG}@k\) (the gain you'd get sorting docs best-first) puts \(\mathrm{nDCG}\) in \([0,1]\): \(1\) is a perfect ranking.</p>
+          <aside class="slide-notes">Three pieces. DCG sums each doc's gain divided by a logarithmic position discount, so a relevant doc high up contributes more than the same doc buried deep. IDCG is the DCG of the ideal ranking — all the highest-gain docs first — which is the maximum achievable. Dividing DCG by IDCG normalizes to [0, 1], making nDCG comparable across queries with different numbers of relevant docs. Next slide walks the discount column on our ranking.</aside>
+        </section>
+
+        <!-- ============================================ 16 · E2E · nDCG worked ============================================ -->
+        <section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="16 nDCG worked">
+          <div class="slide-header">
+            <h2>nDCG on our BM25 ranking</h2>
+            <span class="slide-kicker">E2E · binary gains \(g_i\in\{0,1\}\)</span>
+          </div>
+          <div class="e2e-arch">
+            <div class="e2e-arch-block" data-role="project" data-step-range="1" data-tooltip="Discount each rank by one over the base-two log of (i plus one).">
+              <div class="arch-name">discount</div><div class="arch-shape">\(1/\log_2(i{+}1)\)</div></div>
+            <div class="e2e-arch-arrow" data-step-range="1..2"></div>
+            <div class="e2e-arch-block" data-role="reduce" data-step-range="2" data-tooltip="Sum discounts at relevant ranks → DCG.">
+              <div class="arch-name">sum DCG</div><div class="arch-shape">\(1.7333\)</div></div>
+            <div class="e2e-arch-arrow" data-step-range="2..3"></div>
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="3" data-tooltip="DCG of the ideal ordering.">
+              <div class="arch-name">IDCG</div><div class="arch-shape">\(2.5616\)</div></div>
+            <div class="e2e-arch-arrow" data-step-range="3..4"></div>
+            <div class="e2e-arch-block" data-role="project" data-step-range="4" data-tooltip="Ratio → comparable score in [0,1].">
+              <div class="arch-name">nDCG</div><div class="arch-shape">\(\approx 0.677\)</div></div>
+            <div class="e2e-arch-legend"><span class="leg" data-role="project">setup / result</span><span class="leg" data-role="reduce">sum</span><span class="leg" data-role="nonlinear">ideal</span></div>
+          </div>
+          <div class="e2e-twin">
+            <div class="e2e-panel e2e-math-panel">
+              <div class="panel-head">What happens</div>
+              <div class="e2e-step" data-step="0"><div class="step-formula">$$g = [0,1,0,1,0,1,0,1]$$</div><p class="step-caption">Binary gains for our ranking: relevant docs at ranks \(2,4,6,8\) get gain \(1\), the rest \(0\).</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-formula">$$\tfrac{1}{\log_2 3}\approx 0.6309,\ \tfrac{1}{\log_2 5}\approx 0.4307$$</div><p class="step-caption"><strong>Discounts.</strong> Rank \(i\) is worth \(1/\log_2(i+1)\). Rank \(2\to 0.6309\), rank \(4\to 0.4307\), rank \(6\to 0.3562\), rank \(8\to 0.3155\).</p></div>
+              <div class="e2e-step" data-step="2"><div class="step-formula">$$\mathrm{DCG} = 0.6309+0.4307+0.3562+0.3155 = 1.7333$$</div><p class="step-caption"><strong>DCG.</strong> Only the four relevant ranks contribute; non-relevant ranks add \(0\).</p></div>
+              <div class="e2e-step" data-step="3"><div class="step-formula">$$\mathrm{IDCG} = \tfrac{1}{\log_2 2}+\tfrac{1}{\log_2 3}+\tfrac{1}{\log_2 4}+\tfrac{1}{\log_2 5} = 2.5616$$</div><p class="step-caption"><strong>IDCG.</strong> Ideal ordering puts all 4 relevant docs first (ranks \(1,2,3,4\)).</p></div>
+              <div class="e2e-step" data-step="4"><div class="step-formula">$$\mathrm{nDCG} = \frac{1.7333}{2.5616} \approx 0.677$$</div><p class="step-caption"><strong>Result.</strong> One comparable number in \([0,1]\) for our BM25 ranking.</p></div>
+            </div>
+            <div class="e2e-panel e2e-example-panel">
+              <div class="panel-head">Discount column</div>
+              <div class="e2e-step" data-step="0"><p class="step-caption">↓ Per-rank discount and contribution \(g_i\cdot\text{discount}\).</p></div>
+              <div class="e2e-step" data-step="1">
+                <div class="step-calc-row"><span class="matrix-label">rank 2, \(g{=}1\)</span><span class="matrix-label is-highlight">\(0.6309\)</span></div>
+                <div class="step-calc-row"><span class="matrix-label">rank 4, \(g{=}1\)</span><span class="matrix-label is-highlight">\(0.4307\)</span></div>
+                <div class="step-calc-row"><span class="matrix-label">rank 6, \(g{=}1\)</span><span class="matrix-label is-highlight">\(0.3562\)</span></div>
+                <div class="step-calc-row"><span class="matrix-label">rank 8, \(g{=}1\)</span><span class="matrix-label is-highlight">\(0.3155\)</span></div>
+              </div>
+              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label">DCG \(=\)</span><span class="matrix-label is-highlight">\(1.7333\)</span></div><p class="step-caption tiny">Sum of the four contributions.</p></div>
+              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label">IDCG \(=\)</span><span class="matrix-label is-highlight">\(2.5616\)</span></div><p class="step-caption tiny">Relevant docs at ranks 1–4.</p></div>
+              <div class="e2e-step" data-step="4"><div class="step-calc-row"><span class="matrix-label">nDCG \(=\)</span><span class="matrix-label is-highlight">\(0.6766\)</span></div><p class="step-caption tiny">\(1.7333 / 2.5616\).</p></div>
+            </div>
+          </div>
+          <div class="e2e-stepper">
+            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">←</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 4</span></div><button type="button" class="step-btn" data-step-act="next">→</button></div>
+            <span class="e2e-stage-name">overview</span>
+            <button type="button" class="e2e-toggle">Theory only</button>
+          </div>
+          <aside class="slide-notes">The headline computation, all exact. Discounts: \(1/\log_2 3=0.6309\), \(1/\log_2 5=0.4307\), \(1/\log_2 7=0.3562\), \(1/\log_2 9=0.3155\). Only relevant ranks contribute, so \(\mathrm{DCG}=0.6309+0.4307+0.3562+0.3155=1.7333\). The ideal ranking puts all four relevant docs at ranks 1–4, giving \(\mathrm{IDCG}=1/\log_2 2+1/\log_2 3+1/\log_2 4+1/\log_2 5=2.5616\). The ratio is \(\mathrm{nDCG}=1.7333/2.5616\approx 0.677\) — a single number you can compare to any other ranker on this query.</aside>
+        </section>
+
+        <!-- ============================================ 17 · VIZ · ideal vs actual ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="17 Ideal vs actual">
+          <div class="slide-header">
+            <h2>Why nDCG &lt; 1: the ideal ladder</h2>
+            <span class="slide-kicker">DCG vs IDCG</span>
+          </div>
+          <div class="viz-frame">
+            <img src="assets/img/L4/L4-04-ndcg-ideal-vs-actual.png?v=1" alt="The nDCG ladder: the ideal ranking stacks all relevant docs at the top, the actual ranking interleaves them" style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />
+          </div>
+          <p class="viz-caption">The ideal ranking front-loads all relevant docs (ranks \(1\)–\(4\)) for \(\mathrm{IDCG}=2.5616\); our BM25 ranking scatters them to ranks \(2,4,6,8\) for \(\mathrm{DCG}=1.7333\). Their ratio, \(\mathrm{nDCG}\approx 0.677\), says we captured about two-thirds of the achievable gain.</p>
+          <aside class="slide-notes">The intuition behind normalization. IDCG is the score of a perfect ranker that puts every relevant doc as high as possible; it is the ceiling for this query. Our ranker scattered the relevant docs down the list, paying the log discount each time, so it earns only 1.7333 of the available 2.5616 — about 68%. nDCG = 0.677 is therefore "two-thirds of the way to perfect", a phrase you can compare directly against any other system on the same query set.</aside>
+        </section>
+
+        <!-- ============================================ 18 · MISCONCEPTION · Goodhart ============================================ -->
+        <section class="slide" data-type="misconception" data-screen-label="18 Goodhart">
+          <div class="slide-header">
+            <h2>Common misconception</h2>
+            <span class="slide-kicker">Goodhart the Trickster</span>
+          </div>
+          <div class="misc-card">
+            <div class="misc-label">What teams think</div>
+            <p class="misc-statement">&ldquo;If we optimise the metric, the system must be getting better.&rdquo;</p>
+            <button class="misc-reveal-btn" type="button">Reveal truth</button>
+            <div class="misc-truth"><strong>Goodhart's law:</strong> when a measure becomes a target, it stops being a good measure. Optimise a proxy (clicks, popularity) and the ranking can look busier while genuine relevance falls. The metric you trained on quietly stops measuring what you cared about.
+              <p class="misc-anchor">
+                <strong>Worked example.</strong> Take a "popularity-first" ranking that pushes a popular-but-off-topic doc to the top: order <code>[D6, D7, D5, D4, D3, D2, D0, D1]</code>.
+                <br>It looks active and clickable, but every relevant doc is now <em>below</em> the irrelevant ones.
+                <br>Result: \(\mathrm{nDCG}=0.543\) versus our honest BM25 ranking's \(0.677\). The popularity hack scores <strong>lower</strong>, not higher.
+              </p>
+            </div>
+          </div>
+          <aside class="slide-notes">Goodhart the Trickster returns — first met in Lecture 1, now in his home territory of Measure. The trap: teams chase an easy proxy like click-through or popularity, assuming it tracks relevance. It does not. The gamed ranking here stuffs popular hockey docs at the top; it looks engaging but pushes every space doc downward, so nDCG drops from 0.677 to 0.543. The lesson: a metric is only honest while it is not the thing being gamed — which is exactly why we evaluate against held-out relevance judgments, not against the signal we optimised. Goodhart returns in Lecture 11 to game the LLM judge.</aside>
+        </section>
+
+        <!-- ============================================ 19 · REFERENCES ============================================ -->
+        <section class="slide" data-type="refs" data-screen-label="19 References">
+          <div class="slide-header">
+            <h2>References &amp; further reading</h2>
+            <span class="slide-kicker">Read next</span>
+          </div>
+          <ol class="ref-list">
+            <li><span class="ref-body"><span class="ref-authors">Järvelin, K. &amp; Kekäläinen, J.</span> · <span class="ref-title">Cumulated Gain-Based Evaluation of IR Techniques (nDCG)</span> · <span class="ref-venue">ACM TOIS</span></span><span class="ref-year">2002</span></li>
+            <li><span class="ref-body"><span class="ref-authors">Manning, C., Raghavan, P. &amp; Schütze, H.</span> · <span class="ref-title">Introduction to Information Retrieval</span> · <span class="ref-venue">CUP · ch. 8 (MAP, MRR, \(\mathrm{P}@k\))</span></span><span class="ref-year">2008</span></li>
+            <li><span class="ref-body"><span class="ref-authors">Goodhart, C.</span> · <span class="ref-title">Goodhart's law — "when a measure becomes a target, it ceases to be a good measure"</span> · <span class="ref-venue">monetary-policy commentary</span></span><span class="ref-year">1975</span></li>
+          </ol>
+          <aside class="slide-notes">Järvelin and Kekäläinen is the original nDCG paper. Manning, Raghavan and Schütze chapter 8 is the standard reference for the counting metrics — \(\mathrm{Precision}@k\), MAP, and MRR. Goodhart's law is the conceptual anchor for the misconception slide; Strathern's reformulation is the wording quoted.</aside>
+        </section>
+
+        <!-- ============================================ 20 · FINAL / Q&A ============================================ -->
+        <section class="slide" data-type="final" data-screen-label="20 Final">
+          <div class="final-body">
+            <h1>Questions?</h1>
+            <p class="final-sub">Now we can compare systems honestly — and we know which numbers lie.</p>
+            <div class="contact-grid">
+              <div class="contact-item"><div class="contact-label">Email</div><div class="contact-value">a.nasibullin@innopolis.university</div></div>
+              <div class="contact-item"><div class="contact-label">Office hours</div><div class="contact-value">Wed 16:00–17:40 (before class)</div></div>
+              <div class="contact-item"><div class="contact-label">GitHub</div><div class="contact-value">github.com/levshaazz/deep-learning-for-search-summer-2026</div></div>
+            </div>
+            <div class="qr-block">
+              <div class="qr-canvas" data-qr="https://levshaazz.github.io/deep-learning-for-search-summer-2026/"></div>
+              <div class="qr-caption">Full lecture materials<span class="qr-url">levshaazz.github.io/deep-learning-for-search-summer-2026</span></div>
+            </div>
+          </div>
+
+          <img src="assets/img/L4/L4-03-goodhart-trickster.png?v=1" alt="" aria-hidden="true"
+               class="cameo bl" style="width:300px; border-radius:14px;" />
+
+          <aside class="slide-notes">The honest scoreboard at last. With \(\mathrm{Recall}@k\), \(\mathrm{Precision}@k\), MRR, MAP and nDCG we can finally say which ranker is better — and we know that gaming a metric (Goodhart) backfires. Bridge to Lecture 5: our BM25 catalog is fast and measurable but synonym-blind — it cannot tell that "spacecraft" and "shuttle" mean the same thing. Can a neural system beat it? To find out we must give words meaning: embeddings. QR points to the course hub.</aside>
+        </section>
+
+      </div><!-- /.slides -->
+    </div><!-- /.stage -->
+  </div><!-- /.deck -->
+
+  <!-- JS -->
+  <script src="js/deck.js"></script>
+  <script src="js/tools.js"></script>
+  <script src="js/pen.js"></script>
+  <script src="js/notes.js"></script>
+  <script src="js/handout.js"></script>
+  <script src="js/presenter.js"></script>
+  <script src="js/tweaks.js"></script>
+  <script src="js/demos.js"></script>
+  <script src="js/e2e.js"></script>
+  <script src="js/lab.js"></script>
+  <script src="js/archflow.js"></script>
+  <script src="js/sequence.js"></script>
+  <script src="js/budget.js"></script>
+  <script src="js/preflight.js"></script>
+</body>
+</html>
