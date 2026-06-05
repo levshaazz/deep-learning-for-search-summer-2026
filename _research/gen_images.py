@@ -151,6 +151,89 @@ JOBS = [
      "the top rungs, the right 'actual' ladder has them scattered lower; Serega compares the two with "
      "a measuring tape. Conveys nDCG as actual versus ideal ordering."),
 
+    # ---- L3 · The Star Catalog · DEEPENING (new art, L3-1N range) ----
+    ("L3", "L3/L3-10-scan-vs-catalog.png", "16:9", True,
+     "a split panel. LEFT: a tiny weary Serega with a torch drifting alone through an enormous "
+     "black sky of a billion identical little stars, a hand-lettered tally '… checked 12 of "
+     "1,000,000,000' trailing behind him — clearly hopeless. RIGHT: the same sky, but now a tidy "
+     "wooden card-catalogue cabinet floats in space; Serega calmly pulls open one labelled drawer "
+     "and a thin warm-orange beam shoots straight to the three stars he wanted. Big hand-lettered "
+     "contrast 'scan everything?' versus 'look it up.' GREEN appears NOWHERE in the image except "
+     "Serega's own skullcap — every star, every drawer, the torch, the beam are black ink + "
+     "warm-orange only, no green anywhere else. No lettered title bar."),
+    ("L3", "L3/L3-11-inverted-index-cards.png", "16:9", True,
+     "the inverted index as a wall of constellation catalogue cards: a tall library wall of small "
+     "index cards, each card a hand-lettered word at the top ('nova', 'binary', 'comet') and below "
+     "it a little list of star-chart thumbnails the word points to (tiny sketched constellations "
+     "with chart-numbers). Warm-orange string runs from each word-card to its charts like a "
+     "detective board. Serega on a small ladder files one new card. Hand-lettered banner doodle "
+     "'word -> list of star-charts'. GREEN appears NOWHERE except Serega's own skullcap — the "
+     "cards, string, and charts are black ink + warm-orange only, no green anywhere else. No "
+     "lettered title bar."),
+    ("L3", "L3/L3-12-postings-compression.png", "16:9", True,
+     "a long star-map scroll being folded and compressed like an accordion: the unfolded LEFT half "
+     "shows star IDs strung out with big empty space between them ('7 … 12 … 13 … 99'); a "
+     "warm-orange arrow and a hand crank push them through a little press so the RIGHT half stores "
+     "only the gaps between neighbouring stars ('+7 +5 +1 +86'), the scroll now squeezed to a "
+     "fraction of the width. Hand-lettered 'store the gaps, not the stars'. Serega turning the "
+     "press crank, tiny satisfied smile. GREEN appears NOWHERE except Serega's own skullcap — the "
+     "scroll, press, and numbers are black ink + warm-orange only, no green anywhere else. Tight, "
+     "tidy, whiteboard feel. No lettered title bar."),
+    ("L3", "L3/L3-13-bm25-saga.png", "16:9", True,
+     "THE BM25 SAGA — engineering refined over generations. A left-to-right timeline of navigation "
+     "instruments getting more refined each era, like an evolution chart, each on its own little "
+     "pedestal with a short hand-lettered label: (1) a crude knotted rope and stick ('count "
+     "words'), (2) a simple plumb-bob ('TF-IDF'), (3) a wooden quadrant, (4) a polished brass "
+     "sextant glowing warm-orange ('BM25'), (5) a finely-engraved sextant with extra dials and "
+     "tuning screws ('BM25 tuned'). Serega, a little older and greyer-haired at each station, "
+     "lovingly tunes and upgrades the same instrument down the line — a workshop of refinement "
+     "across decades. Hand-lettered arc 'refined, generation after generation'. Saturated "
+     "brass/orange plus course blue. GREEN appears NOWHERE except Serega's own skullcap — the "
+     "instruments and pedestals are black ink + warm-orange + blue only, no green anywhere else. "
+     "This is the lecture centerpiece — make it evocative and proud. No lettered title bar."),
+    ("L3", "L3/L3-14-pagerank-stars-voting.png", "16:9", True,
+     "PageRank as a web of stars voting for each other. A constellation of stars connected by "
+     "directed warm-orange arrows (link-votes) — each arrow is a little ballot flying from one "
+     "star toward another. Most stars are small and dim; arrows pile onto ONE central authority "
+     "star that glows the brightest (thicker outline, radiating doodle sparkle-lines, a tiny "
+     "hand-lettered crown). A couple of popular stars also pass their vote-weight onward along fat "
+     "arrows. Serega floats to the side with a clipboard tallying votes. Hand-lettered 'links = "
+     "votes; authority glows'. The bright authority star is WARM-ORANGE, never green. GREEN "
+     "appears NOWHERE except Serega's own skullcap — all stars and arrows are black ink + "
+     "warm-orange only, no green anywhere else. No lettered title bar."),
+    ("L3", "L3/L3-15-fusion-navigators-council.png", "16:9", True,
+     "rank fusion as a council of navigators merging their star-charts. A round table in a ship's "
+     "chart-room; three or four navigator stick-figures each lay down their own ranked star-chart "
+     "(numbered lists '1,2,3' beside little constellations) — the charts disagree. Warm-orange "
+     "arrows sweep all the charts into a central fused master-chart that one figure holds up. "
+     "Serega chairs the council, a compass in hand. Hand-lettered 'many charts -> one ranking'. "
+     "Keep the disagreement visible (different orderings), then the harmony of the merged chart. "
+     "GREEN appears NOWHERE except Serega's own skullcap — the other navigators are bare-headed, "
+     "and the table, charts and arrows are black ink + warm-orange + blue only, no green anywhere "
+     "else. No lettered title bar."),
+
+    # ---- L4 · The Proving Grounds · DEEPENING (new art, L4-1N range) ----
+    ("L4", "L4/L4-10-significance-dice.png", "16:9", True,
+     "'the dice of chance' — is the difference real? Serega stands between two scoreboards showing "
+     "two search systems with almost-equal scores ('0.612' versus '0.628'), scratching his head. "
+     "In one hand he holds a pair of tumbling dice, in the other a spinning coin — asking whether "
+     "the gap is skill or just luck. A faint warm-orange bell-curve arcs behind the two scores "
+     "with a tiny shaded tail; a hand-lettered 'real… or random?' speech doodle. The mood: a "
+     "referee unsure whether to call a winner. Keep numbers as illustrative doodle text only, not "
+     "a real table. GREEN appears NOWHERE except Serega's own skullcap — the dice, coin, "
+     "scoreboards and bell-curve are black ink + warm-orange only, no green anywhere else. No "
+     "lettered title bar."),
+    ("L4", "L4/L4-11-ab-parallel-universes.png", "16:9", True,
+     "an A/B test as two parallel universes of users. The frame splits into two side-by-side "
+     "bubble-worlds (two soap-bubble universes) divided by a wavy warm-orange seam: UNIVERSE A's "
+     "crowd of little stick-users all see search ship A, UNIVERSE B's identical crowd sees ship B. "
+     "A tiny dotted line randomly sorts incoming users into each bubble at the top. Below, two "
+     "little tally-meters compare 'clicks' per universe. Serega stands on the seam between worlds, "
+     "one foot in each, comparing. Hand-lettered 'same users, split in two — which world is "
+     "better?'. GREEN appears NOWHERE except Serega's own skullcap — the bubbles, users, ships, "
+     "seam and meters are black ink + course-blue + warm-orange only, no green anywhere else. No "
+     "lettered title bar."),
+
     # ---- course cover (banner + GitHub social card) ----
     ("char", "_char/cover.png", "16:9", True,
      "the course cover banner for a graduate course called 'Deep Learning for Search'. Wide "
