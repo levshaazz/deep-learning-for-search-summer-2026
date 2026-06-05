@@ -15,6 +15,12 @@ import pbManifest from '../../widgets/pos-bias-curve/manifest.json';
 import pbI18n from '../../widgets/pos-bias-curve/i18n.json';
 import cmManifest from '../../widgets/course-map/manifest.json';
 import cmI18n from '../../widgets/course-map/i18n.json';
+import iiManifest from '../../widgets/inverted-index/manifest.json';
+import iiI18n from '../../widgets/inverted-index/i18n.json';
+import bmManifest from '../../widgets/bm25-calc/manifest.json';
+import bmI18n from '../../widgets/bm25-calc/i18n.json';
+import rfManifest from '../../widgets/rrf-fusion/manifest.json';
+import rfI18n from '../../widgets/rrf-fusion/i18n.json';
 
 import dCosine from '../../data/l2-cosine.json';
 import dCorpus from '../../data/l2-corpus-stats.json';
@@ -22,6 +28,9 @@ import dBpe from '../../data/l2-bpe.json';
 import dHighd from '../../data/l2-highd.json';
 import dFunnel from '../../data/l1-funnel.json';
 import dClick from '../../data/l1-click-model.json';
+import dIndex from '../../data/l3-index.json';
+import dBm25 from '../../data/l3-bm25.json';
+import dRrf from '../../data/l3-rrf.json';
 
 export const WIDGET_META = {
   'cosine-sphere':        { manifest: csManifest, i18n: csI18n },
@@ -31,6 +40,9 @@ export const WIDGET_META = {
   'retrieve-rank-funnel': { manifest: fnManifest, i18n: fnI18n },
   'pos-bias-curve':       { manifest: pbManifest, i18n: pbI18n },
   'course-map':           { manifest: cmManifest, i18n: cmI18n },
+  'inverted-index':       { manifest: iiManifest, i18n: iiI18n },
+  'bm25-calc':            { manifest: bmManifest, i18n: bmI18n },
+  'rrf-fusion':           { manifest: rfManifest, i18n: rfI18n },
 };
 
 export const DATA = {
@@ -40,4 +52,7 @@ export const DATA = {
   'l2-highd': dHighd,
   'l1-funnel': dFunnel,
   'l1-click-model': dClick,
+  'l3-index': dIndex,
+  'l3-bm25': dBm25,
+  'l3-rrf': dRrf,
 };

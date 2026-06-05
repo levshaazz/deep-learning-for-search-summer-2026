@@ -7,6 +7,7 @@ import { WIDGET_META, DATA } from '../../../lib/widgets.js';
 import l0 from '../../../../content/book/l0.js';
 import l1 from '../../../../content/book/l1.js';
 import l2 from '../../../../content/book/l2.js';
+import l3 from '../../../../content/book/l3.js';
 
 // widget styles (bundled globally) + shared widget base
 import '../../../../widgets/_base.css';
@@ -17,13 +18,16 @@ import '../../../../widgets/highd-histogram/style.css';
 import '../../../../widgets/retrieve-rank-funnel/style.css';
 import '../../../../widgets/pos-bias-curve/style.css';
 import '../../../../widgets/course-map/style.css';
+import '../../../../widgets/inverted-index/style.css';
+import '../../../../widgets/bm25-calc/style.css';
+import '../../../../widgets/rrf-fusion/style.css';
 
 // NOTE: getStaticPaths runs in isolation and may reference only imports (not frontmatter consts).
 export function getStaticPaths() {
-  const ids = [l0.id, l1.id, l2.id];
+  const ids = [l0.id, l1.id, l2.id, l3.id];
   return LOCALES.flatMap((lang) => ids.map((id) => ({ params: { lang, id } })));
 }
-const CHAPTERS = { '00': l0, '01': l1, '02': l2 };
+const CHAPTERS = { '00': l0, '01': l1, '02': l2, '03': l3 };
 const { lang, id } = Astro.params;
 const chapter = CHAPTERS[id];
 const lec = course.lectures.find((l) => l.id === id);
@@ -86,6 +90,9 @@ const proseText = (body) => (Array.isArray(body) ? body : [body]);
     import { mountRetrieveRankFunnel } from '../../../../widgets/retrieve-rank-funnel/logic.js';
     import { mountPosBiasCurve } from '../../../../widgets/pos-bias-curve/logic.js';
     import { mountCourseMap } from '../../../../widgets/course-map/logic.js';
+    import { mountInvertedIndex } from '../../../../widgets/inverted-index/logic.js';
+    import { mountBm25Calc } from '../../../../widgets/bm25-calc/logic.js';
+    import { mountRrfFusion } from '../../../../widgets/rrf-fusion/logic.js';
 
     const MOUNT = {
       'cosine-sphere': mountCosineSphere,
@@ -95,6 +102,9 @@ const proseText = (body) => (Array.isArray(body) ? body : [body]);
       'retrieve-rank-funnel': mountRetrieveRankFunnel,
       'pos-bias-curve': mountPosBiasCurve,
       'course-map': mountCourseMap,
+      'inverted-index': mountInvertedIndex,
+      'bm25-calc': mountBm25Calc,
+      'rrf-fusion': mountRrfFusion,
     };
     const payload = JSON.parse(document.getElementById('cs-payload').textContent);
     const figs = {};
