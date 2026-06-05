@@ -3,110 +3,140 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { LOCALES, t, withBase, localizedPath } from '../../../i18n/locales.js';
 import { ui } from '../../../i18n/ui.js';
 import { course } from '../../../lib/course.js';
-import cosineData from '../../../../data/l2-cosine.json';
-import cosineI18n from '../../../../widgets/cosine-sphere/i18n.json';
-import '../../../../widgets/cosine-sphere/style.css';
+import { WIDGET_META, DATA } from '../../../lib/widgets.js';
+import l2 from '../../../../content/book/l2.js';
 
-// Phase-3 proof: only the L2 cosine-sphere climb chapter exists so far.
+// widget styles (bundled globally) + shared widget base
+import '../../../../widgets/_base.css';
+import '../../../../widgets/cosine-sphere/style.css';
+import '../../../../widgets/bpe-merge-ledger/style.css';
+import '../../../../widgets/zipf-heaps/style.css';
+import '../../../../widgets/highd-histogram/style.css';
+
+// NOTE: getStaticPaths runs in isolation and may reference only imports (not frontmatter consts).
 export function getStaticPaths() {
-  const ids = ['02'];
+  const ids = [l2.id];
   return LOCALES.flatMap((lang) => ids.map((id) => ({ params: { lang, id } })));
 }
+const CHAPTERS = { '02': l2 };
 const { lang, id } = Astro.params;
+const chapter = CHAPTERS[id];
 const lec = course.lectures.find((l) => l.id === id);
-
-// Resolve the widget's labels for THIS locale (build-time fallback tt -> ru -> en),
-// and the figure data. Both are handed to the client island via a JSON <script>.
-const labels = Object.fromEntries(Object.entries(cosineI18n).map(([k, v]) => [k, t(v, lang)]));
-const payload = { data: cosineData, labels: { ...labels, role: 'img' } };
-
-// scroll steps = the widget steps; each prose block is the step's i18n caption (s0..s4).
-const steps = [0, 1, 2, 3, 4];
-const intro = {
-  en: "I'm Serega, and I've got a problem. Length keeps lying to me — a longer sentence isn't “more meaning.” So I stopped asking how far apart two vectors are, and started asking which way they point. Scroll on.",
-  ru: 'Я Серёга, и у меня проблема. Длина постоянно врёт — длинное предложение не значит «больше смысла». Поэтому я перестал спрашивать, насколько далеки два вектора, и начал спрашивать, куда они смотрят. Листай дальше.',
-};
-const outro = {
-  en: 'Sir Cosine wins on the sphere: direction is what carries meaning. Next chapter — where do those directions come from? Embeddings.',
-  ru: 'Сэр Косинус побеждает на сфере: смысл несёт направление. Следующая глава — откуда берутся эти направления? Эмбеддинги.',
-};
 const showFallbackNotice = lang === 'tt';
+
+// Resolve every beat for this locale; build the client payload (scrolly beats only).
+const beats = chapter.beats.map((b) => {
+  if (b.kind !== 'scrolly') return b;
+  const meta = WIDGET_META[b.widget];
+  const labels = Object.fromEntries(Object.entries(meta.i18n).map(([k, v]) => [k, t(v, lang)]));
+  const steps = meta.manifest.steps.map((s) => ({ step: s.step, label: labels[s.labelKey] || '' }));
+  return { ...b, labels, steps };
+});
+const payload = {
+  beats: beats.filter((b) => b.kind === 'scrolly')
+    .map((b) => ({ id: b.id, widget: b.widget, data: DATA[b.data], labels: { ...b.labels, role: 'img' } })),
+};
+const proseText = (body) => (Array.isArray(body) ? body : [body]);
 ---
-<BaseLayout lang={lang} page={`book/${id}`} title={`${lec.catchphrase} · ${t(course.meta.title, lang)}`}>
+<BaseLayout lang={lang} page={`book/${id}`} title={`${chapter.catchphrase} · ${t(course.meta.title, lang)}`}>
   <article class="book">
     <header class="book-head wrap">
-      <div class="book-kick">{t(ui.nav.book, lang)} · {lec.id} · {lec.catchphrase}</div>
+      <div class="book-kick">{t(ui.nav.book, lang)} · {lec.id} · {chapter.catchphrase}</div>
       <h1>{t(lec.title, lang)}</h1>
       {showFallbackNotice && <p class="notice">{t(ui.translationInProgress, lang)}</p>}
-      <p class="book-lead">{t(intro, lang)}</p>
-      <p class="book-xref">
-        <a href={withBase('/' + lec.deckFile)}>{t(ui.labels.openSlides, lang)} →</a>
-      </p>
+      <p class="book-xref"><a href={withBase('/' + lec.deckFile)}>{t(ui.labels.openSlides, lang)} →</a></p>
     </header>
 
-    <!-- scrollytelling: sticky figure (left) + scrolling prose (right). SAME widget as the slide. -->
-    <div class="scrolly">
-      <figure class="scrolly-graphic">
-        <div id="cs-fig" class="cs-mount"></div>
-      </figure>
-      <div class="scrolly-steps">
-        {steps.map((k) => (
-          <section class="scroll-step" data-step={k}>
-            <p>{labels['s' + k]}</p>
-          </section>
-        ))}
-      </div>
-    </div>
+    {beats.map((b) => b.kind === 'prose' ? (
+      <section class="beat-prose wrap" id={b.id}>
+        {b.heading && <h2>{t(b.heading, lang)}</h2>}
+        {proseText(t(b.body, lang)).map((p) => <p>{p}</p>)}
+      </section>
+    ) : (
+      <section class="scrolly" id={b.id} data-beat={b.id}>
+        <figure class="scrolly-graphic">
+          <figcaption class="scrolly-cap">{t(WIDGET_META[b.widget].manifest.title, lang)}</figcaption>
+          <div class="cs-mount" id={`fig-${b.id}`}></div>
+        </figure>
+        <div class="scrolly-steps">
+          {b.steps.map((s) => (
+            <div class="scroll-step" data-beat={b.id} data-step={s.step}><p>{s.label}</p></div>
+          ))}
+        </div>
+      </section>
+    ))}
 
     <footer class="book-foot wrap">
-      <p class="book-lead">{t(outro, lang)}</p>
       <p class="book-xref"><a href={localizedPath(lang)}>← {t(ui.sections.lectures, lang)}</a></p>
     </footer>
   </article>
 
   <script type="application/json" id="cs-payload" set:html={JSON.stringify(payload)}></script>
   <script>
-    import { mountCosineSphere } from '../../../../widgets/cosine-sphere/logic.js';
     import scrollama from 'scrollama';
+    import { mountCosineSphere } from '../../../../widgets/cosine-sphere/logic.js';
+    import { mountBpeLedger } from '../../../../widgets/bpe-merge-ledger/logic.js';
+    import { mountZipfHeaps } from '../../../../widgets/zipf-heaps/logic.js';
+    import { mountHighdHistogram } from '../../../../widgets/highd-histogram/logic.js';
+
+    const MOUNT = {
+      'cosine-sphere': mountCosineSphere,
+      'bpe-merge-ledger': mountBpeLedger,
+      'zipf-heaps': mountZipfHeaps,
+      'highd-histogram': mountHighdHistogram,
+    };
     const payload = JSON.parse(document.getElementById('cs-payload').textContent);
-    const fig = mountCosineSphere(document.getElementById('cs-fig'), payload);
-    window.__fig = fig; // headless verification hook
+    const figs = {};
+    for (const b of payload.beats) {
+      const el = document.getElementById('fig-' + b.id);
+      if (el && MOUNT[b.widget]) figs[b.id] = MOUNT[b.widget](el, { data: b.data, labels: b.labels });
+    }
+    window.__figs = figs; // headless verification hook
+
     const sc = scrollama();
     sc.setup({ step: '.scroll-step', offset: 0.6 }).onStepEnter(({ element }) => {
-      fig.setStep(Number(element.dataset.step));
+      const f = figs[element.dataset.beat];
+      if (f) f.setStep(Number(element.dataset.step));
     });
     addEventListener('resize', () => sc.resize());
   </script>
 
-  <!-- global: the widget's caption/counter are injected at runtime, so they don't get
-       Astro's scoped attribute — hide them in scroll context via a global rule. -->
+  <!-- global: widget captions/counters are runtime-injected (no Astro scope) — hide in scroll context -->
   <style is:global>
+    .scrolly .wgt-caption, .scrolly .wgt-counter,
     .scrolly .cs-caption, .scrolly .cs-counter { display: none; }
   </style>
 
   <style>
-    .book { --gap: var(--ws-5); }
-    .book-head, .book-foot { padding-top: var(--ws-5); padding-bottom: var(--ws-3); }
+    .book h1 { font-family: var(--font-serif); font-size: var(--fz-h1); margin: 8px 0 14px; }
     .book-kick { font-family: var(--font-mono); font-size: var(--fz-tiny); letter-spacing: 2px;
       text-transform: uppercase; color: var(--warm-ink); }
-    .book h1 { font-family: var(--font-serif); font-size: var(--fz-h1); margin: 8px 0 14px; }
-    .book-lead { font-size: var(--fz-lead); color: var(--ink-2); max-width: var(--ws-measure); line-height: 1.6; }
+    .book-head, .book-foot { padding-top: var(--ws-5); padding-bottom: var(--ws-3); }
     .book-xref { font-family: var(--font-mono); font-size: var(--fz-small); margin-top: var(--ws-3); }
 
+    .beat-prose { padding: var(--ws-3) var(--ws-4); }
+    .beat-prose h2 { font-family: var(--font-serif); font-size: var(--fz-h2); margin: var(--ws-3) 0 8px; }
+    .beat-prose p { font-size: var(--fz-lead); line-height: 1.65; color: var(--ink-2);
+      max-width: var(--ws-measure); margin: 0 auto 0 0; }
+    .beat-prose p + p { margin-top: var(--ws-2); }
+
     .scrolly { display: grid; grid-template-columns: var(--ws-book-graphic) 1fr;
-      gap: var(--ws-5); max-width: var(--ws-page); margin: 0 auto; padding: 0 var(--ws-4); }
-    .scrolly-graphic { position: sticky; top: 12vh; align-self: start; height: 76vh;
-      display: flex; align-items: center; margin: 0; }
+      gap: var(--ws-5); max-width: var(--ws-page); margin: var(--ws-5) auto; padding: 0 var(--ws-4); }
+    .scrolly-graphic { position: sticky; top: 10vh; align-self: start; min-height: 60vh;
+      display: flex; flex-direction: column; justify-content: center; gap: var(--ws-2); margin: 0; }
+    .scrolly-cap { font-family: var(--font-mono); font-size: var(--fz-tiny); letter-spacing: 1px;
+      text-transform: uppercase; color: var(--ink-3); }
     .cs-mount { width: 100%; }
     .scrolly-steps { display: flex; flex-direction: column; }
-    .scroll-step { min-height: 78vh; display: flex; align-items: center; }
+    .scroll-step { min-height: 80vh; display: flex; align-items: center; }
+    .scroll-step:last-child { min-height: 60vh; }
     .scroll-step p { font-size: var(--fz-lead); line-height: 1.55; color: var(--ink);
       max-width: 46ch; border-left: 3px solid var(--accent-soft); padding-left: var(--ws-3); }
 
     @media (max-width: 820px) {
       .scrolly { grid-template-columns: 1fr; gap: var(--ws-2); }
-      .scrolly-graphic { position: sticky; top: 0; height: auto; padding: var(--ws-2) 0;
-        background: var(--bg); z-index: 5; }
+      .scrolly-graphic { position: sticky; top: 0; min-height: 0; padding: var(--ws-2) 0;
+        background: var(--bg); z-index: 5; box-shadow: 0 6px 12px -8px rgba(0,0,0,.25); }
       .scroll-step { min-height: 70vh; }
     }
   </style>
