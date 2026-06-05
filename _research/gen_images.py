@@ -211,6 +211,31 @@ JOBS = [
      "GREEN appears NOWHERE except Serega's own skullcap — the other navigators are bare-headed, "
      "and the table, charts and arrows are black ink + warm-orange + blue only, no green anywhere "
      "else. No lettered title bar."),
+    ("L3", "L3/L3-16-bag-of-words.png", "16:9", True,
+     "the Bag-of-Words / vector-space idea drawn literally. CENTER-LEFT: Serega tips a single "
+     "document page upside-down into a literal cloth drawstring BAG (a plain sack), and the words "
+     "tumble OUT of the page and fall into the bag as loose little word-scraps — their original "
+     "left-to-right order clearly lost, scrambled and jumbled inside the sack (a couple of scraps "
+     "spill mid-air, e.g. 'star', 'orbit', 'star', 'the'). CENTER-RIGHT, beside the bag: Serega has "
+     "tallied the word COUNTS onto small paper tickets and stacked them into a tall numeric COLUMN "
+     "VECTOR — a narrow vertical bracketed column of word:count rows ('star 2', 'orbit 1', 'the 4', "
+     "'…') reading like a numeric vector. A warm-orange arrow runs from the bag to the column. One "
+     "hand-lettered doodle label reads 'order out -> counts in'. Conveys 'a document becomes a "
+     "vector of word counts'. GREEN appears NOWHERE in the image except Serega's own skullcap — the "
+     "page, bag, word-scraps, tickets and column vector are black ink + warm-orange only, no green "
+     "anywhere else. No lettered title bar; the ONLY hand-lettered marks are the few short word "
+     "tally words, the tiny counts, and the one doodle label named."),
+    ("L3", "L3/L3-17-reweight.png", "16:9", True,
+     "the TF-IDF re-weighting idea drawn as a two-pan balance SCALE. On the LEFT pan sits the common "
+     "word 'the' drawn TINY and squashed flat / pressed down low — cheap and worthless, weighed "
+     "down to the bottom. On the RIGHT pan sits the rare word 'orbit' drawn BIG and bold and lifted "
+     "HIGH, glowing warm-orange like a precious nugget of gold. Serega stands at the scale's pivot "
+     "adjusting it, nudging the beam so the rare word rises. A thin warm-orange up-arrow lifts "
+     "'orbit' and a small down-arrow pushes 'the' down. One hand-lettered doodle label reads "
+     "'common -> cheap, rare -> gold'. Conveys 'weight terms by how rare they are'. GREEN appears "
+     "NOWHERE in the image except Serega's own skullcap — the scale, both words, pans and arrows "
+     "are black ink + warm-orange only, no green anywhere else. No lettered title bar; the ONLY "
+     "hand-lettered marks are the two words 'the' and 'orbit' and the one doodle label named."),
 
     # ---- L4 · The Proving Grounds · DEEPENING (new art, L4-1N range) ----
     ("L4", "L4/L4-10-significance-dice.png", "16:9", True,
