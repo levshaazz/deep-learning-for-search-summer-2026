@@ -158,6 +158,112 @@ def main():
                           "terms": weights, "bm25Score": round(score, 4)})
     cd_rank = [s["id"] for s in sorted(cd_scored, key=lambda s: (-s["bm25Score"], s["id"]))]
 
+    # ── NEW (от-и-до): fully-substituted intermediate steps for the cat/dog flagship ────────────────
+    # Surfaces EVERY middle value the "step-by-step" slides display: avgdl derivation, substituted idf
+    # pieces, and per-(term,doc) B-factor sub-parts (lenRatio→bracket→denom→numer→B) + B·idf + doc sum.
+    cd_avgdl_steps = {
+        "lengths": [cd_lens["D1"], cd_lens["D2"], cd_lens["D3"]],
+        "sum": sum(cd_lens.values()),
+        "count": cd_N,
+        "avgdl": round(cd_avgdl, 4),
+    }
+    cd_idf_steps = {}
+    for t in cd_query:
+        dfc = cd_df.get(t, 0)
+        numer = cd_N - dfc + 0.5
+        denom = dfc + 0.5
+        ratio = numer / denom
+        ln_arg = 1 + ratio
+        val = math.log(ln_arg)
+        cd_idf_steps[t] = {
+            "df": dfc, "N": cd_N,
+            "numer": round(numer, 4), "denom": round(denom, 4),
+            "ratio": round(ratio, 4), "lnArg": round(ln_arg, 4),
+            "idf": round(val, 4),
+            "expr": f"ln(1+({cd_N}-{dfc}+0.5)/({dfc}+0.5))=ln({ln_arg:.4f})={val:.4f}",
+        }
+    cd_steps_docs = []
+    for i in ["D1", "D2", "D3"]:
+        toks = cd_tokens[i]
+        length = cd_lens[i]
+        len_ratio = length / cd_avgdl
+        bracket = (1 - B) + B * len_ratio
+        term_steps = []
+        doc_sum = 0.0
+        for t in cd_query:
+            f = toks.count(t)
+            numer = (K1 + 1) * f
+            denom = K1 * bracket + f
+            Bfac = (numer / denom) if f else 0.0
+            weight = Bfac * cd_idf[t]
+            doc_sum += weight
+            term_steps.append({
+                "t": t, "tf": f,
+                "lenRatio": round(len_ratio, 4),
+                "bracket": round(bracket, 4),
+                "numer": round(numer, 4),
+                "denom": round(denom, 4),
+                "B": round(Bfac, 4),
+                "idf": round(cd_idf[t], 4),
+                "weight": round(weight, 4),
+                "Bexpr": (f"({K1}+1)·{f} / ({K1}·[(1-{B})+{B}·{length}/{cd_avgdl:.0f}]+{f})"
+                          f" = {numer:.1f}/{denom:.4f} = {Bfac:.4f}") if f else "tf=0 → B=0",
+            })
+        cd_steps_docs.append({
+            "id": i, "doc": cd_docs[i], "len": length,
+            "lenRatio": round(len_ratio, 4),
+            "bracket": round(bracket, 4),
+            "terms": term_steps,
+            "docSum": round(doc_sum, 4),
+            "docSumExpr": " + ".join(f"{ts['weight']:.4f}" for ts in term_steps) + f" = {doc_sum:.4f}",
+        })
+
+    # ── NEW (от-и-до): worked intermediate steps for the nasa/shuttle 8-doc query ───────────────────
+    # idf pieces for both terms; len of the top docs + corpus avgdl; full B-factor sub-parts for the
+    # winning doc D2 (shuttle tf=3, nasa tf=1) with B·idf and the row sum 2.8151.
+    q2_idf_steps = {}
+    for t in QUERY2:
+        dfc = df.get(t, 0)
+        numer = N - dfc + 0.5
+        denom = dfc + 0.5
+        ratio = numer / denom
+        ln_arg = 1 + ratio
+        val = math.log(ln_arg)
+        q2_idf_steps[t] = {
+            "df": dfc, "N": N,
+            "numer": round(numer, 4), "denom": round(denom, 4),
+            "ratio": round(ratio, 4), "lnArg": round(ln_arg, 4),
+            "idf": round(val, 4),
+            "expr": f"ln(1+({N}-{dfc}+0.5)/({dfc}+0.5))=ln({ln_arg:.4f})={val:.4f}",
+        }
+    q2_doc_lens = {d["id"]: d["len"] for d in docs}
+    # winning doc D2: full B-factor breakdown for shuttle (tf=3) and nasa (tf=1)
+    d2 = next(d for d in docs if d["id"] == "D2")
+    d2_len = d2["len"]
+    d2_len_ratio = d2_len / avgdl
+    d2_bracket = (1 - B) + B * d2_len_ratio
+    q2_d2_terms = []
+    q2_d2_sum = 0.0
+    for t in QUERY2:
+        f = d2["tokens"].count(t)
+        numer = (K1 + 1) * f
+        denom = K1 * d2_bracket + f
+        Bfac = (numer / denom) if f else 0.0
+        weight = Bfac * idf2[t]
+        q2_d2_sum += weight
+        q2_d2_terms.append({
+            "t": t, "tf": f,
+            "lenRatio": round(d2_len_ratio, 4),
+            "bracket": round(d2_bracket, 4),
+            "numer": round(numer, 4),
+            "denom": round(denom, 4),
+            "B": round(Bfac, 4),
+            "idf": round(idf2[t], 4),
+            "weight": round(weight, 4),
+            "Bexpr": (f"({K1}+1)·{f} / ({K1}·[(1-{B})+{B}·{d2_len}/{avgdl:.3f}]+{f})"
+                      f" = {numer:.1f}/{denom:.4f} = {Bfac:.4f}"),
+        })
+
     # ── NEW: postings-compression worked example (gaps + variable-byte) ─────────────────────────────
     def varbyte_len(n):  # bytes a non-negative gap takes in variable-byte coding (7 bits/byte)
         if n == 0:
@@ -201,6 +307,35 @@ def main():
             break
         pr = new
     pr_final = {pr_nodes[i]: round(pr[i], 6) for i in range(nn)}
+
+    # ── NEW (от-и-до): one fully-applied power-iteration update for node B (iteration 1) ─────────────
+    # Start uniform PR0 = 1/3 each. B's in-links are A (outdeg 1) and C (outdeg 2). Show every piece.
+    pr0 = 1.0 / nn
+    pr_base = (1 - d_damp) / nn                       # (1-d)/n = 0.05
+    contrib_A = pr0 / len(pr_out["A"])                # PR0(A)/outdeg(A) = 0.3333/1
+    contrib_C = pr0 / len(pr_out["C"])                # PR0(C)/outdeg(C) = 0.3333/2
+    contrib_sum = contrib_A + contrib_C
+    damped = d_damp * contrib_sum                     # d·(0.3333+0.1667) = 0.425
+    pr1_B = pr_base + damped                          # 0.05 + 0.425 = 0.475
+    pr_worked_update = {
+        "node": "B",
+        "iteration": 1,
+        "pr0": round(pr0, 4),
+        "inLinks": ["A", "C"],
+        "outDegrees": {n: len(pr_out[n]) for n in pr_nodes},
+        "baseTerm": round(pr_base, 4),
+        "baseExpr": f"(1-{d_damp})/{nn} = {pr_base:.4f}",
+        "contribFromA": round(contrib_A, 4),
+        "contribFromC": round(contrib_C, 4),
+        "contribAExpr": f"PR0(A)/outdeg(A) = {pr0:.4f}/{len(pr_out['A'])} = {contrib_A:.4f}",
+        "contribCExpr": f"PR0(C)/outdeg(C) = {pr0:.4f}/{len(pr_out['C'])} = {contrib_C:.4f}",
+        "contribSum": round(contrib_sum, 4),
+        "dampedTerm": round(damped, 4),
+        "dampedExpr": f"{d_damp}·({contrib_A:.4f}+{contrib_C:.4f}) = {d_damp}·{contrib_sum:.4f} = {damped:.4f}",
+        "pr1": round(pr1_B, 4),
+        "pr1Expr": f"{pr_base:.4f} + {damped:.4f} = {pr1_B:.4f}",
+        "note": "iterations 2–4 omitted — the same update is repeated until convergence.",
+    }
 
     # ── NEW: published benchmark constants (CITED — not synthesized in this repo) ────────────────────
     benchmarks = {
@@ -303,6 +438,9 @@ def main():
         "varbyteBytesPerGap": vb_bytes, "varbyteBytesTotal": sum(vb_bytes),
         "compressionRatio": round(sum(raw_bytes) / sum(vb_bytes), 3),
         "note": "gaps are small → 1 varbyte each (<128); 16 bytes naive → 4 bytes gap+varbyte (4×).",
+        "byteLayout": {"bitsPerByte": 7, "continuationBit": 1, "maxGapPerByte": 127,
+                       "note": "1 byte = 1 continuation bit + 7 data bits ⇒ encodes 0–127; "
+                               "every gap here ≤18 < 128 → fits in one byte."},
     }, indent=2, ensure_ascii=False) + "\n")
 
     (DATA / "l3-pagerank.json").write_text(json.dumps({
@@ -318,6 +456,7 @@ def main():
         "matrixLegend": "rows/cols ordered as nodes; M[i][j] = prob of moving j→i",
         "iterations": iters, "numIterations": len(iters) - 1, "final": pr_final,
         "finalVector": [pr_final[n] for n in pr_nodes],
+        "workedUpdate": pr_worked_update,
     }, indent=2, ensure_ascii=False) + "\n")
 
     (DATA / "l3-benchmarks.json").write_text(json.dumps(benchmarks, indent=2, ensure_ascii=False) + "\n")
@@ -335,6 +474,39 @@ def main():
                      "top": kw_terms, "idfFormula": "ln((N-df+0.5)/(df+0.5)+1), N=8"},
     }, indent=2, ensure_ascii=False) + "\n")
 
+    # ── NEW FILES (от-и-до intermediate steps) ──────────────────────────────────────────────────────
+    (DATA / "l3-bm25-catdog-steps.json").write_text(json.dumps({
+        "_doc": "Fully-substituted INTERMEDIATE steps for the cat/dog BM25 flagship (companion to "
+                "l3-bm25-catdog.json; same collection, k1=1.5, b=0.75). Surfaces every middle value the "
+                "step-by-step slides display: (a) avgdl derivation; (b) substituted idf pieces; (c) per "
+                "(term,doc) B-factor sub-parts lenRatio→bracket→numer/denom→B, the final weight B·idf, "
+                "and the per-doc sum. B = (k1+1)·f / (k1·[(1-b)+b·len/avgdl] + f).",
+        "_source": prov + " · self-contained toy collection — intermediate-step derivation",
+        "query": cd_query, "k1": K1, "b": B, "N": cd_N,
+        "avgdlSteps": cd_avgdl_steps,
+        "idfSteps": cd_idf_steps,
+        "docs": cd_steps_docs,
+    }, indent=2, ensure_ascii=False) + "\n")
+
+    (DATA / "l3-bm25-q2-steps.json").write_text(json.dumps({
+        "_doc": "Fully-substituted INTERMEDIATE steps for the nasa/shuttle 8-doc query (companion to "
+                "l3-bm25-q2.json; same corpus, k1=1.5, b=0.75, avgdl as l3-bm25.json). (a) substituted idf "
+                "pieces for both terms (N=8); (b) len of the top docs + corpus avgdl; (c) the full "
+                "B-factor sub-parts for the WINNING doc D2 (shuttle tf=3, nasa tf=1) with B·idf and the "
+                "row sum 2.8151. B = (k1+1)·f / (k1·[(1-b)+b·len/avgdl] + f).",
+        "_source": prov + " · intermediate-step derivation",
+        "query": QUERY2, "k1": K1, "b": B, "N": N, "avgdl": round(avgdl, 3),
+        "idfSteps": q2_idf_steps,
+        "docLens": q2_doc_lens,
+        "winningDoc": {
+            "id": "D2", "len": d2_len,
+            "lenRatio": round(d2_len_ratio, 4), "bracket": round(d2_bracket, 4),
+            "terms": q2_d2_terms,
+            "rowSum": round(q2_d2_sum, 4),
+            "rowSumExpr": " + ".join(f"{ts['weight']:.4f}" for ts in q2_d2_terms) + f" = {q2_d2_sum:.4f}",
+        },
+    }, indent=2, ensure_ascii=False) + "\n")
+
     print(f"[gen_l3] N={N} avgdl={avgdl:.2f} query={query}")
     print(f"[gen_l3] BM25 ranking: {bm25_rank}")
     print(f"[gen_l3] cosine ranking: {cosine_rank}")
@@ -342,8 +514,11 @@ def main():
     print(f"[gen_l3] q2={QUERY2} idf={ {t: round(idf2[t],4) for t in QUERY2} } BM25 ranking: {bm25_rank2}")
     print(f"[gen_l3] cat/dog/mouse idf={ {t: round(cd_idf[t],4) for t in cd_query} } scores="
           f"{ {s['id']: s['bm25Score'] for s in cd_scored} } ranking={cd_rank}")
-    print(f"[gen_l3] PageRank final={pr_final} ({len(iters)-1} iters)")
+    print(f"[gen_l3] PageRank final={pr_final} ({len(iters)-1} iters) workedUpdate PR1(B)={pr_worked_update['pr1']}")
+    print(f"[gen_l3] cat/dog steps: D1 sum={cd_steps_docs[0]['docSum']} (B·idf weights per doc emitted)")
+    print(f"[gen_l3] nasa/shuttle steps: D2 rowSum={round(q2_d2_sum,4)} (shuttle/nasa B-factors emitted)")
     print("[gen_l3] wrote l3-index/bm25/rrf + l3-bm25-q2/-catdog/-compression/-pagerank/-benchmarks/-tfidf-examples")
+    print("[gen_l3] wrote NEW steps: l3-bm25-catdog-steps, l3-bm25-q2-steps")
 
 if __name__ == "__main__":
     main()

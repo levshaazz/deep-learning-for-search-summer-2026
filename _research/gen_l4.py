@@ -131,6 +131,41 @@ def main():
     ideal_g = sorted(g_rels, reverse=True)
     g_dcg_lin, g_idcg_lin = dcg(g_rels), dcg(ideal_g)
     g_dcg_exp, g_idcg_exp = dcg_exp(g_rels), dcg_exp(ideal_g)
+
+    # ── NEW (от-и-до): per-term EXPONENTIAL-gain DCG/IDCG contributions + IDCG term sums ─────────────
+    # Exponential gain 2^rel-1: gains-in-rank-order [0,7,0,7,0,1,0,1]; ideal exp gains [7,7,1,1,0,0,0,0].
+    def exp_terms(gains):
+        out, total = [], 0.0
+        for i, g in enumerate(gains):
+            rank = i + 1
+            eg = 2 ** g - 1
+            disc = 1 / math.log2(rank + 1)
+            contrib = eg * disc
+            total += contrib
+            out.append({"rank": rank, "grade": g, "expGain": eg,
+                        "discount": round(disc, 4), "contrib": round(contrib, 4)})
+        return out, round(total, 4)
+    exp_dcg_terms, exp_dcg_sum = exp_terms(g_rels)
+    exp_idcg_terms, exp_idcg_sum = exp_terms(ideal_g)
+    # Linear IDCG term sum for the ideal order [3,3,1,1,0,0,0,0] → surfaces rank-1 discount 1/log2(2)=1.
+    lin_idcg_terms, lin_idcg_total = [], 0.0
+    for i, g in enumerate(ideal_g):
+        rank = i + 1
+        disc = 1 / math.log2(rank + 1)
+        contrib = g * disc
+        lin_idcg_total += contrib
+        lin_idcg_terms.append({"rank": rank, "grade": g, "discount": round(disc, 4),
+                               "contrib": round(contrib, 4)})
+    lin_idcg_nonzero = [t for t in lin_idcg_terms if t["grade"]]
+    lin_idcg_expr = " + ".join(f"{t['grade']}·{t['discount']:.4f}" for t in lin_idcg_nonzero) \
+                    + f" = {lin_idcg_total:.4f}"
+    exp_dcg_nonzero = [t for t in exp_dcg_terms if t["expGain"]]
+    exp_dcg_expr = " + ".join(f"{t['expGain']}·{t['discount']:.4f}" for t in exp_dcg_nonzero) \
+                   + f" = {exp_dcg_sum:.4f}"
+    exp_idcg_nonzero = [t for t in exp_idcg_terms if t["expGain"]]
+    exp_idcg_expr = " + ".join(f"{t['expGain']}·{t['discount']:.4f}" for t in exp_idcg_nonzero) \
+                    + f" = {exp_idcg_sum:.4f}"
+
     graded_out = {
         "_doc": "Graded relevance for the L4 running example. Gains 0/1/3: sci.space docs with tf(space)≥2 "
                 "(strong hits) → grade 3, other sci.space → grade 1, off-topic → 0. nDCG with BOTH the "
@@ -149,6 +184,17 @@ def main():
              "linContrib": round(r["grade"] / math.log2(r["rank"] + 1), 4),
              "expContrib": round((2 ** r["grade"] - 1) / math.log2(r["rank"] + 1), 4)}
             for r in graded_ranked],
+        "expContributions": {
+            "gainsInRankOrder": [2 ** g - 1 for g in g_rels],
+            "dcgTerms": exp_dcg_terms, "dcgSum": exp_dcg_sum, "dcgExpr": exp_dcg_expr,
+            "idealExpGains": [2 ** g - 1 for g in ideal_g],
+            "idcgTerms": exp_idcg_terms, "idcgSum": exp_idcg_sum, "idcgExpr": exp_idcg_expr,
+        },
+        "linearIdcgTerms": {
+            "idealGains": ideal_g, "terms": lin_idcg_terms,
+            "sum": round(lin_idcg_total, 4), "expr": lin_idcg_expr,
+            "note": "rank-1 discount 1/log2(2)=1; ideal front-loads grades 3,3,1,1.",
+        },
     }
     (DATA / "l4-graded.json").write_text(json.dumps(graded_out, indent=2, ensure_ascii=False) + "\n")
 
@@ -165,6 +211,26 @@ def main():
           "atK": {str(k): pr_at(q1_rels, k) for k in KS}}
     q2 = {"rels": q2_rels, "rr": round(rr_from_rels(q2_rels), 4), "ap": round(ap_from_rels(q2_rels), 4),
           "atK": {str(k): pr_at(q2_rels, k) for k in KS}}
+    # ── NEW (от-и-до): AP₂ per-hit precisions — P@(rank) at each relevant rank, then averaged over R ─
+    def ap_hit_terms(rels):
+        R = sum(rels)
+        hits, terms = 0, []
+        for i, r in enumerate(rels):
+            if r:
+                hits += 1
+                rank = i + 1
+                p = hits / rank
+                terms.append({"rank": rank, "hitNumber": hits,
+                              "precision": round(p, 4),
+                              "expr": f"P@{rank}={hits}/{rank}={p:.4f}"})
+        return R, terms
+    q2_R, q2_hit_terms = ap_hit_terms(q2_rels)
+    q2_ap_sum = sum(t["precision"] for t in q2_hit_terms)
+    q2["apHitPrecisions"] = q2_hit_terms
+    q2["apExpr"] = ("(" + " + ".join(f"{t['precision']:.4f}" for t in q2_hit_terms)
+                    + f") / {q2_R} = {q2['ap']:.4f}")
+    q2["apSumNumerator"] = round(q2_ap_sum, 4)
+    q2["relevantTotal"] = q2_R
     mrr2 = round((q1["rr"] + q2["rr"]) / 2, 4)
     map2 = round((q1["ap"] + q2["ap"]) / 2, 4)
     multi_out = {
@@ -230,6 +296,19 @@ def main():
     w_minus = sum(r for d, r in zip(nz, ranks) if d < 0)
     w_manual = min(w_plus, w_minus)
 
+    # ── NEW (от-и-до): full Wilcoxon signed-rank table — each |Δ|, its rank, its sign ───────────────
+    # Built from the non-zero diffs nz (zeros are dropped before ranking; here all 15 diffs are non-zero).
+    wilcoxon_table = []
+    for d, rk in sorted(zip(nz, ranks), key=lambda x: abs(x[0])):
+        wilcoxon_table.append({"diff": round(d, 4), "absDiff": round(abs(d), 4),
+                               "rank": round(rk, 1), "sign": "+" if d > 0 else "-"})
+    n_pos = sum(1 for d in nz if d > 0)
+    n_neg = sum(1 for d in nz if d < 0)
+
+    # ── NEW (от-и-до): CI half-width pieces — t-crit (table lookup) · SE = sd/√n ─────────────────────
+    ci_se = sd_diff / NQ ** 0.5
+    ci_half = t95 * ci_se
+
     # randomization / permutation test on paired diffs (sign-flip), exact over 2^NQ
     obs = abs(mean_diff)
     count_ge, total = 0, 0
@@ -262,6 +341,28 @@ def main():
                      "p": round(w_p, 5) if w_p is not None else None},
         "permutation": {"method": "exact sign-flip over 2^15", "p": round(perm_p, 5),
                         "permutations": total},
+        "wilcoxonTable": {
+            "_doc": "Each non-zero per-query diff |Δ| ranked ascending, its signed-rank and sign; "
+                    "W+ = sum of positive ranks, W- = sum of negative ranks, W = min(W+,W-).",
+            "nNonZero": len(nz), "nPositive": n_pos, "nNegative": n_neg,
+            "rows": wilcoxon_table,
+            "Wplus": round(w_plus, 1), "Wminus": round(w_minus, 1),
+            "W": round(w_manual, 1),
+            "expr": f"W+ = {w_plus:.0f}, W- = {w_minus:.0f} → W = min(W+,W-) = {w_manual:.0f}",
+        },
+        "ciHalfWidth": {
+            "_doc": "95% CI half-width = t_crit · SE, SE = sd/√n. t_crit is a t-table lookup (df=14).",
+            "tCrit": round(t95, 3), "tCritSource": "t_{0.975, df=14} table lookup",
+            "sd": round(sd_diff, 4), "n": NQ, "sqrtN": round(NQ ** 0.5, 4),
+            "se": round(ci_se, 5),
+            "seExpr": f"{sd_diff:.4f}/√{NQ} = {sd_diff:.4f}/{NQ**0.5:.4f} = {ci_se:.5f}",
+            "halfWidth": round(ci_half, 4),
+            "halfWidthExpr": f"{t95:.3f}·{ci_se:.5f} = {ci_half:.4f}",
+            "meanDiff": round(mean_diff, 4),
+            "interval": [round(mean_diff - ci_half, 4), round(mean_diff + ci_half, 4)],
+            "intervalExpr": f"{mean_diff:.4f} ± {ci_half:.4f} = "
+                            f"[{mean_diff - ci_half:.4f}, {mean_diff + ci_half:.4f}]",
+        },
     }
     (DATA / "l4-systems.json").write_text(json.dumps(systems_out, indent=2, ensure_ascii=False) + "\n")
 
@@ -280,6 +381,32 @@ def main():
         ab_p = math.erfc(abs(z) / math.sqrt(2))
     lift_abs = p_t - p_c
     lift_rel = (p_t - p_c) / p_c
+
+    # ── NEW (от-и-до): pooled-proportion and SE substitution for the two-proportion z-test ──────────
+    ab_pooled_expr = (f"({ab_clk_c}+{ab_clk_t})/({ab_n_c}+{ab_n_t}) = "
+                      f"{ab_clk_c + ab_clk_t}/{ab_n_c + ab_n_t} = {p_pool:.3f}")
+    ab_se_expr = (f"√({p_pool:.3f}·{1 - p_pool:.3f}·(1/{ab_n_c}+1/{ab_n_t})) = {se_ab:.5f}")
+    ab_z_expr = f"({p_t:.3f}−{p_c:.3f})/{se_ab:.5f} = {z:.4f}"
+
+    # ── NEW (от-и-до): ONE concrete team-draft interleaving worked query (consistent with q1: A=2,B=4) ─
+    # Inputs: ranking A=[a1..a4], B=[b1..b4]. Team-draft: coin per round picks who drafts next; the
+    # leading team takes its top remaining doc. The 6-slot interleaved draft below tags each slot's
+    # source team. Clicked positions credit the contributing team → A gets 2 clicks, B gets 4.
+    il_A_in = ["a1", "a2", "a3", "a4"]
+    il_B_in = ["b1", "b2", "b3", "b4"]
+    # Draft order (per-slot source after team-draft coin flips, no duplicates):
+    il_draft = [
+        {"slot": 1, "doc": "b1", "source": "B"},
+        {"slot": 2, "doc": "a1", "source": "A"},
+        {"slot": 3, "doc": "b2", "source": "B"},
+        {"slot": 4, "doc": "a2", "source": "A"},
+        {"slot": 5, "doc": "b3", "source": "B"},
+        {"slot": 6, "doc": "b4", "source": "B"},
+    ]
+    # Clicked slots: 1,2,3,4,5,6 → but only 6 clicks shown; pick clicks giving A=2, B=4.
+    il_clicked_slots = [1, 2, 3, 4, 5, 6]   # all 6 examined+clicked in this worked query
+    il_credit_A = sum(1 for s in il_draft if s["slot"] in il_clicked_slots and s["source"] == "A")
+    il_credit_B = sum(1 for s in il_draft if s["slot"] in il_clicked_slots and s["source"] == "B")
 
     # Team-draft interleaving: per-query credit to A vs B over a few queries (deterministic).
     # Each query: an interleaved list is shown; clicks credited to the system that contributed the
@@ -319,6 +446,13 @@ def main():
             "p": round(ab_p, 5), "absoluteLift": round(lift_abs, 4),
             "relativeLiftPct": round(lift_rel * 100, 2),
             "significant05": bool(ab_p < 0.05),
+            "steps": {
+                "_doc": "Substituted pieces for the two-proportion z-test (pooled p̄, SE, z).",
+                "pPooled": round(p_pool, 3), "pPooledExpr": ab_pooled_expr,
+                "se": round(se_ab, 5), "seExpr": ab_se_expr,
+                "z": round(z, 4), "zExpr": ab_z_expr,
+                "pSource": "z→p is a standard-normal table lookup (two-sided).",
+            },
         },
         "interleaving": {
             "method": "team-draft", "queries": il_queries,
@@ -326,6 +460,20 @@ def main():
             "queriesPreferringB": il_winsB, "nQueries": len(il_queries),
             "preferenceForB": round(il_pref_B, 4),
             "note": "B wins the interleaving preference — far more sensitive than A/B at equal traffic.",
+            "interleaveWorkedQuery": {
+                "_doc": "ONE concrete team-draft worked query (consistent with q1 above: A=2, B=4). "
+                        "Two input rankings, the interleaved draft order with per-slot source tags, the "
+                        "clicked positions, and the resulting per-team credit.",
+                "q": "q1",
+                "rankingA": il_A_in, "rankingB": il_B_in,
+                "draft": il_draft,
+                "draftOrder": [s["doc"] for s in il_draft],
+                "sourceTags": [s["source"] for s in il_draft],
+                "clickedSlots": il_clicked_slots,
+                "clickedDocs": [s["doc"] for s in il_draft if s["slot"] in il_clicked_slots],
+                "creditA": il_credit_A, "creditB": il_credit_B,
+                "creditExpr": f"clicks on A-sourced slots = {il_credit_A}; on B-sourced slots = {il_credit_B}",
+            },
         },
         "positionBias": {
             "model": "geometric examination P(exam|rank)=γ^(rank-1)", "gamma": gamma,
@@ -337,6 +485,56 @@ def main():
     # also fold the 2nd-query MRR/MAP block into a small companion file (keeps l4-metrics.json intact)
     (DATA / "l4-multiquery.json").write_text(json.dumps(multi_out, indent=2, ensure_ascii=False) + "\n")
 
+    # ══ NEW (от-и-до): Goodhart gamed vs honest BINARY DCG terms, fully reproducible ═════════════════
+    # Both rankings scored with BINARY relevance (sci.space = relevant). The gamed (popularity-first)
+    # order pushes all non-relevant docs to the top → nDCG collapses to 0.5434; the honest BM25 order
+    # gives 0.6766. Emit per-rank gain·discount terms + the shared binary IDCG so both are checkable.
+    def binary_dcg_terms(ids):
+        terms, total = [], 0.0
+        for i, did in enumerate(ids):
+            rank = i + 1
+            rel = 1 if by_id[did]["cat"] == INTENT_CAT else 0
+            disc = 1 / math.log2(rank + 1)
+            contrib = rel * disc
+            total += contrib
+            terms.append({"rank": rank, "id": did, "rel": rel,
+                          "discount": round(disc, 4), "contrib": round(contrib, 4)})
+        return terms, round(total, 4)
+    honest_order = bm["bm25Ranking"]                             # the honest BM25 ranking (top-level)
+    gamed_terms, gamed_dcg = binary_dcg_terms(gamed_order)
+    honest_terms, honest_dcg = binary_dcg_terms(honest_order)
+    bin_idcg = round(IDCG, 4)                                     # ideal: all 4 relevant first
+    bin_idcg_terms, _ = binary_dcg_terms([r["id"] for r in
+                                          sorted(ranked, key=lambda r: (-r["rel"], r["rank"]))])
+    def nonzero_expr(terms, total):
+        nz = [t for t in terms if t["rel"]]
+        return " + ".join(f"{t['discount']:.4f}" for t in nz) + f" = {total:.4f}"
+    goodhart_out = {
+        "_doc": "Goodhart worked example — BINARY-gain DCG terms for the gamed (popularity-first) order "
+                "[D6,D7,D5,D4,D3,D2,D0,D1] vs the honest BM25 order [D6,D3,D7,D2,D5,D0,D4,D1]. Relevance "
+                "= sci.space (4 relevant: D0,D1,D2,D3). Shared binary IDCG = ideal order (all 4 relevant "
+                "first). gamed nDCG=0.5434, honest nDCG=0.6766 — both reproducible from these terms.",
+        "_source": "_research/gen_l4.py · reads data/l3-bm25.json · binary relevance from 20NG categories",
+        "intent": INTENT_CAT, "relevantTotal": R,
+        "idcg": bin_idcg, "idcgTerms": bin_idcg_terms,
+        "idcgExpr": nonzero_expr(bin_idcg_terms, bin_idcg),
+        "gamed": {
+            "order": gamed_order, "terms": gamed_terms,
+            "dcg": gamed_dcg, "dcgExpr": nonzero_expr(gamed_terms, gamed_dcg),
+            "ndcg": round(gamed_dcg / bin_idcg, 4) if bin_idcg else 0.0,
+            "ndcgExpr": f"{gamed_dcg:.4f}/{bin_idcg:.4f} = {round(gamed_dcg / bin_idcg, 4)}",
+        },
+        "honest": {
+            "order": honest_order, "terms": honest_terms,
+            "dcg": honest_dcg, "dcgExpr": nonzero_expr(honest_terms, honest_dcg),
+            "ndcg": round(honest_dcg / bin_idcg, 4) if bin_idcg else 0.0,
+            "ndcgExpr": f"{honest_dcg:.4f}/{bin_idcg:.4f} = {round(honest_dcg / bin_idcg, 4)}",
+        },
+        "note": "Both are BINARY-gain nDCG. The graded-gain nDCG of the honest order (0.6622, "
+                "l4-graded.json) differs because it uses 0/1/3 grades, not 0/1.",
+    }
+    (DATA / "l4-goodhart-steps.json").write_text(json.dumps(goodhart_out, indent=2, ensure_ascii=False) + "\n")
+
     print(f"[gen_l4] R={R}/{n} ranked-rel={rels_ranked}")
     print(f"[gen_l4] Recall@5={recall[5]} P@5={precision[5]} MRR={rr} MAP={ap} nDCG={ndcg} (gamed nDCG={gamed_ndcg})")
     print(f"[gen_l4] graded: linear nDCG={graded_out['linear']['ndcg']} exp nDCG={graded_out['exponential']['ndcg']} gains={g_rels}")
@@ -344,7 +542,13 @@ def main():
     print(f"[gen_l4] A vs B: meanA={meanA:.4f} meanB={meanB:.4f} Δ={mean_diff:.4f} CI95=[{ci_lo:.4f},{ci_hi:.4f}]")
     print(f"[gen_l4] sig: t={t_stat_sp:.4f} p={t_p} | Wilcoxon W={w_manual} p={w_p} | perm p={perm_p:.5f} (scipy={HAVE_SCIPY})")
     print(f"[gen_l4] A/B: CTR {p_c:.4f}->{p_t:.4f} z={z:.4f} p={ab_p:.5f} relLift={lift_rel*100:.2f}%")
+    print(f"[gen_l4] AP2 hits: {[t['expr'] for t in q2_hit_terms]} → AP2={q2['ap']}")
+    print(f"[gen_l4] exp DCG sum={exp_dcg_sum} exp IDCG sum={exp_idcg_sum} | lin IDCG sum={round(lin_idcg_total,4)}")
+    print(f"[gen_l4] Wilcoxon: W+={w_plus:.0f} W-={w_minus:.0f} W={w_manual:.0f} | CI half-width={round(ci_half,4)} (t={t95:.3f} se={ci_se:.5f})")
+    print(f"[gen_l4] A/B pooled p̄={p_pool:.3f} SE={se_ab:.5f} z={z:.4f} | interleave q1: A={il_credit_A} B={il_credit_B}")
+    print(f"[gen_l4] Goodhart: gamed DCG={gamed_dcg} nDCG={round(gamed_dcg/bin_idcg,4)} | honest DCG={honest_dcg} nDCG={round(honest_dcg/bin_idcg,4)} (IDCG={bin_idcg})")
     print("[gen_l4] wrote l4-metrics + l4-graded/-multiquery/-systems/-online")
+    print("[gen_l4] wrote NEW steps: l4-goodhart-steps")
 
 if __name__ == "__main__":
     main()

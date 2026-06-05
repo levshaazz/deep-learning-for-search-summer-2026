@@ -730,7 +730,7 @@
         </section>
 
         <!-- ============================================ 26 · E2E · MAP multi-query ============================================ -->
-        <section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="26 MAP worked">
+        <section class="slide" data-type="e2e" data-max-step="5" data-current-step="0" data-screen-label="26 MAP worked">
           <div class="slide-header">
             <h2>Average Precision, then MAP over two queries</h2>
             <span class="slide-kicker">E2E · so MAP \(\neq\) any single AP</span>
@@ -742,10 +742,10 @@
             <div class="e2e-arch-block" data-role="reduce" data-step-range="2" data-tooltip="Average over R=4 relevant → AP1.">
               <div class="arch-name">AP\(_1\)</div><div class="arch-shape">\(0.5\)</div></div>
             <div class="e2e-arch-arrow" data-step-range="2..3"></div>
-            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="3" data-tooltip="Second query's average precision.">
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="3..4" data-tooltip="Second query's average precision, worked from its four hit precisions.">
               <div class="arch-name">AP\(_2\)</div><div class="arch-shape">\(0.747\)</div></div>
-            <div class="e2e-arch-arrow" data-step-range="3..4"></div>
-            <div class="e2e-arch-block" data-role="project" data-step-range="4" data-tooltip="Mean of the two APs → MAP.">
+            <div class="e2e-arch-arrow" data-step-range="4..5"></div>
+            <div class="e2e-arch-block" data-role="project" data-step-range="5" data-tooltip="Mean of the two APs → MAP.">
               <div class="arch-name">MAP</div><div class="arch-shape">\(0.6235\)</div></div>
             <div class="e2e-arch-legend"><span class="leg" data-role="project">per-query / result</span><span class="leg" data-role="reduce">AP1</span><span class="leg" data-role="nonlinear">AP2</span></div>
           </div>
@@ -755,8 +755,9 @@
               <div class="e2e-step" data-step="0"><div class="step-formula">$$Q_1=[0,1,0,1,0,1,0,1],\ Q_2=[1,0,1,1,0,0,1,0]$$</div><p class="step-caption">Two queries, four relevant docs each. AP averages \(\mathrm{P}@k\) at the hit ranks.</p></div>
               <div class="e2e-step" data-step="1"><div class="step-formula">$$\mathrm{P}@2,\mathrm{P}@4,\mathrm{P}@6,\mathrm{P}@8 = \tfrac12,\tfrac24,\tfrac36,\tfrac48$$</div><p class="step-caption"><strong>Q1 hits</strong> at ranks \(2,4,6,8\): each precision is exactly \(0.5\).</p></div>
               <div class="e2e-step" data-step="2"><div class="step-formula">$$\mathrm{AP}_1 = \tfrac{0.5+0.5+0.5+0.5}{4} = 0.5$$</div><p class="step-caption"><strong>AP\(_1\).</strong> Average over \(R=4\) relevant docs.</p></div>
-              <div class="e2e-step" data-step="3"><div class="step-formula">$$\mathrm{AP}_2 = 0.747$$</div><p class="step-caption"><strong>AP\(_2\).</strong> Q2 hits at ranks \(1,3,4,7\) — front-loaded, so higher precision.</p></div>
-              <div class="e2e-step" data-step="4"><div class="step-formula">$$\mathrm{MAP} = \frac{0.5 + 0.747}{2} = 0.6235$$</div><p class="step-caption"><strong>Result.</strong> MAP equals neither AP — the mean is the metric.</p></div>
+              <div class="e2e-step" data-step="3"><div class="step-formula">$$\mathrm{P}@1{=}\tfrac11,\ \mathrm{P}@3{=}\tfrac23,\ \mathrm{P}@4{=}\tfrac34,\ \mathrm{P}@7{=}\tfrac47$$</div><p class="step-caption"><strong>Q2 hits</strong> at ranks \(1,3,4,7\): \(1.0,\,0.6667,\,0.75,\,0.5714\) — front-loaded, so higher precision.</p></div>
+              <div class="e2e-step" data-step="4"><div class="step-formula">$$\mathrm{AP}_2 = \frac{1.0+0.6667+0.75+0.5714}{4} = 0.747$$</div><p class="step-caption"><strong>AP\(_2\).</strong> Average the four hit precisions over \(R=4\) relevant docs.</p></div>
+              <div class="e2e-step" data-step="5"><div class="step-formula">$$\mathrm{MAP} = \frac{0.5 + 0.747}{2} = 0.6235$$</div><p class="step-caption"><strong>Result.</strong> MAP equals neither AP — the mean is the metric.</p></div>
             </div>
             <div class="e2e-panel e2e-example-panel">
               <div class="panel-head">Q1 precision at hits</div>
@@ -768,12 +769,18 @@
                 <div class="step-calc-row"><span class="matrix-label">rank 8</span><span class="matrix-label is-highlight">\(4/8 = 0.5\)</span></div>
               </div>
               <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label">AP\(_1 =\)</span><span class="matrix-label is-highlight">\(0.5\)</span></div><p class="step-caption tiny">Four halves over four hits.</p></div>
-              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label">AP\(_2 =\)</span><span class="matrix-label is-highlight">\(0.747\)</span></div><p class="step-caption tiny">Hits high → precision high.</p></div>
-              <div class="e2e-step" data-step="4"><div class="step-calc-row"><span class="matrix-label">MAP \(=\)</span><span class="matrix-label is-highlight">\(0.6235\)</span></div><p class="step-caption tiny">\((0.5 + 0.747)/2\).</p></div>
+              <div class="e2e-step" data-step="3">
+                <div class="step-calc-row"><span class="matrix-label">rank 1</span><span class="matrix-label is-highlight">\(1/1 = 1.0000\)</span></div>
+                <div class="step-calc-row"><span class="matrix-label">rank 3</span><span class="matrix-label is-highlight">\(2/3 = 0.6667\)</span></div>
+                <div class="step-calc-row"><span class="matrix-label">rank 4</span><span class="matrix-label is-highlight">\(3/4 = 0.7500\)</span></div>
+                <div class="step-calc-row"><span class="matrix-label">rank 7</span><span class="matrix-label is-highlight">\(4/7 = 0.5714\)</span></div>
+              </div>
+              <div class="e2e-step" data-step="4"><div class="step-calc-row"><span class="matrix-label">AP\(_2 =\)</span><span class="matrix-label is-highlight">\(0.747\)</span></div><p class="step-caption tiny">\((1.0+0.6667+0.75+0.5714)/4\).</p></div>
+              <div class="e2e-step" data-step="5"><div class="step-calc-row"><span class="matrix-label">MAP \(=\)</span><span class="matrix-label is-highlight">\(0.6235\)</span></div><p class="step-caption tiny">\((0.5 + 0.747)/2\).</p></div>
             </div>
           </div>
           <div class="e2e-stepper">
-            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">←</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 4</span></div><button type="button" class="step-btn" data-step-act="next">→</button></div>
+            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">←</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 5</span></div><button type="button" class="step-btn" data-step-act="next">→</button></div>
             <span class="e2e-stage-name">overview</span>
             <button type="button" class="e2e-toggle">Theory only</button>
           </div>
@@ -887,7 +894,7 @@
               <div class="e2e-step" data-step="0"><div class="step-formula">$$g = [0,3,0,3,0,1,0,1]$$</div><p class="step-caption">Linear gains in rank order: strong hits at ranks \(2,4\) (gain \(3\)), marginal at \(6,8\) (gain \(1\)).</p></div>
               <div class="e2e-step" data-step="1"><div class="step-formula">$$\tfrac{3}{\log_2 3},\ \tfrac{3}{\log_2 5},\ \tfrac{1}{\log_2 7},\ \tfrac{1}{\log_2 9}$$</div><p class="step-caption"><strong>Contributions.</strong> \(3(0.6309),\,3(0.4307),\,1(0.3562),\,1(0.3155)\).</p></div>
               <div class="e2e-step" data-step="2"><div class="step-formula">$$\mathrm{DCG} = 1.8928 + 1.2920 + 0.3562 + 0.3155 = 3.8565$$</div><p class="step-caption"><strong>DCG.</strong> Only graded ranks contribute; gain-\(0\) ranks add nothing.</p></div>
-              <div class="e2e-step" data-step="3"><div class="step-formula">$$\text{ideal grades } [3,3,1,1] \Rightarrow \mathrm{IDCG} = 5.8235$$</div><p class="step-caption"><strong>IDCG.</strong> Best ordering puts grade-3 docs at ranks \(1,2\), grade-1 at \(3,4\).</p></div>
+              <div class="e2e-step" data-step="3"><div class="step-formula">$$\mathrm{IDCG} = 3{\cdot}1 + 3{\cdot}0.6309 + 1{\cdot}0.5 + 1{\cdot}0.4307 = 5.8235$$</div><p class="step-caption"><strong>IDCG.</strong> Ideal grades \([3,3,1,1]\) at ranks 1–4; rank-1 discount \(1/\log_2 2 = 1\).</p></div>
               <div class="e2e-step" data-step="4"><div class="step-formula">$$\mathrm{nDCG} = \frac{3.8565}{5.8235} \approx 0.6622$$</div><p class="step-caption"><strong>Result.</strong> One comparable number in \([0,1]\) for our graded ranking.</p></div>
             </div>
             <div class="e2e-panel e2e-example-panel">
@@ -900,7 +907,13 @@
                 <div class="step-calc-row"><span class="matrix-label">rank 8, \(g{=}1\)</span><span class="matrix-label is-highlight">\(0.3155\)</span></div>
               </div>
               <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label">DCG \(=\)</span><span class="matrix-label is-highlight">\(3.8565\)</span></div><p class="step-caption tiny">Sum of the four contributions.</p></div>
-              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label">IDCG \(=\)</span><span class="matrix-label is-highlight">\(5.8235\)</span></div><p class="step-caption tiny">Grades \(3,3,1,1\) at ranks 1–4.</p></div>
+              <div class="e2e-step" data-step="3">
+                <div class="step-calc-row"><span class="matrix-label">rank 1, \(g{=}3\)</span><span class="matrix-label is-highlight">\(3.0000\)</span></div>
+                <div class="step-calc-row"><span class="matrix-label">rank 2, \(g{=}3\)</span><span class="matrix-label is-highlight">\(1.8928\)</span></div>
+                <div class="step-calc-row"><span class="matrix-label">rank 3, \(g{=}1\)</span><span class="matrix-label is-highlight">\(0.5000\)</span></div>
+                <div class="step-calc-row"><span class="matrix-label">rank 4, \(g{=}1\)</span><span class="matrix-label is-highlight">\(0.4307\)</span></div>
+                <div class="step-calc-row"><span class="matrix-label">IDCG \(=\)</span><span class="matrix-label is-highlight">\(5.8235\)</span></div>
+              </div>
               <div class="e2e-step" data-step="4"><div class="step-calc-row"><span class="matrix-label">nDCG \(=\)</span><span class="matrix-label is-highlight">\(0.6622\)</span></div><p class="step-caption tiny">\(3.8565 / 5.8235\).</p></div>
             </div>
           </div>
@@ -927,6 +940,16 @@
               <tr><td>Exponential</td><td>\(g=2^{\mathrm{rel}}-1\)</td><td class="cell-meh">\([0,7,0,7,0,1,0,1]\)</td><td>\(8.1029\)</td><td>\(12.3472\)</td><td class="cell-good">\(0.6563\)</td></tr>
             </tbody>
           </table>
+          <div class="callout mt-3" data-kind="info">
+            <div class="callout-icon">=</div>
+            <div class="callout-body">
+              <strong>Exponential row, worked</strong>
+              <p class="small muted">Gains \([0,7,0,7,0,1,0,1]\), same discounts \(1/\log_2(i{+}1)\):</p>
+              <p class="small">\(\mathrm{DCG} = 7{\cdot}0.6309 + 7{\cdot}0.4307 + 1{\cdot}0.3562 + 1{\cdot}0.3155 = 8.1029\)</p>
+              <p class="small">\(\mathrm{IDCG} = 7{\cdot}1.0 + 7{\cdot}0.6309 + 1{\cdot}0.5 + 1{\cdot}0.4307 = 12.3472\)</p>
+              <p class="small">\(\mathrm{nDCG} = 8.1029 / 12.3472 = 0.6563\)</p>
+            </div>
+          </div>
           <p class="small muted mt-3 center">Exponential gain inflates the grade-3 docs (\(3\to 7\)), so both \(\mathrm{DCG}\) and \(\mathrm{IDCG}\) grow — but the <strong>ratio</strong> barely moves (\(0.6622 \to 0.6563\)). The gain function changes the scale, rarely the verdict.</p>
           <aside class="slide-notes">Two gain functions on the identical ranking. Linear keeps grades as 0,3,1; exponential maps them to 0,7,1, amplifying the strong hits. Both numerator (DCG) and denominator (IDCG) inflate, so the normalized score moves only slightly: 0.6622 to 0.6563. The lesson: report which gain you used because absolute numbers differ, but the relative ordering of systems is usually robust to the choice. Web search defaults to exponential precisely because it sharpens the reward for perfect results, which matters when grade-4 documents are rare and precious.</aside>
         </section>
@@ -1093,17 +1116,22 @@
             <div class="e2e-panel e2e-math-panel">
               <div class="panel-head">What happens</div>
               <div class="e2e-step" data-step="0"><div class="step-formula">$$H_0:\ \overline{\Delta}=0 \quad\text{vs}\quad H_1:\ \overline{\Delta}\neq 0$$</div><p class="step-caption">Null: no real difference. \(\overline{\Delta}=0.0397\), \(\mathrm{sd}=0.0676\), \(n=15\).</p></div>
-              <div class="e2e-step" data-step="1"><div class="step-formula">$$t = \frac{\overline{\Delta}}{\mathrm{sd}/\sqrt{n}} = \frac{0.0397}{0.0676/\sqrt{15}} = 2.275$$</div><p class="step-caption"><strong>Paired t-test.</strong> \(df=14\), \(p=0.03914\). Assumes diffs roughly normal.</p></div>
-              <div class="e2e-step" data-step="2"><div class="step-formula">$$W = \min(W^+,W^-) = 25,\quad p = 0.04791$$</div><p class="step-caption"><strong>Wilcoxon signed-rank.</strong> Ranks the \(|\Delta|\); distribution-free.</p></div>
-              <div class="e2e-step" data-step="3"><div class="step-formula">$$p_{\text{perm}} = 0.03979 \;\text{(exact, } 2^{15}=32768\text{ sign-flips)}$$</div><p class="step-caption"><strong>Permutation.</strong> No distribution assumed at all — the gold standard.</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-formula">$$t = \frac{\overline{\Delta}}{\mathrm{sd}/\sqrt{n}} = \frac{0.0397}{0.0676/\sqrt{15}} = 2.275$$</div><p class="step-caption"><strong>Paired t-test.</strong> \(df=14\), \(p=0.03914\) — read from the \(t_{14}\) distribution (two-sided), <em>not</em> hand-arithmetic.</p></div>
+              <div class="e2e-step" data-step="2"><div class="step-formula">$$\text{rank the 15 }|\Delta|;\ W^+=95,\ W^-=25 \Rightarrow W=\min(95,25)=25$$</div><p class="step-caption"><strong>Wilcoxon signed-rank.</strong> 4 diffs negative — at ranks \(\{4,6,7,8\}\) summing to \(25\). \(p=0.04791\) from the Wilcoxon null.</p></div>
+              <div class="e2e-step" data-step="3"><div class="step-formula">$$p_{\text{perm}} = \frac{\#\{32768\text{ sign-flips with }|\overline{\Delta}|\ge 0.0397\}}{32768} = 0.03979$$</div><p class="step-caption"><strong>Permutation.</strong> Exact over \(2^{15}=32768\) sign-flips — no distribution assumed.</p></div>
               <div class="e2e-step" data-step="4"><div class="step-formula">$$0.0391,\ 0.0479,\ 0.0398 \;<\; 0.05$$</div><p class="step-caption"><strong>Verdict.</strong> All three reject \(H_0\): B's edge is statistically significant.</p></div>
             </div>
             <div class="e2e-panel e2e-example-panel">
-              <div class="panel-head">p-values</div>
-              <div class="e2e-step" data-step="0"><p class="step-caption">↓ Same data, three lenses on the null.</p></div>
-              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label">paired t, \(df{=}14\)</span><span class="matrix-label is-highlight">\(p = 0.03914\)</span></div></div>
-              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label">Wilcoxon \(W{=}25\)</span><span class="matrix-label is-highlight">\(p = 0.04791\)</span></div></div>
-              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label">permutation</span><span class="matrix-label is-highlight">\(p = 0.03979\)</span></div></div>
+              <div class="panel-head">p-values are lookups</div>
+              <div class="e2e-step" data-step="0"><p class="step-caption">↓ Same data, three lenses on the null. Each \(p\) is read from a distribution, not computed by hand.</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label">paired t, \(df{=}14\)</span><span class="matrix-label is-highlight">\(p = 0.03914\)</span></div><p class="step-caption tiny">from the \(t_{14}\) distribution.</p></div>
+              <div class="e2e-step" data-step="2">
+                <div class="step-calc-row"><span class="matrix-label">\(W^+\) (11 positive)</span><span class="matrix-label">\(95\)</span></div>
+                <div class="step-calc-row"><span class="matrix-label">\(W^-\) ranks \(\{4,6,7,8\}\)</span><span class="matrix-label">\(25\)</span></div>
+                <div class="step-calc-row"><span class="matrix-label">\(W=\min(95,25)\)</span><span class="matrix-label is-highlight">\(25\)</span></div>
+                <div class="step-calc-row"><span class="matrix-label">\(p\) from Wilcoxon null</span><span class="matrix-label is-highlight">\(0.04791\)</span></div>
+              </div>
+              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label">permutation \(/32768\)</span><span class="matrix-label is-highlight">\(p = 0.03979\)</span></div><p class="step-caption tiny">fraction of sign-flips at least as extreme.</p></div>
               <div class="e2e-step" data-step="4"><div class="step-calc-row"><span class="matrix-label">all \(< 0.05\)</span><span class="matrix-label is-highlight">significant</span></div><p class="step-caption tiny">B beats A — not luck.</p></div>
             </div>
           </div>
@@ -1125,10 +1153,11 @@
             $$ \overline{\Delta} \pm t_{0.975,\,n-1}\cdot\frac{\mathrm{sd}}{\sqrt{n}} = 0.0397 \pm 2.145\cdot\frac{0.0676}{\sqrt{15}} = [\,0.0023,\ 0.0772\,] $$
           </div>
           <div class="formula-caption">
-            <div class="var-block"><div class="var-symbol">\([0.0023,0.0772]\)</div><div class="var-desc"><strong>95% CI</strong><br />excludes \(0\) → significant</div></div>
-            <div class="var-block"><div class="var-symbol">width</div><div class="var-desc"><strong>\(\approx 0.075\)</strong><br />wide — only 15 queries</div></div>
-            <div class="var-block"><div class="var-symbol">lower bound</div><div class="var-desc"><strong>\(0.0023\)</strong><br />the edge could be tiny</div></div>
+            <div class="var-block"><div class="var-symbol">\(t_{0.975,14}\)</div><div class="var-desc"><strong>\(=2.145\)</strong><br />table lookup, \(df=14\)</div></div>
+            <div class="var-block"><div class="var-symbol">SE</div><div class="var-desc"><strong>\(0.0676/\sqrt{15}=0.01747\)</strong><br />standard error of the mean diff</div></div>
+            <div class="var-block"><div class="var-symbol">half-width</div><div class="var-desc"><strong>\(2.145{\cdot}0.01747=0.0375\)</strong><br />\(0.0397\pm0.0375\)</div></div>
           </div>
+          <p class="small muted center">\(\Rightarrow [\,0.0397-0.0375,\ 0.0397+0.0375\,] = [\,0.0023,\ 0.0772\,]\). The \(t\)-critical \(2.145\) is a table value, not computed by hand.</p>
           <p class="small muted mt-3 center">The CI excludes \(0\) (so \(p<0.05\)) but reaches down to \(+0.002\): B is <em>probably</em> better, but the true gain might be negligible. A \(p\)-value alone hides this.</p>
           <aside class="slide-notes">A p-value tells you the difference is unlikely to be zero; a confidence interval tells you how big it plausibly is, which is what actually matters for a ship decision. Here the 95% CI is 0.0023 to 0.0772 — it excludes zero, consistent with the significant p-values, but its lower edge is almost zero, so the real improvement could be trivially small. And it's wide because 15 queries is few. Always report the interval, not just the star: significant and large are different claims, and only the CI distinguishes them.</aside>
         </section>
@@ -1298,17 +1327,17 @@
             <div class="e2e-panel e2e-math-panel">
               <div class="panel-head">What happens</div>
               <div class="e2e-step" data-step="0"><div class="step-formula">$$\text{control: }1200/10000,\quad \text{treatment: }1320/10000$$</div><p class="step-caption">Two arms, 10000 sessions each. Metric = click-through rate.</p></div>
-              <div class="e2e-step" data-step="1"><div class="step-formula">$$\mathrm{CTR}_C = 0.12,\quad \mathrm{CTR}_T = 0.132,\quad \Delta = 0.012$$</div><p class="step-caption"><strong>Rates.</strong> Pooled \(\bar p = 0.126\). Absolute lift \(0.012\).</p></div>
-              <div class="e2e-step" data-step="2"><div class="step-formula">$$\mathrm{SE} = \sqrt{\bar p(1-\bar p)\!\left(\tfrac{1}{n_C}+\tfrac{1}{n_T}\right)} = 0.00469$$</div><p class="step-caption"><strong>Standard error</strong> of the difference in proportions.</p></div>
-              <div class="e2e-step" data-step="3"><div class="step-formula">$$z = \frac{\Delta}{\mathrm{SE}} = \frac{0.012}{0.00469} = 2.557,\quad p = 0.01056$$</div><p class="step-caption"><strong>z-test.</strong> Two-sided \(p\) well below \(0.05\).</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-formula">$$\bar p = \frac{1200+1320}{10000+10000} = \frac{2520}{20000} = 0.126$$</div><p class="step-caption"><strong>Pooled rate.</strong> \(\mathrm{CTR}_C=0.12\), \(\mathrm{CTR}_T=0.132\), absolute lift \(\Delta=0.012\).</p></div>
+              <div class="e2e-step" data-step="2"><div class="step-formula">$$\mathrm{SE} = \sqrt{0.126{\cdot}0.874\!\left(\tfrac{1}{10000}+\tfrac{1}{10000}\right)} = 0.00469$$</div><p class="step-caption"><strong>Standard error</strong> of the difference in proportions, using \(\bar p\).</p></div>
+              <div class="e2e-step" data-step="3"><div class="step-formula">$$z = \frac{0.132-0.120}{0.00469} = 2.557 \;\Rightarrow\; p = 0.01056$$</div><p class="step-caption"><strong>z-test.</strong> \(z\to p\) is a standard-normal table lookup (two-sided), well below \(0.05\).</p></div>
               <div class="e2e-step" data-step="4"><div class="step-formula">$$\text{relative lift} = \frac{0.012}{0.12} = 10\%$$</div><p class="step-caption"><strong>Verdict.</strong> Significant and meaningful — treatment wins.</p></div>
             </div>
             <div class="e2e-panel e2e-example-panel">
               <div class="panel-head">Numbers</div>
               <div class="e2e-step" data-step="0"><p class="step-caption">↓ Clicks over sessions, then the test.</p></div>
-              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label">control</span><span class="matrix-label">\(0.120\)</span></div><div class="step-calc-row"><span class="matrix-label">treatment</span><span class="matrix-label is-highlight">\(0.132\)</span></div></div>
+              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label">control</span><span class="matrix-label">\(0.120\)</span></div><div class="step-calc-row"><span class="matrix-label">treatment</span><span class="matrix-label is-highlight">\(0.132\)</span></div><div class="step-calc-row"><span class="matrix-label">pooled \(\bar p\)</span><span class="matrix-label is-highlight">\(0.126\)</span></div></div>
               <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label">SE</span><span class="matrix-label is-highlight">\(0.00469\)</span></div></div>
-              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label">z</span><span class="matrix-label is-highlight">\(2.557\)</span></div><div class="step-calc-row"><span class="matrix-label">p</span><span class="matrix-label is-highlight">\(0.01056\)</span></div></div>
+              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label">z</span><span class="matrix-label is-highlight">\(2.557\)</span></div><div class="step-calc-row"><span class="matrix-label">p (normal lookup)</span><span class="matrix-label is-highlight">\(0.01056\)</span></div></div>
               <div class="e2e-step" data-step="4"><div class="step-calc-row"><span class="matrix-label">relative lift</span><span class="matrix-label is-highlight">\(+10\%\)</span></div><p class="step-caption tiny">Ship the treatment.</p></div>
             </div>
           </div>
@@ -1415,18 +1444,25 @@
           <div class="e2e-twin">
             <div class="e2e-panel e2e-math-panel">
               <div class="panel-head">What happens</div>
-              <div class="e2e-step" data-step="0"><div class="step-formula">$$\text{rankers } A,B \to \text{one interleaved list}$$</div><p class="step-caption">Take turns (coin flip) picking each next slot from A or B — like a sports team draft.</p></div>
-              <div class="e2e-step" data-step="1"><div class="step-formula">$$\text{each result tagged: placed by }A\text{ or }B$$</div><p class="step-caption"><strong>Draft.</strong> The user sees one blended list and can't tell which ranker is which.</p></div>
-              <div class="e2e-step" data-step="2"><div class="step-formula">$$\text{click} \Rightarrow +1 \text{ credit to its ranker}$$</div><p class="step-caption"><strong>Credit.</strong> Every click goes to whichever ranker placed that result.</p></div>
+              <div class="e2e-step" data-step="0"><div class="step-formula">$$A=[a_1,a_2,a_3,a_4],\quad B=[b_1,b_2,b_3,b_4]$$</div><p class="step-caption">Query q1: two input rankings. Take turns (coin flip) picking each next slot — like a sports team draft.</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-formula">$$\text{draft }[b_1,a_1,b_2,a_2,b_3,b_4] \;\text{tagged}\; [B,A,B,A,B,B]$$</div><p class="step-caption"><strong>Draft.</strong> B won the first coin flip; each slot keeps the source tag of the ranker that placed it.</p></div>
+              <div class="e2e-step" data-step="2"><div class="step-formula">$$\text{all 6 slots clicked} \Rightarrow \mathrm{credit}_A=2,\ \mathrm{credit}_B=4$$</div><p class="step-caption"><strong>Credit.</strong> Clicks on A-tagged slots \((a_1,a_2)\) score A; the four B-tagged slots score B — this is the q1 row.</p></div>
               <div class="e2e-step" data-step="3"><div class="step-formula">$$\text{over 5 queries: } A=9,\ B=17$$</div><p class="step-caption"><strong>Totals.</strong> B preferred in \(4\) of \(5\) queries.</p></div>
               <div class="e2e-step" data-step="4"><div class="step-formula">$$\frac{17}{9+17} = 0.6538 > 0.5 \Rightarrow B \text{ wins}$$</div><p class="step-caption"><strong>Credit share.</strong> Within-query comparison <em>largely</em> cancels position bias.</p></div>
             </div>
             <div class="e2e-panel e2e-example-panel">
-              <div class="panel-head">Credit per query</div>
-              <div class="e2e-step" data-step="0"><p class="step-caption">↓ Credit to A vs B, five queries.</p></div>
-              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label">q1</span><span class="matrix-label">A 2 · B 4</span></div><div class="step-calc-row"><span class="matrix-label">q2</span><span class="matrix-label">A 1 · B 3</span></div></div>
-              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label">q3</span><span class="matrix-label">A 3 · B 2</span></div><div class="step-calc-row"><span class="matrix-label">q4</span><span class="matrix-label">A 1 · B 5</span></div><div class="step-calc-row"><span class="matrix-label">q5</span><span class="matrix-label">A 2 · B 3</span></div></div>
-              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label">total A</span><span class="matrix-label">\(9\)</span></div><div class="step-calc-row"><span class="matrix-label">total B</span><span class="matrix-label is-highlight">\(17\)</span></div></div>
+              <div class="panel-head">q1 draft, then 5-query totals</div>
+              <div class="e2e-step" data-step="0"><p class="step-caption">↓ One concrete team-draft query, then credit over five.</p></div>
+              <div class="e2e-step" data-step="1">
+                <div class="step-calc-row"><span class="matrix-label">slot 1–6 doc</span><span class="matrix-label">\(b_1\,a_1\,b_2\,a_2\,b_3\,b_4\)</span></div>
+                <div class="step-calc-row"><span class="matrix-label">source tag</span><span class="matrix-label is-highlight">B A B A B B</span></div>
+              </div>
+              <div class="e2e-step" data-step="2">
+                <div class="step-calc-row"><span class="matrix-label">A-tagged clicks \((a_1,a_2)\)</span><span class="matrix-label">\(\mathrm{credit}_A=2\)</span></div>
+                <div class="step-calc-row"><span class="matrix-label">B-tagged clicks</span><span class="matrix-label is-highlight">\(\mathrm{credit}_B=4\)</span></div>
+                <div class="step-calc-row"><span class="matrix-label">q1 row</span><span class="matrix-label">A 2 · B 4</span></div>
+              </div>
+              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label">q2…q5</span><span class="matrix-label">1·3, 3·2, 1·5, 2·3</span></div><div class="step-calc-row"><span class="matrix-label">total A</span><span class="matrix-label">\(9\)</span></div><div class="step-calc-row"><span class="matrix-label">total B</span><span class="matrix-label is-highlight">\(17\)</span></div></div>
               <div class="e2e-step" data-step="4"><div class="step-calc-row"><span class="matrix-label">credit share B</span><span class="matrix-label is-highlight">\(0.6538\)</span></div><p class="step-caption tiny">credit share \(\neq\) win rate: B also wins 4/5 queries.</p></div>
             </div>
           </div>
@@ -1511,13 +1547,17 @@
             <button class="misc-reveal-btn" type="button">Reveal truth</button>
             <div class="misc-truth"><strong>Goodhart's law:</strong> when a measure becomes a target, it stops being a good measure. Optimise a proxy (clicks, popularity) and the ranking can look busier while genuine relevance falls. The metric you trained on quietly stops measuring what you cared about.
               <p class="misc-anchor">
-                <strong>Worked example.</strong> Take a "popularity-first" ranking that pushes popular-but-off-topic docs to the top: order <code>[D6, D7, D5, D4, D3, D2, D0, D1]</code>.
-                <br>It looks active and clickable, but every relevant doc is now <em>below</em> the irrelevant ones.
-                <br>Result: \(\mathrm{nDCG}=0.5434\) versus our honest BM25 ranking's \(0.6766\). The popularity hack scores <strong>lower</strong>, not higher.
+                <strong>Worked example — binary-gain nDCG.</strong> Relevance is binary (4 sci.space docs), so all use the same ideal:
+                <br>\(\mathrm{IDCG} = 1.0 + 0.6309 + 0.5 + 0.4307 = 2.5616\).
+                <br><strong>Gamed</strong> order <code>[D6,D7,D5,D4,D3,D2,D0,D1]</code> buries the 4 relevant docs at ranks 5–8:
+                <br>\(\mathrm{DCG} = 0.3869 + 0.3562 + 0.3333 + 0.3155 = 1.3919 \Rightarrow \mathrm{nDCG} = 1.3919/2.5616 = 0.5434\).
+                <br><strong>Honest</strong> BM25 order: \(\mathrm{DCG} = 0.6309 + 0.4307 + 0.3562 + 0.3155 = 1.7333 \Rightarrow 1.7333/2.5616 = 0.6766\).
+                <br>The popularity hack scores <strong>lower</strong>, not higher.
+                <br><span class="small muted">Note: this is the <strong>binary</strong>-gain nDCG. The same honest ranking scored \(0.6622\) on slide 31 under <strong>graded</strong> \(0/1/3\) gains — different gain function, same ranking.</span>
               </p>
             </div>
           </div>
-          <aside class="slide-notes">Goodhart the Trickster returns — first met in Lecture 1, now in his home territory of Measure. The trap: teams chase an easy proxy like click-through or popularity, assuming it tracks relevance. It does not. The gamed ranking here stuffs popular hockey docs at the top; it looks engaging but pushes every space doc downward, so binary nDCG drops from 0.6766 to 0.5434. The lesson: a metric is only honest while it is not the thing being gamed — which is exactly why we evaluate against held-out relevance judgments and confirm online, not against the signal we optimised. Goodhart returns in Lecture 11 to game the LLM judge.</aside>
+          <aside class="slide-notes">Goodhart the Trickster returns — first met in Lecture 1, now in his home territory of Measure. The trap: teams chase an easy proxy like click-through or popularity, assuming it tracks relevance. It does not. The gamed ranking here stuffs popular hockey docs at the top; it looks engaging but pushes every space doc downward, so binary-gain nDCG drops from 0.6766 to 0.5434 (shared binary IDCG = 2.5616; gamed DCG = 1.3919, honest DCG = 1.7333). Note this is the binary-gain nDCG; the same honest ranking scored 0.6622 on slide 31 under graded 0/1/3 gains. The lesson: a metric is only honest while it is not the thing being gamed — which is exactly why we evaluate against held-out relevance judgments and confirm online, not against the signal we optimised. Goodhart returns in Lecture 11 to game the LLM judge.</aside>
         </section>
 
         <!-- ============================================ 55 · TWO-COL · gaming in practice ============================================ -->

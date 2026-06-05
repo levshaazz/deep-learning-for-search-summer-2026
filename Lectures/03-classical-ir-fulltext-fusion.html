@@ -510,7 +510,7 @@
               <div class="panel-head">What happens</div>
               <div class="e2e-step" data-step="0"><div class="step-formula">$$\texttt{[3, 8, 12, 30]} \;\Rightarrow\; 4 \times 4 = 16 \text{ bytes}$$</div><p class="step-caption">Naive: four 32-bit integers. Postings lists dominate index size, so every byte counts.</p></div>
               <div class="e2e-step" data-step="1"><div class="step-formula">$$\text{gaps} = [3,\;8{-}3,\;12{-}8,\;30{-}12] = [3, 5, 4, 18]$$</div><p class="step-caption"><strong>Delta encoding.</strong> Sorted IDs &rarr; store differences. Gaps are small because postings are dense.</p></div>
-              <div class="e2e-step" data-step="2"><div class="step-formula">$$\text{each gap} < 128 \;\Rightarrow\; 1 \text{ varbyte each} = 4 \text{ bytes}$$</div><p class="step-caption"><strong>Variable-byte.</strong> 7 data bits per byte; gaps below 128 need just one. \(16 \to 4\) bytes = <strong>4&times;</strong>.</p></div>
+              <div class="e2e-step" data-step="2"><div class="step-formula">$$1\text{ byte} = \underbrace{1}_{\text{cont.}} + \underbrace{7}_{\text{data}} \text{ bits} \Rightarrow 0\text{–}127;\quad \max(\text{gaps})=18 < 128$$</div><p class="step-caption"><strong>Variable-byte.</strong> One continuation bit + 7 data bits per byte holds \(0\)–\(127\); every gap \(\le 18 < 128\) &rarr; <strong>1 byte each</strong> = 4 bytes. \(16 \to 4\) = <strong>4&times;</strong>.</p></div>
             </div>
             <div class="e2e-panel e2e-example-panel">
               <div class="panel-head">Byte budget</div>
@@ -884,7 +884,7 @@
             </div>
             <div class="walk-step" data-step="4" data-final="true">
               <div class="walk-num">&rarr;</div>
-              <div class="walk-content"><div class="walk-label">The form we use</div><div class="walk-detail">\(\operatorname{idf}(t)=\ln\!\big(\frac{N-df+0.5}{df+0.5}+1\big)\). On our corpus: \(\operatorname{idf}(\texttt{cat})=0.1335\), \(\operatorname{idf}(\texttt{dog})=0.4700\).</div></div>
+              <div class="walk-content"><div class="walk-label">The form we use &mdash; substituted</div><div class="walk-detail">\(\operatorname{idf}(t)=\ln\!\big(1+\frac{N-df+0.5}{df+0.5}\big)\). On our corpus \(N=3\), \(df(\texttt{cat})=3\), \(df(\texttt{dog})=2\):<br><span class="katex-line">\(\operatorname{idf}(\texttt{cat})=\ln\!\big(1+\frac{3-3+0.5}{3+0.5}\big)=\ln(1.1429)=0.1335\)</span><br><span class="katex-line">\(\operatorname{idf}(\texttt{dog})=\ln\!\big(1+\frac{3-2+0.5}{2+0.5}\big)=\ln(1.6000)=0.4700\)</span></div></div>
               <div class="walk-state">cat 0.13 · dog 0.47</div>
             </div>
           </div>
@@ -1330,43 +1330,49 @@
         </section>
 
         <!-- ============================================ 51 · E2E · flagship cat/dog/mouse BM25 ============================================ -->
-        <section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="51 Cat/dog BM25">
+        <section class="slide" data-type="e2e" data-max-step="6" data-current-step="0" data-screen-label="51 Cat/dog BM25">
           <div class="slide-header">
             <h2>Worked BM25: cat / dog / mouse</h2>
             <span class="slide-kicker">E2E · \(q=\{\)cat, dog\(\}\) · \(k_1=1.5,\,b=0.75\)</span>
           </div>
           <div class="e2e-arch">
-            <div class="e2e-arch-block" data-role="project" data-step-range="0" data-tooltip="Smoothed idf: dog is rarer than cat."><div class="arch-name">idf</div><div class="arch-shape">cat .13 / dog .47</div></div>
+            <div class="e2e-arch-block" data-role="project" data-step-range="0" data-tooltip="Smoothed idf and avgdl: the per-term constants."><div class="arch-name">idf · avgdl</div><div class="arch-shape">.13 / .47 · 3.0</div></div>
             <div class="e2e-arch-arrow" data-step-range="0..1"></div>
-            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="1" data-tooltip="Saturating, length-aware tf factor per term."><div class="arch-name">B factor</div><div class="arch-shape">per term</div></div>
-            <div class="e2e-arch-arrow" data-step-range="1..2"></div>
-            <div class="e2e-arch-block" data-role="reduce" data-step-range="2" data-tooltip="Sum the per-term weights."><div class="arch-name">sum</div><div class="arch-shape">per doc</div></div>
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="1..2" data-tooltip="Saturating, length-aware tf factor per term."><div class="arch-name">B factor</div><div class="arch-shape">per term</div></div>
             <div class="e2e-arch-arrow" data-step-range="2..3"></div>
-            <div class="e2e-arch-block" data-role="project" data-step-range="3" data-tooltip="Rank by total score."><div class="arch-name">rank</div><div class="arch-shape">D2&gt;D1&gt;D3</div></div>
+            <div class="e2e-arch-block" data-role="reduce" data-step-range="3..5" data-tooltip="Sum the per-term weights."><div class="arch-name">sum</div><div class="arch-shape">per doc</div></div>
+            <div class="e2e-arch-arrow" data-step-range="5..6"></div>
+            <div class="e2e-arch-block" data-role="project" data-step-range="6" data-tooltip="Rank by total score."><div class="arch-name">rank</div><div class="arch-shape">D2&gt;D1&gt;D3</div></div>
             <div class="e2e-arch-legend"><span class="leg" data-role="project">weight / result</span><span class="leg" data-role="nonlinear">factor</span><span class="leg" data-role="reduce">sum</span></div>
           </div>
           <div class="e2e-twin">
             <div class="e2e-panel e2e-math-panel">
               <div class="panel-head">Rule applied</div>
-              <div class="e2e-step" data-step="0"><div class="step-formula">$$\operatorname{idf}(\texttt{cat})=0.1335,\quad \operatorname{idf}(\texttt{dog})=0.4700$$</div><p class="step-caption">\(N=3\); cat in all 3 (\(df=3\)), dog in 2 (\(df=2\)). Dog is rarer &rarr; heavier.</p></div>
-              <div class="e2e-step" data-step="1"><div class="step-formula">$$\text{D1: cat}\;0.1908,\ \text{dog}\;0.4700$$</div><p class="step-caption"><strong>D1</strong> = "cat cat dog", len 3 = avgdl. \(\mathrm{BM25}=0.6608\).</p></div>
-              <div class="e2e-step" data-step="2"><div class="step-formula">$$\text{D2: cat}\;0.1161,\ \text{dog}\;0.6065$$</div><p class="step-caption"><strong>D2</strong> = "cat dog dog mouse", dog twice &rarr; \(\mathrm{BM25}=0.7226\).</p></div>
-              <div class="e2e-step" data-step="3"><div class="step-formula">$$\text{D3: cat}\;0.1571,\ \text{dog}\;0$$</div><p class="step-caption"><strong>D3</strong> = "mouse cat", no dog &rarr; \(\mathrm{BM25}=0.1571\).</p></div>
+              <div class="e2e-step" data-step="0"><div class="step-formula">$$\begin{gathered}\operatorname{idf}(\texttt{cat})=0.1335,\ \operatorname{idf}(\texttt{dog})=0.4700\\ \text{avgdl}=\tfrac{3+4+2}{3}=3.0\end{gathered}$$</div><p class="step-caption">\(N=3\); cat in all 3 (\(df=3\)), dog in 2 (\(df=2\)). Lengths \([3,4,2]\) &rarr; avgdl \(3.0\). \(B=\frac{(k_1+1)f}{k_1[(1-b)+b\,\mathrm{len}/\text{avgdl}]+f}\).</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-formula">$$B_{\text{D1,cat}}=\tfrac{2.5\cdot 2}{1.5\cdot 1+2}=\tfrac{5}{3.5}=1.4286$$</div><p class="step-caption"><strong>D1 cat, \(f{=}2\).</strong> lenRatio \(=3/3=1\), bracket \(=(1{-}0.75)+0.75\cdot1=1\). Weight \(=1.4286\cdot 0.1335=0.1908\).</p></div>
+              <div class="e2e-step" data-step="2"><div class="step-formula">$$B_{\text{D2,dog}}=\tfrac{2.5\cdot 2}{1.5\cdot 1.25+2}=\tfrac{5}{3.875}=1.2903$$</div><p class="step-caption"><strong>D2 dog, \(f{=}2\).</strong> lenRatio \(=4/3=1.3333\), bracket \(=0.25+0.75\cdot1.3333=1.25\). Weight \(=1.2903\cdot 0.4700=0.6065\).</p></div>
+              <div class="e2e-step" data-step="3"><div class="step-formula">$$\mathrm{BM25}(\text{D1})=0.1908+0.4700=0.6608$$</div><p class="step-caption"><strong>D1</strong> = "cat cat dog", len 3 = avgdl. Sum cat \(+\) dog weights.</p></div>
+              <div class="e2e-step" data-step="4"><div class="step-formula">$$\mathrm{BM25}(\text{D2})=0.1161+0.6065=0.7226$$</div><p class="step-caption"><strong>D2</strong> = "cat dog dog mouse", dog twice &rarr; top score.</p></div>
+              <div class="e2e-step" data-step="5"><div class="step-formula">$$\mathrm{BM25}(\text{D3})=0.1571+0=0.1571$$</div><p class="step-caption"><strong>D3</strong> = "mouse cat", no dog &rarr; only the cat weight.</p></div>
+              <div class="e2e-step" data-step="6"><div class="step-formula">$$\text{D2}\;0.7226 > \text{D1}\;0.6608 > \text{D3}\;0.1571$$</div><p class="step-caption"><strong>Same term, three weights.</strong> cat scores \(0.1908\) (D1, len/avgdl\(=1\)) / \(0.1161\) (D2, len/avgdl\(=1.33\), <em>damped</em>) / \(0.1571\) (D3, len/avgdl\(=0.67\), <em>boosted</em>) &mdash; only length normalization differs.</p></div>
             </div>
             <div class="e2e-panel e2e-example-panel">
               <div class="panel-head">Final ranking</div>
               <div class="e2e-step" data-step="0"><div class="step-calc-row"><span class="matrix-label"><code>D1=3 tok · D2=4 · D3=2 · avgdl=3</code></span></div></div>
-              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label"><code>D1 = 0.6608</code></span></div></div>
-              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label is-highlight"><code>D2 = 0.7226</code></span></div><p class="step-caption tiny">dog repeated wins.</p></div>
-              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label"><code>D3 = 0.1571</code> &rarr; D2 &gt; D1 &gt; D3</span></div></div>
+              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label is-highlight"><code>D1 cat: B=1.4286 → 0.1908</code></span></div></div>
+              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label is-highlight"><code>D2 dog: B=1.2903 → 0.6065</code></span></div></div>
+              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label"><code>D1 = 0.1908 + 0.4700 = 0.6608</code></span></div></div>
+              <div class="e2e-step" data-step="4"><div class="step-calc-row"><span class="matrix-label is-highlight"><code>D2 = 0.1161 + 0.6065 = 0.7226</code></span></div><p class="step-caption tiny">dog repeated wins.</p></div>
+              <div class="e2e-step" data-step="5"><div class="step-calc-row"><span class="matrix-label"><code>D3 = 0.1571 + 0 = 0.1571</code></span></div></div>
+              <div class="e2e-step" data-step="6"><div class="step-calc-row"><span class="matrix-label is-highlight"><code>D2 &gt; D1 &gt; D3</code></span></div><p class="step-caption tiny">cat: 0.1908 / 0.1161 / 0.1571 by length.</p></div>
             </div>
           </div>
           <div class="e2e-stepper">
-            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">&larr;</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 4</span></div><button type="button" class="step-btn" data-step-act="next">&rarr;</button></div>
+            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">&larr;</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 6</span></div><button type="button" class="step-btn" data-step-act="next">&rarr;</button></div>
             <span class="e2e-stage-name">overview</span>
             <button type="button" class="e2e-toggle">Theory only</button>
           </div>
-          <aside class="slide-notes">The flagship worked example, exact from the catdog JSON. Three documents, query cat and dog, defaults k1 1.5 and b 0.75, avgdl 3.0. Smoothed idf gives cat 0.1335 and dog 0.4700 — dog is rarer so it carries more weight. Per term: D1 "cat cat dog" scores cat 0.1908 plus dog 0.4700 equals 0.6608. D2 "cat dog dog mouse" has dog twice, scoring cat 0.1161 plus dog 0.6065 equals 0.7226. D3 "mouse cat" has no dog, scoring just 0.1571. Ranking is D2 over D1 over D3: the document that repeats the rarer, heavier query term wins, even though D1 has more total query-term occurrences.</aside>
+          <aside class="slide-notes">The flagship worked example, exact from the catdog JSON, now fully substituted. Three documents, query cat and dog, defaults k1 1.5 and b 0.75. avgdl is the mean length (3+4+2)/3 = 3.0. Smoothed idf gives cat 0.1335 and dog 0.4700 — dog is rarer so it carries more weight. The B factor is (k1+1)f over k1 times [(1−b)+b·len/avgdl] plus f. Worked in full for two cells: D1 cat has tf 2, lenRatio 3/3 = 1, bracket 1, B = 5/3.5 = 1.4286, weight 1.4286·0.1335 = 0.1908; D2 dog has tf 2, lenRatio 4/3 = 1.3333, bracket 1.25, B = 5/3.875 = 1.2903, weight 1.2903·0.4700 = 0.6065. Per doc: D1 = 0.1908 + 0.4700 = 0.6608; D2 = 0.1161 + 0.6065 = 0.7226; D3 = 0.1571 + 0 = 0.1571. Ranking D2 > D1 > D3: the document repeating the rarer, heavier term wins. The closing step ties cat's three different weights — 0.1908, 0.1161, 0.1571 — to each document's len/avgdl: same term, same idf, only length normalization differs, so short D3 is boosted and long D2 is damped.</aside>
         </section>
 
         <!-- ============================================ 52 · TABLE · distinct-idf query (rare term dominates) ============================================ -->
@@ -1375,7 +1381,8 @@
             <h2>A distinct-idf query: the rare term dominates</h2>
             <span class="slide-kicker">8 docs · \(q=\) <code>nasa shuttle</code></span>
           </div>
-          <p class="small muted mt-2">Now \(df\) differs: <code>nasa</code> in 3 docs (\(\operatorname{idf}=0.9445\)), <code>shuttle</code> in 2 (\(\operatorname{idf}=1.2809\)). The rarer term carries the heavier weight.</p>
+          <p class="small muted mt-2">\(N=8\), avgdl \(=50.625\). Substituted idf — \(df\) differs: <code>nasa</code> in 3 docs, <code>shuttle</code> in 2.<br>
+            \(\operatorname{idf}(\texttt{nasa})=\ln\!\big(1+\frac{8-3+0.5}{3+0.5}\big)=\ln(2.5714)=0.9445\); \(\operatorname{idf}(\texttt{shuttle})=\ln\!\big(1+\frac{8-2+0.5}{2+0.5}\big)=\ln(3.6000)=1.2809\). The rarer term carries the heavier weight.</p>
           <table class="cmp-table">
             <thead><tr><th>rank</th><th>doc</th><th>nasa (\(tf\))</th><th>shuttle (\(tf\))</th><th>nasa bm25</th><th>shuttle bm25</th><th>BM25</th></tr></thead>
             <tbody>
@@ -1384,8 +1391,10 @@
               <tr><td>3</td><td>D0</td><td>1</td><td>0</td><td>0.9249</td><td>0</td><td>0.9249</td></tr>
             </tbody>
           </table>
+          <p class="small muted mt-2"><strong>Worked cell &mdash; shuttle in D2</strong> (\(\mathrm{len}=66\), \(tf=3\)): lenRatio \(=66/50.625=1.3037\), bracket \(=(1-0.75)+0.75\cdot 1.3037=1.2278\),
+            \(B=\frac{(1.5+1)\cdot 3}{1.5\cdot 1.2278+3}=\frac{7.5}{4.8417}=1.5491\), weight \(=1.5491\cdot 1.2809=1.9842\). Row sum: \(\text{score}(\text{D2})=0.8309+1.9842=2.8151\).</p>
           <p class="small muted center mt-2">D2 wins: <code>shuttle</code> appears 3&times; and is the <em>rarer</em> term, so its saturating-tf &times; high-idf contribution (1.9842) dominates. The earlier <code>space team</code> query had equal \(df\) &mdash; here rarity finally drives the order.</p>
-          <aside class="slide-notes">Exact from the q2 JSON. This query fixes the degeneracy of the space/team example, where both terms had df four and idf was identical. Here nasa is in three documents and shuttle in only two, so shuttle's idf, 1.2809, beats nasa's 0.9445. D2 mentions shuttle three times, and its shuttle contribution alone, 1.9842, comes from a high saturating-tf factor multiplied by the heavy idf — giving a total of 2.8151 and the top rank. D3 has more nasa but loses because nasa is the cheaper term. This is the textbook behaviour: when terms differ in rarity, the rare term drives the ranking.</aside>
+          <aside class="slide-notes">Exact from the q2 JSON, now fully substituted. This query fixes the degeneracy of the space/team example, where both terms had df four and idf was identical. With N = 8, nasa is in three documents giving idf = ln(1+(8−3+0.5)/(3+0.5)) = ln(2.5714) = 0.9445, and shuttle in only two giving idf = ln(1+(8−2+0.5)/(2+0.5)) = ln(3.6) = 1.2809 — so shuttle's idf beats nasa's. Corpus avgdl is 50.625 and D2 has length 66. Worked cell, shuttle in D2 with tf 3: lenRatio 66/50.625 = 1.3037, bracket (1−0.75)+0.75·1.3037 = 1.2278, B = 7.5/4.8417 = 1.5491, weight 1.5491·1.2809 = 1.9842. Row sum score(D2) = 0.8309 + 1.9842 = 2.8151, the top rank. D3 has more nasa but loses because nasa is the cheaper term. When terms differ in rarity, the rare term drives the ranking.</aside>
         </section>
 
         <!-- ============================================ 53 · VIZ · saturation curve family ============================================ -->
@@ -1571,43 +1580,47 @@
         </section>
 
         <!-- ============================================ 61 · E2E · power iteration worked ============================================ -->
-        <section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="61 Power iteration">
+        <section class="slide" data-type="e2e" data-max-step="5" data-current-step="0" data-screen-label="61 Power iteration">
           <div class="slide-header">
             <h2>Power iteration on a 3-page web</h2>
             <span class="slide-kicker">E2E · A&rarr;B, B&rarr;C, C&rarr;A, C&rarr;B · \(d=0.85\)</span>
           </div>
           <div class="e2e-arch">
-            <div class="e2e-arch-block" data-role="project" data-step-range="0" data-tooltip="Start uniform."><div class="arch-name">init</div><div class="arch-shape">all \(1/3\)</div></div>
+            <div class="e2e-arch-block" data-role="project" data-step-range="0" data-tooltip="Start uniform, tabulate out-degrees."><div class="arch-name">init</div><div class="arch-shape">all \(1/3\)</div></div>
             <div class="e2e-arch-arrow" data-step-range="0..1"></div>
-            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="1" data-tooltip="Multiply by the transition matrix, add teleport."><div class="arch-name">iterate</div><div class="arch-shape">\(v \leftarrow Mv\)</div></div>
-            <div class="e2e-arch-arrow" data-step-range="1..2"></div>
-            <div class="e2e-arch-block" data-role="reduce" data-step-range="2" data-tooltip="Repeat until the vector stops moving."><div class="arch-name">converge</div><div class="arch-shape">25 iters</div></div>
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="1..2" data-tooltip="Apply the update rule; add teleport."><div class="arch-name">iterate</div><div class="arch-shape">\(v \leftarrow Mv\)</div></div>
             <div class="e2e-arch-arrow" data-step-range="2..3"></div>
-            <div class="e2e-arch-block" data-role="project" data-step-range="3" data-tooltip="B has 2 in-links → the authority."><div class="arch-name">rank</div><div class="arch-shape">B &gt; C &gt; A</div></div>
+            <div class="e2e-arch-block" data-role="reduce" data-step-range="3..4" data-tooltip="Repeat until the vector stops moving."><div class="arch-name">converge</div><div class="arch-shape">25 iters</div></div>
+            <div class="e2e-arch-arrow" data-step-range="4..5"></div>
+            <div class="e2e-arch-block" data-role="project" data-step-range="5" data-tooltip="B has 2 in-links → the authority."><div class="arch-name">rank</div><div class="arch-shape">B &gt; C &gt; A</div></div>
             <div class="e2e-arch-legend"><span class="leg" data-role="project">setup / result</span><span class="leg" data-role="nonlinear">step</span><span class="leg" data-role="reduce">converge</span></div>
           </div>
           <div class="e2e-twin">
             <div class="e2e-panel e2e-math-panel">
               <div class="panel-head">What happens</div>
-              <div class="e2e-step" data-step="0"><div class="step-formula">$$v_0 = (0.3333,\;0.3333,\;0.3333)$$</div><p class="step-caption">No prior knowledge &rarr; start with mass spread evenly across A, B, C.</p></div>
-              <div class="e2e-step" data-step="1"><div class="step-formula">$$v_1 = (0.1917,\;0.4750,\;0.3333)$$</div><p class="step-caption"><strong>One step.</strong> B already jumps: both A and (half of) C feed it.</p></div>
-              <div class="e2e-step" data-step="2"><div class="step-formula">$$v_5 = (0.1993,\;0.4058,\;0.3949)$$</div><p class="step-caption"><strong>Settling.</strong> The vector oscillates with shrinking amplitude.</p></div>
-              <div class="e2e-step" data-step="3"><div class="step-formula">$$v_{25} = (0.2148,\;0.3974,\;0.3878)$$</div><p class="step-caption"><strong>Converged.</strong> \(B\) is the authority: it has 2 in-links (from A and C).</p></div>
+              <div class="e2e-step" data-step="0"><div class="step-formula">$$\begin{gathered}v_0=(0.3333,\,0.3333,\,0.3333)\\ \text{outdeg}(A,B,C)=(1,1,2)\end{gathered}$$</div><p class="step-caption">No prior knowledge &rarr; mass spread evenly. C links to A and B, so its vote splits in half.</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-formula">$$\mathrm{PR}_1(B)=\tfrac{0.15}{3}+0.85\big(\tfrac{0.3333}{1}+\tfrac{0.3333}{2}\big)$$</div><p class="step-caption"><strong>One node, in full.</strong> B's in-links are A (whole vote) and C (half), with \(\mathrm{PR}_0=0.3333\) substituted.</p></div>
+              <div class="e2e-step" data-step="2"><div class="step-formula">$$=0.05+0.85(0.3333+0.1667)=0.05+0.425=0.475$$</div><p class="step-caption"><strong>\(\mathrm{PR}_1(B)=0.475\).</strong> Teleport \(0.15/3=0.05\), plus damped in-link mass. Iterations 2&ndash;4 omitted &mdash; the same update repeated.</p></div>
+              <div class="e2e-step" data-step="3"><div class="step-formula">$$v_5 = (0.1993,\;0.4058,\;0.3949)$$</div><p class="step-caption"><strong>Settling.</strong> The vector oscillates with shrinking amplitude.</p></div>
+              <div class="e2e-step" data-step="4"><div class="step-formula">$$v_{25} = (0.2148,\;0.3974,\;0.3878)$$</div><p class="step-caption"><strong>Converged.</strong> \(B\) is the authority: it has 2 in-links (from A and C).</p></div>
+              <div class="e2e-step" data-step="5"><div class="step-formula">$$B\;0.3974 > C\;0.3878 > A\;0.2148$$</div><p class="step-caption"><strong>Result.</strong> Two in-links beat one &mdash; the link graph, not the text, decides.</p></div>
             </div>
             <div class="e2e-panel e2e-example-panel">
               <div class="panel-head">In-links</div>
-              <div class="e2e-step" data-step="0"><div class="step-calc-row"><span class="matrix-label"><code>A&larr;C · B&larr;A,C · C&larr;B</code></span></div></div>
-              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label"><code>B gets 2 votes</code></span></div></div>
-              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label"><code>C splits its vote A &amp; B</code></span></div></div>
-              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label is-highlight"><code>B 0.397 &gt; C 0.388 &gt; A 0.215</code></span></div></div>
+              <div class="e2e-step" data-step="0"><div class="step-calc-row"><span class="matrix-label"><code>A&larr;C · B&larr;A,C · C&larr;B</code></span></div><p class="step-caption tiny">outdeg A=1, B=1, C=2.</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label"><code>base = (1−0.85)/3 = 0.05</code></span></div></div>
+              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label is-highlight"><code>PR₁(B) = 0.05 + 0.425 = 0.475</code></span></div></div>
+              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label"><code>oscillating, shrinking</code></span></div></div>
+              <div class="e2e-step" data-step="4"><div class="step-calc-row"><span class="matrix-label"><code>v₂₅ settled</code></span></div></div>
+              <div class="e2e-step" data-step="5"><div class="step-calc-row"><span class="matrix-label is-highlight"><code>B 0.397 &gt; C 0.388 &gt; A 0.215</code></span></div></div>
             </div>
           </div>
           <div class="e2e-stepper">
-            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">&larr;</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 4</span></div><button type="button" class="step-btn" data-step-act="next">&rarr;</button></div>
+            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">&larr;</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 5</span></div><button type="button" class="step-btn" data-step-act="next">&rarr;</button></div>
             <span class="e2e-stage-name">overview</span>
             <button type="button" class="e2e-toggle">Theory only</button>
           </div>
-          <aside class="slide-notes">Exact from the pagerank JSON, edges A to B, B to C, C to A, C to B, damping 0.85. Power iteration just repeatedly applies the transition matrix to the rank vector. Start uniform at one third each. After one step B already leads at 0.475 because it receives A's whole vote plus half of C's. The vector oscillates with decreasing amplitude — see iteration five — and after twenty-five iterations settles to A 0.2148, B 0.3974, C 0.3878. B wins because it has two in-links, from A and from C, while A and C have one each. Note the result depends entirely on the edge set; these are the exact numbers for these edges, not the plan's old hint.</aside>
+          <aside class="slide-notes">Exact from the pagerank JSON, edges A to B, B to C, C to A, C to B, damping 0.85. Out-degrees: A 1, B 1, C 2, so C splits its vote in half between A and B. Power iteration repeatedly applies the update to the rank vector. Start uniform at one third each. One node worked in full for iteration 1: PR1(B) = (1−0.85)/3 + 0.85·(PR0(A)/1 + PR0(C)/2) = 0.05 + 0.85·(0.3333 + 0.1667) = 0.05 + 0.425 = 0.475, because B's in-links are A's whole vote plus half of C's. Iterations 2–4 are omitted — the same update repeated. The vector oscillates with decreasing amplitude — see iteration five — and after twenty-five iterations settles to A 0.2148, B 0.3974, C 0.3878. B wins because it has two in-links, from A and from C, while A and C have one each. The result depends entirely on the edge set; these are the exact numbers for these edges, not the plan's old hint.</aside>
         </section>
 
         <!-- ============================================ 62 · VIZ · PageRank as a feature ============================================ -->
@@ -1777,7 +1790,7 @@
             </div>
             <div class="walk-step" data-step="3" data-color="cyan">
               <div class="walk-num">03</div>
-              <div class="walk-content"><div class="walk-label">D2 vs D7 &mdash; disagreement</div><div class="walk-detail">D2 is rank 4 / 3, D7 is rank 3 / 4. Both sum to \(0.031498\) &mdash; fusion smooths the swap.</div></div>
+              <div class="walk-content"><div class="walk-label">D2 vs D7 &mdash; disagreement</div><div class="walk-detail">D2 is rank 4 (BM25) / 3 (cosine): \(\frac{1}{60+4}+\frac{1}{60+3}=0.015625+0.015873=\mathbf{0.031498}\). D7 is rank 3 / 4: \(\frac{1}{63}+\frac{1}{64}\) &mdash; the same two reciprocals, swapped &rarr; identical sum. Fusion smooths the swap.</div></div>
               <div class="walk-state">tie 0.031498</div>
             </div>
             <div class="walk-step" data-step="4" data-final="true">
@@ -1791,7 +1804,7 @@
             <span class="step-counter">4/4</span>
             <button data-step-act="next" aria-label="Next step">&rarr;</button>
           </div>
-          <aside class="slide-notes">Cormack, Clarke and Buettcher 2009; numbers exact from the RRF JSON. Throw away raw scores, keep only positions. A document at rank one contributes one over sixty-one, about 0.016393. D6 is rank one in both lists, summing to 0.032787, the maximum. D3 is rank two in both, summing to 0.032258. The instructive case is D2 versus D7: the two rankers swap them at ranks three and four, and because each contributes nearly the same reciprocal rank, both fuse to 0.031498 — fusion gracefully averages the disagreement. The constant k, conventionally sixty, tunes the discount: larger k is more democratic, smaller k rewards the very top harder. Weighted RRF scales each ranker's contribution by trust.</aside>
+          <aside class="slide-notes">Cormack, Clarke and Buettcher 2009; numbers exact from the RRF JSON. Throw away raw scores, keep only positions. A document at rank one contributes one over sixty-one, about 0.016393. D6 is rank one in both lists, summing to 0.032787, the maximum. D3 is rank two in both, summing to 0.032258. The instructive case is D2 versus D7: the two rankers swap them at ranks three and four. D2 is rank four in BM25 and three in cosine, contributing 1/64 + 1/63 = 0.015625 + 0.015873 = 0.031498; D7 is rank three then four, contributing 1/63 + 1/64 — the same two reciprocals in the other order, so both fuse to exactly 0.031498. Fusion gracefully averages the disagreement. The constant k, conventionally sixty, tunes the discount: larger k is more democratic, smaller k rewards the very top harder. Weighted RRF scales each ranker's contribution by trust.</aside>
         </section>
 
         <!-- ============================================ 70 · TWO-COL · hybrid dense+sparse, when fusion fails ============================================ -->
