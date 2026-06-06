@@ -20,6 +20,7 @@
 import { readFile, writeFile, access } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { syncShared } from './sync-shared.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const SRC = join(ROOT, 'Lecture Template.html');
@@ -62,6 +63,7 @@ async function ensureVendor() {
 
 async function main() {
   await ensureVendor();
+  await syncShared();   // regenerate css/ + js/ from canonical Lectures/{css,js}
   let html = await readFile(SRC, 'utf8');
 
   // 1) local CSS  <link rel="stylesheet" href="css/X.css">
