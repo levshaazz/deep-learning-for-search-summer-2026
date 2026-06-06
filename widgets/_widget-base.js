@@ -29,7 +29,18 @@
 
    render() may either (a) return an `update(step)` callback that the factory calls on every
    setStep, or (b) handle stepping itself and return nothing (back-compat escape hatch). The
-   caption + counter are always managed by the factory. */
+   caption + counter are managed by the factory unless `scaffold:false` is set.
+
+   ESCAPE HATCH (minimal & general — for widgets whose hand-rolled DOM predates the standard
+   scaffold; default values reproduce the original behavior exactly, so existing widgets are
+   untouched):
+     • bareRoot   — when true, the host carries ONLY `rootClass` (no `wgt-root`, no `wgt-fade`),
+                    for widgets that own their host class entirely. Default false.
+     • scaffold   — when false, the factory does NOT append `.wgt-caption`/`.wgt-counter` and does
+                    NOT manage their text; render()'s update(step) owns the whole per-step DOM
+                    (its own caption/counter included). Default true.
+     • extra mount args — anything beyond { data, labels } passed to mount(host, {...}) is spread
+                    onto `ctx`, so render(ctx) can read e.g. ctx.pairId. */
 
 const SVGNS = 'http://www.w3.org/2000/svg';
 
@@ -60,26 +71,36 @@ export function mountName(id) {
 
 /* defineWidget — returns the standard mount<Pascal>(host,{data,labels}) function and, in a browser,
    registers it on window under `exportName` (falling back to mountName(id)). */
-export function defineWidget({ id, maxStep, render, rootClass, exportName, fade = true }) {
+export function defineWidget({ id, maxStep, render, rootClass, exportName, fade = true,
+                               bareRoot = false, scaffold = true }) {
   const MAX = maxStep;
   const cls = rootClass || `${id}-root`;
 
-  function mount(host, { data, labels = {} } = {}) {
-    host.classList.add('wgt-root', cls);
-    if (fade) host.classList.add('wgt-fade');
+  function mount(host, { data, labels = {}, ...rest } = {}) {
+    if (bareRoot) {
+      host.classList.add(cls);                 // widget owns the host class outright
+    } else {
+      host.classList.add('wgt-root', cls);
+      if (fade) host.classList.add('wgt-fade');
+    }
     host.innerHTML = '';
 
     // Figure-specific layers (drawn by the widget). May return an update(step) callback.
-    const ctx = { host, data, labels, el: svgEl, svg: svgEl, esc, fmt, maxStep: MAX };
+    // Extra mount args (e.g. pairId) are spread onto ctx so render() can read them.
+    const ctx = { host, data, labels, el: svgEl, svg: svgEl, esc, fmt, maxStep: MAX, ...rest };
     const update = render(ctx);
 
-    // Caption + counter scaffold — always appended AFTER the figure layers.
-    const cap = document.createElement('div');
-    cap.className = 'wgt-caption';
-    host.appendChild(cap);
-    const counter = document.createElement('div');
-    counter.className = 'wgt-counter';
-    host.appendChild(counter);
+    // Caption + counter scaffold — appended AFTER the figure layers, unless the widget renders
+    // its own (scaffold:false), in which case the factory leaves all caption/counter DOM to it.
+    let cap = null, counter = null;
+    if (scaffold) {
+      cap = document.createElement('div');
+      cap.className = 'wgt-caption';
+      host.appendChild(cap);
+      counter = document.createElement('div');
+      counter.className = 'wgt-counter';
+      host.appendChild(counter);
+    }
 
     let step = -1;
     function setStep(k) {
@@ -88,8 +109,10 @@ export function defineWidget({ id, maxStep, render, rootClass, exportName, fade 
       step = k;
       host.dataset.step = String(k);
       if (typeof update === 'function') update(k);
-      cap.textContent = labels['s' + k] || '';
-      counter.textContent = `${k} / ${MAX}`;
+      if (scaffold) {
+        cap.textContent = labels['s' + k] || '';
+        counter.textContent = `${k} / ${MAX}`;
+      }
     }
     setStep(0);
 
