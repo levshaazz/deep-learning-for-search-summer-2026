@@ -161,6 +161,16 @@
   position: relative;
   overflow: hidden;
 }
+/* NOTE — stacked-grid "size to tallest step" self-fit was attempted here and
+   REVERTED. Overlapping every `.e2e-step` in one grid cell made the cell measure
+   the WIDEST step (not just the current one); non-wrapping content in that step
+   (KaTeX display math / code rows) then reported scrollWidth > the 0.72fr panel
+   box → TEXTCLIP-X (HARD>0). `1fr`/`minmax(0,1fr)`/`minmax(min-content,1fr)` all
+   hit the same width trap. The panels already self-fit on HEIGHT in practice
+   (the `.e2e-twin` grid row fixes panel height; baseline shows panel
+   scrollHeight==clientHeight at every step — no clip, no jitter), so there is no
+   live failure to fix. Left as a follow-up (needs the steps to share a width-
+   safe stacking context, e.g. position:absolute layers measured by the gate). */
 .e2e-math-panel {
   background: var(--c-amber-soft);
   border-left: 6px solid var(--c-amber);

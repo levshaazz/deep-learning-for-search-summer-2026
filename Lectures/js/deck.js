@@ -131,8 +131,15 @@
          expanded answer overflows the slide's fixed bounds and gets clipped.
          `toggle` doesn't bubble — capture it on the slide. */
       slide.addEventListener('toggle', () => {
-        requestAnimationFrame(() => autoFitSlide(slide));
+        requestAnimationFrame(() => { fitElementsIn(slide); autoFitSlide(slide); });
       }, true);
+      /* A step change swaps in different content (a new formula / caption), so
+         re-run the per-element fit (and global fit) for the new step. Mirrors
+         the <details> refit above; reuses the existing slide:step event the
+         engine already dispatches on ←/→ and stepper clicks. */
+      slide.addEventListener('slide:step', () => {
+        requestAnimationFrame(() => { fitElementsIn(slide); autoFitSlide(slide); });
+      });
     });
 
     // Wire scale
@@ -204,7 +211,7 @@
          <details> are handled automatically via the toggle listener. */
       refit(slide) {
         const s = slide || slideAt(state.current);
-        if (s) requestAnimationFrame(() => autoFitSlide(s));
+        if (s) requestAnimationFrame(() => { fitElementsIn(s); autoFitSlide(s); });
       },
     });
     /* Live navigation state for the public API — accessors so reads always
@@ -251,12 +258,13 @@
     active.forEach((s) => s.classList.remove('is-active'));
     state.slides.forEach((s) => {
       s.classList.add('is-active');
+      fitElementsIn(s);
       autoFitSlide(s);
       s.classList.remove('is-active');
     });
     active.forEach((s) => s.classList.add('is-active'));
     const cur = slideAt(state.current);
-    if (cur) autoFitSlide(cur);
+    if (cur) { fitElementsIn(cur); autoFitSlide(cur); }
   }
 
   function slideAt(i) { return state.slides[i]; }
@@ -338,7 +346,16 @@
      auto-fit scaling on overflow. Idempotent. Skip layout-driven types. */
   function wrapSlideBody(slide) {
     const type = slide.dataset.type;
-    if (['title','divider','quote','final','formula'].includes(type)) return;
+    /* `formula` is wrapped (unlike title/divider/quote/final): its layout is a
+       TOP-aligned grid (`auto 1fr auto`), not `place-items:center`, so the
+       global `autoFitSlide` (transform-origin top-left + width re-expand) scales
+       it correctly without misaligning. Wrapping lets a tall formula slide (the
+       b-dial: header + 280% math + caption + footnote ≈ 1325px) self-fit as a
+       whole instead of overflowing freely past 1080. The grid itself is moved
+       onto `.slide-body` via a CSS rule so the three-row layout is preserved.
+       title/divider/quote/final stay OUT — they ARE center-laid-out and the
+       top-left global scale would shove their centered content off-axis. */
+    if (['title','divider','quote','final'].includes(type)) return;
     if (slide.querySelector(':scope > .slide-body')) return;
 
     const body = document.createElement('div');
@@ -416,6 +433,65 @@
       delete slide.dataset.autoFit;
       delete slide.dataset.autoFitClipped;
     }
+  }
+
+  /* -------------------------------------------------------------------------
+     PER-ELEMENT FIT-BOX — shrink ONE element to fit the box it is allowed to
+     occupy, instead of shrinking the whole slide. This is the local lever that
+     keeps the global `autoFitSlide` from firing (and making the WHOLE slide
+     "too small") just because a single formula or caption is intrinsically too
+     tall: that one element self-fits, everything else stays at 1.0.
+
+     Mechanics: measure the element's own overflow (`scrollHeight/scrollWidth`
+     vs `clientHeight/clientWidth` — i.e. does its CONTENT exceed its box). If it
+     does, scale the element down with `transform`, origin `top center` (so it
+     stays horizontally centered and grows upward from its top edge, matching how
+     these stage/formula boxes are laid out). Floor at 0.7 — below that the math
+     would be illegible, so we stop and let the content sit (the global fit /
+     pre-flight still catches a genuine must-split). A NO-OP when the element
+     already fits: it clears any prior transform and returns, so the ~275 slides
+     that don't overflow are byte-for-byte unchanged.
+
+     `el.dataset.fitBox = 'off'` opts a single element out. */
+  const FITBOX_FLOOR = 0.7;
+  /* Only fire on a GENUINE overflow, not the few-px `scrollHeight` slack that
+     line-height / glyph-descender metrics give a KaTeX box that is visually
+     fine (e.g. an `.e2e-step .step-formula` reports content 69 > box 62 yet
+     paints inside its panel). Matching the visual-gate's own TEXTCLIP threshold
+     (+8px) means fitToBox shrinks a box only when the gate would itself call it
+     clipped — so it stays a true NO-OP on every box that merely has metric slack
+     (verified: the e2e step-formulas that overflow by 7-9px are left at 1.0),
+     while still catching the real cases (the b-dial overflows by hundreds of
+     px). */
+  const FITBOX_SLACK = 10;
+  function fitToBox(el) {
+    if (!el || el.dataset.fitBox === 'off') return;
+    // Clear prior fit so we re-measure intrinsic size.
+    if (el.dataset.fitScale) {
+      el.style.transform = '';
+      el.style.transformOrigin = '';
+      delete el.dataset.fitScale;
+      void el.offsetHeight;
+    }
+    // Content vs box on each axis. The slack ignores sub-line metric overflow.
+    const overH = el.scrollHeight > el.clientHeight + FITBOX_SLACK
+      ? el.clientHeight / el.scrollHeight : 1;
+    const overW = el.scrollWidth > el.clientWidth + FITBOX_SLACK
+      ? el.clientWidth / el.scrollWidth : 1;
+    const raw = Math.min(overH, overW);
+    if (raw >= 1) return; // fits — leave at 1.0 (no-op)
+    const s = Math.max(FITBOX_FLOOR, raw);
+    el.style.transformOrigin = 'top center';
+    el.style.transform = `scale(${s})`;
+    el.dataset.fitScale = s.toFixed(3);
+  }
+
+  /* Run the per-element fit on every opt-in `.fit-box` plus the auto-targeted
+     formula/step math on a slide, BEFORE the global slide fit. Returns nothing;
+     purely mutates inline transforms. Cheap + idempotent. */
+  function fitElementsIn(slide) {
+    if (!slide) return;
+    slide.querySelectorAll('.fit-box, .formula-stage, .step-formula').forEach(fitToBox);
   }
 
   function fit() {
@@ -544,11 +620,13 @@
        300ms passes stay as a safety net for late layout (web-font swap, KaTeX)
        and recompute the same scale → no further visible change. */
     if (cur) {
-      autoFitSlide(cur);
+      fitElementsIn(cur);    // local per-element shrink first…
+      autoFitSlide(cur);     // …then global shrink only if still overflowing.
       requestAnimationFrame(() => {
+        fitElementsIn(cur);
         autoFitSlide(cur);
         // Run a second pass after fonts/MathJax/Prism settle.
-        setTimeout(() => autoFitSlide(cur), 300);
+        setTimeout(() => { fitElementsIn(cur); autoFitSlide(cur); }, 300);
       });
     }
     notifyParent();
