@@ -10,19 +10,11 @@ import l2 from '../../../../content/book/l2.js';
 import l3 from '../../../../content/book/l3.js';
 import l4 from '../../../../content/book/l4.js';
 
-// widget styles (bundled globally) + shared widget base
+// widget styles (bundled globally) + shared widget base. Auto-discovered: dropping a
+// widgets/<id>/style.css folder is picked up here with no edit (eager glob → side-effect imports).
 import '../../../../widgets/_base.css';
-import '../../../../widgets/cosine-sphere/style.css';
-import '../../../../widgets/bpe-merge-ledger/style.css';
-import '../../../../widgets/zipf-heaps/style.css';
-import '../../../../widgets/highd-histogram/style.css';
-import '../../../../widgets/retrieve-rank-funnel/style.css';
-import '../../../../widgets/pos-bias-curve/style.css';
-import '../../../../widgets/course-map/style.css';
-import '../../../../widgets/inverted-index/style.css';
-import '../../../../widgets/bm25-calc/style.css';
-import '../../../../widgets/rrf-fusion/style.css';
-import '../../../../widgets/ranking-metrics/style.css';
+const widgetStyles = import.meta.glob('../../../../widgets/*/style.css', { eager: true });
+void widgetStyles; // referenced only for its bundling side effect
 
 // NOTE: getStaticPaths runs in isolation and may reference only imports (not frontmatter consts).
 export function getStaticPaths() {
@@ -43,9 +35,16 @@ const beats = chapter.beats.map((b) => {
   const steps = meta.manifest.steps.map((s) => ({ step: s.step, label: labels[s.labelKey] || '' }));
   return { ...b, labels, steps };
 });
+// widget id → exported mount-fn name. Source of truth is manifest.export; fall back to the
+// deck-adapter's PascalCase rule (mount + PascalCase(id)) for widgets that omit it (e.g. cosine-sphere).
+const pascalMount = (id) => 'mount' + id.split('-').map((s) => s[0].toUpperCase() + s.slice(1)).join('');
+const WIDGET_EXPORTS = Object.fromEntries(
+  Object.entries(WIDGET_META).map(([id, { manifest }]) => [id, manifest['export'] || pascalMount(id)])
+);
 const payload = {
   beats: beats.filter((b) => b.kind === 'scrolly')
     .map((b) => ({ id: b.id, widget: b.widget, data: DATA[b.data], labels: { ...b.labels, role: 'img' } })),
+  exports: WIDGET_EXPORTS, // widget id → mount export name, resolved against the logic.js glob client-side
 };
 const proseText = (body) => (Array.isArray(body) ? body : [body]);
 ---
@@ -85,36 +84,26 @@ const proseText = (body) => (Array.isArray(body) ? body : [body]);
   <script type="application/json" id="cs-payload" set:html={JSON.stringify(payload)}></script>
   <script>
     import scrollama from 'scrollama';
-    import { mountCosineSphere } from '../../../../widgets/cosine-sphere/logic.js';
-    import { mountBpeLedger } from '../../../../widgets/bpe-merge-ledger/logic.js';
-    import { mountZipfHeaps } from '../../../../widgets/zipf-heaps/logic.js';
-    import { mountHighdHistogram } from '../../../../widgets/highd-histogram/logic.js';
-    import { mountRetrieveRankFunnel } from '../../../../widgets/retrieve-rank-funnel/logic.js';
-    import { mountPosBiasCurve } from '../../../../widgets/pos-bias-curve/logic.js';
-    import { mountCourseMap } from '../../../../widgets/course-map/logic.js';
-    import { mountInvertedIndex } from '../../../../widgets/inverted-index/logic.js';
-    import { mountBm25Calc } from '../../../../widgets/bm25-calc/logic.js';
-    import { mountRrfFusion } from '../../../../widgets/rrf-fusion/logic.js';
-    import { mountRankingMetrics } from '../../../../widgets/ranking-metrics/logic.js';
 
-    const MOUNT = {
-      'cosine-sphere': mountCosineSphere,
-      'bpe-merge-ledger': mountBpeLedger,
-      'zipf-heaps': mountZipfHeaps,
-      'highd-histogram': mountHighdHistogram,
-      'retrieve-rank-funnel': mountRetrieveRankFunnel,
-      'pos-bias-curve': mountPosBiasCurve,
-      'course-map': mountCourseMap,
-      'inverted-index': mountInvertedIndex,
-      'bm25-calc': mountBm25Calc,
-      'rrf-fusion': mountRrfFusion,
-      'ranking-metrics': mountRankingMetrics,
-    };
+    // Auto-registered widget mounts: eager-glob every widgets/<id>/logic.js, keyed by folder id.
+    // Adding a widget folder is picked up here with ZERO edits (replaces the old 11-line import
+    // wall + MOUNT{} map). The export name per widget comes from payload.exports (manifest.export).
+    const logicMods = import.meta.glob('../../../../widgets/*/logic.js', { eager: true });
+    const MOUNT = {};
+    for (const [path, mod] of Object.entries(logicMods)) {
+      const id = path.split('/').slice(-2)[0]; // widgets/<id>/logic.js → <id>
+      MOUNT[id] = mod; // resolve the specific export per beat below
+    }
+
     const payload = JSON.parse(document.getElementById('cs-payload').textContent);
+    const exportsMap = payload.exports || {};
     const figs = {};
     for (const b of payload.beats) {
       const el = document.getElementById('fig-' + b.id);
-      if (el && MOUNT[b.widget]) figs[b.id] = MOUNT[b.widget](el, { data: b.data, labels: b.labels });
+      const mod = MOUNT[b.widget];
+      // pick the manifest-declared export; fall back to the module's single mount* function.
+      const fn = mod && (mod[exportsMap[b.widget]] || Object.values(mod).find((v) => typeof v === 'function'));
+      if (el && typeof fn === 'function') figs[b.id] = fn(el, { data: b.data, labels: b.labels });
     }
     window.__figs = figs; // headless verification hook
 

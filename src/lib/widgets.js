@@ -1,63 +1,45 @@
 // widgets.js — build-time registry of the "explainable units": each widget's manifest + i18n,
 // plus the data files they read. The Book chapter renderer uses this to lay out scroll steps and
 // build the client payload. (Client-side mount functions are imported in the page's bundled script.)
-import csManifest from '../../widgets/cosine-sphere/manifest.json';
-import csI18n from '../../widgets/cosine-sphere/i18n.json';
-import bpeManifest from '../../widgets/bpe-merge-ledger/manifest.json';
-import bpeI18n from '../../widgets/bpe-merge-ledger/i18n.json';
-import zhManifest from '../../widgets/zipf-heaps/manifest.json';
-import zhI18n from '../../widgets/zipf-heaps/i18n.json';
-import hdManifest from '../../widgets/highd-histogram/manifest.json';
-import hdI18n from '../../widgets/highd-histogram/i18n.json';
-import fnManifest from '../../widgets/retrieve-rank-funnel/manifest.json';
-import fnI18n from '../../widgets/retrieve-rank-funnel/i18n.json';
-import pbManifest from '../../widgets/pos-bias-curve/manifest.json';
-import pbI18n from '../../widgets/pos-bias-curve/i18n.json';
-import cmManifest from '../../widgets/course-map/manifest.json';
-import cmI18n from '../../widgets/course-map/i18n.json';
-import iiManifest from '../../widgets/inverted-index/manifest.json';
-import iiI18n from '../../widgets/inverted-index/i18n.json';
-import bmManifest from '../../widgets/bm25-calc/manifest.json';
-import bmI18n from '../../widgets/bm25-calc/i18n.json';
-import rfManifest from '../../widgets/rrf-fusion/manifest.json';
-import rfI18n from '../../widgets/rrf-fusion/i18n.json';
-import rmManifest from '../../widgets/ranking-metrics/manifest.json';
-import rmI18n from '../../widgets/ranking-metrics/i18n.json';
+//
+// AUTO-REGISTERED (no import wall): manifests, i18n, and data JSONs are discovered with Vite
+// `import.meta.glob(..., { eager: true })`. Adding a widget = dropping a `widgets/<id>/` folder with
+// a manifest.json + i18n.json (and pointing its manifest `data` at a `data/<key>.json`) — ZERO edits
+// here. WIDGET_META is keyed by manifest.id; DATA is keyed by the data file's basename (e.g.
+// `data/l3-rrf.json` → `l3-rrf`), and only data files referenced by some manifest are included.
 
-import dCosine from '../../data/l2-cosine.json';
-import dCorpus from '../../data/l2-corpus-stats.json';
-import dBpe from '../../data/l2-bpe.json';
-import dHighd from '../../data/l2-highd.json';
-import dFunnel from '../../data/l1-funnel.json';
-import dClick from '../../data/l1-click-model.json';
-import dIndex from '../../data/l3-index.json';
-import dBm25 from '../../data/l3-bm25.json';
-import dRrf from '../../data/l3-rrf.json';
-import dMetrics from '../../data/l4-metrics.json';
+// Strip Vite's default-wrapped JSON modules to the raw object.
+const unwrap = (m) => (m && m.default !== undefined ? m.default : m);
+// basename without extension: '../../widgets/rrf-fusion/manifest.json' → 'rrf-fusion' (dir),
+// '../../data/l3-rrf.json' → 'l3-rrf' (file).
+const dirName = (p) => p.split('/').slice(-2)[0];
+const fileKey = (p) => p.split('/').pop().replace(/\.json$/, '');
 
-export const WIDGET_META = {
-  'cosine-sphere':        { manifest: csManifest, i18n: csI18n },
-  'bpe-merge-ledger':     { manifest: bpeManifest, i18n: bpeI18n },
-  'zipf-heaps':           { manifest: zhManifest, i18n: zhI18n },
-  'highd-histogram':      { manifest: hdManifest, i18n: hdI18n },
-  'retrieve-rank-funnel': { manifest: fnManifest, i18n: fnI18n },
-  'pos-bias-curve':       { manifest: pbManifest, i18n: pbI18n },
-  'course-map':           { manifest: cmManifest, i18n: cmI18n },
-  'inverted-index':       { manifest: iiManifest, i18n: iiI18n },
-  'bm25-calc':            { manifest: bmManifest, i18n: bmI18n },
-  'rrf-fusion':           { manifest: rfManifest, i18n: rfI18n },
-  'ranking-metrics':      { manifest: rmManifest, i18n: rmI18n },
-};
+const manifestMods = import.meta.glob('../../widgets/*/manifest.json', { eager: true });
+const i18nMods = import.meta.glob('../../widgets/*/i18n.json', { eager: true });
+const dataMods = import.meta.glob('../../data/*.json', { eager: true });
 
-export const DATA = {
-  'l2-cosine': dCosine,
-  'l2-corpus-stats': dCorpus,
-  'l2-bpe': dBpe,
-  'l2-highd': dHighd,
-  'l1-funnel': dFunnel,
-  'l1-click-model': dClick,
-  'l3-index': dIndex,
-  'l3-bm25': dBm25,
-  'l3-rrf': dRrf,
-  'l4-metrics': dMetrics,
-};
+// id → i18n object, by folder name.
+const i18nById = {};
+for (const [path, mod] of Object.entries(i18nMods)) i18nById[dirName(path)] = unwrap(mod);
+
+// WIDGET_META, keyed by manifest.id (falls back to the folder name).
+export const WIDGET_META = {};
+for (const [path, mod] of Object.entries(manifestMods)) {
+  const manifest = unwrap(mod);
+  const id = manifest.id || dirName(path);
+  WIDGET_META[id] = { manifest, i18n: i18nById[dirName(path)] };
+}
+
+// Which data keys are actually referenced by a widget manifest's `data: [...]`.
+const referenced = new Set();
+for (const { manifest } of Object.values(WIDGET_META))
+  for (const key of manifest.data || []) referenced.add(key);
+
+// DATA, keyed by data-file basename; only the referenced files are exposed (keeps the historical
+// key set — the data/ dir holds many more JSONs than the widgets consume).
+export const DATA = {};
+for (const [path, mod] of Object.entries(dataMods)) {
+  const key = fileKey(path);
+  if (referenced.has(key)) DATA[key] = unwrap(mod);
+}
