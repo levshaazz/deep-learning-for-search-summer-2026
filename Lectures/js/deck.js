@@ -486,12 +486,128 @@
     el.dataset.fitScale = s.toFixed(3);
   }
 
+  /* -------------------------------------------------------------------------
+     PER-ELEMENT FIT-CONTAINER — the NON-formula sibling of fitToBox. Where
+     fitToBox handles a box whose CONTENT overflows a height-CONSTRAINED box
+     (the formula `1fr` grid row / e2e panel), fitContainer handles the
+     overflow-prone LAYOUT CONTAINERS of ordinary slides — a tall/wide
+     comparison `table.cmp-table`, a tall `.twocol` grid, a long `.walk-flow`
+     step ledger. These grow to fit their own content (scrollHeight ==
+     clientHeight), so the content-vs-box test never fires for them; the only
+     thing that overflows is the SLIDE, which today triggers the whole-slide
+     global `autoFitSlide` ("everything too small"). fitContainer instead
+     shrinks JUST that one box so the body fits — the header and every other
+     block stay at 1.0×.
+
+     Why this needs more than a bare transform: a CSS `transform: scale()` only
+     repaints; it does NOT shrink the element's LAYOUT height, so `.slide-body`
+     `scrollHeight` is unchanged and the global fit would still fire. So we also
+     pin the element's box to its SCALED height (`height = natH·s`) — origin
+     top-left, with the `width:(100/s)%` re-expand that mirrors autoFitSlide so
+     the box refills its row instead of leaving a right gap. The scaled paint
+     exactly fills the pinned box (no clipping), and the body now reflows
+     shorter. A `<table>` ignores a `height` smaller than its content, so a
+     table is wrapped once (idempotently) in a `.fit-cwrap` block that DOES
+     honour the pinned height; the `table.cmp-table` element itself is
+     untouched (the visual-gate's `table.cmp-table` contract still holds).
+
+     Anchored at the container's TOP within the body, so only the room BELOW the
+     header is claimed (localAvailH = availH − offsetTop). Floors at the same
+     0.7 as fitToBox. STRICT NO-OP when the box already fits its room: it clears
+     any prior pin/transform and returns — so every already-fitting slide stays
+     byte-for-byte identical. `el.dataset.fitBox = 'off'` opts out. */
+  function clearContainerFit(el) {
+    if (!el.dataset.fitScale) return;
+    const host = el.dataset.fitWrapped === '1' ? el.parentElement : el;
+    if (host) {
+      host.style.transform = '';
+      host.style.transformOrigin = '';
+      host.style.width = '';
+      host.style.height = '';
+    }
+    /* Unwrap a previously-added table wrapper so re-measurement sees the
+       intrinsic, untransformed table (and the DOM returns to its original
+       shape when the box no longer overflows). */
+    if (el.dataset.fitWrapped === '1' && host && host.classList.contains('fit-cwrap')) {
+      host.parentNode.insertBefore(el, host);
+      host.remove();
+      delete el.dataset.fitWrapped;
+    }
+    delete el.dataset.fitScale;
+  }
+  function fitContainer(el) {
+    if (!el || el.dataset.fitBox === 'off') return;
+    /* A container that lives INSIDE a fitToBox target (e.g. a `.cmp-table`
+       composed into a centered `.formula-stage` on a formula-type slide) is
+       already governed by that box's fit; the slide-relative top-left maths
+       below assume a normal top-anchored body child, so double-fitting it
+       over-shrinks and mildly worsens the global scale. Skip those — the
+       parent fitToBox + global fit handle the composition. */
+    if (el.closest('.formula-stage, .step-formula, .fit-box')) return;
+    const slide = el.closest('.slide');
+    const body = slide && slide.querySelector(':scope > .slide-body');
+    if (!body) return;
+    // Reset any prior fit so we re-measure the intrinsic (unscaled) size.
+    clearContainerFit(el);
+    void el.offsetHeight;
+
+    // Available slide content area (mirrors autoFitSlide's padding maths).
+    const cs = getComputedStyle(slide);
+    const availH = CANVAS_H - (parseFloat(cs.paddingTop) || 0) - (parseFloat(cs.paddingBottom) || 0);
+    const availW = CANVAS_W - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+
+    // Distance from the body's top to the element's top (header + gaps above).
+    let top = 0;
+    for (let n = el; n && n !== body; n = n.offsetParent) top += n.offsetTop;
+    const localAvailH = availH - top;
+    if (localAvailH < 80) return; // no usable room below the header — leave to global fit
+
+    const natH = el.scrollHeight;
+    const natW = el.scrollWidth;
+    const sH = natH > localAvailH + FITBOX_SLACK ? localAvailH / natH : 1;
+    const sW = natW > availW + FITBOX_SLACK ? availW / natW : 1;
+    const raw = Math.min(sH, sW);
+    if (raw >= 1) return; // already fits its room — true no-op (DOM untouched)
+    const s = Math.max(FITBOX_FLOOR, raw);
+
+    /* A CSS table won't accept a height below its content, so scale a wrapper
+       block instead. Created lazily, reused on later fits, removed on no-op. */
+    let host = el;
+    if (getComputedStyle(el).display.startsWith('table')) {
+      const wrap = document.createElement('div');
+      wrap.className = 'fit-cwrap';
+      el.parentNode.insertBefore(wrap, el);
+      wrap.appendChild(el);
+      el.dataset.fitWrapped = '1';
+      host = wrap;
+    }
+    host.style.transformOrigin = 'top left';
+    host.style.transform = `scale(${s})`;
+    host.style.width = (100 / s) + '%';
+    host.style.height = (natH * s) + 'px';
+    el.dataset.fitScale = s.toFixed(3);
+  }
+
   /* Run the per-element fit on every opt-in `.fit-box` plus the auto-targeted
      formula/step math on a slide, BEFORE the global slide fit. Returns nothing;
-     purely mutates inline transforms. Cheap + idempotent. */
+     purely mutates inline transforms. Cheap + idempotent. The container
+     targets (table/two-col/walkthrough ledger) self-fit LOCALLY so a single
+     dense box no longer drags the whole slide into the global shrink. */
   function fitElementsIn(slide) {
     if (!slide) return;
     slide.querySelectorAll('.fit-box, .formula-stage, .step-formula').forEach(fitToBox);
+    /* Container fits are scoped to the slide TYPE whose layout is the simple
+       top-anchored body flow fitContainer's slide-relative maths assume
+       (header on top, the one box stacked below). On those types the box is
+       the canonical self-contained content element. We deliberately do NOT
+       chase a `.cmp-table` that a `formula`/other slide composes into a
+       different layout (a grid `1fr` row, a centered stage): there the
+       top-anchored localAvailH is wrong and a local shrink double-scales
+       against the global fit, mildly worsening it (verified on L3:s33). */
+    const t = slide.dataset.type;
+    if (t === 'table') slide.querySelectorAll('.cmp-table').forEach(fitContainer);
+    if (t === 'two-col') slide.querySelectorAll('.twocol').forEach(fitContainer);
+    if (t === 'walkthrough') slide.querySelectorAll('.walk-flow').forEach(fitContainer);
   }
 
   function fit() {
