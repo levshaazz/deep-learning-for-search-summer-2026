@@ -105,13 +105,84 @@
   grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
 }
 
-/* NOTE — systemic divider flex-shrink fix was attempted here and REVERTED.
-   Dividers come in TWO DOM shapes (L3: figure NESTED in the content `<div>`;
-   L4: figure a SIBLING grid child), so a single flex-column rule either
-   compressed the L4 text block (figure outside the column) or let a wide
-   centered `<h1>` spill sideways (OVERFLOW-H, HARD>0). All dividers currently
-   FIT (none in the visual-gate WARN list), so there is no live failure to fix;
-   the per-divider inline `--fig-max` hand-tunes already cap each figure. A safe
-   CSS-only systemic divider fit needs the two decks' divider markup unified
-   first (out of scope: editing the 0*.html decks is disallowed). Left as a
-   follow-up. */
+/* =========================================================
+   SYSTEMIC DIVIDER FIT — flex-aware, single DOM shape
+   =========================================================
+   All 28 dividers across the 5 decks are now ONE markup shape:
+
+     <section class="slide" data-type="divider" …>
+       <div class="divider-content"> …num / h1 / sub / [recap] … </div>
+       <div class="viz-frame fig-fit" style="--fig-max:…;--fig-w:…"> img </div>
+       <aside class="slide-notes">…</aside>
+     </section>
+
+   (text-only dividers omit the `.viz-frame`; absolute corner art —
+   `.cameo`, decorative inline-positioned `<img>` — is out of flow and is
+   intentionally NOT a flex child.)
+
+   WHY FLEX, NOT GRID
+   ------------------
+   The old `.slide[data-type="divider"].is-active { display:grid;
+   place-items:center }` centred children but could not make the figure GIVE
+   WAY under a tall text block — a divider with sub + recap + a big figure
+   overflowed 1080 because dividers are EXCLUDED from the engine's autoFitSlide
+   (CSS is the only fitter). A flex column lets the figure flex-SHRINK so the
+   slide always fits the 1080 stage.
+
+   WHY THE PREVIOUS ATTEMPT FAILED (and how this avoids it)
+   --------------------------------------------------------
+   The generic `.fig-fit` rule sets `aspect-ratio:16/9`, which PINS the
+   figure's height to its width, so `flex-shrink` had nothing to reduce, and a
+   `max-height:min(…,100%)` cap resolved to `none` on the indefinite-height
+   parent. Here we UNPIN with `aspect-ratio:auto` and add `min-height:0`, so
+   `flex:0 1 auto` can actually shrink the figure; the `<img>` keeps its own
+   ratio via `object-fit:contain`. We also avoid an additive `gap` blow-up by
+   using a small gap token and folding the figure's old top margin into it.
+
+   SPECIFICITY
+   -----------
+   Scoped to `.slide[data-type="divider"].is-active` (0-2-1) to MATCH the old
+   `slides.css` divider rule and respect the engine's `is-active` display
+   toggle (inactive dividers stay `display:none`). autofit.css loads LAST, so
+   on equal specificity these win — no `!important` needed. */
+.slide[data-type="divider"].is-active {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  /* Single gap between the text block and the figure. Kept SMALL (sp-2, was
+     sp-3) so it never pushes a tall text+figure stack past 1080 — the
+     additive-gap blow-up that regressed the earlier attempt. */
+  gap: var(--sp-2);
+}
+.slide[data-type="divider"].is-active > .divider-content {
+  flex: 0 0 auto;
+  text-align: center;
+}
+/* Tighten the lead-paragraph gap on dividers (slides.css gives `.divider-sub`
+   a `margin-top: var(--sp-5)` = 48px). On the text-heaviest dividers (an L4
+   Part break with sub + recap) that 48px inflates the text block enough that
+   the figure, after flex-shrinking to fit 1080, is squeezed below the gate's
+   150px-min-side TINY floor. Trimming to sp-4 (32px) frees ~16px for the
+   figure so it stays LEGIBLE while still shrinking under the text — and reads
+   identically on lighter dividers. autofit.css loads last; equal specificity
+   (0-2-1) → wins. */
+.slide[data-type="divider"].is-active .divider-content .divider-sub {
+  margin-top: var(--sp-4);
+}
+.slide[data-type="divider"].is-active > .viz-frame {
+  flex: 0 1 auto;
+  min-height: 0;
+  aspect-ratio: auto;     /* UNPIN height so flex-shrink can reduce the figure */
+  max-height: var(--fig-max, 40cqh);
+  width: var(--fig-w, 46%);
+  margin: 0;              /* gap handles spacing — no additive --fig-mt blow-up */
+}
+.slide[data-type="divider"].is-active > .viz-frame > img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
