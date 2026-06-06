@@ -29,11 +29,11 @@ const MIME = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript
   '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.map': 'application/json' };
 
 const DECKS = [
-  { file: '00-introduction.html',                 expect: 22, tag: 'L0' },
-  { file: '01-search-ir-ml-system-design.html',   expect: 56, tag: 'L1' },
-  { file: '02-nlp-tokenization-similarity.html',  expect: 71, tag: 'L2' },
-  { file: '03-classical-ir-fulltext-fusion.html', expect: 75, tag: 'L3' },
-  { file: '04-ranking-metrics.html',              expect: 58, tag: 'L4' },
+  { file: '00-introduction.html',                 expect: 24, tag: 'L0' },
+  { file: '01-search-ir-ml-system-design.html',   expect: 57, tag: 'L1' },
+  { file: '02-nlp-tokenization-similarity.html',  expect: 72, tag: 'L2' },
+  { file: '03-classical-ir-fulltext-fusion.html', expect: 79, tag: 'L3' },
+  { file: '04-ranking-metrics.html',              expect: 61, tag: 'L4' },
 ];
 
 let pass = 0, fail = 0;
