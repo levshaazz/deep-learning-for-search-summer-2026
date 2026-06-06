@@ -1,0 +1,109 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { LOCALES, t, localizedPath, withBase } from '../../../i18n/locales.js';
+import { ui } from '../../../i18n/ui.js';
+import { cast, scenes, galleryMeta as M } from '../../../lib/gallery.js';
+
+export function getStaticPaths() {
+  return LOCALES.map((l) => ({ params: { lang: l } }));
+}
+const { lang } = Astro.params;
+const showFallbackNotice = lang === 'tt';
+
+// Resolve a manifest href (a (lang, localizedPath) => string fn) for this locale.
+const resolveHref = (h) => h(lang, localizedPath);
+---
+<BaseLayout lang={lang} page="gallery" title={t(ui.nav.gallery, lang)}>
+  <div class="wrap">
+    <section class="block">
+      <h2>{t(ui.sections.gallery, lang)}</h2>
+      <div class="kicker">{t(ui.sections.galleryKicker, lang)}</div>
+      {showFallbackNotice && <p class="notice">{t(ui.translationInProgress, lang)}</p>}
+      <p class="lead">{t(M.intro, lang)}</p>
+      <p class="topic"><strong>{t(M.topic, lang)}</strong></p>
+    </section>
+
+    <section class="block">
+      <h3>{t(M.bestiary.heading, lang)}</h3>
+      <p class="lead">{t(M.bestiary.lead, lang)}</p>
+      <div class="cards gallery">
+        {cast.map((c) => (
+          <figure class="card gcard">
+            <div class="viz-frame">
+              <img src={withBase(c.img)} alt={t(c.name, lang) + ' — ' + t(c.concept, lang)} loading="lazy" decoding="async" />
+            </div>
+            <figcaption>
+              <h4>{t(c.name, lang)}</h4>
+              <p>{t(c.concept, lang)}</p>
+              <a class="open" href={resolveHref(c.href)}>{t(M.appearsIn, lang)}: {c.lecture} →</a>
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+    </section>
+
+    <section class="block scenes">
+      <h3>{t(M.scenesHeading, lang)}</h3>
+      {scenes.map((g) => (
+        <div class="scene-group">
+          <h4 class="scene-title">{t(g.title, lang)}</h4>
+          <div class="cards gallery">
+            {g.items.map((it) => (
+              <figure class="card gcard">
+                <div class="viz-frame">
+                  <img src={withBase(it.img)} alt={t(it.concept, lang)} loading="lazy" decoding="async" />
+                </div>
+                <figcaption>
+                  <p>{t(it.concept, lang)}</p>
+                  <a class="open" href={resolveHref(g.href)}>{t(M.taughtIn, lang)}: {g.id} →</a>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      ))}
+    </section>
+  </div>
+
+  <style>
+    .lead { font-size: var(--fz-lead); color: var(--ink-2); max-width: var(--ws-measure); }
+    .topic { max-width: var(--ws-measure); }
+    .block p { max-width: var(--ws-measure); }
+
+    /* gallery grid: a touch wider min so the figures breathe; never overflows. */
+    .cards.gallery { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+
+    figure.card.gcard {
+      display: flex; flex-direction: column; margin: 0; padding: var(--ws-3);
+      overflow: hidden;
+    }
+    /* white canvas in both themes (the off-white art reads correctly on it) */
+    .gcard .viz-frame {
+      background: #fff; border: var(--hairline) solid var(--rule); border-radius: var(--r-sm);
+      aspect-ratio: 16 / 9; overflow: hidden; display: flex; align-items: center; justify-content: center;
+    }
+    .gcard .viz-frame img {
+      width: 100%; height: 100%; max-width: 100%; object-fit: contain; display: block;
+    }
+    .gcard figcaption { display: flex; flex-direction: column; gap: 6px; padding-top: var(--ws-2); }
+    .gcard h4 {
+      font-family: var(--font-serif); font-size: var(--fz-h3); font-weight: 600;
+      margin: 0; color: var(--ink); line-height: 1.2;
+    }
+    .gcard figcaption p { margin: 0; color: var(--ink-2); font-size: var(--fz-small); max-width: none; }
+    .gcard .open {
+      margin-top: auto; color: var(--accent); font-size: var(--fz-tiny); font-weight: 600;
+      font-family: var(--font-mono); letter-spacing: 1px; text-transform: uppercase;
+      padding-top: var(--ws-2); text-decoration: none;
+    }
+    .gcard .open:hover { text-decoration: underline; }
+
+    .scene-group { margin-top: var(--ws-4); }
+    .scene-title {
+      font-family: var(--font-mono); font-size: var(--fz-small); letter-spacing: 1px;
+      color: var(--warm-ink); margin: 0 0 var(--ws-3); padding-bottom: 6px;
+      border-bottom: var(--hairline) solid var(--rule);
+    }
+    .scenes { border-top: 1px solid var(--rule); }
+  </style>
+</BaseLayout>
