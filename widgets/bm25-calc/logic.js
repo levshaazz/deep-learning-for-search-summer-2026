@@ -3,120 +3,113 @@
    the SAME source the facts-gate checks, so idf, tf, len, avgdl and the final ranking can't drift.
    A horizontal bar chart of per-doc score plus a step-wise annotation panel that builds up the
    BM25 intuition: idf → tf saturation → length-norm → final ranking.
-   Reusable for the TF-IDF beat via labels.mode === 'tfidf' (uses tfidfScore + tfidfRanking + t0..t4). */
-const SVGNS = 'http://www.w3.org/2000/svg';
-function el(tag, attrs, parent) {
-  const n = document.createElementNS(SVGNS, tag);
-  for (const k in attrs) n.setAttribute(k, attrs[k]);
-  if (parent) parent.appendChild(n);
-  return n;
-}
+   Reusable for the TF-IDF beat via labels.mode === 'tfidf' (uses tfidfScore + tfidfRanking + t0..t4).
+
+   Built on the shared widgets/_widget-base.js factory: it owns the wgt-root/wgt-fade host setup,
+   the caption/counter scaffold, the setStep clamp + host.dataset.step, the el()/svg() namespaced
+   SVG builder and the window.mountBm25Calc registration; render() only draws the chart + panel. */
+import { defineWidget } from '../_widget-base.js';
+
+// local 2-decimal formatter (distinct from the factory fmt's toFixed(6)) — keep inside this module.
 const fmt = (x) => (Math.round(x * 100) / 100).toString();
 
-export function mountBm25Calc(host, { data, labels = {} } = {}) {
-  const MAX = 4, W = 480, H = 440;
-  const tfidf = labels.mode === 'tfidf';
-  const scoreOf = (d) => (tfidf ? d.tfidfScore : d.bm25Score);
-  const ranking = tfidf ? data.tfidfRanking : data.bm25Ranking;
-  const capKey = tfidf ? 't' : 's';
+export const mountBm25Calc = defineWidget({
+  id: 'bm25-calc',
+  rootClass: 'bm-root',
+  exportName: 'mountBm25Calc',
+  maxStep: 4,
+  render({ host, data, labels, el }) {
+    const MAX = 4, W = 480, H = 440;
+    const tfidf = labels.mode === 'tfidf';
+    const scoreOf = (d) => (tfidf ? d.tfidfScore : d.bm25Score);
+    const ranking = tfidf ? data.tfidfRanking : data.bm25Ranking;
 
-  host.classList.add('wgt-root', 'bm-root', 'wgt-fade');
-  host.innerHTML = '';
-  const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'wgt-svg bm-svg',
-    role: 'img', 'aria-label': labels.alt || '' }, host);
+    // Captions: BM25 mode uses s0..s4; TF-IDF mode uses t0..t4. The factory's scaffold always reads
+    // labels['s'+k], so alias the t-keys onto the s-keys in TF-IDF mode (the figure stays identical).
+    if (tfidf) for (let k = 0; k <= MAX; k++) labels['s' + k] = labels['t' + k];
 
-  // ── plot frame (horizontal bars: one row per doc) ─────────────────────────
-  const docs = data.docs;
-  const box = { x: 48, y: 24, w: W - 64, h: 210 };
-  const rowH = box.h / docs.length;
-  const bw = rowH - 8;
-  const maxScore = Math.max(...docs.map(scoreOf)) * 1.12 || 1;
+    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'wgt-svg bm-svg',
+      role: 'img', 'aria-label': labels.alt || '' }, host);
 
-  el('line', { x1: box.x, y1: box.y, x2: box.x, y2: box.y + box.h, class: 'bm-axis' }, svg);
-  el('text', { x: box.x, y: box.y + box.h + 18, class: 'bm-axlbl' }, svg)
-    .textContent = labels.xaxis || (tfidf ? 'TF-IDF score →' : 'BM25 score →');
+    // ── plot frame (horizontal bars: one row per doc) ─────────────────────────
+    const docs = data.docs;
+    const box = { x: 48, y: 24, w: W - 64, h: 210 };
+    const rowH = box.h / docs.length;
+    const bw = rowH - 8;
+    const maxScore = Math.max(...docs.map(scoreOf)) * 1.12 || 1;
 
-  // baseline neutral score (steps 0–3) = a flat placeholder so bars read as "candidates, unscored".
-  const flat = maxScore * 0.28;
-  const sx = (v) => (v / maxScore) * box.w;
+    el('line', { x1: box.x, y1: box.y, x2: box.x, y2: box.y + box.h, class: 'bm-axis' }, svg);
+    el('text', { x: box.x, y: box.y + box.h + 18, class: 'bm-axlbl' }, svg)
+      .textContent = labels.xaxis || (tfidf ? 'TF-IDF score →' : 'BM25 score →');
 
-  // bar rows, keyed by doc id, laid out initially in document order
-  const rows = docs.map((d, i) => {
-    const y0 = box.y + i * rowH + 4;
-    const g = el('g', { class: 'bm-row', 'data-id': d.id }, svg);
-    const rect = el('rect', { x: box.x, y: y0, width: sx(flat), height: bw, class: 'bm-bar' }, g);
-    el('text', { x: box.x - 6, y: y0 + bw / 2 + 4, class: 'bm-id', 'text-anchor': 'end' }, g)
-      .textContent = d.id;
-    const val = el('text', { x: box.x + sx(flat) + 6, y: y0 + bw / 2 + 4, class: 'bm-val' }, g);
-    val.textContent = '';
-    return { d, g, rect, val, y0 };
-  });
+    // baseline neutral score (steps 0–3) = a flat placeholder so bars read as "candidates, unscored".
+    const flat = maxScore * 0.28;
+    const sx = (v) => (v / maxScore) * box.w;
 
-  // ── annotation panel (below the chart) — each layer = headline + sub-line, stacked ───────────
-  const panel = { x: box.x, y: box.y + box.h + 30, w: box.w };
-  const layers = {};
-  const layer = (name, from) => (layers[name] = { from, nodes: [] });
-  const add = (name, n) => { layers[name].nodes.push(n); return n; };
-  layer('idf', 1); layer('sat', 2); layer('len', 3);
-  const head = (name, y, cls, text) => {
-    add(name, el('text', { x: panel.x, y, class: 'bm-annot ' + cls }, svg)).textContent = text;
-  };
-  const sub = (name, y, text) => {
-    add(name, el('text', { x: panel.x, y, class: 'bm-annot bm-sub' }, svg)).textContent = text;
-  };
-
-  // idf (step 1) — both query terms on one line, hint beneath
-  const terms = docs[0].terms;
-  head('idf', panel.y, 'bm-idf', terms.map((t) => `idf(${t.t}) = ${fmt(t.idf)}`).join('    '));
-  sub('idf', panel.y + 16, labels.idfHint || 'rarer term ⇒ higher idf');
-
-  // tf saturation (step 2) — representative doc = top-ranked (its top query term has tf ≥ 2)
-  const repDoc = docs.find((d) => d.id === ranking[0]) || docs[0];
-  const repTerm = repDoc.terms.reduce((a, b) => (b.tf > a.tf ? b : a), repDoc.terms[0]);
-  head('sat', panel.y + 40, 'bm-sat', `${repDoc.id}: tf(${repTerm.t}) = ${repTerm.tf}`);
-  sub('sat', panel.y + 56, labels.satHint || 'doubling tf adds less each time — saturation');
-
-  // length-norm (step 3) — short doc vs long doc
-  const shortDoc = docs.reduce((a, b) => (b.len < a.len ? b : a), docs[0]);
-  const longDoc = docs.reduce((a, b) => (b.len > a.len ? b : a), docs[0]);
-  head('len', panel.y + 80, 'bm-len',
-    `|${shortDoc.id}|/avgdl = ${fmt(shortDoc.len / data.avgdl)}   ·   |${longDoc.id}|/avgdl = ${fmt(longDoc.len / data.avgdl)}`);
-  sub('len', panel.y + 96, labels.lenHint || 'short doc ⇒ boost, long doc ⇒ damp');
-
-  // caption + counter (hidden in Book; shown in slide)
-  const cap = document.createElement('div'); cap.className = 'wgt-caption'; host.appendChild(cap);
-  const counter = document.createElement('div'); counter.className = 'wgt-counter'; host.appendChild(counter);
-
-  let step = -1;
-  function setStep(k) {
-    k = Math.max(0, Math.min(MAX, k | 0));
-    if (k === step) return;
-    step = k; host.dataset.step = String(k);
-
-    const final = k >= MAX;
-    rows.forEach((r) => {
-      // step 4: re-layout into ranking order, show real heights + values, highlight winner.
-      const rank = final ? ranking.indexOf(r.d.id) : docs.indexOf(r.d);
-      const targetY = box.y + rank * rowH + 4;
-      r.g.setAttribute('transform', `translate(0 ${targetY - r.y0})`);
-      const v = final ? scoreOf(r.d) : flat;
-      r.rect.setAttribute('width', sx(v));
-      r.rect.classList.toggle('is-scored', final);
-      r.rect.classList.toggle('is-winner', final && r.d.id === ranking[0]);
-      r.val.setAttribute('x', box.x + sx(v) + 6);
-      r.val.textContent = final ? fmt(scoreOf(r.d)) : '';
-      r.val.classList.toggle('is-winner', final && r.d.id === ranking[0]);
+    // bar rows, keyed by doc id, laid out initially in document order
+    const rows = docs.map((d, i) => {
+      const y0 = box.y + i * rowH + 4;
+      const g = el('g', { class: 'bm-row', 'data-id': d.id }, svg);
+      const rect = el('rect', { x: box.x, y: y0, width: sx(flat), height: bw, class: 'bm-bar' }, g);
+      el('text', { x: box.x - 6, y: y0 + bw / 2 + 4, class: 'bm-id', 'text-anchor': 'end' }, g)
+        .textContent = d.id;
+      const val = el('text', { x: box.x + sx(flat) + 6, y: y0 + bw / 2 + 4, class: 'bm-val' }, g);
+      val.textContent = '';
+      return { d, g, rect, val, y0 };
     });
 
-    for (const name in layers) {
-      const on = k >= layers[name].from;
-      for (const n of layers[name].nodes) n.classList.toggle('is-hidden', !on);
-    }
-    cap.textContent = labels[capKey + k] || '';
-    counter.textContent = `${k} / ${MAX}`;
-  }
-  setStep(0);
-  return { setStep, get step() { return step; }, get maxStep() { return MAX; }, root: host };
-}
+    // ── annotation panel (below the chart) — each layer = headline + sub-line, stacked ───────────
+    const panel = { x: box.x, y: box.y + box.h + 30, w: box.w };
+    const layers = {};
+    const layer = (name, from) => (layers[name] = { from, nodes: [] });
+    const add = (name, n) => { layers[name].nodes.push(n); return n; };
+    layer('idf', 1); layer('sat', 2); layer('len', 3);
+    const head = (name, y, cls, text) => {
+      add(name, el('text', { x: panel.x, y, class: 'bm-annot ' + cls }, svg)).textContent = text;
+    };
+    const sub = (name, y, text) => {
+      add(name, el('text', { x: panel.x, y, class: 'bm-annot bm-sub' }, svg)).textContent = text;
+    };
 
-if (typeof window !== 'undefined') window.mountBm25Calc = mountBm25Calc;
+    // idf (step 1) — both query terms on one line, hint beneath
+    const terms = docs[0].terms;
+    head('idf', panel.y, 'bm-idf', terms.map((t) => `idf(${t.t}) = ${fmt(t.idf)}`).join('    '));
+    sub('idf', panel.y + 16, labels.idfHint || 'rarer term ⇒ higher idf');
+
+    // tf saturation (step 2) — representative doc = top-ranked (its top query term has tf ≥ 2)
+    const repDoc = docs.find((d) => d.id === ranking[0]) || docs[0];
+    const repTerm = repDoc.terms.reduce((a, b) => (b.tf > a.tf ? b : a), repDoc.terms[0]);
+    head('sat', panel.y + 40, 'bm-sat', `${repDoc.id}: tf(${repTerm.t}) = ${repTerm.tf}`);
+    sub('sat', panel.y + 56, labels.satHint || 'doubling tf adds less each time — saturation');
+
+    // length-norm (step 3) — short doc vs long doc
+    const shortDoc = docs.reduce((a, b) => (b.len < a.len ? b : a), docs[0]);
+    const longDoc = docs.reduce((a, b) => (b.len > a.len ? b : a), docs[0]);
+    head('len', panel.y + 80, 'bm-len',
+      `|${shortDoc.id}|/avgdl = ${fmt(shortDoc.len / data.avgdl)}   ·   |${longDoc.id}|/avgdl = ${fmt(longDoc.len / data.avgdl)}`);
+    sub('len', panel.y + 96, labels.lenHint || 'short doc ⇒ boost, long doc ⇒ damp');
+
+    // per-step update (factory clamps k to [0,maxStep] and owns caption/counter)
+    return function update(k) {
+      const final = k >= MAX;
+      rows.forEach((r) => {
+        // step 4: re-layout into ranking order, show real heights + values, highlight winner.
+        const rank = final ? ranking.indexOf(r.d.id) : docs.indexOf(r.d);
+        const targetY = box.y + rank * rowH + 4;
+        r.g.setAttribute('transform', `translate(0 ${targetY - r.y0})`);
+        const v = final ? scoreOf(r.d) : flat;
+        r.rect.setAttribute('width', sx(v));
+        r.rect.classList.toggle('is-scored', final);
+        r.rect.classList.toggle('is-winner', final && r.d.id === ranking[0]);
+        r.val.setAttribute('x', box.x + sx(v) + 6);
+        r.val.textContent = final ? fmt(scoreOf(r.d)) : '';
+        r.val.classList.toggle('is-winner', final && r.d.id === ranking[0]);
+      });
+
+      for (const name in layers) {
+        const on = k >= layers[name].from;
+        for (const n of layers[name].nodes) n.classList.toggle('is-hidden', !on);
+      }
+    };
+  },
+});
