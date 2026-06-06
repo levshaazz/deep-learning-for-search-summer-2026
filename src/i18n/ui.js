@@ -13,6 +13,7 @@ export const ui = {
     syllabus: { en: 'Syllabus', ru: 'Программа' },
     schedule: { en: 'Schedule', ru: 'Расписание' },
     assignments: { en: 'Assignments', ru: 'Задания' },
+    gallery: { en: 'Gallery', ru: 'Галерея' },
   },
 
   sections: {
@@ -25,6 +26,11 @@ export const ui = {
     lecturesKicker: {
       en: 'Interactive slide decks · open in any browser · ← / → to navigate · O for overview',
       ru: 'Интерактивные слайды · открываются в любом браузере · ← / → навигация · O — обзор',
+    },
+    gallery: { en: 'Gallery — a visual glossary', ru: 'Галерея — визуальный глоссарий' },
+    galleryKicker: {
+      en: 'Bestiary + Scenes · the recurring cast and metaphor art · one idea per picture · linked to the chapter',
+      ru: 'Бестиарий + Сцены · повторяющиеся персонажи и метафоры · одна идея на картинку · со ссылкой на главу',
     },
     book: { en: 'The Book', ru: 'Книга' },
     bookKicker: {
