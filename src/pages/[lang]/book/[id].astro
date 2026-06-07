@@ -32,8 +32,10 @@ const beats = chapter.beats.map((b) => {
   if (b.kind !== 'scrolly') return b;
   const meta = WIDGET_META[b.widget];
   const labels = Object.fromEntries(Object.entries(meta.i18n).map(([k, v]) => [k, t(v, lang)]));
-  const steps = meta.manifest.steps.map((s) => ({ step: s.step, label: labels[s.labelKey] || '' }));
-  return { ...b, labels, steps };
+  // beat-level labels (e.g. {mode:'tfidf'}) override the manifest i18n defaults.
+  const merged = { ...labels, ...b.labels };
+  const steps = meta.manifest.steps.map((s) => ({ step: s.step, label: merged[s.labelKey] || '' }));
+  return { ...b, labels: merged, steps };
 });
 // widget id → exported mount-fn name. Source of truth is manifest.export; fall back to the
 // deck-adapter's PascalCase rule (mount + PascalCase(id)) for widgets that omit it (e.g. cosine-sphere).
@@ -47,8 +49,62 @@ const payload = {
   exports: WIDGET_EXPORTS, // widget id → mount export name, resolved against the logic.js glob client-side
 };
 const proseText = (body) => (Array.isArray(body) ? body : [body]);
+
+// ── inline markdown subset (rendered via set:html) ──────────────────────────
+// Turns the authored markdown-ish strings (body[], heading, imgCaption) into
+// safe HTML. NOT run on imgAlt (alt stays plain text). Order matters — see
+// _internal/book_audit/p1-rendering.md §gotchas:
+//   (a) STASH + protect math spans ($$…$$, \(…\), \[…\]) and code spans (`…`)
+//       so markdown/escaping never touch their contents. For MATH we escape
+//       only < > & to entities (so KaTeX's textContent stays correct and the
+//       browser won't parse a `<b…` as a tag) but KEEP backslashes and `$`.
+//       For CODE we emit <code> with fully-escaped contents.
+//   (b) HTML-escape the remaining (author) text.
+//   (c) **bold** BEFORE *italic* (so a `*` inside `**` can't double-match),
+//       then [text](url) links.
+//   (d) restore the stashed spans.
+// Placeholders use Private-Use-Area sentinels (U+E000 / U+E001), built via
+// String.fromCharCode so the source stays ASCII. They cannot occur in author
+// text and pass through escAll + the bold/italic/link passes untouched.
+const SENT_L = String.fromCharCode(0xE000), SENT_R = String.fromCharCode(0xE001);
+const escAll = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const escMath = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); // keep \ and $
+function inlineMd(s) {
+  if (s == null) return '';
+  if (typeof s !== 'string') s = String(s);
+  const stash = [];
+  const hold = (html) => { stash.push(html); return SENT_L + (stash.length - 1) + SENT_R; };
+
+  // (a) protect math first (display delimiters before inline), then code spans.
+  let h = s
+    .replace(/\$\$([\s\S]+?)\$\$/g, (_, m) => hold('$$' + escMath(m) + '$$'))
+    .replace(/\\\[([\s\S]+?)\\\]/g, (_, m) => hold('\\[' + escMath(m) + '\\]'))
+    .replace(/\\\(([\s\S]+?)\\\)/g, (_, m) => hold('\\(' + escMath(m) + '\\)'))
+    .replace(/`([^`]+)`/g, (_, m) => hold('<code>' + escAll(m) + '</code>'));
+
+  // (b) escape the remaining author text.
+  h = escAll(h);
+
+  // (c) bold BEFORE italic. Bold is non-greedy and allows a *nested* single-`*`
+  // italic inside it (e.g. `**… *never seen before*.**`): `[\s\S]+?` stops at the
+  // nearest closing `**`, leaving any interior `*…*` for the italic pass below.
+  // Then italic (guarded so `**`/stray `*` aren't mis-emphasized), then links.
+  h = h.replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>');
+  h = h.replace(/(^|[^*])\*(?!\s)([^*\n]+?)\*(?!\*)/g, '$1<em>$2</em>');
+  h = h.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>');
+
+  // (d) restore protected spans.
+  h = h.replace(new RegExp(SENT_L + '(\\d+)' + SENT_R, 'g'), (_, i) => stash[Number(i)]);
+  return h;
+}
+// vendored KaTeX (same copy the decks ship) — copy-static publishes Lectures/ → docs/Lectures/,
+// so these resolve on the live site with zero CDN.
+const katexCss = withBase('/Lectures/vendor/katex/katex.min.css');
+const katexJs = withBase('/Lectures/vendor/katex/katex.min.js');
+const katexAuto = withBase('/Lectures/vendor/katex/auto-render.min.js');
 ---
 <BaseLayout lang={lang} page={`book/${id}`} title={`${chapter.catchphrase} · ${t(course.meta.title, lang)}`}>
+  <link rel="stylesheet" href={katexCss} />
   <article class="book">
     <header class="book-head wrap">
       <div class="book-kick">{t(ui.nav.book, lang)} · {lec.id} · {chapter.catchphrase}</div>
@@ -59,16 +115,16 @@ const proseText = (body) => (Array.isArray(body) ? body : [body]);
 
     {beats.map((b) => b.kind === 'prose' ? (
       <section class="beat-prose wrap" id={b.id}>
-        {b.heading && <h2>{t(b.heading, lang)}</h2>}
+        {b.heading && <h2 set:html={inlineMd(t(b.heading, lang))} />}
         {b.img && (
           <figure class={`beat-figure beat-figure--${b.imgPos || 'scene'}`}>
             <img src={withBase('/Lectures/assets/img/' + b.img)}
                  alt={b.imgAlt ? t(b.imgAlt, lang) : (b.imgCaption ? t(b.imgCaption, lang) : '')}
                  loading="lazy" decoding="async" />
-            {b.imgCaption && <figcaption>{t(b.imgCaption, lang)}</figcaption>}
+            {b.imgCaption && <figcaption set:html={inlineMd(t(b.imgCaption, lang))} />}
           </figure>
         )}
-        {proseText(t(b.body, lang)).map((p) => <p>{p}</p>)}
+        {proseText(t(b.body, lang)).map((p) => <p set:html={inlineMd(p)} />)}
       </section>
     ) : (
       <section class="scrolly" id={b.id} data-beat={b.id}>
@@ -123,6 +179,36 @@ const proseText = (body) => (Array.isArray(body) ? body : [body]);
     addEventListener('resize', () => sc.resize());
   </script>
 
+  <!-- Vendored KaTeX (offline, same copy the decks ship). `defer` preserves order:
+       katex.min.js → auto-render.min.js → the render call below. The render script
+       also gates on DOMContentLoaded, so it runs after both libs have evaluated.
+       Separate from the scrolly module script above — does not interfere with it. -->
+  <script defer src={katexJs} is:inline></script>
+  <script defer src={katexAuto} is:inline></script>
+  <script is:inline>
+    (function () {
+      function renderBookMath() {
+        var root = document.querySelector('.book');
+        if (root && typeof window.renderMathInElement === 'function') {
+          window.renderMathInElement(root, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\(', right: '\\)', display: false },
+              { left: '\\[', right: '\\]', display: true }
+            ],
+            throwOnError: false,
+            strict: 'ignore'
+          });
+        }
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', renderBookMath);
+      } else {
+        renderBookMath();
+      }
+    })();
+  </script>
+
   <!-- global: widget captions/counters are runtime-injected (no Astro scope) — hide in scroll context -->
   <style is:global>
     .scrolly .wgt-caption, .scrolly .wgt-counter,
@@ -136,11 +222,32 @@ const proseText = (body) => (Array.isArray(body) ? body : [body]);
     .book-head, .book-foot { padding-top: var(--ws-5); padding-bottom: var(--ws-3); }
     .book-xref { font-family: var(--font-mono); font-size: var(--fz-small); margin-top: var(--ws-3); }
 
-    .beat-prose { padding: var(--ws-3) var(--ws-4); }
+    .beat-prose { padding: var(--ws-3) var(--ws-4); overflow-x: clip; }
     .beat-prose h2 { font-family: var(--font-serif); font-size: var(--fz-h2); margin: var(--ws-3) 0 8px; }
     .beat-prose p { font-size: var(--fz-lead); line-height: 1.65; color: var(--ink-2);
       max-width: var(--ws-measure); margin: 0 auto 0 0; }
     .beat-prose p + p { margin-top: var(--ws-2); }
+
+    /* inline markdown emitted by inlineMd(): strong / em / code (readable light + dark). */
+    .beat-prose strong, .beat-prose h2 strong, .beat-figure figcaption strong { font-weight: 700; color: var(--ink); }
+    .beat-prose em, .beat-figure figcaption em { font-style: italic; }
+    .beat-prose code, .beat-figure figcaption code {
+      font-family: var(--font-mono); font-size: .9em;
+      background: color-mix(in srgb, var(--ink) 8%, transparent);
+      border: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+      border-radius: 5px; padding: .08em .36em; }
+
+    /* KaTeX display math: centered, breathing room; scroll instead of overflow on long rows. */
+    .beat-prose .katex-display { margin: var(--ws-2) 0; padding: 2px 0;
+      max-width: 100%; overflow-x: auto; overflow-y: hidden; }
+    .beat-prose .katex { font-size: 1.05em; max-width: 100%; }
+    /* Long inline formulas can't wrap (KaTeX is nowrap) — let them scroll, never push the page. */
+    .beat-prose p .katex { display: inline-block; max-width: 100%; overflow-x: auto;
+      overflow-y: hidden; vertical-align: middle; }
+    @media (max-width: 640px) {
+      .beat-prose .katex-display { font-size: .8em; }
+      .beat-prose p .katex { font-size: .95em; }
+    }
 
     /* In-prose illustrations (mascot / scene art). White canvas so off-white art
        reads in dark mode; responsive; never overflows. */
