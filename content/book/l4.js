@@ -214,6 +214,7 @@ export default {
         ],
       },
     },
+    { id: 'turn-online-ab', kind: 'scrolly', widget: 'ab-test', data: 'l4-online' },
     {
       id: 'turn-online-bias', kind: 'prose',
       heading: { en: 'Clicks lie too', ru: 'Клики тоже врут' },

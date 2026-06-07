@@ -108,6 +108,7 @@ export default {
         ],
       },
     },
+    { id: 'climb-compression', kind: 'scrolly', widget: 'postings-compression', data: 'l3-compression' },
     {
       id: 'turn-scoring', kind: 'prose',
       heading: { en: 'Matching isn’t ranking', ru: 'Совпадение — это не ранжирование' },
