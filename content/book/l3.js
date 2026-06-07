@@ -9,6 +9,15 @@ export default {
     {
       id: 'hook-catalog', kind: 'prose',
       heading: { en: 'The Star Catalog', ru: 'Звёздный каталог' },
+      img: 'L3/L3-00-star-catalog.png', imgPos: 'hero',
+      imgAlt: {
+        en: 'Serega the star-cartographer floating before a billion-point sky, plotting it onto a catalogue of constellation cards.',
+        ru: 'Серёга-звёздный картограф висит перед небом из миллиарда точек, перенося его в каталог из созвездных карточек.',
+      },
+      imgCaption: {
+        en: 'The Star Catalog: classical IR turns a billion documents into a catalogue you can look up — the lecture’s framing metaphor.',
+        ru: 'Звёздный каталог: классический IR превращает миллиард документов в каталог, по которому можно искать — рамочная метафора лекции.',
+      },
       body: {
         en: [
           "I'm Serega, and I'm staring at a sky of a billion documents. One of them answers the question on the screen. Just one. The other 999,999,999 are noise, and from where I'm floating they all look exactly the same — tiny points of light, indistinguishable, infinite.",
@@ -24,14 +33,25 @@ export default {
     },
     {
       id: 'problem-linear-scan', kind: 'prose',
+      img: 'L3/L3-01-linear-scan-doom.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'A lone explorer who has checked 12 of 1,000,000,000 stars one by one — the brute-force scan is hopeless.',
+        ru: 'Одинокий исследователь проверил 12 из 1 000 000 000 звёзд по одной — перебор безнадёжен.',
+      },
+      imgCaption: {
+        en: 'Scanning every document is hopeless: 12 of a billion stars checked. You need an index, not brute force.',
+        ru: 'Сканировать каждый документ безнадёжно: проверено 12 из миллиарда звёзд. Нужен индекс, а не перебор.',
+      },
       body: {
         en: [
           "Let's name the naive plan first, so we can watch it die. Read every document at query time and check whether it matches. That's called a **linear scan**, and it is a complete non-starter. Ten milliseconds to open and read a single document, times a billion documents, is months of wall-clock time for *one* search. Multiply by the thousands of queries arriving every second and you haven't built a search engine, you've built a space heater.",
+          "And the budget you're up against is brutal. A user perceives anything under about **100 milliseconds** as instant, gives you maybe a second before they feel the lag, and is gone by two or three. That 100 ms isn't even all yours — the network round-trip, the page render, and the other services in the request each take a slice, so the actual time the ranker gets to *think* is a fraction of it. A scan that needs minutes to touch a billion documents has overspent the budget by seven orders of magnitude before it has ranked a single result.",
           "And don't fix it by buying more machines. You can shard the scan across a thousand servers and you've still turned months into hours — for a budget that's supposed to be one second. The problem isn't horsepower. The problem is that you're reading the whole library to answer every question, and the library keeps growing.",
           "We need the answer before we've touched even a thousandth of the sky. That means doing the expensive work *once*, ahead of time, and turning each query into a cheap lookup against what we precomputed. Hold that thought — precompute once, look up forever — because it's the spine of everything that follows.",
         ],
         ru: [
           'Сначала назовём наивный план, чтобы посмотреть, как он умрёт. Прочитать каждый документ в момент запроса и проверить совпадение. Это называется **линейное сканирование**, и это полный тупик. Десять миллисекунд, чтобы открыть и прочитать один документ, умножить на миллиард документов — это месяцы реального времени на *один* поиск. Умножь на тысячи запросов, приходящих каждую секунду, — и ты построил не поисковик, а обогреватель.',
+          'А бюджет, против которого ты бьёшься, беспощаден. Всё, что меньше примерно **100 миллисекунд**, пользователь воспринимает как мгновенное, секунду ещё терпит до ощущения тормоза, а через две-три уходит. И эти 100 мс даже не все твои — сетевой круг, отрисовка страницы и другие сервисы в запросе откусывают по куску, так что времени, чтобы ранкер *подумал*, остаётся доля от них. Скан, которому нужны минуты, чтобы тронуть миллиард документов, перерасходовал бюджет на семь порядков ещё до того, как отранжировал хоть один результат.',
           'И не чини это покупкой машин. Размажь скан по тысяче серверов — и месяцы превратятся в часы, при бюджете, который должен быть в одну секунду. Дело не в мощности. Дело в том, что ты перечитываешь всю библиотеку, чтобы ответить на каждый вопрос, а библиотека всё растёт.',
           'Нам нужен ответ ещё до того, как мы тронули хотя бы тысячную долю неба. А значит — сделать дорогую работу *один раз*, заранее, и превратить каждый запрос в дешёвый поиск по тому, что мы предвычислили. Запомни эту мысль — предвычислить однажды, искать вечно, — потому что это хребет всего дальнейшего.',
         ],
@@ -40,6 +60,15 @@ export default {
     {
       id: 'turn-inverted-index', kind: 'prose',
       heading: { en: 'Build the catalog', ru: 'Строим каталог' },
+      img: 'L3/L3-11-inverted-index-cards.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'A card catalogue where each card holds one term and points at the list of star-charts (documents) containing it.',
+        ru: 'Картотека, где каждая карточка хранит один терм и указывает на список звёздных карт (документов), содержащих его.',
+      },
+      imgCaption: {
+        en: 'The inverted index: word → list of documents. One card per term, pointing straight at its stars.',
+        ru: 'Инвертированный индекс: слово → список документов. По карточке на терм, указывающей прямо на свои звёзды.',
+      },
       body: {
         en: [
           "Here's the trick, and it's almost embarrassingly simple once you see it. Stop asking each document \"do you contain this word?\" — that's the question that forces you to visit every document. Flip it around. Keep a list, *for every word*, of which documents contain it. Ask the question once, store the answer, reuse it forever.",
@@ -55,17 +84,26 @@ export default {
     {
       id: 'turn-index-internals', kind: 'prose',
       heading: { en: "What's inside a catalog card", ru: 'Что внутри каталожной карточки' },
+      img: 'L3/L3-12-postings-compression.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'A postings list compressed by storing the gaps between sorted doc IDs instead of the IDs themselves.',
+        ru: 'Список постингов сжат хранением разностей между отсортированными ID документов вместо самих ID.',
+      },
+      imgCaption: {
+        en: 'Store the gaps, not the stars: a sorted postings list shrinks by keeping the differences between doc IDs.',
+        ru: 'Храни разрывы, а не звёзды: отсортированный список постингов усыхает, сохраняя разницу между ID документов.',
+      },
       body: {
         en: [
-          "A card with a list of document IDs is the cartoon version. The real thing has more on it, and the extras are what make search *fast* rather than merely possible. Each entry in a word's list — a **posting** — usually carries not just the document ID but the count of how many times the word appears there, and often the exact positions, so we can later tell that \"new york\" the city is different from a document that happens to mention \"new\" and \"york\" a paragraph apart.",
-          "Then there's how the catalog gets *built* in the first place. You can't sort a trillion postings in memory, so indexers stream the corpus in blocks, sort each block to disk, and merge the sorted runs together — the same merge-sort idea your data-structures course beat into you, just at planetary scale. That's why production engines like Lucene store the index as immutable *segments* that get merged in the background: building and serving never stop fighting for the same machine.",
-          "And the lists get *compressed*, hard. The document IDs on a card are sorted, so instead of storing 1{,}000{,}004 then 1{,}000{,}009 you store the first ID and then the **gaps** — 5, then 4 — tiny numbers that pack into a byte or two. A popular word's posting list can shrink several-fold this way, which means more of it fits in cache, which means the lookup the user is waiting on touches memory instead of disk. None of this is glamorous. All of it is the difference between a demo and an engine.",
+          "A card with a list of document IDs is the cartoon version. The real thing has more on it, and the extras are what make search *fast* rather than merely possible. The card splits into two halves: a **dictionary** that maps each term to where its list lives (and stores its document frequency, df — how many documents contain it, which we'll need for ranking in a minute), and the **postings list** itself. Each entry in that list — a **posting** — usually carries not just the document ID but the count of how many times the word appears there (its term frequency, tf), and often the exact positions, so we can later tell that \"new york\" the city is different from a document that happens to mention \"new\" and \"york\" a paragraph apart.",
+          "Then there's how the catalog gets *built* in the first place. You can't sort a trillion postings in memory, so indexers stream the corpus in blocks, sort each block to disk, and merge the sorted runs together — the same merge-sort idea your data-structures course beat into you, just at planetary scale. The two classic recipes have names: **BSBI** (block sort-based indexing) sorts blocks of term-IDs; **SPIMI** (single-pass in-memory indexing) skips the global sort entirely and grows per-term lists on the fly. Either way the output is the same shape, and that's why production engines like Lucene store the index as immutable *segments* that get merged in the background: building and serving never stop fighting for the same machine.",
+          "And the lists get *compressed*, hard, with a one-two punch. First, the document IDs on a card are sorted, so you store the first ID and then the **gaps** — for a list `3, 8, 12, 30` you keep `3, +5, +4, +18`, tiny numbers instead of full IDs. Second, **variable-byte** coding packs each small gap into as few bytes as it needs: one byte carries seven data bits plus a continuation bit, so any gap below 128 fits in a single byte. Run the arithmetic on that list — four 32-bit IDs is 16 bytes naively; four gaps, each under 128, is 4 bytes. That's a clean **4× compression**, and on a popular word's list the ratio is far higher. More of the list fits in cache, so the lookup the user is waiting on touches memory instead of disk. None of this is glamorous. All of it is the difference between a demo and an engine.",
           "Last piece: matching documents to a multi-word query is a **merge** of sorted lists, and you can make it skip. To find documents containing *both* \"space\" and \"team\", walk the two sorted lists together like a zipper; with skip pointers you can leap over chunks of one list that can't possibly match. Start from the rarest word — its list is shortest, so it does the least work. That instinct, *rarest first*, is going to come back the moment we start ranking.",
         ],
         ru: [
-          'Карточка со списком ID документов — это мультяшная версия. У настоящей внутри больше, и именно добавки делают поиск *быстрым*, а не просто возможным. Каждая запись в списке слова — **постинг** — обычно несёт не только ID документа, но и счётчик, сколько раз слово там встречается, а часто и точные позиции, чтобы потом отличить «нью-йорк» как город от документа, где «нью» и «йорк» просто стоят через абзац.',
-          'Дальше — как каталог вообще *строится*. Триллион постингов в памяти не отсортируешь, поэтому индексаторы гонят корпус блоками, сортируют каждый блок на диск и сливают отсортированные пробеги вместе — та самая идея слияния-сортировки, которую вбивали в тебя на структурах данных, только в планетарном масштабе. Поэтому продакшн-движки вроде Lucene хранят индекс как неизменяемые *сегменты*, которые сливаются в фоне: построение и обслуживание всё время дерутся за одну машину.',
-          'И списки *сжимаются*, жёстко. ID документов на карточке отсортированы, поэтому вместо 1 000 004, а потом 1 000 009 ты хранишь первый ID, а дальше — **разности**: 5, потом 4 — крошечные числа, которые влезают в байт-другой. Список постингов популярного слова так усыхает в несколько раз, а значит, больше его помещается в кэш, а значит, поиск, которого ждёт пользователь, трогает память, а не диск. Ничего гламурного. И при этом — вся разница между демо и движком.',
+          'Карточка со списком ID документов — это мультяшная версия. У настоящей внутри больше, и именно добавки делают поиск *быстрым*, а не просто возможным. Карточка делится надвое: **словарь**, что отображает каждый терм в то, где лежит его список (и хранит его документную частоту, df — в скольких документах он есть, что понадобится нам для ранжирования через минуту), и сам **список постингов**. Каждая запись в этом списке — **постинг** — обычно несёт не только ID документа, но и счётчик, сколько раз слово там встречается (его частоту термина, tf), а часто и точные позиции, чтобы потом отличить «нью-йорк» как город от документа, где «нью» и «йорк» просто стоят через абзац.',
+          'Дальше — как каталог вообще *строится*. Триллион постингов в памяти не отсортируешь, поэтому индексаторы гонят корпус блоками, сортируют каждый блок на диск и сливают отсортированные пробеги вместе — та самая идея слияния-сортировки, которую вбивали в тебя на структурах данных, только в планетарном масштабе. У двух классических рецептов есть имена: **BSBI** (блочная сортирующая индексация) сортирует блоки ID-термов; **SPIMI** (однопроходная индексация в памяти) вообще пропускает глобальную сортировку и наращивает списки по термам на лету. В любом случае результат одной формы, и поэтому продакшн-движки вроде Lucene хранят индекс как неизменяемые *сегменты*, которые сливаются в фоне: построение и обслуживание всё время дерутся за одну машину.',
+          'И списки *сжимаются*, жёстко, двойным ударом. Во-первых, ID документов на карточке отсортированы, поэтому ты хранишь первый ID, а дальше — **разности**: для списка `3, 8, 12, 30` держишь `3, +5, +4, +18`, крошечные числа вместо полных ID. Во-вторых, **переменно-байтовое** кодирование пакует каждую малую разность в столько байт, сколько нужно: один байт несёт семь бит данных плюс бит продолжения, так что любая разность меньше 128 влезает в один байт. Прокрути арифметику на этом списке — четыре 32-битных ID это наивно 16 байт; четыре разности, каждая меньше 128, это 4 байта. Это честное **сжатие в 4 раза**, а на списке популярного слова отношение куда выше. Больше списка помещается в кэш, поэтому поиск, которого ждёт пользователь, трогает память, а не диск. Ничего гламурного. И при этом — вся разница между демо и движком.',
           'Последнее: сопоставить документы многословному запросу — это **слияние** отсортированных списков, и его можно ускорить пропусками. Чтобы найти документы сразу со «space» и «team», иди по двум отсортированным спискам вместе, как застёжка-молния; со skip-указателями ты перепрыгиваешь куски одного списка, которые заведомо не совпадут. Начинай с самого редкого слова — его список короче, значит, и работы меньше. Этот инстинкт, *сначала редкое*, вернётся в тот же миг, как мы начнём ранжировать.',
         ],
       },
@@ -87,15 +125,24 @@ export default {
     {
       id: 'turn-bow', kind: 'prose',
       heading: { en: 'Bag-of-Words', ru: 'Мешок слов' },
+      img: 'L3/L3-16-bag-of-words.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'A document tipped into a bag; word order spills out and only the word counts remain.',
+        ru: 'Документ вытряхивают в мешок; порядок слов теряется, остаются только счётчики слов.',
+      },
+      imgCaption: {
+        en: 'Bag-of-Words: tip a document into a bag and word order spills out — only the counts remain.',
+        ru: 'Мешок слов: вытряхиваем документ в мешок, и порядок слов теряется — остаются только счётчики.',
+      },
       body: {
         en: [
           "Before we can weigh words, we need to agree on what a document *is* to the math. Here's the move that quietly underlies all of classical IR, and it has a name worth saying out loud: **Bag-of-Words**. Take a document, dump every word into a bag, shake it, throw away the order. All you keep is *which* words appeared and *how many times*. \"Dog bites man\" and \"man bites dog\" become the same bag — which is obviously, comically wrong, and somehow works anyway for an astonishing range of tasks.",
-          "Why it works: lay every document's bag out as a row of counts over a fixed vocabulary and you've built a **document-term matrix** — every document is now a vector, a point in a space with one axis per word. Geometry arrives for free. Documents that share many words sit near each other; a query is just another short vector you can compare against all of them. This is the **vector space model**, and it's the bridge from \"a pile of text\" to \"something a computer can rank.\"",
+          "Why it works: lay every document's bag out as a row of counts over a fixed vocabulary and you've built a **document-term matrix** — every document is now a vector, a point in a space with one axis per word. Make it concrete with three tiny sentences — \"the cat sat on the mat\", \"the dog sat on the log\", \"cats and dogs play\". The shared vocabulary has eleven words (`and, cat, cats, dog, dogs, log, mat, on, play, sat, the`), so each sentence becomes an eleven-number row: the first is `[0,1,0,0,0,0,1,1,0,1,2]` — one \"cat\", one \"mat\", one \"on\", one \"sat\", and \"the\" twice. Geometry arrives for free. Documents that share many words sit near each other; a query is just another short vector you can compare against all of them. This is the **vector space model**, and it's the bridge from \"a pile of text\" to \"something a computer can rank.\"",
           "And it's immediately, concretely useful. A spam filter is mostly Bag-of-Words: it doesn't parse your email's grammar, it counts words — \"free\", \"winner\", \"viagra\" push the score toward spam; the words in your actual correspondence pull it back — and a naïve probability model on those counts catches the junk with embarrassing reliability. The catch is the one we just admitted: throwing away order means \"the movie was good, not bad\" and \"the movie was bad, not good\" look nearly identical to the bag. Order carries meaning, and we just shredded it. We'll spend a whole later chapter buying it back. For now, the bag is enough — because the real signal isn't *whether* a word appears, it's *how much it should count*.",
         ],
         ru: [
           'Прежде чем взвешивать слова, нужно договориться, чем документ *является* для математики. Вот ход, который тихо лежит в основе всего классического IR, и у него есть имя, которое стоит произнести вслух: **мешок слов** (Bag-of-Words). Берём документ, ссыпаем все слова в мешок, трясём, выбрасываем порядок. Остаётся только то, *какие* слова встретились и *сколько раз*. «Собака кусает человека» и «человек кусает собаку» становятся одним мешком — что очевидно и комично неверно, и почему-то всё равно работает для поразительного спектра задач.',
-          'Почему работает: разложи мешок каждого документа строкой счётчиков по фиксированному словарю — и ты построил **матрицу документ–термин**: каждый документ теперь вектор, точка в пространстве с осью на каждое слово. Геометрия приходит бесплатно. Документы, делящие много слов, стоят рядом; запрос — это просто ещё один короткий вектор, который можно сравнить со всеми. Это **векторная модель**, мост от «кучи текста» к «тому, что компьютер умеет ранжировать».',
+          'Почему работает: разложи мешок каждого документа строкой счётчиков по фиксированному словарю — и ты построил **матрицу документ–термин**: каждый документ теперь вектор, точка в пространстве с осью на каждое слово. Сделай это конкретным на трёх крошечных предложениях — «the cat sat on the mat», «the dog sat on the log», «cats and dogs play». Общий словарь — одиннадцать слов (`and, cat, cats, dog, dogs, log, mat, on, play, sat, the`), поэтому каждое предложение становится строкой из одиннадцати чисел: первое — `[0,1,0,0,0,0,1,1,0,1,2]` — одна «cat», одна «mat», одна «on», одна «sat» и «the» дважды. Геометрия приходит бесплатно. Документы, делящие много слов, стоят рядом; запрос — это просто ещё один короткий вектор, который можно сравнить со всеми. Это **векторная модель**, мост от «кучи текста» к «тому, что компьютер умеет ранжировать».',
           'И польза мгновенная, конкретная. Спам-фильтр — это в основном мешок слов: он не разбирает грамматику письма, он считает слова — «бесплатно», «победитель», «viagra» толкают оценку к спаму; слова твоей реальной переписки тянут назад — и наивная вероятностная модель на этих счётчиках ловит мусор с неприличной надёжностью. Подвох тот, что мы только что признали: выбросив порядок, «фильм хороший, а не плохой» и «фильм плохой, а не хороший» для мешка почти неотличимы. Порядок несёт смысл, а мы его только что измельчили. Целую будущую главу мы потратим, чтобы выкупить его обратно. Пока мешка хватит — потому что настоящий сигнал не в том, *встречается* ли слово, а в том, *насколько оно должно считаться*.',
         ],
       },
@@ -103,15 +150,24 @@ export default {
     {
       id: 'climb-tfidf', kind: 'prose',
       heading: { en: 'TF-IDF: rare words carry the signal', ru: 'TF-IDF: сигнал несут редкие слова' },
+      img: 'L3/L3-17-reweight.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'A balance scale where common words shrink light and rare words grow heavy — TF-IDF re-weighting.',
+        ru: 'Весы, где частые слова легчают, а редкие тяжелеют — перевзвешивание TF-IDF.',
+      },
+      imgCaption: {
+        en: 'Re-weighting (TF·IDF): on the balance, common words shrink and rare words grow heavier — specificity earns weight.',
+        ru: 'Перевзвешивание (TF·IDF): на весах частые слова легчают, а редкие тяжелеют — специфичность зарабатывает вес.',
+      },
       body: {
         en: [
           "So we weight the counts in the bag with two ideas that fight in opposite directions. The first is **term frequency** (tf): a word that appears more often in a document is, all else equal, more *about* that document. The second is **inverse document frequency** (idf), and it's the clever one. A word that shows up in *every* document — \"the\", or \"space\" inside a corpus that's all about space — is useless for telling documents apart, no matter how often it appears. A word that shows up in only a handful of documents is gold: when it matches, it really means something.",
-          "Multiply them — tf · idf — and you get a weight that rewards documents rich in the query's *rare* words while shrugging off the common ones. Run it on a tiny car-versus-truck corpus and the effect is stark: words like \"the\" and \"a\" appear everywhere, their idf collapses to zero, and they contribute *nothing* to the score even though they're all over the text. Only the distinguishing words — \"car\", \"truck\", \"engine\" — move the needle. The math is doing exactly what your intuition wanted: it's learning which words are worth listening to, from the corpus alone, with nobody labelling anything.",
+          "Multiply them — tf · idf — and you get a weight that rewards documents rich in the query's *rare* words while shrugging off the common ones. Watch it bite on two documents: A = \"The car is driven on the road\", B = \"The truck is driven on the highway\". With idf = log(2/df), the words they *share* — \"the\", \"is\", \"driven\", \"on\" — all have df = 2, so idf = log(2/2) = **0**, and they contribute *nothing* to either score even though they're most of the text. Only the distinguishing words survive: \"car\" and \"road\" (df = 1, idf = **0.6931**) carry document A; \"truck\" and \"highway\" carry document B; each lands a tf·idf of about **0.099**. The math is doing exactly what your intuition wanted — it's learning which words are worth listening to, from the corpus alone, with nobody labelling anything.",
           "TF-IDF is a genuinely great first instrument, and for years it *was* search. But it has two flaws you can feel if you push on it. First, tf is **linear**: a word that appears ten times scores ten times as high as a word that appears once — but the tenth mention almost never adds ten times the evidence. Second, it has a weak sense of **length**: a long document accumulates raw counts just by being long, so it can outscore a short, perfectly-on-point one for no good reason. Two flaws, both fixable. Fixing them is the most interesting story in this whole chapter.",
         ],
         ru: [
           'Итак, мы взвешиваем счётчики в мешке двумя идеями, тянущими в разные стороны. Первая — **частота термина** (tf): слово, что встречается в документе чаще, при прочих равных сильнее *о* нём говорит. Вторая — **обратная частота документа** (idf), и она хитрая. Слово, которое есть в *каждом* документе — «the» или «space» в корпусе, целиком про космос, — бесполезно для различения документов, как часто бы оно ни встречалось. Слово, которое есть лишь в горстке документов, — золото: когда оно совпадает, это действительно что-то значит.',
-          'Перемножь их — tf · idf — и получишь вес, награждающий документы, богатые *редкими* словами запроса, и отмахивающийся от частых. Прогони на крошечном корпусе «машина против грузовика» — эффект резкий: слова вроде «the» и «a» встречаются всюду, их idf падает в ноль, и они дают *ноль* вклада в оценку, хотя ими испещрён весь текст. Только различающие слова — «машина», «грузовик», «двигатель» — двигают стрелку. Математика делает ровно то, чего хотела интуиция: она учится, какие слова стоит слушать, из одного корпуса, без единой разметки.',
+          'Перемножь их — tf · idf — и получишь вес, награждающий документы, богатые *редкими* словами запроса, и отмахивающийся от частых. Смотри, как он кусается на двух документах: A = «The car is driven on the road», B = «The truck is driven on the highway». При idf = log(2/df) слова, что у них *общие* — «the», «is», «driven», «on», — все имеют df = 2, поэтому idf = log(2/2) = **0**, и они дают *ноль* вклада в любую из оценок, хотя ими занят почти весь текст. Выживают только различающие: «car» и «road» (df = 1, idf = **0,6931**) несут документ A; «truck» и «highway» несут документ B; каждое набирает tf·idf около **0,099**. Математика делает ровно то, чего хотела интуиция: она учится, какие слова стоит слушать, из одного корпуса, без единой разметки.',
           'TF-IDF — по-настоящему отличный первый инструмент, и годами он *и был* поиском. Но у него два изъяна, которые ощущаешь, если нажать. Первый: tf **линеен**: слово, встретившееся десять раз, набирает в десять раз больше, чем встретившееся раз, — но десятое упоминание почти никогда не добавляет десятикратной улики. Второй: у него слабое чувство **длины**: длинный документ копит сырые счётчики просто потому, что он длинный, и может обойти короткий, идеально по теме, без всякой причины. Два изъяна, оба чинятся. Их починка — самая интересная история во всей этой главе.',
         ],
       },
@@ -120,24 +176,44 @@ export default {
     {
       id: 'climb-bm25-numbers', kind: 'prose',
       heading: { en: 'BM25, by the numbers', ru: 'BM25 в числах' },
+      img: 'L3/L3-02-bm25-sextant.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'BM25 drawn as a trusty brass sextant — the classic instrument for taking a bearing on relevance.',
+        ru: 'BM25 изображён как надёжный латунный секстант — классический прибор, чтобы взять пеленг на релевантность.',
+      },
+      imgCaption: {
+        en: 'BM25 = the trusty old sextant: a few well-tuned dials (k₁, b) take an accurate bearing on relevance.',
+        ru: 'BM25 — надёжный старый секстант: пара хорошо настроенных дисков (k₁, b) берёт точный пеленг на релевантность.',
+      },
       body: {
         en: [
           "Let me make the figure you just stepped through reproducible with pen and paper, because the whole point of BM25 is that the numbers *move* the way your intuition wanted — and you should watch them move. Take a toy collection of three tiny documents: D1 = \"cat cat dog\", D2 = \"cat dog dog mouse\", D3 = \"mouse cat\". The query is *cat dog*. Three docs of length 3, 4, and 2, so the average document length is avgdl = (3 + 4 + 2)/3 = 3.0 — and BM25 uses k₁ = 1.5, b = 0.75.",
           "Start with idf, the rare-word reward, smoothed so it never blows up. \"cat\" appears in all three documents (df = 3), so its idf = ln(1 + (3 − 3 + 0.5)/(3 + 0.5)) = ln(1.1429) = **0.1335** — tiny, because a word in every document barely distinguishes them. \"dog\" appears in only two (df = 2), so idf = ln(1 + (3 − 2 + 0.5)/(2 + 0.5)) = ln(1.6) = **0.4700** — three and a half times heavier. The rarer word already carries most of the signal before we count a single occurrence.",
           "Now the saturating part, the piece that fixes TF-IDF's linearity. Each term contributes idf · B, where B = tf·(k₁+1) / (tf + k₁·[(1−b) + b·len/avgdl]) — a fraction that rises fast for the first occurrence and then flattens, with the bracket gently penalising long documents. Work one term fully: \"dog\" in D2, which has tf = 2 and length 4. The bracket is (1−0.75) + 0.75·(4/3) = 1.25, the numerator is 2·(1.5+1) = 5, the denominator is 2 + 1.5·1.25 = 3.875, so B = 5/3.875 = **1.2903**, and the term's weight is 1.2903 · 0.4700 = **0.6065**. That single number is two-thirds of why D2 wins.",
           "Sum the terms per document and the ranking falls out. D2 = 0.1161 (cat) + 0.6065 (dog) = **0.7226**. D1 = 0.1908 (cat, tf = 2) + 0.4700 (dog) = **0.6608**. D3 = 0.1571 (cat) + 0 (no dog) = **0.1571**. So **D2 > D1 > D3** — and notice *why*: D1 says \"cat\" twice, but saturation means that second \"cat\" adds almost nothing (0.1908 vs a single-mention 0.1335), while D2's two \"dog\"s land on the heavier idf and on the saturating curve's steep part. The short, on-point D2 beats the longer-but-repetitive D1, and the barely-relevant D3 trails far behind. That is the sextant working, one number at a time.",
+          "One more query nails down the idf instinct, because in cat/dog the two words were close in rarity. Run *nasa shuttle* over a small real sub-corpus where the terms are genuinely far apart: \"nasa\" is in three documents (idf = **0.9445**), \"shuttle\" in only two (idf = **1.2809**), so the rarer word is the heavier one before any counting. The document that says \"shuttle\" three times and \"nasa\" once scores **2.8151** and wins outright; a document with \"nasa\" twice and \"shuttle\" once trails at 2.4733; and a document with a lone \"nasa\" and no \"shuttle\" sits at 0.9249. The rare term dominates — exactly as idf promised — and saturation keeps the triple-\"shuttle\" from running away with a tenfold score it didn't earn.",
         ],
         ru: [
           'Дай я сделаю фигуру, по которой ты только что шагал, воспроизводимой с карандашом и бумагой, — ведь весь смысл BM25 в том, что числа *движутся* так, как хотела твоя интуиция, и на это стоит посмотреть. Возьми игрушечную коллекцию из трёх крошечных документов: D1 = «cat cat dog», D2 = «cat dog dog mouse», D3 = «mouse cat». Запрос — *cat dog*. Три документа длиной 3, 4 и 2, значит средняя длина avgdl = (3 + 4 + 2)/3 = 3,0 — а BM25 берёт k₁ = 1,5, b = 0,75.',
           'Начни с idf, награды за редкость, сглаженной так, чтобы она не взрывалась. «cat» есть во всех трёх документах (df = 3), поэтому его idf = ln(1 + (3 − 3 + 0,5)/(3 + 0,5)) = ln(1,1429) = **0,1335** — крошечная, ведь слово в каждом документе их почти не различает. «dog» есть лишь в двух (df = 2), поэтому idf = ln(1 + (3 − 2 + 0,5)/(2 + 0,5)) = ln(1,6) = **0,4700** — в три с половиной раза тяжелее. Более редкое слово уже несёт почти весь сигнал, ещё до того как мы сосчитали хоть одно вхождение.',
           'Теперь насыщающаяся часть, та, что чинит линейность TF-IDF. Каждый термин даёт idf · B, где B = tf·(k₁+1) / (tf + k₁·[(1−b) + b·len/avgdl]) — дробь, что круто растёт на первом вхождении и потом выполаживается, а скобка мягко наказывает длинные документы. Прокрути один термин полностью: «dog» в D2, у которого tf = 2 и длина 4. Скобка — (1−0,75) + 0,75·(4/3) = 1,25, числитель — 2·(1,5+1) = 5, знаменатель — 2 + 1,5·1,25 = 3,875, поэтому B = 5/3,875 = **1,2903**, а вес термина — 1,2903 · 0,4700 = **0,6065**. Это одно число — две трети причины, почему D2 побеждает.',
           'Просуммируй термины по документу — и ранжирование выпадает само. D2 = 0,1161 (cat) + 0,6065 (dog) = **0,7226**. D1 = 0,1908 (cat, tf = 2) + 0,4700 (dog) = **0,6608**. D3 = 0,1571 (cat) + 0 (нет dog) = **0,1571**. Итак, **D2 > D1 > D3** — и заметь *почему*: D1 говорит «cat» дважды, но из-за насыщения второй «cat» добавляет почти ничего (0,1908 против 0,1335 за одно упоминание), тогда как два «dog» в D2 ложатся на более тяжёлую idf и на крутую часть насыщающейся кривой. Короткий, по теме D2 обходит длинный-но-повторяющийся D1, а едва релевантный D3 плетётся далеко позади. Вот так секстант и работает — по одному числу за раз.',
+          'Ещё один запрос закрепляет инстинкт idf, ведь в cat/dog оба слова были близки по редкости. Прогони *nasa shuttle* по маленькому реальному подкорпусу, где термины по-настоящему разнесены: «nasa» в трёх документах (idf = **0,9445**), «shuttle» лишь в двух (idf = **1,2809**), так что более редкое слово тяжелее ещё до всякого счёта. Документ, где «shuttle» трижды и «nasa» раз, набирает **2,8151** и побеждает начисто; документ с «nasa» дважды и «shuttle» раз отстаёт с 2,4733; а документ с одиноким «nasa» и без «shuttle» сидит на 0,9249. Редкий термин доминирует — ровно как обещала idf, — а насыщение не даёт тройному «shuttle» убежать с десятикратной оценкой, которую он не заработал.',
         ],
       },
     },
     {
       id: 'climb-bm25-history', kind: 'prose',
       heading: { en: 'The BM25 saga', ru: 'Сага о BM25' },
+      img: 'L3/L3-13-bm25-saga.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'A timeline of ranking instruments refined over generations: knotted rope → TF·IDF → sextant (BM25) → tuned BM25 with k₁ and b dials.',
+        ru: 'Линия времени инструментов ранжирования, оттачиваемых поколениями: узловая верёвка → TF·IDF → секстант (BM25) → настроенный BM25 с дисками k₁ и b.',
+      },
+      imgCaption: {
+        en: 'The BM25 saga: each instrument earned by the previous one’s failure at sea — knotted rope → TF·IDF → sextant → tuned BM25 (k₁, b).',
+        ru: 'Сага BM25: каждый прибор заработан провалом предыдущего в открытом море — узловая верёвка → TF·IDF → секстант → настроенный BM25 (k₁, b).',
+      },
       body: {
         en: [
           "That formula you just watched — BM25 — didn't spring out of anyone's head. It's a sextant, tuned over thirty years, each notch filed off only after the previous instrument failed at sea. The \"BM\" stands for *Best Match*, and the number 25 is not a version label some marketer chose; it is literally the twenty-fifth variant the team worked through. The story of how they got there is the best engineering parable I know, so let me actually tell it.",
@@ -174,16 +250,25 @@ export default {
     {
       id: 'turn-fusion-family', kind: 'prose',
       heading: { en: 'A council of navigators', ru: 'Совет навигаторов' },
+      img: 'L3/L3-15-fusion-navigators-council.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'A council of navigators with disagreeing star-charts merging them into one ranked master-chart.',
+        ru: 'Совет навигаторов с расходящимися звёздными картами сводит их в одну ранжированную мастер-карту.',
+      },
+      imgCaption: {
+        en: 'Rank fusion (RRF): a council of navigators with disagreeing star-charts agrees on one ranked master-chart.',
+        ru: 'Слияние ранжирований (RRF): совет навигаторов с расходящимися звёздными картами сходится на одной ранжированной мастер-карте.',
+      },
       body: {
         en: [
           "There's a whole family of ways to merge ranked lists, and walking the family tree tells you why the winner won. The first instinct is to *fix the scales*: normalise every ranker's scores to a common range — min-max them into [0,1], or z-score them — and then add. That's **CombSUM**; its cousin **CombMNZ** multiplies in a bonus for documents that more than one ranker surfaced at all. It works, but it's fragile: a single ranker with a weird score distribution, one outlier blowing out the min-max range, and your careful normalisation curdles.",
           "So a second school says: throw the scores away entirely and keep only the *ranks*. **Borda count**, borrowed from voting theory, gives a document m points for first place, m−1 for second, and so on down each list, then sums — exactly how some elections tally preferences. More elaborate schemes like **CPMF** model each rank as carrying a probability mass and combine those. The appeal is obvious: a rank is a rank, immune to whatever bizarre scale a ranker reports. The drawback of plain Borda is that it treats the gap between rank 1 and rank 2 the same as the gap between rank 50 and rank 51 — which is wrong, because nobody scrolls to 51.",
-          "Which sets up the punchline, and the figure after this beat is it. The trick that quietly won the industry keeps the rank-only robustness but discounts gently as you go down the list, so being near the top counts for a lot and being deep counts for almost nothing. It needs no score normalisation, no per-corpus tuning, and it folds any number of rankers together with a single tiny constant. Watch the council of navigators take their two disagreeing charts and agree on a course.",
+          "Which sets up the punchline, and the figure after this beat is it. **Reciprocal Rank Fusion** keeps the rank-only robustness but discounts gently: a document at rank *r* in a list contributes 1/(k + r), summed across rankers, with a single tiny constant **k = 60**. Because the contribution shrinks as you go down — 1/61 at rank 1, 1/62 at rank 2, and so on — being near the top counts for a lot and being deep counts for almost nothing, yet the 60 keeps any single rank-1 from dominating outright. It needs no score normalisation and no per-corpus tuning, and it folds any number of rankers together. Watch the council of navigators take their two disagreeing charts and agree on a course: a document both rankers place first earns 1/61 + 1/61 ≈ **0.0328** and tops the fused list.",
         ],
         ru: [
           'Есть целое семейство способов слить ранжированные списки, и прогулка по родословной показывает, почему победитель победил. Первый инстинкт — *починить шкалы*: нормировать оценки каждого ранкера в общий диапазон — min-max в [0,1] или z-оценка — и сложить. Это **CombSUM**; его родич **CombMNZ** домножает бонус документам, которые всплыли больше чем у одного ранкера. Работает, но хрупко: один ранкер со странным распределением оценок, один выброс, разносящий min-max диапазон, — и аккуратная нормировка сворачивается.',
           'Поэтому вторая школа говорит: выброси оценки совсем и оставь только *ранги*. **Подсчёт Борда**, заимствованный из теории голосования, даёт документу m очков за первое место, m−1 за второе и так вниз по каждому списку, потом суммирует — ровно так некоторые выборы считают предпочтения. Более затейливые схемы вроде **CPMF** моделируют каждый ранг как несущий вероятностную массу и комбинируют их. Притяжение очевидно: ранг есть ранг, ему плевать на любую дикую шкалу ранкера. Минус простого Борда в том, что он считает разрыв между рангом 1 и 2 таким же, как между 50 и 51, — что неверно, ведь до 51-го никто не доскролливает.',
-          'Что и подводит к развязке, а фигура после этого бита — она и есть. Трюк, тихо выигравший индустрию, сохраняет устойчивость «только по рангам», но мягко дисконтирует по мере спуска, так что быть у верха стоит много, а быть глубоко — почти ничего. Ему не нужна ни нормировка оценок, ни покорпусная настройка, и он складывает любое число ранкеров одной крошечной константой. Смотри, как совет навигаторов берёт две несогласные карты и сходится на курсе.',
+          'Что и подводит к развязке, а фигура после этого бита — она и есть. **Реципрокное слияние рангов** сохраняет устойчивость «только по рангам», но мягко дисконтирует: документ на ранге *r* в списке даёт вклад 1/(k + r), просуммированный по ранкерам, с одной крошечной константой **k = 60**. Поскольку вклад убывает по мере спуска — 1/61 на ранге 1, 1/62 на ранге 2 и так далее — быть у верха стоит много, а быть глубоко — почти ничего, и при этом 60 не даёт ни одному рангу-1 доминировать начисто. Ему не нужна ни нормировка оценок, ни покорпусная настройка, и он складывает любое число ранкеров. Смотри, как совет навигаторов берёт две несогласные карты и сходится на курсе: документ, которого оба ранкера ставят первым, набирает 1/61 + 1/61 ≈ **0,0328** и возглавляет слитый список.',
         ],
       },
     },
@@ -191,6 +276,15 @@ export default {
     {
       id: 'turn-pagerank', kind: 'prose',
       heading: { en: 'Let the links vote', ru: 'Пусть голосуют ссылки' },
+      img: 'L3/L3-14-pagerank-stars-voting.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'Stars pointing arrows at each other; authority flows to the star that the most arrows pile onto, which glows brightest.',
+        ru: 'Звёзды указывают стрелками друг на друга; авторитет течёт к звезде, на которую падает больше всего стрелок, и она светит ярче всех.',
+      },
+      imgCaption: {
+        en: 'PageRank: links are votes. Authority flows to the star the most arrows pile onto — and a vote from a bright star counts for more.',
+        ru: 'PageRank: ссылки — это голоса. Авторитет течёт к звезде, на которую падает больше всего стрелок, — а голос яркой звезды весит больше.',
+      },
       body: {
         en: [
           "Everything so far scores a document by what's *inside* it. But on the web there's a second signal sitting in plain sight, and it's not in any document's text — it's in the *links between them*. Treat every link as a vote: a page that many others point to is probably worth something. That's the seed of **PageRank**, the idea that put a particular search engine on the map in the late 1990s. The twist that made it work is recursive — a vote from an important page should count for more than a vote from a nobody. Importance is defined in terms of itself.",
@@ -207,6 +301,15 @@ export default {
     {
       id: 'catch-gremlin', kind: 'prose',
       heading: { en: 'The Lexical Gremlin laughs', ru: 'Лексический Гремлин смеётся' },
+      img: 'L3/L3-04-lexical-gremlin-wall.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'The Lexical Gremlin wedging a brick wall between "couch" and "sofa" — exact-term matching is blind to meaning.',
+        ru: 'Лексический Гремлин вставляет кирпичную стену между «диваном» и «софой» — точное совпадение по словам слепо к смыслу.',
+      },
+      imgCaption: {
+        en: 'The Lexical Gremlin: couch ≠ sofa. Exact-term scoring is synonym-blind — the lexical gap embeddings must bridge (L5).',
+        ru: 'Лексический Гремлин: диван ≠ софа. Оценивание по точным словам слепо к синонимам — лексический разрыв, который перекроют эмбеддинги (L5).',
+      },
       body: {
         en: [
           "There's a catch, and he's grinning at me from behind the catalog. BM25, RRF, PageRank, the whole classical apparatus — every last piece of it matches on *exact words*. The index is a card per literal token; the scores reward literal overlap. So search \"couch\" and a perfect document that happens to say \"sofa\" scores exactly zero. Not low. Zero. As far as the catalog is concerned, those two words are as unrelated as \"couch\" and \"crocodile.\"",
@@ -221,6 +324,15 @@ export default {
     {
       id: 'payoff-catalog', kind: 'prose',
       heading: { en: 'The catalog is built', ru: 'Каталог построен' },
+      img: 'L3/L3-10-scan-vs-catalog.png', imgPos: 'hero',
+      imgAlt: {
+        en: 'The same billion-star sky two ways: "scan everything?" hopeless, versus "look it up" — the card catalogue beams straight to the three wanted stars.',
+        ru: 'То же небо из миллиарда звёзд двумя путями: «сканировать всё?» — безнадёжно, против «посмотреть в каталоге» — картотека ведёт прямо к трём нужным звёздам.',
+      },
+      imgCaption: {
+        en: '“Scan everything?” vs “look it up.”: the catalog beams straight to the three stars you wanted. The Ship finds fast.',
+        ru: '«Сканировать всё?» vs «посмотреть в каталоге»: каталог ведёт прямо к трём нужным звёздам. Корабль ищет быстро.',
+      },
       body: {
         en: [
           "So here's the Ship we built, and it finds *fast*. An inverted index — gaps-compressed, skip-merged, segment-merged — for instant lookup instead of a doomed scan. Bag-of-Words to turn documents into vectors. TF-IDF to weight the words, then thirty years of BM25 to weight them *right*. PageRank for authority that needs no query. And reciprocal rank fusion, the council of navigators, to combine all those disagreeing voices into one honest order. It is the baseline every fancy neural method in this course will have to beat — and you'd be genuinely surprised how often it just wins.",

@@ -60,6 +60,14 @@ const proseText = (body) => (Array.isArray(body) ? body : [body]);
     {beats.map((b) => b.kind === 'prose' ? (
       <section class="beat-prose wrap" id={b.id}>
         {b.heading && <h2>{t(b.heading, lang)}</h2>}
+        {b.img && (
+          <figure class={`beat-figure beat-figure--${b.imgPos || 'scene'}`}>
+            <img src={withBase('/Lectures/assets/img/' + b.img)}
+                 alt={b.imgAlt ? t(b.imgAlt, lang) : (b.imgCaption ? t(b.imgCaption, lang) : '')}
+                 loading="lazy" decoding="async" />
+            {b.imgCaption && <figcaption>{t(b.imgCaption, lang)}</figcaption>}
+          </figure>
+        )}
         {proseText(t(b.body, lang)).map((p) => <p>{p}</p>)}
       </section>
     ) : (
@@ -133,6 +141,20 @@ const proseText = (body) => (Array.isArray(body) ? body : [body]);
     .beat-prose p { font-size: var(--fz-lead); line-height: 1.65; color: var(--ink-2);
       max-width: var(--ws-measure); margin: 0 auto 0 0; }
     .beat-prose p + p { margin-top: var(--ws-2); }
+
+    /* In-prose illustrations (mascot / scene art). White canvas so off-white art
+       reads in dark mode; responsive; never overflows. */
+    .beat-figure { margin: var(--ws-3) 0; max-width: var(--ws-measure); }
+    .beat-figure img { display: block; width: 100%; height: auto; border-radius: 12px;
+      background: #fff; border: 1px solid rgba(0,0,0,.12); }
+    .beat-figure figcaption { font-family: var(--font-mono); font-size: var(--fz-tiny);
+      letter-spacing: .5px; color: var(--ink-3); margin-top: 8px; max-width: 60ch; }
+    .beat-figure--scene { max-width: min(var(--ws-measure), 560px); }
+    .beat-figure--hero { max-width: var(--ws-page); margin-left: auto; margin-right: auto; }
+    .beat-figure--mascot { max-width: 220px; float: right; margin: 0 0 var(--ws-2) var(--ws-3); }
+    @media (max-width: 640px) {
+      .beat-figure--mascot { float: none; max-width: min(100%, 300px); margin: var(--ws-3) auto; }
+    }
 
     .scrolly { display: grid; grid-template-columns: var(--ws-book-graphic) 1fr;
       gap: var(--ws-5); max-width: var(--ws-page); margin: var(--ws-5) auto; padding: 0 var(--ws-4); }

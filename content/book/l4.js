@@ -10,6 +10,16 @@ export default {
     {
       id: 'hook-proving', kind: 'prose',
       heading: { en: 'The Proving Grounds', ru: 'Полигон' },
+      img: 'L4/L4-00-proving-grounds.png',
+      imgAlt: {
+        en: 'Serega at a proving-grounds scoreboard where two search ships compete; you measure, you don\'t guess.',
+        ru: 'Серёга у табло Полигона, где соревнуются два поисковых корабля; ты измеряешь, а не угадываешь.',
+      },
+      imgCaption: {
+        en: 'The Proving Grounds: evaluation is where two search systems compete on a scoreboard — you measure, you don\'t guess.',
+        ru: 'Полигон: оценивание — арена, где две поисковые системы соревнуются на табло, — ты измеряешь, а не угадываешь.',
+      },
+      imgPos: 'hero',
       body: {
         en: [
           "I'm Serega, and I've built two search systems. Both look fine. I ran a few queries through each, the results looked reasonable, I nodded sagely. One of them is better than the other. Which one? I genuinely cannot tell you, and \"looks good to me\" is precisely how you ship garbage with total confidence.",
@@ -23,6 +33,15 @@ export default {
     },
     {
       id: 'problem-eyeballing', kind: 'prose',
+      img: 'L4/L4-01-cant-eyeball.png',
+      imgAlt: {
+        en: 'Serega overwhelmed by a wall of millions of queries — intuition fails at scale, you need metrics over judged data.',
+        ru: 'Серёга, погребённый под стеной из миллионов запросов, — интуиция отказывает на масштабе, нужны метрики по размеченным данным.',
+      },
+      imgCaption: {
+        en: 'You can\'t eyeball quality at scale: with millions of queries, intuition fails — you need metrics computed over judged data.',
+        ru: 'Качество на масштабе на глаз не оценить: на миллионах запросов интуиция отказывает — нужны метрики, посчитанные по размеченным данным.',
+      },
       body: {
         en: [
           "You can eyeball ten results. You can squint at a hundred. You cannot eyeball ten thousand queries, twice a day, on every single code change — and that's the real workload, because search teams ship constantly and each ship can quietly break something. Eyeballing doesn't scale, and worse, it doesn't catch the *small* regressions: the change that makes results 2% worse on average is invisible to a human and catastrophic to a business.",
@@ -37,6 +56,15 @@ export default {
     {
       id: 'turn-relevance', kind: 'prose',
       heading: { en: 'Ground truth', ru: 'Истина' },
+      img: 'L4/L4-02-qrels-referee.png',
+      imgAlt: {
+        en: 'A human assessor as referee stamping each query-document pair relevant or not — the qrels every metric is scored against.',
+        ru: 'Человек-асессор в роли судьи ставит штамп «релевантно / нет» на каждую пару запрос–документ — это qrels, относительно которых считается любая метрика.',
+      },
+      imgCaption: {
+        en: 'qrels = the referee: a human assessor stamps each result relevant or not — the ground truth every metric is measured against.',
+        ru: 'qrels = судья: человек-асессор ставит штамп «релевантно / нет» на каждый результат — это эталон, относительно которого считается любая метрика.',
+      },
       body: {
         en: [
           "The answer key has a name in IR: **relevance judgments**, or *qrels* for short. At bottom a qrel is the simplest possible thing — a label on a query-document pair: this document is relevant to this query, or it isn't. Pile up enough of those labels and you can grade any ranking any system produces, because you finally know what \"right\" looks like.",
@@ -82,18 +110,31 @@ export default {
     {
       id: 'climb-metrics-numbers', kind: 'prose',
       heading: { en: 'The metrics, by the numbers', ru: 'Метрики в числах' },
+      img: 'L4/L4-04-ndcg-ideal-vs-actual.png',
+      imgAlt: {
+        en: 'nDCG as two ladders side by side: your actual ranking versus the ideal sorted-by-gain ranking; the score is their ratio.',
+        ru: 'nDCG как две лестницы рядом: твоё реальное ранжирование против идеального, отсортированного по gain; оценка — их отношение.',
+      },
+      imgCaption: {
+        en: 'nDCG = your ladder vs the ideal ladder: discounted gain rewards relevant results high up; you normalise against the perfect ranking, so the score lands in [0,1].',
+        ru: 'nDCG = твоя лестница против идеальной: дисконтированный gain вознаграждает за релевантные результаты наверху; нормируешь относительно идеального ранжирования, и оценка попадает в [0,1].',
+      },
       body: {
         en: [
-          "Let me pin those five metrics to actual arithmetic, because every one of them is just careful counting and you should be able to redo it by hand. Take the real BM25 ranking we just graded — eight results, and using our qrels the relevant/not pattern down the list is `[0,1,0,1,0,1,0,1]`: rank 1 is a miss, rank 2 a hit, alternating to the bottom. Four of the eight are relevant, and all four relevant documents are in the list, so 4 is also the total relevant count.",
+          "Let me pin those metrics to actual arithmetic, because every one of them is just careful counting and you should be able to redo it by hand. Take the real BM25 ranking we just graded — eight results, and using our qrels the relevant/not pattern down the list is `[0,1,0,1,0,1,0,1]`: rank 1 is a miss, rank 2 a hit, alternating to the bottom. Four of the eight are relevant, and all four relevant documents are in the list, so 4 is also the total relevant count.",
           "**Recall@k** asks: of all the relevant documents, how many have we found by rank k? At k=1 we've found none → 0. By k=3 we've caught one of four → 0.25. By k=5, two of four → 0.5. By k=8, all four → 1.0. It climbs **0 → 0.25 → 0.5 → 1.0**, and it can only ever go up as k grows. **Precision@k** asks the complementary question: of the k results we've shown, what fraction are relevant? At k=1, zero of one → 0. At k=3, one of three → 0.333. At k=5, two of five → 0.4. At k=8, four of eight → 0.5. So precision runs **0 → 0.333 → 0.4 → 0.5**. Recall rewards finding everything; precision rewards not wasting the user's slots — and on this ranking they pull in different directions exactly as the theory promises.",
           "**MRR** — mean reciprocal rank — cares only about the *first* hit. The first relevant document sits at rank 2, so the reciprocal rank is 1/2 = **0.5**; if the very first result had been relevant it would be 1/1 = 1.0, and a first hit at rank 10 would score only 0.1. That's the known-item metric: get the one right answer to the top, or pay for every rank it sits below.",
-          "Two of these only show their teeth across *multiple* queries, so add a second query whose pattern is `[1,0,1,1,0,0,1,0]` — a strong one that hits at rank 1. Its reciprocal rank is 1/1 = 1.0, so averaging the two queries gives **MRR = (0.5 + 1.0)/2 = 0.75** — a number equal to *neither* query alone, which is the whole point of a mean. **MAP** goes one level deeper: average precision (AP) averages the precision *at each rank where a relevant document appears*. For the second query the hits land at ranks 1, 3, 4, 7, with precisions 1.0, 0.667, 0.75, 0.571, so AP = (1.0 + 0.667 + 0.75 + 0.571)/4 = **0.747**; the first query's AP works out to 0.5. Average the two and **MAP = (0.5 + 0.747)/2 = 0.6235**. Five metrics, one pile of counting — and now you can reproduce every one of them without trusting a widget.",
+          "Two of these only show their teeth across *multiple* queries, so add a second query whose pattern is `[1,0,1,1,0,0,1,0]` — a strong one that hits at rank 1. Its reciprocal rank is 1/1 = 1.0, so averaging the two queries gives **MRR = (0.5 + 1.0)/2 = 0.75** — a number equal to *neither* query alone, which is the whole point of a mean. **MAP** goes one level deeper: average precision (AP) averages the precision *at each rank where a relevant document appears*. For the second query the hits land at ranks 1, 3, 4, 7, with precisions 1.0, 0.667, 0.75, 0.571, so AP = (1.0 + 0.667 + 0.75 + 0.571)/4 = **0.747**; the first query's AP works out to 0.5. Average the two and **MAP = (0.5 + 0.747)/2 = 0.6235**.",
+          "Now the headline metric, **nDCG**, the only one of the five that cares *where* on the list each hit lands. It rests on one idea: a relevant document at rank 1 is worth more than the same document at rank 8, so each gain gets *discounted* by how far down it sits. The discount is `1/log₂(rank+1)`, which at rank 1 is `1/log₂2 = 1.0` (full credit), at rank 2 is `1/log₂3 = 0.6309`, at rank 4 is 0.4307, and keeps shrinking — 0.3562 at rank 6, 0.3155 at rank 8. **DCG** is just the sum of (gain × discount) down the list. With *binary* gains, only our four hits at ranks 2, 4, 6, 8 contribute, so DCG = 0.6309 + 0.4307 + 0.3562 + 0.3155 = **1.7333**. But a raw DCG isn't comparable across queries — a query with more relevant documents can pile up more gain — so we normalise by the **ideal** DCG: the score the *perfect* ranking would get if it sorted every relevant document to the very top. Here the ideal puts all four hits at ranks 1–4, so IDCG = 1.0 + 0.6309 + 0.5 + 0.4307 = **2.5616**. Divide: **nDCG = 1.7333 / 2.5616 = 0.6766**. That's our BM25 ranking's score — one comparable number in [0,1], where 1.0 means \"already perfect.\"",
+          "Binary gains throw away the obvious truth that some hits are *better* hits, so real nDCG uses **graded** gains. Re-grade the same four space documents — two strong ones (a clear, on-topic match) get gain 3, two marginal ones get gain 1 — and the arithmetic re-runs with those gains in place of 1s. The actual ranking now scores DCG = 3·0.6309 + 3·0.4307 + 1·0.3562 + 1·0.3155 = 3.8565, against an ideal IDCG = 5.8235 that front-loads the grades 3, 3, 1, 1, giving **graded nDCG = 0.6622**. (Many systems instead weight gains as `2^grade − 1`, which punishes burying a great result even harder; that variant lands at **0.6563** here.) Notice graded and binary nDCG *disagree* slightly — 0.66 vs 0.68 — because they reward different things, which is exactly why you state which one you used. Five metrics, one pile of counting — and now you can reproduce every one of them without trusting a widget.",
         ],
         ru: [
-          'Дай я привяжу эти пять метрик к настоящей арифметике, потому что каждая из них — это просто аккуратный подсчёт, и ты должен уметь повторить его руками. Возьми реальное ранжирование BM25, что мы только что оценили, — восемь результатов, и по нашим qrels шаблон «релевантно/нет» вниз по списку такой: `[0,1,0,1,0,1,0,1]`: ранг 1 — промах, ранг 2 — попадание, и так по очереди до низа. Четыре из восьми релевантны, и все четыре релевантных документа в списке, так что 4 — это и общее число релевантных.',
+          'Дай я привяжу эти метрики к настоящей арифметике, потому что каждая из них — это просто аккуратный подсчёт, и ты должен уметь повторить его руками. Возьми реальное ранжирование BM25, что мы только что оценили, — восемь результатов, и по нашим qrels шаблон «релевантно/нет» вниз по списку такой: `[0,1,0,1,0,1,0,1]`: ранг 1 — промах, ранг 2 — попадание, и так по очереди до низа. Четыре из восьми релевантны, и все четыре релевантных документа в списке, так что 4 — это и общее число релевантных.',
           '**Recall@k** спрашивает: из всех релевантных документов сколько мы нашли к рангу k? На k=1 не нашли ни одного → 0. К k=3 поймали один из четырёх → 0,25. К k=5 — два из четырёх → 0,5. К k=8 — все четыре → 1,0. Он лезет вверх **0 → 0,25 → 0,5 → 1,0** и с ростом k может только расти. **Precision@k** задаёт встречный вопрос: из k показанных результатов какая доля релевантна? На k=1 — ноль из одного → 0. На k=3 — один из трёх → 0,333. На k=5 — два из пяти → 0,4. На k=8 — четыре из восьми → 0,5. Итак, precision идёт **0 → 0,333 → 0,4 → 0,5**. Recall награждает за то, что найдено всё; precision — за то, что слоты пользователя не растрачены, — и на этом ранжировании они тянут в разные стороны ровно так, как обещает теория.',
           '**MRR** — средний обратный ранг — заботится только о *первом* попадании. Первый релевантный документ стоит на ранге 2, поэтому обратный ранг — 1/2 = **0,5**; будь первый же результат релевантным, было бы 1/1 = 1,0, а первое попадание на ранге 10 дало бы лишь 0,1. Это метрика известного объекта: подними единственный верный ответ наверх — или плати за каждый ранг, на который он опустился.',
-          'Две из этих метрик показывают зубы лишь на *нескольких* запросах, так что добавь второй запрос с шаблоном `[1,0,1,1,0,0,1,0]` — сильный, с попаданием на ранге 1. Его обратный ранг — 1/1 = 1,0, так что усреднение двух запросов даёт **MRR = (0,5 + 1,0)/2 = 0,75** — число, не равное *ни одному* запросу по отдельности, в чём и весь смысл среднего. **MAP** копает на уровень глубже: средняя точность (AP) усредняет precision *на каждом ранге, где появляется релевантный документ*. У второго запроса попадания на рангах 1, 3, 4, 7 с точностями 1,0, 0,667, 0,75, 0,571, поэтому AP = (1,0 + 0,667 + 0,75 + 0,571)/4 = **0,747**; AP первого запроса выходит 0,5. Усредни оба — и **MAP = (0,5 + 0,747)/2 = 0,6235**. Пять метрик, одна куча подсчётов — и теперь ты можешь воспроизвести каждую, не доверяясь виджету.',
+          'Две из этих метрик показывают зубы лишь на *нескольких* запросах, так что добавь второй запрос с шаблоном `[1,0,1,1,0,0,1,0]` — сильный, с попаданием на ранге 1. Его обратный ранг — 1/1 = 1,0, так что усреднение двух запросов даёт **MRR = (0,5 + 1,0)/2 = 0,75** — число, не равное *ни одному* запросу по отдельности, в чём и весь смысл среднего. **MAP** копает на уровень глубже: средняя точность (AP) усредняет precision *на каждом ранге, где появляется релевантный документ*. У второго запроса попадания на рангах 1, 3, 4, 7 с точностями 1,0, 0,667, 0,75, 0,571, поэтому AP = (1,0 + 0,667 + 0,75 + 0,571)/4 = **0,747**; AP первого запроса выходит 0,5. Усредни оба — и **MAP = (0,5 + 0,747)/2 = 0,6235**.',
+          'Теперь главная метрика — **nDCG**, единственная из пяти, которой важно, *где* в списке оказалось каждое попадание. Она держится на одной идее: релевантный документ на ранге 1 ценнее того же документа на ранге 8, поэтому каждый gain *дисконтируется* тем, насколько глубоко он сидит. Дисконт — это `1/log₂(ранг+1)`, что на ранге 1 даёт `1/log₂2 = 1,0` (полный кредит), на ранге 2 — `1/log₂3 = 0,6309`, на ранге 4 — 0,4307 и всё уменьшается: 0,3562 на ранге 6, 0,3155 на ранге 8. **DCG** — это просто сумма (gain × дисконт) вниз по списку. С *бинарными* gain вклад дают только наши четыре попадания на рангах 2, 4, 6, 8, так что DCG = 0,6309 + 0,4307 + 0,3562 + 0,3155 = **1,7333**. Но сырой DCG несравним между запросами — у запроса с бóльшим числом релевантных документов накопится больше gain, — поэтому мы нормируем на **идеальный** DCG: оценку, которую получило бы *идеальное* ранжирование, поставив все релевантные документы в самый верх. Здесь идеал ставит все четыре попадания на ранги 1–4, так что IDCG = 1,0 + 0,6309 + 0,5 + 0,4307 = **2,5616**. Делим: **nDCG = 1,7333 / 2,5616 = 0,6766**. Это и есть оценка нашего ранжирования BM25 — одно сравнимое число в [0,1], где 1,0 значит «уже идеально».',
+          'Бинарные gain выбрасывают очевидную истину, что одни попадания *лучше* других, поэтому настоящий nDCG использует **градуированные** gain. Переоцени те же четыре космических документа — двум сильным (чёткое попадание в тему) дай gain 3, двум маргинальным — gain 1 — и арифметика пересчитывается с этими gain вместо единиц. Реальное ранжирование теперь даёт DCG = 3·0,6309 + 3·0,4307 + 1·0,3562 + 1·0,3155 = 3,8565 против идеального IDCG = 5,8235, что выводит вперёд оценки 3, 3, 1, 1, давая **градуированный nDCG = 0,6622**. (Многие системы вместо этого взвешивают gain как `2^оценка − 1`, что ещё жёстче карает за зарытый отличный результат; этот вариант здесь выходит на **0,6563**.) Заметь, что градуированный и бинарный nDCG слегка *расходятся* — 0,66 против 0,68 — потому что награждают за разное, и именно поэтому ты указываешь, какой из них взял. Пять метрик, одна куча подсчётов — и теперь ты можешь воспроизвести каждую, не доверяясь виджету.',
         ],
       },
     },
@@ -128,15 +169,24 @@ export default {
     {
       id: 'climb-significance', kind: 'prose',
       heading: { en: 'Is the difference real?', ru: 'Разница настоящая?' },
+      img: 'L4/L4-10-significance-dice.png',
+      imgAlt: {
+        en: 'Two close scores facing off over a pair of dice: real skill, or the luck of which queries you happened to draw? A significance test rolls the dice of chance.',
+        ru: 'Два близких балла напротив друг друга над парой костей: настоящее мастерство или удача в том, какие запросы выпали? Тест значимости бросает кости случая.',
+      },
+      imgCaption: {
+        en: 'Real… or random?: a small gap between two scores — is it skill or luck? A significance test models the dice of chance and asks how often luck alone would produce a gap this big.',
+        ru: 'Реально… или случайно?: малый разрыв между двумя баллами — мастерство или удача? Тест значимости моделирует кости случая и спрашивает, как часто одна удача дала бы такой разрыв.',
+      },
       body: {
         en: [
           "Here's the question made precise: if the two systems were *actually equally good*, how often would pure luck hand me a four-hundredths gap this big or bigger, just from which queries I happened to test? That probability is the **p-value**, and the whole machinery of statistical significance exists to compute it. If luck would produce my result only rarely, the difference is probably real. If luck would produce it all the time, I've discovered nothing but noise wearing a result's clothes.",
-          "There are several honest ways to compute it, and the good news is they mostly agree. The **paired t-test** looks at the per-query differences and asks whether their average is far enough from zero relative to how much they scatter — for our two systems it lands at about p ≈ 0.04. The **Wilcoxon signed-rank test** does the same thing using only the ranks of the differences, which makes it safer when the differences aren't bell-shaped; it gives about p ≈ 0.048 (just under 0.05). And the **permutation test** is the most honest of all and barely uses any theory: if the systems were truly equal, the sign on each query's difference was a coin flip, so just flip all the signs every possible way, recompute the average each time, and *count* how often you get a gap as big as the one you saw — about p ≈ 0.04 again. Three methods, three roads, same destination.",
+          "There are several honest ways to compute it, and the good news is they mostly agree. The **paired t-test** looks at the per-query differences and asks whether their average is far enough from zero relative to how much they scatter — for our two systems it gives t ≈ 2.27 and lands at about p ≈ 0.039. The **Wilcoxon signed-rank test** does the same thing using only the ranks of the differences, which makes it safer when the differences aren't bell-shaped; it gives about p ≈ 0.048 (just under 0.05). And the **permutation test** is the most honest of all and barely uses any theory: if the systems were truly equal, the sign on each query's difference was a coin flip, so just flip all the signs every possible way, recompute the average each time, and *count* how often you get a gap as big as the one you saw — about p ≈ 0.040 again. Three methods, three roads, same destination.",
           "By the usual convention — p below 0.05 — B's win clears the bar, but only just. And there's a companion to the p-value that's arguably more useful: the **confidence interval**, which here says the true improvement is somewhere around 0.00 to 0.08. That interval grazing zero is the tell — the effect is real but small and fragile, and the obvious fix is *more queries*. Significance isn't a stamp of importance; it's a guard against fooling yourself. Run fifteen queries and you can detect only large differences. Run a thousand and you can trust small ones. Power comes from sample size, and there is no test clever enough to rescue you from too little data.",
         ],
         ru: [
           'Вот вопрос, поставленный точно: будь две системы *на самом деле одинаково хороши*, как часто чистая удача выдавала бы мне разрыв в четыре сотых такого размера или больше — только из-за того, какие запросы я случайно проверил? Эта вероятность и есть **p-значение**, и вся машинерия статистической значимости существует, чтобы его посчитать. Если удача давала бы мой результат лишь редко — разница, вероятно, настоящая. Если удача давала бы его постоянно — я не открыл ничего, кроме шума в одежде результата.',
-          'Есть несколько честных способов его посчитать, и хорошая новость — они в основном сходятся. **Парный t-тест** смотрит на поквенные разности и спрашивает, достаточно ли их среднее далеко от нуля относительно их разброса, — для наших двух систем выходит около p ≈ 0,04. **Знаково-ранговый тест Уилкоксона** делает то же, используя только ранги разностей, что безопаснее, когда разности не колоколом; он даёт около p ≈ 0,048 (чуть меньше 0,05). А **перестановочный тест** — самый честный из всех и почти не использует теории: будь системы и впрямь равны, знак разности на каждом запросе был бы броском монеты, так что переверни все знаки всеми возможными способами, пересчитывай среднее каждый раз и *посчитай*, как часто получаешь разрыв не меньше увиденного, — снова около p ≈ 0,04. Три метода, три дороги, один пункт назначения.',
+          'Есть несколько честных способов его посчитать, и хорошая новость — они в основном сходятся. **Парный t-тест** смотрит на поквенные разности и спрашивает, достаточно ли их среднее далеко от нуля относительно их разброса, — для наших двух систем выходит t ≈ 2,27 и около p ≈ 0,039. **Знаково-ранговый тест Уилкоксона** делает то же, используя только ранги разностей, что безопаснее, когда разности не колоколом; он даёт около p ≈ 0,048 (чуть меньше 0,05). А **перестановочный тест** — самый честный из всех и почти не использует теории: будь системы и впрямь равны, знак разности на каждом запросе был бы броском монеты, так что переверни все знаки всеми возможными способами, пересчитывай среднее каждый раз и *посчитай*, как часто получаешь разрыв не меньше увиденного, — снова около p ≈ 0,040. Три метода, три дороги, один пункт назначения.',
           'По обычной конвенции — p ниже 0,05 — победа B берёт планку, но впритык. И у p-значения есть спутник, пожалуй, полезнее: **доверительный интервал**, который здесь говорит, что истинное улучшение где-то от 0,00 до 0,08. То, что интервал задевает ноль, и есть знак — эффект настоящий, но малый и хрупкий, и очевидное лекарство — *больше запросов*. Значимость — не печать важности; это защита от самообмана. Прогони пятнадцать запросов — и поймаешь только большие разницы. Прогони тысячу — и сможешь верить малым. Мощность идёт от размера выборки, и нет теста, достаточно хитрого, чтобы спасти тебя от нехватки данных.',
         ],
       },
@@ -144,6 +194,15 @@ export default {
     {
       id: 'turn-online', kind: 'prose',
       heading: { en: 'The real world votes with clicks', ru: 'Реальный мир голосует кликами' },
+      img: 'L4/L4-11-ab-parallel-universes.png',
+      imgAlt: {
+        en: 'An A/B test as two parallel universes: identical users split into two worlds, one served system A and one system B, then compared on real behaviour.',
+        ru: 'A/B-тест как две параллельные вселенные: одинаковых пользователей делят на два мира, одному показывают систему A, другому B, и сравнивают по реальному поведению.',
+      },
+      imgCaption: {
+        en: 'The A/B test: split identical users into two parallel universes — one sees system A, one sees B — then compare which world clicks, converts and stays more.',
+        ru: 'A/B-тест: раздели одинаковых пользователей на две параллельные вселенные — одна видит систему A, другая B — и сравни, в каком мире больше кликают, конвертируются и остаются.',
+      },
       body: {
         en: [
           "Everything so far happened in a lab on frozen labels — that's **offline** evaluation, and it's indispensable, but it's a proxy. The labels came from annotators guessing what users want, not from users. The corpus is a snapshot, not the live, drifting, seasonal stream of real queries. Offline tells you a change *might* help. Only the **online** world, real users in real time, tells you it *did*.",
@@ -191,14 +250,24 @@ export default {
     {
       id: 'catch-goodhart', kind: 'prose',
       heading: { en: 'Goodhart the Trickster returns', ru: 'Возвращается Гудхарт-Трикстер' },
+      img: 'L4/L4-03-goodhart-trickster.png',
+      imgAlt: {
+        en: 'Goodhart the Trickster grinning as he bends a metric line upward with a clickbait hook while the real relevance line quietly flatlines.',
+        ru: 'Гудхарт-Трикстер ухмыляется, выгибая линию метрики вверх кликбейт-крючком, пока линия настоящей релевантности тихо стелется по полу.',
+      },
+      imgCaption: {
+        en: 'Goodhart the Trickster: a measure that becomes a target stops being a good measure. He yanks the metric up with a clickbait hook while real relevance quietly falls.',
+        ru: 'Гудхарт-Трикстер: мера, ставшая целью, перестаёт быть хорошей мерой. Он тянет метрику вверх кликбейт-крючком, пока настоящая релевантность тихо падает.',
+      },
+      imgPos: 'mascot',
       body: {
         en: [
           "And now the danger that's been circling this whole chapter, made flesh. The moment a metric becomes a *target* — the moment someone's bonus, or a training loop's gradient, points at the number instead of the thing the number was supposed to stand for — somebody will optimise the metric and quietly abandon the goal. **Goodhart the Trickster** is back, grinning, because we just handed him a scoreboard to game.",
-          "Watch him do it. Optimise for raw clicks, and since clicks flock to the top regardless of merit, you'll \"learn\" to reward whatever already sits on top — exactly the trap from The Lost Record. Take a ranking tuned to chase popularity instead of relevance: it looks busy, confident, full of things people clicked. And its nDCG comes out at about 0.54 — *lower* than honest BM25's 0.68. The gamed ranking optimised the proxy for relevance and lost the relevance. A number you optimise directly stops being a measurement and becomes a costume. This is why everything earlier in the chapter matters: significance keeps you from chasing noise, online eval keeps you from chasing lab artifacts, and a clear head keeps you from chasing a metric off a cliff.",
+          "Watch him do it. Optimise for raw clicks, and since clicks flock to the top regardless of merit, you'll \"learn\" to reward whatever already sits on top — exactly the trap from The Lost Record. Take a ranking tuned to chase popularity instead of relevance: it shoves the busiest documents up front and pushes our four real space hits down to ranks 5, 6, 7, 8. Run the very same nDCG arithmetic on it — same four hits, same IDCG of 2.5616, just worse seats — and its DCG collapses to 0.3869 + 0.3562 + 0.3333 + 0.3155 = 1.3919, so **nDCG = 1.3919 / 2.5616 = 0.5434**: *lower* than honest BM25's **0.6766**, even though it looks busy, confident and full of things people clicked. The gamed ranking optimised the proxy for relevance and lost the relevance. A number you optimise directly stops being a measurement and becomes a costume. This is why everything earlier in the chapter matters: significance keeps you from chasing noise, online eval keeps you from chasing lab artifacts, and a clear head keeps you from chasing a metric off a cliff.",
         ],
         ru: [
           'И вот опасность, что кружила над всей главой, обретает плоть. Как только метрика становится *целью* — как только чья-то премия или градиент обучающего цикла нацеливается на число вместо того, что оно должно было обозначать, — кто-то оптимизирует метрику и тихо бросит цель. **Гудхарт-Трикстер** снова здесь, ухмыляется, потому что мы только что вручили ему доску, которую можно подкрутить.',
-          'Смотри, как он это делает. Оптимизируй сырые клики — а раз клики слетаются наверх вне зависимости от заслуг, ты «выучишь» награждать то, что уже стоит сверху, — ровно ловушка из «Потерянной записи». Возьми ранжирование, заточенное гнаться за популярностью вместо релевантности: оно выглядит бойко, уверенно, полно того, что кликали. А его nDCG выходит около 0,54 — *ниже*, чем у честного BM25 с его 0,68. Подкрученное ранжирование оптимизировало прокси релевантности и потеряло релевантность. Число, которое оптимизируешь напрямую, перестаёт быть измерением и становится костюмом. Вот почему важно всё раннее в главе: значимость не даёт гнаться за шумом, онлайн-оценка не даёт гнаться за лабораторными артефактами, а ясная голова не даёт гнаться за метрикой с обрыва.',
+          'Смотри, как он это делает. Оптимизируй сырые клики — а раз клики слетаются наверх вне зависимости от заслуг, ты «выучишь» награждать то, что уже стоит сверху, — ровно ловушка из «Потерянной записи». Возьми ранжирование, заточенное гнаться за популярностью вместо релевантности: оно выталкивает вперёд самые «бойкие» документы, а наши четыре настоящих космических попадания опускает на ранги 5, 6, 7, 8. Прогони на нём ту же самую арифметику nDCG — те же четыре попадания, тот же IDCG 2,5616, просто места хуже — и его DCG складывается в 0,3869 + 0,3562 + 0,3333 + 0,3155 = 1,3919, так что **nDCG = 1,3919 / 2,5616 = 0,5434**: *ниже*, чем у честного BM25 с его **0,6766**, хотя выглядит бойко, уверенно и полно того, что кликали. Подкрученное ранжирование оптимизировало прокси релевантности и потеряло релевантность. Число, которое оптимизируешь напрямую, перестаёт быть измерением и становится костюмом. Вот почему важно всё раннее в главе: значимость не даёт гнаться за шумом, онлайн-оценка не даёт гнаться за лабораторными артефактами, а ясная голова не даёт гнаться за метрикой с обрыва.',
         ],
       },
     },
