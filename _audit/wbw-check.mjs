@@ -35,6 +35,7 @@ const DECKS = [
   { file: '03-classical-ir-fulltext-fusion.html', expect: 79, tag: 'L3' },
   { file: '04-ranking-metrics.html',              expect: 61, tag: 'L4' },
   { file: '05-dl-embeddings-dimred.html',         expect: 46, tag: 'L5' },
+  { file: '06-contextual-attention-transformers.html', expect: 56, tag: 'L6' },
 ];
 
 let pass = 0, fail = 0;
