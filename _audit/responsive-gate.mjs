@@ -17,7 +17,7 @@ const DOCS = join(ROOT, 'docs');
 const BASE = '/deep-learning-for-search-summer-2026';
 const PORT = 8099;
 const WIDTHS = [390, 768];
-const PAGES = ['en/book/00/', 'en/book/01/', 'en/book/02/', 'en/book/03/', 'en/book/04/', 'ru/book/04/'];
+const PAGES = ['en/book/00/', 'en/book/01/', 'en/book/02/', 'en/book/03/', 'en/book/04/', 'en/book/05/', 'ru/book/04/', 'ru/book/05/'];
 const MIME = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.mjs': 'text/javascript',
   '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml', '.jpeg': 'image/jpeg', '.jpg': 'image/jpeg', '.woff2': 'font/woff2' };
 
