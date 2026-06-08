@@ -49,7 +49,8 @@ export const mountLayernormViz = defineWidget({
     const num = (v, d = 2) => (typeof v !== 'number' ? '' : Number.isInteger(v) ? String(v) : fmt(v, d));
 
     // ── geometry ───────────────────────────────────────────────────────────
-    const W = 480, PAD = 16;
+    const PAD = 16, RPAD = 64;                // RPAD: right gutter so the raw/normed arrow LABELS
+                                              // (drawn just past the ring) never run off the frame.
     // BAR PANEL (left ~62%): 8 vertical bars on a shared baseline that can sit anywhere in the band.
     const barTop = 30, barH = 188;            // drawing band for the bars
     const barBase = barTop + barH;            // pixel y of the band's floor
@@ -71,7 +72,11 @@ export const mountLayernormViz = defineWidget({
     // UNIT-CIRCLE PANEL (right): the vector reduced to 2 representative coords, drawn as an arrow from
     // the origin. Before normalisation the arrow is long/off; after, it sits exactly on the unit ring.
     const circR = 64;
-    const cBox = { x: PAD + panelW + 8, y: barTop, w: W - (PAD + panelW + 8) - PAD, h: barH };
+    // FIXED circle-panel width (was W-derived, which let cx drift right and pushed the arrow LABELS
+    // off the frame at 1280). The panel sits right of the bars; the frame's total width W is then
+    // panel-right + RPAD, so the labels just past the ring always have room and nothing clips.
+    const cBox = { x: PAD + panelW + 8, y: barTop, w: 150, h: barH };
+    const W = cBox.x + cBox.w + RPAD;         // = 310 + 150 + 64 = 524 (viewBox width)
     const cx = cBox.x + cBox.w / 2, cy = cBox.y + cBox.h / 2 - 4;
     const sphereRect = { x: cBox.x, y: cBox.y, w: cBox.w, h: cBox.h };
     // pick two dims with opposite sign in `normed` so the arrow points into a clear quadrant.
