@@ -313,6 +313,9 @@
             <h1>A Vector per Context</h1>
             <p class="divider-sub"><em><span lang="ru">Не координата на слово — координата на <strong>употребление</strong>:</span><span lang="en">Not a coordinate per word — a coordinate per <strong>use</strong>:</span></em> <span lang="ru">одно слово, разные точки в разных предложениях.</span><span lang="en">the same word, different points in different sentences.</span></p>
           </div>
+          <div class="viz-frame fig-fit" style="--fig-max:40cqh; --fig-w:52%;">
+            <img src="assets/img/L6/L6-01-bank-two-meanings.png?v=1" alt="The word bank pulled between a river scene and a money scene, forced into a single static embedding that averages both senses" />
+          </div>
           <aside class="slide-notes">The turn. We are moving from a static map to a dynamic one. In the static world each word was a fixed star; in the contextual world a word's position is computed fresh for each sentence. The same token can land in two different places depending on what surrounds it. This single change is what splits the two banks apart, and it is also what makes a sentence vector finally meaningful — because the parts now know about each other. The mechanism that computes those context-aware positions is attention.</aside>
         </section>
 
@@ -373,6 +376,9 @@
             <div class="divider-num"><span lang="ru">Часть 03</span><span lang="en">Part 03</span></div>
             <h1>Scaled Dot-Product Attention</h1>
             <p class="divider-sub"><em><span lang="ru">Метафора заработана — теперь точные числа:</span><span lang="en">The metaphor is earned — now the exact numbers:</span></em> <span lang="ru">\(\mathrm{softmax}(QK^\top/\sqrt{d_k})V\) на «the cat sat».</span><span lang="en">\(\mathrm{softmax}(QK^\top/\sqrt{d_k})V\) on &ldquo;the cat sat&rdquo;.</span></p>
+          </div>
+          <div class="viz-frame fig-fit" style="--fig-max:36cqh; --fig-w:46%;">
+            <img src="assets/img/L6/L6-04-attention-weights.png?v=1" alt="A token sending out a query that lights up the most relevant neighbours with bright attention-weight edges, dim ones fading" />
           </div>
           <aside class="slide-notes">The climb. We now turn the query-key-value metaphor into the one formula that runs every Transformer: attention equals softmax of Q K transpose over root d k, times V. We will build it on a tiny, fully worked example — three tokens, the cat sat, with a key dimension of four — and watch every number, from the raw scores through scaling, softmax, and the final weighted sum. These are the exact figures from today's data file, so you can reproduce each step on paper.</aside>
         </section>
@@ -596,6 +602,9 @@
             <div class="divider-num"><span lang="ru">Часть 04</span><span lang="en">Part 04</span></div>
             <h1>Many Heads &amp; Position</h1>
             <p class="divider-sub"><em><span lang="ru">Один советник видит одну связь:</span><span lang="en">One councillor sees one relation:</span></em> <span lang="ru">соберём совет из голов — а потом вернём порядок слов.</span><span lang="en">convene a council of heads — then give word order back.</span></p>
+          </div>
+          <div class="viz-frame fig-fit" style="--fig-max:36cqh; --fig-w:48%;">
+            <img src="assets/img/L6/L6-22-heads.png?v=1" alt="Several attention heads running in parallel, each lighting up a different relation between the same tokens, then concatenated into one output" />
           </div>
           <aside class="slide-notes">Two upgrades in this part. First, one attention head can only express one kind of relation at a time — maybe syntactic agreement, maybe coreference, but not both at once. So we run several heads in parallel, each in its own subspace, and concatenate. Second, attention as defined is completely blind to order — it sees a bag of tokens, not a sequence — so we have to inject position explicitly with the sinusoidal positional encoding. Heads first, then position.</aside>
         </section>
@@ -1149,7 +1158,7 @@
             <h2><span lang="ru">InfoNCE целиком: потеря \(= 0.1191\)</span><span lang="en">InfoNCE end to end: loss \(= 0.1191\)</span></h2>
             <span class="slide-kicker">E2E &middot; <span lang="ru">позитив <code>kitten</code>, \(\tau=0.1\)</span><span lang="en">positive <code>kitten</code>, \(\tau=0.1\)</span></span>
           </div>
-          <div class="e2e-arch">
+          <div class="e2e-arch" style="min-height:104px; padding-top:10px; padding-bottom:10px;">
             <div class="e2e-arch-block" data-role="project" data-step-range="0..1" data-tooltip="Divide every cosine by the temperature."><div class="arch-name"><span lang="ru">логиты</span><span lang="en">logits</span></div><div class="arch-shape">\(/\tau\)</div></div>
             <div class="e2e-arch-arrow" data-step-range="1..2"></div>
             <div class="e2e-arch-block" data-role="nonlinear" data-step-range="2" data-tooltip="Softmax over positive and negatives."><div class="arch-name">softmax</div><div class="arch-shape">\(p^{+}\)</div></div>
@@ -1173,6 +1182,7 @@
               <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label"><code>loss = 0.1191</code></span></div><p class="step-caption tiny"><span lang="ru">мала, т.к. \(p^{+}\) близка к 1.</span><span lang="en">small because \(p^{+}\) is near 1.</span></p></div>
             </div>
           </div>
+          <p class="tiny muted center" style="margin:2px 0 0; line-height:1.25;"><span lang="ru">Логиты показаны округлёнными; <code>0.1191</code> — полная точность из косинусов (<code>l6-contrastive.json</code>). По округлённым логитам — \(\approx 0.119\).</span><span lang="en">Logits shown rounded; <code>0.1191</code> is full-precision from the cosines (<code>l6-contrastive.json</code>). From the rounded logits, \(\approx 0.119\).</span></p>
           <div class="e2e-stepper">
             <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">&larr;</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 3</span></div><button type="button" class="step-btn" data-step-act="next">&rarr;</button></div>
             <span class="e2e-stage-name">overview</span>
@@ -1223,6 +1233,9 @@
             <h1>The Anisotropy Trap</h1>
             <p class="divider-sub"><em><span lang="ru">Сырые контекстные векторы лгут о близости:</span><span lang="en">Raw contextual vectors lie about nearness:</span></em> <span lang="ru">они сбиваются в узкий конус. Обратный вызов из L2.</span><span lang="en">they crowd into a narrow cone. A callback to L2.</span></p>
           </div>
+          <div class="viz-frame fig-fit" style="--fig-max:36cqh; --fig-w:46%;">
+            <img src="assets/img/L6/L6-26-anisotropy-cone.png?v=1" alt="Raw contextual vectors crowded into a narrow cone pointing one way, beside an isotropic sphere where the same vectors spread evenly in every direction" />
+          </div>
           <aside class="slide-notes">The catch beat, P7, and it is a callback to the high-dimensional pathologies of Lecture 2. Here is the surprise: take a raw, untuned BERT and embed a pile of random sentences, and their vectors do not spread out over the space — they bunch into a narrow cone, all pointing roughly the same way. This is called anisotropy, and it means even unrelated sentences have high cosine similarity, so cosine stops discriminating. It is exactly why raw BERT [CLS] underperformed GloVe. The next slide makes the trap explicit, and explains why contrastive training plus normalisation is the fix.</aside>
         </section>
 
@@ -1250,6 +1263,9 @@
             <div class="divider-num"><span lang="ru">Перенос</span><span lang="en">Transfer</span></div>
             <h1>Everything Is a Sequence of Tokens</h1>
             <p class="divider-sub"><em><span lang="ru">Тот же блок — за пределами текста:</span><span lang="en">The same block — beyond text:</span></em> <span lang="ru">пиксели, картинки, аудио, белки, графы. Внимание оказалось универсальным.</span><span lang="en">pixels, images, audio, proteins, graphs. Attention turned out to be universal.</span></p>
+          </div>
+          <div class="viz-frame fig-fit" style="--fig-max:38cqh; --fig-w:50%;">
+            <img src="assets/img/L6/L6-28-everything-tokens.png?v=1" alt="A graph, a DNA strand, text, image patches and an audio waveform all cut into tokens that converge on one shared dotted embedding space" />
           </div>
           <aside class="slide-notes">A short cross-domain coda — placed just before the payoff so the Gremlin is the last content beat. The remarkable thing about the encoder block we just built is how little of it is about language. Tokenise anything into a sequence of vectors and the same machinery — attention, residuals, LayerNorm, the feed-forward network — applies. The next three slides make that concrete: images as patches in a Vision Transformer, image-and-text aligned by the very same InfoNCE loss in CLIP, and finally the unifying view that a Transformer is just a graph neural network on a fully-connected graph. The point for this course: contextual encoders and contrastive training are a general recipe for turning any modality into a searchable vector space — which brings us all the way home to the creature this whole journey was about.</aside>
         </section>
