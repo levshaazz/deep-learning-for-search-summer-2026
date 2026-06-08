@@ -95,6 +95,17 @@ export default {
     {
       id: 'climb-word2vec', kind: 'prose',
       heading: { en: 'word2vec: learning the coordinates', ru: 'word2vec: учим координаты', tt: 'word2vec: координаталарны өйрәнү' },
+      img: 'L5/L5-03-word2vec-window.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'A sliding window over a row of word-tiles: the centre tile fans prediction arrows out to its neighbours, then the window slides one tile along.',
+        ru: 'Скользящее окно по ряду слов-плиток: центральная плитка веером шлёт стрелки-предсказания соседям, затем окно сдвигается на одну плитку.',
+        tt: 'Сүз-плитәләр рәте буенча шуа торган тәрәзә: үзәк плитә күршеләренә алдан-әйтү укларын җәя, аннары тәрәзә бер плитәгә шуа.',
+      },
+      imgCaption: {
+        en: 'Skip-gram in one picture: slide a window, and from each centre word predict its neighbours. The map is the by-product of winning that little game.',
+        ru: 'Skip-gram в одной картинке: веди окно и из каждого центрального слова предсказывай соседей. Карта — побочный продукт этой игры.',
+        tt: 'Skip-gram бер рәсемдә: тәрәзәне шудыр һәм һәр үзәк сүздән аның күршеләрен алдан әйт. Карта — шул уенны откан өчен янәмә продукт.',
+      },
       body: {
         en: [
           "In 2013 [Mikolov and colleagues at Google](https://arxiv.org/abs/1301.3781) turned the distributional hypothesis into a fast, trainable recipe — **word2vec** — and it's the one worth working through in full. The variant we'll follow is **skip-gram**: a tiny prediction game whose *by-product* is the map. Slide a window over the text; for each centre word, try to predict the words around it. Centre \"cat\" in \"the lazy cat sat on the\", and the model must raise the probability of its neighbours — \"lazy\", \"sat\", \"on\" — within a window of, say, two words each side.",
@@ -119,6 +130,17 @@ export default {
     {
       id: 'turn-word2vec-family', kind: 'prose',
       heading: { en: 'The word2vec family tree', ru: 'Родословная word2vec', tt: 'word2vec нәсел агачы' },
+      img: 'L5/L5-04-word2vec-family.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'A family tree branching from one root into skip-gram, its mirror CBOW, a word split into sub-piece chips for fastText, and a matrix squeezed into vectors for SVD.',
+        ru: 'Родословное дерево из одного корня ветвится в skip-gram, его зеркало CBOW, слово, разбитое на под-кусочки для fastText, и матрицу, сжатую в векторы для SVD.',
+        tt: 'Бер тамырдан тармакланган нәсел агачы: skip-gram, аның көзгесе CBOW, fastText өчен өлешләргә бүленгән сүз, һәм SVD өчен векторларга кысылган матрица.',
+      },
+      imgCaption: {
+        en: 'One idea, four faces: skip-gram and CBOW are the same arrow reversed, fastText teaches it to spell, and SVD is the same factorization in disguise.',
+        ru: 'Одна идея, четыре лица: skip-gram и CBOW — та же стрелка наоборот, fastText учит её писать по буквам, а SVD — та же факторизация под маской.',
+        tt: 'Бер идея, дүрт йөз: skip-gram белән CBOW — шул ук ук кирегә, fastText аны хәреф буенча язарга өйрәтә, ә SVD — маска астында шул ук факторизация.',
+      },
       body: {
         en: [
           "Before we cash in the map, three threads from word2vec are worth pulling, because each one quietly reappears for the rest of the course. The first is a sibling to skip-gram. We trained the model to predict *context from a centre word*; flip the arrow and you get **CBOW** (continuous bag-of-words), which predicts *the centre word from its averaged context*. The trade-off is clean: CBOW sums up the surrounding words and guesses the middle, which makes it fast and smooth on frequent words; skip-gram makes a separate prediction for *each* context word, which is slower but squeezes more signal out of rare words and small corpora. As a rule of thumb — skip-gram for a modest corpus where every rare word counts, CBOW when you have a firehose of text and want speed. Same space, same distributional idea, two directions of the same arrow.",
@@ -248,6 +270,17 @@ export default {
     {
       id: 'stakes-too-many-dims', kind: 'prose',
       heading: { en: 'Three hundred numbers you can’t see', ru: 'Триста чисел, которых не видно', tt: 'Күреп булмый торган өч йөз сан' },
+      img: 'L5/L5-06-too-many-dims.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'A towering column of hundreds of vector cells squeezed through a funnel down to just two dots plotted on a small 2-D grid.',
+        ru: 'Высоченный столбец из сотен ячеек вектора протискивается сквозь воронку и сжимается до двух точек на маленькой 2-D сетке.',
+        tt: 'Йөзләрчә вектор күзәнәгеннән торган биек багана воронка аша кысылып, кечкенә 2-D челтәрдәге нибары ике ноктага кала.',
+      },
+      imgCaption: {
+        en: 'A real embedding is 300 numbers tall. You have two eyes — so the map has to be folded down to something you can actually plot.',
+        ru: 'Настоящий эмбеддинг высотой в 300 чисел. А глаз у тебя два — значит, карту надо сложить до того, что можно нарисовать.',
+        tt: 'Чын эмбеддинг 300 сан биеклегендә. Ә синең күзең икәү — димәк картаны сызып булырлык итеп бөкләргә кирәк.',
+      },
       body: {
         en: [
           "Time for the catch, and it's a big one. The maps people actually ship aren't the six-number sketch we've been drawing — production embeddings live in **300 dimensions** (GloVe's standard size; word2vec and friends use 100–1000). Three hundred numbers per word. And that's the *good* news: 300-D is exactly what gives the space enough room to encode gender *and* royalty *and* tense *and* topic *and* register all as separate, simultaneous directions. The richness is the dimensionality.",
