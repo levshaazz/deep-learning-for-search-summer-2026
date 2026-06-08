@@ -35,7 +35,7 @@ export const mountTsneMigrate = defineWidget({
   rootClass: 'tm-root',
   exportName: 'mountTsneMigrate',
   maxStep: 3,
-  render({ host, data, labels, el }) {
+  render({ host, data, labels, el, maxStep }) {
     const snaps = data.snapshots || [];
     const clusters = data.clusters || [];
     const colorOf = (c) => CLUSTER_COLOR[c] || 'var(--ink-3, #6B7280)';
@@ -58,6 +58,17 @@ export const mountTsneMigrate = defineWidget({
     const sx = (vx) => ox + (vx - dx.min) / dx.span * side;
     const sy = (vy) => oy + side - (vy - dy.min) / dy.span * side;   // y up
 
+    // INIT-SCATTER (step 0 only): in this toy set the PCA-init places same-cluster points at nearly
+    // identical coords, so each cluster collapses to ONE tight knot — which reads TIGHTER than the
+    // loose iter-250 frame and inverts the "scattered → settles" story. The init is the *starting
+    // picture*, not a measured t-SNE layout, so we loosen those coincident knots with a small
+    // deterministic per-point offset (seeded by index → stable across renders) applied ONLY at k=0.
+    // Every later snapshot keeps its exact data coordinates.
+    const hash01 = (i, salt) => { const v = Math.sin((i + 1) * 12.9898 + salt * 78.233) * 43758.5453; return v - Math.floor(v); };
+    const JIT = 0.18;                                    // data-domain radius; lifts init spread to ~iter-250 level
+    const jx = (i) => (hash01(i, 1) - 0.5) * 2 * JIT;
+    const jy = (i) => (hash01(i, 2) - 0.5) * 2 * JIT;
+
     const H = frameHeightFor(PAD_T + plotH + 16, 8);
     const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'wgt-svg tm-svg',
       role: 'img', 'aria-label': labels.alt || '' }, host);
@@ -79,7 +90,7 @@ export const mountTsneMigrate = defineWidget({
       const c = (snaps[0].points[i] || {}).c;
       const init = snaps[0].points[i];
       dots.push(add('dots', el('circle', {
-        cx: sx(init.x), cy: sy(init.y), r: 5,
+        cx: sx(init.x + jx(i)), cy: sy(init.y + jy(i)), r: 5,
         class: 'tm-dot', fill: colorOf(c), stroke: 'var(--bg-card, #fff)', 'stroke-width': 1,
       }, svg)));
     }
@@ -104,10 +115,11 @@ export const mountTsneMigrate = defineWidget({
     // move every dot to snapshot `k`'s positions (the CSS transition tweens the slide).
     function placeSnapshot(k) {
       const pts = (snaps[k] && snaps[k].points) || snaps[0].points;
+      const ox0 = (k === 0);                         // loosen ONLY the PCA-init knots
       dots.forEach((d, i) => {
         const p = pts[i] || snaps[0].points[i];
-        d.setAttribute('cx', sx(p.x));
-        d.setAttribute('cy', sy(p.y));
+        d.setAttribute('cx', sx(p.x + (ox0 ? jx(i) : 0)));
+        d.setAttribute('cy', sy(p.y + (ox0 ? jy(i) : 0)));
       });
     }
 
@@ -122,7 +134,11 @@ export const mountTsneMigrate = defineWidget({
       // title from the snapshot label (data), subtitle is the iter count.
       const snap = snaps[k] || {};
       ttl.textContent = snap.label || '';
-      sub.textContent = (k === 0) ? (labels.scattered || 'scattered') : (labels.migrating || 'migrating');
+      // status pill: scattered at PCA-init → migrating in transit → settled at the FINAL snapshot
+      // (so iter 1000 reads "settled"/"converged", never "migrating").
+      sub.textContent = (k === 0) ? (labels.scattered || 'scattered')
+        : (k >= maxStep) ? (labels.settled || 'settled')
+        : (labels.migrating || 'migrating');
     };
   },
 });
