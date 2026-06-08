@@ -1,0 +1,187 @@
+/* bpe-steps — the live BPE training loop (L2 'climb-bpe-steps'). Three stacked regions:
+   corpus token rows → pair-count tally (winner highlighted) → the merge rule applied.
+   Themed via tokens (light + dark). Responsive: token chips wrap, bars flex, width:100%,
+   never overflows a narrow (390px) scrolly column. */
+.bps-panel {
+  padding: var(--ws-3, 1.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ws-2, 1rem);
+  width: 100%;
+  min-width: 0;
+}
+
+.bps-region {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.bps-head {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-tiny, .8rem);
+  font-weight: 700;
+  letter-spacing: .5px;
+  color: var(--ink-3, #6B7280);
+}
+.bps-corpus .bps-head { color: var(--ink-3, #6B7280); }
+.bps-tally  .bps-head { color: var(--accent, #2A6FDB); }
+.bps-merge  .bps-head { color: var(--warm, #E8743B); }
+
+/* ── region 1: corpus token rows ─────────────────────────────────────────── */
+.bps-corpus-body { display: flex; flex-direction: column; gap: 6px; }
+.bps-word-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.bps-word-lab {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  flex: 0 0 auto;
+  min-width: 5.5em;
+}
+.bps-word {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-small, .9rem);
+  font-weight: 700;
+  color: var(--ink, #14181F);
+}
+.bps-freq {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-tiny, .8rem);
+  color: var(--ink-3, #6B7280);
+}
+.bps-toks { display: inline-flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
+
+/* token chip */
+.bps-tok {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 7px;
+  border-radius: var(--r-sm, 8px);
+  border: var(--hairline, 1.5px) solid var(--rule, #ddd);
+  background: var(--bg-card, #fff);
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-small, .9rem);
+  font-weight: 700;
+  color: var(--ink, #14181F);
+  white-space: nowrap;
+}
+.bps-tok--mini { padding: 1px 5px; font-size: var(--fz-tiny, .8rem); }
+.bps-tok--eow { color: var(--ink-3, #6B7280); }
+/* the piece just produced by this step's merge: warm pop */
+.bps-tok--merged {
+  border-color: var(--warm, #E8743B);
+  background: color-mix(in srgb, var(--warm, #E8743B) 16%, var(--bg-card, #fff));
+  color: var(--warm, #E8743B);
+}
+
+.bps-op { font-family: var(--font-mono, monospace); color: var(--ink-3, #6B7280); font-weight: 700; }
+.bps-arrow { color: var(--warm, #E8743B); }
+
+/* ── region 2: pair-count tally ──────────────────────────────────────────── */
+.bps-tally-body { display: flex; flex-direction: column; gap: 4px; }
+.bps-pair-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 6px;
+  border-radius: var(--r-sm, 8px);
+  border: var(--hairline, 1.5px) solid transparent;
+  min-width: 0;
+}
+.bps-pair-row.is-winner {
+  border-color: color-mix(in srgb, var(--accent, #2A6FDB) 55%, transparent);
+  background: color-mix(in srgb, var(--accent, #2A6FDB) 10%, var(--bg-card, #fff));
+}
+.bps-pair-row.is-tie {
+  border-color: color-mix(in srgb, var(--ink, #14181F) 14%, transparent);
+  border-style: dashed;
+}
+.bps-pair {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex: 0 0 auto;
+  min-width: 4.5em;
+}
+.bps-bar {
+  flex: 1 1 auto;
+  height: 8px;
+  min-width: 24px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink, #14181F) 8%, transparent);
+  overflow: hidden;
+}
+.bps-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent, #2A6FDB) 45%, transparent);
+}
+.is-winner .bps-bar-fill { background: var(--accent, #2A6FDB); }
+.bps-count {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-small, .9rem);
+  font-weight: 700;
+  color: var(--ink, #14181F);
+  flex: 0 0 auto;
+  min-width: 1.4em;
+  text-align: right;
+}
+.is-winner .bps-count { color: var(--accent, #2A6FDB); }
+.bps-tag {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-tiny, .7rem);
+  font-weight: 700;
+  letter-spacing: .5px;
+  flex: 0 0 auto;
+  min-width: 2.4em;
+  text-align: right;
+}
+.bps-tag--win { color: var(--accent, #2A6FDB); }
+.bps-tag--tie { color: var(--ink-3, #6B7280); }
+
+/* ── region 3: the merge rule applied ────────────────────────────────────── */
+.bps-merge-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm, 8px);
+  border: var(--hairline, 1.5px) dashed var(--warm, #E8743B);
+  background: color-mix(in srgb, var(--warm, #E8743B) 6%, transparent);
+}
+.bps-rule, .bps-work {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+.bps-rule-lab {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-tiny, .8rem);
+  letter-spacing: .5px;
+  color: var(--ink-3, #6B7280);
+  margin-right: 2px;
+}
+.bps-term { display: inline-flex; align-items: baseline; gap: 2px; }
+.bps-sum {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-body, 1rem);
+  font-weight: 700;
+  color: var(--warm, #E8743B);
+}
+
+@media (max-width: 420px) {
+  .bps-word-lab { min-width: 4.5em; }
+  .bps-pair { min-width: 4em; }
+  .bps-tag { min-width: 2em; }
+}

@@ -335,6 +335,7 @@ export default {
         ],
       },
     },
+    { id: 'turn-pagerank-power', kind: 'scrolly', widget: 'pagerank-power', data: 'l3-pagerank' },
     {
       id: 'catch-gremlin', kind: 'prose',
       heading: { en: 'The Lexical Gremlin laughs', ru: 'Лексический Гремлин смеётся' },

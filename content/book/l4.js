@@ -221,6 +221,7 @@ export default {
         ],
       },
     },
+    { id: 'climb-significance-test', kind: 'scrolly', widget: 'significance-test', data: 'l4-systems' },
     {
       id: 'catch-multiple-comparisons', kind: 'prose',
       heading: { en: 'The multiple-comparisons trap', ru: 'Ловушка множественных сравнений' },

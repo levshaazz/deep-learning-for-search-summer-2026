@@ -1,0 +1,196 @@
+/* pagerank-power — themed via tokens (light + dark). Three stacked regions:
+   (1) the 3-page link graph (SVG, A/B/C with directed arrows, B = authority),
+   (2) the rank-vector bar chart (3 columns, heights animate per iteration),
+   (3) the power-iteration update rule + worked B-substitution, and a result banner.
+   Responsive: everything is width:100%, the graph SVG scales, bars stay in-frame at 390px. */
+.pr-panel {
+  padding: var(--ws-3, 1.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ws-2, 1rem);
+  width: 100%;
+  min-width: 0;
+}
+
+.pr-head {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-tiny, .8rem);
+  font-weight: 700;
+  letter-spacing: .5px;
+  color: var(--ink-3, #6B7280);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* every stacked region is a flex child of .pr-panel — pin min-width:0 so the
+   nowrap-scroll formula rows below can't force the column wider than its grid track. */
+.pr-graph, .pr-bars-wrap, .pr-update, .pr-banner { min-width: 0; }
+
+/* ── graph ──────────────────────────────────────────────────────────────── */
+.pr-graph { display: flex; flex-direction: column; gap: 6px; }
+.pr-svg { display: block; width: 100%; min-width: 0; height: auto; max-height: 168px; }
+.pr-node { transition: stroke-width var(--dur, 220ms) var(--ease, ease); }
+.pr-node-lbl {
+  font-family: var(--font-mono, monospace);
+  font-size: 24px;
+  font-weight: 700;
+}
+.pr-node-od {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+}
+.pr-auth-tag {
+  font-family: var(--font-sans, sans-serif);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ── rank-vector bars ───────────────────────────────────────────────────── */
+.pr-iter-tag {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-tiny, .8rem);
+  font-weight: 700;
+  letter-spacing: .3px;
+  color: var(--accent, #2A6FDB);
+}
+.pr-bars-wrap { display: flex; flex-direction: column; gap: 8px; }
+.pr-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  height: 132px;
+  padding: 6px 6px 0;
+  border-radius: var(--r-sm, 8px);
+  border: var(--hairline, 1.5px) solid var(--rule, #ddd);
+  background: var(--bg-card, #fff);
+}
+.pr-bar-cell {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+}
+.pr-bar-track {
+  flex: 1 1 auto;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  border-radius: var(--r-sm, 8px);
+  background: color-mix(in srgb, var(--ink, #14181F) 5%, transparent);
+  overflow: hidden;
+}
+.pr-bar-fill {
+  width: 100%;
+  height: 33%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  border-radius: var(--r-sm, 8px) var(--r-sm, 8px) 0 0;
+  background: color-mix(in srgb, var(--ink-3, #6B7280) 45%, var(--bg-card, #fff));
+  transition: height var(--dur, 320ms) var(--ease, cubic-bezier(.4, 0, .2, 1));
+}
+.pr-bar-auth {
+  background: color-mix(in srgb, var(--accent, #2A6FDB) 60%, var(--bg-card, #fff));
+}
+.pr-bars.is-settled .pr-bar-auth {
+  background: var(--accent, #2A6FDB);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent, #2A6FDB) 30%, transparent);
+}
+.pr-bar-val {
+  margin-top: 4px;
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-tiny, .8rem);
+  font-weight: 700;
+  color: var(--bg-card, #fff);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .35);
+}
+.pr-bar-name {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-small, .9rem);
+  font-weight: 700;
+  color: var(--ink, #14181F);
+}
+
+/* ── update rule + worked substitution ──────────────────────────────────── */
+.pr-update {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm, 8px);
+  border: var(--hairline, 1.5px) solid var(--rule, #ddd);
+  background: var(--bg-inset, #EBE7DA);
+  transition: border-color var(--dur, 220ms) var(--ease, ease);
+}
+.pr-update.is-active {
+  border-color: color-mix(in srgb, var(--accent, #2A6FDB) 45%, transparent);
+}
+.pr-rule {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-small, .9rem);
+  font-weight: 700;
+  color: var(--ink, #14181F);
+  min-width: 0;
+  max-width: 100%;
+  /* wrap rather than nowrap-scroll so a long formula can't set the panel's
+     min-content width and blow out the single-column grid track at 390px. */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.pr-work { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.pr-work-line {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-tiny, .8rem);
+  color: var(--ink-2, #374151);
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  transition: opacity var(--dur, 220ms) var(--ease, ease);
+}
+.pr-work-line.is-hidden { opacity: 0; }
+.pr-work-line b { color: var(--ink, #14181F); }
+.pr-hot { color: var(--accent, #2A6FDB) !important; }
+
+/* ── result banner (query-independent signal) ───────────────────────────── */
+.pr-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm, 8px);
+  border: var(--hairline, 1.5px) dashed var(--accent, #2A6FDB);
+  background: color-mix(in srgb, var(--accent, #2A6FDB) 6%, transparent);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity var(--dur, 220ms) var(--ease, ease),
+    transform var(--dur, 220ms) var(--ease, ease);
+}
+.pr-banner.is-shown { opacity: 1; transform: none; }
+.pr-banner-rank {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-small, .9rem);
+  font-weight: 700;
+  color: var(--ink, #14181F);
+}
+.pr-banner-rank b { color: var(--accent, #2A6FDB); }
+.pr-gt { color: var(--ink-3, #6B7280); }
+.pr-banner-tag {
+  margin-left: auto;
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-tiny, .8rem);
+  letter-spacing: .5px;
+  color: var(--accent-ink, #1B4FA0);
+  font-weight: 700;
+}
+
+@media (max-width: 420px) {
+  .pr-banner-tag { margin-left: 0; }
+  .pr-bars { gap: 6px; height: 120px; }
+}
