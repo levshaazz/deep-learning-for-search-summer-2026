@@ -38,10 +38,17 @@ export const mountResidualStream = defineWidget({
     const num = (v, d = 2) => (typeof v !== 'number' ? '' : Number.isInteger(v) ? String(v) : fmt(v, d));
 
     // ── geometry ───────────────────────────────────────────────────────────
-    const W = 480, PAD = 16;
-    const laneY = 92;                         // the highway's centre-line
-    const x0 = PAD + 26;                      // first checkpoint x
-    const xEnd = W - PAD - 6;
+    // The per-checkpoint norm readout ("‖x‖ = 2.4495", ~94px) is CENTRED on the checkpoint x.
+    // To keep the first/last readouts inside the frame the checkpoints must sit at least half a
+    // readout-width in from each edge. SIDE reserves that gutter on both sides; the branch zone
+    // (delta glyph + "sublayer(x)" label) needs vertical headroom above the lane → TOPROOM.
+    const SIDE = 50;                          // side gutter ≥ half the widest centred readout
+    const PAD = 16;
+    const TOPROOM = 58;                       // room above the lane for the branch + its label
+    const laneY = TOPROOM + 36;               // the highway's centre-line, pushed down for the branch
+    const x0 = PAD + SIDE;                     // first checkpoint x (in from the left gutter)
+    const W = 540;                            // viewBox width (wider so 5 checkpoints + gutters fit)
+    const xEnd = W - PAD - SIDE;              // last checkpoint x (in from the right gutter)
     const slot = (xEnd - x0) / (n - 1);       // horizontal gap between checkpoints
     // a 6-cell vector glyph (a short vertical stack of small cells) centred at (cx, laneY).
     const cellW = 16, cellH = 11, cellGap = 1.5;
@@ -76,10 +83,14 @@ export const mountResidualStream = defineWidget({
     mk('rs-add', 'var(--c-green, #3A8A5C)');
 
     // ── the highway lane (always visible) ─────────────────────────────────────
+    // The "residual highway" caption rides the top-RIGHT of the frame (the branch zone is on the
+    // left, above the add-stage checkpoints, so the right side is the only clear top lane),
+    // end-anchored inside the right gutter so it never spills or collides with the branch labels.
     layer('lane', 0);
-    add('lane', txt(PAD, laneY - glyphH / 2 - 16, labels.highwayLbl || 'residual highway',
-      { font: '700 11px var(--font-mono, monospace)', fill: 'var(--accent-ink, #1B4FA0)' }));
-    add('lane', el('line', { x1: PAD, y1: laneY, x2: xEnd + 4, y2: laneY,
+    add('lane', txt(xEnd + SIDE - 2, 14, labels.highwayLbl || 'residual highway',
+      { font: '700 11px var(--font-mono, monospace)', fill: 'var(--accent-ink, #1B4FA0)',
+        'text-anchor': 'end' }));
+    add('lane', el('line', { x1: PAD, y1: laneY, x2: xEnd + 4, y2: laneY, fill: 'none',
       stroke: 'var(--accent, #2A6FDB)', 'stroke-width': 3, opacity: 0.35,
       'marker-end': 'url(#rs-flow)' }, svg));
 
@@ -131,55 +142,66 @@ export const mountResidualStream = defineWidget({
         const prev = stages[k - 1];
         if (prev) glyph('stage' + k, prev.vec, cx - 4, { faint: true });
 
-        // a curved side branch entering from above-left carrying the delta glyph.
-        const branchTopY = laneY - glyphH / 2 - 40;
-        const bx = cx - slot * 0.5;
-        const path = `M ${bx} ${branchTopY} C ${bx + slot * 0.3} ${branchTopY}, ${cx - 2} ${laneY - glyphH / 2 - 22}, ${cx} ${laneY - glyphH / 2 - 4}`;
+        // the merge "+" sits on the lane JUST LEFT of the running vector (not on top of a cell —
+        // that produced the s1 "+ × 1.7" stacked-label overlap). The branch and the skip arc both
+        // converge here, before the running vector.
+        const mergeX = cx - cellW / 2 - 11;
+
+        // the delta glyph + its "sublayer(x)" label live in the TOP band, fitted to TOPROOM so they
+        // never exit the top edge. Sizes are derived from the available headroom above the glyph.
+        const glyphTop = laneY - glyphH / 2;          // pixel y of the running glyph's top
+        const dcw = 8, dch = 4, dgap = 0.8;
+        const dgH = dim * (dch + dgap) - dgap;        // delta-glyph height
+        const dgLabelY = 16;                          // baseline of the "sublayer(x)" label; ≥ font
+                                                      // ascent so its box top stays inside the frame
+        const dgy0 = dgLabelY + 5;                    // delta glyph top, just under its label
+        const bx = mergeX - slot * 0.42;              // branch entry x (above-left of the merge)
+        const dgx = bx - dcw / 2;
+
+        // a curved side branch from the delta glyph down to the merge "+" on the lane.
+        const path = `M ${bx} ${dgy0 + dgH + 2} C ${bx} ${glyphTop - 10}, ${mergeX} ${glyphTop - 8}, ${mergeX} ${laneY - 8}`;
         const branch = el('path', { d: path, fill: 'none', stroke: 'var(--c-green, #3A8A5C)',
           'stroke-width': 1.5, 'stroke-dasharray': '4 3', 'marker-end': 'url(#rs-add)' }, svg);
         add('stage' + k, branch);
         // the delta vector as a tiny 6-cell glyph at the branch's top
         const dMaxAbs = Math.max(...st.delta.map(Math.abs), 1);
         const dGlyph = el('g', {}, svg);
-        const dcw = 9, dch = 5, dgap = 1;
-        const dgH = dim * (dch + dgap) - dgap;
-        const dgx = bx - dcw / 2, dgy0 = branchTopY - dgH - 4;
         st.delta.forEach((v, i) => {
           el('rect', { x: dgx, y: dgy0 + i * (dch + dgap), width: dcw, height: dch, rx: 1,
             fill: cellFill(v, dMaxAbs), stroke: 'var(--rule, #ddd)', 'stroke-width': 0.4 }, dGlyph);
         });
         add('stage' + k, dGlyph);
-        add('stage' + k, txt(bx, dgy0 - 3, labels.deltaLbl || 'sublayer(x)',
+        add('stage' + k, txt(bx, dgLabelY, labels.deltaLbl || 'sublayer(x)',
           { font: '700 8px var(--font-mono, monospace)', fill: 'var(--c-green-ink, #1F6B40)',
             'text-anchor': 'middle' }));
-        // a "+" node on the lane at the merge point
-        add('stage' + k, el('circle', { cx, cy: laneY, r: 7, fill: 'var(--bg-card, #fff)',
+        // a "+" node on the lane at the merge point (left of the running vector)
+        add('stage' + k, el('circle', { cx: mergeX, cy: laneY, r: 7, fill: 'var(--bg-card, #fff)',
           stroke: 'var(--c-green, #3A8A5C)', 'stroke-width': 1.5 }, svg));
-        add('stage' + k, txt(cx, laneY + 3.5, labels.addLbl || '+',
+        add('stage' + k, txt(mergeX, laneY + 3.5, labels.addLbl || '+',
           { font: '700 11px var(--font-mono, monospace)', fill: 'var(--c-green-ink, #1F6B40)',
             'text-anchor': 'middle' }));
 
         // the skip arc: x bypasses the sublayer (a faint arc from the previous checkpoint straight to
-        // the "+"), drawn with clampSegmentToRect-safe straight skip line under the lane.
+        // the merge "+"), drawn with clampSegmentToRect-safe straight skip line under the lane.
         const skipFrom = x0 + (k - 1) * slot + cellW / 2 + 2;
-        const skipY = laneY + glyphH / 2 + 28;
+        const skipY = laneY + glyphH / 2 + 26;
         const skipRect = { x: PAD, y: laneY, w: W - 2 * PAD, h: glyphH / 2 + 40 };
-        const seg = clampSegmentToRect(skipFrom, skipY, cx, skipY, skipRect)
-          || { x1: skipFrom, y1: skipY, x2: cx, y2: skipY };
+        const seg = clampSegmentToRect(skipFrom, skipY, mergeX, skipY, skipRect)
+          || { x1: skipFrom, y1: skipY, x2: mergeX, y2: skipY };
         const skip = el('path',
           { d: `M ${seg.x1} ${laneY} C ${seg.x1} ${seg.y1}, ${seg.x2} ${seg.y1}, ${seg.x2} ${laneY}`,
             fill: 'none', stroke: 'var(--accent, #2A6FDB)', 'stroke-width': 1.5,
             opacity: 0.5, 'stroke-dasharray': '2 3' }, svg);
         add('stage' + k, skip);
-        add('stage' + k, txt((skipFrom + cx) / 2, skipY + 12, labels.skipLbl || 'skip: x passes through',
+        add('stage' + k, txt((skipFrom + mergeX) / 2, skipY + 12, labels.skipLbl || 'skip: x passes through',
           { font: '600 8px var(--font-mono, monospace)', fill: 'var(--accent-ink, #1B4FA0)',
             'text-anchor': 'middle' }));
       }
     });
 
     // size the box to the deepest drawn content (skip-label sits lowest)
-    const deepest = laneY + glyphH / 2 + 28 + 14;
-    const H = frameHeightFor(deepest, 10);
+    const deepest = laneY + glyphH / 2 + 26 + 14;
+    const H = frameHeightFor(deepest, 12);
     svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
     return function update(k) {

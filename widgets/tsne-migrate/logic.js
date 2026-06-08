@@ -20,7 +20,7 @@
      2 → snapshots[2] iter 500: clusters tighten, islands separate.                 caption s2
      3 → snapshots[3] iter 1000: 4 clean islands + the "gaps/sizes aren't distances" caveat. caption s3 */
 import { defineWidget } from '../_widget-base.js';
-import { padDomain, frameHeightFor } from '../_plot-util.js';
+import { padDomain, frameHeightFor, clampSegmentToRect } from '../_plot-util.js';
 
 // cluster index 0..3 → theme token (4 distinct categorical tokens). Order matches data.clusters.
 const CLUSTER_COLOR = [
@@ -83,6 +83,19 @@ export const mountTsneMigrate = defineWidget({
     const ttl = el('text', { x: box.x, y: box.y - 10, class: 'tm-title' }, svg);
     const sub = el('text', { x: box.x + box.w, y: box.y - 10, class: 'tm-sub', 'text-anchor': 'end' }, svg);
 
+    // ── migration trails — one faint segment per dot from its PREVIOUS snapshot position to its
+    // current one. Hidden at step 0 (nothing has moved yet); revealed from step 1 so each advance
+    // literally draws the path the dot travelled. They also make the reveal additive (step 0 = dots
+    // only; later steps add the N trail segments) so the build reads as motion, not a static frame.
+    // Drawn BEFORE the dots so the dots sit on top of their own trails.
+    layer('trails', 1);
+    const trails = [];
+    for (let i = 0; i < N; i++) {
+      const c = (snaps[0].points[i] || {}).c;
+      trails.push(add('trails', el('line', { class: 'tm-trail', fill: 'none',
+        stroke: colorOf(c), x1: 0, y1: 0, x2: 0, y2: 0 }, svg)));
+    }
+
     // ── the migrating dots — keyed by index, color fixed by cluster, position set per snapshot ──
     layer('dots', 0);
     const dots = [];
@@ -112,14 +125,23 @@ export const mountTsneMigrate = defineWidget({
       class: 'tm-caveat', 'text-anchor': 'end' }, svg));
     caveat.textContent = labels.tsneCaveat || 'gaps & sizes are NOT distances';
 
-    // move every dot to snapshot `k`'s positions (the CSS transition tweens the slide).
+    // screen position of point i at snapshot s (applying the init jitter only at s===0).
+    const px = (s, i) => { const p = (snaps[s] && snaps[s].points[i]) || snaps[0].points[i];
+      return sx(p.x + (s === 0 ? jx(i) : 0)); };
+    const py = (s, i) => { const p = (snaps[s] && snaps[s].points[i]) || snaps[0].points[i];
+      return sy(p.y + (s === 0 ? jy(i) : 0)); };
+
+    // move every dot to snapshot `k`'s positions (the CSS transition tweens the slide), and draw
+    // each dot's trail from its PREVIOUS snapshot to this one so the migration step reads as motion.
     function placeSnapshot(k) {
-      const pts = (snaps[k] && snaps[k].points) || snaps[0].points;
-      const ox0 = (k === 0);                         // loosen ONLY the PCA-init knots
-      dots.forEach((d, i) => {
-        const p = pts[i] || snaps[0].points[i];
-        d.setAttribute('cx', sx(p.x + (ox0 ? jx(i) : 0)));
-        d.setAttribute('cy', sy(p.y + (ox0 ? jy(i) : 0)));
+      dots.forEach((d, i) => { d.setAttribute('cx', px(k, i)); d.setAttribute('cy', py(k, i)); });
+      // trails: segment from snapshot k-1 → k (clamped to the plot rect); hidden at k===0.
+      trails.forEach((t, i) => {
+        if (k === 0) { t.classList.add('is-hidden'); return; }
+        const seg = clampSegmentToRect(px(k - 1, i), py(k - 1, i), px(k, i), py(k, i), box)
+          || { x1: px(k - 1, i), y1: py(k - 1, i), x2: px(k, i), y2: py(k, i) };
+        t.setAttribute('x1', seg.x1); t.setAttribute('y1', seg.y1);
+        t.setAttribute('x2', seg.x2); t.setAttribute('y2', seg.y2);
       });
     }
 

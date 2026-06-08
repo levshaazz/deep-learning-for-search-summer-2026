@@ -55,8 +55,9 @@ export const mountLayernormViz = defineWidget({
     const barTop = 30, barH = 188;            // drawing band for the bars
     const barBase = barTop + barH;            // pixel y of the band's floor
     const panelW = 286;                       // bar panel width
-    const bx0 = PAD + 30;                     // first bar's left (leave a y-axis gutter)
-    const slotW = (panelW - 30) / dim;
+    const gutter = 46;                        // y-axis gutter (holds the short "μ = …" line label)
+    const bx0 = PAD + gutter;                 // first bar's left
+    const slotW = (panelW - gutter) / dim;
     const barW = slotW * 0.62;
     // value→pixel: a symmetric data range that holds the largest |value| across all steps, so bars
     // never escape the band. Raw x peaks at 9 (above μ); centred/normed/out are small. We scale the
@@ -107,14 +108,18 @@ export const mountLayernormViz = defineWidget({
     add('frame', txt(PAD, barTop - 12, labels.rawHead || 'feature vector x',
       { font: '700 12px var(--font-mono, monospace)', fill: 'var(--ink-2, #3D434E)' }));
     // zero / band-floor axis line (always shown) — the reference the baseline rides on.
-    add('frame', el('line', { x1: bx0 - 8, y1: barBase, x2: PAD + panelW - 8, y2: barBase,
-      stroke: 'var(--rule, #ddd)', 'stroke-width': 1 }, svg));
+    // fill:none keeps it stroke-only (guide lines must not read as a black-filled void).
+    add('frame', el('line', { x1: bx0 - 8, y1: barBase, x2: PAD + panelW - 8, y2: barBase, fill: 'none',
+      stroke: 'var(--rule-strong, #B8B19E)', 'stroke-width': 1.25 }, svg));
 
     // ── the baseline / μ-line (animated 5.0 → 0) ──────────────────────────────
     // one line element reused across steps; its y + label update in update(k).
     const baseLine = el('line', { x1: bx0 - 8, y1: yRaw(mean), x2: PAD + panelW - 8, y2: yRaw(mean),
-      stroke: 'var(--warm, #E8743B)', 'stroke-width': 1.5, 'stroke-dasharray': '5 3' }, svg);
-    const baseLbl = txt(bx0 - 12, yRaw(mean) - 4, '', { font: '700 10px var(--font-mono, monospace)',
+      fill: 'none', stroke: 'var(--warm, #E8743B)', 'stroke-width': 1.5, 'stroke-dasharray': '5 3' }, svg);
+    // the μ-line label sits in the LEFT y-gutter (left-anchored, just above the line) so it never
+    // overlaps a bar; it is the SHORT "μ = …" form (the full mean/var/std prose is the bottom
+    // readout). Its y follows the line in update().
+    const baseLbl = txt(PAD, yRaw(mean) - 4, '', { font: '700 10px var(--font-mono, monospace)',
       fill: 'var(--warm-ink, #B4521F)', 'text-anchor': 'start' });
     add('frame', baseLine); add('frame', baseLbl);
 
@@ -128,24 +133,32 @@ export const mountLayernormViz = defineWidget({
       bars.push({ r, bxi });
     }
 
-    // ── mean / var / std readout (two lines under the circle panel; updates per step) ────
-    const roLine1 = txt(cBox.x, cBox.y + cBox.h + 16, '', { font: '700 11px var(--font-mono, monospace)',
+    // ── mean / var / std readout (two lines under the BAR panel; updates per step) ────
+    // Anchored under the bars (left) so it has a stable home from step 0, before the circle panel
+    // is revealed — it narrates mean 5→0 / var 7.5→1 / std as the bars transform.
+    const roY = barBase + 18;
+    const roLine1 = txt(PAD, roY, '', { font: '700 11px var(--font-mono, monospace)',
       fill: 'var(--ink-2, #3D434E)' });
-    const roLine2 = txt(cBox.x, cBox.y + cBox.h + 32, '', { font: '700 11px var(--font-mono, monospace)',
+    const roLine2 = txt(PAD, roY + 16, '', { font: '700 11px var(--font-mono, monospace)',
       fill: 'var(--warm-ink, #B4521F)' });
     add('frame', roLine1); add('frame', roLine2);
 
     // ── unit-circle panel (the "sphere") ──────────────────────────────────────
-    layer('sphere', 0);
-    add('sphere', txt(cBox.x, barTop - 12, labels.sphereHead || 'the vector on the unit circle',
-      { font: '700 11px var(--font-mono, monospace)', fill: 'var(--ink-2, #3D434E)' }));
-    // unit ring + axes
+    // Revealed at step 2 — the beat where the vector is rescaled to unit variance and "lands on the
+    // unit circle". Before that the panel is hidden so the build reads one reveal per step.
+    // The heading is CENTRED over the circle (it is wider than the 150px panel; left-anchored it ran
+    // off the right edge) so it always stays inside the frame.
+    layer('sphere', 2);
+    add('sphere', txt(cx, barTop - 12, labels.sphereHead || 'the vector on the unit circle',
+      { font: '700 11px var(--font-mono, monospace)', fill: 'var(--ink-2, #3D434E)',
+        'text-anchor': 'middle' }));
+    // unit ring + axes. Guide lines carry fill:none so they are stroke-only (no spurious black fill).
     add('sphere', el('circle', { cx, cy, r: circR, fill: 'none',
+      stroke: 'var(--rule-strong, #B8B19E)', 'stroke-width': 1.5 }, svg));
+    add('sphere', el('line', { x1: cx - circR - 6, y1: cy, x2: cx + circR + 6, y2: cy, fill: 'none',
       stroke: 'var(--rule-strong, #B8B19E)', 'stroke-width': 1 }, svg));
-    add('sphere', el('line', { x1: cx - circR - 6, y1: cy, x2: cx + circR + 6, y2: cy,
-      stroke: 'var(--rule, #ddd)', 'stroke-width': 0.75 }, svg));
-    add('sphere', el('line', { x1: cx, y1: cy - circR - 6, x2: cx, y2: cy + circR + 6,
-      stroke: 'var(--rule, #ddd)', 'stroke-width': 0.75 }, svg));
+    add('sphere', el('line', { x1: cx, y1: cy - circR - 6, x2: cx, y2: cy + circR + 6, fill: 'none',
+      stroke: 'var(--rule-strong, #B8B19E)', 'stroke-width': 1 }, svg));
     add('sphere', el('circle', { cx, cy, r: 2.5, fill: 'var(--ink-3, #6B7280)' }, svg));
     // arrowhead def
     const defs = el('defs', {}, svg);
@@ -156,38 +169,49 @@ export const mountLayernormViz = defineWidget({
     };
     mk('ln-raw', 'var(--ink-4, #9CA3AF)');
     mk('ln-norm', 'var(--accent, #2A6FDB)');
-    // RAW arrow (off the ring) — shown until normalisation (steps 0,1)
-    layer('arrowRaw', 0, 1);
+    // a label placed at an arrow tip, nudged so its box stays inside the right gutter (RPAD).
+    const tipLabel = (lyr, tx0, ty0, s, fill) => {
+      // a ~6-char mono label at 10px is ~36px wide; if the tip is in the right gutter, anchor at end.
+      const farRight = tx0 + 40 > W - 6;
+      add(lyr, txt(farRight ? tx0 - 4 : tx0 + 4, ty0, s,
+        { font: '700 10px var(--font-mono, monospace)', fill,
+          'text-anchor': farRight ? 'end' : 'start' }));
+    };
+    // RAW arrow (off the ring) — appears WITH the circle at step 2 as the faint "before" reference,
+    // so the contrast "long/off-ring → lands exactly on the ring" reads at the normalisation beat.
+    layer('arrowRaw', 2);
     {
       const ex = cx + rawU[0] * rawLen, ey = cy - rawU[1] * rawLen;   // SVG y is down → invert
       const seg = clampSegmentToRect(cx, cy, ex, ey, sphereRect) || { x1: cx, y1: cy, x2: ex, y2: ey };
-      add('arrowRaw', el('line', { x1: seg.x1, y1: seg.y1, x2: seg.x2, y2: seg.y2,
-        stroke: 'var(--ink-4, #9CA3AF)', 'stroke-width': 2, 'marker-end': 'url(#ln-raw)' }, svg));
-      add('arrowRaw', txt(seg.x2 + 4, seg.y2, labels.rawTag || 'raw x',
-        { font: '700 10px var(--font-mono, monospace)', fill: 'var(--ink-3, #6B7280)' }));
+      add('arrowRaw', el('line', { x1: seg.x1, y1: seg.y1, x2: seg.x2, y2: seg.y2, fill: 'none',
+        stroke: 'var(--ink-4, #9CA3AF)', 'stroke-width': 2, 'stroke-dasharray': '4 3',
+        'marker-end': 'url(#ln-raw)' }, svg));
+      // (no tip label: the faint dashed "before" arrow points the same way as the solid normed arrow,
+      //  so a "raw x" tag here would stack on the "normed" tag — the dashed style reads as "before".)
     }
     // NORMED arrow (lands ON the ring) — appears at step 2
     layer('arrowNorm', 2);
     {
       const ex = cx + normU[0] * normLen, ey = cy - normU[1] * normLen;
       const seg = clampSegmentToRect(cx, cy, ex, ey, sphereRect) || { x1: cx, y1: cy, x2: ex, y2: ey };
-      add('arrowNorm', el('line', { x1: seg.x1, y1: seg.y1, x2: seg.x2, y2: seg.y2,
+      add('arrowNorm', el('line', { x1: seg.x1, y1: seg.y1, x2: seg.x2, y2: seg.y2, fill: 'none',
         stroke: 'var(--accent, #2A6FDB)', 'stroke-width': 2.5, 'marker-end': 'url(#ln-norm)' }, svg));
       // a dot exactly on the ring to make "landed on the sphere" literal
       add('arrowNorm', el('circle', { cx: cx + normU[0] * circR, cy: cy - normU[1] * circR, r: 4,
         fill: 'var(--accent, #2A6FDB)' }, svg));
-      add('arrowNorm', txt(cx + normU[0] * normLen + 4, cy - normU[1] * normLen,
-        labels.normedTag || 'normed', { font: '700 10px var(--font-mono, monospace)',
-        fill: 'var(--accent-ink, #1B4FA0)' }));
+      tipLabel('arrowNorm', cx + normU[0] * normLen, cy - normU[1] * normLen + 12,
+        labels.normedTag || 'normed', 'var(--accent-ink, #1B4FA0)');
     }
 
-    const H = frameHeightFor(cBox.y + cBox.h + 34, 8);
+    const H = frameHeightFor(Math.max(roY + 16, cBox.y + cBox.h) + 8, 8);
     svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
-    // stage label (the transform applied at this step), top-centred over the bars
-    const stageLbl = txt(bx0 + (panelW - 30) / 2, barTop - 12, '',
+    // stage label (the transform applied at this step) — RIGHT-anchored near the bar panel's right
+    // edge so it never collides with the left-anchored "feature vector x (8 dims)" panel title, and
+    // pulled in a little so it clears the centred circle-panel heading on its right.
+    const stageLbl = txt(PAD + panelW - 24, barTop - 12, '',
       { font: '700 11px var(--font-mono, monospace)', fill: 'var(--accent-ink, #1B4FA0)',
-        'text-anchor': 'middle' });
+        'text-anchor': 'end' });
     add('frame', stageLbl);
     const stageKey = ['stageRaw', 'stageCentred', 'stageNormed', 'stageOut'];
 
@@ -215,7 +239,7 @@ export const mountLayernormViz = defineWidget({
       const bY = (k === 0) ? yRaw(mean) : ySym(0);
       baseLine.setAttribute('y1', bY); baseLine.setAttribute('y2', bY);
       baseLbl.setAttribute('y', bY - 4);
-      baseLbl.textContent = (labels.meanLbl || 'mean μ') + ' = ' + num(baseVal[k], 1);
+      baseLbl.textContent = 'μ = ' + num(baseVal[k], 1);   // short form (gutter); prose is the readout
       // stage label
       stageLbl.textContent = labels[stageKey[k]] || '';
       // mean / var / std readout under the circle

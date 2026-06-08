@@ -86,9 +86,15 @@ export const mountEmbeddingDomains = defineWidget({
       const dmName = labels[meta.labelKey] || dm.id;
 
       // anchor for the domain's text block: pushed toward its corner, clear of the dots.
+      // The block stacks 4 rows DOWN from `ty`: name (ty), thing (ty+13), tokentag (ty+27),
+      // then nTok token rows at ty+41 + i*13. For BOTTOM corners we solve `ty` so the LAST token
+      // row lands just inside the bottom edge (box.y+box.h-8) — the old formula overshot by ~4px
+      // and the last token ("frame t=3" / "G") was clipped by the frame.
+      const nTok = (dm.tokens || []).length;
+      const blockH = 41 + Math.max(0, nTok - 1) * 13;     // ty → last token-row baseline
       const tx = meta.corner[1] === 'l' ? box.x + 8 : box.x + box.w - 8;
       const anchor = meta.corner[1] === 'l' ? 'start' : 'end';
-      const ty = meta.corner[0] === 't' ? box.y + 16 : box.y + box.h - 8 - (dm.tokens || []).length * 13 - 16;
+      const ty = meta.corner[0] === 't' ? box.y + 16 : box.y + box.h - 8 - blockH;
 
       // ── STEP 0: the 'thing' label (one per domain) ────────────────────────
       layer('thing-' + dm.id, 0);
@@ -113,10 +119,17 @@ export const mountEmbeddingDomains = defineWidget({
         const dotX = sx(x), dotY = sy(y);
         add('dots-' + dm.id, el('circle', { cx: dotX, cy: dotY, r: 5, class: 'ed-dot',
           fill: meta.color, stroke: 'var(--bg-card, #fff)', 'stroke-width': 1 }, svg));
-        // a faint "embed" connector from the token cluster's text anchor to its first dot, so the
-        // "token → point" mapping reads. Only the first token of each domain gets the arrow.
+        // a faint "embed" tag near the first dot. It is nudged toward the PLANE CENTRE (away from the
+        // corner where the token labels stack) so it no longer collides with the patch/token labels,
+        // and clamped so its own box stays inside the plane.
         if (i === 0) {
-          add('dots-' + dm.id, el('text', { x: dotX, y: dotY - 9, class: 'ed-embedtag',
+          // place the tag well TOWARD THE PLANE CENTRE (away from the corner text block) and clamp it
+          // inside the plane, so it clears the "thing"/token labels stacked in this domain's corner.
+          const towardCx = meta.corner[1] === 'l' ? 34 : -34;     // left-corner → push right, etc.
+          const towardCy = meta.corner[0] === 't' ? 26 : -22;     // top-corner → push down, etc.
+          const exX = Math.max(box.x + 26, Math.min(box.x + box.w - 26, dotX + towardCx));
+          const exY = Math.max(box.y + 14, Math.min(box.y + box.h - 8, dotY + towardCy));
+          add('dots-' + dm.id, el('text', { x: exX, y: exY, class: 'ed-embedtag',
             'text-anchor': 'middle', fill: meta.color }, svg))
             .textContent = labels.embedTag || '→ embed';
         }
