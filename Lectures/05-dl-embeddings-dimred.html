@@ -211,23 +211,23 @@
               <span class="toc-num">02</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">word2vec: координаты</span><span lang="en">word2vec: earning coordinates</span></span><span class="toc-sub">skip-gram &middot; softmax &middot; negative sampling</span></span>
             </a>
-            <a class="toc-item" href="#/17">
+            <a class="toc-item" href="#/18">
               <span class="toc-num">03</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Смысл становится арифметикой</span><span lang="en">Meaning becomes arithmetic</span></span><span class="toc-sub">king&minus;man+woman &middot; cosine &middot; the parallelogram</span></span>
             </a>
-            <a class="toc-item" href="#/27">
+            <a class="toc-item" href="#/28">
               <span class="toc-num">04</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">GloVe и проклятие 300-D</span><span lang="en">GloVe &amp; the curse of 300-D</span></span><span class="toc-sub">co-occurrence &middot; count vs predict &middot; you can&rsquo;t see it</span></span>
             </a>
-            <a class="toc-item" href="#/31">
+            <a class="toc-item" href="#/32">
               <span class="toc-num">05</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Картограф складывает карту: PCA</span><span lang="en">The Cartographer: PCA</span></span><span class="toc-sub">covariance &middot; eigenvectors &middot; 37.7% kept</span></span>
             </a>
-            <a class="toc-item" href="#/36">
+            <a class="toc-item" href="#/38">
               <span class="toc-num">06</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Кривая карта: t-SNE</span><span lang="en">When the map curves: t-SNE</span></span><span class="toc-sub">manifold &middot; neighbours &middot; the 2-D word map</span></span>
             </a>
-            <a class="toc-item" href="#/40">
+            <a class="toc-item" href="#/42">
               <span class="toc-num">07</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Ловушки и развязка</span><span lang="en">The traps &amp; the payoff</span></span><span class="toc-sub">t-SNE lies &middot; the Gremlin cornered &middot; bridge to L6</span></span>
             </a>
@@ -495,9 +495,95 @@
           <aside class="slide-notes">Walk one update so the abstraction becomes mechanical. Step zero: pick a centre word, cat, and a real neighbour from its window, dog — that is a positive pair. Step one: compute the sigmoid of the dot product for the true pair, and for k random negatives like airplane. Step two: take a gradient step that raises the true pair's score and lowers the negatives'. Geometrically that pulls cat and dog together and pushes cat and airplane apart. Repeat over millions of windows and the cosine geometry we wanted simply emerges — no dictionary, no labels, just prediction.</aside>
         </section>
 
+        <!-- ============================================ 17 · ARCHFLOW · the skip-gram network (ported from widgets/skipgram-net) ============================================ -->
+        <section class="slide" data-type="archflow" data-max-step="4" data-current-step="0" data-screen-label="17 Archflow · the skip-gram network">
+          <div class="slide-header">
+            <h2><span lang="ru">Сеть skip-gram, по шагам</span><span lang="en">The skip-gram network, step by step</span></h2>
+            <span class="slide-kicker">Archflow · <span lang="ru">one-hot &rarr; \(W\) &rarr; hidden &rarr; softmax · vocab из 8 слов</span><span lang="en">one-hot &rarr; \(W\) &rarr; hidden &rarr; softmax · 8-word toy vocab</span></span>
+          </div>
+          <div class="af-stage">
+            <div class="af-canvas">
+              <!-- EDGES declarative: the engine routes between node anchors -->
+              <div class="af-edge" data-from-node="af-oh" data-to-node="af-w" data-from="1" data-from-anchor="right" data-to-anchor="left" data-label="select row"></div>
+              <div class="af-edge" data-from-node="af-w" data-to-node="af-h" data-from="2" data-from-anchor="right" data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-h" data-to-node="af-z" data-from="3" data-from-anchor="right" data-to-anchor="left" data-label="dot each row"></div>
+              <div class="af-edge" data-from-node="af-z" data-to-node="af-p" data-from="4" data-from-anchor="right" data-to-anchor="left" data-label="softmax"></div>
+
+              <!-- NODES: all data-from="0" so the FULL pipeline is on canvas at rest (step 0);
+                   data-focus rings the active stage as → advances; future stages read faded -->
+              <!-- input · one-hot (king lit): 8×1 -->
+              <div class="af-node af-matrix" id="af-oh" data-role="input" data-from="0" data-focus="0..1" style="left:9%;top:50%;--cols:1">
+                <span class="af-cell" style="outline:3px solid var(--c-amber);outline-offset:1px">1</span>
+                <span class="af-cell">0</span><span class="af-cell">0</span><span class="af-cell">0</span>
+                <span class="af-cell">0</span><span class="af-cell">0</span><span class="af-cell">0</span><span class="af-cell">0</span>
+              </div>
+              <!-- W · embedding matrix = lookup table: 8×4, king's row 0 highlighted -->
+              <div class="af-node af-matrix" id="af-w" data-role="weight" data-from="0" data-focus="1..2" style="left:36%;top:50%;--cols:4">
+                <span class="af-cell is-rowhi">.485</span><span class="af-cell is-rowhi">.660</span><span class="af-cell is-rowhi">-.573</span><span class="af-cell is-rowhi">-.022</span>
+                <span class="af-cell">.168</span><span class="af-cell">.809</span><span class="af-cell">-.561</span><span class="af-cell">-.046</span>
+                <span class="af-cell">-.144</span><span class="af-cell">.655</span><span class="af-cell">-.262</span><span class="af-cell">-.694</span>
+                <span class="af-cell">-.178</span><span class="af-cell">.637</span><span class="af-cell">-.572</span><span class="af-cell">-.486</span>
+                <span class="af-cell">.537</span><span class="af-cell">.790</span><span class="af-cell">-.289</span><span class="af-cell">.057</span>
+                <span class="af-cell">.493</span><span class="af-cell">.784</span><span class="af-cell">-.174</span><span class="af-cell">-.335</span>
+                <span class="af-cell">.525</span><span class="af-cell">-.581</span><span class="af-cell">-.622</span><span class="af-cell">-.018</span>
+                <span class="af-cell">.036</span><span class="af-cell">-.375</span><span class="af-cell">.824</span><span class="af-cell">.422</span>
+              </div>
+              <!-- hidden = the looked-up row (king): 1×4 -->
+              <div class="af-node af-matrix" id="af-h" data-role="value" data-from="0" data-focus="2..3" style="left:60%;top:50%;--cols:4">
+                <span class="af-cell">.485</span><span class="af-cell">.660</span><span class="af-cell">-.573</span><span class="af-cell">-.022</span>
+              </div>
+              <!-- logits · score per vocab word: 8×1 -->
+              <div class="af-node af-matrix" id="af-z" data-role="score" data-from="0" data-focus="3" style="left:79%;top:50%;--cols:1">
+                <span class="af-cell">1.00</span><span class="af-cell">.938</span><span class="af-cell">.528</span><span class="af-cell">.672</span>
+                <span class="af-cell">.947</span><span class="af-cell">.864</span><span class="af-cell">.228</span><span class="af-cell">-.712</span>
+              </div>
+              <!-- softmax · context distribution (Σ=1): 8×1, prince row 5 highlighted -->
+              <div class="af-node af-matrix" id="af-p" data-role="output" data-from="0" data-focus="4" style="left:94%;top:50%;--cols:1">
+                <span class="af-cell">.174</span><span class="af-cell">.164</span><span class="af-cell">.109</span><span class="af-cell">.125</span>
+                <span class="af-cell is-rowhi">.165</span><span class="af-cell">.152</span><span class="af-cell">.080</span><span class="af-cell">.031</span>
+              </div>
+
+              <div class="af-focus"></div>
+            </div>
+
+            <div class="af-panel">
+              <div class="af-note is-current" data-step="0" data-label="overview">
+                <div class="af-formula">$$P(c\mid w)=\mathrm{softmax}\big(W^{\top}\,(W^{\top}\mathbf{e}_w)\big)$$</div>
+                <p><span lang="ru">Соберём сеть skip-gram по шагам. Vocab из 8 слов, \(d=4\). Жмите <kbd>&rarr;</kbd>.</span><span lang="en">Let&rsquo;s assemble the skip-gram network step by step. 8-word vocab, \(d=4\). Press <kbd>&rarr;</kbd>.</span></p>
+              </div>
+              <div class="af-note" data-step="1" data-label="onehot">
+                <div class="af-note-head"><span lang="ru">Вход: one-hot</span><span lang="en">Input: one-hot</span></div>
+                <div class="af-formula">$$\mathbf{e}_{\texttt{king}}\in\{0,1\}^{8}$$</div>
+                <p><span lang="ru">Центральное слово <code>king</code> — это \(1\) в позиции 0, остальные \(0\). Просто индекс.</span><span lang="en">The centre word <code>king</code> is a \(1\) at position 0, rest \(0\). Just an index.</span></p>
+              </div>
+              <div class="af-note" data-step="2" data-label="lookup">
+                <div class="af-note-head"><span lang="ru">\(W\) = таблица поиска</span><span lang="en">\(W\) = the lookup table</span></div>
+                <div class="af-formula">$$W^{\top}\mathbf{e}_{\texttt{king}} = W_{[\texttt{king}]}$$</div>
+                <p><span lang="ru">Умножить one-hot на \(W\) — значит просто <strong>выбрать строку</strong>. Эта строка \([.485,.660,-.573,-.022]\) <strong>и есть</strong> вектор слова.</span><span lang="en">Multiplying a one-hot by \(W\) just <strong>selects a row</strong>. That row \([.485,.660,-.573,-.022]\) <strong>is</strong> the word&rsquo;s vector.</span></p>
+              </div>
+              <div class="af-note" data-step="3" data-label="logits">
+                <div class="af-note-head"><span lang="ru">Проекция &rarr; logits</span><span lang="en">Projection &rarr; logits</span></div>
+                <div class="af-formula">$$z_j = W_{[j]}\cdot h\quad(j=1\ldots 8)$$</div>
+                <p><span lang="ru">Скалярное произведение скрытого вектора с каждой строкой \(W\) (веса связаны) даёт 8 оценок.</span><span lang="en">The hidden vector dotted with each row of \(W\) (tied weights) gives 8 scores, one per vocab word.</span></p>
+              </div>
+              <div class="af-note" data-step="4" data-label="softmax">
+                <div class="af-note-head">softmax</div>
+                <div class="af-formula">$$p_j=\frac{e^{z_j}}{\sum_k e^{z_k}},\quad \textstyle\sum p_j=1$$</div>
+                <p><span lang="ru">Распределение по контексту: топ — <code>prince</code> (\(.165\)), затем <code>queen</code> (\(.164\)). Сумма \(=1\).</span><span lang="en">A distribution over context: top is <code>prince</code> (\(.165\)), then <code>queen</code> (\(.164\)). They sum to \(1\).</span></p>
+              </div>
+            </div>
+          </div>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">0/4</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">The skip-gram network drawn as a forward pass, the same figure as the book widget. Step zero shows the whole pipeline at rest: the one-hot input, the embedding matrix W, the hidden row, the logits, and the softmax. Step one, the input is a one-hot for the centre word king — a single one at position zero. Step two is the punchline: multiplying that one-hot by W just selects a row, so the embedding matrix literally is the lookup table, and king's row, point four eight five, point six six, minus point five seven three, minus point zero two two, is the word's vector. Step three, the tied output projection dots that hidden vector with every row of W to produce eight logits. Step four, softmax turns them into a context distribution summing to one — prince on top at point one six five, queen just behind at point one six four. Every number comes straight from the L5 skip-gram file.</aside>
+        </section>
+
         <!-- ============================================ BEAT 4 + 5 · turn-analogy + climb-analogy ============================================ -->
         <!-- ============================================ 19 · DIVIDER · analogy ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="17 Divider · Meaning becomes arithmetic">
+        <section class="slide" data-type="divider" data-screen-label="18 Divider · Meaning becomes arithmetic">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 03</span><span lang="en">Part 03</span></div>
             <h1>Meaning Becomes Arithmetic</h1>
@@ -510,7 +596,7 @@
         </section>
 
         <!-- ============================================ 20 · DEMO · cosine vs angle (T4: course's first live demo) ============================================ -->
-        <section class="slide demo-cos-angle" data-type="demo" data-screen-label="18 Cosine vs angle">
+        <section class="slide demo-cos-angle" data-type="demo" data-screen-label="19 Cosine vs angle">
           <div class="slide-header">
             <h2><span lang="ru">Линейка карты: косинус против угла</span><span lang="en">The ruler of the map: cosine vs angle</span></h2>
             <span class="slide-kicker"><span lang="ru">подвигайте угол \(\theta\) · Сэр Косинус, живьём</span><span lang="en">drag the angle \(\theta\) · Sir Cosine, live</span></span>
@@ -534,7 +620,7 @@
         </section>
 
         <!-- ============================================ 21 · TABLE · cosine pairs ============================================ -->
-        <section class="slide" data-type="table" data-screen-label="19 Cosine pairs">
+        <section class="slide" data-type="table" data-screen-label="20 Cosine pairs">
           <div class="slide-header">
             <h2><span lang="ru">Косинус кодирует смысл — реальные числа</span><span lang="en">Cosine encodes meaning — real numbers</span></h2>
             <span class="slide-kicker">GloVe 6B 50-d &middot; <span lang="ru">обученные векторы</span><span lang="en">trained vectors</span></span>
@@ -555,7 +641,7 @@
         </section>
 
         <!-- ============================================ 20 · QUIZ · what cosine measures (check-for-understanding before the analogy climb) ============================================ -->
-        <section class="slide" data-type="quiz" data-screen-label="20 Quick check · cosine">
+        <section class="slide" data-type="quiz" data-screen-label="21 Quick check · cosine">
           <div class="slide-header">
             <h2><span lang="ru">Быстрая проверка: что измеряет косинус?</span><span lang="en">Quick check: what does cosine measure?</span></h2>
             <span class="slide-kicker"><span lang="ru">перед арифметикой смысла</span><span lang="en">before the arithmetic of meaning</span></span>
@@ -577,7 +663,7 @@
         </section>
 
         <!-- ============================================ 21 · E2E · king - man + woman ============================================ -->
-        <section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="21 King analogy">
+        <section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="22 King analogy">
           <div class="slide-header">
             <h2><span lang="ru">Аналогия как вычитание векторов</span><span lang="en">The analogy as vector subtraction</span></h2>
             <span class="slide-kicker">E2E &middot; \(\text{king} - \text{man} + \text{woman}\)</span>
@@ -615,7 +701,7 @@
         </section>
 
         <!-- ============================================ 23 · WALKTHROUGH · the nearest-neighbour ranking ============================================ -->
-        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="22 Analogy ranking">
+        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="23 Analogy ranking">
           <div class="slide-header">
             <h2><span lang="ru">Рейтинг кандидатов на queen</span><span lang="en">The ranking behind &ldquo;queen&rdquo;</span></h2>
             <span class="slide-kicker"><span lang="ru">cos к \(v_{\text{king}}-v_{\text{man}}+v_{\text{woman}}\)</span><span lang="en">cos to \(v_{\text{king}}-v_{\text{man}}+v_{\text{woman}}\)</span></span>
@@ -651,7 +737,7 @@
         </section>
 
         <!-- ============================================ 24 · TABLE · capital analogy ============================================ -->
-        <section class="slide" data-type="table" data-screen-label="23 Capital analogy">
+        <section class="slide" data-type="table" data-screen-label="24 Capital analogy">
           <div class="slide-header">
             <h2><span lang="ru">Другое направление: столицы</span><span lang="en">A different direction: capitals</span></h2>
             <span class="slide-kicker">\(\text{paris} - \text{france} + \text{italy} \approx \text{rome}\)</span>
@@ -670,7 +756,7 @@
         </section>
 
         <!-- ============================================ 25 · MISCONCEPTION · analogies aren't magic ============================================ -->
-        <section class="slide" data-type="misconception" data-screen-label="24 Analogy caveat">
+        <section class="slide" data-type="misconception" data-screen-label="25 Analogy caveat">
           <div class="slide-header">
             <h2><span lang="ru">Частое заблуждение</span><span lang="en">Common misconception</span></h2>
             <span class="slide-kicker"><span lang="ru">развенчиваем миф</span><span lang="en">bust the myth</span></span>
@@ -687,7 +773,7 @@
         </section>
 
         <!-- ============================================ 26 · MISCONCEPTION · when the analogy FAILS (corner case 17) ============================================ -->
-        <section class="slide" data-type="misconception" data-screen-label="25 When the analogy fails">
+        <section class="slide" data-type="misconception" data-screen-label="26 When the analogy fails">
           <div class="slide-header">
             <h2><span lang="ru">Где king&minus;man+woman промахивается</span><span lang="en">Where king&minus;man+woman misses</span></h2>
             <span class="slide-kicker"><span lang="ru">честная карта провалов</span><span lang="en">an honest map of failures</span></span>
@@ -710,7 +796,7 @@
         </section>
 
         <!-- ============================================ 27 · DEFINITION · bias in embeddings (PLAN item 4 · ethics hook) ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="26 Bias in embeddings">
+        <section class="slide" data-type="definition" data-screen-label="27 Bias in embeddings">
           <div class="slide-header">
             <h2><span lang="ru">Та же геометрия кодирует <em>социальную</em> предвзятость</span><span lang="en">The same geometry encodes <em>social</em> bias</span></h2>
             <span class="slide-kicker"><span lang="ru">вред &middot; и направление дебиасинга</span><span lang="en">the harm &middot; and a debiasing direction</span></span>
@@ -728,7 +814,7 @@
 
         <!-- ============================================ BEAT 6 · turn-glove ============================================ -->
         <!-- ============================================ 28 · DIVIDER · GloVe ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="27 Divider · GloVe">
+        <section class="slide" data-type="divider" data-screen-label="28 Divider · GloVe">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 04</span><span lang="en">Part 04</span></div>
             <h1>GloVe &amp; the Curse of 300-D</h1>
@@ -741,7 +827,7 @@
         </section>
 
         <!-- ============================================ 27 · FORMULA · GloVe co-occurrence ============================================ -->
-        <section class="slide" data-type="formula" data-screen-label="28 GloVe co-occurrence">
+        <section class="slide" data-type="formula" data-screen-label="29 GloVe co-occurrence">
           <div class="slide-header slide-header--flush">
             <h2>GloVe: <span lang="ru">факторизация совместной встречаемости</span><span lang="en">factor the co-occurrence matrix</span></h2>
             <span class="slide-kicker"><span lang="ru">глобальная статистика · Pennington 2014</span><span lang="en">global statistics · Pennington 2014</span></span>
@@ -759,7 +845,7 @@
         </section>
 
         <!-- ============================================ 28 · TABLE · count vs predict ============================================ -->
-        <section class="slide" data-type="table" data-screen-label="29 Count vs predict">
+        <section class="slide" data-type="table" data-screen-label="30 Count vs predict">
           <div class="slide-header">
             <h2><span lang="ru">Счёт против предсказания</span><span lang="en">Count vs predict</span></h2>
             <span class="slide-kicker"><span lang="ru">две школы, одна геометрия</span><span lang="en">two schools, one geometry</span></span>
@@ -779,7 +865,7 @@
 
         <!-- ============================================ BEAT 7 · stakes-too-many-dims ============================================ -->
         <!-- ============================================ 29 · FORMULA · 300 numbers per word ============================================ -->
-        <section class="slide" data-type="formula" data-screen-label="30 300 dimensions">
+        <section class="slide" data-type="formula" data-screen-label="31 300 dimensions">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">300 чисел на слово — это нельзя увидеть</span><span lang="en">300 numbers per word — you can't see it</span></h2>
             <span class="slide-kicker"><span lang="ru">люди видят 2&ndash;3 измерения</span><span lang="en">humans see 2&ndash;3 dimensions</span></span>
@@ -800,7 +886,7 @@
 
         <!-- ============================================ BEAT 8 · turn-dimred (Cartographer) ============================================ -->
         <!-- ============================================ 30 · DIVIDER · Cartographer ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="31 Divider · The Cartographer">
+        <section class="slide" data-type="divider" data-screen-label="32 Divider · The Cartographer">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 05</span><span lang="en">Part 05</span></div>
             <h1>Enter the Cartographer</h1>
@@ -814,7 +900,7 @@
 
         <!-- ============================================ BEAT 9 · climb-pca ============================================ -->
         <!-- ============================================ 31 · DEFINITION · PCA idea ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="32 PCA idea">
+        <section class="slide" data-type="definition" data-screen-label="33 PCA idea">
           <div class="slide-header">
             <h2><span lang="ru">PCA: складка вдоль наибольшего разброса</span><span lang="en">PCA: fold along greatest spread</span></h2>
             <span class="slide-kicker"><span lang="ru">линейно · сохраняет дисперсию</span><span lang="en">linear · preserves variance</span></span>
@@ -831,7 +917,7 @@
         </section>
 
         <!-- ============================================ 32 · DERIVATION · PCA causal chain (T1: covariance → eigen → project → variance) ============================================ -->
-        <section class="slide" data-type="derivation" data-screen-label="33 PCA math">
+        <section class="slide" data-type="derivation" data-screen-label="34 PCA math">
           <div class="slide-header">
             <h2><span lang="ru">PCA: ковариация &rarr; собственные векторы &rarr; проекция</span><span lang="en">PCA: covariance &rarr; eigenvectors &rarr; projection</span></h2>
             <span class="slide-kicker"><span lang="ru">каждый объект строится из предыдущего</span><span lang="en">each object is built from the previous one</span></span>
@@ -871,7 +957,7 @@
         </section>
 
         <!-- ============================================ 33 · WALKTHROUGH · PCA on our words ============================================ -->
-        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="34 PCA variance">
+        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="35 PCA variance">
           <div class="slide-header">
             <h2><span lang="ru">PCA на 44 словах: сколько дисперсии остаётся?</span><span lang="en">PCA on 44 words: how much variance survives?</span></h2>
             <span class="slide-kicker"><span lang="ru">GloVe-50 &rarr; 2-D · реальные числа</span><span lang="en">GloVe-50 &rarr; 2-D · real numbers</span></span>
@@ -906,8 +992,58 @@
           <aside class="slide-notes">The exact PCA climb on our own data. We have forty-four words living in fifty dimensions, in seven semantic groups. The first principal component — the single direction of greatest spread — captures nineteen point six percent of the total variance. The second component, orthogonal to it, adds another eighteen point one percent. So a flat two-dimensional PCA picture retains thirty-seven point seven percent of the shape, the sum of those two, straight from the L5 dimred file. That is a lot for two axes out of fifty, but notice the flip side: nearly sixty-two percent of the structure is folded away. That residual is exactly why we will want a non-linear method next.</aside>
         </section>
 
+        <!-- ============================================ 36 · VIZ · PCA as rotation (ported from widgets/pca-rotate) ============================================ -->
+        <section class="slide pcr-slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="36 PCA as rotation">
+          <style>
+            /* scoped to this slide: data-arch-step groups SWAP (only current shown) so the cloud
+               visibly turns and flattens; engine toggles is-arch-current/past/future per step. */
+            .pcr-slide svg [data-arch-step] { display: none; }
+            .pcr-slide svg [data-arch-step].is-arch-current { display: block; }
+            .pcr-slide .pcr-dot { fill: var(--accent); fill-opacity: 0.82; }
+            .pcr-slide .pcr-flatdot { fill: var(--c-violet); fill-opacity: 0.82; }
+            .pcr-slide .pcr-cap[data-arch-step] { display: none; }
+            .pcr-slide .pcr-cap[data-arch-step].is-arch-current { display: block; }
+          </style>
+          <div class="slide-header">
+            <h2><span lang="ru">PCA — это поворот, а не искажение</span><span lang="en">PCA is a rotation, not a distortion</span></h2>
+            <span class="slide-kicker"><span lang="ru">3-D облако &rarr; собственные оси &rarr; поворот &rarr; 2-D</span><span lang="en">3-D cloud &rarr; eigen-axes &rarr; rotate &rarr; 2-D</span></span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1160 540" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="A correlated 3-D point cloud is rotated rigidly until its principal axes align with the screen, then flattened to 2-D, keeping 97.21% of the spread">
+              <defs>
+                <marker id="pcrah0" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker>
+                <marker id="pcrah1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c-violet)"/></marker>
+                <marker id="pcrah2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink-3)"/></marker>
+              </defs>
+              <g font-family="var(--font-sans)">
+                <rect x="120" y="40" width="920" height="470" rx="8" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
+                <!-- five rotation frames; only the current is shown (scoped style above) -->
+                <g data-arch-step="0"><circle cx="635.7" cy="407.1" r="6" class="pcr-dot"/><circle cx="695.2" cy="303.7" r="6" class="pcr-dot"/><circle cx="606.7" cy="377.9" r="6" class="pcr-dot"/><circle cx="548.3" cy="425.7" r="6" class="pcr-dot"/><circle cx="614.7" cy="219.5" r="6" class="pcr-dot"/><circle cx="520.1" cy="416.6" r="6" class="pcr-dot"/><circle cx="648.0" cy="258.3" r="6" class="pcr-dot"/><circle cx="819.9" cy="85.5" r="6" class="pcr-dot"/><circle cx="604.4" cy="380.7" r="6" class="pcr-dot"/><circle cx="584.5" cy="338.9" r="6" class="pcr-dot"/><circle cx="709.1" cy="220.4" r="6" class="pcr-dot"/><circle cx="731.5" cy="275.9" r="6" class="pcr-dot"/><circle cx="662.5" cy="383.5" r="6" class="pcr-dot"/><circle cx="535.5" cy="332.0" r="6" class="pcr-dot"/><circle cx="645.1" cy="134.6" r="6" class="pcr-dot"/><circle cx="718.4" cy="353.6" r="6" class="pcr-dot"/><circle cx="493.2" cy="293.9" r="6" class="pcr-dot"/><circle cx="601.5" cy="300.3" r="6" class="pcr-dot"/><circle cx="404.4" cy="464.5" r="6" class="pcr-dot"/><circle cx="483.7" cy="158.7" r="6" class="pcr-dot"/><circle cx="429.1" cy="338.1" r="6" class="pcr-dot"/><circle cx="616.1" cy="401.8" r="6" class="pcr-dot"/><circle cx="484.9" cy="347.9" r="6" class="pcr-dot"/><circle cx="697.1" cy="206.0" r="6" class="pcr-dot"/><circle cx="675.7" cy="283.3" r="6" class="pcr-dot"/><circle cx="653.8" cy="243.6" r="6" class="pcr-dot"/><circle cx="326.6" cy="451.2" r="6" class="pcr-dot"/><circle cx="597.7" cy="258.2" r="6" class="pcr-dot"/><circle cx="644.7" cy="130.2" r="6" class="pcr-dot"/><circle cx="652.1" cy="316.0" r="6" class="pcr-dot"/></g>
+                <g data-arch-step="1"><circle cx="635.7" cy="407.1" r="6" class="pcr-dot"/><circle cx="695.2" cy="303.7" r="6" class="pcr-dot"/><circle cx="606.7" cy="377.9" r="6" class="pcr-dot"/><circle cx="548.3" cy="425.7" r="6" class="pcr-dot"/><circle cx="614.7" cy="219.5" r="6" class="pcr-dot"/><circle cx="520.1" cy="416.6" r="6" class="pcr-dot"/><circle cx="648.0" cy="258.3" r="6" class="pcr-dot"/><circle cx="819.9" cy="85.5" r="6" class="pcr-dot"/><circle cx="604.4" cy="380.7" r="6" class="pcr-dot"/><circle cx="584.5" cy="338.9" r="6" class="pcr-dot"/><circle cx="709.1" cy="220.4" r="6" class="pcr-dot"/><circle cx="731.5" cy="275.9" r="6" class="pcr-dot"/><circle cx="662.5" cy="383.5" r="6" class="pcr-dot"/><circle cx="535.5" cy="332.0" r="6" class="pcr-dot"/><circle cx="645.1" cy="134.6" r="6" class="pcr-dot"/><circle cx="718.4" cy="353.6" r="6" class="pcr-dot"/><circle cx="493.2" cy="293.9" r="6" class="pcr-dot"/><circle cx="601.5" cy="300.3" r="6" class="pcr-dot"/><circle cx="404.4" cy="464.5" r="6" class="pcr-dot"/><circle cx="483.7" cy="158.7" r="6" class="pcr-dot"/><circle cx="429.1" cy="338.1" r="6" class="pcr-dot"/><circle cx="616.1" cy="401.8" r="6" class="pcr-dot"/><circle cx="484.9" cy="347.9" r="6" class="pcr-dot"/><circle cx="697.1" cy="206.0" r="6" class="pcr-dot"/><circle cx="675.7" cy="283.3" r="6" class="pcr-dot"/><circle cx="653.8" cy="243.6" r="6" class="pcr-dot"/><circle cx="326.6" cy="451.2" r="6" class="pcr-dot"/><circle cx="597.7" cy="258.2" r="6" class="pcr-dot"/><circle cx="644.7" cy="130.2" r="6" class="pcr-dot"/><circle cx="652.1" cy="316.0" r="6" class="pcr-dot"/><line x1="601.4" y1="303.6" x2="478.0" y2="393.3" stroke="var(--accent)" stroke-width="3.4" marker-end="url(#pcrah0)"/><text x="470.0" y="387.3" font-size="24" fill="var(--accent)" font-weight="600" text-anchor="end">PC1</text><line x1="601.4" y1="303.6" x2="481.0" y2="181.3" stroke="var(--c-violet)" stroke-width="3.4" marker-end="url(#pcrah1)"/><text x="473.0" y="175.3" font-size="24" fill="var(--c-violet)" font-weight="600" text-anchor="end">PC2</text><line x1="601.4" y1="303.6" x2="662.1" y2="321.1" stroke="var(--ink-3)" stroke-width="2.2" marker-end="url(#pcrah2)"/><text x="670.1" y="315.1" font-size="24" fill="var(--ink-3)" font-weight="600" text-anchor="start">PC3</text></g>
+                <g data-arch-step="2"><circle cx="648.4" cy="410.8" r="6" class="pcr-dot"/><circle cx="542.5" cy="320.0" r="6" class="pcr-dot"/><circle cx="649.8" cy="375.2" r="6" class="pcr-dot"/><circle cx="773.8" cy="368.4" r="6" class="pcr-dot"/><circle cx="541.0" cy="220.7" r="6" class="pcr-dot"/><circle cx="756.6" cy="377.1" r="6" class="pcr-dot"/><circle cx="499.4" cy="300.7" r="6" class="pcr-dot"/><circle cx="224.1" cy="202.8" r="6" class="pcr-dot"/><circle cx="699.8" cy="341.1" r="6" class="pcr-dot"/><circle cx="665.1" cy="311.9" r="6" class="pcr-dot"/><circle cx="430.9" cy="278.1" r="6" class="pcr-dot"/><circle cx="541.3" cy="267.9" r="6" class="pcr-dot"/><circle cx="630.4" cy="381.1" r="6" class="pcr-dot"/><circle cx="675.0" cy="309.4" r="6" class="pcr-dot"/><circle cx="392.5" cy="199.9" r="6" class="pcr-dot"/><circle cx="527.8" cy="398.9" r="6" class="pcr-dot"/><circle cx="684.4" cy="258.5" r="6" class="pcr-dot"/><circle cx="608.2" cy="293.3" r="6" class="pcr-dot"/><circle cx="884.4" cy="385.6" r="6" class="pcr-dot"/><circle cx="526.2" cy="182.8" r="6" class="pcr-dot"/><circle cx="771.3" cy="277.0" r="6" class="pcr-dot"/><circle cx="675.2" cy="388.2" r="6" class="pcr-dot"/><circle cx="711.8" cy="320.4" r="6" class="pcr-dot"/><circle cx="452.9" cy="243.1" r="6" class="pcr-dot"/><circle cx="532.8" cy="303.2" r="6" class="pcr-dot"/><circle cx="547.2" cy="239.5" r="6" class="pcr-dot"/><circle cx="925.6" cy="358.2" r="6" class="pcr-dot"/><circle cx="580.2" cy="253.3" r="6" class="pcr-dot"/><circle cx="392.2" cy="193.8" r="6" class="pcr-dot"/><circle cx="549.7" cy="346.5" r="6" class="pcr-dot"/><line x1="601.4" y1="303.6" x2="662.8" y2="334.1" stroke="var(--accent)" stroke-width="3.4" marker-end="url(#pcrah0)"/><text x="670.8" y="328.1" font-size="24" fill="var(--accent)" font-weight="600" text-anchor="start">PC1</text><line x1="601.4" y1="303.6" x2="560.4" y2="166.9" stroke="var(--c-violet)" stroke-width="3.4" marker-end="url(#pcrah1)"/><text x="552.4" y="160.9" font-size="24" fill="var(--c-violet)" font-weight="600" text-anchor="end">PC2</text><line x1="601.4" y1="303.6" x2="559.9" y2="276.5" stroke="var(--ink-3)" stroke-width="2.2" marker-end="url(#pcrah2)"/><text x="551.9" y="270.5" font-size="24" fill="var(--ink-3)" font-weight="600" text-anchor="end">PC3</text></g>
+                <g data-arch-step="3"><circle cx="659.7" cy="407.2" r="6" class="pcr-dot"/><circle cx="525.5" cy="349.1" r="6" class="pcr-dot"/><circle cx="658.3" cy="366.5" r="6" class="pcr-dot"/><circle cx="734.3" cy="333.9" r="6" class="pcr-dot"/><circle cx="519.8" cy="236.5" r="6" class="pcr-dot"/><circle cx="755.3" cy="335.6" r="6" class="pcr-dot"/><circle cx="534.5" cy="322.3" r="6" class="pcr-dot"/><circle cx="262.0" cy="302.8" r="6" class="pcr-dot"/><circle cx="653.2" cy="330.5" r="6" class="pcr-dot"/><circle cx="638.4" cy="301.2" r="6" class="pcr-dot"/><circle cx="454.4" cy="324.1" r="6" class="pcr-dot"/><circle cx="465.0" cy="311.5" r="6" class="pcr-dot"/><circle cx="615.5" cy="388.7" r="6" class="pcr-dot"/><circle cx="675.6" cy="284.8" r="6" class="pcr-dot"/><circle cx="439.1" cy="238.3" r="6" class="pcr-dot"/><circle cx="555.0" cy="428.9" r="6" class="pcr-dot"/><circle cx="676.5" cy="225.9" r="6" class="pcr-dot"/><circle cx="596.7" cy="293.7" r="6" class="pcr-dot"/><circle cx="884.2" cy="301.1" r="6" class="pcr-dot"/><circle cx="586.6" cy="167.4" r="6" class="pcr-dot"/><circle cx="761.7" cy="217.9" r="6" class="pcr-dot"/><circle cx="667.6" cy="378.8" r="6" class="pcr-dot"/><circle cx="730.9" cy="277.9" r="6" class="pcr-dot"/><circle cx="447.3" cy="286.9" r="6" class="pcr-dot"/><circle cx="526.0" cy="329.3" r="6" class="pcr-dot"/><circle cx="505.3" cy="263.8" r="6" class="pcr-dot"/><circle cx="935.9" cy="251.3" r="6" class="pcr-dot"/><circle cx="565.1" cy="258.4" r="6" class="pcr-dot"/><circle cx="435.3" cy="232.6" r="6" class="pcr-dot"/><circle cx="576.2" cy="361.1" r="6" class="pcr-dot"/><line x1="601.4" y1="303.6" x2="758.0" y2="303.6" stroke="var(--accent)" stroke-width="3.4" marker-end="url(#pcrah0)"/><text x="766.0" y="297.6" font-size="24" fill="var(--accent)" font-weight="600" text-anchor="start">PC1</text><line x1="601.4" y1="303.6" x2="601.4" y2="159.4" stroke="var(--c-violet)" stroke-width="3.4" marker-end="url(#pcrah1)"/><text x="609.4" y="153.4" font-size="24" fill="var(--c-violet)" font-weight="600" text-anchor="start">PC2</text><line x1="601.4" y1="303.6" x2="507.3" y2="253.4" stroke="var(--ink-3)" stroke-width="2.2" marker-end="url(#pcrah2)"/><text x="499.3" y="247.4" font-size="24" fill="var(--ink-3)" font-weight="600" text-anchor="end">PC3</text><text x="698.5" y="303.6" font-size="23" fill="var(--accent)" font-weight="600">PC1: 79.79%</text><text x="601.4" y="214.2" font-size="23" fill="var(--c-violet)" font-weight="600">PC2: 17.42%</text><text x="543.1" y="272.5" font-size="23" fill="var(--ink-3)" font-weight="600">PC3: 2.79%</text></g>
+                <g data-arch-step="4"><line x1="130" y1="275.0" x2="1030" y2="275.0" stroke="var(--ink-3)" stroke-width="1.6"/><line x1="580.0" y1="50" x2="580.0" y2="500" stroke="var(--ink-3)" stroke-width="1.6"/><text x="1032" y="267.0" font-size="24" fill="var(--accent)" font-weight="600" text-anchor="end">PC1</text><text x="588.0" y="66" font-size="24" fill="var(--c-violet)" font-weight="600">PC2</text><circle cx="641.8" cy="410.0" r="6" class="pcr-flatdot"/><circle cx="519.1" cy="355.2" r="6" class="pcr-flatdot"/><circle cx="645.3" cy="363.9" r="6" class="pcr-flatdot"/><circle cx="757.0" cy="340.8" r="6" class="pcr-flatdot"/><circle cx="524.7" cy="226.6" r="6" class="pcr-flatdot"/><circle cx="757.4" cy="329.6" r="6" class="pcr-flatdot"/><circle cx="501.0" cy="306.5" r="6" class="pcr-flatdot"/><circle cx="209.0" cy="288.6" r="6" class="pcr-flatdot"/><circle cx="674.5" cy="340.9" r="6" class="pcr-flatdot"/><circle cx="649.6" cy="300.8" r="6" class="pcr-flatdot"/><circle cx="421.7" cy="314.1" r="6" class="pcr-flatdot"/><circle cx="491.7" cy="332.7" r="6" class="pcr-flatdot"/><circle cx="611.1" cy="398.3" r="6" class="pcr-flatdot"/><circle cx="675.0" cy="271.9" r="6" class="pcr-flatdot"/><circle cx="399.0" cy="207.6" r="6" class="pcr-flatdot"/><circle cx="518.7" cy="431.9" r="6" class="pcr-flatdot"/><circle cx="685.8" cy="206.7" r="6" class="pcr-flatdot"/><circle cx="596.8" cy="287.8" r="6" class="pcr-flatdot"/><circle cx="897.6" cy="286.8" r="6" class="pcr-flatdot"/><circle cx="554.7" cy="118.1" r="6" class="pcr-flatdot"/><circle cx="778.6" cy="196.4" r="6" class="pcr-flatdot"/><circle cx="663.5" cy="383.3" r="6" class="pcr-flatdot"/><circle cx="724.1" cy="256.7" r="6" class="pcr-flatdot"/><circle cx="433.9" cy="281.1" r="6" class="pcr-flatdot"/><circle cx="515.5" cy="328.8" r="6" class="pcr-flatdot"/><circle cx="518.8" cy="265.4" r="6" class="pcr-flatdot"/><circle cx="951.0" cy="224.7" r="6" class="pcr-flatdot"/><circle cx="567.9" cy="248.9" r="6" class="pcr-flatdot"/><circle cx="397.4" cy="202.3" r="6" class="pcr-flatdot"/><circle cx="547.4" cy="353.3" r="6" class="pcr-flatdot"/></g>
+                <!-- step badge top-right -->
+                <text data-arch-step="0" x="1100" y="60" font-size="26" fill="var(--ink-3)" text-anchor="end" font-weight="600">3-D</text>
+                <text data-arch-step="1" x="1100" y="60" font-size="26" fill="var(--ink-3)" text-anchor="end" font-weight="600">PC1·PC2·PC3</text>
+                <text data-arch-step="2" x="1100" y="60" font-size="26" fill="var(--c-amber)" text-anchor="end" font-weight="600">rotating…</text>
+                <text data-arch-step="3" x="1100" y="60" font-size="26" fill="var(--accent)" text-anchor="end" font-weight="600">aligned</text>
+                <text data-arch-step="4" x="1100" y="60" font-size="26" fill="var(--c-violet)" text-anchor="end" font-weight="700">97.21% kept</text>
+              </g>
+            </svg>
+          </div>
+          <p class="viz-caption">
+            <span class="pcr-cap" data-arch-step="0"><span lang="ru">Коррелированное 3-D облако: оси экрана \(x,y,z\) не совпадают с направлениями разброса.</span><span lang="en">A correlated 3-D cloud: the screen axes \(x,y,z\) do not line up with the directions of spread.</span></span>
+            <span class="pcr-cap" data-arch-step="1"><span lang="ru">Собственные векторы ковариации дают три оси: PC1 (главный разброс), PC2, PC3.</span><span lang="en">The covariance eigenvectors give three axes: PC1 (top spread), PC2, PC3.</span></span>
+            <span class="pcr-cap" data-arch-step="2"><span lang="ru">Жёсткий поворот: облако и его оси поворачиваются вместе — ничего не искажается, только разворот.</span><span lang="en">A rigid rotation: cloud and axes turn together — nothing is distorted, it is just a turn.</span></span>
+            <span class="pcr-cap" data-arch-step="3"><span lang="ru">Оси совмещены с экраном. Дисперсия по осям: PC1 \(79.79\%\), PC2 \(17.42\%\), PC3 — тонкая, \(2.79\%\).</span><span lang="en">Axes aligned with the screen. Variance per axis: PC1 \(79.79\%\), PC2 \(17.42\%\), PC3 thin at \(2.79\%\).</span></span>
+            <span class="pcr-cap" data-arch-step="4"><span lang="ru">Отбрасываем тонкую PC3 &rarr; 2-D. PC1+PC2 сохраняют \(\mathbf{97.21\%}\) разброса (это 3-D демо, не 50-D слова \(\to 37.7\%\)).</span><span lang="en">Drop the thin PC3 &rarr; 2-D. PC1+PC2 keep \(\mathbf{97.21\%}\) of the spread (this is the 3-D demo, not the 50-D words at \(37.7\%\)).</span></span>
+          </p>
+          <aside class="slide-notes">This is the geometry of PCA made visible, ported from the book's rotation widget. Step zero: a correlated three-D cloud, where the screen axes do not align with how the data actually spreads. Step one: we draw the three covariance eigenvectors — PC1 along the greatest spread, PC2 next, PC3 the thinnest. Step two: a rigid rotation begins — the whole cloud and its axes turn together, nothing is stretched or sheared, it is purely a turn. Step three: fully aligned, with the principal axes now lying on the screen axes, and the per-axis variance labelled — seventy-nine point seven nine, seventeen point four two, and a thin two point seven nine percent on PC3. Step four: we drop that thin third axis and land in two dimensions, keeping ninety-seven point two one percent of the spread. Keep this distinct from the thirty-seven point seven percent on the earlier slide — that was the fifty-dimensional GloVe words; this is the three-D demo cloud where two axes capture almost everything.</aside>
+        </section>
+
         <!-- ============================================ 34 · VIZ · scree / explained variance ============================================ -->
-        <section class="slide" data-type="viz" data-screen-label="35 Scree plot">
+        <section class="slide" data-type="viz" data-screen-label="37 Scree plot">
           <div class="slide-header">
             <h2><span lang="ru">Доля дисперсии по компонентам</span><span lang="en">Explained variance per component</span></h2>
             <span class="slide-kicker"><span lang="ru">scree-график · быстрый спад</span><span lang="en">scree plot · the fast decay</span></span>
@@ -949,7 +1085,7 @@
 
         <!-- ============================================ BEAT 10 · turn-manifold ============================================ -->
         <!-- ============================================ 35 · DIVIDER · manifold ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="36 Divider · the curved map">
+        <section class="slide" data-type="divider" data-screen-label="38 Divider · the curved map">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 06</span><span lang="en">Part 06</span></div>
             <h1>When the Map Curves</h1>
@@ -963,7 +1099,7 @@
 
         <!-- ============================================ BEAT 11 · climb-tsne ============================================ -->
         <!-- ============================================ 36 · DEFINITION · t-SNE idea ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="37 t-SNE idea">
+        <section class="slide" data-type="definition" data-screen-label="39 t-SNE idea">
           <div class="slide-header">
             <h2>t-SNE: <span lang="ru">сохранить соседей</span><span lang="en">preserve neighbours</span></h2>
             <span class="slide-kicker"><span lang="ru">вероятности соседства · van der Maaten 2008</span><span lang="en">neighbour probabilities · van der Maaten 2008</span></span>
@@ -980,7 +1116,7 @@
         </section>
 
         <!-- ============================================ 37 · VIZ · the 2-D word map (t-SNE scatter) ============================================ -->
-        <section class="slide" data-type="viz" data-screen-label="38 The 2-D word map">
+        <section class="slide" data-type="viz" data-screen-label="40 The 2-D word map">
           <div class="slide-header">
             <h2><span lang="ru">Карта смысла, нарисованная: 7 кластеров</span><span lang="en">The Map of Meaning, drawn: 7 clusters</span></h2>
             <span class="slide-kicker"><span lang="ru">t-SNE · 44 слова · perplexity \(=14\)</span><span lang="en">t-SNE · 44 words · perplexity \(=14\)</span></span>
@@ -1064,7 +1200,7 @@
         </section>
 
         <!-- ============================================ 38 · TWO-COL · UMAP ============================================ -->
-        <section class="slide" data-type="two-col" data-screen-label="39 UMAP">
+        <section class="slide" data-type="two-col" data-screen-label="41 UMAP">
           <div class="slide-header">
             <h2>UMAP: <span lang="ru">быстрее и с сохранением структуры</span><span lang="en">faster, more global structure</span></h2>
             <span class="slide-kicker"><span lang="ru">McInnes 2018 · соседний метод</span><span lang="en">McInnes 2018 · the sibling method</span></span>
@@ -1094,7 +1230,7 @@
 
         <!-- ============================================ BEAT 12 · catch-tsne-lies ============================================ -->
         <!-- ============================================ 39 · DIVIDER · t-SNE mirage ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="40 Divider · the t-SNE mirage">
+        <section class="slide" data-type="divider" data-screen-label="42 Divider · the t-SNE mirage">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 07</span><span lang="en">Part 07</span></div>
             <h1>Don't Over-read the Map</h1>
@@ -1107,7 +1243,7 @@
         </section>
 
         <!-- ============================================ 40 · MISCONCEPTION · t-SNE lies ============================================ -->
-        <section class="slide" data-type="misconception" data-screen-label="41 t-SNE lies">
+        <section class="slide" data-type="misconception" data-screen-label="43 t-SNE lies">
           <div class="slide-header">
             <h2><span lang="ru">Частое заблуждение</span><span lang="en">Common misconception</span></h2>
             <span class="slide-kicker"><span lang="ru">развенчиваем миф</span><span lang="en">bust the myth</span></span>
@@ -1125,7 +1261,7 @@
 
         <!-- ============================================ BEAT 13 · catch-gremlin-cornered ============================================ -->
         <!-- ============================================ 41 · MISCONCEPTION · gremlin cornered ============================================ -->
-        <section class="slide" data-type="misconception" data-screen-label="42 Gremlin cornered">
+        <section class="slide" data-type="misconception" data-screen-label="44 Gremlin cornered">
           <div class="slide-header">
             <h2><span lang="ru">Гремлин загнан в угол — но не пойман</span><span lang="en">The Gremlin cornered — but not caged</span></h2>
             <span class="slide-kicker"><span lang="ru">обратный вызов из L3 · мост к L6</span><span lang="en">callback to L3 · bridge to L6</span></span>
@@ -1143,7 +1279,7 @@
 
         <!-- ============================================ BEAT 13b · cross-domain transfer (PLAN §D · the headline cross-domain ask) ============================================ -->
         <!-- ============================================ 42 · DIVIDER · the same trick everywhere ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="43 Divider · the same trick everywhere">
+        <section class="slide" data-type="divider" data-screen-label="45 Divider · the same trick everywhere">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Интерлюдия</span><span lang="en">Interlude</span></div>
             <h1>The Same Trick Everywhere</h1>
@@ -1153,7 +1289,7 @@
         </section>
 
         <!-- ============================================ 43 · TABLE · cross-domain transfer table ============================================ -->
-        <section class="slide" data-type="table" data-screen-label="44 Embeddings everywhere">
+        <section class="slide" data-type="table" data-screen-label="46 Embeddings everywhere">
           <div class="slide-header">
             <h2><span lang="ru">Один объектив, много областей</span><span lang="en">One trick, many fields</span></h2>
             <span class="slide-kicker"><span lang="ru">последовательность &rarr; токен &rarr; та же карта</span><span lang="en">a sequence &rarr; a token &rarr; the same map</span></span>
@@ -1196,9 +1332,91 @@
           <aside class="slide-notes">The cross-domain table — the headline of this lecture's second half. Row one, graphs: node2vec and DeepWalk run random walks over a network, treat each walk as a sentence and each visited node as a word, and feed that straight into skip-gram; the result is a node embedding where neighbours in the graph land near each other. Row two, recommendations: item2vec and prod2vec treat a shopping session or basket as the sentence and each product as the token, so "customers who bought this also bought that" becomes cosine nearness. Row three, proteins: language models like ESM and ProtBERT read an amino-acid chain as the sentence and each residue as the token, and the embedding lets you search for functionally similar proteins by vector, increasingly replacing alignment tools like BLAST. Row four, biosignals: an EEG trace or a DNA sequence is cut into time-windows or k-mers as tokens — DNABERT does exactly this for genomics — and the positional grid we will meet in Lecture 6 is already a time axis. One recipe, many fields: any sequence whose adjacency carries meaning yields a searchable map.</aside>
         </section>
 
+        <!-- ============================================ 47 · VIZ · cross-domain embeddings (ported from widgets/embedding-domains) ============================================ -->
+        <section class="slide ed-slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="47 One shared space, four domains">
+          <style>
+            /* cumulative reveal driven by data-step (engine fades step > current via .is-step-hidden) */
+            .ed-slide .ed-frame { fill: none; stroke: var(--rule); stroke-width: 1.5; }
+            .ed-slide .ed-frame.ed-strong { stroke: var(--accent); stroke-width: 2.5; }
+            .ed-slide .ed-axis { stroke: var(--ink-3); stroke-width: 1.4; stroke-dasharray: 4 5; }
+            .ed-slide .ed-dot { stroke: var(--bg-card); stroke-width: 1.5; }
+          </style>
+          <div class="slide-header">
+            <h2><span lang="ru">Один и тот же рецепт: вещь &rarr; токены &rarr; вектор</span><span lang="en">The same recipe: thing &rarr; tokens &rarr; vector</span></h2>
+            <span class="slide-kicker"><span lang="ru">текст · картинка · звук · белок &rarr; одно пространство</span><span lang="en">text · image · audio · protein &rarr; one shared space</span></span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1160 540" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="Four modalities — text, image, audio, protein — each cut into tokens, embedded, and landing as a colour-coded cluster in one shared 2-D space">
+              <g font-family="var(--font-sans)">
+                <!-- the shared plane -->
+                <rect data-step="0" class="ed-frame" x="120" y="40" width="560" height="470" rx="8"/>
+                <!-- centre cross-hairs (the shared axes), from step 2 -->
+                <g data-step="2">
+                  <line class="ed-axis" x1="120" y1="268" x2="680" y2="268"/>
+                  <line class="ed-axis" x1="390.6" y1="40" x2="390.6" y2="510"/>
+                </g>
+                <text data-step="2" x="400" y="30" font-size="22" fill="var(--ink-3)" text-anchor="middle">one shared embedding space</text>
+
+                <!-- TEXT (top-left, accent) -->
+                <text data-step="0" x="700" y="80" font-size="26" fill="var(--accent)" font-weight="600">text</text>
+                <text data-step="0" x="700" y="108" font-size="20" fill="var(--ink-2)">a sentence</text>
+                <text data-step="1" x="700" y="134" font-size="18" fill="var(--ink-3)">word &rarr; tokens</text>
+                <text data-step="1" x="700" y="156" font-size="18" fill="var(--ink-2)" font-family="var(--font-mono)">king · queen · cat · river</text>
+                <g data-step="2">
+                  <circle class="ed-dot" cx="219.1" cy="111.8" r="6.5" fill="var(--accent)"/><circle class="ed-dot" cx="251.2" cy="159.2" r="6.5" fill="var(--accent)"/><circle class="ed-dot" cx="210.2" cy="159.7" r="6.5" fill="var(--accent)"/><circle class="ed-dot" cx="233.6" cy="147.7" r="6.5" fill="var(--accent)"/>
+                  <text x="219.1" y="100" font-size="16" fill="var(--accent)" text-anchor="middle">&rarr; embed</text>
+                </g>
+
+                <!-- IMAGE (top-right, violet) -->
+                <text data-step="0" x="700" y="206" font-size="26" fill="var(--c-violet)" font-weight="600">image</text>
+                <text data-step="0" x="700" y="234" font-size="20" fill="var(--ink-2)">an image</text>
+                <text data-step="1" x="700" y="260" font-size="18" fill="var(--ink-3)">patch (ViT 16&times;16) &rarr; tokens</text>
+                <text data-step="1" x="700" y="282" font-size="18" fill="var(--ink-2)" font-family="var(--font-mono)">patch[0,0] · [0,1] · [3,5] · [7,7]</text>
+                <g data-step="2">
+                  <circle class="ed-dot" cx="572.4" cy="183.0" r="6.5" fill="var(--c-violet)"/><circle class="ed-dot" cx="594.4" cy="138.6" r="6.5" fill="var(--c-violet)"/><circle class="ed-dot" cx="570.6" cy="139.6" r="6.5" fill="var(--c-violet)"/><circle class="ed-dot" cx="542.0" cy="124.4" r="6.5" fill="var(--c-violet)"/>
+                  <text x="572.4" y="172" font-size="16" fill="var(--c-violet)" text-anchor="middle">&rarr; embed</text>
+                </g>
+
+                <!-- AUDIO (bottom-left, amber) -->
+                <text data-step="0" x="700" y="332" font-size="26" fill="var(--c-amber)" font-weight="600">audio</text>
+                <text data-step="0" x="700" y="360" font-size="20" fill="var(--ink-2)">a waveform</text>
+                <text data-step="1" x="700" y="386" font-size="18" fill="var(--ink-3)">spectrogram frame &rarr; tokens</text>
+                <text data-step="1" x="700" y="408" font-size="18" fill="var(--ink-2)" font-family="var(--font-mono)">frame t=0 · 1 · 2 · 3</text>
+                <g data-step="2">
+                  <circle class="ed-dot" cx="251.2" cy="404.9" r="6.5" fill="var(--c-amber)"/><circle class="ed-dot" cx="224.9" cy="382.4" r="6.5" fill="var(--c-amber)"/><circle class="ed-dot" cx="205.6" cy="438.2" r="6.5" fill="var(--c-amber)"/><circle class="ed-dot" cx="239.6" cy="416.8" r="6.5" fill="var(--c-amber)"/>
+                  <text x="230.3" y="371" font-size="16" fill="var(--c-amber)" text-anchor="middle">&rarr; embed</text>
+                </g>
+
+                <!-- PROTEIN (bottom-right, green) -->
+                <text data-step="0" x="700" y="458" font-size="26" fill="var(--c-green)" font-weight="600">protein</text>
+                <text data-step="0" x="700" y="486" font-size="20" fill="var(--ink-2)">a protein</text>
+                <text data-step="1" x="700" y="512" font-size="18" fill="var(--ink-3)">amino-acid residue &rarr; tokens</text>
+                <text data-step="1" x="700" y="534" font-size="18" fill="var(--ink-2)" font-family="var(--font-mono)">M · K · T · G</text>
+                <g data-step="2">
+                  <circle class="ed-dot" cx="511.3" cy="410.3" r="6.5" fill="var(--c-green)"/><circle class="ed-dot" cx="550.4" cy="419.9" r="6.5" fill="var(--c-green)"/><circle class="ed-dot" cx="522.8" cy="388.8" r="6.5" fill="var(--c-green)"/><circle class="ed-dot" cx="587.2" cy="395.6" r="6.5" fill="var(--c-green)"/>
+                  <text x="542.9" y="377" font-size="16" fill="var(--c-green)" text-anchor="middle">&rarr; embed</text>
+                </g>
+
+                <!-- step 3: legend chips below the right column -->
+                <g data-step="3" font-size="19">
+                  <rect x="700" y="42" width="12" height="12" rx="2" fill="var(--accent)"/><text x="720" y="53" fill="var(--ink-2)">text · word</text>
+                  <rect x="900" y="42" width="12" height="12" rx="2" fill="var(--c-violet)"/><text x="920" y="53" fill="var(--ink-2)">image · patch</text>
+                </g>
+              </g>
+            </svg>
+          </div>
+          <p class="viz-caption"><span lang="ru">Текст, картинка, звук, белок — все следуют <strong>одному рецепту</strong>: разрезать на токены, вложить каждый, разместить в <strong>одном</strong> векторном пространстве. Слово, патч, кадр спектрограммы, остаток — все становятся точками одной карты.</span><span lang="en">Text, image, audio, protein all follow <strong>one recipe</strong>: cut into tokens, embed each, place in <strong>one</strong> shared vector space. A word, a patch, a spectrogram frame, a residue — all become points on the same map.</span></p>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">0/3</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">The cross-domain payoff, ported from the book's embedding-domains widget. Four modalities sit around one empty plane. Step zero names the thing in each: a sentence, an image, a waveform, a protein. Step one cuts each into its natural tokens — words for text, sixteen-by-sixteen patches for an image the way a vision transformer does, spectrogram frames for audio, amino-acid residues for a protein. Step two is the unification: every token, whatever its origin, is embedded and lands as a coloured dot in the same two-D space — text in the top-left, image top-right, audio bottom-left, protein bottom-right, each a tight cluster. Step three makes the shared space explicit with axes and a legend. The point: the recipe never changes — thing, tokens, vectors, one shared space — which is exactly why a single search index can hold all of them and why CLIP-style joint spaces work at all.</aside>
+        </section>
+
         <!-- ============================================ BEAT 14 · payoff-map-drawn ============================================ -->
         <!-- ============================================ 44 · DIVIDER · map drawn ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="45 Divider · the map is drawn">
+        <section class="slide" data-type="divider" data-screen-label="48 Divider · the map is drawn">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Развязка</span><span lang="en">Payoff</span></div>
             <h1>The Map of Meaning is Drawn</h1>
@@ -1211,7 +1429,7 @@
         </section>
 
         <!-- ============================================ 43 · QUOTE · bridge to L6 ============================================ -->
-        <section class="slide" data-type="quote" data-screen-label="46 Bridge">
+        <section class="slide" data-type="quote" data-screen-label="49 Bridge">
           <div>
             <div class="quote-mark">&ldquo;</div>
             <blockquote><span lang="ru">Карта смысла нарисована.<br />Но одно слово всё ещё значит две вещи — дайте карте <em>контекст</em>.</span><span lang="en">The Map of Meaning is drawn.<br />But one word still means two things — give the map <em>context</em>.</span></blockquote>
@@ -1221,7 +1439,7 @@
         </section>
 
         <!-- ============================================ 44 · FINAL ============================================ -->
-        <section class="slide" data-type="final" data-screen-label="47 Final">
+        <section class="slide" data-type="final" data-screen-label="50 Final">
           <div class="final-body">
             <h1 style="font-size:96px; line-height:1.05; margin-bottom:var(--sp-4);"><span lang="ru">Слова получили координаты.<br />Что значит <em>близко</em>?</span><span lang="en">Words have coordinates now.<br />What does <em>near</em> mean?</span></h1>
             <p class="final-sub" style="margin-bottom:var(--sp-5);"><strong><span lang="ru">Вопросы?</span><span lang="en">Questions?</span></strong> &middot; <span lang="ru">Слайды, домашка и запись — по QR ниже.</span><span lang="en">Slides, homework &amp; recording via the QR below.</span></p>
@@ -1239,7 +1457,7 @@
         </section>
 
         <!-- ============================================ 45 · REFERENCES (1/2) ============================================ -->
-        <section class="slide" data-type="refs" data-screen-label="48 References · embeddings">
+        <section class="slide" data-type="refs" data-screen-label="51 References · embeddings">
           <div class="slide-header">
             <h2><span lang="ru">Источники и дополнительное чтение</span><span lang="en">References &amp; further reading</span> <span style="font-weight:400;opacity:.6">(1 / 2)</span></h2>
             <span class="slide-kicker"><span lang="ru">Приложение · эмбеддинги</span><span lang="en">Appendix · the embeddings lineage</span></span>
@@ -1254,7 +1472,7 @@
         </section>
 
         <!-- ============================================ 46 · REFERENCES (2/2) ============================================ -->
-        <section class="slide" data-type="refs" data-screen-label="49 References · dimred">
+        <section class="slide" data-type="refs" data-screen-label="52 References · dimred">
           <div class="slide-header">
             <h2><span lang="ru">Источники и дополнительное чтение</span><span lang="en">References &amp; further reading</span> <span style="font-weight:400;opacity:.6">(2 / 2)</span></h2>
             <span class="slide-kicker"><span lang="ru">Приложение · снижение размерности</span><span lang="en">Appendix · dimensionality reduction</span></span>
