@@ -202,19 +202,19 @@
               <span class="toc-num">03</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Scaled dot-product attention</span><span lang="en">Scaled dot-product attention</span></span><span class="toc-sub">\(\mathrm{softmax}(QK^\top/\sqrt{d_k})V\) &middot; exact</span></span>
             </a>
-            <a class="toc-item" href="#/23">
+            <a class="toc-item" href="#/24">
               <span class="toc-num">04</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Много голов &middot; позиция</span><span lang="en">Many heads &amp; position</span></span><span class="toc-sub">multi-head &middot; sinusoidal PE</span></span>
             </a>
-            <a class="toc-item" href="#/32">
+            <a class="toc-item" href="#/33">
               <span class="toc-num">05</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Блок Transformer целиком</span><span lang="en">The full Transformer block</span></span><span class="toc-sub">Add &amp; Norm &middot; FFN &middot; stack &times;N</span></span>
             </a>
-            <a class="toc-item" href="#/41">
+            <a class="toc-item" href="#/43">
               <span class="toc-num">06</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Обучить пространство для поиска</span><span lang="en">Train the space for search</span></span><span class="toc-sub">InfoNCE &middot; triplet &middot; in-batch negatives</span></span>
             </a>
-            <a class="toc-item" href="#/48">
+            <a class="toc-item" href="#/50">
               <span class="toc-num">07</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Ловушка и развязка</span><span lang="en">The trap &amp; the payoff</span></span><span class="toc-sub">anisotropy &middot; the Gremlin caged &middot; bridge to L7</span></span>
             </a>
@@ -478,8 +478,95 @@
           <aside class="slide-notes">The flagship attention climb, one row at a time, all exact. Step zero: take cat's query, zero two zero one. Step one: dot it with the three keys to get the score row zero, four, two. Step two: divide by root d k, which is two, giving zero, two, one, then apply softmax to get the weights zero point zero nine, zero point six six five, zero point two four five — note they sum to one, and cat puts most of its weight, zero point six six five, on itself. Step three: take the weighted sum of the three value rows using those weights, and you land on cat's output vector, zero point five seven nine, one point nine nine six, zero point nine one, zero point four two five. That output is cat's new, context-aware representation — every number straight from the data file.</aside>
         </section>
 
-        <!-- ============================================ 18 · WALKTHROUGH · the full weight matrix ============================================ -->
-        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="19 Full weight matrix">
+        <!-- ============================================ 19 · VIZ · attention is a geometric pull (native port of attention-geometry) ============================================ -->
+        <section class="slide attg-slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="19 Attention is a geometric pull">
+          <style>
+            /* cumulative reveal driven by data-step (engine fades step > current via .is-step-hidden) */
+            .attg-slide .attg-frame { fill: none; stroke: var(--rule); stroke-width: 1.5; }
+            .attg-slide .attg-dot { stroke: var(--bg-card); stroke-width: 2; }
+            .attg-slide .attg-dot-v { fill: var(--c-violet); }
+            .attg-slide .attg-dot-q { fill: var(--accent); }
+            .attg-slide .attg-edge { stroke: var(--accent); fill: none; }
+            .attg-slide .attg-guide { stroke: var(--rule-strong); stroke-width: 1; stroke-dasharray: 3 4; }
+            .attg-slide .attg-arrow { stroke: var(--c-amber); stroke-width: 3.5; fill: none; }
+            .attg-slide .attg-blend { fill: var(--c-amber); stroke: var(--c-amber-ink); stroke-width: 1.5; }
+            /* captions SWAP (only the current step's caption shows) — driven by data-arch-step */
+            .attg-slide .attg-cap[data-arch-step] { display: none; }
+            .attg-slide .attg-cap[data-arch-step].is-arch-current { display: block; }
+            /* future SVG steps fully hidden (not the global 0.08 ghost) so the dense plane stays clean */
+            .attg-slide svg [data-step].is-step-hidden { display: none; }
+          </style>
+          <div class="slide-header">
+            <h2><span lang="ru">Внимание — это геометрическое притяжение</span><span lang="en">Attention is a geometric pull</span></h2>
+            <span class="slide-kicker"><span lang="ru">тот же ряд «cat», но как движение точки в пространстве \(V\)</span><span lang="en">the same &ldquo;cat&rdquo; row, but as a point moving in \(V\) space</span></span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1160 540" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="Three value points the, cat, sat in a 2-D plane; the query token cat draws an attention-weighted edge to each, then glides to their weighted average — the blended point that equals cat's attention output row">
+              <defs>
+                <marker id="attgHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c-amber)"/></marker>
+              </defs>
+              <g font-family="var(--font-sans)">
+                <!-- the value plane -->
+                <rect data-step="0" class="attg-frame" x="170" y="70" width="560" height="380" rx="8"/>
+                <text data-step="0" x="170" y="58" font-size="20" fill="var(--ink-3)" font-family="var(--font-mono)">value space V (2-D)</text>
+                <text data-step="0" x="182" y="92" font-size="17" fill="var(--ink-3)" font-family="var(--font-mono)">V &uarr;</text>
+                <text data-step="0" x="718" y="442" font-size="17" fill="var(--ink-3)" text-anchor="end" font-family="var(--font-mono)">V &rarr;</text>
+
+                <!-- STEP 1: the query's attention weights as edges (width proportional to weight) -->
+                <g data-step="1">
+                  <line class="attg-edge" x1="644.4" y1="391.9" x2="255.6" y2="128.1" stroke-width="2.22" stroke-opacity="0.33"/>
+                  <text x="450.0" y="256" class="attg-wlbl" font-size="18" fill="var(--accent-ink)" text-anchor="middle" font-weight="600" font-family="var(--font-mono)">.09</text>
+                  <line class="attg-edge" x1="644.4" y1="391.9" x2="255.6" y2="260" stroke-width="4.32" stroke-opacity="0.47"/>
+                  <text x="450.0" y="321.9" class="attg-wlbl" font-size="18" fill="var(--accent-ink)" text-anchor="middle" font-weight="600" font-family="var(--font-mono)">.245</text>
+                  <text x="664" y="416" font-size="18" fill="var(--accent-ink)" font-weight="700" font-family="var(--font-mono)">.665 self</text>
+                </g>
+
+                <!-- STEP 2: blend point + amber arrow gliding cat -> weighted average -->
+                <g data-step="2">
+                  <line class="attg-guide" x1="514.2" y1="335.9" x2="255.6" y2="128.1"/>
+                  <line class="attg-guide" x1="514.2" y1="335.9" x2="644.4" y2="391.9"/>
+                  <line class="attg-guide" x1="514.2" y1="335.9" x2="255.6" y2="260"/>
+                  <line class="attg-arrow" x1="644.4" y1="391.9" x2="525.0" y2="340.9" marker-end="url(#attgHead)"/>
+                  <path class="attg-blend" d="M514.2,326.9 L523.2,335.9 L514.2,344.9 L505.2,335.9 Z"/>
+                  <text x="600" y="300" font-size="18" fill="var(--c-amber-ink)" text-anchor="start" font-weight="700" font-family="var(--font-mono)">weighted avg</text>
+                </g>
+
+                <!-- STEP 0 points: the three value tokens (drawn last so dots sit atop edges) -->
+                <g data-step="0">
+                  <circle class="attg-dot attg-dot-v" cx="255.6" cy="128.1" r="9"/>
+                  <text x="255.6" y="112" font-size="20" fill="var(--c-violet)" font-weight="700" text-anchor="middle" font-family="var(--font-mono)">the</text>
+                  <circle class="attg-dot attg-dot-q" cx="644.4" cy="391.9" r="11"/>
+                  <text x="644.4" y="374" font-size="20" fill="var(--accent)" font-weight="700" text-anchor="middle" font-family="var(--font-mono)">cat (query)</text>
+                  <circle class="attg-dot attg-dot-v" cx="255.6" cy="260" r="9"/>
+                  <text x="255.6" y="244" font-size="20" fill="var(--c-violet)" font-weight="700" text-anchor="middle" font-family="var(--font-mono)">sat</text>
+                </g>
+
+                <!-- STEP 3: callout tying the 2-D / 4-D blend to the l6 attention output row (tolerance, not =) -->
+                <g data-step="3">
+                  <text x="514.2" y="338" font-size="18" fill="var(--c-amber-ink)" text-anchor="middle" font-weight="700" font-family="var(--font-mono)">&asymp; output</text>
+                  <rect x="170" y="470" width="820" height="58" rx="8" fill="var(--c-amber-soft)" stroke="var(--c-amber)" stroke-width="1.2"/>
+                  <text x="186" y="496" font-size="20" fill="var(--ink)" font-family="var(--font-mono)">blend &middot; V = [0.58, 1.995, 0.91, 0.425]</text>
+                  <text x="186" y="520" font-size="20" fill="var(--c-amber-ink)" font-weight="700" font-family="var(--font-mono)">&asymp; attention output row = [0.579, 1.996, 0.91, 0.425]</text>
+                </g>
+              </g>
+            </svg>
+          </div>
+          <p class="viz-caption">
+            <span class="attg-cap" data-arch-step="0"><span lang="ru">Три значения <code>the</code>/<code>cat</code>/<code>sat</code> как точки в плоскости \(V\). <code>cat</code> — точка-запрос.</span><span lang="en">The three values <code>the</code>/<code>cat</code>/<code>sat</code> as points in the \(V\) plane. <code>cat</code> is the query point.</span></span>
+            <span class="attg-cap" data-arch-step="1"><span lang="ru">Веса внимания <code>cat</code> — это рёбра: толщина \(\propto\) весу. <code>cat</code> сильнее всего тянется к себе (\(.665\)).</span><span lang="en"><code>cat</code>&rsquo;s attention weights are edges: thickness \(\propto\) weight. <code>cat</code> pulls hardest on itself (\(.665\)).</span></span>
+            <span class="attg-cap" data-arch-step="2"><span lang="ru"><code>cat</code> скользит к <strong>взвешенному среднему</strong> точек-значений — это и есть операция внимания, не «числа QKV».</span><span lang="en"><code>cat</code> glides to the <strong>weighted average</strong> of the value points &mdash; that is the attention operation, not &ldquo;QKV numbers&rdquo;.</span></span>
+            <span class="attg-cap" data-arch-step="3"><span lang="ru">В полной размерности эта смешанная точка \(\approx\) строке выхода внимания из e2e (с точностью округления).</span><span lang="en">In full dimension this blended point \(\approx\) the attention output row from the e2e slide (to rounding).</span></span>
+          </p>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">0/3</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">The geometric companion to the numeric end-to-end slide, ported from the book's attention-geometry widget — same cat row, but seen as motion in space. Step zero: plot the three value vectors the, cat and sat as points in a two-D value plane; cat is the query point, drawn larger. Step one: draw cat's attention weights as edges from the cat point to each value, with thickness proportional to the weight — thin to the at zero point zero nine, medium to sat at zero point two four five, and the heaviest, zero point six six five, on itself. Step two: cat then glides along the amber arrow to the weighted average of the three value points — the diamond. That single move IS attention; it is not a pile of QKV numbers, it is a point being pulled toward a weighted centroid. Step three: in full dimension that blended point matches cat's attention output row from the earlier slide — zero point five eight versus zero point five seven nine, and so on — equal to rounding, which is why we write approximately, not equals.</aside>
+        </section>
+
+        <!-- ============================================ 20 · WALKTHROUGH · the full weight matrix ============================================ -->
+        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="20 Full weight matrix">
           <div class="slide-header">
             <h2><span lang="ru">Вся матрица внимания \(A\) (строки \(\sum=1\))</span><span lang="en">The full attention matrix \(A\) (rows sum to 1)</span></h2>
             <span class="slide-kicker"><span lang="ru">кто кого слушает</span><span lang="en">who heeds whom</span></span>
@@ -516,7 +603,7 @@
 
         <!-- ============================================ BEAT 5 · turn-selfattention (Q/K/V defined BEFORE the theorem & cost-wall that use them) ============================================ -->
         <!-- ============================================ 19 · DEFINITION · self-attention + projections ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="20 Self-attention &amp; projections">
+        <section class="slide" data-type="definition" data-screen-label="21 Self-attention &amp; projections">
           <div class="slide-header">
             <h2><span lang="ru">Self-attention: откуда берутся \(Q,K,V\)</span><span lang="en">Self-attention: where \(Q,K,V\) come from</span></h2>
             <span class="slide-kicker"><span lang="ru">одна последовательность · три обучаемые матрицы</span><span lang="en">one sequence · three learned matrices</span></span>
@@ -534,7 +621,7 @@
         </section>
 
         <!-- ============================================ 20 · THEOREM · why divide by root d_k (T6: misconception → variance proposition + proof) ============================================ -->
-        <section class="slide" data-type="theorem" data-screen-label="21 The root d_k variance theorem">
+        <section class="slide" data-type="theorem" data-screen-label="22 The root d_k variance theorem">
           <div class="slide-header">
             <h2><span lang="ru">Почему \(\sqrt{d_k}\): дисперсия скоров растёт \(\propto d_k\)</span><span lang="en">Why \(\sqrt{d_k}\): score variance grows \(\propto d_k\)</span></h2>
             <span class="slide-kicker"><span lang="ru">не косметика — это предложение с доказательством</span><span lang="en">not cosmetic — a proposition with a proof</span></span>
@@ -566,7 +653,7 @@
         </section>
 
         <!-- ============================================ 19b · VIZ · attention O(n²) cost wall (NEW: depth #8) ============================================ -->
-        <section class="slide" data-type="viz" data-screen-label="22 The quadratic cost wall">
+        <section class="slide" data-type="viz" data-screen-label="23 The quadratic cost wall">
           <div class="slide-header">
             <h2><span lang="ru">Стена цены: \(QK^\top\) стоит \(O(n^2)\)</span><span lang="en">The cost wall: \(QK^\top\) costs \(O(n^2)\)</span></h2>
             <span class="slide-kicker"><span lang="ru">каждый токен сравнивается с каждым</span><span lang="en">every token compares to every token</span></span>
@@ -597,7 +684,7 @@
 
         <!-- ============================================ BEAT 6 · climb-multihead ============================================ -->
         <!-- ============================================ 22 · DIVIDER · multi-head ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="23 Divider · Many heads &amp; position">
+        <section class="slide" data-type="divider" data-screen-label="24 Divider · Many heads &amp; position">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 04</span><span lang="en">Part 04</span></div>
             <h1>Many Heads &amp; Position</h1>
@@ -610,7 +697,7 @@
         </section>
 
         <!-- ============================================ 23 · DEFINITION · multi-head idea ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="24 Multi-head idea">
+        <section class="slide" data-type="definition" data-screen-label="25 Multi-head idea">
           <div class="slide-header">
             <h2><span lang="ru">Multi-head: совет из \(h\) голов</span><span lang="en">Multi-head: a council of \(h\) heads</span></h2>
             <span class="slide-kicker"><span lang="ru">параллельные подпространства</span><span lang="en">parallel subspaces</span></span>
@@ -627,7 +714,7 @@
         </section>
 
         <!-- ============================================ 26 · WALKTHROUGH · multi-head data path (always-on faded pipeline + ledger; populated at step 0) ============================================ -->
-        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="25 Multi-head, layer by layer">
+        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="26 Multi-head, layer by layer">
           <div class="slide-header">
             <h2><span lang="ru">Multi-head по слоям: разделить &rarr; внимание &rarr; собрать</span><span lang="en">Multi-head, layer by layer: split &rarr; attend &rarr; recombine</span></h2>
             <span class="slide-kicker"><span lang="ru">путь данных от входа к выходу</span><span lang="en">the data path, input&rarr;output</span></span>
@@ -687,7 +774,7 @@
 
         <!-- ============================================ BEAT 7 · turn-positional ============================================ -->
         <!-- ============================================ 26 · DIVIDER · inject position ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="26 Divider · inject position">
+        <section class="slide" data-type="divider" data-screen-label="27 Divider · inject position">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 04 ·</span><span lang="en">Part 04 ·</span></div>
             <h1>Attention is Order-Blind</h1>
@@ -700,7 +787,7 @@
         </section>
 
         <!-- ============================================ 27 · MISCONCEPTION · permutation invariance ============================================ -->
-        <section class="slide" data-type="misconception" data-screen-label="27 Permutation invariance">
+        <section class="slide" data-type="misconception" data-screen-label="28 Permutation invariance">
           <div class="slide-header">
             <h2><span lang="ru">Внимание перестановочно-инвариантно</span><span lang="en">Attention is permutation-invariant</span></h2>
             <span class="slide-kicker"><span lang="ru">почему нужен явный сигнал позиции</span><span lang="en">why position must be explicit</span></span>
@@ -718,7 +805,7 @@
 
         <!-- ============================================ BEAT 8 · climb-positional ============================================ -->
         <!-- ============================================ 28 · FORMULA · sinusoidal PE ============================================ -->
-        <section class="slide" data-type="formula" data-screen-label="28 Sinusoidal PE">
+        <section class="slide" data-type="formula" data-screen-label="29 Sinusoidal PE">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">Синусоидальное позиционное кодирование</span><span lang="en">Sinusoidal positional encoding</span></h2>
             <span class="slide-kicker"><span lang="ru">фиксированное, не обучаемое</span><span lang="en">fixed, not learned</span></span>
@@ -736,7 +823,7 @@
         </section>
 
         <!-- ============================================ 29 · DEMO · sinusoid frequency sweep (T5: viz → live function-plot) ============================================ -->
-        <section class="slide" data-type="demo" data-screen-label="29 The PE frequency sweep">
+        <section class="slide" data-type="demo" data-screen-label="30 The PE frequency sweep">
           <div class="slide-header">
             <h2><span lang="ru">Развёртка частоты: \(\sin(pos/10000^{2i/d})\)</span><span lang="en">Sweeping the frequency: \(\sin(pos/10000^{2i/d})\)</span></h2>
             <span class="slide-kicker"><span lang="ru">двигайте позицию по быстрой синусоиде измерения \(i=0\) · живьём</span><span lang="en">drag position along dimension \(i=0\)&rsquo;s fast sinusoid · live</span></span>
@@ -758,7 +845,7 @@
         </section>
 
         <!-- ============================================ 30 · WALKTHROUGH · reading the grid ============================================ -->
-        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="30 Reading the PE grid">
+        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="31 Reading the PE grid">
           <div class="slide-header">
             <h2><span lang="ru">Как читать сетку — реальные значения</span><span lang="en">How to read the grid — real values</span></h2>
             <span class="slide-kicker"><span lang="ru">из data/l6-positional.json</span><span lang="en">from data/l6-positional.json</span></span>
@@ -794,7 +881,7 @@
         </section>
 
         <!-- ============================================ 31 · TABLE · fixed vs learned PE ============================================ -->
-        <section class="slide" data-type="table" data-screen-label="31 Fixed vs learned PE">
+        <section class="slide" data-type="table" data-screen-label="32 Fixed vs learned PE">
           <div class="slide-header">
             <h2><span lang="ru">Фиксированное против обучаемого кодирования</span><span lang="en">Fixed vs learned positional encoding</span></h2>
             <span class="slide-kicker"><span lang="ru">две школы, одна цель</span><span lang="en">two schools, one goal</span></span>
@@ -814,7 +901,7 @@
 
         <!-- ============================================ BEAT 9 · turn-block ============================================ -->
         <!-- ============================================ 32 · DIVIDER · the Transformer block ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="32 Divider · the Transformer block">
+        <section class="slide" data-type="divider" data-screen-label="33 Divider · the Transformer block">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 05</span><span lang="en">Part 05</span></div>
             <h1>Assemble the Transformer Block</h1>
@@ -828,7 +915,7 @@
 
         <!-- ============================================ BEAT 10 · climb-block ============================================ -->
         <!-- ============================================ 33 · DEFINITION · residual + LayerNorm ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="33 Residual + LayerNorm">
+        <section class="slide" data-type="definition" data-screen-label="34 Residual + LayerNorm">
           <div class="slide-header">
             <h2><span lang="ru">Add &amp; Norm: остаток + нормализация</span><span lang="en">Add &amp; Norm: residual + layer norm</span></h2>
             <span class="slide-kicker"><span lang="ru">почему стек вообще обучается</span><span lang="en">why a deep stack trains at all</span></span>
@@ -845,7 +932,7 @@
         </section>
 
         <!-- ============================================ 34 · FORMULA · LayerNorm ============================================ -->
-        <section class="slide" data-type="formula" data-screen-label="34 LayerNorm formula">
+        <section class="slide" data-type="formula" data-screen-label="35 LayerNorm formula">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">LayerNorm, точно</span><span lang="en">LayerNorm, exactly</span></h2>
             <span class="slide-kicker"><span lang="ru">по признакам токена, не по батчу</span><span lang="en">over a token&rsquo;s features, not the batch</span></span>
@@ -863,7 +950,7 @@
         </section>
 
         <!-- ============================================ 35 · DEFINITION · the FFN ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="35 The feed-forward network">
+        <section class="slide" data-type="definition" data-screen-label="36 The feed-forward network">
           <div class="slide-header">
             <h2><span lang="ru">Position-wise FFN: думать по каждому токену</span><span lang="en">Position-wise FFN: think per token</span></h2>
             <span class="slide-kicker"><span lang="ru">два линейных слоя + нелинейность</span><span lang="en">two linear layers + a nonlinearity</span></span>
@@ -880,32 +967,46 @@
         </section>
 
         <!-- ============================================ 36 · ARCHFLOW · the full encoder block (HEADLINE) ============================================ -->
-        <section class="slide" data-type="archflow" data-max-step="6" data-current-step="0" data-screen-label="36 Archflow · the Transformer block">
+        <section class="slide afblk-slide" data-type="archflow" data-max-step="6" data-current-step="0" data-screen-label="37 Archflow · the Transformer block">
+          <style>
+            /* RESIDUAL HIGHWAY emphasis: the two skip arcs (pos→an1, an1→an2) are the bypass that
+               carries x AROUND each sublayer; draw them as a thick, solid accent highway so the
+               "x + sublayer(x)" path is unmistakable (the engine tags paths with their endpoints). */
+            .afblk-slide .af-wires path[data-from-node="af-pos"][data-to-node="af-an1"],
+            .afblk-slide .af-wires path[data-from-node="af-an1"][data-to-node="af-an2"] {
+              stroke: var(--accent); stroke-width: 3.5; opacity: 0.9; stroke-dasharray: none;
+            }
+            .afblk-slide .af-edge-label { font-family: var(--font-mono); font-weight: 700; }
+          </style>
           <div class="slide-header">
             <h2><span lang="ru">Блок энкодера Transformer, по шагам</span><span lang="en">The Transformer encoder block, step by step</span></h2>
-            <span class="slide-kicker">Archflow · <span lang="ru">остаток + LayerNorm &times;2</span><span lang="en">residual + LayerNorm &times;2</span></span>
+            <span class="slide-kicker">Archflow · <span lang="ru">остаточная магистраль + LayerNorm &times;2</span><span lang="en">residual highway + LayerNorm &times;2</span></span>
           </div>
           <div class="af-stage">
             <div class="af-canvas">
-              <!-- EDGES declarative: the engine routes between node anchors -->
+              <!-- EDGES declarative: the engine routes between node anchors.
+                   Forward edges into the two transform sublayers carry a GEOMETRIC-EFFECT label
+                   (attention blends → FFN warps), ported from block-geometry. -->
               <div class="af-edge" data-from-node="af-in" data-to-node="af-pos" data-from="1" data-from-anchor="right" data-to-anchor="left"></div>
-              <div class="af-edge" data-from-node="af-pos" data-to-node="af-mha" data-from="2" data-from-anchor="right" data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-pos" data-to-node="af-mha" data-from="2" data-from-anchor="right" data-to-anchor="left" data-label="blend ↔"></div>
               <div class="af-edge" data-from-node="af-mha" data-to-node="af-an1" data-from="3" data-from-anchor="right" data-to-anchor="left"></div>
-              <div class="af-edge" data-from-node="af-an1" data-to-node="af-ffn" data-from="4" data-from-anchor="right" data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-an1" data-to-node="af-ffn" data-from="4" data-from-anchor="right" data-to-anchor="left" data-label="warp ⟂"></div>
               <div class="af-edge" data-from-node="af-ffn" data-to-node="af-an2" data-from="5" data-from-anchor="right" data-to-anchor="left"></div>
               <div class="af-edge" data-from-node="af-an2" data-to-node="af-out" data-from="6" data-from-anchor="right" data-to-anchor="left"></div>
-              <!-- residual skip edges (around the perimeter) -->
-              <div class="af-edge" data-from-node="af-pos" data-to-node="af-an1" data-from="3" data-from-anchor="top" data-to-anchor="top" data-label="residual"></div>
-              <div class="af-edge" data-from-node="af-an1" data-to-node="af-an2" data-from="5" data-from-anchor="bottom" data-to-anchor="bottom" data-label="residual"></div>
+              <!-- the RESIDUAL HIGHWAY: x bypasses each sublayer and is ADDED back at Add&Norm.
+                   Each skip arc is labelled with the explicit formula x + sublayer(x). Add&Norm then
+                   RESCALES onto the unit-RMS ring (block-geometry effect). -->
+              <div class="af-edge af-skip" data-from-node="af-pos" data-to-node="af-an1" data-from="3" data-from-anchor="top" data-to-anchor="top" data-label="x + attn(x)"></div>
+              <div class="af-edge af-skip" data-from-node="af-an1" data-to-node="af-an2" data-from="5" data-from-anchor="bottom" data-to-anchor="bottom" data-label="x + ffn(x)"></div>
 
               <!-- NODES: all data-from="0" so the FULL block is on canvas at rest (step 0);
                    data-focus still rings the active stage as → advances, future nodes read faded -->
               <div class="af-node" id="af-in" data-role="input" data-from="0" data-focus="1" style="left:7%;top:50%"><span lang="ru">вход</span><span lang="en">input</span> \(X\)</div>
               <div class="af-node" id="af-pos" data-role="query" data-from="0" data-focus="2" style="left:22%;top:50%">\(+\) PE</div>
               <div class="af-node" id="af-mha" data-role="weight" data-from="0" data-focus="3" style="left:39%;top:50%"><span lang="ru">Multi-Head</span><span lang="en">Multi-Head</span><br>Attention</div>
-              <div class="af-node" id="af-an1" data-role="score" data-from="0" data-focus="3" style="left:56%;top:50%">Add &amp;<br>Norm</div>
+              <div class="af-node" id="af-an1" data-role="score" data-from="0" data-focus="3" style="left:56%;top:50%">Add &amp;<br>Norm<br><small>rescale &#8857;</small></div>
               <div class="af-node" id="af-ffn" data-role="value" data-from="0" data-focus="4" style="left:72%;top:50%">FFN</div>
-              <div class="af-node" id="af-an2" data-role="score" data-from="0" data-focus="5" style="left:86%;top:50%">Add &amp;<br>Norm</div>
+              <div class="af-node" id="af-an2" data-role="score" data-from="0" data-focus="5" style="left:86%;top:50%">Add &amp;<br>Norm<br><small>rescale &#8857;</small></div>
               <div class="af-node" id="af-out" data-role="output" data-from="0" data-focus="6" style="left:95%;top:50%">\(\times N\)</div>
 
               <div class="af-focus"></div>
@@ -929,17 +1030,17 @@
               <div class="af-note" data-step="3" data-label="attn">
                 <div class="af-note-head"><span lang="ru">Внимание + Add&amp;Norm</span><span lang="en">Attention + Add&amp;Norm</span></div>
                 <div class="af-formula">$$H=\mathrm{LayerNorm}\big(X' + \mathrm{MHA}(X')\big)$$</div>
-                <p><span lang="ru">Токены <strong>смешиваются</strong>; остаток несёт \(X'\) в обход, LayerNorm стабилизирует.</span><span lang="en">Tokens <strong>mix</strong>; the residual carries \(X'\) around, LayerNorm stabilises.</span></p>
+                <p><span lang="ru">Внимание <strong>смешивает</strong> токены (тянет вместе). Толстая магистраль несёт \(X'\) <strong>в обход</strong> — это \(x+\mathrm{attn}(x)\); LayerNorm масштабирует на единичную сферу.</span><span lang="en">Attention <strong>blends</strong> tokens (pulls them together). The thick highway carries \(X'\) <strong>around</strong> &mdash; that is \(x+\mathrm{attn}(x)\); LayerNorm rescales onto the unit sphere.</span></p>
               </div>
               <div class="af-note" data-step="4" data-label="ffn">
                 <div class="af-note-head">FFN</div>
                 <div class="af-formula">$$F=\max(0,\,HW_1+b_1)W_2+b_2$$</div>
-                <p><span lang="ru">Каждый токен <strong>независимо</strong> преобразуется одним и тем же MLP.</span><span lang="en">Each token is transformed <strong>independently</strong> by the same MLP.</span></p>
+                <p><span lang="ru">FFN <strong>искажает</strong> каждый токен <strong>независимо</strong> (без смешивания) — тот же MLP на всех.</span><span lang="en">The FFN <strong>warps</strong> each token <strong>independently</strong> (no mixing) &mdash; the same MLP for all.</span></p>
               </div>
               <div class="af-note" data-step="5" data-label="norm2">
                 <div class="af-note-head"><span lang="ru">Add&amp;Norm снова</span><span lang="en">Add&amp;Norm again</span></div>
                 <div class="af-formula">$$Z=\mathrm{LayerNorm}\big(H + F\big)$$</div>
-                <p><span lang="ru">Второй остаток + нормализация вокруг FFN.</span><span lang="en">A second residual + norm, this time around the FFN.</span></p>
+                <p><span lang="ru">Вторая магистраль: \(x+\mathrm{ffn}(x)\) в обход FFN, затем LayerNorm снова масштабирует на сферу.</span><span lang="en">The second highway: \(x+\mathrm{ffn}(x)\) around the FFN, then LayerNorm rescales onto the sphere again.</span></p>
               </div>
               <div class="af-note" data-step="6" data-label="stack">
                 <div class="af-note-head"><span lang="ru">Стек &times;N</span><span lang="en">Stack &times;N</span></div>
@@ -956,8 +1057,81 @@
           <aside class="slide-notes">The headline diagram, walked end to end. Step zero shows the wrapper that repeats: LayerNorm of input plus sublayer. Step one, the input — T tokens of dimension d. Step two, add the positional encoding so the block is not order-blind. Step three, multi-head attention mixes the tokens, then the first Add and Norm wraps it — note the residual edge carrying the pre-attention signal forward over the top. Step four, the position-wise feed-forward network transforms each token independently. Step five, the second Add and Norm wraps the FFN, with its own residual along the bottom. Step six, the block's output becomes the next block's input — depth is just repetition; BERT-base stacks twelve of these, BERT-large twenty-four. Every contextual vector we use comes out the far end of this stack.</aside>
         </section>
 
-        <!-- ============================================ 37 · FORMULA · the block as one equation ============================================ -->
-        <section class="slide" data-type="formula" data-screen-label="37 The block in two lines">
+        <!-- ============================================ 37 · VIZ · what LayerNorm DOES (native port of layernorm-viz) ============================================ -->
+        <section class="slide lnv-slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="38 What LayerNorm does">
+          <style>
+            /* scoped: data-arch-step groups SWAP (only the current step's bars/arrow/readout show)
+               so the SAME vector visibly recentres then rescales onto the unit circle. */
+            .lnv-slide svg [data-arch-step] { display: none; }
+            .lnv-slide svg [data-arch-step].is-arch-current { display: block; }
+            .lnv-slide .lnv-cap[data-arch-step] { display: none; }
+            .lnv-slide .lnv-cap[data-arch-step].is-arch-current { display: block; }
+          </style>
+          <div class="slide-header">
+            <h2><span lang="ru">Что делает LayerNorm — геометрически</span><span lang="en">What LayerNorm actually does &mdash; geometrically</span></h2>
+            <span class="slide-kicker"><span lang="ru">центрировать &rarr; масштаб &rarr; на единичную сферу &rarr; \(\gamma,\beta\)</span><span lang="en">recentre &rarr; rescale &rarr; onto the unit sphere &rarr; \(\gamma,\beta\)</span></span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1160 540" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="One eight-dimensional feature vector, off-centre with mean 5 and variance 7.5, is recentred to mean 0, rescaled to variance 1 — landing on the unit circle — then bent by the learned scale gamma and shift beta">
+              <defs>
+                <marker id="lnvRaw" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink-4)"/></marker>
+                <marker id="lnvNorm" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker>
+              </defs>
+              <g font-family="var(--font-sans)">
+                <!-- bar panel frame + heading -->
+                <rect x="120" y="76" width="540" height="434" rx="8" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
+                <text x="140" y="106" font-size="20" fill="var(--ink-2)" font-weight="700" font-family="var(--font-mono)">feature vector x (8 dims)</text>
+                <line x1="150" y1="420" x2="624" y2="420" stroke="var(--rule)" stroke-width="1"/>
+                <!-- stage label, swaps per step, centred over the bars -->
+                <text data-arch-step="0" x="390" y="498" font-size="20" fill="var(--accent-ink)" font-weight="700" text-anchor="middle" font-family="var(--font-mono)">raw x</text>
+                <text data-arch-step="1" x="390" y="498" font-size="20" fill="var(--accent-ink)" font-weight="700" text-anchor="middle" font-family="var(--font-mono)">x &minus; &mu;  (recentred)</text>
+                <text data-arch-step="2" x="390" y="498" font-size="20" fill="var(--accent-ink)" font-weight="700" text-anchor="middle" font-family="var(--font-mono)">(x &minus; &mu;) / &sigma;  (normed)</text>
+                <text data-arch-step="3" x="390" y="498" font-size="20" fill="var(--accent-ink)" font-weight="700" text-anchor="middle" font-family="var(--font-mono)">&gamma; &middot; normed + &beta;  (out)</text>
+
+                <!-- per-step bar groups (SWAP) -->
+                <g data-arch-step="0"><line x1="150" y1="253.3" x2="624" y2="253.3" stroke="var(--warm)" stroke-width="2" stroke-dasharray="7 4"/><text x="146" y="246.3" font-size="17" fill="var(--warm-ink)" font-weight="700" text-anchor="end" font-family="var(--font-mono)">&mu; = 5</text><rect x="172.9" y="220" width="32.9" height="200" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/><rect x="231.7" y="353.3" width="32.9" height="66.7" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/><rect x="290.4" y="120" width="32.9" height="300" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/><rect x="349.2" y="386.7" width="32.9" height="33.3" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/><rect x="407.9" y="286.7" width="32.9" height="133.3" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/><rect x="466.7" y="153.3" width="32.9" height="266.7" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/><rect x="525.4" y="320" width="32.9" height="100" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/><rect x="584.2" y="186.7" width="32.9" height="233.3" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/><text x="189.4" y="212.0" font-size="17" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">6</text><text x="248.1" y="345.3" font-size="17" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">2</text><text x="306.9" y="112.0" font-size="17" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">9</text><text x="365.6" y="378.7" font-size="17" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">1</text><text x="424.4" y="278.7" font-size="17" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">4</text><text x="483.1" y="145.3" font-size="17" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">8</text><text x="541.9" y="312.0" font-size="17" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">3</text><text x="600.6" y="178.7" font-size="17" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">7</text></g>
+                <g data-arch-step="1"><line x1="150" y1="270.0" x2="624" y2="270.0" stroke="var(--warm)" stroke-width="2" stroke-dasharray="7 4"/><text x="146" y="263.0" font-size="17" fill="var(--warm-ink)" font-weight="700" text-anchor="end" font-family="var(--font-mono)">&mu; = 0</text><rect x="172.9" y="235.5" width="32.9" height="34.5" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/><rect x="231.7" y="270" width="32.9" height="103.5" rx="3" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.2"/><rect x="290.4" y="132" width="32.9" height="138" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/><rect x="349.2" y="270" width="32.9" height="138" rx="3" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.2"/><rect x="407.9" y="270" width="32.9" height="34.5" rx="3" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.2"/><rect x="466.7" y="166.5" width="32.9" height="103.5" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/><rect x="525.4" y="270" width="32.9" height="69" rx="3" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.2"/><rect x="584.2" y="201" width="32.9" height="69" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/><text x="189.4" y="227.5" font-size="17" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">1</text><text x="248.1" y="391.5" font-size="17" fill="var(--warm-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">-3</text><text x="306.9" y="124.0" font-size="17" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">4</text><text x="365.6" y="426.0" font-size="17" fill="var(--warm-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">-4</text><text x="424.4" y="322.5" font-size="17" fill="var(--warm-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">-1</text><text x="483.1" y="158.5" font-size="17" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">3</text><text x="541.9" y="357.0" font-size="17" fill="var(--warm-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">-2</text><text x="600.6" y="193.0" font-size="17" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">2</text></g>
+                <g data-arch-step="2"><line x1="150" y1="270.0" x2="624" y2="270.0" stroke="var(--warm)" stroke-width="2" stroke-dasharray="7 4"/><text x="146" y="263.0" font-size="17" fill="var(--warm-ink)" font-weight="700" text-anchor="end" font-family="var(--font-mono)">&mu; = 0</text><rect x="172.9" y="257.4" width="32.9" height="12.6" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/><rect x="231.7" y="270" width="32.9" height="37.8" rx="3" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.2"/><rect x="290.4" y="219.6" width="32.9" height="50.4" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/><rect x="349.2" y="270" width="32.9" height="50.4" rx="3" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.2"/><rect x="407.9" y="270" width="32.9" height="12.6" rx="3" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.2"/><rect x="466.7" y="232.2" width="32.9" height="37.8" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/><rect x="525.4" y="270" width="32.9" height="25.2" rx="3" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.2"/><rect x="584.2" y="244.8" width="32.9" height="25.2" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/><text x="189.4" y="249.4" font-size="16" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">0.37</text><text x="248.1" y="325.8" font-size="16" fill="var(--warm-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">-1.10</text><text x="306.9" y="211.6" font-size="16" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">1.46</text><text x="365.6" y="338.4" font-size="16" fill="var(--warm-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">-1.46</text><text x="424.4" y="300.6" font-size="16" fill="var(--warm-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">-0.37</text><text x="483.1" y="224.2" font-size="16" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">1.10</text><text x="541.9" y="313.2" font-size="16" fill="var(--warm-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">-0.73</text><text x="600.6" y="236.8" font-size="16" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">0.73</text></g>
+                <g data-arch-step="3"><line x1="150" y1="270.0" x2="624" y2="270.0" stroke="var(--warm)" stroke-width="2" stroke-dasharray="7 4"/><text x="146" y="263.0" font-size="17" fill="var(--warm-ink)" font-weight="700" text-anchor="end" font-family="var(--font-mono)">&mu; = 0</text><rect x="172.9" y="251.4" width="32.9" height="18.6" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/><rect x="231.7" y="270" width="32.9" height="33.7" rx="3" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.2"/><rect x="290.4" y="219.6" width="32.9" height="50.4" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/><rect x="349.2" y="270" width="32.9" height="48.5" rx="3" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.2"/><rect x="407.9" y="270" width="32.9" height="18.2" rx="3" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.2"/><rect x="466.7" y="232.2" width="32.9" height="37.8" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/><rect x="525.4" y="270" width="32.9" height="29.3" rx="3" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.2"/><rect x="584.2" y="255.8" width="32.9" height="14.2" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/><text x="189.4" y="243.4" font-size="16" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">0.54</text><text x="248.1" y="321.7" font-size="16" fill="var(--warm-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">-0.98</text><text x="306.9" y="211.6" font-size="16" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">1.46</text><text x="365.6" y="336.5" font-size="16" fill="var(--warm-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">-1.41</text><text x="424.4" y="306.2" font-size="16" fill="var(--warm-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">-0.53</text><text x="483.1" y="224.2" font-size="16" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">1.10</text><text x="541.9" y="317.3" font-size="16" fill="var(--warm-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">-0.85</text><text x="600.6" y="247.8" font-size="16" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">0.41</text></g>
+
+                <!-- unit-circle panel (persistent ring + axes; arrow swaps per step) -->
+                <text x="720" y="106" font-size="20" fill="var(--ink-2)" font-weight="700" font-family="var(--font-mono)">the vector on the unit circle</text>
+                <circle cx="870" cy="270" r="110" fill="none" stroke="var(--rule-strong)" stroke-width="1.5"/>
+                <line x1="754" y1="270" x2="986" y2="270" stroke="var(--rule)" stroke-width="1"/>
+                <line x1="870" y1="154" x2="870" y2="386" stroke="var(--rule)" stroke-width="1"/>
+                <circle cx="870" cy="270" r="4" fill="var(--ink-3)"/>
+                <!-- raw arrow (off the ring) shown at steps 0,1 -->
+                <g data-arch-step="0"><line x1="870" y1="270" x2="1009.7" y2="339.9" stroke="var(--ink-4)" stroke-width="3" marker-end="url(#lnvRaw)"/><text x="1015" y="343" font-size="17" fill="var(--ink-3)" font-weight="600" font-family="var(--font-mono)">raw x</text></g>
+                <g data-arch-step="1"><line x1="870" y1="270" x2="1009.7" y2="339.9" stroke="var(--ink-4)" stroke-width="3" marker-end="url(#lnvRaw)"/><text x="1015" y="343" font-size="17" fill="var(--ink-3)" font-weight="600" font-family="var(--font-mono)">centred</text></g>
+                <!-- normed arrow lands ON the ring at steps 2,3 -->
+                <g data-arch-step="2"><line x1="870" y1="270" x2="968.4" y2="319.2" stroke="var(--accent)" stroke-width="3.5" marker-end="url(#lnvNorm)"/><circle cx="968.4" cy="319.2" r="6" fill="var(--accent)"/><text x="975" y="338" font-size="17" fill="var(--accent-ink)" font-weight="700" font-family="var(--font-mono)">on the sphere</text></g>
+                <g data-arch-step="3"><line x1="870" y1="270" x2="968.4" y2="319.2" stroke="var(--accent)" stroke-width="3.5" marker-end="url(#lnvNorm)"/><circle cx="968.4" cy="319.2" r="6" fill="var(--accent)"/><text x="975" y="338" font-size="17" fill="var(--accent-ink)" font-weight="700" font-family="var(--font-mono)">on the sphere</text></g>
+
+                <!-- mean / var readout under the circle (swaps per step) -->
+                <text data-arch-step="0" x="870" y="436" font-size="22" fill="var(--ink-2)" font-weight="700" text-anchor="middle" font-family="var(--font-mono)">&mu; = 5.0  &middot;  &sigma;&sup2; = 7.5</text>
+                <text data-arch-step="1" x="870" y="436" font-size="22" fill="var(--ink-2)" font-weight="700" text-anchor="middle" font-family="var(--font-mono)">&mu; = 0.0  &middot;  &sigma;&sup2; = 7.5</text>
+                <text data-arch-step="2" x="870" y="436" font-size="22" fill="var(--c-green-ink)" font-weight="700" text-anchor="middle" font-family="var(--font-mono)">&mu; = 0.0  &middot;  &sigma;&sup2; = 1.0  &check;</text>
+                <text data-arch-step="3" x="870" y="436" font-size="22" fill="var(--ink-2)" font-weight="700" text-anchor="middle" font-family="var(--font-mono)">&gamma; scales &middot; &beta; shifts each dim</text>
+                <text x="870" y="466" font-size="17" fill="var(--ink-3)" text-anchor="middle" font-family="var(--font-mono)">std &sigma; = 2.7386</text>
+              </g>
+            </svg>
+          </div>
+          <p class="viz-caption">
+            <span class="lnv-cap" data-arch-step="0"><span lang="ru">Сырой вектор \(x\): 8 чисел, сидят высоко и вразброс — \(\mu=5.0\), \(\sigma^2=7.5\). На круге стрелка длинная (вне сферы).</span><span lang="en">The raw vector \(x\): 8 numbers sitting high and spread &mdash; \(\mu=5.0\), \(\sigma^2=7.5\). On the circle the arrow is long (off the sphere).</span></span>
+            <span class="lnv-cap" data-arch-step="1"><span lang="ru">Вычитаем среднее: базовая линия съезжает \(5.0\to 0\), бары перецентрированы вокруг нуля. Дисперсия пока та же (\(7.5\)).</span><span lang="en">Subtract the mean: the baseline slides \(5.0\to 0\), the bars recentre on zero. Variance is still \(7.5\) for now.</span></span>
+            <span class="lnv-cap" data-arch-step="2"><span lang="ru">Делим на \(\sigma\): дисперсия \(7.5\to 1\). Вектор приземляется <strong>точно на единичную сферу</strong> — это и есть нормализация.</span><span lang="en">Divide by \(\sigma\): the variance goes \(7.5\to 1\). The vector lands <strong>exactly on the unit sphere</strong> &mdash; that is the normalisation.</span></span>
+            <span class="lnv-cap" data-arch-step="3"><span lang="ru">Обучаемые \(\gamma\) (масштаб) и \(\beta\) (сдвиг) по каждому измерению слегка изгибают бары — сеть возвращает себе свободу после нормализации.</span><span lang="en">Learned \(\gamma\) (scale) and \(\beta\) (shift) per dimension bend the bars slightly &mdash; the network buys back freedom after the normalisation.</span></span>
+          </p>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">0/3</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">The named gap — what LayerNorm actually does, made geometric, ported from the book's layernorm widget. We take one eight-dimensional feature vector. Step zero: the raw values six, two, nine, one, four, eight, three, seven sit high and spread, with mean five and variance seven point five; on the right, the vector as an arrow pokes out past the unit circle. Step one: subtract the mean — the dashed baseline slides from five down to zero and the bars recentre, negatives now hanging below in warm colour; the variance is unchanged. Step two: divide by the standard deviation, two point seven three nine — the variance collapses to one, and the arrow lands exactly on the unit circle. That is the whole normalisation: recentre to mean zero, rescale to unit variance, which is the same as putting the vector on a sphere. Step three: the learned gamma scales and beta shifts each dimension, bending the bars a little, so the network is not forced to stay perfectly normalised — it buys back expressive freedom. Mean five to zero, variance seven point five to one: that is LayerNorm.</aside>
+        </section>
+
+        <!-- ============================================ 38 · FORMULA · the block as one equation ============================================ -->
+        <section class="slide" data-type="formula" data-screen-label="39 The block in two lines">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">Весь блок в двух строках</span><span lang="en">The whole block in two lines</span></h2>
             <span class="slide-kicker"><span lang="ru">внимание, затем FFN — каждое обёрнуто</span><span lang="en">attention, then FFN — each wrapped</span></span>
@@ -977,7 +1151,7 @@
         </section>
 
         <!-- ============================================ 38 · TABLE · BERT sizes ============================================ -->
-        <section class="slide" data-type="table" data-screen-label="38 BERT sizes">
+        <section class="slide" data-type="table" data-screen-label="40 BERT sizes">
           <div class="slide-header">
             <h2><span lang="ru">Глубина = повтор: размеры BERT</span><span lang="en">Depth = repetition: BERT sizes</span></h2>
             <span class="slide-kicker"><span lang="ru">тот же блок, больше слоёв</span><span lang="en">same block, more layers</span></span>
@@ -997,7 +1171,7 @@
 
         <!-- ============================================ BEAT 11 · turn-contextual-payoff ============================================ -->
         <!-- ============================================ 39 · VIZ · stack to contextual vectors ============================================ -->
-        <section class="slide" data-type="viz" data-screen-label="39 Stack to contextual vectors">
+        <section class="slide" data-type="viz" data-screen-label="41 Stack to contextual vectors">
           <div class="slide-header">
             <h2><span lang="ru">Стек &rarr; контекстные векторы &rarr; вектор предложения</span><span lang="en">Stack &rarr; contextual vectors &rarr; a sentence vector</span></h2>
             <span class="slide-kicker"><span lang="ru">[CLS] и mean-pooling</span><span lang="en">[CLS] and mean-pooling</span></span>
@@ -1049,7 +1223,7 @@
         </section>
 
         <!-- ============================================ 40 · DEFINITION · [CLS] vs mean-pooling ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="40 Pooling to one vector">
+        <section class="slide" data-type="definition" data-screen-label="42 Pooling to one vector">
           <div class="slide-header">
             <h2><span lang="ru">Пулинг: из токенов — один вектор</span><span lang="en">Pooling: from tokens to one vector</span></h2>
             <span class="slide-kicker"><span lang="ru">[CLS] · mean · что брать</span><span lang="en">[CLS] · mean · which to use</span></span>
@@ -1067,7 +1241,7 @@
 
         <!-- ============================================ BEAT 12 · turn-contrastive ============================================ -->
         <!-- ============================================ 41 · DIVIDER · train for retrieval ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="41 Divider · train for retrieval">
+        <section class="slide" data-type="divider" data-screen-label="43 Divider · train for retrieval">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 06</span><span lang="en">Part 06</span></div>
             <h1>Train the Space for Search</h1>
@@ -1081,7 +1255,7 @@
 
         <!-- ============================================ BEAT 13 · climb-contrastive ============================================ -->
         <!-- ============================================ 42 · DEFINITION · contrastive setup ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="42 Contrastive setup">
+        <section class="slide" data-type="definition" data-screen-label="44 Contrastive setup">
           <div class="slide-header">
             <h2><span lang="ru">Якорь, позитив, негативы</span><span lang="en">Anchor, positive, negatives</span></h2>
             <span class="slide-kicker"><span lang="ru">геометрия, заданная парами</span><span lang="en">geometry defined by pairs</span></span>
@@ -1098,7 +1272,7 @@
         </section>
 
         <!-- ============================================ 43 · DERIVATION · triplet → softmax-over-candidates → InfoNCE (T3: two formula → one FLIP-morph) ============================================ -->
-        <section class="slide" data-type="derivation" data-screen-label="43 From triplet to InfoNCE">
+        <section class="slide" data-type="derivation" data-screen-label="45 From triplet to InfoNCE">
           <div class="slide-header">
             <h2><span lang="ru">От triplet к InfoNCE: один кадр алгебры</span><span lang="en">From triplet to InfoNCE: one moving frame of algebra</span></h2>
             <span class="slide-kicker"><span lang="ru">margin \(\to\) softmax по кандидатам \(\to -\log p^{+}\)</span><span lang="en">margin \(\to\) softmax over candidates \(\to -\log p^{+}\)</span></span>
@@ -1133,7 +1307,7 @@
         </section>
 
         <!-- ============================================ 45 · TABLE · the cosines ============================================ -->
-        <section class="slide" data-type="table" data-screen-label="44 The cosines">
+        <section class="slide" data-type="table" data-screen-label="46 The cosines">
           <div class="slide-header">
             <h2><span lang="ru">Косинусы к якорю <code>cat</code> — реальные числа</span><span lang="en">Cosines to the anchor <code>cat</code> — real numbers</span></h2>
             <span class="slide-kicker"><span lang="ru">позитивы близко, негативы далеко</span><span lang="en">positives near, negatives far</span></span>
@@ -1153,7 +1327,7 @@
         </section>
 
         <!-- ============================================ 46 · E2E · InfoNCE loss computed ============================================ -->
-        <section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="45 InfoNCE loss = 0.1191">
+        <section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="47 InfoNCE loss = 0.1191">
           <div class="slide-header">
             <h2><span lang="ru">InfoNCE целиком: потеря \(= 0.1191\)</span><span lang="en">InfoNCE end to end: loss \(= 0.1191\)</span></h2>
             <span class="slide-kicker">E2E &middot; <span lang="ru">позитив <code>kitten</code>, \(\tau=0.1\)</span><span lang="en">positive <code>kitten</code>, \(\tau=0.1\)</span></span>
@@ -1192,7 +1366,7 @@
         </section>
 
         <!-- ============================================ 47 · DEFINITION · in-batch negatives ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="46 In-batch negatives">
+        <section class="slide" data-type="definition" data-screen-label="48 In-batch negatives">
           <div class="slide-header">
             <h2><span lang="ru">In-batch negatives: негативы бесплатно</span><span lang="en">In-batch negatives: negatives for free</span></h2>
             <span class="slide-kicker"><span lang="ru">остальные примеры батча — твои негативы</span><span lang="en">the rest of the batch are your negatives</span></span>
@@ -1209,7 +1383,7 @@
         </section>
 
         <!-- ============================================ 48 · MISCONCEPTION · normalize / cosine ============================================ -->
-        <section class="slide" data-type="misconception" data-screen-label="47 Why normalize">
+        <section class="slide" data-type="misconception" data-screen-label="49 Why normalize">
           <div class="slide-header">
             <h2><span lang="ru">Зачем нормировать и брать косинус?</span><span lang="en">Why normalise and use cosine?</span></h2>
             <span class="slide-kicker"><span lang="ru">длина мешает близости</span><span lang="en">length distracts from nearness</span></span>
@@ -1227,7 +1401,7 @@
 
         <!-- ============================================ BEAT 14 · catch-anisotropy ============================================ -->
         <!-- ============================================ 49 · DIVIDER · the anisotropy trap ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="48 Divider · the anisotropy trap">
+        <section class="slide" data-type="divider" data-screen-label="50 Divider · the anisotropy trap">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 07</span><span lang="en">Part 07</span></div>
             <h1>The Anisotropy Trap</h1>
@@ -1240,7 +1414,7 @@
         </section>
 
         <!-- ============================================ 50 · MISCONCEPTION · anisotropy (callback L2) ============================================ -->
-        <section class="slide" data-type="misconception" data-screen-label="49 Anisotropy">
+        <section class="slide" data-type="misconception" data-screen-label="51 Anisotropy">
           <div class="slide-header">
             <h2><span lang="ru">Сырые BERT-векторы анизотропны</span><span lang="en">Raw BERT vectors are anisotropic</span></h2>
             <span class="slide-kicker"><span lang="ru">обратный вызов L2 · проклятие размерности</span><span lang="en">callback L2 · curse of dimensionality</span></span>
@@ -1258,7 +1432,7 @@
 
         <!-- ============================================ CROSS-DOMAIN cluster · moved BEFORE the Gremlin payoff (mirrors the book; payoff is the last content beat) ============================================ -->
         <!-- ============================================ DIVIDER · everything is tokens ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="50 Divider · everything is tokens">
+        <section class="slide" data-type="divider" data-screen-label="52 Divider · everything is tokens">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Перенос</span><span lang="en">Transfer</span></div>
             <h1>Everything Is a Sequence of Tokens</h1>
@@ -1271,7 +1445,7 @@
         </section>
 
         <!-- ============================================ DEFINITION · ViT (cross-domain #22) ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="51 ViT · patches as tokens">
+        <section class="slide" data-type="definition" data-screen-label="53 ViT · patches as tokens">
           <div class="slide-header">
             <h2><span lang="ru">ViT: патчи изображения — это токены</span><span lang="en">ViT: image patches are tokens</span></h2>
             <span class="slide-kicker"><span lang="ru">тот же блок-энкодер, другая модальность</span><span lang="en">the same encoder block, a new modality</span></span>
@@ -1288,7 +1462,7 @@
         </section>
 
         <!-- ============================================ 52d · DEFINITION · CLIP (cross-domain #23, SAME InfoNCE) ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="52 CLIP · the same InfoNCE">
+        <section class="slide" data-type="definition" data-screen-label="54 CLIP · the same InfoNCE">
           <div class="slide-header">
             <h2><span lang="ru">CLIP: InfoNCE в общем пространстве картинка&harr;текст</span><span lang="en">CLIP: InfoNCE in a shared image&harr;text space</span></h2>
             <span class="slide-kicker"><span lang="ru">та же контрастная потеря, что и у нас</span><span lang="en">the very same contrastive loss</span></span>
@@ -1305,7 +1479,7 @@
         </section>
 
         <!-- ============================================ 52e · TWO-COL · Transformer = GNN on a complete graph (cross-domain #27) ============================================ -->
-        <section class="slide" data-type="two-col" data-screen-label="53 A Transformer is a GNN">
+        <section class="slide" data-type="two-col" data-screen-label="55 A Transformer is a GNN">
           <div class="slide-header">
             <h2><span lang="ru">Один кадр: Transformer = GNN на полном графе</span><span lang="en">One frame: a Transformer is a GNN on a complete graph</span></h2>
             <span class="slide-kicker"><span lang="ru">внимание = взвешенный message-passing</span><span lang="en">attention = weighted message-passing</span></span>
@@ -1331,7 +1505,7 @@
 
         <!-- ============================================ BEAT 15 · payoff-gremlin-caged (now the LAST content beat before the bridge) ============================================ -->
         <!-- ============================================ DIVIDER · the Gremlin caged ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="54 Divider · the Gremlin caged">
+        <section class="slide" data-type="divider" data-screen-label="56 Divider · the Gremlin caged">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Развязка</span><span lang="en">Payoff</span></div>
             <h1>The Lexical Gremlin, Caged</h1>
@@ -1344,7 +1518,7 @@
         </section>
 
         <!-- ============================================ MISCONCEPTION · the win and its scope ============================================ -->
-        <section class="slide" data-type="misconception" data-screen-label="55 The Gremlin caged">
+        <section class="slide" data-type="misconception" data-screen-label="57 The Gremlin caged">
           <div class="slide-header">
             <h2><span lang="ru">Синонимы схлопнулись, смыслы развелись</span><span lang="en">Synonyms collapse, senses split</span></h2>
             <span class="slide-kicker"><span lang="ru">обе половины разрыва закрыты</span><span lang="en">both halves of the gap closed</span></span>
@@ -1361,7 +1535,7 @@
         </section>
 
         <!-- ============================================ QUOTE · bridge to L7 ============================================ -->
-        <section class="slide" data-type="quote" data-screen-label="56 Bridge">
+        <section class="slide" data-type="quote" data-screen-label="58 Bridge">
           <div>
             <div class="quote-mark">&ldquo;</div>
             <blockquote><span lang="ru">Совет научился слушать.<br />Теперь — как <em>искать</em> им за миллисекунды?</span><span lang="en">The Council has learned to listen.<br />Now — how do we <em>search</em> with it in milliseconds?</span></blockquote>
@@ -1371,7 +1545,7 @@
         </section>
 
         <!-- ============================================ 54 · FINAL ============================================ -->
-        <section class="slide" data-type="final" data-screen-label="57 Final">
+        <section class="slide" data-type="final" data-screen-label="59 Final">
           <div class="final-body">
             <h1 style="font-size:96px; line-height:1.05; margin-bottom:var(--sp-4);"><span lang="ru">Каждый токен научился слушать.<br />Кого <em>слушаете</em> вы?</span><span lang="en">Every token learned to listen.<br />Who do <em>you</em> heed?</span></h1>
             <p class="final-sub" style="margin-bottom:var(--sp-5);"><strong><span lang="ru">Вопросы?</span><span lang="en">Questions?</span></strong> &middot; <span lang="ru">Слайды, домашка и запись — по QR ниже.</span><span lang="en">Slides, homework &amp; recording via the QR below.</span></p>
@@ -1389,7 +1563,7 @@
         </section>
 
         <!-- ============================================ 55 · REFERENCES (1/2) ============================================ -->
-        <section class="slide" data-type="refs" data-screen-label="58 References · attention &amp; transformers">
+        <section class="slide" data-type="refs" data-screen-label="60 References · attention &amp; transformers">
           <div class="slide-header">
             <h2><span lang="ru">Источники и дополнительное чтение</span><span lang="en">References &amp; further reading</span> <span style="font-weight:400;opacity:.6">(1 / 2)</span></h2>
             <span class="slide-kicker"><span lang="ru">Приложение · внимание и Transformer</span><span lang="en">Appendix · attention &amp; the Transformer</span></span>
@@ -1406,7 +1580,7 @@
         </section>
 
         <!-- ============================================ 56 · REFERENCES (2/2) ============================================ -->
-        <section class="slide" data-type="refs" data-screen-label="59 References · contrastive &amp; retrieval">
+        <section class="slide" data-type="refs" data-screen-label="61 References · contrastive &amp; retrieval">
           <div class="slide-header">
             <h2><span lang="ru">Источники и дополнительное чтение</span><span lang="en">References &amp; further reading</span> <span style="font-weight:400;opacity:.6">(2 / 2)</span></h2>
             <span class="slide-kicker"><span lang="ru">Приложение · контраст и поиск</span><span lang="en">Appendix · contrastive &amp; retrieval</span></span>
