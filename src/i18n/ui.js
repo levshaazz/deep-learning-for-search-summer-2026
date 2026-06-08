@@ -14,6 +14,7 @@ export const ui = {
     schedule: { en: 'Schedule', ru: 'Расписание' },
     assignments: { en: 'Assignments', ru: 'Задания' },
     gallery: { en: 'Gallery', ru: 'Галерея' },
+    papers: { en: 'Papers', ru: 'Статьи' },
   },
 
   sections: {
@@ -31,6 +32,11 @@ export const ui = {
     galleryKicker: {
       en: 'Bestiary + Scenes · the recurring cast and metaphor art · one idea per picture · linked to the chapter',
       ru: 'Бестиарий + Сцены · повторяющиеся персонажи и метафоры · одна идея на картинку · со ссылкой на главу',
+    },
+    papers: { en: 'Papers & references', ru: 'Статьи и литература' },
+    papersKicker: {
+      en: 'The course bibliography · every cited work · grouped by area · with a real link and why it is here',
+      ru: 'Библиография курса · каждая цитируемая работа · сгруппирована по областям · с реальной ссылкой и пояснением',
     },
     book: { en: 'The Book', ru: 'Книга' },
     bookKicker: {

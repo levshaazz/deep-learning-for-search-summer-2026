@@ -9,6 +9,7 @@
    the caption/counter scaffold, the setStep clamp + host.dataset.step, the el()/svg() namespaced
    SVG builder and the window.mountRankingMetrics registration; render() only draws list + panel. */
 import { defineWidget } from '../_widget-base.js';
+import { frameHeightFor } from '../_plot-util.js';
 
 // local formatters (distinct from the factory fmt's toFixed(6)) — keep inside this module.
 const fmt = (x) => (Math.round(x * 10000) / 10000).toString();
@@ -20,10 +21,12 @@ export const mountRankingMetrics = defineWidget({
   exportName: 'mountRankingMetrics',
   maxStep: 4,
   render({ host, data, labels, el }) {
-    const W = 480, H = 460;
+    const W = 480;
     const ranked = data.ranked;
 
-    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'wgt-svg rm-svg',
+    // viewBox height is patched after the metric panel is laid out (frameHeightFor) so the stacked
+    // MRR/MAP/nDCG blocks can never spill past the box — see _internal/book_audit2/p1-widgets.md #1.
+    const svg = el('svg', { class: 'wgt-svg rm-svg',
       role: 'img', 'aria-label': labels.alt || '' }, host);
 
     // ── ranked list (left column) — one row per ranked item, persistent at every step ──────────
@@ -117,6 +120,14 @@ export const mountRankingMetrics = defineWidget({
       .textContent = `nDCG = ${fmt(data.ndcg)}`;
     sub('ndcg', panel.x, ndY + 46,
       labels.ndcgHint || ('ideal order: ' + (data.idealOrder || []).join(' › ')));
+
+    // Size the viewBox to the DEEPEST content, not a constant — the panel stacks below the list and
+    // its last line (nDCG hint at ndY+46) sits well past the old H=460. frameHeightFor adds bottom
+    // padding so the text's descenders clear the box too. (audit p1-widgets.md #1)
+    const listBottom = list.y + ranked.length * list.rowH;     // last ranked row bottom
+    const panelBottom = ndY + 46;                              // last metric-panel line baseline
+    const H = frameHeightFor(Math.max(listBottom, panelBottom));
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
     // per-step update (factory clamps k to [0,maxStep] and owns caption/counter)
     return function update(k) {
