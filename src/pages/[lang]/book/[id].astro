@@ -91,7 +91,12 @@ function inlineMd(s) {
   // Then italic (guarded so `**`/stray `*` aren't mis-emphasized), then links.
   h = h.replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>');
   h = h.replace(/(^|[^*])\*(?!\s)([^*\n]+?)\*(?!\*)/g, '$1<em>$2</em>');
-  h = h.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>');
+  // URL may contain balanced parens (SICI-style DOIs like 10.1002/(SICI)...) — match
+  // bare chars OR one level of (...) groups, leaving the final ) to close the md link.
+  // `<`/`>` in a URL are already &lt;/&gt; here (escAll ran first); the browser decodes
+  // them back in the href, so escaped angle brackets link fine.
+  h = h.replace(/\[([^\]]+)\]\(((?:[^()\s]|\([^()\s]*\))+)\)/g,
+    '<a href="$2" target="_blank" rel="noopener">$1</a>');
 
   // (d) restore protected spans.
   h = h.replace(new RegExp(SENT_L + '(\\d+)' + SENT_R, 'g'), (_, i) => stash[Number(i)]);
