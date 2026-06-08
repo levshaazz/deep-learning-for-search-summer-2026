@@ -1,0 +1,189 @@
+/* cosine-compute — themed via tokens (light + dark). The ARITHMETIC of cosine, stacked:
+   two vectors → dot product (term-by-term) → the two norms (+ their product) → the ratio.
+   Mono numerals throughout. Responsive: every row is flex-wrap, width:100%, min-width:0 —
+   it never overflows a narrow (390px) scrolly column. Sibling to cosine-sphere (geometry);
+   this one shows the working, not the picture. */
+.cc-panel {
+  padding: var(--ws-3, 1.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ws-2, 1rem);
+  width: 100%;
+  min-width: 0;
+}
+
+.cc-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: opacity var(--dur, 220ms) var(--ease, ease);
+  min-width: 0;
+}
+.cc-block.is-faded { opacity: .5; }
+
+.cc-head {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-tiny, .8rem);
+  font-weight: 700;
+  letter-spacing: .5px;
+  color: var(--ink-3, #6B7280);
+}
+.cc-dot   .cc-head { color: var(--accent, #2A6FDB); }
+.cc-norm  .cc-head { color: var(--warm, #E8743B); }
+.cc-ratio .cc-head { color: var(--ink, #14181F); }
+
+.cc-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.cc-norm .cc-body { flex-direction: column; align-items: flex-start; gap: 6px; }
+
+/* operators (+ = ≈ /) and the multiply dot */
+.cc-op {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-body, 1rem);
+  font-weight: 700;
+  color: var(--ink-3, #6B7280);
+}
+.cc-times { margin: 0 1px; color: var(--ink-3, #6B7280); }
+
+/* ── the two vectors as coordinate cards ──────────────────────────────────── */
+.cc-vectors { flex-direction: row; flex-wrap: wrap; gap: 10px; }
+.cc-veccard {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: var(--r-sm, 8px);
+  border: var(--hairline, 1.5px) solid var(--rule, #ddd);
+  background: var(--bg-card, #fff);
+}
+.cc-vechead {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-tiny, .8rem);
+  letter-spacing: .5px;
+  color: var(--ink-3, #6B7280);
+}
+.cc-coords {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-body, 1rem);
+  font-weight: 700;
+  color: var(--ink, #14181F);
+}
+.cc-vec-a { border-color: color-mix(in srgb, var(--accent, #2A6FDB) 45%, transparent); }
+.cc-vec-a .cc-coords { color: var(--accent, #2A6FDB); }
+.cc-vec-b { border-color: color-mix(in srgb, var(--warm, #E8743B) 45%, transparent); }
+.cc-vec-b .cc-coords { color: var(--warm, #E8743B); }
+
+/* coloured coordinate factors reused in the dot/norm rows */
+.cc-fac-a { color: var(--accent, #2A6FDB); }
+.cc-fac-b { color: var(--warm, #E8743B); }
+
+/* ── dot product: 1·10 + 1·10 = 20 ────────────────────────────────────────── */
+.cc-term {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  padding: 4px 8px;
+  border-radius: var(--r-sm, 8px);
+  border: var(--hairline, 1.5px) solid color-mix(in srgb, var(--accent, #2A6FDB) 35%, transparent);
+  background: color-mix(in srgb, var(--accent, #2A6FDB) 8%, var(--bg-card, #fff));
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-body, 1rem);
+  font-weight: 700;
+}
+
+/* ── norms: ‖a‖ = √(1²+1²) = √2 ≈ 1.41 ────────────────────────────────────── */
+.cc-normline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-small, .9rem);
+  min-width: 0;
+}
+.cc-norm-lbl { font-weight: 700; color: var(--ink, #14181F); }
+.cc-rad { color: var(--ink-2, #374151); }
+.cc-rad-exact { font-weight: 700; color: var(--warm, #E8743B); }
+.cc-approx { color: var(--ink-3, #6B7280); }
+.cc-prodline { margin-top: 2px; }
+
+/* ── result chips (dot sum, denom product, cosine) ────────────────────────── */
+.cc-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 10px;
+  border-radius: var(--r-sm, 8px);
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-body, 1rem);
+  font-weight: 700;
+}
+.cc-res-dot {
+  color: var(--accent, #2A6FDB);
+  background: color-mix(in srgb, var(--accent, #2A6FDB) 14%, transparent);
+  border: var(--hairline, 1.5px) solid color-mix(in srgb, var(--accent, #2A6FDB) 45%, transparent);
+}
+.cc-res-denom {
+  color: var(--warm, #E8743B);
+  background: color-mix(in srgb, var(--warm, #E8743B) 14%, transparent);
+  border: var(--hairline, 1.5px) solid color-mix(in srgb, var(--warm, #E8743B) 45%, transparent);
+}
+.cc-res-cos {
+  font-size: var(--fz-h3, 1.25rem);
+  color: var(--ink, #14181F);
+  background: color-mix(in srgb, var(--accent, #2A6FDB) 16%, transparent);
+  border: var(--hairline, 1.5px) solid var(--accent, #2A6FDB);
+}
+
+/* ── the ratio: cos θ = 20 / (√2·√200) = 20/20 = 1.0 ──────────────────────── */
+.cc-frac {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.cc-cosname {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-body, 1rem);
+  font-weight: 700;
+  color: var(--ink, #14181F);
+}
+.cc-fraction {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-small, .9rem);
+  font-weight: 700;
+}
+.cc-numer { color: var(--accent, #2A6FDB); }
+.cc-denom { color: var(--warm, #E8743B); }
+.cc-bar {
+  width: 100%;
+  min-width: 2.5em;
+  height: 0;
+  border-top: 2px solid var(--ink, #14181F);
+}
+
+.cc-ratio.is-final .cc-res-cos {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent, #2A6FDB) 35%, transparent);
+}
+.cc-meaning {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-tiny, .8rem);
+  letter-spacing: .5px;
+  color: var(--accent, #2A6FDB);
+  margin-top: 4px;
+}
+
+@media (max-width: 420px) {
+  .cc-panel { padding: var(--ws-2, 1rem); }
+  .cc-normline, .cc-frac { font-size: var(--fz-tiny, .8rem); }
+}

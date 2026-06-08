@@ -261,6 +261,7 @@ export default {
       },
     },
     { id: 'climb-cosine', kind: 'scrolly', widget: 'cosine-sphere', data: 'l2-cosine' },
+    { id: 'climb-cosine-compute', kind: 'scrolly', widget: 'cosine-compute', data: 'l2-cosine' },
     {
       id: 'turn-dot-mips', kind: 'prose',
       heading: { en: 'The dot product: when magnitude is signal', ru: 'Скалярное произведение: когда величина — сигнал' },

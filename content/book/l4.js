@@ -138,6 +138,8 @@ export default {
         ],
       },
     },
+    { id: 'climb-multiquery', kind: 'scrolly', widget: 'ndcg-multiquery', data: 'l4-multiquery' },
+    { id: 'climb-graded', kind: 'scrolly', widget: 'ndcg-graded', data: 'l4-graded' },
     {
       id: 'turn-pr-f1', kind: 'prose',
       heading: { en: 'Precision vs recall, and one number for both', ru: 'Precision против recall — и одно число на двоих' },
