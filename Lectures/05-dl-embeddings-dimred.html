@@ -198,7 +198,7 @@
               <span class="toc-num">02</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">word2vec: координаты</span><span lang="en">word2vec: earning coordinates</span></span><span class="toc-sub">skip-gram &middot; softmax &middot; negative sampling</span></span>
             </a>
-            <a class="toc-item" href="#/19">
+            <a class="toc-item" href="#/17">
               <span class="toc-num">03</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Смысл становится арифметикой</span><span lang="en">Meaning becomes arithmetic</span></span><span class="toc-sub">king&minus;man+woman &middot; cosine &middot; the parallelogram</span></span>
             </a>
@@ -410,64 +410,44 @@
           <aside class="slide-notes">Set up the skip-gram model before the formula. We slide a window over the corpus. At each position one word is the centre and the words around it, within radius m, are its contexts. The task is to predict those context words from the centre. Crucially every word carries two vectors: one used when it is the centre, written v sub w, and one used when it is a context word, written u sub c. Keeping them separate makes the math clean and the dot products meaningful. One window position over brown yields four centre-context training pairs.</aside>
         </section>
 
-        <!-- ============================================ 15 · FORMULA · softmax objective ============================================ -->
-        <section class="slide" data-type="formula" data-screen-label="15 Skip-gram softmax">
-          <div class="slide-header slide-header--flush">
-            <h2><span lang="ru">Цель skip-gram: softmax по контексту</span><span lang="en">Skip-gram objective: softmax over contexts</span></h2>
-            <span class="slide-kicker"><span lang="ru">подобие = скалярное произведение</span><span lang="en">similarity = dot product</span></span>
+        <!-- ============================================ 15 · DERIVATION · softmax → negative sampling (T2: merged 3 formulas) ============================================ -->
+        <section class="slide" data-type="derivation" data-screen-label="15 Softmax to negative sampling">
+          <div class="slide-header">
+            <h2><span lang="ru">От softmax к negative sampling</span><span lang="en">From softmax to negative sampling</span></h2>
+            <span class="slide-kicker"><span lang="ru">убираем знаменатель \(O(V)\) — шаг за шагом</span><span lang="en">striking the \(O(V)\) denominator — step by step</span></span>
           </div>
-          <div class="formula-stage">
-            $$ p(c \mid w) = \frac{\exp\!\big(u_c^{\top} v_w\big)}{\displaystyle\sum_{c' \in V}\exp\!\big(u_{c'}^{\top} v_w\big)} $$
+          <div class="deriv-stage">
+            <div class="deriv-form">p(c|w)</div>
           </div>
-          <div class="formula-caption">
-            <div class="var-block"><div class="var-symbol">\(v_w\)</div><div class="var-desc"><strong><span lang="ru">центр</span><span lang="en">centre</span></strong><br /><span lang="ru">вектор слова \(w\)</span><span lang="en">vector of \(w\)</span></div></div>
-            <div class="var-block"><div class="var-symbol">\(u_c\)</div><div class="var-desc"><strong><span lang="ru">контекст</span><span lang="en">context</span></strong><br /><span lang="ru">вектор слова \(c\)</span><span lang="en">vector of \(c\)</span></div></div>
-            <div class="var-block"><div class="var-symbol">\(u_c^{\top} v_w\)</div><div class="var-desc"><strong><span lang="ru">скор</span><span lang="en">score</span></strong><br /><span lang="ru">выше \(\Rightarrow\) ближе</span><span lang="en">higher \(\Rightarrow\) nearer</span></div></div>
-          </div>
-          <p class="small muted center mt-2"><span lang="ru">Максимизируем логарифм правдоподобия истинных пар (центр, контекст) по всему корпусу. Чем больше \(u_c^{\top} v_w\), тем выше вероятность — обучение тянет векторы со-встречающихся слов друг к другу.</span><span lang="en">We maximise the log-likelihood of the true (centre, context) pairs over the whole corpus. A larger \(u_c^{\top} v_w\) means higher probability — training pulls co-occurring words' vectors together.</span></p>
-          <aside class="slide-notes">The objective, stated exactly. The probability that context word c appears given centre word w is a softmax over the whole vocabulary, with the score being the dot product of the context vector u sub c and the centre vector v sub w. We then maximise the log-likelihood of every true centre-context pair seen in the corpus. The mechanism is simple and beautiful: to raise the probability of a genuine pair, training must raise its dot product, which pulls the two vectors closer in direction. Words that keep the same company end up pointing the same way.</aside>
-        </section>
-
-        <!-- ============================================ 16 · FORMULA · the denominator problem ============================================ -->
-        <section class="slide" data-type="formula" data-screen-label="16 Softmax cost">
-          <div class="slide-header slide-header--flush">
-            <h2><span lang="ru">Проблема: знаменатель по всему словарю</span><span lang="en">The catch: the denominator is the whole vocabulary</span></h2>
-            <span class="slide-kicker"><span lang="ru">\(O(V)\) на каждый шаг — \(V\sim 10^{6}\)</span><span lang="en">\(O(V)\) per step — \(V\sim 10^{6}\)</span></span>
-          </div>
-          <div class="formula-stage">
-            $$ \underbrace{\sum_{c' \in V}\exp\!\big(u_{c'}^{\top} v_w\big)}_{\text{normaliser over all } V \text{ words}} \;\;\Rightarrow\;\; \text{cost} \;\propto\; V \;\approx\; 10^{6} $$
-          </div>
-          <p class="small muted center mt-3"><span lang="ru">Знаменатель softmax суммирует по <strong>каждому</strong> слову словаря — это миллион скалярных произведений на <em>каждое</em> обновление. На миллиардах токенов это безнадёжно дорого. Нужно приблизить нормировку.</span><span lang="en">The softmax denominator sums over <strong>every</strong> word in the vocabulary — a million dot products on <em>every</em> update. Over billions of tokens that is hopelessly expensive. We must approximate the normaliser.</span></p>
-          <div class="callout" data-kind="info">
-            <div class="callout-icon">i</div>
-            <div class="callout-body">
-              <strong><span lang="ru">Две классические замены</span><span lang="en">Two classic fixes</span></strong>
-              <p><span lang="ru">Иерархический softmax (дерево Хаффмана, \(O(\log V)\)) и — практичнее — <strong>negative sampling</strong>. Идём по второму пути.</span><span lang="en">Hierarchical softmax (a Huffman tree, \(O(\log V)\)) and — more practical — <strong>negative sampling</strong>. We take the second road.</span></p>
+          <div class="deriv-step-caption"></div>
+          <!-- Hidden steps — JS reads these and FLIP-morphs deriv-form between them. -->
+          <!-- Unicode sub/superscripts so the morph engine (which sets innerHTML directly, no KaTeX re-typeset) stays clean. -->
+          <div class="deriv-step" data-step="0" data-caption="Цель skip-gram — softmax по всему словарю · skip-gram objective: a softmax over the whole vocabulary" hidden>
+            <div class="deriv-content">
+              <span class="deriv-term" data-id="lhs">p(c|w)&nbsp;=&nbsp;</span><span class="deriv-term" data-id="frac">exp(u<sub>c</sub><sup>⊤</sup>v<sub>w</sub>)&nbsp;/&nbsp;</span><span class="deriv-term" data-id="denom">Σ<sub>c′∈V</sub> exp(u<sub>c′</sub><sup>⊤</sup>v<sub>w</sub>)</span>
             </div>
           </div>
-          <aside class="slide-notes">Name the obstacle precisely, the way a good engineer does. The numerator of the softmax is cheap — one dot product. The denominator is the killer: it sums the exponentiated score over every word in the vocabulary, so each gradient step costs on the order of V, around a million, dot products. Multiply that by billions of training positions and the full softmax is a non-starter. Two standard remedies exist: hierarchical softmax, which replaces the flat sum with a binary tree and costs log V, and negative sampling, which is simpler and what we will derive next.</aside>
-        </section>
-
-        <!-- ============================================ 17 · FORMULA · negative sampling ============================================ -->
-        <section class="slide" data-type="formula" data-screen-label="17 Negative sampling">
-          <div class="slide-header slide-header--flush">
-            <h2><span lang="ru">Negative sampling: софтмакс &rarr; логистика</span><span lang="en">Negative sampling: softmax &rarr; logistic</span></h2>
-            <span class="slide-kicker"><span lang="ru">истинная пара против \(k\) случайных</span><span lang="en">the true pair vs \(k\) random ones</span></span>
+          <div class="deriv-step" data-step="1" data-caption="Числитель дёшев — знаменатель суммирует по ВСЕМ V словам · the numerator is cheap; the denominator sums over ALL V words" hidden>
+            <div class="deriv-content">
+              <span class="deriv-term" data-id="lhs">p(c|w)&nbsp;=&nbsp;</span><span class="deriv-term" data-id="frac">exp(u<sub>c</sub><sup>⊤</sup>v<sub>w</sub>)&nbsp;/&nbsp;</span><span class="deriv-term is-highlight" data-id="denom">Σ<sub>c′∈V</sub> exp(u<sub>c′</sub><sup>⊤</sup>v<sub>w</sub>)</span>
+            </div>
           </div>
-          <div class="formula-stage">
-            $$ \log \sigma\!\big(u_c^{\top} v_w\big) \;+\; \sum_{i=1}^{k} \mathbb{E}_{c_i \sim P_n}\,\log \sigma\!\big(\!-u_{c_i}^{\top} v_w\big) $$
+          <div class="deriv-step" data-step="2" data-caption="Стоимость ∝ V ≈ 10⁶ на шаг — вычеркиваем нормировку · cost ∝ V ≈ 10⁶ per step — strike the normaliser" hidden>
+            <div class="deriv-content">
+              <span class="deriv-term" data-id="lhs">p(c|w)&nbsp;=&nbsp;</span><span class="deriv-term" data-id="frac">exp(u<sub>c</sub><sup>⊤</sup>v<sub>w</sub>)&nbsp;/&nbsp;</span><span class="deriv-term" data-id="denom" style="text-decoration:line-through;color:var(--c-red);opacity:.7">Σ<sub>c′∈V</sub> exp(…)</span>
+            </div>
           </div>
-          <div class="formula-caption">
-            <div class="var-block"><div class="var-symbol">\(\sigma\)</div><div class="var-desc"><strong>sigmoid</strong><br /><span lang="ru">\(\sigma(x)=\tfrac{1}{1+e^{-x}}\)</span><span lang="en">\(\sigma(x)=\tfrac{1}{1+e^{-x}}\)</span></div></div>
-            <div class="var-block"><div class="var-symbol">\(k\)</div><div class="var-desc"><strong><span lang="ru">негативы</span><span lang="en">negatives</span></strong><br /><span lang="ru">\(5\text{–}20\) на пару</span><span lang="en">\(5\text{–}20\) per pair</span></div></div>
-            <div class="var-block"><div class="var-symbol">\(P_n\)</div><div class="var-desc"><strong><span lang="ru">шум</span><span lang="en">noise</span></strong><br /><span lang="ru">\(\propto \mathrm{freq}^{3/4}\)</span><span lang="en">\(\propto \mathrm{freq}^{3/4}\)</span></div></div>
+          <div class="deriv-step" data-step="3" data-caption="Заменяем на бинарный тест: истинная пара против k случайных негативов · replace with a binary test: the true pair vs k random negatives" hidden>
+            <div class="deriv-content">
+              <span class="deriv-term is-new" data-id="pos">log σ(u<sub>c</sub><sup>⊤</sup>v<sub>w</sub>)</span> <span class="deriv-term" data-id="plus">+</span> <span class="deriv-term is-new" data-id="neg">Σ<sub>i=1</sub><sup>k</sup> 𝔼<sub>cᵢ∼Pₙ</sub> log σ(−u<sub>cᵢ</sub><sup>⊤</sup>v<sub>w</sub>)</span>
+            </div>
           </div>
-          <p class="small muted center mt-2"><span lang="ru">Вместо нормировки по всему \(V\): тяни истинную пару вверх (\(\sigma\to 1\)) и толкай \(k\) случайных «негативов» вниз (\(\sigma\to 0\)). Стоимость падает с \(O(V)\) до \(O(k)\) — на пять порядков дешевле.</span><span lang="en">Instead of normalising over all of \(V\): push the true pair up (\(\sigma\to 1\)) and \(k\) random &ldquo;negatives&rdquo; down (\(\sigma\to 0\)). Cost drops from \(O(V)\) to \(O(k)\) — about five orders of magnitude cheaper.</span></p>
-          <aside class="slide-notes">The fix that made word2vec practical. Negative sampling replaces the multi-class softmax with a set of binary logistic decisions. For each true centre-context pair we do one thing: make its sigmoid score go toward one. Then we draw k random words — typically five to twenty — as negative examples and push their sigmoid scores toward zero. The noise distribution P sub n samples words in proportion to frequency to the three-quarters power, which damps very common words. The whole update now touches only k plus one words instead of a million, turning an impossible computation into a fast one, and the resulting vectors are excellent.</aside>
+          <p class="small muted center mt-2"><span lang="ru"><strong>\(O(V)\to O(k)\)</strong> — на пять порядков дешевле. Тяни истинную пару вверх (\(\sigma\to 1\)), толкай \(k\!=\!5\text{–}20\) случайных негативов вниз (\(\sigma\to 0\)); шум \(P_n\propto \mathrm{freq}^{3/4}\). Альтернатива — иерархический softmax (дерево Хаффмана, \(O(\log V)\)).</span><span lang="en"><strong>\(O(V)\to O(k)\)</strong> — about five orders of magnitude cheaper. Push the true pair up (\(\sigma\to 1\)), push \(k\!=\!5\text{–}20\) random negatives down (\(\sigma\to 0\)); noise \(P_n\propto \mathrm{freq}^{3/4}\). The alternative is hierarchical softmax (a Huffman tree, \(O(\log V)\)).</span></p>
+          <aside class="slide-notes">The word2vec punchline, derived as one moving story instead of three static cards. Step zero: the skip-gram objective is a softmax — the probability of context c given centre w is the exponentiated dot-product score over the exponentiated scores of every word in the vocabulary. Step one: the numerator is one cheap dot product, but watch the denominator light up red — it sums over all V words. Step two: that normaliser costs on the order of V, around a million, dot products on every single update, so we literally strike it out. Step three: we replace the whole multi-class softmax with a binary logistic test — make the true pair's sigmoid go toward one, and draw k random negatives, typically five to twenty, sampled in proportion to frequency to the three-quarters power, and push theirs toward zero. Cost drops from order V to order k, five orders of magnitude. Use the arrows to step through the algebra.<aside data-notes-for-step="0">Step 0 — the exact objective: a softmax over the whole vocabulary V.</aside><aside data-notes-for-step="1">Step 1 — the denominator (highlighted) is the costly part: a sum over every word.</aside><aside data-notes-for-step="2">Step 2 — cost ∝ V ≈ a million per update; strike the normaliser out.</aside><aside data-notes-for-step="3">Step 3 — negative sampling: the true pair vs k sampled negatives, O(k) per step.</aside></aside>
         </section>
 
         <!-- ============================================ 18 · E2E · one training step ============================================ -->
-        <section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="18 One training step">
+        <section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="16 One training step">
           <div class="slide-header">
             <h2><span lang="ru">Один шаг обучения, целиком</span><span lang="en">One training step, end to end</span></h2>
             <span class="slide-kicker">E2E &middot; <span lang="ru">центр <code>cat</code>, окно \(m=2\)</span><span lang="en">centre <code>cat</code>, window \(m=2\)</span></span>
@@ -504,7 +484,7 @@
 
         <!-- ============================================ BEAT 4 + 5 · turn-analogy + climb-analogy ============================================ -->
         <!-- ============================================ 19 · DIVIDER · analogy ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="19 Divider · Meaning becomes arithmetic">
+        <section class="slide" data-type="divider" data-screen-label="17 Divider · Meaning becomes arithmetic">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 03</span><span lang="en">Part 03</span></div>
             <h1>Meaning Becomes Arithmetic</h1>
@@ -516,26 +496,29 @@
           <aside class="slide-notes">The reveal. We trained only to predict neighbours, yet something we never asked for fell out: directions in the space turn out to encode relations. The vector that takes you from man to woman is, near enough, the same vector that takes you from king to queen. That means we can add and subtract meanings. king minus man plus woman lands next to queen. The picture is the parallelogram of arrows we are about to read with real numbers.</aside>
         </section>
 
-        <!-- ============================================ 20 · FORMULA · cosine similarity ============================================ -->
-        <section class="slide" data-type="formula" data-screen-label="20 Cosine similarity">
-          <div class="slide-header slide-header--flush">
-            <h2><span lang="ru">Линейка карты: косинусная близость</span><span lang="en">The ruler of the map: cosine similarity</span></h2>
-            <span class="slide-kicker"><span lang="ru">угол, не длина · Сэр Косинус</span><span lang="en">angle, not length · Sir Cosine</span></span>
+        <!-- ============================================ 20 · DEMO · cosine vs angle (T4: course's first live demo) ============================================ -->
+        <section class="slide" data-type="demo" data-screen-label="18 Cosine vs angle">
+          <div class="slide-header">
+            <h2><span lang="ru">Линейка карты: косинус против угла</span><span lang="en">The ruler of the map: cosine vs angle</span></h2>
+            <span class="slide-kicker"><span lang="ru">подвигайте угол \(\theta\) · Сэр Косинус, живьём</span><span lang="en">drag the angle \(\theta\) · Sir Cosine, live</span></span>
           </div>
-          <div class="formula-stage">
-            $$ \cos(\mathbf{a}, \mathbf{b}) = \frac{\mathbf{a}^{\top}\mathbf{b}}{\lVert \mathbf{a}\rVert\,\lVert \mathbf{b}\rVert} \;\in\; [-1, 1] $$
-          </div>
-          <div class="formula-caption">
-            <div class="var-block"><div class="var-symbol">\(\mathbf{a}^{\top}\mathbf{b}\)</div><div class="var-desc"><strong><span lang="ru">скалярное</span><span lang="en">dot</span></strong><br /><span lang="ru">выравнивание</span><span lang="en">alignment</span></div></div>
-            <div class="var-block"><div class="var-symbol">\(\lVert\mathbf{a}\rVert\)</div><div class="var-desc"><strong><span lang="ru">длина</span><span lang="en">length</span></strong><br /><span lang="ru">делим на неё</span><span lang="en">divided out</span></div></div>
-            <div class="var-block"><div class="var-symbol">\(\cos=1\)</div><div class="var-desc"><strong><span lang="ru">одно направление</span><span lang="en">same direction</span></strong><br /><span lang="ru">синонимы</span><span lang="en">synonyms</span></div></div>
-          </div>
-          <p class="small muted center mt-2"><span lang="ru">Косинус смотрит на <strong>угол</strong> между векторами, игнорируя длину. Сэр Косинус из L2 — линейка этой карты: близость по смыслу = малый угол = большой косинус.</span><span lang="en">Cosine looks at the <strong>angle</strong> between vectors, ignoring length. Sir Cosine from L2 is the ruler of this map: semantic nearness = small angle = high cosine.</span></p>
-          <aside class="slide-notes">Before any numbers, fix the ruler. Cosine similarity is the dot product normalised by both lengths, so it measures the angle between two vectors and ignores their magnitudes. That is exactly what we want for meaning: a frequent word and a rare word can be synonyms, and we do not want raw length to dominate. A cosine of one means identical direction, zero means orthogonal — unrelated — and negative means opposite. This is Sir Cosine, the same ruler we met measuring document similarity in Lecture 2; here he rules the entire map of meaning.</aside>
+          <!-- Declarative live demo — engine js/demos.js (function-plot). The curve is y = cos θ over [0, π];
+               the θ slider is x0, lr & iters pinned to 0 so the red marker sits exactly at (θ, cos θ)
+               and the readout reports cos θ. No JS needed. -->
+          <interactive-demo kind="function-plot" algorithm="gradient-descent">
+            <function fn="cos(x)" range="0..3.14159"></function>
+            <param name="x0"    label="угол θ (rad) · angle θ" min="0" max="3.14159" step="0.01" default="0.6"></param>
+            <param name="lr"    label="(fixed) · lr"     min="0" max="0" step="0" default="0"></param>
+            <param name="iters" label="(fixed) · iters"  min="0" max="0" step="0" default="0"></param>
+            <readout name="loss"        label="cos θ"></readout>
+            <readout name="iters_used"  label="steps"></readout>
+          </interactive-demo>
+          <p class="small muted center mt-2"><span lang="ru">\(\cos(\mathbf{a},\mathbf{b})=\dfrac{\mathbf{a}^{\top}\mathbf{b}}{\lVert\mathbf{a}\rVert\,\lVert\mathbf{b}\rVert}\in[-1,1]\) смотрит на <strong>угол</strong>, не длину. \(\theta=0\Rightarrow\cos=1\) (синонимы), \(\theta=\tfrac{\pi}{2}\Rightarrow 0\) (не связаны), \(\theta=\pi\Rightarrow -1\). Сэр Косинус из L2 — линейка этой карты.</span><span lang="en">\(\cos(\mathbf{a},\mathbf{b})=\dfrac{\mathbf{a}^{\top}\mathbf{b}}{\lVert\mathbf{a}\rVert\,\lVert\mathbf{b}\rVert}\in[-1,1]\) reads the <strong>angle</strong>, not the length. \(\theta=0\Rightarrow\cos=1\) (synonyms), \(\theta=\tfrac{\pi}{2}\Rightarrow 0\) (unrelated), \(\theta=\pi\Rightarrow -1\). Sir Cosine from L2 is the ruler of this map.</span></p>
+          <aside class="slide-notes">Make the ruler tactile before any numbers. The curve is cosine of the angle theta as theta opens from zero to pi. Drag the slider: at theta zero the two vectors point the same way and the cosine reads one — that is what synonyms look like. At ninety degrees the cosine is zero — orthogonal, unrelated. At a hundred and eighty degrees it is minus one — opposite. Cosine similarity is the dot product normalised by both lengths, so it sees only the angle and ignores magnitude — exactly what we want for meaning, since a rare word and a frequent word can still be synonyms. This is Sir Cosine, the same ruler from Lecture 2, now ruling the whole map of meaning. The static table of real cosines comes next.</aside>
         </section>
 
         <!-- ============================================ 21 · TABLE · cosine pairs ============================================ -->
-        <section class="slide" data-type="table" data-screen-label="21 Cosine pairs">
+        <section class="slide" data-type="table" data-screen-label="19 Cosine pairs">
           <div class="slide-header">
             <h2><span lang="ru">Косинус кодирует смысл — реальные числа</span><span lang="en">Cosine encodes meaning — real numbers</span></h2>
             <span class="slide-kicker">GloVe 6B 50-d &middot; <span lang="ru">обученные векторы</span><span lang="en">trained vectors</span></span>
@@ -556,7 +539,7 @@
         </section>
 
         <!-- ============================================ 22 · E2E · king - man + woman ============================================ -->
-        <section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="22 King analogy">
+        <section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="20 King analogy">
           <div class="slide-header">
             <h2><span lang="ru">Аналогия как вычитание векторов</span><span lang="en">The analogy as vector subtraction</span></h2>
             <span class="slide-kicker">E2E &middot; \(\text{king} - \text{man} + \text{woman}\)</span>
@@ -594,7 +577,7 @@
         </section>
 
         <!-- ============================================ 23 · WALKTHROUGH · the nearest-neighbour ranking ============================================ -->
-        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="23 Analogy ranking">
+        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="21 Analogy ranking">
           <div class="slide-header">
             <h2><span lang="ru">Рейтинг кандидатов на queen</span><span lang="en">The ranking behind &ldquo;queen&rdquo;</span></h2>
             <span class="slide-kicker"><span lang="ru">cos к \(v_{\text{king}}-v_{\text{man}}+v_{\text{woman}}\)</span><span lang="en">cos to \(v_{\text{king}}-v_{\text{man}}+v_{\text{woman}}\)</span></span>
@@ -630,7 +613,7 @@
         </section>
 
         <!-- ============================================ 24 · TABLE · capital analogy ============================================ -->
-        <section class="slide" data-type="table" data-screen-label="24 Capital analogy">
+        <section class="slide" data-type="table" data-screen-label="22 Capital analogy">
           <div class="slide-header">
             <h2><span lang="ru">Другое направление: столицы</span><span lang="en">A different direction: capitals</span></h2>
             <span class="slide-kicker">\(\text{paris} - \text{france} + \text{italy} \approx \text{rome}\)</span>
@@ -649,7 +632,7 @@
         </section>
 
         <!-- ============================================ 25 · MISCONCEPTION · analogies aren't magic ============================================ -->
-        <section class="slide" data-type="misconception" data-screen-label="25 Analogy caveat">
+        <section class="slide" data-type="misconception" data-screen-label="23 Analogy caveat">
           <div class="slide-header">
             <h2><span lang="ru">Частое заблуждение</span><span lang="en">Common misconception</span></h2>
             <span class="slide-kicker"><span lang="ru">развенчиваем миф</span><span lang="en">bust the myth</span></span>
@@ -665,8 +648,48 @@
           <aside class="slide-notes">A quick honesty beat so we do not oversell. The analogy is a linear regularity in the geometry, not comprehension. Two technical caveats: the standard evaluation explicitly removes the three query words from the candidate set, because without that the nearest vector to king minus man plus woman is frequently king itself — the arithmetic barely moves. And accuracy is much lower on rare words and on relations that are not nicely linear. The cosine of zero point eight six one is a genuine, reproducible fact about the space; treating it as evidence of structure is right, treating it as understanding is not.</aside>
         </section>
 
+        <!-- ============================================ 26 · MISCONCEPTION · when the analogy FAILS (corner case 17) ============================================ -->
+        <section class="slide" data-type="misconception" data-screen-label="24 When the analogy fails">
+          <div class="slide-header">
+            <h2><span lang="ru">Где king&minus;man+woman промахивается</span><span lang="en">Where king&minus;man+woman misses</span></h2>
+            <span class="slide-kicker"><span lang="ru">честная карта провалов</span><span lang="en">an honest map of failures</span></span>
+          </div>
+          <div class="misc-card">
+            <div class="misc-label"><span lang="ru">Что думают студенты</span><span lang="en">What students think</span></div>
+            <p class="misc-statement"><span lang="ru">&laquo;Параллелограмм работает <em>всегда</em> — вычитай и складывай любые слова&raquo;.</span><span lang="en">&ldquo;The parallelogram works <em>every</em> time — just subtract and add any words.&rdquo;</span></p>
+            <button class="misc-reveal-btn" type="button"><span lang="ru">Показать, где ломается</span><span lang="en">Reveal where it breaks</span></button>
+            <div class="misc-truth"><span lang="ru">Аналогия — <strong>линейная</strong> регулярность; она ломается там, где отношение не линейно или плохо представлено:</span><span lang="en">The analogy is a <strong>linear</strong> regularity; it breaks where the relation is not linear or is poorly represented:</span>
+              <ul class="misc-list" style="margin:var(--sp-3) 0 0;padding-left:1.4em;display:grid;gap:6px;">
+                <li><strong><span lang="ru">Редкие слова</span><span lang="en">Rare words</span></strong> — <span lang="ru">мало контекстов \(\Rightarrow\) шумный вектор; \(\texttt{Astana}-\texttt{Kazakhstan}+\texttt{Mongolia}\) часто мимо \(\texttt{Ulaanbaatar}\).</span><span lang="en">few contexts \(\Rightarrow\) a noisy vector; \(\texttt{Astana}-\texttt{Kazakhstan}+\texttt{Mongolia}\) often misses \(\texttt{Ulaanbaatar}\).</span></li>
+                <li><strong><span lang="ru">Многозначность</span><span lang="en">Polysemy</span></strong> — <span lang="ru">один вектор <code>apple</code> смешивает фрукт и компанию; направление «бренда» подгибается.</span><span lang="en">one <code>apple</code> vector blends fruit and company, so a &ldquo;brand&rdquo; direction bends.</span></li>
+                <li><strong><span lang="ru">Нелинейные отношения</span><span lang="en">Non-linear relations</span></strong> — <span lang="ru">сравнительные/превосходные степени, морфология (\(\texttt{good}\!\to\!\texttt{best}\)) не лежат на одном векторе.</span><span lang="en">comparatives/superlatives and morphology (\(\texttt{good}\!\to\!\texttt{best}\)) do not sit on one vector.</span></li>
+                <li><strong><span lang="ru">Утечка входных слов</span><span lang="en">Input leakage</span></strong> — <span lang="ru">не исключишь три входных слова \(\Rightarrow\) ближайшим к \(v_{\text{king}}-v_{\text{man}}+v_{\text{woman}}\) оказывается сам</span><span lang="en">forget to exclude the three inputs \(\Rightarrow\) the nearest vector to \(v_{\text{king}}-v_{\text{man}}+v_{\text{woman}}\) is</span> <code>king</code><span lang="en"> itself</span>.</li>
+              </ul>
+              <p class="misc-anchor"><strong><span lang="ru">Урок.</span><span lang="en">Lesson.</span></strong> <span lang="ru">Bolukbasi и др. (2016) отчитывают \(\sim\!75\%\) на семантических аналогиях Google — впечатляюще, но не «всегда».</span><span lang="en">Reported analogy accuracy is only \(\sim\!75\%\) on Google's semantic set (Bolukbasi et&nbsp;al. 2016) — impressive, not infallible.</span></p>
+            </div>
+          </div>
+          <aside class="slide-notes">The honest counterpoint to the headline result. Students see king minus man plus woman land on queen and conclude the parallelogram is universal. It is not — it is a linear regularity, so it breaks wherever the relation is not linear or the vectors are poorly estimated. Four failure modes. One: rare words have few contexts and therefore noisy vectors, so a capital analogy on an obscure country often misses. Two: polysemy — apple is one vector blending the fruit and the company, so a clean brand direction does not exist. Three: genuinely non-linear relations like comparatives, superlatives, and morphology do not lie along a single offset vector. Four: the practical leak — if you forget to exclude the three input words, the nearest vector is frequently one of them, usually king itself, and the arithmetic appears to do nothing. Reported accuracy on the standard Google analogy set is around seventy-five percent for semantics — impressive evidence of structure, not proof of understanding.</aside>
+        </section>
+
+        <!-- ============================================ 27 · DEFINITION · bias in embeddings (PLAN item 4 · ethics hook) ============================================ -->
+        <section class="slide" data-type="definition" data-screen-label="25 Bias in embeddings">
+          <div class="slide-header">
+            <h2><span lang="ru">Та же геометрия кодирует <em>социальную</em> предвзятость</span><span lang="en">The same geometry encodes <em>social</em> bias</span></h2>
+            <span class="slide-kicker"><span lang="ru">вред &middot; и направление дебиасинга</span><span lang="en">the harm &middot; and a debiasing direction</span></span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag"><span lang="ru">Этика</span><span lang="en">Ethics</span></span>
+            <div class="def-term"><span lang="ru">Предвзятость эмбеддингов</span><span lang="en">Embedding bias</span><span class="term-en">analogies inherit the corpus's stereotypes</span></div>
+            <div class="def-body">
+              <p><span lang="ru">Тот же параллелограмм, что даёт \(\texttt{king}-\texttt{man}+\texttt{woman}\approx\texttt{queen}\), также выдаёт</span><span lang="en">The same parallelogram that gives \(\texttt{king}-\texttt{man}+\texttt{woman}\approx\texttt{queen}\) also returns</span> <code>man : computer&nbsp;programmer :: woman : homemaker</code> <span lang="ru">(Bolukbasi и др., 2016). Эмбеддинги учат корпус — а корпус несёт стереотипы.</span><span lang="en">(Bolukbasi et&nbsp;al., 2016). Embeddings learn the corpus — and the corpus carries stereotypes.</span></p>
+              <p class="small muted"><span lang="ru"><strong>Вред:</strong> модель в найме/поиске тиражирует и усиливает гендерные/расовые шаблоны. <strong>Дебиасинг:</strong> оценить «гендерное направление» \(g\) (напр. \(v_{\text{she}}-v_{\text{he}}\)) и <em>спроецировать его прочь</em> из нейтральных слов: \(\;v \leftarrow v - (v^{\top}\hat{g})\,\hat{g}\). Помогает, но не стирает скрытую предвзятость (Gonen &amp; Goldberg, 2019).</span><span lang="en"><strong>Harm:</strong> a hiring or search model trained on this reproduces and amplifies gender/race patterns. <strong>Debiasing:</strong> estimate a &ldquo;gender direction&rdquo; \(g\) (e.g. \(v_{\text{she}}-v_{\text{he}}\)) and <em>project it out</em> of neutral words: \(\;v \leftarrow v - (v^{\top}\hat{g})\,\hat{g}\). It helps but does not erase residual bias (Gonen &amp; Goldberg, 2019).</span></p>
+            </div>
+          </div>
+          <aside class="slide-notes">An ethics beat that follows naturally from the analogy. The very linear structure we celebrated is value-neutral about what relations it encodes — so a corpus full of human stereotypes produces an embedding full of them. Bolukbasi and colleagues in 2016 showed the same arithmetic that maps king to queen also completes man is to computer programmer as woman is to homemaker. The harm is concrete: any downstream hiring, ranking, or search model built on these vectors will reproduce and even amplify those patterns. One mitigation is geometric: estimate a gender direction g — for instance the difference between she and he — normalise it, and for every word that should be gender-neutral subtract its projection onto g, v minus v-dot-g-hat times g-hat. This visibly removes the obvious analogies, but Gonen and Goldberg in 2019 showed the bias largely survives in the surrounding geometry, so debiasing is a partial fix, not a solution. The lesson: a map of meaning is also a map of whatever was in the text.</aside>
+        </section>
+
         <!-- ============================================ BEAT 6 · turn-glove ============================================ -->
-        <!-- ============================================ 26 · DIVIDER · GloVe ============================================ -->
+        <!-- ============================================ 28 · DIVIDER · GloVe ============================================ -->
         <section class="slide" data-type="divider" data-screen-label="26 Divider · GloVe">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 04</span><span lang="en">Part 04</span></div>
@@ -769,22 +792,44 @@
           <aside class="slide-notes">Introduce PCA conceptually before the algebra. Principal Component Analysis looks for the orthogonal directions along which the data varies the most, calls them principal components, and projects everything onto the first few. The shadow analogy is the one to hold: a three-dimensional object casts a two-dimensional shadow, and the informativeness of that shadow depends entirely on the angle of the light. PCA chooses the angle that throws the most faithful shadow — the projection that preserves the most variance. It is linear, fast, and the workhorse first look at any high-dimensional dataset.</aside>
         </section>
 
-        <!-- ============================================ 32 · FORMULA · covariance + eigen ============================================ -->
-        <section class="slide" data-type="formula" data-screen-label="32 PCA math">
-          <div class="slide-header slide-header--flush">
-            <h2><span lang="ru">PCA: ковариация &rarr; собственные векторы</span><span lang="en">PCA: covariance &rarr; eigenvectors</span></h2>
-            <span class="slide-kicker"><span lang="ru">центрировать · диагонализовать · проецировать</span><span lang="en">centre · diagonalise · project</span></span>
+        <!-- ============================================ 32 · DERIVATION · PCA causal chain (T1: covariance → eigen → project → variance) ============================================ -->
+        <section class="slide" data-type="derivation" data-screen-label="32 PCA math">
+          <div class="slide-header">
+            <h2><span lang="ru">PCA: ковариация &rarr; собственные векторы &rarr; проекция</span><span lang="en">PCA: covariance &rarr; eigenvectors &rarr; projection</span></h2>
+            <span class="slide-kicker"><span lang="ru">каждый объект строится из предыдущего</span><span lang="en">each object is built from the previous one</span></span>
           </div>
-          <div class="formula-stage">
-            $$ C = \tfrac{1}{n}X^{\top}X, \qquad C\,\mathbf{u}_k = \lambda_k\,\mathbf{u}_k, \qquad z = U_d^{\top}\,x $$
+          <div class="deriv-stage">
+            <div class="deriv-form">X</div>
           </div>
-          <div class="formula-caption">
-            <div class="var-block"><div class="var-symbol">\(C\)</div><div class="var-desc"><strong><span lang="ru">ковариация</span><span lang="en">covariance</span></strong><br /><span lang="ru">по центрированным \(X\)</span><span lang="en">of centred \(X\)</span></div></div>
-            <div class="var-block"><div class="var-symbol">\(\mathbf{u}_k\)</div><div class="var-desc"><strong><span lang="ru">компонента</span><span lang="en">component</span></strong><br /><span lang="ru">собственный вектор</span><span lang="en">eigenvector</span></div></div>
-            <div class="var-block"><div class="var-symbol">\(\lambda_k\)</div><div class="var-desc"><strong><span lang="ru">дисперсия</span><span lang="en">variance</span></strong><br /><span lang="ru">вдоль \(\mathbf{u}_k\)</span><span lang="en">along \(\mathbf{u}_k\)</span></div></div>
+          <div class="deriv-step-caption"></div>
+          <!-- Hidden steps — FLIP-morphed by lab.js; Unicode sub/superscripts keep the morph clean (no KaTeX re-typeset on innerHTML swap). -->
+          <div class="deriv-step" data-step="0" data-caption="Центрируем данные: вычитаем среднее, начало координат в центре облака · centre the data — subtract the mean so the origin sits at the cloud's centre" hidden>
+            <div class="deriv-content">
+              <span class="deriv-term" data-id="X">X</span>&nbsp;<span class="deriv-term" data-id="ctr">←&nbsp;X&nbsp;−&nbsp;μ</span>
+            </div>
           </div>
-          <p class="small muted center mt-2"><span lang="ru">Центрируем данные, считаем ковариацию \(C\), берём её собственные векторы (по убыванию \(\lambda\)) и проецируем на первые \(d\). Доля сохранённой дисперсии — \(\lambda_k / \sum_j \lambda_j\). На практике это делают через SVD матрицы \(X\).</span><span lang="en">Centre the data, form the covariance \(C\), take its eigenvectors (by descending \(\lambda\)), project onto the first \(d\). The variance kept by component \(k\) is \(\lambda_k / \sum_j \lambda_j\). In practice via the SVD of \(X\).</span></p>
-          <aside class="slide-notes">The algorithm in three moves. First centre the data so the mean is at the origin. Second form the covariance matrix C, equal to one over n times X transpose X. Its eigenvectors are the principal components and each eigenvalue lambda sub k is the variance captured along that direction. Third, keep the d eigenvectors with the largest eigenvalues and project every point onto them. The fraction of variance a component explains is its eigenvalue over the sum of all eigenvalues — the number we report next. In practice nobody forms C explicitly; the singular value decomposition of X gives the same components more stably.</aside>
+          <div class="deriv-step" data-step="1" data-caption="Ковариация центрированных X · the covariance OF the centred X" hidden>
+            <div class="deriv-content">
+              <span class="deriv-term is-new" data-id="C">C</span>&nbsp;<span class="deriv-term" data-id="eq1">=&nbsp;</span><span class="deriv-term" data-id="cov">(1/n) X<sup>⊤</sup>X</span>
+            </div>
+          </div>
+          <div class="deriv-step" data-step="2" data-caption="Диагонализуем: собственные векторы C — это главные оси · diagonalise — the eigenvectors OF C are the principal axes" hidden>
+            <div class="deriv-content">
+              <span class="deriv-term" data-id="C">C</span>&nbsp;<span class="deriv-term is-new" data-id="uk">u<sub>k</sub></span>&nbsp;<span class="deriv-term" data-id="eq2">=&nbsp;</span><span class="deriv-term is-new" data-id="lam">λ<sub>k</sub></span>&nbsp;<span class="deriv-term" data-id="uk2">u<sub>k</sub></span>
+            </div>
+          </div>
+          <div class="deriv-step" data-step="3" data-caption="Проецируем на первые d собственных векторов · project ONTO the top-d eigenvectors" hidden>
+            <div class="deriv-content">
+              <span class="deriv-term is-new" data-id="z">z</span>&nbsp;<span class="deriv-term" data-id="eq3">=&nbsp;</span><span class="deriv-term is-new" data-id="Ud">U<sub>d</sub><sup>⊤</sup></span>&nbsp;<span class="deriv-term" data-id="x">x</span>
+            </div>
+          </div>
+          <div class="deriv-step" data-step="4" data-caption="Доля сохранённой дисперсии: λ_k / Σλ_j · variance kept by each axis: λ_k / Σλ_j" hidden>
+            <div class="deriv-content">
+              <span class="deriv-term is-highlight" data-id="frac">λ<sub>k</sub> / Σ<sub>j</sub> λ<sub>j</sub></span>&nbsp;<span class="deriv-term is-new" data-id="vals">→ PC1 19.6% + PC2 18.1% = 37.7%</span>
+            </div>
+          </div>
+          <p class="small muted center mt-2"><span lang="ru">PCA <em>каузален</em>: ковариация — из центрированных \(X\); собственные векторы — из \(C\); проекция — на эти векторы. На практике то же даёт SVD матрицы \(X\) (устойчивее). На наших словах две оси держат <strong>37.7%</strong> дисперсии.</span><span lang="en">PCA is <em>causal</em>: covariance from the centred \(X\); eigenvectors from \(C\); projection onto those vectors. In practice the SVD of \(X\) gives the same axes more stably. On our words the top two axes keep <strong>37.7%</strong> of the variance.</span></p>
+          <aside class="slide-notes">PCA shown as a causal chain, one object built from the last, rather than three facts at once. Step zero: centre the data so the origin sits at the mean of the cloud. Step one: form the covariance matrix C, one over n times X transpose X — the covariance OF the centred data. Step two: diagonalise — the eigenvectors of C are the principal axes and each eigenvalue lambda sub k is the variance along that axis; watch u sub k and lambda sub k appear OF the covariance. Step three: project each point onto the top d eigenvectors, z equals U sub d transpose x. Step four: the fraction of variance each axis keeps is its eigenvalue over the sum of all eigenvalues — on our corpus principal component one keeps nineteen point six percent and component two eighteen point one, thirty-seven point seven percent together, the number the scree plot will confirm. In practice nobody forms C explicitly; the SVD of X gives the same components more stably. Step through with the arrows.<aside data-notes-for-step="0">Step 0 — centre X (subtract the mean).</aside><aside data-notes-for-step="1">Step 1 — covariance C of the centred X.</aside><aside data-notes-for-step="2">Step 2 — eigenvectors u_k of C are the principal axes; λ_k is the variance.</aside><aside data-notes-for-step="3">Step 3 — project onto the top-d eigenvectors.</aside><aside data-notes-for-step="4">Step 4 — variance kept = λ_k / Σλ_j → 19.6% + 18.1% = 37.7%.</aside></aside>
         </section>
 
         <!-- ============================================ 33 · WALKTHROUGH · PCA on our words ============================================ -->
@@ -1058,9 +1103,64 @@
           <aside class="slide-notes">The Gremlin callback, and the honest limit. Big win first: the lexical gap that beat BM25 is largely closed. Couch and sofa now have nearly the same vector, because they share contexts, so a query for one retrieves the other. The Gremlin's wall from Lecture 3 has cracked — synonyms land together. But do not cage him yet. Every word still gets exactly one vector, so a polysemous word like bank — river bank versus financial bank — is forced into a single point that blends both senses. The fix is to make a word's vector depend on its sentence, which is contextual embeddings, and that is precisely the climb of Lecture 6. Cornered, not caged.</aside>
         </section>
 
+        <!-- ============================================ BEAT 13b · cross-domain transfer (PLAN §D · the headline cross-domain ask) ============================================ -->
+        <!-- ============================================ 42 · DIVIDER · the same trick everywhere ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="42 Divider · the same trick everywhere">
+          <div class="divider-content">
+            <div class="divider-num"><span lang="ru">Интерлюдия</span><span lang="en">Interlude</span></div>
+            <h1>The Same Trick Everywhere</h1>
+            <p class="divider-sub"><em><span lang="ru">«Слова, которые встречаются вместе, близки» — это не про слова.</span><span lang="en">&ldquo;Things that occur together sit near&rdquo; — this was never about words.</span></em> <span lang="ru">Дай любой области <strong>последовательность токенов</strong> — и skip-gram строит карту.</span><span lang="en">Give any field a <strong>sequence of tokens</strong> and skip-gram draws its map.</span></p>
+          </div>
+          <aside class="slide-notes">A short interlude before the payoff, and the headline transfer of the whole lecture. Nothing in word2vec knew that its tokens were words. The only assumption was a sequence in which co-occurrence carries meaning. The moment any field can produce such a sequence — nodes visited on a graph walk, products bought in a session, amino acids in a protein, time-windows of a brain signal — the exact same skip-gram objective learns an embedding whose geometry is searchable. The next slide is the table of where this trick reappears, with real systems and references.</aside>
+        </section>
+
+        <!-- ============================================ 43 · TABLE · cross-domain transfer table ============================================ -->
+        <section class="slide" data-type="table" data-screen-label="43 Embeddings everywhere">
+          <div class="slide-header">
+            <h2><span lang="ru">Один объектив, много областей</span><span lang="en">One trick, many fields</span></h2>
+            <span class="slide-kicker"><span lang="ru">последовательность &rarr; токен &rarr; та же карта</span><span lang="en">a sequence &rarr; a token &rarr; the same map</span></span>
+          </div>
+          <table class="cmp-table">
+            <thead><tr>
+              <th><span lang="ru">область</span><span lang="en">field</span></th>
+              <th><span lang="ru">«предложение»</span><span lang="en">the &ldquo;sentence&rdquo;</span></th>
+              <th><span lang="ru">«токен»</span><span lang="en">the &ldquo;token&rdquo;</span></th>
+              <th><span lang="ru">система · что заменяет</span><span lang="en">system · what it replaces</span></th>
+            </tr></thead>
+            <tbody>
+              <tr>
+                <td><strong><span lang="ru">Графы</span><span lang="en">Graphs</span></strong></td>
+                <td><span lang="ru">случайное блуждание</span><span lang="en">a random walk</span></td>
+                <td><span lang="ru">посещённый узел</span><span lang="en">a visited node</span></td>
+                <td class="cell-good"><a href="https://arxiv.org/abs/1607.00653" target="_blank" rel="noopener">node2vec</a> / <a href="https://arxiv.org/abs/1403.6652" target="_blank" rel="noopener">DeepWalk</a> — <span lang="ru">skip-gram по путям</span><span lang="en">skip-gram on walks</span></td>
+              </tr>
+              <tr>
+                <td><strong><span lang="ru">Рекомендации</span><span lang="en">RecSys</span></strong></td>
+                <td><span lang="ru">сессия / корзина</span><span lang="en">a session / basket</span></td>
+                <td><span lang="ru">товар</span><span lang="en">an item</span></td>
+                <td class="cell-good"><a href="https://arxiv.org/abs/1603.04259" target="_blank" rel="noopener">item2vec</a> / prod2vec — <span lang="ru">«похожие товары»</span><span lang="en">&ldquo;similar items&rdquo;</span></td>
+              </tr>
+              <tr>
+                <td><strong><span lang="ru">Белки</span><span lang="en">Proteins</span></strong></td>
+                <td><span lang="ru">аминокислотная цепь</span><span lang="en">an amino-acid chain</span></td>
+                <td><span lang="ru">остаток / k-мер</span><span lang="en">a residue / k-mer</span></td>
+                <td class="cell-good"><a href="https://www.pnas.org/doi/10.1073/pnas.2016239118" target="_blank" rel="noopener">ESM</a> / ProtBERT — <span lang="ru">поиск вместо BLAST</span><span lang="en">search replaces BLAST</span></td>
+              </tr>
+              <tr>
+                <td><strong><span lang="ru">Биосигналы</span><span lang="en">Biosignals</span></strong></td>
+                <td><span lang="ru">запись EEG / ДНК</span><span lang="en">an EEG trace / DNA</span></td>
+                <td><span lang="ru">временно́е окно / \(k\)-мер</span><span lang="en">a time-window / \(k\)-mer</span></td>
+                <td class="cell-good"><a href="https://academic.oup.com/bioinformatics/article/37/15/2112/6128680" target="_blank" rel="noopener">DNABERT</a> / <span lang="ru">EEG-токены</span><span lang="en">EEG tokens</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="small muted center mt-2"><span lang="ru">Рецепт неизменен: <strong>последовательность</strong>, в которой соседство несёт смысл, \(\Rightarrow\) тот же skip-gram \(\Rightarrow\) карта, по которой ищут косинусом. «Всё — последовательность токенов в выученном пространстве».</span><span lang="en">The recipe never changes: a <strong>sequence</strong> whose adjacency carries meaning \(\Rightarrow\) the same skip-gram \(\Rightarrow\) a map you search with cosine. &ldquo;Everything is a sequence of tokens in a learned space.&rdquo;</span></p>
+          <aside class="slide-notes">The cross-domain table — the headline of this lecture's second half. Row one, graphs: node2vec and DeepWalk run random walks over a network, treat each walk as a sentence and each visited node as a word, and feed that straight into skip-gram; the result is a node embedding where neighbours in the graph land near each other. Row two, recommendations: item2vec and prod2vec treat a shopping session or basket as the sentence and each product as the token, so "customers who bought this also bought that" becomes cosine nearness. Row three, proteins: language models like ESM and ProtBERT read an amino-acid chain as the sentence and each residue as the token, and the embedding lets you search for functionally similar proteins by vector, increasingly replacing alignment tools like BLAST. Row four, biosignals: an EEG trace or a DNA sequence is cut into time-windows or k-mers as tokens — DNABERT does exactly this for genomics — and the positional grid we will meet in Lecture 6 is already a time axis. One recipe, many fields: any sequence whose adjacency carries meaning yields a searchable map.</aside>
+        </section>
+
         <!-- ============================================ BEAT 14 · payoff-map-drawn ============================================ -->
-        <!-- ============================================ 42 · DIVIDER · map drawn ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="42 Divider · the map is drawn">
+        <!-- ============================================ 44 · DIVIDER · map drawn ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="44 Divider · the map is drawn">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Развязка</span><span lang="en">Payoff</span></div>
             <h1>The Map of Meaning is Drawn</h1>
@@ -1073,7 +1173,7 @@
         </section>
 
         <!-- ============================================ 43 · QUOTE · bridge to L6 ============================================ -->
-        <section class="slide" data-type="quote" data-screen-label="43 Bridge">
+        <section class="slide" data-type="quote" data-screen-label="45 Bridge">
           <div>
             <div class="quote-mark">&ldquo;</div>
             <blockquote><span lang="ru">Карта смысла нарисована.<br />Но одно слово всё ещё значит две вещи — дайте карте <em>контекст</em>.</span><span lang="en">The Map of Meaning is drawn.<br />But one word still means two things — give the map <em>context</em>.</span></blockquote>
@@ -1083,7 +1183,7 @@
         </section>
 
         <!-- ============================================ 44 · FINAL ============================================ -->
-        <section class="slide" data-type="final" data-screen-label="44 Final">
+        <section class="slide" data-type="final" data-screen-label="46 Final">
           <div class="final-body">
             <h1 style="font-size:96px; line-height:1.05; margin-bottom:var(--sp-4);"><span lang="ru">Слова получили координаты.<br />Что значит <em>близко</em>?</span><span lang="en">Words have coordinates now.<br />What does <em>near</em> mean?</span></h1>
             <p class="final-sub" style="margin-bottom:var(--sp-5);"><strong><span lang="ru">Вопросы?</span><span lang="en">Questions?</span></strong> &middot; <span lang="ru">Слайды, домашка и запись — по QR ниже.</span><span lang="en">Slides, homework &amp; recording via the QR below.</span></p>
@@ -1101,7 +1201,7 @@
         </section>
 
         <!-- ============================================ 45 · REFERENCES (1/2) ============================================ -->
-        <section class="slide" data-type="refs" data-screen-label="45 References · embeddings">
+        <section class="slide" data-type="refs" data-screen-label="47 References · embeddings">
           <div class="slide-header">
             <h2><span lang="ru">Источники и дополнительное чтение</span><span lang="en">References &amp; further reading</span> <span style="font-weight:400;opacity:.6">(1 / 2)</span></h2>
             <span class="slide-kicker"><span lang="ru">Приложение · эмбеддинги</span><span lang="en">Appendix · the embeddings lineage</span></span>
@@ -1116,7 +1216,7 @@
         </section>
 
         <!-- ============================================ 46 · REFERENCES (2/2) ============================================ -->
-        <section class="slide" data-type="refs" data-screen-label="46 References · dimred">
+        <section class="slide" data-type="refs" data-screen-label="48 References · dimred">
           <div class="slide-header">
             <h2><span lang="ru">Источники и дополнительное чтение</span><span lang="en">References &amp; further reading</span> <span style="font-weight:400;opacity:.6">(2 / 2)</span></h2>
             <span class="slide-kicker"><span lang="ru">Приложение · снижение размерности</span><span lang="en">Appendix · dimensionality reduction</span></span>
