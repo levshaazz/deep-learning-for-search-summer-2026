@@ -117,6 +117,12 @@ export default {
       },
     },
     { id: 'climb-attention', kind: 'scrolly', widget: 'attention-e2e', data: 'l6-attention' },
+    // Geometry companion to climb-attention: attention as a weighted pull of the value points; the
+    // query "cat" lands at the attention-weighted average — the same output row as the numbers above
+    // (blended4d ≈ l6-attention output[1], within tolerance). Book-only (no deck slide). Reads
+    // data/l6-attention-geo.json (which traces back to l6-attention.json; the manifest declares BOTH
+    // keys so both files resolve in DATA[], but the widget reads the single l6-attention-geo object).
+    { id: 'climb-attention-geo', kind: 'scrolly', widget: 'attention-geometry', data: 'l6-attention-geo' },
     {
       id: 'depth-cost-wall', kind: 'prose',
       heading: { en: 'The price of listening to everyone', ru: 'Цена слушать всех', tt: 'Барысын тыңлауның бәясе' },
@@ -331,6 +337,14 @@ export default {
       },
     },
     { id: 'climb-block', kind: 'scrolly', widget: 'transformer-block' },
+    // Geometric counterpart to the labelled-box transformer-block above: each sublayer reshapes a
+    // small 2-D token cloud (attention contracts → Add&Norm rescales to a unit ring → FFN warps each
+    // point → Add&Norm). Book-only. Reads data/l6-block-geo.json.
+    { id: 'climb-block-geo', kind: 'scrolly', widget: 'block-geometry', data: 'l6-block-geo' },
+    // What LayerNorm DOES to one feature vector: recenter (mean 5→0) → unit-scale (var 7.5→1, onto the
+    // sphere) → learned γ·+β. Sits just before the modern-block prose that discusses Add&Norm.
+    // Book-only. Reads data/l6-layernorm.json.
+    { id: 'climb-layernorm', kind: 'scrolly', widget: 'layernorm-viz', data: 'l6-layernorm' },
     {
       id: 'depth-block-modern', kind: 'prose',
       heading: { en: 'Why a modern block looks different', ru: 'Почему современный блок выглядит иначе', tt: 'Ни өчен заманча блок башкача күренә' },
@@ -363,6 +377,11 @@ export default {
         ],
       },
     },
+    // The residual highway made literal: a running representation x that each sublayer ADDS to (never
+    // replaces) — x → x+attn(x) → Norm → x+ffn(x) → Norm; the two LayerNorm stages both renorm to
+    // √6 ≈ 2.4495. Sits right after the pre-norm/residual-highway prose. Book-only. Reads
+    // data/l6-residual.json.
+    { id: 'depth-residual-viz', kind: 'scrolly', widget: 'residual-stream', data: 'l6-residual' },
     {
       id: 'turn-contextual-payoff', kind: 'prose',
       heading: { en: 'From tokens to a sentence vector', ru: 'От токенов к вектору предложения', tt: 'Токеннардан җөмлә векторына' },

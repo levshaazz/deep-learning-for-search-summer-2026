@@ -1,0 +1,55 @@
+/* skipgram-net — themed via tokens (light + dark). One SVG, a left→right pipeline:
+   vocab labels → one-hot column → the 8×4 embedding matrix W (cells tinted by value, king's row
+   ringed) → the looked-up hidden row → logit bars → softmax probability bars. Cell tints use
+   color-mix on the brand tokens so they theme automatically. The SVG scales to 100% width
+   (height auto) so it never overflows a narrow (390px) scrolly column. */
+.sg-svg { width: 100%; height: auto; display: block; }
+
+/* vocab row labels (left edge) */
+.sg-vocab { font: 600 12px var(--font-mono, monospace); fill: var(--ink-2, #3D434E); }
+.sg-vocab-centre { font-weight: 800; fill: var(--warm-ink, #B4521F); }
+
+/* column headings */
+.sg-colhead { font: 700 11px var(--font-mono, monospace); fill: var(--ink-2, #3D434E); }
+
+/* one-hot input column */
+.sg-onehot { fill: var(--bg-inset, #EBE7DA); stroke: var(--rule, #DDD7C7); stroke-width: 1; }
+.sg-onehot-on { fill: var(--warm-ink, #B4521F); stroke: var(--warm-ink, #B4521F); }
+.sg-onehot-v { font: 700 11px var(--font-mono, monospace); fill: var(--ink-3, #6B7280); }
+.sg-onehot-v-on { fill: var(--bg-card, #fff); }
+
+/* the embedding matrix W (fill set inline per value via color-mix) */
+.sg-wcell { stroke: var(--rule, #DDD7C7); stroke-width: 0.75; }
+.sg-wcell-sel { stroke: var(--warm-ink, #B4521F); stroke-width: 1.5; }
+.sg-wval { font: 600 9px var(--font-mono, monospace); fill: var(--ink, #14181F); }
+.sg-rowring { stroke: var(--warm-ink, #B4521F); stroke-width: 2; }
+
+/* the lookup arrow (one-hot → selected row) */
+.sg-arrow { stroke: var(--warm-ink, #B4521F); stroke-width: 2; }
+.sg-arrhead { fill: var(--warm-ink, #B4521F); }
+.sg-tag { font: 700 9px var(--font-mono, monospace); fill: var(--warm-ink, #B4521F); }
+
+/* the hidden vector (looked-up row) */
+.sg-hcell { stroke: var(--accent, #2A6FDB); stroke-width: 1.25; }
+
+/* logit / probability bars */
+.sg-bartrack { fill: var(--bg-inset, #EBE7DA); }
+.sg-barfill  { transition: width var(--dur, 220ms) var(--ease, ease); }
+.sg-bar-pos  { fill: var(--accent, #2A6FDB); }
+.sg-bar-neg  { fill: var(--c-red, #D7522C); }
+.sg-bar-lo   { fill: var(--ink-4, #9CA3AF); }
+.sg-bar-top  { fill: var(--c-green, #3A8A5C); }
+.sg-bar-runner { fill: var(--c-cyan, #1AA7B5); }
+.sg-barval   { font: 700 10px var(--font-mono, monospace); fill: var(--ink, #14181F); }
+
+/* the top-context / runner-up tags */
+.sg-toptag { font: 700 10px var(--font-mono, monospace); }
+.sg-toptag-top    { fill: var(--c-green-ink, #1F6B40); }
+.sg-toptag-runner { fill: var(--c-cyan, #1AA7B5); }
+
+/* once the lookup fires (step >= 1) the one-hot fades to a quiet selector. */
+.sg-svg.sg-lookup .sg-onehot { opacity: 0.55; }
+.sg-svg.sg-lookup .sg-onehot-on { opacity: 1; }
+
+.sg-svg .is-hidden { opacity: 0; }
+.sg-svg :not(.is-hidden) { transition: opacity var(--dur, 220ms) var(--ease, ease); }
