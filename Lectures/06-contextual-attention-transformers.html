@@ -202,7 +202,7 @@
               <span class="toc-num">03</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Scaled dot-product attention</span><span lang="en">Scaled dot-product attention</span></span><span class="toc-sub">\(\mathrm{softmax}(QK^\top/\sqrt{d_k})V\) &middot; exact</span></span>
             </a>
-            <a class="toc-item" href="#/22">
+            <a class="toc-item" href="#/23">
               <span class="toc-num">04</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Много голов &middot; позиция</span><span lang="en">Many heads &amp; position</span></span><span class="toc-sub">multi-head &middot; sinusoidal PE</span></span>
             </a>
@@ -214,7 +214,7 @@
               <span class="toc-num">06</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Обучить пространство для поиска</span><span lang="en">Train the space for search</span></span><span class="toc-sub">InfoNCE &middot; triplet &middot; in-batch negatives</span></span>
             </a>
-            <a class="toc-item" href="#/49">
+            <a class="toc-item" href="#/48">
               <span class="toc-num">07</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Ловушка и развязка</span><span lang="en">The trap &amp; the payoff</span></span><span class="toc-sub">anisotropy &middot; the Gremlin caged &middot; bridge to L7</span></span>
             </a>
@@ -484,26 +484,71 @@
           <aside class="slide-notes">Look at the whole attention matrix, because the structure is the point. Each row is one token's distribution over who it heeds, and each row sums to one. The row for the is zero point four two two, zero point one five five, zero point four two two — fairly spread. The row for cat is zero point zero nine, zero point six six five, zero point two four five — the sharpest of the three, cat strongly attending to itself. The row for sat is zero point two one two, zero point two one two, zero point five seven six. These are the exact rows of the weights matrix in the data file. Multiplying this matrix A by the value matrix V produces all three contextual output vectors at once. Attention is just this matrix, read as who heeds whom.</aside>
         </section>
 
-        <!-- ============================================ 19 · MISCONCEPTION · why divide by root d_k ============================================ -->
-        <section class="slide" data-type="misconception" data-screen-label="19 Why divide by root d_k">
+        <!-- ============================================ 19 · THEOREM · why divide by root d_k (T6: misconception → variance proposition + proof) ============================================ -->
+        <section class="slide" data-type="theorem" data-screen-label="19 The root d_k variance theorem">
           <div class="slide-header">
-            <h2><span lang="ru">Зачем делить на \(\sqrt{d_k}\)?</span><span lang="en">Why divide by \(\sqrt{d_k}\)?</span></h2>
-            <span class="slide-kicker"><span lang="ru">не косметика — спасает градиенты</span><span lang="en">not cosmetic — it saves gradients</span></span>
+            <h2><span lang="ru">Почему \(\sqrt{d_k}\): дисперсия скоров растёт \(\propto d_k\)</span><span lang="en">Why \(\sqrt{d_k}\): score variance grows \(\propto d_k\)</span></h2>
+            <span class="slide-kicker"><span lang="ru">не косметика — это предложение с доказательством</span><span lang="en">not cosmetic — a proposition with a proof</span></span>
           </div>
-          <div class="misc-card">
-            <div class="misc-label"><span lang="ru">Что думают студенты</span><span lang="en">What students think</span></div>
-            <p class="misc-statement"><span lang="ru">&laquo;Деление на \(\sqrt{d_k}\) — просто нормировка для красоты&raquo;.</span><span lang="en">&ldquo;Dividing by \(\sqrt{d_k}\) is just cosmetic normalisation.&rdquo;</span></p>
-            <button class="misc-reveal-btn" type="button"><span lang="ru">Показать правду</span><span lang="en">Reveal truth</span></button>
-            <div class="misc-truth"><span lang="ru">Нет. Скалярное произведение двух случайных векторов размерности \(d_k\) имеет дисперсию \(\propto d_k\): при больших \(d_k\) скоры огромны, softmax <strong>насыщается</strong> (один вес \(\to 1\), остальные \(\to 0\)), а его градиент \(\to 0\) — обучение глохнет. Деление на \(\sqrt{d_k}\) возвращает дисперсию к \(\approx 1\).</span><span lang="en">No. The dot product of two random \(d_k\)-vectors has variance \(\propto d_k\): for large \(d_k\) the scores are huge, softmax <strong>saturates</strong> (one weight \(\to 1\), the rest \(\to 0\)), and its gradient \(\to 0\) — training stalls. Dividing by \(\sqrt{d_k}\) rescales the variance back to \(\approx 1\).</span>
-              <p class="misc-anchor"><strong><span lang="ru">Урок.</span><span lang="en">Lesson.</span></strong> <span lang="ru">\(\sqrt{d_k}\) держит скоры в зоне, где softmax «мягкий» и градиент течёт. Здесь \(d_k=4\Rightarrow\sqrt{d_k}=2.0\).</span><span lang="en">\(\sqrt{d_k}\) keeps scores in the range where softmax stays soft and gradients flow. Here \(d_k=4\Rightarrow\sqrt{d_k}=2.0\).</span></p>
+
+          <div class="thm-card" data-kind="theorem">
+            <div class="thm-label">
+              <span lang="ru">Предложение · масштаб \(1/\sqrt{d_k}\)</span>
+              <span lang="en">Proposition · the \(1/\sqrt{d_k}\) scale</span>
+            </div>
+            <div class="thm-statement">
+              <span lang="ru">Пусть координаты \(q,k\in\mathbb{R}^{d_k}\) независимы, со средним \(0\) и дисперсией \(1\). Тогда для \(s=q^{\top}k\): \(\mathbb{E}[s]=0\) и \(\operatorname{Var}(s)=d_k\). Деление на \(\sqrt{d_k}\) даёт \(\operatorname{Var}(s/\sqrt{d_k})=1\) — независимо от \(d_k\).</span>
+              <span lang="en">Let the coordinates of \(q,k\in\mathbb{R}^{d_k}\) be independent with mean \(0\) and variance \(1\). Then for \(s=q^{\top}k\): \(\mathbb{E}[s]=0\) and \(\operatorname{Var}(s)=d_k\). Dividing by \(\sqrt{d_k}\) gives \(\operatorname{Var}(s/\sqrt{d_k})=1\) — independent of \(d_k\).</span>
             </div>
           </div>
-          <aside class="slide-notes">A short but important honesty beat — the scaling is not decoration. If queries and keys have roughly unit-variance components, their dot product over d k dimensions has variance proportional to d k, so for a realistic key size of sixty-four the raw scores swing into the tens. Feed scores that large into softmax and it saturates: one weight goes to one, the rest to zero, and right there the gradient of softmax collapses to nearly zero, so no learning signal flows back. Dividing by root d k pulls the variance back to about one, keeping softmax in its soft, differentiable regime. In our toy example d k is four, so the divisor is exactly two — small, but the principle is the same one that matters at scale.</aside>
+
+          <div class="thm-card" data-kind="proof">
+            <div class="thm-label">
+              <span lang="ru">Доказательство</span>
+              <span lang="en">Proof</span>
+            </div>
+            <div class="thm-statement">
+              <span lang="ru">Каждое слагаемое \(q_j k_j\) центрировано с \(\operatorname{Var}(q_j k_j)=\mathbb{E}[q_j^2]\mathbb{E}[k_j^2]=1\); слагаемые независимы, значит дисперсии <em>складываются</em>: \(\operatorname{Var}(s)=\sum_{j=1}^{d_k}1=d_k\). Стандартное отклонение скоров — \(\sqrt{d_k}\): при \(d_k=64\) они качаются в \(\pm 8\), softmax <strong>насыщается</strong>, градиент \(\to 0\). Делим на \(\sqrt{d_k}\) — и \(\operatorname{Var}=1\), softmax «мягкий». У нас \(d_k=4\Rightarrow\sqrt{d_k}=2.0\). \(\blacksquare\)</span>
+              <span lang="en">Each term \(q_j k_j\) is mean-zero with \(\operatorname{Var}(q_j k_j)=\mathbb{E}[q_j^2]\mathbb{E}[k_j^2]=1\); the terms are independent, so the variances <em>add</em>: \(\operatorname{Var}(s)=\sum_{j=1}^{d_k}1=d_k\). The score standard deviation is \(\sqrt{d_k}\): at \(d_k=64\) they swing across \(\pm 8\), softmax <strong>saturates</strong> and the gradient \(\to 0\). Dividing by \(\sqrt{d_k}\) makes \(\operatorname{Var}=1\), keeping softmax soft. Here \(d_k=4\Rightarrow\sqrt{d_k}=2.0\). \(\blacksquare\)</span>
+            </div>
+          </div>
+
+          <aside class="slide-notes">The scaling stated as a variance proposition with a proof, not a myth. Take a query and key whose coordinates are independent, mean zero, variance one. Their dot product is a sum of d k terms, each term a product of two independent unit-variance numbers, so each term has mean zero and variance one. Because the terms are independent the variances add, giving total variance exactly d k — so the scores have standard deviation root d k. For a realistic key size of sixty-four that is a swing of plus or minus eight; feed scores that large into softmax and it saturates, one weight to one and the rest to zero, and the gradient of softmax collapses to nearly zero so no signal flows back. Dividing every score by root d k pulls the variance back to one and keeps softmax in its soft, differentiable regime. In our toy example d k is four so the divisor is exactly two. Blue card is the proposition, grey is the proof.</aside>
+        </section>
+
+        <!-- ============================================ 19b · VIZ · attention O(n²) cost wall (NEW: depth #8) ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="20 The quadratic cost wall">
+          <div class="slide-header">
+            <h2><span lang="ru">Стена цены: \(QK^\top\) стоит \(O(n^2)\)</span><span lang="en">The cost wall: \(QK^\top\) costs \(O(n^2)\)</span></h2>
+            <span class="slide-kicker"><span lang="ru">каждый токен сравнивается с каждым</span><span lang="en">every token compares to every token</span></span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1600 470" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="A quadratic curve: attention cost grows as n squared with sequence length n, contrasted with a linear reference line">
+              <g font-family="var(--font-sans)">
+                <line x1="160" y1="400" x2="1480" y2="400" stroke="var(--rule)" stroke-width="2"/>
+                <line x1="160" y1="400" x2="160" y2="60" stroke="var(--rule)" stroke-width="2"/>
+                <text x="1480" y="438" font-size="24" fill="var(--ink-3)" text-anchor="end"><tspan font-family="var(--font-mono)">n</tspan> = sequence length</text>
+                <text x="120" y="80" font-size="24" fill="var(--ink-3)" text-anchor="end">cost</text>
+                <!-- linear reference -->
+                <line x1="160" y1="400" x2="1480" y2="320" stroke="#1E9BD9" stroke-width="3" stroke-dasharray="8 8"/>
+                <text x="1300" y="300" font-size="22" fill="#1E9BD9"><tspan font-family="var(--font-mono)">O(n)</tspan> — linear ideal</text>
+                <!-- quadratic curve: y = 400 - 340*(x/1320)^2 mapped over x in [160,1480] -->
+                <path d="M160 400 Q 900 392 1150 250 T 1480 70" fill="none" stroke="#C0392B" stroke-width="5"/>
+                <text x="1180" y="120" font-size="26" fill="#C0392B" font-weight="600"><tspan font-family="var(--font-mono)">O(n²)</tspan> — attention</text>
+                <!-- marker dots -->
+                <circle cx="520" cy="378" r="7" fill="#C0392B"/><text x="520" y="362" font-size="18" fill="var(--ink-3)" text-anchor="middle">512</text>
+                <circle cx="900" cy="300" r="7" fill="#C0392B"/><text x="900" y="284" font-size="18" fill="var(--ink-3)" text-anchor="middle">2k</text>
+                <circle cx="1300" cy="150" r="7" fill="#C0392B"/><text x="1300" y="134" font-size="18" fill="var(--ink-3)" text-anchor="middle">8k</text>
+              </g>
+            </svg>
+          </div>
+          <p class="viz-caption"><span lang="ru">Матрица скоров \(QK^\top\) — это \(n\times n\): время <strong>и</strong> память растут как \(O(n^2 d)\). При \(n=512\) это \({\sim}262\text{k}\) пар; при \(n=8\text{k}\) — \({\sim}67\text{M}\) — это и есть стена длинного контекста. Лечение: <strong>sparse</strong> (Longformer, BigBird — окно + глобальные токены), <strong>linear</strong> (Performer/Linear Attention — \(O(n)\)), <strong>FlashAttention</strong> (точное \(O(n^2)\), но IO-aware — не материализует матрицу).</span><span lang="en">The score matrix \(QK^\top\) is \(n\times n\): both time <strong>and</strong> memory grow as \(O(n^2 d)\). At \(n=512\) that is \({\sim}262\text{k}\) pairs; at \(n=8\text{k}\) it is \({\sim}67\text{M}\) — the long-context wall. Fixes: <strong>sparse</strong> (Longformer, BigBird — windows + global tokens), <strong>linear</strong> (Performer / Linear Attention — \(O(n)\)), <strong>FlashAttention</strong> (exact \(O(n^2)\) but IO-aware — never materialises the matrix).</span></p>
+          <aside class="slide-notes">The one real cost of attention, and the reason long context is hard. The score matrix Q K transpose is n by n, where n is the sequence length, so both the compute and, crucially, the memory to hold that matrix grow as n squared times the dimension. At five hundred and twelve tokens that is about a quarter of a million pairs; at eight thousand tokens it is sixty-seven million — the curve in red. The dashed blue line is the linear ideal we wish we had. Three families of fixes exist. Sparse attention — Longformer and BigBird — restricts each token to a local window plus a few global tokens, so the matrix becomes mostly empty. Linear attention — the Performer and friends — rewrites the softmax with a kernel feature map so the cost drops to order n. And FlashAttention keeps the exact quadratic computation but is IO-aware: it never writes the full n by n matrix to slow memory, tiling the work in fast on-chip memory, which gives a large constant-factor speedup and is what most modern stacks actually use. For retrieval we usually cap sequence length, so the wall is felt most in long-document and long-generation settings.</aside>
         </section>
 
         <!-- ============================================ BEAT 5 · turn-selfattention ============================================ -->
         <!-- ============================================ 20 · DIVIDER · self-attention ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="20 Divider · self-attention">
+        <section class="slide" data-type="divider" data-screen-label="21 Divider · self-attention">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 03 ·</span><span lang="en">Part 03 ·</span></div>
             <h1>Self-Attention</h1>
@@ -513,7 +558,7 @@
         </section>
 
         <!-- ============================================ 21 · DEFINITION · self-attention projections ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="21 Self-attention projections">
+        <section class="slide" data-type="definition" data-screen-label="22 Self-attention projections">
           <div class="slide-header">
             <h2><span lang="ru">Откуда берутся \(Q,K,V\): проекции входа</span><span lang="en">Where \(Q,K,V\) come from: projecting the input</span></h2>
             <span class="slide-kicker"><span lang="ru">три обучаемые матрицы</span><span lang="en">three learned matrices</span></span>
@@ -531,7 +576,7 @@
 
         <!-- ============================================ BEAT 6 · climb-multihead ============================================ -->
         <!-- ============================================ 22 · DIVIDER · multi-head ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="22 Divider · Many heads &amp; position">
+        <section class="slide" data-type="divider" data-screen-label="23 Divider · Many heads &amp; position">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 04</span><span lang="en">Part 04</span></div>
             <h1>Many Heads &amp; Position</h1>
@@ -541,7 +586,7 @@
         </section>
 
         <!-- ============================================ 23 · DEFINITION · multi-head idea ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="23 Multi-head idea">
+        <section class="slide" data-type="definition" data-screen-label="24 Multi-head idea">
           <div class="slide-header">
             <h2><span lang="ru">Multi-head: совет из \(h\) голов</span><span lang="en">Multi-head: a council of \(h\) heads</span></h2>
             <span class="slide-kicker"><span lang="ru">параллельные подпространства</span><span lang="en">parallel subspaces</span></span>
@@ -557,60 +602,58 @@
           <aside class="slide-notes">Multi-head attention, the Council made literal. A single head computes one attention pattern, which can only capture one type of relationship. Multi-head attention splits the model dimension into h smaller subspaces and runs an independent attention head in each, with its own query, key and value projections. Because the subspaces and projections differ, the heads specialise — empirically one head may track subject-verb agreement, another may resolve pronouns, another may attend to the previous token. This is exactly our council metaphor: h councillors, each with its own opinion about who matters. Our data file uses two heads; real models use eight, twelve, sixteen.</aside>
         </section>
 
-        <!-- ============================================ 24 · VIZ · h heads in parallel ============================================ -->
-        <section class="slide" data-type="viz" data-screen-label="24 Heads in parallel">
+        <!-- ============================================ 24 · FORWARD · multi-head data path (T7: viz+formula → layer-walk) ============================================ -->
+        <section class="slide" data-type="forward" data-max-step="4" data-current-step="0" data-screen-label="25 Multi-head, layer by layer">
           <div class="slide-header">
-            <h2><span lang="ru">\(h\) голов параллельно &rarr; concat &rarr; \(W^O\)</span><span lang="en">\(h\) heads in parallel &rarr; concat &rarr; \(W^O\)</span></h2>
-            <span class="slide-kicker"><span lang="ru">разделить · внимание · собрать</span><span lang="en">split · attend · recombine</span></span>
+            <h2><span lang="ru">Multi-head по слоям: разделить &rarr; внимание &rarr; собрать</span><span lang="en">Multi-head, layer by layer: split &rarr; attend &rarr; recombine</span></h2>
+            <span class="slide-kicker"><span lang="ru">&rarr; раскрывайте путь данных от входа к выходу</span><span lang="en">&rarr; reveal the data path input&rarr;output</span></span>
           </div>
-          <div class="viz-frame">
-            <svg viewBox="0 0 1600 470" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="Input X splits into two parallel attention heads, each producing its own output, which are concatenated and projected by W-O">
-              <g font-family="var(--font-sans)">
-                <rect x="80" y="190" width="150" height="90" rx="12" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="3"/>
-                <text x="155" y="242" text-anchor="middle" font-size="30" fill="var(--accent-ink)">X</text>
-                <rect x="420" y="80" width="280" height="90" rx="12" fill="none" stroke="#7C5CD6" stroke-width="3"/>
-                <text x="560" y="125" text-anchor="middle" font-size="26" fill="#7C5CD6">head 1</text>
-                <text x="560" y="153" text-anchor="middle" font-size="19" fill="var(--ink-3)">attention in subspace</text>
-                <rect x="420" y="300" width="280" height="90" rx="12" fill="none" stroke="#1E9BD9" stroke-width="3"/>
-                <text x="560" y="345" text-anchor="middle" font-size="26" fill="#1E9BD9">head 2</text>
-                <text x="560" y="373" text-anchor="middle" font-size="19" fill="var(--ink-3)">a different relation</text>
-                <rect x="900" y="190" width="200" height="90" rx="12" fill="none" stroke="var(--ink-2)" stroke-width="3"/>
-                <text x="1000" y="232" text-anchor="middle" font-size="26" fill="var(--ink-2)">concat</text>
-                <text x="1000" y="260" text-anchor="middle" font-size="19" fill="var(--ink-3)">stack outputs</text>
-                <rect x="1280" y="190" width="200" height="90" rx="12" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="3"/>
-                <text x="1380" y="232" text-anchor="middle" font-size="28" fill="var(--accent-ink)">\(W^O\)</text>
-                <text x="1380" y="260" text-anchor="middle" font-size="19" fill="var(--accent-ink)">project back</text>
-                <g stroke="var(--ink-3)" stroke-width="3" fill="none" marker-end="url(#mh)">
-                  <path d="M230 225 C330 225, 330 125, 418 125"/>
-                  <path d="M230 245 C330 245, 330 345, 418 345"/>
-                  <path d="M700 125 C800 125, 800 220, 898 220"/>
-                  <path d="M700 345 C800 345, 800 250, 898 250"/>
-                  <line x1="1100" y1="235" x2="1278" y2="235"/>
-                </g>
-                <defs><marker id="mh" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-3)"/></marker></defs>
-              </g>
-            </svg>
+          <div class="reverse-stack">
+            <div class="reverse-layer" data-layer="0">
+              <div>
+                <div style="font-family:var(--font-mono);font-size:24px;color:var(--ink-3);margin-bottom:8px;">input</div>
+                <div style="font-size:60px;font-family:var(--font-serif);"><span lang="ru">Вход \(X\)</span><span lang="en">Input \(X\)</span></div>
+                <div style="margin-top:16px;font-size:24px;color:var(--ink-3);"><span lang="ru">\(T\) токенов, каждый размерности \(d\) (\(=4\))</span><span lang="en">\(T\) tokens, each of dimension \(d\) (\(=4\))</span></div>
+              </div>
+            </div>
+            <div class="reverse-layer" data-layer="1">
+              <div>
+                <div style="font-family:var(--font-mono);font-size:24px;color:var(--ink-3);margin-bottom:8px;">split · \(h=2\)</div>
+                <div style="font-size:60px;font-family:var(--font-serif);"><span lang="ru">\(h\) подпространств</span><span lang="en">\(h\) subspaces</span></div>
+                <div style="margin-top:16px;font-size:24px;color:var(--ink-3);"><span lang="ru">проекции \(XW_Q^{(i)},XW_K^{(i)},XW_V^{(i)}\) — каждая голова в размерности \(d/h=2\)</span><span lang="en">projections \(XW_Q^{(i)},XW_K^{(i)},XW_V^{(i)}\) — each head in dimension \(d/h=2\)</span></div>
+              </div>
+            </div>
+            <div class="reverse-layer" data-layer="2">
+              <div>
+                <div style="font-family:var(--font-mono);font-size:24px;color:var(--ink-3);margin-bottom:8px;">attend · per head</div>
+                <div style="font-size:60px;font-family:var(--font-serif);"><span lang="ru">\(\mathrm{head}_i=\mathrm{Attention}(\cdot)\)</span><span lang="en">\(\mathrm{head}_i=\mathrm{Attention}(\cdot)\)</span></div>
+                <div style="margin-top:16px;font-size:24px;color:var(--ink-3);"><span lang="ru">каждая голова считает своё \(\mathrm{softmax}(QK^\top/\sqrt{d_k})V\) — своя связь</span><span lang="en">each head runs its own \(\mathrm{softmax}(QK^\top/\sqrt{d_k})V\) — its own relation</span></div>
+              </div>
+            </div>
+            <div class="reverse-layer" data-layer="3">
+              <div>
+                <div style="font-family:var(--font-mono);font-size:24px;color:var(--ink-3);margin-bottom:8px;">concat</div>
+                <div style="font-size:60px;font-family:var(--font-serif);"><span lang="ru">\(\mathrm{Concat}(\mathrm{head}_1,\dots,\mathrm{head}_h)\)</span><span lang="en">\(\mathrm{Concat}(\mathrm{head}_1,\dots,\mathrm{head}_h)\)</span></div>
+                <div style="margin-top:16px;font-size:24px;color:var(--ink-3);"><span lang="ru">склеиваем выходы голов обратно в размерность \(d\)</span><span lang="en">stack the head outputs back to dimension \(d\)</span></div>
+              </div>
+            </div>
+            <div class="reverse-layer" data-layer="4">
+              <div>
+                <div style="font-family:var(--font-mono);font-size:24px;color:var(--ink-3);margin-bottom:8px;">project · \(W^O\)</div>
+                <div style="font-size:60px;font-family:var(--font-serif);"><span lang="ru">\(\mathrm{MultiHead}(X)=\mathrm{Concat}(\cdot)\,W^O\)</span><span lang="en">\(\mathrm{MultiHead}(X)=\mathrm{Concat}(\cdot)\,W^O\)</span></div>
+                <div style="margin-top:16px;font-size:30px;color:var(--c-green);font-weight:600;"><span lang="ru">\(W^O\) смешивает головы &rarr; выход</span><span lang="en">\(W^O\) mixes the heads &rarr; output</span></div>
+              </div>
+            </div>
           </div>
-          <p class="viz-caption"><span lang="ru">Вход проецируется в каждую голову, каждая считает своё внимание в подпространстве \(d/h\); выходы <strong>конкатенируются</strong> и проецируются назад в \(d\) матрицей \(W^O\). Стоимость почти как у одной головы.</span><span lang="en">The input is projected into each head, each computes its own attention in a \(d/h\) subspace; the outputs are <strong>concatenated</strong> and projected back to \(d\) by \(W^O\). The cost is about that of one head.</span></p>
-          <aside class="slide-notes">The dataflow of multi-head attention. The input is projected separately into each head's subspace, each head runs the full scaled-dot-product attention we just built, and each produces an output of dimension d over h. We then concatenate the heads' outputs back to the full dimension d and pass them through one more learned matrix, W output, which mixes the heads together. Because each head works in a subspace of size d over h, the total compute is roughly the same as a single full-size head — we get the diversity of several attention patterns essentially for free. The picture shows two heads; the concat-and-project step is what lets them collaborate.</aside>
-        </section>
-
-        <!-- ============================================ 25 · FORMULA · multi-head concat ============================================ -->
-        <section class="slide" data-type="formula" data-screen-label="25 Multi-head formula">
-          <div class="slide-header slide-header--flush">
-            <h2><span lang="ru">Multi-head: формула</span><span lang="en">Multi-head: the formula</span></h2>
-            <span class="slide-kicker"><span lang="ru">конкатенация голов · проекция \(W^O\)</span><span lang="en">concat the heads · project by \(W^O\)</span></span>
+          <div class="reverse-counter">
+            <span class="reverse-hint">
+              <span lang="ru"><kbd>&rarr;</kbd> раскрывать слой за слоем · <kbd>&larr;</kbd> назад</span>
+              <span lang="en"><kbd>&rarr;</kbd> reveal layer by layer · <kbd>&larr;</kbd> back</span>
+            </span>
+            layer <span data-reverse-pos>1 / 5</span>
           </div>
-          <div class="formula-stage">
-            $$ \mathrm{MultiHead}(X)=\mathrm{Concat}(\mathrm{head}_1,\dots,\mathrm{head}_h)\,W^{O},\quad \mathrm{head}_i=\mathrm{Attention}(XW_Q^{(i)},XW_K^{(i)},XW_V^{(i)}) $$
-          </div>
-          <div class="formula-caption">
-            <div class="var-block"><div class="var-symbol">\(\mathrm{head}_i\)</div><div class="var-desc"><strong><span lang="ru">голова \(i\)</span><span lang="en">head \(i\)</span></strong><br /><span lang="ru">внимание в подпр.</span><span lang="en">attention in a subspace</span></div></div>
-            <div class="var-block"><div class="var-symbol">\(\mathrm{Concat}\)</div><div class="var-desc"><strong><span lang="ru">сборка</span><span lang="en">recombine</span></strong><br /><span lang="ru">склейка выходов</span><span lang="en">stack outputs</span></div></div>
-            <div class="var-block"><div class="var-symbol">\(W^{O}\)</div><div class="var-desc"><strong><span lang="ru">проекция</span><span lang="en">projection</span></strong><br /><span lang="ru">смешивает головы</span><span lang="en">mixes the heads</span></div></div>
-          </div>
-          <p class="small muted center mt-2"><span lang="ru">Каждая голова \(i\) применяет attention к своим проекциям \(XW_Q^{(i)},XW_K^{(i)},XW_V^{(i)}\). Все выходы склеиваются и проецируются \(W^O\) обратно в размерность \(d\). При \(h=2\) и \(d_k=4\) каждая голова работает в подпространстве размерности \(2\).</span><span lang="en">Each head \(i\) applies attention to its own projections \(XW_Q^{(i)},XW_K^{(i)},XW_V^{(i)}\). All outputs are concatenated and projected by \(W^O\) back to dimension \(d\). With \(h=2\) and \(d_k=4\), each head works in a \(2\)-dimensional subspace.</span></p>
-          <aside class="slide-notes">The formula matches the picture. Head i is just our attention function applied to head i's own projections of the input. Multi-head attention concatenates all h head outputs and multiplies by the output projection W output. That final matrix is essential — without it the heads would never communicate, since concatenation alone just stacks them side by side. With two heads and a key dimension of four, each head would operate in a two-dimensional subspace, then the two outputs concatenate back to four and W output mixes them. Note the parameters: the per-head projections plus W output; the attention core stays weight-free.</aside>
+          <p class="small muted center mt-2"><span lang="ru">Один советник видит одну связь. Разбиваем \(d\) на \(h\) подпространств \(d/h\), в каждом — своя голова внимания; выходы <strong>конкатенируются</strong> и проецируются \(W^O\) обратно в \(d\). Стоимость почти как у одной головы. У нас \(h=2,\ d_k=4\Rightarrow\) подпространство \(=2\).</span><span lang="en">One councillor sees one relation. We split \(d\) into \(h\) subspaces of size \(d/h\), run an attention head in each; the outputs are <strong>concatenated</strong> and projected by \(W^O\) back to \(d\). The cost is about that of one head. Here \(h=2,\ d_k=4\Rightarrow\) subspace \(=2\).</span></p>
+          <aside class="slide-notes">Multi-head attention as a forward data path, built one layer at a time, replacing the old static picture-plus-formula pair. The arrow key reveals the pipeline from input to output. Layer zero: the input X, T token vectors each of dimension d, which is four in our example. Layer one: we split into h heads — here two — by projecting X with per-head query, key and value matrices, so each head works in a subspace of dimension d over h, which is two. Layer two: each head independently runs the full scaled-dot-product attention we just built, so head one might capture one relation and head two a different one. Layer three: we concatenate the heads' outputs back up to the full dimension d. Layer four: a final learned matrix W output mixes the heads together — and this projection is essential, because concatenation alone just stacks them side by side without letting them talk. Because each head lives in a smaller subspace, the total compute is about that of a single full-size head, so we get several attention patterns nearly for free.<aside data-notes-for-step="0">Layer 0 — input X: T tokens of dimension d.</aside><aside data-notes-for-step="1">Layer 1 — split into h=2 heads via per-head Q/K/V projections, each in d/h dims.</aside><aside data-notes-for-step="2">Layer 2 — each head runs its own scaled-dot-product attention.</aside><aside data-notes-for-step="3">Layer 3 — concatenate the head outputs back to dimension d.</aside><aside data-notes-for-step="4">Layer 4 — project by Wᴼ, which mixes the heads → output.</aside></aside>
         </section>
 
         <!-- ============================================ BEAT 7 · turn-positional ============================================ -->
@@ -663,57 +706,26 @@
           <aside class="slide-notes">The exact positional encoding from the original Transformer. For a token at position pos, dimension number two i gets the sine, and two i plus one gets the cosine, of pos divided by ten thousand to the power two i over d. The effect is that each embedding dimension is a sinusoid with its own wavelength: the lowest dimensions cycle quickly, encoding fine local order, while the highest cycle very slowly, encoding coarse absolute position. A beautiful property falls out — because sine and cosine of a shifted angle are linear combinations of the unshifted ones, the encoding lets the model express relative offsets as linear functions, so it can generalise to relative positions. This vector is simply added to each token's embedding before the first layer.</aside>
         </section>
 
-        <!-- ============================================ 29 · VIZ · the 8x8 PE grid ============================================ -->
-        <section class="slide" data-type="viz" data-screen-label="29 The PE grid">
+        <!-- ============================================ 29 · DEMO · sinusoid frequency sweep (T5: viz → live function-plot) ============================================ -->
+        <section class="slide" data-type="demo" data-screen-label="29 The PE frequency sweep">
           <div class="slide-header">
-            <h2><span lang="ru">Сетка \(8\times 8\): позиция &times; измерение</span><span lang="en">The \(8\times 8\) grid: position &times; dimension</span></h2>
-            <span class="slide-kicker"><span lang="ru">синус-волны разной частоты</span><span lang="en">sinusoids of varying frequency</span></span>
+            <h2><span lang="ru">Развёртка частоты: \(\sin(pos/10000^{2i/d})\)</span><span lang="en">Sweeping the frequency: \(\sin(pos/10000^{2i/d})\)</span></h2>
+            <span class="slide-kicker"><span lang="ru">двигайте позицию по быстрой синусоиде измерения \(i=0\) · живьём</span><span lang="en">drag position along dimension \(i=0\)&rsquo;s fast sinusoid · live</span></span>
           </div>
-          <div class="viz-frame">
-            <svg viewBox="0 0 1600 620" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="Heatmap of an 8 by 8 sinusoidal positional encoding grid: rows are positions 0 to 7, columns are dimensions 0 to 7, colour from negative one (red) through zero (cream) to positive one (blue)">
-              <g font-family="var(--font-mono)">
-                <text x="700" y="40" font-size="22" font-family="var(--font-sans)" fill="var(--ink-2)" text-anchor="middle">value: &minus;1</text>
-                <rect x="800" y="24" width="180" height="20" fill="url(#peGrad)"/>
-                <text x="1000" y="40" font-size="22" font-family="var(--font-sans)" fill="var(--ink-2)">+1</text>
-                <defs><linearGradient id="peGrad" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0" stop-color="#C0392B"/><stop offset="0.5" stop-color="#F3EFE3"/><stop offset="1" stop-color="#2A6FDB"/>
-                </linearGradient></defs>
-                <!-- column headers (dimension) -->
-                <g font-size="20" fill="var(--ink-3)" text-anchor="middle">
-                  <text x="360" y="92">d0</text><text x="468" y="92">d1</text><text x="576" y="92">d2</text><text x="684" y="92">d3</text>
-                  <text x="792" y="92">d4</text><text x="900" y="92">d5</text><text x="1008" y="92">d6</text><text x="1116" y="92">d7</text>
-                </g>
-                <!-- row labels (position) + 8x8 cells; fill computed from value v in [-1,1] -->
-                <!-- pos0 -->
-                <text x="300" y="138" font-size="20" fill="var(--ink-3)" text-anchor="end">pos0</text>
-                <rect x="312" y="108" width="104" height="56" fill="#F3EFE3"/><rect x="420" y="108" width="104" height="56" fill="#2A6FDB"/><rect x="528" y="108" width="104" height="56" fill="#F3EFE3"/><rect x="636" y="108" width="104" height="56" fill="#2A6FDB"/><rect x="744" y="108" width="104" height="56" fill="#F3EFE3"/><rect x="852" y="108" width="104" height="56" fill="#2A6FDB"/><rect x="960" y="108" width="104" height="56" fill="#F3EFE3"/><rect x="1068" y="108" width="104" height="56" fill="#2A6FDB"/>
-                <!-- pos1 -->
-                <text x="300" y="194" font-size="20" fill="var(--ink-3)" text-anchor="end">pos1</text>
-                <rect x="312" y="164" width="104" height="56" fill="#6E9BE0"/><rect x="420" y="164" width="104" height="56" fill="#9CB9E8"/><rect x="528" y="164" width="104" height="56" fill="#DCE6F4"/><rect x="636" y="164" width="104" height="56" fill="#2C71DC"/><rect x="744" y="164" width="104" height="56" fill="#F0ECE0"/><rect x="852" y="164" width="104" height="56" fill="#2A6FDB"/><rect x="960" y="164" width="104" height="56" fill="#F0ECE0"/><rect x="1068" y="164" width="104" height="56" fill="#2A6FDB"/>
-                <!-- pos2 -->
-                <text x="300" y="250" font-size="20" fill="var(--ink-3)" text-anchor="end">pos2</text>
-                <rect x="312" y="220" width="104" height="56" fill="#7FA6E2"/><rect x="420" y="220" width="104" height="56" fill="#E8A99B"/><rect x="528" y="220" width="104" height="56" fill="#C9DAF0"/><rect x="636" y="220" width="104" height="56" fill="#2F73DC"/><rect x="744" y="220" width="104" height="56" fill="#EEEADF"/><rect x="852" y="220" width="104" height="56" fill="#2A6FDB"/><rect x="960" y="220" width="104" height="56" fill="#EEEADF"/><rect x="1068" y="220" width="104" height="56" fill="#2A6FDB"/>
-                <!-- pos3 -->
-                <text x="300" y="306" font-size="20" fill="var(--ink-3)" text-anchor="end">pos3</text>
-                <rect x="312" y="276" width="104" height="56" fill="#E6EEF7"/><rect x="420" y="276" width="104" height="56" fill="#C73E2E"/><rect x="528" y="276" width="104" height="56" fill="#B6CFEC"/><rect x="636" y="276" width="104" height="56" fill="#3576DC"/><rect x="744" y="276" width="104" height="56" fill="#ECE8DD"/><rect x="852" y="276" width="104" height="56" fill="#2A6FDB"/><rect x="960" y="276" width="104" height="56" fill="#ECE8DD"/><rect x="1068" y="276" width="104" height="56" fill="#2A6FDB"/>
-                <!-- pos4 -->
-                <text x="300" y="362" font-size="20" fill="var(--ink-3)" text-anchor="end">pos4</text>
-                <rect x="312" y="332" width="104" height="56" fill="#D87C6C"/><rect x="420" y="332" width="104" height="56" fill="#D9785F"/><rect x="528" y="332" width="104" height="56" fill="#A6C5E9"/><rect x="636" y="332" width="104" height="56" fill="#3B79DC"/><rect x="744" y="332" width="104" height="56" fill="#EAE6DB"/><rect x="852" y="332" width="104" height="56" fill="#2C71DC"/><rect x="960" y="332" width="104" height="56" fill="#EAE6DB"/><rect x="1068" y="332" width="104" height="56" fill="#2A6FDB"/>
-                <!-- pos5 -->
-                <text x="300" y="418" font-size="20" fill="var(--ink-3)" text-anchor="end">pos5</text>
-                <rect x="312" y="388" width="104" height="56" fill="#C0392B"/><rect x="420" y="388" width="104" height="56" fill="#B9CFEB"/><rect x="528" y="388" width="104" height="56" fill="#96BAE6"/><rect x="636" y="388" width="104" height="56" fill="#4480DD"/><rect x="744" y="388" width="104" height="56" fill="#E8E4D9"/><rect x="852" y="388" width="104" height="56" fill="#2C71DC"/><rect x="960" y="388" width="104" height="56" fill="#E8E4D9"/><rect x="1068" y="388" width="104" height="56" fill="#2A6FDB"/>
-                <!-- pos6 -->
-                <text x="300" y="474" font-size="20" fill="var(--ink-3)" text-anchor="end">pos6</text>
-                <rect x="312" y="444" width="104" height="56" fill="#DA8474"/><rect x="420" y="444" width="104" height="56" fill="#2E72DC"/><rect x="528" y="444" width="104" height="56" fill="#86B0E4"/><rect x="636" y="444" width="104" height="56" fill="#4D86DE"/><rect x="744" y="444" width="104" height="56" fill="#E6E2D7"/><rect x="852" y="444" width="104" height="56" fill="#2E72DC"/><rect x="960" y="444" width="104" height="56" fill="#E6E2D7"/><rect x="1068" y="444" width="104" height="56" fill="#2A6FDB"/>
-                <!-- pos7 -->
-                <text x="300" y="530" font-size="20" fill="var(--ink-3)" text-anchor="end">pos7</text>
-                <rect x="312" y="500" width="104" height="56" fill="#8FB1E4"/><rect x="420" y="500" width="104" height="56" fill="#5E92DF"/><rect x="528" y="500" width="104" height="56" fill="#79A8E2"/><rect x="636" y="500" width="104" height="56" fill="#5589DE"/><rect x="744" y="500" width="104" height="56" fill="#E4E0D5"/><rect x="852" y="500" width="104" height="56" fill="#2E72DC"/><rect x="960" y="500" width="104" height="56" fill="#E4E0D5"/><rect x="1068" y="500" width="104" height="56" fill="#2A6FDB"/>
-                <text x="700" y="592" font-size="22" font-family="var(--font-sans)" fill="var(--ink-3)" text-anchor="middle">left columns (d0&ndash;d3) cycle fast · right columns (d4&ndash;d7) barely change</text>
-              </g>
-            </svg>
-          </div>
-          <p class="viz-caption"><span lang="ru">Реальная сетка \(8\times 8\) из данных: строка <code>pos0</code> = \([0,1,0,1,0,1,0,1]\); столбец <code>d0</code> = \(\sin(pos)\) проходит \(0,0.841,0.909,\dots\). Левые столбцы — быстрые волны (локальный порядок), правые — медленные (глобальная позиция).</span><span lang="en">The real \(8\times 8\) grid from the data: row <code>pos0</code> = \([0,1,0,1,0,1,0,1]\); column <code>d0</code> = \(\sin(pos)\) runs \(0,0.841,0.909,\dots\). Left columns are fast waves (local order), right columns slow (global position).</span></p>
-          <aside class="slide-notes">This heatmap is the actual eight-by-eight positional grid from the data file, rows being positions zero through seven and columns being the eight embedding dimensions. Blue is near plus one, cream near zero, red near minus one. Read row pos zero across and you get zero, one, zero, one — alternating sine-zero and cosine-zero. Read column d zero down and you get the sine of the position — zero, then zero point eight four one, then zero point nine zero nine, and so on as the sine wave turns over. The key visual: the left columns change rapidly from row to row because they are high-frequency sinusoids carrying local order, while the right columns barely change because they are very low frequency, carrying coarse global position. Every token gets its row added to its embedding.</aside>
+          <!-- Declarative live demo — engine js/demos.js (function-plot). The curve is the FASTEST dimension i=0,
+               whose wavelength is 2π ≈ 6.28 positions; the `pos` slider (x0) scrubs the read position over 0..16 and the
+               marker sits at (pos, sin pos). lr & iters pinned to 0 so no trajectory is drawn — just the moving marker.
+               The caption math carries the i-dependence (low i fast, high i slow). No JS needed. -->
+          <interactive-demo kind="function-plot" algorithm="gradient-descent">
+            <function fn="sin(x)" range="0..16"></function>
+            <param name="x0"    label="позиция pos · position" min="0" max="16" step="0.1" default="3"></param>
+            <param name="lr"    label="(fixed) · lr"     min="0" max="0" step="0" default="0"></param>
+            <param name="iters" label="(fixed) · iters"  min="0" max="0" step="0" default="0"></param>
+            <readout name="loss"        label="PE(pos, dim 0)"></readout>
+            <readout name="iters_used"  label="steps"></readout>
+          </interactive-demo>
+          <p class="small muted center mt-2"><span lang="ru">Кривая — <strong>измерение \(i=0\)</strong>, самая быстрая синусоида: длина волны \(2\pi\!\cdot\!10000^{0}=2\pi\approx 6.28\) позиции. Высокое измерение медленнее в \(10000^{2i/d}\) раз: при \(i=3,d=8\) длина волны \(\approx 6283\) — почти плоско. Низкие измерения кодируют <em>локальный порядок</em>, высокие — <em>глобальную позицию</em>; вектор прибавляется к токену \(X' = X + \mathrm{PE}\).</span><span lang="en">The curve is <strong>dimension \(i=0\)</strong>, the fastest sinusoid: wavelength \(2\pi\!\cdot\!10000^{0}=2\pi\approx 6.28\) positions. A high dimension is \(10000^{2i/d}\) times slower: at \(i=3,d=8\) the wavelength is \(\approx 6283\) — nearly flat. Low dimensions encode <em>local order</em>, high ones <em>global position</em>; the vector is added to the token, \(X' = X + \mathrm{PE}\).</span></p>
+          <aside class="slide-notes">Make the frequency sweep tactile. The plotted curve is the lowest, fastest dimension, i equals zero, which is simply sine of the position because ten thousand to the zero is one. Drag the position slider and watch the marker ride the wave: this dimension completes a full cycle every two pi, about six positions, so neighbouring tokens get clearly different values — that is how the encoding carries fine local order. Now imagine the same plot for a high dimension, say i equals three with d equals eight: the divisor is ten thousand to the three-quarters, about a thousand, so the wavelength stretches to roughly six thousand positions and the curve would look almost flat over this window — that dimension barely moves, encoding only coarse global position. The mix of fast and slow dimensions gives every position a unique fingerprint, and the whole vector is just added to the token embedding before the first layer. The real eight by eight grid of these values is on the next slide.</aside>
         </section>
 
         <!-- ============================================ 30 · WALKTHROUGH · reading the grid ============================================ -->
@@ -1055,44 +1067,43 @@
           <aside class="slide-notes">The contrastive setup in three roles. Pick an anchor — here the word cat. A positive is something that should sit near it, like kitten. Negatives are things that should be far, like airplane, computer, france. The objective then moves the encoder so the anchor's vector aligns with the positive and separates from the negatives, all measured by cosine. The beautiful part is where supervision comes from: in retrieval, a positive is just a known relevant pair — a question and its answer, a query and a clicked document — and everything else is a negative. We never label what a sentence means; the pairs themselves are the training signal. Next, the two classic loss forms.</aside>
         </section>
 
-        <!-- ============================================ 43 · FORMULA · triplet loss ============================================ -->
-        <section class="slide" data-type="formula" data-screen-label="43 Triplet loss">
-          <div class="slide-header slide-header--flush">
-            <h2><span lang="ru">Triplet loss: позитив ближе негатива на margin</span><span lang="en">Triplet loss: positive beats negative by a margin</span></h2>
-            <span class="slide-kicker"><span lang="ru">margin \(=0.2\)</span><span lang="en">margin \(=0.2\)</span></span>
+        <!-- ============================================ 43 · DERIVATION · triplet → softmax-over-candidates → InfoNCE (T3: two formula → one FLIP-morph) ============================================ -->
+        <section class="slide" data-type="derivation" data-screen-label="43 From triplet to InfoNCE">
+          <div class="slide-header">
+            <h2><span lang="ru">От triplet к InfoNCE: один кадр алгебры</span><span lang="en">From triplet to InfoNCE: one moving frame of algebra</span></h2>
+            <span class="slide-kicker"><span lang="ru">margin \(\to\) softmax по кандидатам \(\to -\log p^{+}\)</span><span lang="en">margin \(\to\) softmax over candidates \(\to -\log p^{+}\)</span></span>
           </div>
-          <div class="formula-stage">
-            $$ \mathcal{L}_{\text{triplet}} = \max\!\big(0,\ \ \mathrm{sim}(a, x^{-}) - \mathrm{sim}(a, x^{+}) + m\big) $$
+          <div class="deriv-stage">
+            <div class="deriv-form">triplet</div>
           </div>
-          <div class="formula-caption">
-            <div class="var-block"><div class="var-symbol">\(\mathrm{sim}(a,x^{+})\)</div><div class="var-desc"><strong><span lang="ru">позитив</span><span lang="en">positive</span></strong><br /><span lang="ru">\(0.639\) (kitten)</span><span lang="en">\(0.639\) (kitten)</span></div></div>
-            <div class="var-block"><div class="var-symbol">\(\mathrm{sim}(a,x^{-})\)</div><div class="var-desc"><strong><span lang="ru">негатив</span><span lang="en">negative</span></strong><br /><span lang="ru">\(0.365\) (airplane)</span><span lang="en">\(0.365\) (airplane)</span></div></div>
-            <div class="var-block"><div class="var-symbol">\(m\)</div><div class="var-desc"><strong>margin</strong><br /><span lang="ru">\(=0.2\)</span><span lang="en">\(=0.2\)</span></div></div>
+          <div class="deriv-step-caption"></div>
+          <!-- Hidden steps — FLIP-morphed by lab.js; Unicode sub/superscripts keep the morph clean (no KaTeX re-typeset on innerHTML swap). -->
+          <div class="deriv-step" data-step="0" data-caption="Triplet: позитив должен бить негатив на margin m · triplet — the positive must beat the negative by a margin m" hidden>
+            <div class="deriv-content">
+              <span class="deriv-term" data-id="L">ℒ&nbsp;=&nbsp;</span><span class="deriv-term" data-id="max">max(0,&nbsp;</span><span class="deriv-term" data-id="neg">sim(a,x⁻)</span>&nbsp;<span class="deriv-term" data-id="minus">−</span>&nbsp;<span class="deriv-term" data-id="pos">sim(a,x⁺)</span>&nbsp;<span class="deriv-term" data-id="plusm">+&nbsp;m)</span>
+            </div>
           </div>
-          <p class="small muted center mt-2"><span lang="ru">Потеря равна \(0\), пока позитив ближе негатива хотя бы на margin \(m\). Подставим реальные числа: \(\max(0,\ 0.365-0.639+0.2)=\max(0,-0.074)=\mathbf{0}\) — пара уже разведена правильно, градиента нет.</span><span lang="en">The loss is \(0\) as long as the positive is nearer than the negative by at least the margin \(m\). Plug in the real numbers: \(\max(0,\ 0.365-0.639+0.2)=\max(0,-0.074)=\mathbf{0}\) — already correctly separated, no gradient.</span></p>
-          <aside class="slide-notes">The triplet loss, the simplest contrastive form, on real numbers. It says: the similarity of the anchor to its positive should exceed the similarity to its negative by at least a margin m. We take the hinge — max of zero and negative-similarity minus positive-similarity plus the margin — so once the gap is wide enough the loss is exactly zero and contributes no gradient. Plug in our data with the hardest negative, airplane: anchor-to-airplane is zero point three six five, anchor-to-kitten is zero point six three nine, margin zero point two. That gives max of zero and minus zero point zero seven four, which is zero. This triplet is already well separated, so it stops pushing — the model spends its effort on triplets that are still violated.</aside>
-        </section>
-
-        <!-- ============================================ 44 · FORMULA · InfoNCE ============================================ -->
-        <section class="slide" data-type="formula" data-screen-label="44 InfoNCE">
-          <div class="slide-header slide-header--flush">
-            <h2><span lang="ru">InfoNCE: софтмакс по «позитив против всех»</span><span lang="en">InfoNCE: softmax over positive vs all</span></h2>
-            <span class="slide-kicker"><span lang="ru">температура \(\tau=0.1\)</span><span lang="en">temperature \(\tau=0.1\)</span></span>
+          <div class="deriv-step" data-step="1" data-caption="Один негатив — мало. Хотим позитив против МНОГИХ кандидатов сразу · one negative is weak — score the positive against MANY candidates at once" hidden>
+            <div class="deriv-content">
+              <span class="deriv-term" data-id="pos">sim(a,x⁺)</span>&nbsp;<span class="deriv-term is-new" data-id="vsall">vs&nbsp;{</span><span class="deriv-term" data-id="pos2">sim(a,x⁺)</span><span class="deriv-term is-new" data-id="comma">,&nbsp;</span><span class="deriv-term is-new" data-id="negs">sim(a,x⁻₁),&nbsp;…,&nbsp;sim(a,x⁻ₖ)</span><span class="deriv-term is-new" data-id="brace">}</span>
+            </div>
           </div>
-          <div class="formula-stage">
-            $$ \mathcal{L}_{\text{InfoNCE}} = -\log \frac{\exp\!\big(\mathrm{sim}(a,x^{+})/\tau\big)}{\exp\!\big(\mathrm{sim}(a,x^{+})/\tau\big) + \displaystyle\sum_{x^{-}}\exp\!\big(\mathrm{sim}(a,x^{-})/\tau\big)} $$
+          <div class="deriv-step" data-step="2" data-caption="Делим на температуру τ — это логиты — и берём softmax: вероятность, что позитив выигрывает · divide by temperature τ to get logits, then softmax: the probability the positive wins" hidden>
+            <div class="deriv-content">
+              <span class="deriv-term is-new" data-id="ppos">p⁺&nbsp;=&nbsp;</span><span class="deriv-term is-new" data-id="num">exp(sim(a,x⁺)/τ)</span>&nbsp;<span class="deriv-term is-new" data-id="over">/</span>&nbsp;<span class="deriv-term is-new" data-id="den">[&nbsp;exp(sim(a,x⁺)/τ)&nbsp;+&nbsp;Σ<sub>x⁻</sub> exp(sim(a,x⁻)/τ)&nbsp;]</span>
+            </div>
           </div>
-          <div class="formula-caption">
-            <div class="var-block"><div class="var-symbol">\(\tau\)</div><div class="var-desc"><strong><span lang="ru">температура</span><span lang="en">temperature</span></strong><br /><span lang="ru">\(=0.1\), резкость</span><span lang="en">\(=0.1\), sharpness</span></div></div>
-            <div class="var-block"><div class="var-symbol">\(\mathrm{sim}\)</div><div class="var-desc"><strong><span lang="ru">косинус</span><span lang="en">cosine</span></strong><br /><span lang="ru">Сэр Косинус</span><span lang="en">Sir Cosine</span></div></div>
-            <div class="var-block"><div class="var-symbol">\(x^{-}\)</div><div class="var-desc"><strong><span lang="ru">негативы</span><span lang="en">negatives</span></strong><br /><span lang="ru">остальной батч</span><span lang="en">the rest of the batch</span></div></div>
+          <div class="deriv-step" data-step="3" data-caption="InfoNCE = −log этой вероятности: softmax-классификация «какой кандидат настоящий?» · InfoNCE = −log that probability — softmax classification: which candidate is the true positive?" hidden>
+            <div class="deriv-content">
+              <span class="deriv-term is-highlight" data-id="LNCE">ℒ<sub>InfoNCE</sub>&nbsp;=&nbsp;−log&nbsp;</span><span class="deriv-term is-new" data-id="ppos2">p⁺</span>&nbsp;<span class="deriv-term is-new" data-id="arrow">→&nbsp;на наших числах&nbsp;0.1191</span>
+            </div>
           </div>
-          <p class="small muted center mt-2"><span lang="ru">Это softmax-классификация: «какой из кандидатов — настоящий позитив?». Температура \(\tau\) делит косинусы, заостряя распределение. Минимизировать потерю = поднять вероятность позитива \(p^{+}\) к \(1\). Косинус внутри — снова Сэр Косинус.</span><span lang="en">It is a softmax classification: &ldquo;which candidate is the true positive?&rdquo; The temperature \(\tau\) divides the cosines, sharpening the distribution. Minimising the loss = pushing the positive&rsquo;s probability \(p^{+}\) toward \(1\). The cosine inside is Sir Cosine again.</span></p>
-          <aside class="slide-notes">InfoNCE, the loss behind most modern dense retrievers. Read it as a softmax classifier with one correct answer: among the positive and all the negatives, which is the true match for the anchor? The numerator is the exponentiated similarity of the positive, the denominator adds in every negative, and we take negative log of that probability. The temperature tau, here zero point one, divides every cosine before exponentiating, which sharpens the distribution and makes the model decisive. Minimising this loss drives the positive's probability toward one. And the similarity inside is cosine — Sir Cosine, once again the ruler. Next we compute this exact loss on our data and get zero point one one nine one.</aside>
+          <p class="small muted center mt-2"><span lang="ru">Triplet тянет одну пару; InfoNCE превращает «ближе негатива» в <strong>softmax-классификацию</strong> позитива против всего батча. Температура \(\tau=0.1\) делит косинусы (Сэр Косинус) и заостряет распределение; минимизировать \(-\log p^{+}\) = поднять \(p^{+}\to 1\). Реальные числа дают потерю \(\mathbf{0.1191}\) — её мы и посчитаем end-to-end дальше.</span><span lang="en">Triplet tunes one pair; InfoNCE turns &ldquo;beat the negative&rdquo; into a <strong>softmax classification</strong> of the positive against the whole batch. Temperature \(\tau=0.1\) divides the cosines (Sir Cosine) and sharpens the distribution; minimising \(-\log p^{+}\) pushes \(p^{+}\to 1\). The real numbers give a loss of \(\mathbf{0.1191}\) — which we compute end-to-end next.</span></p>
+          <aside class="slide-notes">The contrastive punchline, derived as one moving frame instead of two static cards, and it sets up the live InfoNCE climb that follows. Step zero: the triplet loss — the hinge that wants the anchor's similarity to its positive to beat its similarity to one negative by a margin m. Step one: one negative is a weak signal, so we score the positive against many candidates at once — the positive itself plus k negatives. Step two: divide every similarity by the temperature tau to get logits, then take a softmax — that gives p-plus, the probability mass the model puts on the true positive. Step three: InfoNCE is simply minus the log of that probability — read it as a softmax classification, which candidate is the true positive, and minimising it drives p-plus toward one. On our real cosines this lands at zero point one one nine one, the exact number we compute step by step on the next slide. Use the arrows to step the algebra.<aside data-notes-for-step="0">Step 0 — triplet: positive beats one negative by margin m.</aside><aside data-notes-for-step="1">Step 1 — generalise: positive vs MANY candidates at once.</aside><aside data-notes-for-step="2">Step 2 — logits = sim/τ, then softmax → p⁺.</aside><aside data-notes-for-step="3">Step 3 — InfoNCE = −log p⁺ → 0.1191 on our numbers.</aside></aside>
         </section>
 
         <!-- ============================================ 45 · TABLE · the cosines ============================================ -->
-        <section class="slide" data-type="table" data-screen-label="45 The cosines">
+        <section class="slide" data-type="table" data-screen-label="44 The cosines">
           <div class="slide-header">
             <h2><span lang="ru">Косинусы к якорю <code>cat</code> — реальные числа</span><span lang="en">Cosines to the anchor <code>cat</code> — real numbers</span></h2>
             <span class="slide-kicker"><span lang="ru">позитивы близко, негативы далеко</span><span lang="en">positives near, negatives far</span></span>
@@ -1112,7 +1123,7 @@
         </section>
 
         <!-- ============================================ 46 · E2E · InfoNCE loss computed ============================================ -->
-        <section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="46 InfoNCE loss = 0.1191">
+        <section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="45 InfoNCE loss = 0.1191">
           <div class="slide-header">
             <h2><span lang="ru">InfoNCE целиком: потеря \(= 0.1191\)</span><span lang="en">InfoNCE end to end: loss \(= 0.1191\)</span></h2>
             <span class="slide-kicker">E2E &middot; <span lang="ru">позитив <code>kitten</code>, \(\tau=0.1\)</span><span lang="en">positive <code>kitten</code>, \(\tau=0.1\)</span></span>
@@ -1150,7 +1161,7 @@
         </section>
 
         <!-- ============================================ 47 · DEFINITION · in-batch negatives ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="47 In-batch negatives">
+        <section class="slide" data-type="definition" data-screen-label="46 In-batch negatives">
           <div class="slide-header">
             <h2><span lang="ru">In-batch negatives: негативы бесплатно</span><span lang="en">In-batch negatives: negatives for free</span></h2>
             <span class="slide-kicker"><span lang="ru">остальные примеры батча — твои негативы</span><span lang="en">the rest of the batch are your negatives</span></span>
@@ -1167,7 +1178,7 @@
         </section>
 
         <!-- ============================================ 48 · MISCONCEPTION · normalize / cosine ============================================ -->
-        <section class="slide" data-type="misconception" data-screen-label="48 Why normalize">
+        <section class="slide" data-type="misconception" data-screen-label="47 Why normalize">
           <div class="slide-header">
             <h2><span lang="ru">Зачем нормировать и брать косинус?</span><span lang="en">Why normalise and use cosine?</span></h2>
             <span class="slide-kicker"><span lang="ru">длина мешает близости</span><span lang="en">length distracts from nearness</span></span>
@@ -1185,7 +1196,7 @@
 
         <!-- ============================================ BEAT 14 · catch-anisotropy ============================================ -->
         <!-- ============================================ 49 · DIVIDER · the anisotropy trap ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="49 Divider · the anisotropy trap">
+        <section class="slide" data-type="divider" data-screen-label="48 Divider · the anisotropy trap">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 07</span><span lang="en">Part 07</span></div>
             <h1>The Anisotropy Trap</h1>
@@ -1195,7 +1206,7 @@
         </section>
 
         <!-- ============================================ 50 · MISCONCEPTION · anisotropy (callback L2) ============================================ -->
-        <section class="slide" data-type="misconception" data-screen-label="50 Anisotropy">
+        <section class="slide" data-type="misconception" data-screen-label="49 Anisotropy">
           <div class="slide-header">
             <h2><span lang="ru">Сырые BERT-векторы анизотропны</span><span lang="en">Raw BERT vectors are anisotropic</span></h2>
             <span class="slide-kicker"><span lang="ru">обратный вызов L2 · проклятие размерности</span><span lang="en">callback L2 · curse of dimensionality</span></span>
@@ -1213,7 +1224,7 @@
 
         <!-- ============================================ BEAT 15 · payoff-gremlin-caged ============================================ -->
         <!-- ============================================ 51 · DIVIDER · the Gremlin caged ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="51 Divider · the Gremlin caged">
+        <section class="slide" data-type="divider" data-screen-label="50 Divider · the Gremlin caged">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Развязка</span><span lang="en">Payoff</span></div>
             <h1>The Lexical Gremlin, Caged</h1>
@@ -1226,7 +1237,7 @@
         </section>
 
         <!-- ============================================ 52 · MISCONCEPTION · the win and its scope ============================================ -->
-        <section class="slide" data-type="misconception" data-screen-label="52 The Gremlin caged">
+        <section class="slide" data-type="misconception" data-screen-label="51 The Gremlin caged">
           <div class="slide-header">
             <h2><span lang="ru">Синонимы схлопнулись, смыслы развелись</span><span lang="en">Synonyms collapse, senses split</span></h2>
             <span class="slide-kicker"><span lang="ru">обе половины разрыва закрыты</span><span lang="en">both halves of the gap closed</span></span>
@@ -1242,8 +1253,78 @@
           <aside class="slide-notes">Name the win precisely so it does not sound like a small upgrade. Two distinct failures of the lexical gap are closed at once. Synonymy: couch and sofa, which a string matcher and even a one-hot vector treated as orthogonal, now collapse to nearly the same point, because contrastive training pulled co-relevant texts together — a query for one retrieves the other. Polysemy: river bank and bank account, which static word2vec was forced to average into one point, now separate, because the contextual vector depends on the surrounding sentence. Context split the senses; contrast gathered the synonyms. One-hot could not do this, BM25 could not, and even the static map of Lecture 5 could only corner the Gremlin. Here it is finally caged.</aside>
         </section>
 
+        <!-- ============================================ CROSS-DOMAIN · the same block everywhere ============================================ -->
+        <!-- ============================================ 52b · DIVIDER · everything is tokens ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="52 Divider · everything is tokens">
+          <div class="divider-content">
+            <div class="divider-num"><span lang="ru">Перенос</span><span lang="en">Transfer</span></div>
+            <h1>Everything Is a Sequence of Tokens</h1>
+            <p class="divider-sub"><em><span lang="ru">Тот же блок — за пределами текста:</span><span lang="en">The same block — beyond text:</span></em> <span lang="ru">пиксели, картинки, аудио, белки, графы. Внимание оказалось универсальным.</span><span lang="en">pixels, images, audio, proteins, graphs. Attention turned out to be universal.</span></p>
+          </div>
+          <aside class="slide-notes">A short cross-domain coda before the bridge. The remarkable thing about the encoder block we just built is how little of it is about language. Tokenise anything into a sequence of vectors and the same machinery — attention, residuals, LayerNorm, the feed-forward network — applies. The next three slides make that concrete: images as patches in a Vision Transformer, image-and-text aligned by the very same InfoNCE loss in CLIP, and finally the unifying view that a Transformer is just a graph neural network on a fully-connected graph. The point for this course: contextual encoders and contrastive training are a general recipe for turning any modality into a searchable vector space.</aside>
+        </section>
+
+        <!-- ============================================ 52c · DEFINITION · ViT (cross-domain #22) ============================================ -->
+        <section class="slide" data-type="definition" data-screen-label="53 ViT · patches as tokens">
+          <div class="slide-header">
+            <h2><span lang="ru">ViT: патчи изображения — это токены</span><span lang="en">ViT: image patches are tokens</span></h2>
+            <span class="slide-kicker"><span lang="ru">тот же блок-энкодер, другая модальность</span><span lang="en">the same encoder block, a new modality</span></span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag"><span lang="ru">Зрение</span><span lang="en">Vision</span></span>
+            <div class="def-term"><span lang="ru">Vision Transformer</span><span lang="en">Vision Transformer</span><span class="term-en">Dosovitskiy et&nbsp;al., 2021</span></div>
+            <div class="def-body">
+              <p><span lang="ru">Режем картинку на сетку патчей \(16\times 16\), каждый патч линейно проецируем в вектор — это «токен». Добавляем позиционное кодирование (как в L6) и пропускаем через <strong>тот же</strong> стек блоков Transformer. Никаких свёрток: \(196\) патчей для \(224\times 224\) — короткая последовательность.</span><span lang="en">Cut the image into a grid of \(16\times 16\) patches, linearly project each patch to a vector — that is a &ldquo;token&rdquo;. Add positional encoding (just like L6) and run the <strong>same</strong> stack of Transformer blocks. No convolutions: \(196\) patches for a \(224\times 224\) image — a short sequence.</span></p>
+              <p class="small muted"><span lang="ru">\([\texttt{CLS}]\)-токен пулит картинку в один вектор — точно как в BERT. На больших данных ViT обходит CNN. Мораль: архитектура та же, меняется лишь токенизатор. \(\to\) L12 (ColPali, мультимодальный поиск).</span><span lang="en">A \([\texttt{CLS}]\) token pools the image into one vector — exactly as in BERT. At scale ViT beats CNNs. The moral: same architecture, only the tokenizer changes. \(\to\) L12 (ColPali, multimodal retrieval).</span></p>
+            </div>
+          </div>
+          <aside class="slide-notes">The first cross-domain transfer: vision. The Vision Transformer, from Dosovitskiy and colleagues in 2021, does something almost embarrassingly simple. Take an image, cut it into a grid of small patches — sixteen by sixteen pixels each — and flatten and linearly project each patch into a vector. Now you have a sequence of patch tokens, two hundred or so for a standard image, and you feed them through exactly the same encoder block we built today: positional encoding, multi-head attention, Add and Norm, feed-forward. A CLS token pools the whole image into a single vector, just like BERT pools a sentence. No convolutions anywhere. Given enough training data this beats the convolutional networks that dominated vision for a decade. The lesson that matters for us is the universality: the architecture did not change at all, only the tokenizer that turns the raw input into a sequence. This is the direct ancestor of the multimodal retrieval models we will meet in Lecture 12.</aside>
+        </section>
+
+        <!-- ============================================ 52d · DEFINITION · CLIP (cross-domain #23, SAME InfoNCE) ============================================ -->
+        <section class="slide" data-type="definition" data-screen-label="54 CLIP · the same InfoNCE">
+          <div class="slide-header">
+            <h2><span lang="ru">CLIP: InfoNCE в общем пространстве картинка&harr;текст</span><span lang="en">CLIP: InfoNCE in a shared image&harr;text space</span></h2>
+            <span class="slide-kicker"><span lang="ru">та же контрастная потеря, что и у нас</span><span lang="en">the very same contrastive loss</span></span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag"><span lang="ru">Мультимодальность</span><span lang="en">Multimodal</span></span>
+            <div class="def-term"><span lang="ru">Contrastive Language&ndash;Image Pre-training</span><span lang="en">Contrastive Language&ndash;Image Pre-training</span><span class="term-en">Radford et&nbsp;al., 2021</span></div>
+            <div class="def-body">
+              <p><span lang="ru">Энкодер картинок (ViT) и энкодер текста (Transformer) проецируют в <strong>одно</strong> пространство. Цель — <strong>та же InfoNCE</strong>, что мы вывели: в батче из \(B\) пар (картинка, подпись) настоящая пара — позитив, остальные \(B-1\) — in-batch негативы. Симметрично по строкам и столбцам матрицы \(B\times B\) косинусов.</span><span lang="en">An image encoder (ViT) and a text encoder (Transformer) project into <strong>one</strong> space. The objective is the <strong>same InfoNCE</strong> we just derived: in a batch of \(B\) (image, caption) pairs the true pair is the positive, the other \(B-1\) are in-batch negatives. Applied symmetrically over rows and columns of the \(B\times B\) cosine matrix.</span></p>
+              <p class="small muted"><span lang="ru">Результат — zero-shot классификация и <strong>поиск картинки по тексту</strong>: тот же косинус, тот же \(\tau\), та же геометрия на сфере. Контрастная цель из этой лекции — буквально движок CLIP.</span><span lang="en">The result is zero-shot classification and <strong>text-to-image retrieval</strong>: the same cosine, the same \(\tau\), the same geometry on a sphere. The contrastive objective from this lecture is literally CLIP&rsquo;s engine.</span></p>
+            </div>
+          </div>
+          <aside class="slide-notes">The second transfer, and it reuses today's loss verbatim. CLIP, from Radford and colleagues in 2021, trains two encoders at once — an image encoder, often a Vision Transformer, and a text encoder, a Transformer — and forces them to project into one shared space. How does it align them? With exactly the InfoNCE loss we derived two sections ago. Take a batch of B image-caption pairs, compute the B by B matrix of cosine similarities between every image and every caption, and apply InfoNCE so that each image's true caption is the positive and the other B minus one captions are in-batch negatives — and symmetrically for each caption. That is the entire training signal. The payoff is striking: zero-shot image classification by comparing an image to text prompts, and text-to-image retrieval, both falling straight out of cosine nearness in the shared space. The temperature tau, the cosine, the in-batch-negatives trick — every piece is what we built today, just with one tower fed pixels instead of words.</aside>
+        </section>
+
+        <!-- ============================================ 52e · TWO-COL · Transformer = GNN on a complete graph (cross-domain #27) ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="55 A Transformer is a GNN">
+          <div class="slide-header">
+            <h2><span lang="ru">Один кадр: Transformer = GNN на полном графе</span><span lang="en">One frame: a Transformer is a GNN on a complete graph</span></h2>
+            <span class="slide-kicker"><span lang="ru">внимание = взвешенный message-passing</span><span lang="en">attention = weighted message-passing</span></span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3><span lang="ru">Унифицирующий взгляд</span><span lang="en">The unifying view</span></h3>
+              <p><span lang="ru">Считайте токены <strong>узлами</strong>, а веса внимания — <strong>рёбрами</strong> полностью связного графа. Тогда attention — это один шаг <strong>message-passing</strong>: каждый узел собирает взвешенное сообщение от всех соседей. <strong>GAT</strong> (Veličković 2018) — буквально внимание на графе; Transformer — частный случай с полным графом и позиционным кодированием вместо явной структуры.</span><span lang="en">Treat tokens as <strong>nodes</strong> and attention weights as <strong>edges</strong> of a fully-connected graph. Then attention is one step of <strong>message-passing</strong>: each node aggregates a weighted message from every neighbour. <strong>GAT</strong> (Veličković 2018) is attention on a graph; a Transformer is the special case with a complete graph and positional encoding standing in for explicit structure.</span></p>
+            </div>
+            <div class="twocol-col">
+              <h3><span lang="ru">Одна рецептура — много областей</span><span lang="en">One recipe — many fields</span></h3>
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>wav2vec</strong> — <span lang="ru">аудио: токены = окна сигнала.</span><span lang="en">audio: tokens = signal windows.</span></span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>ViT / CLIP</strong> — <span lang="ru">зрение и мультимодальность (выше).</span><span lang="en">vision &amp; multimodal (above).</span></span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>ESM / DNABERT</strong> — <span lang="ru">белки и геном: аминокислоты/нуклеотиды = «слова»; поиск эмбеддингов вместо BLAST.</span><span lang="en">proteins &amp; genome: amino acids / nucleotides = &ldquo;words&rdquo;; embedding search replaces BLAST.</span></span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>GAT</strong> — <span lang="ru">графы: внимание по рёбрам.</span><span lang="en">graphs: attention along edges.</span></span></li>
+              </ul>
+              <p class="small muted"><span lang="ru">Токенизируй модальность &rarr; обучи контрастом &rarr; ищи по косинусу. Та же геометрия смысла.</span><span lang="en">Tokenise a modality &rarr; train contrastively &rarr; search by cosine. The same geometry of meaning.</span></p>
+            </div>
+          </div>
+          <aside class="slide-notes">The closing unification. Step back and the Transformer stops looking like a language model and starts looking like something more general. Treat each token as a node in a graph and each attention weight as the strength of an edge; then a single attention layer is exactly one round of message-passing on that graph, where every node collects a weighted sum of messages from its neighbours. The graph just happens to be complete — every token attends to every token — and positional encoding substitutes for the explicit edges that a real graph would carry. Veličković and colleagues' Graph Attention Network from 2018 is the same idea made explicit on arbitrary graphs. And once you see attention as message-passing on tokenised inputs, the whole zoo lines up: wav2vec tokenises audio into signal windows, ViT and CLIP tokenise images, protein language models like ESM treat amino acids as words and replace BLAST search with embedding search, DNABERT does the same for the genome, and graph attention networks operate on molecules and social graphs. The recipe is always the same three moves: tokenise the modality, train contrastively, search by cosine. Everything is a sequence of tokens in a learned space.</aside>
+        </section>
+
         <!-- ============================================ 53 · QUOTE · bridge to L7 ============================================ -->
-        <section class="slide" data-type="quote" data-screen-label="53 Bridge">
+        <section class="slide" data-type="quote" data-screen-label="56 Bridge">
           <div>
             <div class="quote-mark">&ldquo;</div>
             <blockquote><span lang="ru">Совет научился слушать.<br />Теперь — как <em>искать</em> им за миллисекунды?</span><span lang="en">The Council has learned to listen.<br />Now — how do we <em>search</em> with it in milliseconds?</span></blockquote>
@@ -1253,7 +1334,7 @@
         </section>
 
         <!-- ============================================ 54 · FINAL ============================================ -->
-        <section class="slide" data-type="final" data-screen-label="54 Final">
+        <section class="slide" data-type="final" data-screen-label="57 Final">
           <div class="final-body">
             <h1 style="font-size:96px; line-height:1.05; margin-bottom:var(--sp-4);"><span lang="ru">Каждый токен научился слушать.<br />Кого <em>слушаете</em> вы?</span><span lang="en">Every token learned to listen.<br />Who do <em>you</em> heed?</span></h1>
             <p class="final-sub" style="margin-bottom:var(--sp-5);"><strong><span lang="ru">Вопросы?</span><span lang="en">Questions?</span></strong> &middot; <span lang="ru">Слайды, домашка и запись — по QR ниже.</span><span lang="en">Slides, homework &amp; recording via the QR below.</span></p>
@@ -1271,7 +1352,7 @@
         </section>
 
         <!-- ============================================ 55 · REFERENCES (1/2) ============================================ -->
-        <section class="slide" data-type="refs" data-screen-label="55 References · attention &amp; transformers">
+        <section class="slide" data-type="refs" data-screen-label="58 References · attention &amp; transformers">
           <div class="slide-header">
             <h2><span lang="ru">Источники и дополнительное чтение</span><span lang="en">References &amp; further reading</span> <span style="font-weight:400;opacity:.6">(1 / 2)</span></h2>
             <span class="slide-kicker"><span lang="ru">Приложение · внимание и Transformer</span><span lang="en">Appendix · attention &amp; the Transformer</span></span>
@@ -1281,21 +1362,25 @@
             <li><span class="ref-body"><span class="ref-authors">Devlin, J., Chang, M.-W., Lee, K. &amp; Toutanova, K.</span> · <span class="ref-title"><a href="https://arxiv.org/abs/1810.04805" target="_blank" rel="noopener">BERT: Pre-training of Deep Bidirectional Transformers</a></span> · <span class="ref-venue">NAACL</span></span><span class="ref-year">2019</span></li>
             <li><span class="ref-body"><span class="ref-authors">Ba, J. L., Kiros, J. R. &amp; Hinton, G. E.</span> · <span class="ref-title"><a href="https://arxiv.org/abs/1607.06450" target="_blank" rel="noopener">Layer Normalization</a></span> · <span class="ref-venue">arXiv</span></span><span class="ref-year">2016</span></li>
             <li><span class="ref-body"><span class="ref-authors">He, K., Zhang, X., Ren, S. &amp; Sun, J.</span> · <span class="ref-title"><a href="https://arxiv.org/abs/1512.03385" target="_blank" rel="noopener">Deep Residual Learning for Image Recognition (residual connections)</a></span> · <span class="ref-venue">CVPR</span></span><span class="ref-year">2016</span></li>
+            <li><span class="ref-body"><span class="ref-authors">Dao, T., Fu, D. Y., Ermon, S., Rudra, A. &amp; Ré, C.</span> · <span class="ref-title"><a href="https://arxiv.org/abs/2205.14135" target="_blank" rel="noopener">FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness</a></span> · <span class="ref-venue">NeurIPS</span></span><span class="ref-year">2022</span></li>
+            <li><span class="ref-body"><span class="ref-authors">Veličković, P., Cucurull, G., Casanova, A. <em>et al.</em></span> · <span class="ref-title"><a href="https://arxiv.org/abs/1710.10903" target="_blank" rel="noopener">Graph Attention Networks (attention as message-passing)</a></span> · <span class="ref-venue">ICLR</span></span><span class="ref-year">2018</span></li>
           </ol>
           <aside class="slide-notes">Appendix, part one — the architecture lineage. Vaswani and colleagues 2017 is the Transformer paper itself, the source of scaled dot-product attention, multi-head attention and the sinusoidal positional encoding. Devlin and colleagues 2019 is BERT, the bidirectional encoder that made contextual embeddings mainstream and gave us [CLS]. Ba, Kiros and Hinton 2016 is layer normalization, the Norm in every Add and Norm. He and colleagues 2016 is ResNet, the residual connection that lets a deep stack train at all.</aside>
         </section>
 
         <!-- ============================================ 56 · REFERENCES (2/2) ============================================ -->
-        <section class="slide" data-type="refs" data-screen-label="56 References · contrastive &amp; retrieval">
+        <section class="slide" data-type="refs" data-screen-label="59 References · contrastive &amp; retrieval">
           <div class="slide-header">
             <h2><span lang="ru">Источники и дополнительное чтение</span><span lang="en">References &amp; further reading</span> <span style="font-weight:400;opacity:.6">(2 / 2)</span></h2>
             <span class="slide-kicker"><span lang="ru">Приложение · контраст и поиск</span><span lang="en">Appendix · contrastive &amp; retrieval</span></span>
           </div>
-          <ol class="ref-list" start="5">
+          <ol class="ref-list" start="7">
             <li><span class="ref-body"><span class="ref-authors">Reimers, N. &amp; Gurevych, I.</span> · <span class="ref-title"><a href="https://arxiv.org/abs/1908.10084" target="_blank" rel="noopener">Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks</a></span> · <span class="ref-venue">EMNLP</span></span><span class="ref-year">2019</span></li>
             <li><span class="ref-body"><span class="ref-authors">Karpukhin, V., Oğuz, B., Min, S. <em>et al.</em></span> · <span class="ref-title"><a href="https://arxiv.org/abs/2004.04906" target="_blank" rel="noopener">Dense Passage Retrieval for Open-Domain QA (DPR, in-batch negatives)</a></span> · <span class="ref-venue">EMNLP</span></span><span class="ref-year">2020</span></li>
             <li><span class="ref-body"><span class="ref-authors">Ethayarajh, K.</span> · <span class="ref-title"><a href="https://arxiv.org/abs/1909.00512" target="_blank" rel="noopener">How Contextual are Contextualized Word Representations? (anisotropy)</a></span> · <span class="ref-venue">EMNLP</span></span><span class="ref-year">2019</span></li>
             <li><span class="ref-body"><span class="ref-authors">Oord, A. van den, Li, Y. &amp; Vinyals, O.</span> · <span class="ref-title"><a href="https://arxiv.org/abs/1807.03748" target="_blank" rel="noopener">Representation Learning with Contrastive Predictive Coding (InfoNCE)</a></span> · <span class="ref-venue">arXiv</span></span><span class="ref-year">2018</span></li>
+            <li><span class="ref-body"><span class="ref-authors">Dosovitskiy, A., Beyer, L., Kolesnikov, A. <em>et al.</em></span> · <span class="ref-title"><a href="https://arxiv.org/abs/2010.11929" target="_blank" rel="noopener">An Image is Worth 16×16 Words: Transformers for Image Recognition at Scale (ViT)</a></span> · <span class="ref-venue">ICLR</span></span><span class="ref-year">2021</span></li>
+            <li><span class="ref-body"><span class="ref-authors">Radford, A., Kim, J. W., Hallacy, C. <em>et al.</em></span> · <span class="ref-title"><a href="https://arxiv.org/abs/2103.00020" target="_blank" rel="noopener">Learning Transferable Visual Models From Natural Language Supervision (CLIP)</a></span> · <span class="ref-venue">ICML</span></span><span class="ref-year">2021</span></li>
           </ol>
           <aside class="slide-notes">Appendix, part two — the retrieval and contrastive lineage. Reimers and Gurevych 2019 is Sentence-BERT, which showed raw BERT vectors are poor for similarity and fixed it with siamese contrastive fine-tuning and mean-pooling. Karpukhin and colleagues 2020 is DPR, the dense passage retriever trained with in-batch negatives — the direct bridge to next lecture's bi-encoders. Ethayarajh 2019 is the anisotropy measurement behind our trap slide. And van den Oord and colleagues 2018 introduced InfoNCE, the contrastive loss we computed to zero point one one nine one. Sir Cosine, the ruler since Lecture 2, runs through all of them.</aside>
         </section>
