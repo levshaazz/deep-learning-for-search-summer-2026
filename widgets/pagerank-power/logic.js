@@ -76,7 +76,7 @@ export const mountPagerankPower = defineWidget({
     panel.appendChild(gWrap);
 
     const svg = s('svg', {
-      viewBox: '0 0 420 168', width: '100%', class: 'wgt-svg pr-svg',
+      viewBox: '0 -20 420 204', width: '100%', class: 'wgt-svg pr-svg',
       role: 'img',
       'aria-label': 'Three-page link graph: A points to B, B points to C, C points to A and B, so B has two in-links and is the authority.',
     }, gWrap);
