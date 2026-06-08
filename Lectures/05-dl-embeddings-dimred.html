@@ -503,22 +503,37 @@
           </div>
           <div class="af-stage">
             <div class="af-canvas">
-              <!-- EDGES declarative: the engine routes between node anchors -->
-              <div class="af-edge" data-from-node="af-oh" data-to-node="af-w" data-from="1" data-from-anchor="right" data-to-anchor="left" data-label="select row"></div>
+              <!-- EDGES declarative: the engine routes between node anchors. Each edge
+                   reveals with the stage it FEEDS, so the wire grows with the pipeline. -->
+              <div class="af-edge" data-from-node="af-oh" data-to-node="af-w" data-from="2" data-from-anchor="right" data-to-anchor="left" data-label="select row"></div>
               <div class="af-edge" data-from-node="af-w" data-to-node="af-h" data-from="2" data-from-anchor="right" data-to-anchor="left"></div>
               <div class="af-edge" data-from-node="af-h" data-to-node="af-z" data-from="3" data-from-anchor="right" data-to-anchor="left" data-label="dot each row"></div>
               <div class="af-edge" data-from-node="af-z" data-to-node="af-p" data-from="4" data-from-anchor="right" data-to-anchor="left" data-label="softmax"></div>
 
-              <!-- NODES: all data-from="0" so the FULL pipeline is on canvas at rest (step 0);
-                   data-focus rings the active stage as → advances; future stages read faded -->
+              <!-- NODES staged one-per-step: the set of SOLID nodes GROWS as → advances.
+                   step 0 = vocabulary + one-hot input only (the meaningful START);
+                   1 = W appears, 2 = looked-up row, 3 = logits, 4 = softmax. -->
+              <!-- vocabulary · real words, one per row; king (the centre word) highlighted.
+                   Cyan tint = the "dictionary" column — a house hue used by no pipeline
+                   stage, and well clear of the canvas so every word cell is legible. -->
+              <div class="af-node af-matrix" id="af-vocab" data-role="score" data-from="0" data-focus="0..1" style="left:7%;top:50%;--cols:1">
+                <span class="af-cell is-rowhi" style="min-width:118px;font-size:18px;color:var(--ink);background:var(--c-cyan-soft);border-color:var(--c-cyan)">king</span>
+                <span class="af-cell" style="min-width:118px;font-size:18px;color:var(--ink);background:var(--c-cyan-soft);border-color:var(--c-cyan)">queen</span>
+                <span class="af-cell" style="min-width:118px;font-size:18px;color:var(--ink);background:var(--c-cyan-soft);border-color:var(--c-cyan)">man</span>
+                <span class="af-cell" style="min-width:118px;font-size:18px;color:var(--ink);background:var(--c-cyan-soft);border-color:var(--c-cyan)">woman</span>
+                <span class="af-cell" style="min-width:118px;font-size:18px;color:var(--ink);background:var(--c-cyan-soft);border-color:var(--c-cyan)">prince</span>
+                <span class="af-cell" style="min-width:118px;font-size:18px;color:var(--ink);background:var(--c-cyan-soft);border-color:var(--c-cyan)">throne</span>
+                <span class="af-cell" style="min-width:118px;font-size:18px;color:var(--ink);background:var(--c-cyan-soft);border-color:var(--c-cyan)">cat</span>
+                <span class="af-cell" style="min-width:118px;font-size:18px;color:var(--ink);background:var(--c-cyan-soft);border-color:var(--c-cyan)">computer</span>
+              </div>
               <!-- input · one-hot (king lit): 8×1 -->
-              <div class="af-node af-matrix" id="af-oh" data-role="input" data-from="0" data-focus="0..1" style="left:9%;top:50%;--cols:1">
+              <div class="af-node af-matrix" id="af-oh" data-role="input" data-from="0" data-focus="0..1" style="left:23%;top:50%;--cols:1">
                 <span class="af-cell" style="outline:3px solid var(--c-amber);outline-offset:1px">1</span>
                 <span class="af-cell">0</span><span class="af-cell">0</span><span class="af-cell">0</span>
                 <span class="af-cell">0</span><span class="af-cell">0</span><span class="af-cell">0</span><span class="af-cell">0</span>
               </div>
               <!-- W · embedding matrix = lookup table: 8×4, king's row 0 highlighted -->
-              <div class="af-node af-matrix" id="af-w" data-role="weight" data-from="0" data-focus="1..2" style="left:36%;top:50%;--cols:4">
+              <div class="af-node af-matrix" id="af-w" data-role="weight" data-from="1" data-focus="1..2" style="left:46%;top:50%;--cols:4">
                 <span class="af-cell is-rowhi">.485</span><span class="af-cell is-rowhi">.660</span><span class="af-cell is-rowhi">-.573</span><span class="af-cell is-rowhi">-.022</span>
                 <span class="af-cell">.168</span><span class="af-cell">.809</span><span class="af-cell">-.561</span><span class="af-cell">-.046</span>
                 <span class="af-cell">-.144</span><span class="af-cell">.655</span><span class="af-cell">-.262</span><span class="af-cell">-.694</span>
@@ -529,16 +544,23 @@
                 <span class="af-cell">.036</span><span class="af-cell">-.375</span><span class="af-cell">.824</span><span class="af-cell">.422</span>
               </div>
               <!-- hidden = the looked-up row (king): 1×4 -->
-              <div class="af-node af-matrix" id="af-h" data-role="value" data-from="0" data-focus="2..3" style="left:60%;top:50%;--cols:4">
+              <div class="af-node af-matrix" id="af-h" data-role="value" data-from="2" data-focus="2..3" style="left:67%;top:50%;--cols:4">
                 <span class="af-cell">.485</span><span class="af-cell">.660</span><span class="af-cell">-.573</span><span class="af-cell">-.022</span>
               </div>
-              <!-- logits · score per vocab word: 8×1 -->
-              <div class="af-node af-matrix" id="af-z" data-role="score" data-from="0" data-focus="3" style="left:79%;top:50%;--cols:1">
-                <span class="af-cell">1.00</span><span class="af-cell">.938</span><span class="af-cell">.528</span><span class="af-cell">.672</span>
-                <span class="af-cell">.947</span><span class="af-cell">.864</span><span class="af-cell">.228</span><span class="af-cell">-.712</span>
+              <!-- logits · score per vocab word: 8×1. Inline fill lifts these neutral
+                   cells clear of the canvas (the af-cell≈background WARN) on both themes. -->
+              <div class="af-node af-matrix" id="af-z" data-role="score" data-from="3" data-focus="3" style="left:83%;top:50%;--cols:1">
+                <span class="af-cell" style="background:var(--c-red-soft,#F8DAD0);border-color:var(--c-red);color:var(--ink)">1.00</span>
+                <span class="af-cell" style="background:var(--c-red-soft,#F8DAD0);border-color:var(--c-red);color:var(--ink)">.938</span>
+                <span class="af-cell" style="background:var(--c-red-soft,#F8DAD0);border-color:var(--c-red);color:var(--ink)">.528</span>
+                <span class="af-cell" style="background:var(--c-red-soft,#F8DAD0);border-color:var(--c-red);color:var(--ink)">.672</span>
+                <span class="af-cell" style="background:var(--c-red-soft,#F8DAD0);border-color:var(--c-red);color:var(--ink)">.947</span>
+                <span class="af-cell" style="background:var(--c-red-soft,#F8DAD0);border-color:var(--c-red);color:var(--ink)">.864</span>
+                <span class="af-cell" style="background:var(--c-red-soft,#F8DAD0);border-color:var(--c-red);color:var(--ink)">.228</span>
+                <span class="af-cell" style="background:var(--c-red-soft,#F8DAD0);border-color:var(--c-red);color:var(--ink)">-.712</span>
               </div>
-              <!-- softmax · context distribution (Σ=1): 8×1, prince row 5 highlighted -->
-              <div class="af-node af-matrix" id="af-p" data-role="output" data-from="0" data-focus="4" style="left:94%;top:50%;--cols:1">
+              <!-- softmax · context distribution (Σ=1): 8×1, prince row 4 highlighted -->
+              <div class="af-node af-matrix" id="af-p" data-role="output" data-from="4" data-focus="4" style="left:95%;top:50%;--cols:1">
                 <span class="af-cell">.174</span><span class="af-cell">.164</span><span class="af-cell">.109</span><span class="af-cell">.125</span>
                 <span class="af-cell is-rowhi">.165</span><span class="af-cell">.152</span><span class="af-cell">.080</span><span class="af-cell">.031</span>
               </div>
@@ -549,12 +571,12 @@
             <div class="af-panel">
               <div class="af-note is-current" data-step="0" data-label="overview">
                 <div class="af-formula">$$P(c\mid w)=\mathrm{softmax}\big(W^{\top}\,(W^{\top}\mathbf{e}_w)\big)$$</div>
-                <p><span lang="ru">Соберём сеть skip-gram по шагам. Vocab из 8 слов, \(d=4\). Жмите <kbd>&rarr;</kbd>.</span><span lang="en">Let&rsquo;s assemble the skip-gram network step by step. 8-word vocab, \(d=4\). Press <kbd>&rarr;</kbd>.</span></p>
+                <p><span lang="ru">Начинаем со словаря из 8 слов и one-hot центрального слова <code>king</code>. Сеть собирается по одному блоку за шаг — жмите <kbd>&rarr;</kbd>.</span><span lang="en">We start with the 8-word vocabulary and the one-hot for the centre word <code>king</code>. The network assembles one block per step — press <kbd>&rarr;</kbd>.</span></p>
               </div>
-              <div class="af-note" data-step="1" data-label="onehot">
-                <div class="af-note-head"><span lang="ru">Вход: one-hot</span><span lang="en">Input: one-hot</span></div>
-                <div class="af-formula">$$\mathbf{e}_{\texttt{king}}\in\{0,1\}^{8}$$</div>
-                <p><span lang="ru">Центральное слово <code>king</code> — это \(1\) в позиции 0, остальные \(0\). Просто индекс.</span><span lang="en">The centre word <code>king</code> is a \(1\) at position 0, rest \(0\). Just an index.</span></p>
+              <div class="af-note" data-step="1" data-label="weights">
+                <div class="af-note-head"><span lang="ru">Появляется \(W\)</span><span lang="en">The matrix \(W\) appears</span></div>
+                <div class="af-formula">$$W\in\mathbb{R}^{8\times 4}$$</div>
+                <p><span lang="ru">Каждая строка \(W\) — это вектор одного слова. one-hot <code>king</code> в позиции 0 указывает на строку <code>king</code> (подсвечена).</span><span lang="en">Each row of \(W\) is one word&rsquo;s vector. The one-hot <code>king</code> at position 0 points at the <code>king</code> row (highlighted).</span></p>
               </div>
               <div class="af-note" data-step="2" data-label="lookup">
                 <div class="af-note-head"><span lang="ru">\(W\) = таблица поиска</span><span lang="en">\(W\) = the lookup table</span></div>
@@ -578,7 +600,7 @@
             <span class="step-counter">0/4</span>
             <button data-step-act="next" aria-label="Next step">&rarr;</button>
           </div>
-          <aside class="slide-notes">The skip-gram network drawn as a forward pass, the same figure as the book widget. Step zero shows the whole pipeline at rest: the one-hot input, the embedding matrix W, the hidden row, the logits, and the softmax. Step one, the input is a one-hot for the centre word king — a single one at position zero. Step two is the punchline: multiplying that one-hot by W just selects a row, so the embedding matrix literally is the lookup table, and king's row, point four eight five, point six six, minus point five seven three, minus point zero two two, is the word's vector. Step three, the tied output projection dots that hidden vector with every row of W to produce eight logits. Step four, softmax turns them into a context distribution summing to one — prince on top at point one six five, queen just behind at point one six four. Every number comes straight from the L5 skip-gram file.</aside>
+          <aside class="slide-notes">The skip-gram network drawn as a forward pass, the same figure as the book widget, but built up one block per step so the pipeline grows rather than appearing all at once. Step zero shows only the vocabulary — the eight real words king, queen, man, woman, prince, throne, cat, computer — beside the one-hot column, with king lit. Step one, the embedding matrix W appears with king's row highlighted — a single one at position zero selects exactly that row. Step two is the punchline: multiplying that one-hot by W just selects a row, so the embedding matrix literally is the lookup table, and king's row, point four eight five, point six six, minus point five seven three, minus point zero two two, is the word's vector. Step three, the tied output projection dots that hidden vector with every row of W to produce eight logits. Step four, softmax turns them into a context distribution summing to one — prince on top at point one six five, queen just behind at point one six four. Every number comes straight from the L5 skip-gram file.</aside>
         </section>
 
         <!-- ============================================ BEAT 4 + 5 · turn-analogy + climb-analogy ============================================ -->
@@ -995,42 +1017,87 @@
         <!-- ============================================ 36 · VIZ · PCA as rotation (ported from widgets/pca-rotate) ============================================ -->
         <section class="slide pcr-slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="36 PCA as rotation">
           <style>
-            /* scoped to this slide: data-arch-step groups SWAP (only current shown) so the cloud
-               visibly turns and flattens; engine toggles is-arch-current/past/future per step. */
+            /* scoped to this slide.
+               Geometry (dots, eigen-axis arrow LINES) lives in the SVG and SWAPS per
+               step via data-arch-step (only the current frame is shown) so the cloud
+               visibly turns then flattens. Every TEXT label is an HTML overlay
+               (.pcr-lab) — never SVG <text> — because bold SVG text double-paints
+               under the deck's auto-fit transform; HTML text renders crisp. Overlays
+               reveal ADDITIVELY by data-step so the solid set GROWS:
+               0 raw cloud · 1 +axes & names · 2 rotating · 3 aligned +variance · 4 flat +97.21%. */
             .pcr-slide svg [data-arch-step] { display: none; }
             .pcr-slide svg [data-arch-step].is-arch-current { display: block; }
             .pcr-slide .pcr-dot { fill: var(--accent); fill-opacity: 0.82; }
             .pcr-slide .pcr-flatdot { fill: var(--c-violet); fill-opacity: 0.82; }
             .pcr-slide .pcr-cap[data-arch-step] { display: none; }
             .pcr-slide .pcr-cap[data-arch-step].is-arch-current { display: block; }
+            /* aspect-locked stage so HTML overlays line up 1:1 with SVG viewBox (1160×540) */
+            .pcr-slide .pcr-stage { position: relative; width: 100%; max-width: 1340px; aspect-ratio: 1160 / 540; margin: 0 auto; }
+            .pcr-slide .pcr-stage svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+            .pcr-slide .pcr-lab { position: absolute; transform: translate(-50%, -50%); font-family: var(--font-sans); font-weight: 700; font-size: 22px; line-height: 1; white-space: nowrap; pointer-events: none; }
+            .pcr-slide .pcr-lab.pc1 { color: var(--c-amber); }
+            .pcr-slide .pcr-lab.pc2 { color: var(--c-violet); }
+            .pcr-slide .pcr-lab.pc3 { color: var(--ink-3); }
+            .pcr-slide .pcr-badge { position: absolute; top: 3.5%; right: 2%; transform: none; font-size: 26px; padding: 4px 12px; border-radius: 999px; background: var(--bg-card); border: 1.5px solid var(--rule); font-family: var(--font-sans); font-weight: 600; pointer-events: none; }
+            /* SWAP overlays: only the current step's labels/badge are shown (display:none
+               otherwise) so nothing accumulates or overprints across steps. */
+            .pcr-slide .pcr-lab[data-arch-step], .pcr-slide .pcr-badge[data-arch-step] { display: none; }
+            .pcr-slide .pcr-lab[data-arch-step].is-arch-current, .pcr-slide .pcr-badge[data-arch-step].is-arch-current { display: block; }
           </style>
           <div class="slide-header">
             <h2><span lang="ru">PCA — это поворот, а не искажение</span><span lang="en">PCA is a rotation, not a distortion</span></h2>
             <span class="slide-kicker"><span lang="ru">3-D облако &rarr; собственные оси &rarr; поворот &rarr; 2-D</span><span lang="en">3-D cloud &rarr; eigen-axes &rarr; rotate &rarr; 2-D</span></span>
           </div>
           <div class="viz-frame">
-            <svg viewBox="0 0 1160 540" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="A correlated 3-D point cloud is rotated rigidly until its principal axes align with the screen, then flattened to 2-D, keeping 97.21% of the spread">
+            <div class="pcr-stage">
+            <svg viewBox="0 0 1160 540" preserveAspectRatio="none" role="img" aria-label="A correlated 3-D point cloud is rotated rigidly until its principal axes align with the screen, then flattened to 2-D, keeping 97.21% of the spread">
               <defs>
-                <marker id="pcrah0" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker>
+                <marker id="pcrah0" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c-amber)"/></marker>
                 <marker id="pcrah1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c-violet)"/></marker>
                 <marker id="pcrah2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink-3)"/></marker>
               </defs>
-              <g font-family="var(--font-sans)">
-                <rect x="120" y="40" width="920" height="470" rx="8" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
-                <!-- five rotation frames; only the current is shown (scoped style above) -->
-                <g data-arch-step="0"><circle cx="635.7" cy="407.1" r="6" class="pcr-dot"/><circle cx="695.2" cy="303.7" r="6" class="pcr-dot"/><circle cx="606.7" cy="377.9" r="6" class="pcr-dot"/><circle cx="548.3" cy="425.7" r="6" class="pcr-dot"/><circle cx="614.7" cy="219.5" r="6" class="pcr-dot"/><circle cx="520.1" cy="416.6" r="6" class="pcr-dot"/><circle cx="648.0" cy="258.3" r="6" class="pcr-dot"/><circle cx="819.9" cy="85.5" r="6" class="pcr-dot"/><circle cx="604.4" cy="380.7" r="6" class="pcr-dot"/><circle cx="584.5" cy="338.9" r="6" class="pcr-dot"/><circle cx="709.1" cy="220.4" r="6" class="pcr-dot"/><circle cx="731.5" cy="275.9" r="6" class="pcr-dot"/><circle cx="662.5" cy="383.5" r="6" class="pcr-dot"/><circle cx="535.5" cy="332.0" r="6" class="pcr-dot"/><circle cx="645.1" cy="134.6" r="6" class="pcr-dot"/><circle cx="718.4" cy="353.6" r="6" class="pcr-dot"/><circle cx="493.2" cy="293.9" r="6" class="pcr-dot"/><circle cx="601.5" cy="300.3" r="6" class="pcr-dot"/><circle cx="404.4" cy="464.5" r="6" class="pcr-dot"/><circle cx="483.7" cy="158.7" r="6" class="pcr-dot"/><circle cx="429.1" cy="338.1" r="6" class="pcr-dot"/><circle cx="616.1" cy="401.8" r="6" class="pcr-dot"/><circle cx="484.9" cy="347.9" r="6" class="pcr-dot"/><circle cx="697.1" cy="206.0" r="6" class="pcr-dot"/><circle cx="675.7" cy="283.3" r="6" class="pcr-dot"/><circle cx="653.8" cy="243.6" r="6" class="pcr-dot"/><circle cx="326.6" cy="451.2" r="6" class="pcr-dot"/><circle cx="597.7" cy="258.2" r="6" class="pcr-dot"/><circle cx="644.7" cy="130.2" r="6" class="pcr-dot"/><circle cx="652.1" cy="316.0" r="6" class="pcr-dot"/></g>
-                <g data-arch-step="1"><circle cx="635.7" cy="407.1" r="6" class="pcr-dot"/><circle cx="695.2" cy="303.7" r="6" class="pcr-dot"/><circle cx="606.7" cy="377.9" r="6" class="pcr-dot"/><circle cx="548.3" cy="425.7" r="6" class="pcr-dot"/><circle cx="614.7" cy="219.5" r="6" class="pcr-dot"/><circle cx="520.1" cy="416.6" r="6" class="pcr-dot"/><circle cx="648.0" cy="258.3" r="6" class="pcr-dot"/><circle cx="819.9" cy="85.5" r="6" class="pcr-dot"/><circle cx="604.4" cy="380.7" r="6" class="pcr-dot"/><circle cx="584.5" cy="338.9" r="6" class="pcr-dot"/><circle cx="709.1" cy="220.4" r="6" class="pcr-dot"/><circle cx="731.5" cy="275.9" r="6" class="pcr-dot"/><circle cx="662.5" cy="383.5" r="6" class="pcr-dot"/><circle cx="535.5" cy="332.0" r="6" class="pcr-dot"/><circle cx="645.1" cy="134.6" r="6" class="pcr-dot"/><circle cx="718.4" cy="353.6" r="6" class="pcr-dot"/><circle cx="493.2" cy="293.9" r="6" class="pcr-dot"/><circle cx="601.5" cy="300.3" r="6" class="pcr-dot"/><circle cx="404.4" cy="464.5" r="6" class="pcr-dot"/><circle cx="483.7" cy="158.7" r="6" class="pcr-dot"/><circle cx="429.1" cy="338.1" r="6" class="pcr-dot"/><circle cx="616.1" cy="401.8" r="6" class="pcr-dot"/><circle cx="484.9" cy="347.9" r="6" class="pcr-dot"/><circle cx="697.1" cy="206.0" r="6" class="pcr-dot"/><circle cx="675.7" cy="283.3" r="6" class="pcr-dot"/><circle cx="653.8" cy="243.6" r="6" class="pcr-dot"/><circle cx="326.6" cy="451.2" r="6" class="pcr-dot"/><circle cx="597.7" cy="258.2" r="6" class="pcr-dot"/><circle cx="644.7" cy="130.2" r="6" class="pcr-dot"/><circle cx="652.1" cy="316.0" r="6" class="pcr-dot"/><line x1="601.4" y1="303.6" x2="478.0" y2="393.3" stroke="var(--accent)" stroke-width="3.4" marker-end="url(#pcrah0)"/><text x="470.0" y="387.3" font-size="24" fill="var(--accent)" font-weight="600" text-anchor="end">PC1</text><line x1="601.4" y1="303.6" x2="481.0" y2="181.3" stroke="var(--c-violet)" stroke-width="3.4" marker-end="url(#pcrah1)"/><text x="473.0" y="175.3" font-size="24" fill="var(--c-violet)" font-weight="600" text-anchor="end">PC2</text><line x1="601.4" y1="303.6" x2="662.1" y2="321.1" stroke="var(--ink-3)" stroke-width="2.2" marker-end="url(#pcrah2)"/><text x="670.1" y="315.1" font-size="24" fill="var(--ink-3)" font-weight="600" text-anchor="start">PC3</text></g>
-                <g data-arch-step="2"><circle cx="648.4" cy="410.8" r="6" class="pcr-dot"/><circle cx="542.5" cy="320.0" r="6" class="pcr-dot"/><circle cx="649.8" cy="375.2" r="6" class="pcr-dot"/><circle cx="773.8" cy="368.4" r="6" class="pcr-dot"/><circle cx="541.0" cy="220.7" r="6" class="pcr-dot"/><circle cx="756.6" cy="377.1" r="6" class="pcr-dot"/><circle cx="499.4" cy="300.7" r="6" class="pcr-dot"/><circle cx="224.1" cy="202.8" r="6" class="pcr-dot"/><circle cx="699.8" cy="341.1" r="6" class="pcr-dot"/><circle cx="665.1" cy="311.9" r="6" class="pcr-dot"/><circle cx="430.9" cy="278.1" r="6" class="pcr-dot"/><circle cx="541.3" cy="267.9" r="6" class="pcr-dot"/><circle cx="630.4" cy="381.1" r="6" class="pcr-dot"/><circle cx="675.0" cy="309.4" r="6" class="pcr-dot"/><circle cx="392.5" cy="199.9" r="6" class="pcr-dot"/><circle cx="527.8" cy="398.9" r="6" class="pcr-dot"/><circle cx="684.4" cy="258.5" r="6" class="pcr-dot"/><circle cx="608.2" cy="293.3" r="6" class="pcr-dot"/><circle cx="884.4" cy="385.6" r="6" class="pcr-dot"/><circle cx="526.2" cy="182.8" r="6" class="pcr-dot"/><circle cx="771.3" cy="277.0" r="6" class="pcr-dot"/><circle cx="675.2" cy="388.2" r="6" class="pcr-dot"/><circle cx="711.8" cy="320.4" r="6" class="pcr-dot"/><circle cx="452.9" cy="243.1" r="6" class="pcr-dot"/><circle cx="532.8" cy="303.2" r="6" class="pcr-dot"/><circle cx="547.2" cy="239.5" r="6" class="pcr-dot"/><circle cx="925.6" cy="358.2" r="6" class="pcr-dot"/><circle cx="580.2" cy="253.3" r="6" class="pcr-dot"/><circle cx="392.2" cy="193.8" r="6" class="pcr-dot"/><circle cx="549.7" cy="346.5" r="6" class="pcr-dot"/><line x1="601.4" y1="303.6" x2="662.8" y2="334.1" stroke="var(--accent)" stroke-width="3.4" marker-end="url(#pcrah0)"/><text x="670.8" y="328.1" font-size="24" fill="var(--accent)" font-weight="600" text-anchor="start">PC1</text><line x1="601.4" y1="303.6" x2="560.4" y2="166.9" stroke="var(--c-violet)" stroke-width="3.4" marker-end="url(#pcrah1)"/><text x="552.4" y="160.9" font-size="24" fill="var(--c-violet)" font-weight="600" text-anchor="end">PC2</text><line x1="601.4" y1="303.6" x2="559.9" y2="276.5" stroke="var(--ink-3)" stroke-width="2.2" marker-end="url(#pcrah2)"/><text x="551.9" y="270.5" font-size="24" fill="var(--ink-3)" font-weight="600" text-anchor="end">PC3</text></g>
-                <g data-arch-step="3"><circle cx="659.7" cy="407.2" r="6" class="pcr-dot"/><circle cx="525.5" cy="349.1" r="6" class="pcr-dot"/><circle cx="658.3" cy="366.5" r="6" class="pcr-dot"/><circle cx="734.3" cy="333.9" r="6" class="pcr-dot"/><circle cx="519.8" cy="236.5" r="6" class="pcr-dot"/><circle cx="755.3" cy="335.6" r="6" class="pcr-dot"/><circle cx="534.5" cy="322.3" r="6" class="pcr-dot"/><circle cx="262.0" cy="302.8" r="6" class="pcr-dot"/><circle cx="653.2" cy="330.5" r="6" class="pcr-dot"/><circle cx="638.4" cy="301.2" r="6" class="pcr-dot"/><circle cx="454.4" cy="324.1" r="6" class="pcr-dot"/><circle cx="465.0" cy="311.5" r="6" class="pcr-dot"/><circle cx="615.5" cy="388.7" r="6" class="pcr-dot"/><circle cx="675.6" cy="284.8" r="6" class="pcr-dot"/><circle cx="439.1" cy="238.3" r="6" class="pcr-dot"/><circle cx="555.0" cy="428.9" r="6" class="pcr-dot"/><circle cx="676.5" cy="225.9" r="6" class="pcr-dot"/><circle cx="596.7" cy="293.7" r="6" class="pcr-dot"/><circle cx="884.2" cy="301.1" r="6" class="pcr-dot"/><circle cx="586.6" cy="167.4" r="6" class="pcr-dot"/><circle cx="761.7" cy="217.9" r="6" class="pcr-dot"/><circle cx="667.6" cy="378.8" r="6" class="pcr-dot"/><circle cx="730.9" cy="277.9" r="6" class="pcr-dot"/><circle cx="447.3" cy="286.9" r="6" class="pcr-dot"/><circle cx="526.0" cy="329.3" r="6" class="pcr-dot"/><circle cx="505.3" cy="263.8" r="6" class="pcr-dot"/><circle cx="935.9" cy="251.3" r="6" class="pcr-dot"/><circle cx="565.1" cy="258.4" r="6" class="pcr-dot"/><circle cx="435.3" cy="232.6" r="6" class="pcr-dot"/><circle cx="576.2" cy="361.1" r="6" class="pcr-dot"/><line x1="601.4" y1="303.6" x2="758.0" y2="303.6" stroke="var(--accent)" stroke-width="3.4" marker-end="url(#pcrah0)"/><text x="766.0" y="297.6" font-size="24" fill="var(--accent)" font-weight="600" text-anchor="start">PC1</text><line x1="601.4" y1="303.6" x2="601.4" y2="159.4" stroke="var(--c-violet)" stroke-width="3.4" marker-end="url(#pcrah1)"/><text x="609.4" y="153.4" font-size="24" fill="var(--c-violet)" font-weight="600" text-anchor="start">PC2</text><line x1="601.4" y1="303.6" x2="507.3" y2="253.4" stroke="var(--ink-3)" stroke-width="2.2" marker-end="url(#pcrah2)"/><text x="499.3" y="247.4" font-size="24" fill="var(--ink-3)" font-weight="600" text-anchor="end">PC3</text><text x="698.5" y="303.6" font-size="23" fill="var(--accent)" font-weight="600">PC1: 79.79%</text><text x="601.4" y="214.2" font-size="23" fill="var(--c-violet)" font-weight="600">PC2: 17.42%</text><text x="543.1" y="272.5" font-size="23" fill="var(--ink-3)" font-weight="600">PC3: 2.79%</text></g>
-                <g data-arch-step="4"><line x1="130" y1="275.0" x2="1030" y2="275.0" stroke="var(--ink-3)" stroke-width="1.6"/><line x1="580.0" y1="50" x2="580.0" y2="500" stroke="var(--ink-3)" stroke-width="1.6"/><text x="1032" y="267.0" font-size="24" fill="var(--accent)" font-weight="600" text-anchor="end">PC1</text><text x="588.0" y="66" font-size="24" fill="var(--c-violet)" font-weight="600">PC2</text><circle cx="641.8" cy="410.0" r="6" class="pcr-flatdot"/><circle cx="519.1" cy="355.2" r="6" class="pcr-flatdot"/><circle cx="645.3" cy="363.9" r="6" class="pcr-flatdot"/><circle cx="757.0" cy="340.8" r="6" class="pcr-flatdot"/><circle cx="524.7" cy="226.6" r="6" class="pcr-flatdot"/><circle cx="757.4" cy="329.6" r="6" class="pcr-flatdot"/><circle cx="501.0" cy="306.5" r="6" class="pcr-flatdot"/><circle cx="209.0" cy="288.6" r="6" class="pcr-flatdot"/><circle cx="674.5" cy="340.9" r="6" class="pcr-flatdot"/><circle cx="649.6" cy="300.8" r="6" class="pcr-flatdot"/><circle cx="421.7" cy="314.1" r="6" class="pcr-flatdot"/><circle cx="491.7" cy="332.7" r="6" class="pcr-flatdot"/><circle cx="611.1" cy="398.3" r="6" class="pcr-flatdot"/><circle cx="675.0" cy="271.9" r="6" class="pcr-flatdot"/><circle cx="399.0" cy="207.6" r="6" class="pcr-flatdot"/><circle cx="518.7" cy="431.9" r="6" class="pcr-flatdot"/><circle cx="685.8" cy="206.7" r="6" class="pcr-flatdot"/><circle cx="596.8" cy="287.8" r="6" class="pcr-flatdot"/><circle cx="897.6" cy="286.8" r="6" class="pcr-flatdot"/><circle cx="554.7" cy="118.1" r="6" class="pcr-flatdot"/><circle cx="778.6" cy="196.4" r="6" class="pcr-flatdot"/><circle cx="663.5" cy="383.3" r="6" class="pcr-flatdot"/><circle cx="724.1" cy="256.7" r="6" class="pcr-flatdot"/><circle cx="433.9" cy="281.1" r="6" class="pcr-flatdot"/><circle cx="515.5" cy="328.8" r="6" class="pcr-flatdot"/><circle cx="518.8" cy="265.4" r="6" class="pcr-flatdot"/><circle cx="951.0" cy="224.7" r="6" class="pcr-flatdot"/><circle cx="567.9" cy="248.9" r="6" class="pcr-flatdot"/><circle cx="397.4" cy="202.3" r="6" class="pcr-flatdot"/><circle cx="547.4" cy="353.3" r="6" class="pcr-flatdot"/></g>
-                <!-- step badge top-right -->
-                <text data-arch-step="0" x="1100" y="60" font-size="26" fill="var(--ink-3)" text-anchor="end" font-weight="600">3-D</text>
-                <text data-arch-step="1" x="1100" y="60" font-size="26" fill="var(--ink-3)" text-anchor="end" font-weight="600">PC1·PC2·PC3</text>
-                <text data-arch-step="2" x="1100" y="60" font-size="26" fill="var(--c-amber)" text-anchor="end" font-weight="600">rotating…</text>
-                <text data-arch-step="3" x="1100" y="60" font-size="26" fill="var(--accent)" text-anchor="end" font-weight="600">aligned</text>
-                <text data-arch-step="4" x="1100" y="60" font-size="26" fill="var(--c-violet)" text-anchor="end" font-weight="700">97.21% kept</text>
-              </g>
+              <rect x="120" y="40" width="920" height="470" rx="8" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
+              <!-- five geometry frames; only the current is shown. PC1 amber · PC2 violet · PC3 grey
+                   (distinct from the BLUE dots so axes never collide with the data colour). -->
+              <g data-arch-step="0"><circle cx="635.7" cy="407.1" r="6" class="pcr-dot"/><circle cx="695.2" cy="303.7" r="6" class="pcr-dot"/><circle cx="606.7" cy="377.9" r="6" class="pcr-dot"/><circle cx="548.3" cy="425.7" r="6" class="pcr-dot"/><circle cx="614.7" cy="219.5" r="6" class="pcr-dot"/><circle cx="520.1" cy="416.6" r="6" class="pcr-dot"/><circle cx="648.0" cy="258.3" r="6" class="pcr-dot"/><circle cx="819.9" cy="85.5" r="6" class="pcr-dot"/><circle cx="604.4" cy="380.7" r="6" class="pcr-dot"/><circle cx="584.5" cy="338.9" r="6" class="pcr-dot"/><circle cx="709.1" cy="220.4" r="6" class="pcr-dot"/><circle cx="731.5" cy="275.9" r="6" class="pcr-dot"/><circle cx="662.5" cy="383.5" r="6" class="pcr-dot"/><circle cx="535.5" cy="332.0" r="6" class="pcr-dot"/><circle cx="645.1" cy="134.6" r="6" class="pcr-dot"/><circle cx="718.4" cy="353.6" r="6" class="pcr-dot"/><circle cx="493.2" cy="293.9" r="6" class="pcr-dot"/><circle cx="601.5" cy="300.3" r="6" class="pcr-dot"/><circle cx="404.4" cy="464.5" r="6" class="pcr-dot"/><circle cx="483.7" cy="158.7" r="6" class="pcr-dot"/><circle cx="429.1" cy="338.1" r="6" class="pcr-dot"/><circle cx="616.1" cy="401.8" r="6" class="pcr-dot"/><circle cx="484.9" cy="347.9" r="6" class="pcr-dot"/><circle cx="697.1" cy="206.0" r="6" class="pcr-dot"/><circle cx="675.7" cy="283.3" r="6" class="pcr-dot"/><circle cx="653.8" cy="243.6" r="6" class="pcr-dot"/><circle cx="326.6" cy="451.2" r="6" class="pcr-dot"/><circle cx="597.7" cy="258.2" r="6" class="pcr-dot"/><circle cx="644.7" cy="130.2" r="6" class="pcr-dot"/><circle cx="652.1" cy="316.0" r="6" class="pcr-dot"/></g>
+              <g data-arch-step="1"><circle cx="635.7" cy="407.1" r="6" class="pcr-dot"/><circle cx="695.2" cy="303.7" r="6" class="pcr-dot"/><circle cx="606.7" cy="377.9" r="6" class="pcr-dot"/><circle cx="548.3" cy="425.7" r="6" class="pcr-dot"/><circle cx="614.7" cy="219.5" r="6" class="pcr-dot"/><circle cx="520.1" cy="416.6" r="6" class="pcr-dot"/><circle cx="648.0" cy="258.3" r="6" class="pcr-dot"/><circle cx="819.9" cy="85.5" r="6" class="pcr-dot"/><circle cx="604.4" cy="380.7" r="6" class="pcr-dot"/><circle cx="584.5" cy="338.9" r="6" class="pcr-dot"/><circle cx="709.1" cy="220.4" r="6" class="pcr-dot"/><circle cx="731.5" cy="275.9" r="6" class="pcr-dot"/><circle cx="662.5" cy="383.5" r="6" class="pcr-dot"/><circle cx="535.5" cy="332.0" r="6" class="pcr-dot"/><circle cx="645.1" cy="134.6" r="6" class="pcr-dot"/><circle cx="718.4" cy="353.6" r="6" class="pcr-dot"/><circle cx="493.2" cy="293.9" r="6" class="pcr-dot"/><circle cx="601.5" cy="300.3" r="6" class="pcr-dot"/><circle cx="404.4" cy="464.5" r="6" class="pcr-dot"/><circle cx="483.7" cy="158.7" r="6" class="pcr-dot"/><circle cx="429.1" cy="338.1" r="6" class="pcr-dot"/><circle cx="616.1" cy="401.8" r="6" class="pcr-dot"/><circle cx="484.9" cy="347.9" r="6" class="pcr-dot"/><circle cx="697.1" cy="206.0" r="6" class="pcr-dot"/><circle cx="675.7" cy="283.3" r="6" class="pcr-dot"/><circle cx="653.8" cy="243.6" r="6" class="pcr-dot"/><circle cx="326.6" cy="451.2" r="6" class="pcr-dot"/><circle cx="597.7" cy="258.2" r="6" class="pcr-dot"/><circle cx="644.7" cy="130.2" r="6" class="pcr-dot"/><circle cx="652.1" cy="316.0" r="6" class="pcr-dot"/><line x1="601.4" y1="303.6" x2="478.0" y2="393.3" stroke="var(--c-amber)" stroke-width="3.6" marker-end="url(#pcrah0)"/><line x1="601.4" y1="303.6" x2="481.0" y2="181.3" stroke="var(--c-violet)" stroke-width="3.6" marker-end="url(#pcrah1)"/><line x1="601.4" y1="303.6" x2="662.1" y2="321.1" stroke="var(--ink-3)" stroke-width="2.4" marker-end="url(#pcrah2)"/></g>
+              <g data-arch-step="2"><circle cx="648.4" cy="410.8" r="6" class="pcr-dot"/><circle cx="542.5" cy="320.0" r="6" class="pcr-dot"/><circle cx="649.8" cy="375.2" r="6" class="pcr-dot"/><circle cx="773.8" cy="368.4" r="6" class="pcr-dot"/><circle cx="541.0" cy="220.7" r="6" class="pcr-dot"/><circle cx="756.6" cy="377.1" r="6" class="pcr-dot"/><circle cx="499.4" cy="300.7" r="6" class="pcr-dot"/><circle cx="224.1" cy="202.8" r="6" class="pcr-dot"/><circle cx="699.8" cy="341.1" r="6" class="pcr-dot"/><circle cx="665.1" cy="311.9" r="6" class="pcr-dot"/><circle cx="430.9" cy="278.1" r="6" class="pcr-dot"/><circle cx="541.3" cy="267.9" r="6" class="pcr-dot"/><circle cx="630.4" cy="381.1" r="6" class="pcr-dot"/><circle cx="675.0" cy="309.4" r="6" class="pcr-dot"/><circle cx="392.5" cy="199.9" r="6" class="pcr-dot"/><circle cx="527.8" cy="398.9" r="6" class="pcr-dot"/><circle cx="684.4" cy="258.5" r="6" class="pcr-dot"/><circle cx="608.2" cy="293.3" r="6" class="pcr-dot"/><circle cx="884.4" cy="385.6" r="6" class="pcr-dot"/><circle cx="526.2" cy="182.8" r="6" class="pcr-dot"/><circle cx="771.3" cy="277.0" r="6" class="pcr-dot"/><circle cx="675.2" cy="388.2" r="6" class="pcr-dot"/><circle cx="711.8" cy="320.4" r="6" class="pcr-dot"/><circle cx="452.9" cy="243.1" r="6" class="pcr-dot"/><circle cx="532.8" cy="303.2" r="6" class="pcr-dot"/><circle cx="547.2" cy="239.5" r="6" class="pcr-dot"/><circle cx="925.6" cy="358.2" r="6" class="pcr-dot"/><circle cx="580.2" cy="253.3" r="6" class="pcr-dot"/><circle cx="392.2" cy="193.8" r="6" class="pcr-dot"/><circle cx="549.7" cy="346.5" r="6" class="pcr-dot"/><line x1="601.4" y1="303.6" x2="662.8" y2="334.1" stroke="var(--c-amber)" stroke-width="3.6" marker-end="url(#pcrah0)"/><line x1="601.4" y1="303.6" x2="560.4" y2="166.9" stroke="var(--c-violet)" stroke-width="3.6" marker-end="url(#pcrah1)"/><line x1="601.4" y1="303.6" x2="559.9" y2="276.5" stroke="var(--ink-3)" stroke-width="2.4" marker-end="url(#pcrah2)"/></g>
+              <g data-arch-step="3"><circle cx="659.7" cy="407.2" r="6" class="pcr-dot"/><circle cx="525.5" cy="349.1" r="6" class="pcr-dot"/><circle cx="658.3" cy="366.5" r="6" class="pcr-dot"/><circle cx="734.3" cy="333.9" r="6" class="pcr-dot"/><circle cx="519.8" cy="236.5" r="6" class="pcr-dot"/><circle cx="755.3" cy="335.6" r="6" class="pcr-dot"/><circle cx="534.5" cy="322.3" r="6" class="pcr-dot"/><circle cx="262.0" cy="302.8" r="6" class="pcr-dot"/><circle cx="653.2" cy="330.5" r="6" class="pcr-dot"/><circle cx="638.4" cy="301.2" r="6" class="pcr-dot"/><circle cx="454.4" cy="324.1" r="6" class="pcr-dot"/><circle cx="465.0" cy="311.5" r="6" class="pcr-dot"/><circle cx="615.5" cy="388.7" r="6" class="pcr-dot"/><circle cx="675.6" cy="284.8" r="6" class="pcr-dot"/><circle cx="439.1" cy="238.3" r="6" class="pcr-dot"/><circle cx="555.0" cy="428.9" r="6" class="pcr-dot"/><circle cx="676.5" cy="225.9" r="6" class="pcr-dot"/><circle cx="596.7" cy="293.7" r="6" class="pcr-dot"/><circle cx="884.2" cy="301.1" r="6" class="pcr-dot"/><circle cx="586.6" cy="167.4" r="6" class="pcr-dot"/><circle cx="761.7" cy="217.9" r="6" class="pcr-dot"/><circle cx="667.6" cy="378.8" r="6" class="pcr-dot"/><circle cx="730.9" cy="277.9" r="6" class="pcr-dot"/><circle cx="447.3" cy="286.9" r="6" class="pcr-dot"/><circle cx="526.0" cy="329.3" r="6" class="pcr-dot"/><circle cx="505.3" cy="263.8" r="6" class="pcr-dot"/><circle cx="935.9" cy="251.3" r="6" class="pcr-dot"/><circle cx="565.1" cy="258.4" r="6" class="pcr-dot"/><circle cx="435.3" cy="232.6" r="6" class="pcr-dot"/><circle cx="576.2" cy="361.1" r="6" class="pcr-dot"/><line x1="601.4" y1="303.6" x2="758.0" y2="303.6" stroke="var(--c-amber)" stroke-width="3.6" marker-end="url(#pcrah0)"/><line x1="601.4" y1="303.6" x2="601.4" y2="159.4" stroke="var(--c-violet)" stroke-width="3.6" marker-end="url(#pcrah1)"/><line x1="601.4" y1="303.6" x2="507.3" y2="253.4" stroke="var(--ink-3)" stroke-width="2.4" marker-end="url(#pcrah2)"/></g>
+              <g data-arch-step="4"><line x1="130" y1="275.0" x2="1030" y2="275.0" stroke="var(--ink-3)" stroke-width="1.6"/><line x1="580.0" y1="50" x2="580.0" y2="500" stroke="var(--ink-3)" stroke-width="1.6"/><circle cx="641.8" cy="410.0" r="6" class="pcr-flatdot"/><circle cx="519.1" cy="355.2" r="6" class="pcr-flatdot"/><circle cx="645.3" cy="363.9" r="6" class="pcr-flatdot"/><circle cx="757.0" cy="340.8" r="6" class="pcr-flatdot"/><circle cx="524.7" cy="226.6" r="6" class="pcr-flatdot"/><circle cx="757.4" cy="329.6" r="6" class="pcr-flatdot"/><circle cx="501.0" cy="306.5" r="6" class="pcr-flatdot"/><circle cx="209.0" cy="288.6" r="6" class="pcr-flatdot"/><circle cx="674.5" cy="340.9" r="6" class="pcr-flatdot"/><circle cx="649.6" cy="300.8" r="6" class="pcr-flatdot"/><circle cx="421.7" cy="314.1" r="6" class="pcr-flatdot"/><circle cx="491.7" cy="332.7" r="6" class="pcr-flatdot"/><circle cx="611.1" cy="398.3" r="6" class="pcr-flatdot"/><circle cx="675.0" cy="271.9" r="6" class="pcr-flatdot"/><circle cx="399.0" cy="207.6" r="6" class="pcr-flatdot"/><circle cx="518.7" cy="431.9" r="6" class="pcr-flatdot"/><circle cx="685.8" cy="206.7" r="6" class="pcr-flatdot"/><circle cx="596.8" cy="287.8" r="6" class="pcr-flatdot"/><circle cx="897.6" cy="286.8" r="6" class="pcr-flatdot"/><circle cx="554.7" cy="118.1" r="6" class="pcr-flatdot"/><circle cx="778.6" cy="196.4" r="6" class="pcr-flatdot"/><circle cx="663.5" cy="383.3" r="6" class="pcr-flatdot"/><circle cx="724.1" cy="256.7" r="6" class="pcr-flatdot"/><circle cx="433.9" cy="281.1" r="6" class="pcr-flatdot"/><circle cx="515.5" cy="328.8" r="6" class="pcr-flatdot"/><circle cx="518.8" cy="265.4" r="6" class="pcr-flatdot"/><circle cx="951.0" cy="224.7" r="6" class="pcr-flatdot"/><circle cx="567.9" cy="248.9" r="6" class="pcr-flatdot"/><circle cx="397.4" cy="202.3" r="6" class="pcr-flatdot"/><circle cx="547.4" cy="353.3" r="6" class="pcr-flatdot"/></g>
             </svg>
+            <!-- HTML overlay labels (crisp; never SVG text). Positioned by % of the
+                 1160×540 viewBox. SWAP per step (data-arch-step) so axis names follow
+                 their arrows through the turn with no overprint; the variance %s and
+                 the 2-D axes appear only at their stage, so the solid set still grows. -->
+            <!-- step 1: eigen-axis names appear with the arrows -->
+            <span class="pcr-lab pca-label pc1" data-arch-step="1" style="left:40.5%;top:71.7%">PC1</span>
+            <span class="pcr-lab pca-label pc2" data-arch-step="1" style="left:40.8%;top:32.5%">PC2</span>
+            <span class="pcr-lab pca-label pc3" data-arch-step="1" style="left:58.1%;top:58.0%">PC3</span>
+            <!-- step 2: rotated axis names -->
+            <span class="pcr-lab pca-label pc1" data-arch-step="2" style="left:58.1%;top:60.4%">PC1</span>
+            <span class="pcr-lab pca-label pc2" data-arch-step="2" style="left:46.6%;top:28.9%">PC2</span>
+            <span class="pcr-lab pca-label pc3" data-arch-step="2" style="left:46.5%;top:49.7%">PC3</span>
+            <!-- step 3: aligned axis names + per-axis variance (the % appears here) -->
+            <span class="pcr-lab pca-label pc1" data-arch-step="3" style="left:66.7%;top:54.5%">PC1</span>
+            <span class="pcr-lab pca-label pc2" data-arch-step="3" style="left:53.0%;top:27.7%">PC2</span>
+            <span class="pcr-lab pca-label pc3" data-arch-step="3" style="left:42.5%;top:45.6%">PC3</span>
+            <span class="pcr-lab pca-label pc1" data-arch-step="3" style="left:69.5%;top:64.5%;font-size:20px">79.79%</span>
+            <span class="pcr-lab pca-label pc2" data-arch-step="3" style="left:58.5%;top:36.0%;font-size:20px">17.42%</span>
+            <span class="pcr-lab pca-label pc3" data-arch-step="3" style="left:38.5%;top:55.5%;font-size:20px">2.79%</span>
+            <!-- step 4: 2-D screen axes labels + per-axis kept variance + dropped-PC3 note.
+                 (The two kept %s show 79.8 + 17.4 = 97.21, the badge total.) -->
+            <span class="pcr-lab pca-label pc1" data-arch-step="4" style="left:91.5%;top:46.5%">PC1</span>
+            <span class="pcr-lab pca-label pc2" data-arch-step="4" style="left:53.0%;top:9.5%">PC2</span>
+            <span class="pcr-lab pca-label pc1" data-arch-step="4" style="left:84.5%;top:54.5%;font-size:18px">79.8%</span>
+            <span class="pcr-lab pca-label pc2" data-arch-step="4" style="left:60.5%;top:16.5%;font-size:18px">17.4%</span>
+            <span class="pcr-lab pca-label pc3" data-arch-step="4" style="left:24%;top:90%;font-size:18px;color:var(--ink-3)">PC3 dropped</span>
+            <!-- top-right status badge (one element per step; only current shown) -->
+            <span class="pcr-badge pca-label pc3" data-arch-step="0" style="color:var(--ink-3)">3-D cloud</span>
+            <span class="pcr-badge pca-label pc2" data-arch-step="1">PC1·PC2·PC3</span>
+            <span class="pcr-badge pca-label pc1" data-arch-step="2">rotating…</span>
+            <span class="pcr-badge pca-label" data-arch-step="3" style="color:var(--c-amber)">aligned</span>
+            <span class="pcr-badge pca-label pc2" data-arch-step="4" style="font-weight:700">97.21% kept</span>
+            </div>
           </div>
           <p class="viz-caption">
             <span class="pcr-cap" data-arch-step="0"><span lang="ru">Коррелированное 3-D облако: оси экрана \(x,y,z\) не совпадают с направлениями разброса.</span><span lang="en">A correlated 3-D cloud: the screen axes \(x,y,z\) do not line up with the directions of spread.</span></span>
@@ -1333,77 +1400,90 @@
         </section>
 
         <!-- ============================================ 47 · VIZ · cross-domain embeddings (ported from widgets/embedding-domains) ============================================ -->
-        <section class="slide ed-slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="47 One shared space, four domains">
+        <section class="slide ed-slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="47 One shared space, four domains">
           <style>
-            /* cumulative reveal driven by data-step (engine fades step > current via .is-step-hidden) */
+            /* Genuine per-domain BUILD: one modality enters the shared map per step
+               (text 0 · image 1 · audio 2 · protein 3 · axes+full legend 4). Geometry
+               (frame, dots, axes) is SVG; every TEXT label is an HTML overlay (.ed-lab)
+               so nothing double-paints under the auto-fit transform. Reveal is cumulative
+               via data-step, so the set of solid domains GROWS one at a time. */
+            /* Fully HIDE not-yet-revealed steps (the global engine only fades to 0.08,
+               which would leave every future domain ghosted at step 0 — a false
+               "everything at once"). Here a future domain is truly absent until its step. */
+            .ed-slide [data-step].is-step-hidden { opacity: 0 !important; }
             .ed-slide .ed-frame { fill: none; stroke: var(--rule); stroke-width: 1.5; }
-            .ed-slide .ed-frame.ed-strong { stroke: var(--accent); stroke-width: 2.5; }
             .ed-slide .ed-axis { stroke: var(--ink-3); stroke-width: 1.4; stroke-dasharray: 4 5; }
             .ed-slide .ed-dot { stroke: var(--bg-card); stroke-width: 1.5; }
+            .ed-slide .ed-stage { position: relative; width: 100%; max-width: 1340px; aspect-ratio: 1160 / 540; margin: 0 auto; }
+            .ed-slide .ed-stage svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+            .ed-slide .ed-lab { position: absolute; transform: translate(-50%, -50%); font-family: var(--font-sans); line-height: 1.15; white-space: nowrap; pointer-events: none; }
+            .ed-slide .ed-lab.ed-mono { font-family: var(--font-mono); }
+            .ed-slide .ed-lab.ed-head { font-weight: 700; font-size: 24px; }
+            .ed-slide .ed-lab.ed-sub  { font-size: 19px; color: var(--ink-2); }
+            .ed-slide .ed-lab.ed-tok  { font-size: 18px; color: var(--ink-2); }
+            .ed-slide .ed-lab.ed-emb  { font-size: 16px; }
+            .ed-slide .c-text { color: var(--accent); }
+            .ed-slide .c-image { color: var(--c-violet); }
+            .ed-slide .c-audio { color: var(--c-amber); }
+            .ed-slide .c-protein { color: var(--c-green); }
+            .ed-slide .ed-legend { position: absolute; left: 60.5%; top: 4%; display: grid; grid-template-columns: auto auto; gap: 6px 26px; font-family: var(--font-sans); font-size: 19px; color: var(--ink-2); }
+            .ed-slide .ed-legend .ed-leg { display: flex; align-items: center; gap: 8px; }
+            .ed-slide .ed-legend .ed-sw { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
           </style>
           <div class="slide-header">
             <h2><span lang="ru">Один и тот же рецепт: вещь &rarr; токены &rarr; вектор</span><span lang="en">The same recipe: thing &rarr; tokens &rarr; vector</span></h2>
             <span class="slide-kicker"><span lang="ru">текст · картинка · звук · белок &rarr; одно пространство</span><span lang="en">text · image · audio · protein &rarr; one shared space</span></span>
           </div>
           <div class="viz-frame">
-            <svg viewBox="0 0 1160 540" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="Four modalities — text, image, audio, protein — each cut into tokens, embedded, and landing as a colour-coded cluster in one shared 2-D space">
-              <g font-family="var(--font-sans)">
-                <!-- the shared plane -->
-                <rect data-step="0" class="ed-frame" x="120" y="40" width="560" height="470" rx="8"/>
-                <!-- centre cross-hairs (the shared axes), from step 2 -->
-                <g data-step="2">
-                  <line class="ed-axis" x1="120" y1="268" x2="680" y2="268"/>
-                  <line class="ed-axis" x1="390.6" y1="40" x2="390.6" y2="510"/>
-                </g>
-                <text data-step="2" x="400" y="30" font-size="22" fill="var(--ink-3)" text-anchor="middle">one shared embedding space</text>
-
-                <!-- TEXT (top-left, accent) -->
-                <text data-step="0" x="700" y="80" font-size="26" fill="var(--accent)" font-weight="600">text</text>
-                <text data-step="0" x="700" y="108" font-size="20" fill="var(--ink-2)">a sentence</text>
-                <text data-step="1" x="700" y="134" font-size="18" fill="var(--ink-3)">word &rarr; tokens</text>
-                <text data-step="1" x="700" y="156" font-size="18" fill="var(--ink-2)" font-family="var(--font-mono)">king · queen · cat · river</text>
-                <g data-step="2">
-                  <circle class="ed-dot" cx="219.1" cy="111.8" r="6.5" fill="var(--accent)"/><circle class="ed-dot" cx="251.2" cy="159.2" r="6.5" fill="var(--accent)"/><circle class="ed-dot" cx="210.2" cy="159.7" r="6.5" fill="var(--accent)"/><circle class="ed-dot" cx="233.6" cy="147.7" r="6.5" fill="var(--accent)"/>
-                  <text x="219.1" y="100" font-size="16" fill="var(--accent)" text-anchor="middle">&rarr; embed</text>
-                </g>
-
-                <!-- IMAGE (top-right, violet) -->
-                <text data-step="0" x="700" y="206" font-size="26" fill="var(--c-violet)" font-weight="600">image</text>
-                <text data-step="0" x="700" y="234" font-size="20" fill="var(--ink-2)">an image</text>
-                <text data-step="1" x="700" y="260" font-size="18" fill="var(--ink-3)">patch (ViT 16&times;16) &rarr; tokens</text>
-                <text data-step="1" x="700" y="282" font-size="18" fill="var(--ink-2)" font-family="var(--font-mono)">patch[0,0] · [0,1] · [3,5] · [7,7]</text>
-                <g data-step="2">
-                  <circle class="ed-dot" cx="572.4" cy="183.0" r="6.5" fill="var(--c-violet)"/><circle class="ed-dot" cx="594.4" cy="138.6" r="6.5" fill="var(--c-violet)"/><circle class="ed-dot" cx="570.6" cy="139.6" r="6.5" fill="var(--c-violet)"/><circle class="ed-dot" cx="542.0" cy="124.4" r="6.5" fill="var(--c-violet)"/>
-                  <text x="572.4" y="172" font-size="16" fill="var(--c-violet)" text-anchor="middle">&rarr; embed</text>
-                </g>
-
-                <!-- AUDIO (bottom-left, amber) -->
-                <text data-step="0" x="700" y="332" font-size="26" fill="var(--c-amber)" font-weight="600">audio</text>
-                <text data-step="0" x="700" y="360" font-size="20" fill="var(--ink-2)">a waveform</text>
-                <text data-step="1" x="700" y="386" font-size="18" fill="var(--ink-3)">spectrogram frame &rarr; tokens</text>
-                <text data-step="1" x="700" y="408" font-size="18" fill="var(--ink-2)" font-family="var(--font-mono)">frame t=0 · 1 · 2 · 3</text>
-                <g data-step="2">
-                  <circle class="ed-dot" cx="251.2" cy="404.9" r="6.5" fill="var(--c-amber)"/><circle class="ed-dot" cx="224.9" cy="382.4" r="6.5" fill="var(--c-amber)"/><circle class="ed-dot" cx="205.6" cy="438.2" r="6.5" fill="var(--c-amber)"/><circle class="ed-dot" cx="239.6" cy="416.8" r="6.5" fill="var(--c-amber)"/>
-                  <text x="230.3" y="371" font-size="16" fill="var(--c-amber)" text-anchor="middle">&rarr; embed</text>
-                </g>
-
-                <!-- PROTEIN (bottom-right, green) -->
-                <text data-step="0" x="700" y="458" font-size="26" fill="var(--c-green)" font-weight="600">protein</text>
-                <text data-step="0" x="700" y="486" font-size="20" fill="var(--ink-2)">a protein</text>
-                <text data-step="1" x="700" y="512" font-size="18" fill="var(--ink-3)">amino-acid residue &rarr; tokens</text>
-                <text data-step="1" x="700" y="534" font-size="18" fill="var(--ink-2)" font-family="var(--font-mono)">M · K · T · G</text>
-                <g data-step="2">
-                  <circle class="ed-dot" cx="511.3" cy="410.3" r="6.5" fill="var(--c-green)"/><circle class="ed-dot" cx="550.4" cy="419.9" r="6.5" fill="var(--c-green)"/><circle class="ed-dot" cx="522.8" cy="388.8" r="6.5" fill="var(--c-green)"/><circle class="ed-dot" cx="587.2" cy="395.6" r="6.5" fill="var(--c-green)"/>
-                  <text x="542.9" y="377" font-size="16" fill="var(--c-green)" text-anchor="middle">&rarr; embed</text>
-                </g>
-
-                <!-- step 3: legend chips below the right column -->
-                <g data-step="3" font-size="19">
-                  <rect x="700" y="42" width="12" height="12" rx="2" fill="var(--accent)"/><text x="720" y="53" fill="var(--ink-2)">text · word</text>
-                  <rect x="900" y="42" width="12" height="12" rx="2" fill="var(--c-violet)"/><text x="920" y="53" fill="var(--ink-2)">image · patch</text>
-                </g>
+            <div class="ed-stage">
+            <svg viewBox="0 0 1160 540" preserveAspectRatio="none" role="img" aria-label="Four modalities — text, image, audio, protein — each cut into tokens, embedded, and landing as a colour-coded cluster in one shared 2-D space, one per step">
+              <!-- the shared plane (always present — the destination map) -->
+              <rect data-step="0" class="ed-frame" x="120" y="40" width="560" height="470" rx="8"/>
+              <!-- shared cross-hair axes appear at the final step -->
+              <g data-step="4">
+                <line class="ed-axis" x1="120" y1="275" x2="680" y2="275"/>
+                <line class="ed-axis" x1="400" y1="40" x2="400" y2="510"/>
               </g>
+              <!-- each domain's cluster lands WITH the domain (one per step) -->
+              <g data-step="0"><circle class="ed-dot" cx="219.1" cy="111.8" r="6.5" fill="var(--accent)"/><circle class="ed-dot" cx="251.2" cy="159.2" r="6.5" fill="var(--accent)"/><circle class="ed-dot" cx="210.2" cy="159.7" r="6.5" fill="var(--accent)"/><circle class="ed-dot" cx="233.6" cy="147.7" r="6.5" fill="var(--accent)"/></g>
+              <g data-step="1"><circle class="ed-dot" cx="572.4" cy="183.0" r="6.5" fill="var(--c-violet)"/><circle class="ed-dot" cx="594.4" cy="138.6" r="6.5" fill="var(--c-violet)"/><circle class="ed-dot" cx="570.6" cy="139.6" r="6.5" fill="var(--c-violet)"/><circle class="ed-dot" cx="542.0" cy="124.4" r="6.5" fill="var(--c-violet)"/></g>
+              <g data-step="2"><circle class="ed-dot" cx="251.2" cy="404.9" r="6.5" fill="var(--c-amber)"/><circle class="ed-dot" cx="224.9" cy="382.4" r="6.5" fill="var(--c-amber)"/><circle class="ed-dot" cx="205.6" cy="438.2" r="6.5" fill="var(--c-amber)"/><circle class="ed-dot" cx="239.6" cy="416.8" r="6.5" fill="var(--c-amber)"/></g>
+              <g data-step="3"><circle class="ed-dot" cx="511.3" cy="410.3" r="6.5" fill="var(--c-green)"/><circle class="ed-dot" cx="550.4" cy="419.9" r="6.5" fill="var(--c-green)"/><circle class="ed-dot" cx="522.8" cy="388.8" r="6.5" fill="var(--c-green)"/><circle class="ed-dot" cx="587.2" cy="395.6" r="6.5" fill="var(--c-green)"/></g>
             </svg>
+            <!-- HTML overlay labels (crisp). Positioned by % of the 1160×540 viewBox. -->
+            <span class="ed-lab ed-label ed-sub" data-step="4" style="left:34.5%;top:4.5%;color:var(--ink-3)">one shared embedding space</span>
+            <!-- TEXT · step 0 -->
+            <span class="ed-lab ed-label ed-head c-text"  data-step="0" style="left:69.5%;top:14.5%">text</span>
+            <span class="ed-lab ed-label ed-sub"          data-step="0" style="left:69.5%;top:20.5%">a sentence</span>
+            <span class="ed-lab ed-label ed-tok"          data-step="0" style="left:69.5%;top:25.0%;color:var(--ink-3)">word &rarr; tokens</span>
+            <span class="ed-lab ed-label ed-tok ed-mono"  data-step="0" style="left:72.0%;top:29.3%">king · queen · cat · river</span>
+            <span class="ed-lab ed-label ed-emb c-text"   data-step="0" style="left:18.9%;top:17.5%">&rarr; embed</span>
+            <!-- IMAGE · step 1 -->
+            <span class="ed-lab ed-label ed-head c-image" data-step="1" style="left:69.5%;top:38.0%">image</span>
+            <span class="ed-lab ed-label ed-sub"          data-step="1" style="left:69.5%;top:43.5%">an image</span>
+            <span class="ed-lab ed-label ed-tok"          data-step="1" style="left:69.5%;top:48.0%;color:var(--ink-3)">patch (ViT 16&times;16) &rarr; tokens</span>
+            <span class="ed-lab ed-label ed-tok ed-mono"  data-step="1" style="left:74.5%;top:52.3%">patch[0,0] · [0,1] · [3,5] · [7,7]</span>
+            <span class="ed-lab ed-label ed-emb c-image"  data-step="1" style="left:49.3%;top:31.8%">&rarr; embed</span>
+            <!-- AUDIO · step 2 -->
+            <span class="ed-lab ed-label ed-head c-audio" data-step="2" style="left:69.5%;top:60.0%">audio</span>
+            <span class="ed-lab ed-label ed-sub"          data-step="2" style="left:69.5%;top:65.2%">a waveform</span>
+            <span class="ed-lab ed-label ed-tok"          data-step="2" style="left:69.5%;top:69.5%;color:var(--ink-3)">spectrogram frame &rarr; tokens</span>
+            <span class="ed-lab ed-label ed-tok ed-mono"  data-step="2" style="left:71.5%;top:73.6%">frame t=0 · 1 · 2 · 3</span>
+            <span class="ed-lab ed-label ed-emb c-audio"  data-step="2" style="left:19.8%;top:68.5%">&rarr; embed</span>
+            <!-- PROTEIN · step 3 -->
+            <span class="ed-lab ed-label ed-head c-protein" data-step="3" style="left:69.5%;top:81.5%">protein</span>
+            <span class="ed-lab ed-label ed-sub"            data-step="3" style="left:69.5%;top:86.7%">a protein</span>
+            <span class="ed-lab ed-label ed-tok"            data-step="3" style="left:69.5%;top:91.0%;color:var(--ink-3)">amino-acid residue &rarr; tokens</span>
+            <span class="ed-lab ed-label ed-tok ed-mono"    data-step="3" style="left:67.5%;top:95.1%">M · K · T · G</span>
+            <span class="ed-lab ed-label ed-emb c-protein"  data-step="3" style="left:46.8%;top:69.5%">&rarr; embed</span>
+            <!-- COMPLETE legend (all four domains) · step 4 -->
+            <div class="ed-legend" data-step="4">
+              <span class="ed-leg pca-label"><span class="ed-sw" style="background:var(--accent)"></span>text · word</span>
+              <span class="ed-leg pca-label"><span class="ed-sw" style="background:var(--c-violet)"></span>image · patch</span>
+              <span class="ed-leg pca-label"><span class="ed-sw" style="background:var(--c-amber)"></span>audio · frame</span>
+              <span class="ed-leg pca-label"><span class="ed-sw" style="background:var(--c-green)"></span>protein · residue</span>
+            </div>
+            </div>
           </div>
           <p class="viz-caption"><span lang="ru">Текст, картинка, звук, белок — все следуют <strong>одному рецепту</strong>: разрезать на токены, вложить каждый, разместить в <strong>одном</strong> векторном пространстве. Слово, патч, кадр спектрограммы, остаток — все становятся точками одной карты.</span><span lang="en">Text, image, audio, protein all follow <strong>one recipe</strong>: cut into tokens, embed each, place in <strong>one</strong> shared vector space. A word, a patch, a spectrogram frame, a residue — all become points on the same map.</span></p>
           <div class="step-controls">
@@ -1411,7 +1491,7 @@
             <span class="step-counter">0/3</span>
             <button data-step-act="next" aria-label="Next step">&rarr;</button>
           </div>
-          <aside class="slide-notes">The cross-domain payoff, ported from the book's embedding-domains widget. Four modalities sit around one empty plane. Step zero names the thing in each: a sentence, an image, a waveform, a protein. Step one cuts each into its natural tokens — words for text, sixteen-by-sixteen patches for an image the way a vision transformer does, spectrogram frames for audio, amino-acid residues for a protein. Step two is the unification: every token, whatever its origin, is embedded and lands as a coloured dot in the same two-D space — text in the top-left, image top-right, audio bottom-left, protein bottom-right, each a tight cluster. Step three makes the shared space explicit with axes and a legend. The point: the recipe never changes — thing, tokens, vectors, one shared space — which is exactly why a single search index can hold all of them and why CLIP-style joint spaces work at all.</aside>
+          <aside class="slide-notes">The cross-domain payoff, ported from the book's embedding-domains widget, now built one modality at a time so each domain enters the shared map on its own step. Step zero: text — a sentence cut into words king, queen, cat, river, embedded, landing as a blue cluster top-left. Step one adds image — an image cut into sixteen-by-sixteen ViT patches, a violet cluster top-right. Step two adds audio — a waveform cut into spectrogram frames, an amber cluster bottom-left. Step three adds protein — an amino-acid chain cut into residues M, K, T, G, a green cluster bottom-right. Step four draws the shared cross-hair axes and the complete four-entry legend — text, image, audio, protein. The point: the recipe never changes — thing, tokens, vectors, one shared space — which is exactly why a single search index can hold all of them and why CLIP-style joint spaces work at all.</aside>
         </section>
 
         <!-- ============================================ BEAT 14 · payoff-map-drawn ============================================ -->
