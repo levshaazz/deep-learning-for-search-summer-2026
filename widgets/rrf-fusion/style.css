@@ -86,6 +86,73 @@
 .rrf-op { color: var(--ink-3, #6B7280); }
 .rrf-total { font-weight: 700; color: var(--c-violet, #7D5BA6); }
 
+/* ── Full fused table — the final reveal. Every doc's rank in A, rank in B, and its RRF score,
+   sorted by RRF. Highlights the TIE (two docs with identical sums, ranks swapped) and the UPSET
+   (a doc ranked high by one ranker losing to one ranked middling by both). Lives full-width below
+   the 3 columns; CSS-grid table so it stays inside the host with no horizontal overflow @390px. */
+.rrf-table {
+  margin-top: var(--ws-2, 1rem);
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 1px;
+  width: 100%;
+  border: var(--hairline, 1.5px) solid var(--rule, #ddd);
+  border-radius: var(--r-sm, 8px);
+  background: var(--rule, #ddd);
+  overflow: hidden;
+}
+.rrf-trow {
+  display: contents;
+}
+.rrf-th, .rrf-td {
+  background: var(--bg-card, #fff);
+  padding: 5px 8px;
+  font: 500 var(--fz-tiny, .8rem)/1.3 var(--font-mono, monospace);
+  color: var(--ink-2, #374151);
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+.rrf-th { font-weight: 700; color: var(--ink-3, #6B7280); background: var(--bg-inset, #EBE7DA); }
+.rrf-th-rk, .rrf-td-rk, .rrf-th-rrf, .rrf-td-rrf { justify-content: flex-end; text-align: right; }
+.rrf-th-rk[data-role="bm25"]   { color: var(--accent, #2A6FDB); }
+.rrf-th-rk[data-role="cosine"] { color: var(--warm, #E8743B); }
+.rrf-td-doc { font-weight: 700; color: var(--ink, #14181F); }
+.rrf-td-rrf { font-weight: 600; color: var(--ink, #14181F); }
+
+/* The tie pair — equal RRF, ranks swapped between lists. */
+.rrf-trow.is-tie .rrf-td { background: var(--c-violet-soft, #E7DEF1); }
+.rrf-trow.is-tie .rrf-td-rrf { color: var(--c-violet, #7D5BA6); font-weight: 700; }
+
+/* The upset pair — high-by-one loser sits just under the middling-by-both winner. */
+.rrf-trow.is-upset-win  .rrf-td-rrf { box-shadow: inset 2px 0 0 var(--c-green, #3A8A5C); }
+.rrf-trow.is-upset-lose .rrf-td-rk[data-role="bm25"],
+.rrf-trow.is-upset-lose .rrf-td-rk[data-role="cosine"] { color: var(--warm-ink, #B4521F); font-weight: 700; }
+
+/* Prose under the table that spells out the tie + upset, with exact numbers. */
+.rrf-note {
+  margin-top: var(--ws-1, .5rem);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.rrf-note-line {
+  font: 500 var(--fz-tiny, .8rem)/1.45 var(--font-sans, sans-serif);
+  padding: 6px 9px;
+  border-radius: var(--r-sm, 8px);
+  border-left: 3px solid var(--rule, #ddd);
+}
+.rrf-note-line.is-tie {
+  background: var(--c-violet-soft, #E7DEF1);
+  border-left-color: var(--c-violet, #7D5BA6);
+  color: var(--ink, #14181F);
+}
+.rrf-note-line.is-upset {
+  background: var(--c-green-soft, #DDEDDF);
+  border-left-color: var(--c-green, #3A8A5C);
+  color: var(--ink, #14181F);
+}
+
 @media (max-width: 640px) {
   .rrf-grid { grid-template-columns: 1fr; }
 }
