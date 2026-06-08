@@ -1,0 +1,53 @@
+{
+  "model": "distilbert-base-uncased",
+  "layer": "last_hidden_state (final layer)",
+  "dim": 768,
+  "sentences": {
+    "river": {
+      "text": "She sat on the grassy bank of the river.",
+      "sense": "river",
+      "bankTokenIndex": 6,
+      "contextWord": "river",
+      "contextTokenIndex": 9
+    },
+    "money": {
+      "text": "She deposited her paycheck at the bank downtown.",
+      "sense": "money",
+      "bankTokenIndex": 9,
+      "contextWord": "deposited",
+      "contextTokenIndex": 2
+    },
+    "money2": {
+      "text": "He waited in line at the bank to cash a cheque.",
+      "sense": "money",
+      "bankTokenIndex": 7,
+      "contextWord": "cash",
+      "contextTokenIndex": 9
+    }
+  },
+  "cosines": {
+    "crossSense": 0.6465,
+    "crossSense2": 0.6564,
+    "withinSense": 0.9466,
+    "gap": 0.3001,
+    "bankToContext": {
+      "river": {
+        "contextWord": "river",
+        "cos": 0.7697
+      },
+      "money": {
+        "contextWord": "deposited",
+        "cos": 0.6834
+      },
+      "money2": {
+        "contextWord": "cash",
+        "cos": 0.7349
+      }
+    }
+  },
+  "staticBaseline": {
+    "note": "A static embedding (word2vec/GloVe) gives 'bank' ONE vector, so its bank-vs-bank cosine is 1.0000 by construction \u2014 no cross-sense gap is even possible. See data/l5-embeddings.json for the L5 static cosines. The contextual model below SPLITS the senses.",
+    "staticBankSelfCos": 1.0
+  },
+  "note": "REAL token-level contextual vectors from distilbert-base-uncased. For each sentence we take the last-hidden-layer vector at the 'bank' token (a single BERT-vocab WordPiece, index located programmatically) and cosine the occurrences against each other. Reproducible: model.eval() (dropout off), torch.no_grad(), torch.manual_seed(0); no sampling, so the run is deterministic \u2014 same sentences give the same cosines every time. The payoff: cross-sense cosine (river vs money) < within-sense cosine (money vs money) \u2014 context separates the two senses a single static vector could not."
+}
