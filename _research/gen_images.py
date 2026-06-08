@@ -259,6 +259,119 @@ JOBS = [
      "seam and meters are black ink + course-blue + warm-orange only, no green anywhere else. No "
      "lettered title bar."),
 
+    # ---- L5 · The Map of Meaning (Word Embeddings + Dimensionality Reduction) ----
+    # NOTE on the gate: image-gate.mjs only tags char/L0/L1/L2 jobs as has_serega for the
+    # green-leak check, so L5 images are treated as NON-Serega by the palette gate. That is
+    # FINE as long as Serega's green tübetey stays a small element (<2% of canvas, like every
+    # existing L3/L4 Serega plate measures 0.6–1.2%) and NO other green appears anywhere.
+    # Every L5 plate therefore: (a) uses ONLY black ink + course-blue + warm-orange on
+    # off-white (no reds/purples/greens except Serega's small cap); (b) bakes in ZERO
+    # hand-lettered text/labels/numbers — the deck overlays its own labels, so these plates
+    # are wordless (defeats the OCR baked-text class and the analogy-needs-no-baked-labels
+    # requirement). Each scene below ends with an explicit "no words/letters/numbers anywhere"
+    # clause on top of the shared ANTIPATTERN.
+    ("L5", "L5/L5-00-map-of-meaning.png", "16:9", True,
+     "HERO ESTABLISHING SHOT — the Map of Meaning. A vast hand-drawn star-map / celestial atlas "
+     "fills the frame, but instead of stars the constellations are little WORD-PLACES: small "
+     "labelled-looking map markers, tiny town/island/landmark doodle icons (a little flag, a small "
+     "house, a dot-with-a-ring) scattered across the chart and joined by thin ink constellation "
+     "lines into neighbourhoods, so the whole map reads as 'words are places, related words sit "
+     "near each other'. Faint dotted latitude/longitude grid lines arc across the parchment. "
+     "Serega the cartographer stands at the LEFT edge before this great map, one hand raised with a "
+     "quill, charting it — proud and absorbed, mid-discovery. Warm-orange is used ONLY as thin "
+     "accent strokes on a few key constellation lines and one glowing landmark; everything else is "
+     "black ink on off-white parchment. The map and Serega together fill ≥85% of the canvas width "
+     "edge-to-edge. ABSOLUTELY NO words, letters, numbers, place-names, or hand-lettered labels "
+     "anywhere in the image — the markers and icons are wordless pictographs only (no text inside "
+     "them, no caption, no title); the deck will add labels later. This is the lecture centerpiece "
+     "— make it evocative and atlas-like."),
+    ("L5", "L5/L5-02-words-to-coordinates.png", "16:9", True,
+     "a single WORD-SCRAP (a small blank rectangular paper tag — NO text on it, just an empty "
+     "ink-outlined card) is dropping from above through the air and landing exactly onto a clean "
+     "2-D coordinate grid drawn on the off-white paper, where it lands it becomes a single bold "
+     "ink DOT (a plotted point) sitting at a grid intersection. Show the motion: the blank card up "
+     "high, a dotted fall-line, and the resolved warm-orange point on the grid below, so the idea "
+     "'a word turns into coordinates / a point in space' is unmistakable. A couple of other points "
+     "already sit on the grid nearby. The grid has plain ink axes (two perpendicular lines, small "
+     "tick marks, NO numbers on the ticks). Serega stands to the RIGHT watching the word land on "
+     "the grid, gesturing at the new point, delighted. Warm-orange appears ONLY as the resolved "
+     "landing point and the thin fall-line. The grid + card + Serega fill ≥85% of canvas width. "
+     "ABSOLUTELY NO words, letters, numbers or labels anywhere — the card is blank, the axes are "
+     "unlabelled, no caption, no title; the deck adds labels later."),
+    ("L5", "L5/L5-05-analogy-arrows.png", "16:9", False,
+     "the famous word-analogy PARALLELOGRAM drawn purely as geometry on the Map of Meaning, with "
+     "NO text labels at all (the deck overlays the words king/queen/man/woman itself). Four small "
+     "ink dots (map-points) arranged as the corners of a parallelogram on a faint dotted map-grid. "
+     "Two THICK warm-orange arrows run perfectly PARALLEL to each other, same length and same "
+     "direction: the lower arrow points from the bottom-left point to the bottom-right point, and "
+     "the upper arrow points from the top-left point to the top-right point — clearly the SAME "
+     "displacement vector copied to two places, so 'the analogy is a direction on the map' reads "
+     "instantly. Thin ink dashed lines complete the parallelogram's other two sides. Each of the "
+     "four corner dots is a small plain ink dot (a couple may have a tiny wordless map-marker "
+     "icon beside them, never a word). Composition fills 80–90% of the frame width, small uniform "
+     "margins, the two parallel orange arrows are the visual hero. NO Serega in this scene, so NO "
+     "green anywhere. ABSOLUTELY NO words, letters, numbers, or hand-lettered labels anywhere — "
+     "the four points are unlabelled; the deck adds king/queen/man/woman afterwards."),
+    ("L5", "L5/L5-08-cartographer.png", "16:9", False,
+     "introduce a NEW friendly creature: THE CARTOGRAPHER — a kindly mapmaker character (a "
+     "stick-figure in a long plain ink-outline mapmaker's apron, round head, two dot eyes, small "
+     "smile, BARE-HEADED with no hat and absolutely no green) whose ONE job and ONE clear visual "
+     "TELL is FOLDING a vast star-map down small enough to carry. Draw it as one unmistakable "
+     "action: an enormous unfolded star-map (covered in tiny wordless constellation dots and thin "
+     "ink lines) is being CREASED and folded along sharp accordion fold-lines by the Cartographer's "
+     "hands, collapsing from a huge sheet on the LEFT down to a small neat folded map-square the "
+     "Cartographer tucks under one arm on the RIGHT — conveying 'fold the high-dimensional map down "
+     "to something carryable' (dimensionality reduction). Show the crisp diagonal crease-lines and "
+     "a couple of fold-arrows (thin warm-orange) indicating the folding motion. Warm-orange appears "
+     "ONLY as the thin fold/crease motion arrows and one accent constellation line; the rest is "
+     "black ink on off-white. The Cartographer + map fill ≥85% of canvas width. NO Serega in this "
+     "scene, so NO green anywhere at all. ABSOLUTELY NO words, letters, numbers, or labels anywhere "
+     "— the map markers are wordless, no caption, no name-tag, no title; the deck names the "
+     "creature later. Make the folding 'tell' the single dominant idea of the image."),
+    ("L5", "L5/L5-10-folded-map-manifold.png", "16:9", False,
+     "a curved / gently folded MAP SURFACE drawn as a flowing rolling sheet (like a wavy banner or "
+     "a draped piece of parchment seen in soft 2-D — NO 3-D shading, just clean ink contour lines "
+     "suggesting the curve), with small word-place dots scattered across it. The key idea: even as "
+     "the sheet curves and folds, NEIGHBOURING dots stay neighbours — short ink links connect each "
+     "dot to its nearest neighbours and those local clusters stay intact along the bends of the "
+     "surface. Draw two or three little local clusters of dots, each cluster ringed by a thin ink "
+     "loop, riding over the curves of the folded sheet so the eye reads 'local neighbourhoods are "
+     "preserved on a curved manifold' (t-SNE / UMAP intuition). Warm-orange appears ONLY as the "
+     "thin neighbour-link strokes inside the clusters; the draped sheet and its contour lines are "
+     "black ink on off-white. The surface fills ≥85% of canvas width. NO Serega in this scene, so "
+     "NO green anywhere. ABSOLUTELY NO words, letters, numbers, or labels anywhere — the dots are "
+     "unlabelled, no caption, no title."),
+    ("L5", "L5/L5-12-tsne-mirage.png", "16:9", False,
+     "a DECEPTIVE map — a caveat plate about being fooled. Draw a hand-drawn treasure-map-style "
+     "chart where the DISTANCES MISLEAD: two clusters of dots that look far apart on the paper are "
+     "secretly linked by a hidden short-cut (a thin ink tunnel / a dotted wormhole line) showing "
+     "they are actually close, while two dots drawn right next to each other are in fact separated "
+     "by a little crevasse / a torn gap in the map showing they are actually far. Add one classic "
+     "'mirage' cue: a wavy heat-shimmer ripple over part of the map and a small warm-orange "
+     "warning-triangle hazard mark (a plain triangle outline with an exclamation-stroke inside it, "
+     "NO letters) floating over the misleading region, so the plate reads 'this map LIES about "
+     "distance — do not over-read it'. Warm-orange appears ONLY as the small hazard triangle and "
+     "one mirage ripple stroke; everything else is black ink on off-white. The map fills ≥85% of "
+     "canvas width. NO Serega in this scene, so NO green anywhere. ABSOLUTELY NO words, letters, "
+     "numbers, or labels anywhere — the hazard triangle holds only an exclamation stroke (no "
+     "letter), no caption, no title."),
+    ("L5", "L5/L5-14-map-drawn.png", "16:9", True,
+     "PAYOFF — the finished Map of Meaning, fully drawn at last, with Sir Cosine riding triumphantly "
+     "ACROSS it. Sir Cosine is Serega-as-a-stick-figure-knight: he wears his GREEN Tatar skullcap "
+     "directly on his head as always (NO helmet, NO second hat, just the small green skullcap), a "
+     "plain course-blue tunic, long black wavy hair, and he rides across the great chart holding a "
+     "lance or a banner-pole aloft in victory. Beneath and around him spreads the COMPLETED Map of "
+     "Meaning: a rich star-atlas of word-place neighbourhoods — clusters of small wordless map "
+     "markers and town/island icons joined by thin ink constellation lines into tidy related "
+     "regions, faint dotted grid arcs, a couple of constellation lines glowing warm-orange as the "
+     "route he rides along. The map looks DONE and harmonious (contrast with the earlier "
+     "in-progress charting). The map + knight fill ≥85% of canvas width edge-to-edge. Serega's "
+     "green skullcap is the ONLY green in the image and it is small (a cap, not a fill). Warm-orange "
+     "appears ONLY as a few accent constellation lines / the route. ABSOLUTELY NO words, letters, "
+     "numbers, place-names, or hand-lettered labels anywhere — the markers are wordless pictographs, "
+     "no caption, no banner text, no title; the deck adds labels later. Make it feel like a "
+     "victory-lap callback to Sir Cosine from L2."),
+
     # ---- course cover (banner + GitHub social card) ----
     ("char", "_char/cover.png", "16:9", True,
      "the course cover banner for a graduate course called 'Deep Learning for Search'. Wide "
