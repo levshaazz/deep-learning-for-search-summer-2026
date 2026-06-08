@@ -127,6 +127,7 @@ export default {
         ],
       },
     },
+    { id: 'climb-word2vec-net', kind: 'scrolly', widget: 'skipgram-net', data: 'l5-skipgram' },
     {
       id: 'turn-word2vec-family', kind: 'prose',
       heading: { en: 'The word2vec family tree', ru: 'Родословная word2vec', tt: 'word2vec нәсел агачы' },
@@ -267,6 +268,7 @@ export default {
         ],
       },
     },
+    { id: 'aside-domains-viz', kind: 'scrolly', widget: 'embedding-domains', data: 'l5-domains' },
     {
       id: 'stakes-too-many-dims', kind: 'prose',
       heading: { en: 'Three hundred numbers you can’t see', ru: 'Триста чисел, которых не видно', tt: 'Күреп булмый торган өч йөз сан' },
@@ -353,6 +355,7 @@ export default {
       },
     },
     { id: 'climb-pca', kind: 'scrolly', widget: 'dimred-projection', data: 'l5-dimred' },
+    { id: 'climb-pca-rotate', kind: 'scrolly', widget: 'pca-rotate', data: 'l5-pca-rotate' },
     {
       id: 'turn-manifold', kind: 'prose',
       heading: { en: 'When the map is curved', ru: 'Когда карта искривлена', tt: 'Карта бөгелгәндә' },
@@ -406,6 +409,7 @@ export default {
         ],
       },
     },
+    { id: 'climb-tsne-migrate', kind: 'scrolly', widget: 'tsne-migrate', data: 'l5-tsne-migrate' },
     {
       id: 'catch-tsne-lies', kind: 'prose',
       heading: { en: 'How to misread a t-SNE plot', ru: 'Как неверно прочитать t-SNE', tt: 't-SNE’ны ничек ялгыш уку' },
