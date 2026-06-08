@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lecture 05 — The Map of Meaning · Embeddings &amp; Dimensionality Reduction</title>
+
+  <!-- Apply saved theme/lang BEFORE first paint to avoid a flash of the
+       wrong theme. Mirrors tools.js prefs key. -->
+  <script>
+    try {
+      var __p = JSON.parse(localStorage.getItem('lecture.template.prefs.v1') || '{}');
+      var __de = document.documentElement;
+      if (__p.theme === 'dark' || __p.theme === 'light') __de.setAttribute('data-theme', __p.theme);
+      if (__p.lang === 'ru' || __p.lang === 'en') {
+        __de.setAttribute('data-lang', __p.lang);
+        __de.setAttribute('lang', __p.lang);
+      }
+    } catch (e) {}
+  </script>
+
+  <!-- Asset-load failure banner. -->
+  <script>
+    window.__assetFail = (function () {
+      var failed = [];
+      return function (name) {
+        if (failed.indexOf(name) !== -1) return;
+        failed.push(name);
+        function show() {
+          if (!document.body) { document.addEventListener('DOMContentLoaded', show); return; }
+          var el = document.getElementById('__asset-banner');
+          if (!el) {
+            el = document.createElement('div');
+            el.id = '__asset-banner';
+            el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:2147483647;' +
+              'background:#D7522C;color:#fff;font:600 15px/1.4 system-ui,sans-serif;' +
+              'padding:10px 16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.3)';
+            el.addEventListener('click', function () { el.remove(); });
+            document.body.appendChild(el);
+          }
+          el.textContent = 'Не загрузились ресурсы: ' + failed.join(', ') +
+            '. Формулы/подсветка/QR могут не отрисоваться — запустите офлайн-файл ' +
+            '«Lecture Template (Standalone).html». · Failed to load: ' + failed.join(', ') +
+            ' — use the Standalone file. (клик чтобы скрыть)';
+        }
+        show();
+      };
+    })();
+  </script>
+
+  <!-- Fonts — vendored locally. -->
+  <link href="vendor/fonts/fonts.css" rel="stylesheet"
+        onerror="window.__assetFail&&window.__assetFail('Шрифты/Fonts')" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/template.css?v=6" />
+  <link rel="stylesheet" href="css/slides.css?v=6" />
+  <link rel="stylesheet" href="css/components.css?v=6" />
+  <link rel="stylesheet" href="css/presenter.css?v=6" />
+  <link rel="stylesheet" href="css/tweaks.css?v=6" />
+  <link rel="stylesheet" href="css/e2e.css?v=6" />
+  <link rel="stylesheet" href="css/lab.css?v=6" />
+  <link rel="stylesheet" href="css/archflow.css?v=6" />
+  <link rel="stylesheet" href="css/sysdesign.css?v=6" />
+  <link rel="stylesheet" href="css/preflight.css?v=6" />
+  <link rel="stylesheet" href="css/wbw-art.css?v=1" />
+  <link rel="stylesheet" href="css/autofit.css?v=1" />
+
+  <!-- KaTeX — vendored locally. -->
+  <link rel="stylesheet" href="vendor/katex/katex.min.css"
+        onerror="window.__assetFail&&window.__assetFail('KaTeX')">
+  <script defer src="vendor/katex/katex.min.js"
+        onerror="window.__assetFail&&window.__assetFail('KaTeX')"></script>
+  <script defer src="vendor/katex/auto-render.min.js"
+    onerror="window.__assetFail&&window.__assetFail('KaTeX')"
+    onload="renderMathInElement(document.body, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '\\[', right: '\\]', display: true },
+        { left: '\\(', right: '\\)', display: false }
+      ],
+      throwOnError: false,
+      strict: 'ignore'
+    });
+    document.dispatchEvent(new CustomEvent('katex:done'));"></script>
+
+  <!-- Prism — vendored. -->
+  <script src="vendor/prism/prism-core.min.js"
+        onerror="window.__assetFail&&window.__assetFail('Prism')"></script>
+  <script src="vendor/prism/prism-python.min.js"></script>
+  <script src="vendor/prism/prism-bash.min.js"></script>
+  <script src="vendor/prism/prism-yaml.min.js"></script>
+  <script src="vendor/prism/prism-json.min.js"></script>
+
+  <!-- QR code generator — vendored. -->
+  <script src="vendor/qrcode/qrcode.js"
+        onerror="window.__assetFail&&window.__assetFail('QR')"></script>
+</head>
+
+<body>
+  <!-- Bundler thumbnail -->
+  <template id="__bundler_thumbnail">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#FBFAF6"/>
+          <stop offset="1" stop-color="#DCE8F8"/>
+        </linearGradient>
+      </defs>
+      <rect width="600" height="600" fill="url(#bg)"/>
+      <g transform="translate(180,180)">
+        <rect x="0" y="0" width="240" height="240" rx="20" fill="#2A6FDB"/>
+        <text x="120" y="160" font-family="Georgia, serif" font-size="120" font-weight="500"
+              text-anchor="middle" fill="white">∇</text>
+      </g>
+      <text x="300" y="490" font-family="Georgia, serif" font-size="40" font-weight="500"
+            text-anchor="middle" fill="#14181F">Lecture Template</text>
+      <text x="300" y="528" font-family="ui-monospace, monospace" font-size="18"
+            text-anchor="middle" fill="#6B7280" letter-spacing="3">LOADING…</text>
+    </svg>
+  </template>
+
+  <!-- Logo template -->
+  <template id="tpl-logo">
+    <div class="logo-mark">DLS</div>
+    <span>
+      INNOPOLIS UNIVERSITY
+    </span>
+  </template>
+
+  <!-- Deck -->
+  <div class="deck">
+    <div class="stage">
+      <div class="slides" data-course-ru="Deep Learning for Search · Summer 2026" data-course-en="Deep Learning for Search · Summer 2026">
+
+<!-- ============================================ 01 · TITLE ============================================ -->
+        <section class="slide" data-type="title" data-screen-label="01 Title">
+          <div class="title-header">
+            <div class="course-tag">DEEP LEARNING FOR SEARCH · SUMMER 2026</div>
+            <div data-logo-slot></div>
+          </div>
+          <div class="title-body">
+            <div class="eyebrow"><span lang="ru">Лекция 05 · Карта смысла</span><span lang="en">Lecture 05 · The neural turn begins</span></div>
+            <h1>The Map of Meaning</h1>
+            <p class="subtitle"><span lang="ru">От символов к геометрии: плотные векторы слов (word2vec, GloVe), аналогии как арифметика, и инструменты, чтобы <em>увидеть</em> 300-мерное пространство — PCA и t-SNE.</span><span lang="en">From symbols to geometry: dense word vectors (word2vec, GloVe), analogies as arithmetic, and the tools to <em>see</em> a 300-D space — PCA and t-SNE.</span></p>
+          </div>
+          <div class="title-footer">
+            <div><div class="meta-label">Lecturer</div><div class="meta-value">Albert Nasybullin</div></div>
+            <div><div class="meta-label">Affiliation</div><div class="meta-value">Innopolis University</div></div>
+            <div><div class="meta-label">Date</div><div class="meta-value">Week 2 · Wed Jun 10</div></div>
+          </div>
+          <aside class="slide-notes">Remember the alien from First Contact back in Lecture 2? Today it finally gets a place on the map. Last lecture our words still lived as symbols — strings the engine matched but did not understand. Today we make the leap from symbols to geometry: every word becomes a point in a few-hundred-dimensional space, learned so that nearness equals relatedness. We will earn those coordinates with the word2vec training objective, watch meaning turn into arithmetic with king minus man plus woman, and then learn to fold a 300-D map down to a picture we can read — PCA and t-SNE. Sir Cosine, the ruler of nearness from L2, becomes the ruler of this whole map.</aside>
+        </section>
+
+        <!-- ============================================ 02 · SPINE · you are here ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="02 You are here">
+          <div class="slide-header">
+            <h2><span lang="ru">Хребет курса — вы здесь</span><span lang="en">The spine of the course — you are here</span></h2>
+            <span class="slide-kicker"><strong>Get Data</strong> &rarr; Measure &rarr; Rank</span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1600 460" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="Course spine: get data, measure, rank — today returns to Get Data to learn dense representations">
+              <g font-family="var(--font-sans)">
+                <rect x="80" y="170" width="360" height="130" rx="16" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="4"/>
+                <text x="260" y="226" text-anchor="middle" font-size="34" fill="var(--accent-ink)">Get Data</text>
+                <text x="260" y="268" text-anchor="middle" font-size="22" fill="var(--accent-ink)">tokens &rarr; embeddings</text>
+                <rect x="620" y="170" width="360" height="130" rx="16" fill="none" stroke="var(--ink-3)" stroke-width="3"/>
+                <text x="800" y="226" text-anchor="middle" font-size="34" fill="var(--ink-2)">Measure</text>
+                <text x="800" y="268" text-anchor="middle" font-size="22" fill="var(--ink-3)">L4 · P@k · nDCG</text>
+                <rect x="1160" y="170" width="360" height="130" rx="16" fill="none" stroke="var(--ink-3)" stroke-width="3"/>
+                <text x="1340" y="226" text-anchor="middle" font-size="34" fill="var(--ink-2)">Rank</text>
+                <text x="1340" y="268" text-anchor="middle" font-size="22" fill="var(--ink-3)">L6+ · neural retrieval</text>
+                <g stroke="var(--ink-3)" stroke-width="3" marker-end="url(#sp)">
+                  <line x1="440" y1="235" x2="615" y2="235"/>
+                  <line x1="980" y1="235" x2="1155" y2="235"/>
+                </g>
+                <text x="260" y="120" text-anchor="middle" font-size="26" fill="var(--accent)" font-weight="600">&#9660; you are here &#9660;</text>
+                <defs><marker id="sp" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-3)"/></marker></defs>
+              </g>
+            </svg>
+          </div>
+          <p class="viz-caption"><span lang="ru">L3 дал словам <strong>веса</strong> (BM25); сегодня мы возвращаемся в <strong>Get Data</strong> и даём словам <strong>координаты</strong>. Это первая половина нейронного поворота.</span><span lang="en">L3 gave words <strong>weights</strong> (BM25); today we return to <strong>Get Data</strong> and give words <strong>coordinates</strong>. This is the first half of the neural turn.</span></p>
+          <aside class="slide-notes">Anchor on the spine. Lectures 1 to 3 built the classical catalog — tokens, an index, BM25 weights. Lecture 4 taught us to measure a ranking honestly. Today I deliberately step back to Get Data, because the representation itself is about to change. L3 gave each word a weight; L5 gives each word a position. That is the move from symbols to geometry, and it is the foundation every neural retriever in the rest of the course stands on.</aside>
+        </section>
+
+        <!-- ============================================ 03 · AGENDA ============================================ -->
+        <section class="slide" data-type="agenda" data-screen-label="03 Agenda">
+          <div class="slide-header">
+            <h2><span lang="ru">План лекции</span><span lang="en">Lecture Outline</span></h2>
+            <span class="slide-kicker"><span lang="ru">План · 7 частей</span><span lang="en">Agenda · seven parts</span></span>
+          </div>
+          <div class="agenda-grid">
+            <a class="toc-item" href="#/8">
+              <span class="toc-num">01</span>
+              <span class="toc-text"><span class="toc-title"><span lang="ru">Символы не знают «близко»</span><span lang="en">Symbols have no &ldquo;near&rdquo;</span></span><span class="toc-sub">one-hot &middot; the distributional hypothesis &middot; Firth</span></span>
+            </a>
+            <a class="toc-item" href="#/13">
+              <span class="toc-num">02</span>
+              <span class="toc-text"><span class="toc-title"><span lang="ru">word2vec: координаты</span><span lang="en">word2vec: earning coordinates</span></span><span class="toc-sub">skip-gram &middot; softmax &middot; negative sampling</span></span>
+            </a>
+            <a class="toc-item" href="#/19">
+              <span class="toc-num">03</span>
+              <span class="toc-text"><span class="toc-title"><span lang="ru">Смысл становится арифметикой</span><span lang="en">Meaning becomes arithmetic</span></span><span class="toc-sub">king&minus;man+woman &middot; cosine &middot; the parallelogram</span></span>
+            </a>
+            <a class="toc-item" href="#/26">
+              <span class="toc-num">04</span>
+              <span class="toc-text"><span class="toc-title"><span lang="ru">GloVe и проклятие 300-D</span><span lang="en">GloVe &amp; the curse of 300-D</span></span><span class="toc-sub">co-occurrence &middot; count vs predict &middot; you can&rsquo;t see it</span></span>
+            </a>
+            <a class="toc-item" href="#/30">
+              <span class="toc-num">05</span>
+              <span class="toc-text"><span class="toc-title"><span lang="ru">Картограф складывает карту: PCA</span><span lang="en">The Cartographer: PCA</span></span><span class="toc-sub">covariance &middot; eigenvectors &middot; 37.7% kept</span></span>
+            </a>
+            <a class="toc-item" href="#/35">
+              <span class="toc-num">06</span>
+              <span class="toc-text"><span class="toc-title"><span lang="ru">Кривая карта: t-SNE</span><span lang="en">When the map curves: t-SNE</span></span><span class="toc-sub">manifold &middot; neighbours &middot; the 2-D word map</span></span>
+            </a>
+            <a class="toc-item" href="#/39">
+              <span class="toc-num">07</span>
+              <span class="toc-text"><span class="toc-title"><span lang="ru">Ловушки и развязка</span><span lang="en">The traps &amp; the payoff</span></span><span class="toc-sub">t-SNE lies &middot; the Gremlin cornered &middot; bridge to L6</span></span>
+            </a>
+          </div>
+          <aside class="slide-notes">Seven movements. Part 1: why symbols cannot express nearness, and the distributional hypothesis that fixes it. Part 2: word2vec, the training objective that earns the coordinates — skip-gram, softmax, negative sampling. Part 3: the payoff — meaning becomes arithmetic, with the real king minus man plus woman cosine. Part 4: GloVe as a second route, and the curse of three hundred dimensions. Part 5: the Cartographer enters and folds the map with PCA. Part 6: t-SNE for the curved map and the readable two-D picture. Part 7: the traps — over-reading a t-SNE plot — and the payoff that bridges to L6. Click any item to jump.</aside>
+        </section>
+
+        <!-- ============================================ 04 · OBJECTIVES (1/2) ============================================ -->
+        <section class="slide" data-type="objectives" data-screen-label="04 Objectives · representation">
+          <div class="slide-header">
+            <h2><span lang="ru">Цели обучения</span><span lang="en">Learning objectives</span> <span style="font-weight:400;opacity:.6">(1 / 2)</span></h2>
+            <span class="slide-kicker"><span lang="ru">Цели · представление и обучение</span><span lang="en">Objectives · represent &amp; train</span></span>
+          </div>
+          <ul class="obj-list">
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong><span lang="ru">Объяснить лексический разрыв</span><span lang="en">Explain the lexical gap</span></strong> — <span lang="ru">почему символьные представления (one-hot, BM25) делают каждую пару слов равноудалённой.</span><span lang="en">why symbolic representations (one-hot, BM25) make every pair of words equidistant.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong><span lang="ru">Записать цель skip-gram</span><span lang="en">Write the skip-gram objective</span></strong> — <span lang="ru">softmax по контексту и почему negative sampling делает его обучаемым.</span><span lang="en">the softmax over contexts, and why negative sampling makes it trainable.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong><span lang="ru">Измерить близость косинусом</span><span lang="en">Measure nearness with cosine</span></strong> — <span lang="ru">и прочитать аналогию king&minus;man+woman&asymp;queen на реальных числах.</span><span lang="en">and read the analogy king&minus;man+woman&asymp;queen on real numbers.</span></span></li>
+          </ul>
+          <aside class="slide-notes">These are measurable outcomes — by the end you should be able to do each one on paper. First: state precisely why a symbol-based representation cannot encode meaning — every distinct one-hot vector is the same distance from every other. Second: write the word2vec skip-gram objective and explain the negative-sampling shortcut that makes the softmax affordable. Third: compute cosine similarity and use it to rank the analogy result. The remaining objectives — dimensionality reduction and the t-SNE caveat — are on the next slide.</aside>
+        </section>
+
+        <!-- ============================================ 05 · OBJECTIVES (2/2) ============================================ -->
+        <section class="slide" data-type="objectives" data-screen-label="05 Objectives · fold the map">
+          <div class="slide-header">
+            <h2><span lang="ru">Цели обучения</span><span lang="en">Learning objectives</span> <span style="font-weight:400;opacity:.6">(2 / 2)</span></h2>
+            <span class="slide-kicker"><span lang="ru">Цели · свернуть карту</span><span lang="en">Objectives · fold the map</span></span>
+          </div>
+          <ul class="obj-list">
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong><span lang="ru">Применить PCA</span><span lang="en">Run PCA</span></strong> — <span lang="ru">ковариация &rarr; собственные векторы &rarr; проекция; сказать, сколько дисперсии сохраняют две оси (37.7%).</span><span lang="en">covariance &rarr; eigenvectors &rarr; project; say how much variance two axes keep (37.7%).</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong><span lang="ru">Прочитать карту t-SNE</span><span lang="en">Read a t-SNE map</span></strong> — <span lang="ru">сохранение соседей, и почему расстояния и размеры кластеров на ней <em>не</em> глобальны.</span><span lang="en">neighbour preservation, and why distances and cluster sizes on it are <em>not</em> global.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong><span lang="ru">Назвать оставшуюся слабость</span><span lang="en">Name the remaining weakness</span></strong> — <span lang="ru">синонимы теперь рядом, но «bank» — всё ещё один вектор. Это мост к L6.</span><span lang="en">synonyms now sit near, but &ldquo;bank&rdquo; is still one vector. The bridge to L6.</span></span></li>
+          </ul>
+          <aside class="slide-notes">Part two of the objectives. Fourth: run PCA end to end — covariance, eigenvectors, projection — and report the variance the first two components retain, which on our corpus is thirty-seven point seven percent. Fifth: read a t-SNE plot correctly, understanding that it preserves local neighbours but distorts global distances, cluster sizes, and the gaps between clusters. Sixth: name the weakness that survives all of this — one word still has exactly one vector, so a polysemous word like bank cannot be in two places at once. That sets up the contextual embeddings of Lecture 6.</aside>
+        </section>
+
+        <!-- ============================================ BEAT 0 · hook-map ============================================ -->
+        <!-- ============================================ 06 · DIVIDER · hook ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="06 Divider · The Map of Meaning">
+          <div class="divider-content">
+            <div class="divider-num"><span lang="ru">Открытие</span><span lang="en">Cold open</span></div>
+            <h1>The Map of Meaning</h1>
+            <p class="divider-sub"><em><span lang="ru">Помните пришельца из First Contact?</span><span lang="en">Remember the alien from First Contact?</span></em> <span lang="ru">Сегодня он наконец получает место на карте.</span><span lang="en">Today it finally gets a place on the map.</span></p>
+          </div>
+          <div class="viz-frame fig-fit" style="--fig-max:40cqh; --fig-w:52%;">
+            <img src="assets/img/L5/L5-00-map-of-meaning.png?v=1" alt="A vast star-map where words are plotted as points, near words clustered together as constellations of meaning" />
+          </div>
+          <aside class="slide-notes">Cold open, callback to Lecture 2. In First Contact we met an alien language with no shared dictionary — symbols we could match but not understand. The whole lecture is the answer to that: we are going to draw a map where every word is a point, and where being near on the map means being near in meaning. By the end the alien — and every word — has a position. This is the Map of Meaning, and Sir Cosine is its ruler: nearness on this map is cosine similarity.</aside>
+        </section>
+
+        <!-- ============================================ 07 · QUOTE · hook catchphrase ============================================ -->
+        <section class="slide" data-type="quote" data-screen-label="07 Hook">
+          <div>
+            <div class="quote-mark">&ldquo;</div>
+            <blockquote><span lang="ru">Дайте словам <em>координаты</em> —<br />и «близко» наконец станет значить «похоже».</span><span lang="en">Give words <em>coordinates</em> —<br />and &ldquo;near&rdquo; finally means &ldquo;related&rdquo;.</span></blockquote>
+            <div class="quote-attr">Sir Cosine, ruler of the map &middot; symbols &rarr; geometry</div>
+          </div>
+          <aside class="slide-notes">My catchphrase for the day, and Sir Cosine speaks it. Until now words were symbols: the engine could check if two strings were equal, but had no notion of one word being close to another. The entire project of this lecture is to give each word a position in space, learned from data, so that the geometric notion of nearness lines up with the human notion of related meaning. Cosine similarity is the ruler we use to read that nearness — that is why Sir Cosine, from Lecture 2, rules this map.</aside>
+        </section>
+
+        <!-- ============================================ BEAT 1 · problem-no-nearness ============================================ -->
+        <!-- ============================================ 08 · VIZ · one-hot equidistant ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="08 Symbols are equidistant">
+          <div class="slide-header">
+            <h2><span lang="ru">Символы: каждая пара слов равноудалена</span><span lang="en">Symbols: every pair of words is equidistant</span></h2>
+            <span class="slide-kicker"><span lang="ru">one-hot · ортогональные оси</span><span lang="en">one-hot · orthogonal axes</span></span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1600 470" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="One-hot vectors for cat, dog, airplane are mutually orthogonal — all pairwise dot products are zero">
+              <g font-family="var(--font-mono)">
+                <text x="120" y="80" font-size="30" font-family="var(--font-sans)" fill="var(--ink)">One-hot vectors are mutually orthogonal:</text>
+                <g font-size="28" fill="var(--ink-2)">
+                  <text x="120" y="170">cat&nbsp;&nbsp;&nbsp;&nbsp; = [1, 0, 0, 0, &hellip;]</text>
+                  <text x="120" y="225">dog&nbsp;&nbsp;&nbsp;&nbsp; = [0, 1, 0, 0, &hellip;]</text>
+                  <text x="120" y="280">airplane = [0, 0, 1, 0, &hellip;]</text>
+                </g>
+                <g font-size="30" font-family="var(--font-sans)">
+                  <text x="120" y="370" fill="var(--c-red)">cos(cat, dog) = 0</text>
+                  <text x="120" y="415" fill="var(--c-red)">cos(cat, airplane) = 0</text>
+                </g>
+                <line x1="820" y1="120" x2="820" y2="430" stroke="var(--ink-3)" stroke-width="2" stroke-dasharray="6 6"/>
+                <text x="900" y="170" font-size="30" font-family="var(--font-sans)" fill="var(--ink)">Every dot product is 0.</text>
+                <text x="900" y="225" font-size="26" font-family="var(--font-sans)" fill="var(--ink-2)">cat is exactly as close to</text>
+                <text x="900" y="265" font-size="26" font-family="var(--font-sans)" fill="var(--ink-2)">dog as it is to airplane.</text>
+                <text x="900" y="345" font-size="26" font-family="var(--font-sans)" fill="var(--c-red)" font-style="italic">No structure. No nearness.</text>
+                <text x="900" y="390" font-size="26" font-family="var(--font-sans)" fill="var(--ink-3)">A vocabulary of \(V\) words</text>
+                <text x="900" y="425" font-size="26" font-family="var(--font-sans)" fill="var(--ink-3)">needs \(V\) orthogonal axes.</text>
+              </g>
+            </svg>
+          </div>
+          <p class="viz-caption"><span lang="ru">В one-hot (и в BM25 на термах) разные слова ортогональны: косинус любой пары различных слов равен <strong>0</strong>. Геометрии смысла нет — это домашняя территория Лексического Гремлина.</span><span lang="en">In one-hot (and in term-based BM25) distinct words are orthogonal: the cosine of any two different words is <strong>0</strong>. There is no geometry of meaning — the Lexical Gremlin's home turf.</span></p>
+          <aside class="slide-notes">State the problem cleanly. In a one-hot encoding each word is its own axis, so any two distinct words are orthogonal and their cosine is exactly zero. Cat is no closer to dog than to airplane — the representation knows nothing about meaning. This is the same lexical gap that beat BM25 last lecture: a string matcher sees couch and sofa as orthogonal too. The Gremlin lives here, in the zero off-diagonal of the identity matrix. To get nearness we need vectors that are dense, not one-hot.</aside>
+        </section>
+
+        <!-- ============================================ 09 · DEFINITION · the wish ============================================ -->
+        <section class="slide" data-type="definition" data-screen-label="09 What we want">
+          <div class="slide-header">
+            <h2><span lang="ru">Чего мы хотим</span><span lang="en">What we want instead</span></h2>
+            <span class="slide-kicker"><span lang="ru">плотные векторы · близко = похоже</span><span lang="en">dense vectors · near = related</span></span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag"><span lang="ru">Цель</span><span lang="en">Goal</span></span>
+            <div class="def-term"><span lang="ru">Плотное представление</span><span lang="en">Dense embedding</span><span class="term-en">word \(\to\) \(\mathbb{R}^{d}\), \(d\approx 50\text{–}300\)</span></div>
+            <div class="def-body">
+              <p><span lang="ru">Сопоставить каждому слову <strong>плотный</strong> вектор из нескольких сотен вещественных чисел так, чтобы <strong>косинус кодировал смысл</strong>: cos(cat, dog) велик, cos(cat, airplane) мал.</span><span lang="en">Map each word to a <strong>dense</strong> vector of a few hundred real numbers so that <strong>cosine encodes meaning</strong>: cos(cat, dog) is large, cos(cat, airplane) is small.</span></p>
+              <p class="small muted"><span lang="ru">В отличие от one-hot, оси больше не «по одному слову на ось». Похожие слова делят направления — у пространства появляется <em>форма</em>. Вопрос: откуда взять такие координаты? Ответ — следующая часть.</span><span lang="en">Unlike one-hot, the axes are no longer one-word-per-axis. Related words share directions — the space gains a <em>shape</em>. The question: where do these coordinates come from? Next part answers it.</span></p>
+            </div>
+          </div>
+          <aside class="slide-notes">The wish, stated as a definition. We want a function from words to a dense vector of a few hundred real numbers, with one property above all: cosine similarity should track meaning. Cat and dog should land close; cat and airplane far apart. Dense is the key word — instead of one isolated axis per word, related words share directions, and the space acquires a geometry we can navigate. The obvious objection is that we cannot hand-author hundreds of numbers per word for a million-word vocabulary. We need to learn them, and the next part shows from what.</aside>
+        </section>
+
+        <!-- ============================================ BEAT 2 · turn-distributional ============================================ -->
+        <!-- ============================================ 10 · QUOTE · Firth ============================================ -->
+        <section class="slide" data-type="quote" data-screen-label="10 Firth">
+          <div>
+            <div class="quote-mark">&ldquo;</div>
+            <blockquote>You shall know a word<br />by the <em>company it keeps</em>.</blockquote>
+            <div class="quote-attr">J. R. Firth, 1957 &middot; the distributional hypothesis</div>
+          </div>
+          <aside class="slide-notes">The single idea that makes the whole lecture possible, from the linguist John Rupert Firth in 1957. You shall know a word by the company it keeps. If two words tend to appear in the same kinds of contexts — surrounded by the same neighbouring words — they tend to mean similar things. Doctor and physician share contexts; so do cat and dog. This converts an impossible problem, defining meaning, into a tractable one: count and model the contexts each word appears in. Everything from word2vec to modern language models is, at heart, a way to cash in this hypothesis.</aside>
+        </section>
+
+        <!-- ============================================ 11 · DEFINITION · distributional hypothesis ============================================ -->
+        <section class="slide" data-type="definition" data-screen-label="11 Distributional hypothesis">
+          <div class="slide-header">
+            <h2><span lang="ru">Дистрибутивная гипотеза</span><span lang="en">The distributional hypothesis</span></h2>
+            <span class="slide-kicker"><span lang="ru">смысл = распределение контекстов</span><span lang="en">meaning = distribution of contexts</span></span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag"><span lang="ru">Принцип</span><span lang="en">Principle</span></span>
+            <div class="def-term"><span lang="ru">Дистрибутивная гипотеза</span><span lang="en">Distributional hypothesis</span><span class="term-en">Harris 1954 &middot; Firth 1957</span></div>
+            <div class="def-body">
+              <p><span lang="ru">Слова, встречающиеся в <strong>похожих контекстах</strong>, имеют похожий смысл. Значит, смысл слова можно <strong>выучить из его соседей</strong> в большом корпусе — без словаря и без разметки.</span><span lang="en">Words that occur in <strong>similar contexts</strong> have similar meanings. So a word's meaning can be <strong>learned from its neighbours</strong> in a large corpus — no dictionary, no labels.</span></p>
+              <p class="small muted"><span lang="ru">«The ___ purred and chased the mouse» — пропуск почти наверняка <code>cat</code>. Контекст и есть надзор. Самоконтролируемое обучение: подпись бесплатна, она в самом тексте.</span><span lang="en">&ldquo;The ___ purred and chased the mouse&rdquo; — the blank is almost surely <code>cat</code>. Context is the supervision. Self-supervised: the label is free, it lives in the text itself.</span></p>
+            </div>
+          </div>
+          <aside class="slide-notes">Make the hypothesis concrete and operational. The claim, due to Harris in 1954 and Firth in 1957, is that distributional similarity implies semantic similarity. The practical gift is self-supervision: we never need a human to label what a word means. The sentence the blank purred and chased the mouse tells us, for free, that the blank behaves like cat. Every context in a billion-word corpus is a tiny free training example. word2vec, next, turns exactly this into a learning objective with a sliding window over raw text.</aside>
+        </section>
+
+        <!-- ============================================ 12 · TWO-COL · count vs predict preview ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="12 Two roads to the map">
+          <div class="slide-header">
+            <h2><span lang="ru">Две дороги к одной карте</span><span lang="en">Two roads to the same map</span></h2>
+            <span class="slide-kicker"><span lang="ru">предсказание vs подсчёт</span><span lang="en">predict vs count</span></span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3><span lang="ru">Предсказательный (word2vec)</span><span lang="en">Predictive (word2vec)</span></h3>
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Скользящее окно по тексту; обучаем сеть <strong>предсказывать соседей</strong>.</span><span lang="en">Slide a window over text; train a net to <strong>predict neighbours</strong>.</span></span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Mikolov et&nbsp;al., 2013. Онлайн, потоковый, локальный.</span><span lang="en">Mikolov et&nbsp;al., 2013. Online, streaming, local.</span></span></li>
+              </ul>
+            </div>
+            <div class="twocol-col">
+              <h3><span lang="ru">Счётный (GloVe)</span><span lang="en">Count-based (GloVe)</span></h3>
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Строим матрицу <strong>совместной встречаемости</strong> и факторизуем её.</span><span lang="en">Build the global <strong>co-occurrence</strong> matrix and factor it.</span></span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Pennington et&nbsp;al., 2014. Глобальная статистика разом.</span><span lang="en">Pennington et&nbsp;al., 2014. Global statistics at once.</span></span></li>
+              </ul>
+            </div>
+          </div>
+          <p class="small muted center mt-3"><span lang="ru">Обе дороги ведут в одно место: пространство, где <strong>близость = смысл</strong>. Сначала пройдём предсказательную (word2vec), затем вернёмся к счётной (GloVe).</span><span lang="en">Both roads arrive at the same place: a space where <strong>nearness = meaning</strong>. We walk the predictive road (word2vec) first, then revisit the count road (GloVe).</span></p>
+          <aside class="slide-notes">Preview the two families so the structure is clear. The predictive route, word2vec, slides a window over raw text and trains a small network to predict context words; it is local, online, and streams through a corpus. The count route, GloVe, instead builds the global word-by-word co-occurrence matrix once and factorises it. They look different but converge on the same kind of geometry — both are cashing in the distributional hypothesis. We do word2vec in depth next because its objective is the cleanest window into how the coordinates are earned.</aside>
+        </section>
+
+        <!-- ============================================ BEAT 3 · climb-word2vec ============================================ -->
+        <!-- ============================================ 13 · DIVIDER · word2vec ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="13 Divider · word2vec">
+          <div class="divider-content">
+            <div class="divider-num"><span lang="ru">Часть 02</span><span lang="en">Part 02</span></div>
+            <h1>From Words to Coordinates</h1>
+            <p class="divider-sub"><em><span lang="ru">Гипотезу мы приняли — теперь её надо заработать:</span><span lang="en">We accepted the hypothesis — now we earn it:</span></em> <span lang="ru">обучающая цель, которая превращает контексты в координаты.</span><span lang="en">a training objective that turns contexts into coordinates.</span></p>
+          </div>
+          <div class="viz-frame fig-fit" style="--fig-max:38cqh; --fig-w:50%;">
+            <img src="assets/img/L5/L5-02-words-to-coordinates.png?v=1" alt="Words flowing through a sliding window and landing as plotted coordinates on a grid — text becoming geometry" />
+          </div>
+          <aside class="slide-notes">My climb. The distributional hypothesis tells us where meaning comes from — contexts — but not how to turn that into numbers. word2vec, from Mikolov and colleagues in 2013, supplies the missing objective: predict a word's neighbours, and the act of getting good at that prediction forces semantically similar words to acquire similar vectors. The image is my metaphor: words pour through a sliding window and fall onto a coordinate grid. This is the precise moment text becomes geometry.</aside>
+        </section>
+
+        <!-- ============================================ 14 · DEFINITION · skip-gram setup ============================================ -->
+        <section class="slide" data-type="definition" data-screen-label="14 Skip-gram setup">
+          <div class="slide-header">
+            <h2><span lang="ru">Skip-gram: задача предсказания</span><span lang="en">Skip-gram: the prediction task</span></h2>
+            <span class="slide-kicker"><span lang="ru">центр &rarr; контекст · окно \(m\)</span><span lang="en">centre &rarr; context · window \(m\)</span></span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag">word2vec</span>
+            <div class="def-term"><span lang="ru">Skip-gram</span><span lang="en">Skip-gram</span><span class="term-en">predict context from centre</span></div>
+            <div class="def-body">
+              <p><span lang="ru">Для каждого <strong>центрального</strong> слова \(w\) предсказываем слова <strong>контекста</strong> \(c\) в окне радиуса \(m\). У каждого слова <em>две</em> роли: вектор-центр \(v_w\) и вектор-контекст \(u_c\).</span><span lang="en">For each <strong>centre</strong> word \(w\), predict the <strong>context</strong> words \(c\) within a window of radius \(m\). Each word has <em>two</em> roles: a centre vector \(v_w\) and a context vector \(u_c\).</span></p>
+              <p class="small muted"><span lang="ru">«the quick <strong>brown</strong> fox jumps» с \(m=2\): центр <code>brown</code>, контекст {the, quick, fox, jumps}. Это четыре обучающих пары из одного шага окна.</span><span lang="en">&ldquo;the quick <strong>brown</strong> fox jumps&rdquo; with \(m=2\): centre <code>brown</code>, context {the, quick, fox, jumps}. Four training pairs from one window step.</span></p>
+            </div>
+          </div>
+          <aside class="slide-notes">Set up the skip-gram model before the formula. We slide a window over the corpus. At each position one word is the centre and the words around it, within radius m, are its contexts. The task is to predict those context words from the centre. Crucially every word carries two vectors: one used when it is the centre, written v sub w, and one used when it is a context word, written u sub c. Keeping them separate makes the math clean and the dot products meaningful. One window position over brown yields four centre-context training pairs.</aside>
+        </section>
+
+        <!-- ============================================ 15 · FORMULA · softmax objective ============================================ -->
+        <section class="slide" data-type="formula" data-screen-label="15 Skip-gram softmax">
+          <div class="slide-header slide-header--flush">
+            <h2><span lang="ru">Цель skip-gram: softmax по контексту</span><span lang="en">Skip-gram objective: softmax over contexts</span></h2>
+            <span class="slide-kicker"><span lang="ru">подобие = скалярное произведение</span><span lang="en">similarity = dot product</span></span>
+          </div>
+          <div class="formula-stage">
+            $$ p(c \mid w) = \frac{\exp\!\big(u_c^{\top} v_w\big)}{\displaystyle\sum_{c' \in V}\exp\!\big(u_{c'}^{\top} v_w\big)} $$
+          </div>
+          <div class="formula-caption">
+            <div class="var-block"><div class="var-symbol">\(v_w\)</div><div class="var-desc"><strong><span lang="ru">центр</span><span lang="en">centre</span></strong><br /><span lang="ru">вектор слова \(w\)</span><span lang="en">vector of \(w\)</span></div></div>
+            <div class="var-block"><div class="var-symbol">\(u_c\)</div><div class="var-desc"><strong><span lang="ru">контекст</span><span lang="en">context</span></strong><br /><span lang="ru">вектор слова \(c\)</span><span lang="en">vector of \(c\)</span></div></div>
+            <div class="var-block"><div class="var-symbol">\(u_c^{\top} v_w\)</div><div class="var-desc"><strong><span lang="ru">скор</span><span lang="en">score</span></strong><br /><span lang="ru">выше \(\Rightarrow\) ближе</span><span lang="en">higher \(\Rightarrow\) nearer</span></div></div>
+          </div>
+          <p class="small muted center mt-2"><span lang="ru">Максимизируем логарифм правдоподобия истинных пар (центр, контекст) по всему корпусу. Чем больше \(u_c^{\top} v_w\), тем выше вероятность — обучение тянет векторы со-встречающихся слов друг к другу.</span><span lang="en">We maximise the log-likelihood of the true (centre, context) pairs over the whole corpus. A larger \(u_c^{\top} v_w\) means higher probability — training pulls co-occurring words' vectors together.</span></p>
+          <aside class="slide-notes">The objective, stated exactly. The probability that context word c appears given centre word w is a softmax over the whole vocabulary, with the score being the dot product of the context vector u sub c and the centre vector v sub w. We then maximise the log-likelihood of every true centre-context pair seen in the corpus. The mechanism is simple and beautiful: to raise the probability of a genuine pair, training must raise its dot product, which pulls the two vectors closer in direction. Words that keep the same company end up pointing the same way.</aside>
+        </section>
+
+        <!-- ============================================ 16 · FORMULA · the denominator problem ============================================ -->
+        <section class="slide" data-type="formula" data-screen-label="16 Softmax cost">
+          <div class="slide-header slide-header--flush">
+            <h2><span lang="ru">Проблема: знаменатель по всему словарю</span><span lang="en">The catch: the denominator is the whole vocabulary</span></h2>
+            <span class="slide-kicker"><span lang="ru">\(O(V)\) на каждый шаг — \(V\sim 10^{6}\)</span><span lang="en">\(O(V)\) per step — \(V\sim 10^{6}\)</span></span>
+          </div>
+          <div class="formula-stage">
+            $$ \underbrace{\sum_{c' \in V}\exp\!\big(u_{c'}^{\top} v_w\big)}_{\text{normaliser over all } V \text{ words}} \;\;\Rightarrow\;\; \text{cost} \;\propto\; V \;\approx\; 10^{6} $$
+          </div>
+          <p class="small muted center mt-3"><span lang="ru">Знаменатель softmax суммирует по <strong>каждому</strong> слову словаря — это миллион скалярных произведений на <em>каждое</em> обновление. На миллиардах токенов это безнадёжно дорого. Нужно приблизить нормировку.</span><span lang="en">The softmax denominator sums over <strong>every</strong> word in the vocabulary — a million dot products on <em>every</em> update. Over billions of tokens that is hopelessly expensive. We must approximate the normaliser.</span></p>
+          <div class="callout" data-kind="info">
+            <div class="callout-icon">i</div>
+            <div class="callout-body">
+              <strong><span lang="ru">Две классические замены</span><span lang="en">Two classic fixes</span></strong>
+              <p><span lang="ru">Иерархический softmax (дерево Хаффмана, \(O(\log V)\)) и — практичнее — <strong>negative sampling</strong>. Идём по второму пути.</span><span lang="en">Hierarchical softmax (a Huffman tree, \(O(\log V)\)) and — more practical — <strong>negative sampling</strong>. We take the second road.</span></p>
+            </div>
+          </div>
+          <aside class="slide-notes">Name the obstacle precisely, the way a good engineer does. The numerator of the softmax is cheap — one dot product. The denominator is the killer: it sums the exponentiated score over every word in the vocabulary, so each gradient step costs on the order of V, around a million, dot products. Multiply that by billions of training positions and the full softmax is a non-starter. Two standard remedies exist: hierarchical softmax, which replaces the flat sum with a binary tree and costs log V, and negative sampling, which is simpler and what we will derive next.</aside>
+        </section>
+
+        <!-- ============================================ 17 · FORMULA · negative sampling ============================================ -->
+        <section class="slide" data-type="formula" data-screen-label="17 Negative sampling">
+          <div class="slide-header slide-header--flush">
+            <h2><span lang="ru">Negative sampling: софтмакс &rarr; логистика</span><span lang="en">Negative sampling: softmax &rarr; logistic</span></h2>
+            <span class="slide-kicker"><span lang="ru">истинная пара против \(k\) случайных</span><span lang="en">the true pair vs \(k\) random ones</span></span>
+          </div>
+          <div class="formula-stage">
+            $$ \log \sigma\!\big(u_c^{\top} v_w\big) \;+\; \sum_{i=1}^{k} \mathbb{E}_{c_i \sim P_n}\,\log \sigma\!\big(\!-u_{c_i}^{\top} v_w\big) $$
+          </div>
+          <div class="formula-caption">
+            <div class="var-block"><div class="var-symbol">\(\sigma\)</div><div class="var-desc"><strong>sigmoid</strong><br /><span lang="ru">\(\sigma(x)=\tfrac{1}{1+e^{-x}}\)</span><span lang="en">\(\sigma(x)=\tfrac{1}{1+e^{-x}}\)</span></div></div>
+            <div class="var-block"><div class="var-symbol">\(k\)</div><div class="var-desc"><strong><span lang="ru">негативы</span><span lang="en">negatives</span></strong><br /><span lang="ru">\(5\text{–}20\) на пару</span><span lang="en">\(5\text{–}20\) per pair</span></div></div>
+            <div class="var-block"><div class="var-symbol">\(P_n\)</div><div class="var-desc"><strong><span lang="ru">шум</span><span lang="en">noise</span></strong><br /><span lang="ru">\(\propto \mathrm{freq}^{3/4}\)</span><span lang="en">\(\propto \mathrm{freq}^{3/4}\)</span></div></div>
+          </div>
+          <p class="small muted center mt-2"><span lang="ru">Вместо нормировки по всему \(V\): тяни истинную пару вверх (\(\sigma\to 1\)) и толкай \(k\) случайных «негативов» вниз (\(\sigma\to 0\)). Стоимость падает с \(O(V)\) до \(O(k)\) — на пять порядков дешевле.</span><span lang="en">Instead of normalising over all of \(V\): push the true pair up (\(\sigma\to 1\)) and \(k\) random &ldquo;negatives&rdquo; down (\(\sigma\to 0\)). Cost drops from \(O(V)\) to \(O(k)\) — about five orders of magnitude cheaper.</span></p>
+          <aside class="slide-notes">The fix that made word2vec practical. Negative sampling replaces the multi-class softmax with a set of binary logistic decisions. For each true centre-context pair we do one thing: make its sigmoid score go toward one. Then we draw k random words — typically five to twenty — as negative examples and push their sigmoid scores toward zero. The noise distribution P sub n samples words in proportion to frequency to the three-quarters power, which damps very common words. The whole update now touches only k plus one words instead of a million, turning an impossible computation into a fast one, and the resulting vectors are excellent.</aside>
+        </section>
+
+        <!-- ============================================ 18 · E2E · one training step ============================================ -->
+        <section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="18 One training step">
+          <div class="slide-header">
+            <h2><span lang="ru">Один шаг обучения, целиком</span><span lang="en">One training step, end to end</span></h2>
+            <span class="slide-kicker">E2E &middot; <span lang="ru">центр <code>cat</code>, окно \(m=2\)</span><span lang="en">centre <code>cat</code>, window \(m=2\)</span></span>
+          </div>
+          <div class="e2e-arch">
+            <div class="e2e-arch-block" data-role="project" data-step-range="0" data-tooltip="Pick a centre word and its window."><div class="arch-name">window</div><div class="arch-shape"><span lang="ru">центр+контекст</span><span lang="en">centre+ctx</span></div></div>
+            <div class="e2e-arch-arrow" data-step-range="0..1"></div>
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="1" data-tooltip="Score the true pair and sample negatives."><div class="arch-name">score</div><div class="arch-shape">\(u^{\top} v\)</div></div>
+            <div class="e2e-arch-arrow" data-step-range="1..2"></div>
+            <div class="e2e-arch-block" data-role="reduce" data-step-range="2" data-tooltip="Gradient pulls true together, pushes negatives apart."><div class="arch-name">update</div><div class="arch-shape"><span lang="ru">тяни/толкай</span><span lang="en">pull/push</span></div></div>
+            <div class="e2e-arch-legend"><span class="leg" data-role="project"><span lang="ru">данные</span><span lang="en">data</span></span><span class="leg" data-role="nonlinear"><span lang="ru">скор</span><span lang="en">score</span></span><span class="leg" data-role="reduce"><span lang="ru">шаг</span><span lang="en">step</span></span></div>
+          </div>
+          <div class="e2e-twin">
+            <div class="e2e-panel e2e-math-panel">
+              <div class="panel-head"><span lang="ru">Правило</span><span lang="en">Rule applied</span></div>
+              <div class="e2e-step" data-step="0"><div class="step-formula">$$\text{centre } w=\texttt{cat},\quad c^{+}=\texttt{dog}$$</div><p class="step-caption"><span lang="ru">Истинная пара из окна: <code>cat</code> и сосед <code>dog</code>.</span><span lang="en">A true pair from the window: <code>cat</code> and neighbour <code>dog</code>.</span></p></div>
+              <div class="e2e-step" data-step="1"><div class="step-formula">$$\sigma\!\big(u_{\texttt{dog}}^{\top} v_{\texttt{cat}}\big),\quad \sigma\!\big(u_{c_i}^{\top} v_{\texttt{cat}}\big)$$</div><p class="step-caption"><span lang="ru">Скорим истинную пару и \(k\) случайных негативов (например <code>airplane</code>).</span><span lang="en">Score the true pair and \(k\) random negatives (e.g. <code>airplane</code>).</span></p></div>
+              <div class="e2e-step" data-step="2"><div class="step-formula">$$v_{\texttt{cat}} \leftarrow v_{\texttt{cat}} + \eta\,\nabla$$</div><p class="step-caption"><strong><span lang="ru">Тяни</span><span lang="en">Pull</span></strong> <code>cat</code>&harr;<code>dog</code>, <strong><span lang="ru">толкай</span><span lang="en">push</span></strong> <code>cat</code>&harr;<code>airplane</code>.</p></div>
+            </div>
+            <div class="e2e-panel e2e-example-panel">
+              <div class="panel-head"><span lang="ru">Что происходит с векторами</span><span lang="en">What happens to the vectors</span></div>
+              <div class="e2e-step" data-step="0"><div class="step-calc-row"><span class="matrix-label"><code>&hellip; the cat sat on the mat &hellip;</code></span></div></div>
+              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label"><code>true: cat&middot;dog &uarr; · neg: cat&middot;airplane &darr;</code></span></div></div>
+              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label"><code>cos(cat,dog) grows &middot; cos(cat,airplane) shrinks</code></span></div><p class="step-caption tiny"><span lang="ru">после миллионов окон — геометрия смысла.</span><span lang="en">after millions of windows — a geometry of meaning.</span></p></div>
+            </div>
+          </div>
+          <div class="e2e-stepper">
+            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">&larr;</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 3</span></div><button type="button" class="step-btn" data-step-act="next">&rarr;</button></div>
+            <span class="e2e-stage-name">overview</span>
+            <button type="button" class="e2e-toggle">Theory only</button>
+          </div>
+          <aside class="slide-notes">Walk one update so the abstraction becomes mechanical. Step zero: pick a centre word, cat, and a real neighbour from its window, dog — that is a positive pair. Step one: compute the sigmoid of the dot product for the true pair, and for k random negatives like airplane. Step two: take a gradient step that raises the true pair's score and lowers the negatives'. Geometrically that pulls cat and dog together and pushes cat and airplane apart. Repeat over millions of windows and the cosine geometry we wanted simply emerges — no dictionary, no labels, just prediction.</aside>
+        </section>
+
+        <!-- ============================================ BEAT 4 + 5 · turn-analogy + climb-analogy ============================================ -->
+        <!-- ============================================ 19 · DIVIDER · analogy ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="19 Divider · Meaning becomes arithmetic">
+          <div class="divider-content">
+            <div class="divider-num"><span lang="ru">Часть 03</span><span lang="en">Part 03</span></div>
+            <h1>Meaning Becomes Arithmetic</h1>
+            <p class="divider-sub"><em><span lang="ru">Координаты заработаны — и тут сюрприз:</span><span lang="en">The coordinates are earned — and then the surprise:</span></em> <span lang="ru">направления в пространстве кодируют отношения. Можно складывать смыслы.</span><span lang="en">directions in the space encode relations. You can do arithmetic on meaning.</span></p>
+          </div>
+          <div class="viz-frame fig-fit" style="--fig-max:38cqh; --fig-w:50%;">
+            <img src="assets/img/L5/L5-05-analogy-arrows.png?v=1" alt="Vector arrows forming a parallelogram between king, man, woman and queen — analogy as geometry" />
+          </div>
+          <aside class="slide-notes">The reveal. We trained only to predict neighbours, yet something we never asked for fell out: directions in the space turn out to encode relations. The vector that takes you from man to woman is, near enough, the same vector that takes you from king to queen. That means we can add and subtract meanings. king minus man plus woman lands next to queen. The picture is the parallelogram of arrows we are about to read with real numbers.</aside>
+        </section>
+
+        <!-- ============================================ 20 · FORMULA · cosine similarity ============================================ -->
+        <section class="slide" data-type="formula" data-screen-label="20 Cosine similarity">
+          <div class="slide-header slide-header--flush">
+            <h2><span lang="ru">Линейка карты: косинусная близость</span><span lang="en">The ruler of the map: cosine similarity</span></h2>
+            <span class="slide-kicker"><span lang="ru">угол, не длина · Сэр Косинус</span><span lang="en">angle, not length · Sir Cosine</span></span>
+          </div>
+          <div class="formula-stage">
+            $$ \cos(\mathbf{a}, \mathbf{b}) = \frac{\mathbf{a}^{\top}\mathbf{b}}{\lVert \mathbf{a}\rVert\,\lVert \mathbf{b}\rVert} \;\in\; [-1, 1] $$
+          </div>
+          <div class="formula-caption">
+            <div class="var-block"><div class="var-symbol">\(\mathbf{a}^{\top}\mathbf{b}\)</div><div class="var-desc"><strong><span lang="ru">скалярное</span><span lang="en">dot</span></strong><br /><span lang="ru">выравнивание</span><span lang="en">alignment</span></div></div>
+            <div class="var-block"><div class="var-symbol">\(\lVert\mathbf{a}\rVert\)</div><div class="var-desc"><strong><span lang="ru">длина</span><span lang="en">length</span></strong><br /><span lang="ru">делим на неё</span><span lang="en">divided out</span></div></div>
+            <div class="var-block"><div class="var-symbol">\(\cos=1\)</div><div class="var-desc"><strong><span lang="ru">одно направление</span><span lang="en">same direction</span></strong><br /><span lang="ru">синонимы</span><span lang="en">synonyms</span></div></div>
+          </div>
+          <p class="small muted center mt-2"><span lang="ru">Косинус смотрит на <strong>угол</strong> между векторами, игнорируя длину. Сэр Косинус из L2 — линейка этой карты: близость по смыслу = малый угол = большой косинус.</span><span lang="en">Cosine looks at the <strong>angle</strong> between vectors, ignoring length. Sir Cosine from L2 is the ruler of this map: semantic nearness = small angle = high cosine.</span></p>
+          <aside class="slide-notes">Before any numbers, fix the ruler. Cosine similarity is the dot product normalised by both lengths, so it measures the angle between two vectors and ignores their magnitudes. That is exactly what we want for meaning: a frequent word and a rare word can be synonyms, and we do not want raw length to dominate. A cosine of one means identical direction, zero means orthogonal — unrelated — and negative means opposite. This is Sir Cosine, the same ruler we met measuring document similarity in Lecture 2; here he rules the entire map of meaning.</aside>
+        </section>
+
+        <!-- ============================================ 21 · TABLE · cosine pairs ============================================ -->
+        <section class="slide" data-type="table" data-screen-label="21 Cosine pairs">
+          <div class="slide-header">
+            <h2><span lang="ru">Косинус кодирует смысл — реальные числа</span><span lang="en">Cosine encodes meaning — real numbers</span></h2>
+            <span class="slide-kicker">GloVe 6B 50-d &middot; <span lang="ru">обученные векторы</span><span lang="en">trained vectors</span></span>
+          </div>
+          <table class="cmp-table">
+            <thead><tr><th><span lang="ru">пара слов</span><span lang="en">word pair</span></th><th>\(\cos\)</th><th><span lang="ru">чтение</span><span lang="en">reading</span></th></tr></thead>
+            <tbody>
+              <tr><td class="cell-good"><code>cat &middot; dog</code></td><td class="cell-good">0.922</td><td><span lang="ru">оба питомцы — очень близко</span><span lang="en">both pets — very near</span></td></tr>
+              <tr><td><code>king &middot; queen</code></td><td>0.784</td><td><span lang="ru">оба царственные</span><span lang="en">both royalty</span></td></tr>
+              <tr><td><code>dog &middot; puppy</code></td><td>0.776</td><td><span lang="ru">взрослый/детёныш</span><span lang="en">adult / young</span></td></tr>
+              <tr><td><code>cat &middot; kitten</code></td><td>0.639</td><td><span lang="ru">тот же вид, иной регистр</span><span lang="en">same species, different register</span></td></tr>
+              <tr><td class="cell-bad"><code>cat &middot; airplane</code></td><td class="cell-bad">0.365</td><td><span lang="ru">несвязаны — далеко</span><span lang="en">unrelated — far</span></td></tr>
+              <tr><td class="cell-bad"><code>king &middot; computer</code></td><td class="cell-bad">0.228</td><td><span lang="ru">разные миры</span><span lang="en">different worlds</span></td></tr>
+            </tbody>
+          </table>
+          <p class="small muted center mt-2"><span lang="ru">Сравните с one-hot, где <em>все</em> эти числа были бы 0. Теперь <code>cat&middot;dog = 0.922</code> &#8811; <code>cat&middot;airplane = 0.365</code>: геометрия наконец отражает смысл.</span><span lang="en">Contrast one-hot, where <em>all</em> of these would be 0. Now <code>cat&middot;dog = 0.922</code> &#8811; <code>cat&middot;airplane = 0.365</code>: the geometry finally reflects meaning.</span></p>
+          <aside class="slide-notes">These are real cosines from fifty-dimensional GloVe vectors, straight from the L5 data file. Cat and dog sit at zero point nine two two — almost the same direction — because they share enormous context overlap as pets. King and queen at zero point seven eight, dog and puppy at zero point seven eight, cat and kitten at zero point six four. And the unrelated pairs collapse: cat and airplane at zero point three seven, king and computer at zero point two three. Remember that in one-hot every one of these numbers was exactly zero. The whole point of the lecture is summarised in this table: nearness now means relatedness.</aside>
+        </section>
+
+        <!-- ============================================ 22 · E2E · king - man + woman ============================================ -->
+        <section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="22 King analogy">
+          <div class="slide-header">
+            <h2><span lang="ru">Аналогия как вычитание векторов</span><span lang="en">The analogy as vector subtraction</span></h2>
+            <span class="slide-kicker">E2E &middot; \(\text{king} - \text{man} + \text{woman}\)</span>
+          </div>
+          <div class="e2e-arch">
+            <div class="e2e-arch-block" data-role="project" data-step-range="0" data-tooltip="Start at king."><div class="arch-name">king</div><div class="arch-shape">\(v_{\text{king}}\)</div></div>
+            <div class="e2e-arch-arrow" data-step-range="0..1"></div>
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="1" data-tooltip="Remove the male direction, add the female direction."><div class="arch-name">&minus;man +woman</div><div class="arch-shape"><span lang="ru">сдвиг пола</span><span lang="en">gender shift</span></div></div>
+            <div class="e2e-arch-arrow" data-step-range="1..2"></div>
+            <div class="e2e-arch-block" data-role="reduce" data-step-range="2" data-tooltip="Nearest real word to the result."><div class="arch-name">queen</div><div class="arch-shape">\(\cos = 0.861\)</div></div>
+            <div class="e2e-arch-legend"><span class="leg" data-role="project"><span lang="ru">старт</span><span lang="en">start</span></span><span class="leg" data-role="nonlinear"><span lang="ru">сдвиг</span><span lang="en">shift</span></span><span class="leg" data-role="reduce"><span lang="ru">ближайшее</span><span lang="en">nearest</span></span></div>
+          </div>
+          <div class="e2e-twin">
+            <div class="e2e-panel e2e-math-panel">
+              <div class="panel-head"><span lang="ru">Шаг вычисления</span><span lang="en">Step</span></div>
+              <div class="e2e-step" data-step="0"><div class="step-formula">$$\mathbf{r} = v_{\text{king}}$$</div><p class="step-caption"><span lang="ru">Начинаем с вектора <code>king</code>.</span><span lang="en">Begin at the <code>king</code> vector.</span></p></div>
+              <div class="e2e-step" data-step="1"><div class="step-formula">$$\mathbf{r} = v_{\text{king}} - v_{\text{man}}$$</div><p class="step-caption"><span lang="ru">Убираем «мужское» направление — остаётся «царственность».</span><span lang="en">Remove the male direction — &ldquo;royalty&rdquo; remains.</span></p></div>
+              <div class="e2e-step" data-step="2"><div class="step-formula">$$\mathbf{r} = v_{\text{king}} - v_{\text{man}} + v_{\text{woman}}$$</div><p class="step-caption"><span lang="ru">Добавляем «женское» направление.</span><span lang="en">Add the female direction.</span></p></div>
+              <div class="e2e-step" data-step="3"><div class="step-formula">$$\arg\max_{x}\,\cos(\mathbf{r}, v_x) = \texttt{queen}$$</div><p class="step-caption"><strong><span lang="ru">Ближайшее слово — queen, \(\cos = 0.861\).</span><span lang="en">Nearest word — queen, \(\cos = 0.861\).</span></strong></p></div>
+            </div>
+            <div class="e2e-panel e2e-example-panel">
+              <div class="panel-head"><span lang="ru">Рейтинг ближайших</span><span lang="en">Nearest neighbours</span></div>
+              <div class="e2e-step" data-step="0"><div class="step-calc-row"><span class="matrix-label"><code>r = king</code></span></div></div>
+              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label"><code>r = king &minus; man</code></span></div></div>
+              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label"><code>r = king &minus; man + woman</code></span></div></div>
+              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label"><code>queen 0.861 &middot; prince 0.764 &middot; throne 0.764</code></span></div><p class="step-caption tiny"><span lang="ru">queen уверенно первый.</span><span lang="en">queen wins clearly.</span></p></div>
+            </div>
+          </div>
+          <div class="e2e-stepper">
+            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">&larr;</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 4</span></div><button type="button" class="step-btn" data-step-act="next">&rarr;</button></div>
+            <span class="e2e-stage-name">overview</span>
+            <button type="button" class="e2e-toggle">Theory only</button>
+          </div>
+          <aside class="slide-notes">The flagship climb, with real numbers. We start at the king vector. Subtract the man vector — intuitively that strips away maleness and leaves a royalty direction. Add the woman vector to put femaleness back. The result is a point in space that is not exactly any word, so we ask which real word is nearest by cosine. The answer is queen, with cosine zero point eight six one — these are the exact figures from the L5 embeddings file. The runner-ups, prince and throne, both sit around zero point seven six, so queen wins clearly. Meaning has become arithmetic.</aside>
+        </section>
+
+        <!-- ============================================ 23 · WALKTHROUGH · the nearest-neighbour ranking ============================================ -->
+        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="23 Analogy ranking">
+          <div class="slide-header">
+            <h2><span lang="ru">Рейтинг кандидатов на queen</span><span lang="en">The ranking behind &ldquo;queen&rdquo;</span></h2>
+            <span class="slide-kicker"><span lang="ru">cos к \(v_{\text{king}}-v_{\text{man}}+v_{\text{woman}}\)</span><span lang="en">cos to \(v_{\text{king}}-v_{\text{man}}+v_{\text{woman}}\)</span></span>
+          </div>
+          <div class="walk-flow">
+            <div class="walk-step" data-step="1" data-color="green">
+              <div class="walk-num">01</div>
+              <div class="walk-content"><div class="walk-label"><code>queen</code></div><div class="walk-detail"><span lang="ru">Ближайшее реальное слово к результату — именно тот ответ, что подсказывает интуиция.</span><span lang="en">The nearest real word to the result — exactly the answer intuition predicts.</span></div></div>
+              <div class="walk-state">\(\cos = 0.861\)</div>
+            </div>
+            <div class="walk-step" data-step="2" data-color="violet">
+              <div class="walk-num">02</div>
+              <div class="walk-content"><div class="walk-label"><code>prince</code></div><div class="walk-detail"><span lang="ru">Тоже царственный — но это другая ось пола/возраста, поэтому ниже.</span><span lang="en">Also royalty — but a different gender/age axis, so it ranks lower.</span></div></div>
+              <div class="walk-state">\(\cos = 0.764\)</div>
+            </div>
+            <div class="walk-step" data-step="3" data-color="amber">
+              <div class="walk-num">03</div>
+              <div class="walk-content"><div class="walk-label"><code>throne</code> &middot; <code>princess</code></div><div class="walk-detail"><span lang="ru">Соседи по теме «двор/корона»: throne \(0.764\), princess \(0.751\).</span><span lang="en">Court/crown neighbours: throne \(0.764\), princess \(0.751\).</span></div></div>
+              <div class="walk-state">\(0.764 \cdot 0.751\)</div>
+            </div>
+            <div class="walk-step" data-step="4" data-final="true">
+              <div class="walk-num">&rarr;</div>
+              <div class="walk-content"><div class="walk-label"><span lang="ru">Вердикт</span><span lang="en">Verdict</span></div><div class="walk-detail"><span lang="ru">Разрыв \(0.861\) против \(\sim 0.764\) — <strong>queen</strong> явный победитель. Аналогия — не фокус, а свойство геометрии.</span><span lang="en">A gap of \(0.861\) vs \(\sim 0.764\) — <strong>queen</strong> is the clear winner. The analogy is not a trick; it is a property of the geometry.</span></div></div>
+              <div class="walk-state">queen &#10003;</div>
+            </div>
+          </div>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">4/4</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">Look at the actual neighbour ranking, because the gap is the evidence. The top result is queen at zero point eight six one. The next words — prince at zero point seven six four, throne at zero point seven six four, princess at zero point seven five one — are all in the right neighbourhood, the royalty and court cluster, but they sit a clear tenth of a unit below queen. That margin matters: it tells us the analogy is not a lucky coincidence among ties, it is a robust feature of how the space is organised. The gender direction really is roughly parallel across king-queen and man-woman.</aside>
+        </section>
+
+        <!-- ============================================ 24 · TABLE · capital analogy ============================================ -->
+        <section class="slide" data-type="table" data-screen-label="24 Capital analogy">
+          <div class="slide-header">
+            <h2><span lang="ru">Другое направление: столицы</span><span lang="en">A different direction: capitals</span></h2>
+            <span class="slide-kicker">\(\text{paris} - \text{france} + \text{italy} \approx \text{rome}\)</span>
+          </div>
+          <table class="cmp-table">
+            <thead><tr><th><span lang="ru">кандидат</span><span lang="en">candidate</span></th><th>\(\cos\)</th><th><span lang="ru">чтение</span><span lang="en">reading</span></th></tr></thead>
+            <tbody>
+              <tr><td class="cell-good"><code>rome</code></td><td class="cell-good">0.838</td><td><span lang="ru">столица Италии — верно</span><span lang="en">capital of Italy — correct</span></td></tr>
+              <tr><td><code>madrid</code></td><td>0.746</td><td><span lang="ru">другая столица — близкая ось</span><span lang="en">another capital — nearby axis</span></td></tr>
+              <tr><td><code>berlin</code></td><td>0.661</td><td><span lang="ru">снова столица</span><span lang="en">a capital again</span></td></tr>
+              <tr><td><code>spain</code></td><td>0.630</td><td><span lang="ru">страна, не город</span><span lang="en">a country, not a city</span></td></tr>
+            </tbody>
+          </table>
+          <p class="small muted center mt-2"><span lang="ru">Направление «страна&rarr;столица» — отдельная ось, параллельная для разных стран. Та же машина, что и для пола: вычитаешь страну, добавляешь другую — получаешь её столицу.</span><span lang="en">The country&rarr;capital direction is its own axis, roughly parallel across countries. Same machine as the gender one: subtract a country, add another, land on its capital.</span></p>
+          <aside class="slide-notes">A second analogy proves the first was not a fluke. paris minus france plus italy lands nearest to rome, cosine zero point eight three eight, exactly the figure in the data file. The runner-ups are other capitals — madrid, berlin — which makes sense because they all share the capital-city direction; spain, a country rather than a city, ranks lower. There is a whole family of these linear directions: gender, plural, comparative, country-to-capital. The space has learned consistent, reusable axes of relation, purely from predicting neighbours.</aside>
+        </section>
+
+        <!-- ============================================ 25 · MISCONCEPTION · analogies aren't magic ============================================ -->
+        <section class="slide" data-type="misconception" data-screen-label="25 Analogy caveat">
+          <div class="slide-header">
+            <h2><span lang="ru">Частое заблуждение</span><span lang="en">Common misconception</span></h2>
+            <span class="slide-kicker"><span lang="ru">развенчиваем миф</span><span lang="en">bust the myth</span></span>
+          </div>
+          <div class="misc-card">
+            <div class="misc-label"><span lang="ru">Что думают студенты</span><span lang="en">What students think</span></div>
+            <p class="misc-statement"><span lang="ru">&laquo;Аналогии работают идеально — модель <em>понимает</em> отношения&raquo;.</span><span lang="en">&ldquo;Analogies work perfectly — the model <em>understands</em> relations.&rdquo;</span></p>
+            <button class="misc-reveal-btn" type="button"><span lang="ru">Показать правду</span><span lang="en">Reveal truth</span></button>
+            <div class="misc-truth"><span lang="ru">Это <strong>линейная подгонка</strong>, а не понимание. Стандартный рецепт <em>исключает</em> три входных слова из ответа, иначе ближайшим к \(v_{\text{king}}-v_{\text{man}}+v_{\text{woman}}\) часто оказывается сам</span><span lang="en">It is a <strong>linear regularity</strong>, not understanding. The standard recipe <em>excludes</em> the three input words from the answer, because the nearest vector to \(v_{\text{king}}-v_{\text{man}}+v_{\text{woman}}\) is often</span> <code>king</code> <span lang="ru">. Точность падает на редких словах и нелинейных отношениях.</span><span lang="en"> itself. Accuracy drops on rare words and non-linear relations.</span>
+              <p class="misc-anchor"><strong><span lang="ru">Урок.</span><span lang="en">Lesson.</span></strong> <span lang="ru">Аналогии — красивое <em>свидетельство</em> структуры, но не доказательство «понимания». Косинус \(0.861\) реален; магии — нет.</span><span lang="en">Analogies are beautiful <em>evidence</em> of structure, not proof of &ldquo;understanding&rdquo;. The \(0.861\) cosine is real; the magic is not.</span></p>
+            </div>
+          </div>
+          <aside class="slide-notes">A quick honesty beat so we do not oversell. The analogy is a linear regularity in the geometry, not comprehension. Two technical caveats: the standard evaluation explicitly removes the three query words from the candidate set, because without that the nearest vector to king minus man plus woman is frequently king itself — the arithmetic barely moves. And accuracy is much lower on rare words and on relations that are not nicely linear. The cosine of zero point eight six one is a genuine, reproducible fact about the space; treating it as evidence of structure is right, treating it as understanding is not.</aside>
+        </section>
+
+        <!-- ============================================ BEAT 6 · turn-glove ============================================ -->
+        <!-- ============================================ 26 · DIVIDER · GloVe ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="26 Divider · GloVe">
+          <div class="divider-content">
+            <div class="divider-num"><span lang="ru">Часть 04</span><span lang="en">Part 04</span></div>
+            <h1>GloVe &amp; the Curse of 300-D</h1>
+            <p class="divider-sub"><em><span lang="ru">Вторая дорога к той же карте,</span><span lang="en">A second road to the same map,</span></em> <span lang="ru">а потом — отрезвление: карта живёт в 300 измерениях, которые нельзя увидеть.</span><span lang="en">and then the sobering fact: the map lives in 300 dimensions you cannot see.</span></p>
+          </div>
+          <div class="viz-frame fig-fit" style="--fig-max:36cqh; --fig-w:46%;">
+            <img src="assets/img/L5/L5-00-map-of-meaning.png?v=1" alt="The map of meaning seen from far away, hinting at the many hidden dimensions behind the flat picture" />
+          </div>
+          <aside class="slide-notes">Two short ideas in this part. First, GloVe — a second, count-based route to the same geometry, which reassures us the map is real and not an artefact of one algorithm. Second, the catch that motivates the rest of the lecture: these vectors live in fifty to three hundred dimensions, and humans can only see two or three. We have a beautiful map we cannot look at. That tension is what brings the Cartographer on stage to fold it.</aside>
+        </section>
+
+        <!-- ============================================ 27 · FORMULA · GloVe co-occurrence ============================================ -->
+        <section class="slide" data-type="formula" data-screen-label="27 GloVe co-occurrence">
+          <div class="slide-header slide-header--flush">
+            <h2>GloVe: <span lang="ru">факторизация совместной встречаемости</span><span lang="en">factor the co-occurrence matrix</span></h2>
+            <span class="slide-kicker"><span lang="ru">глобальная статистика · Pennington 2014</span><span lang="en">global statistics · Pennington 2014</span></span>
+          </div>
+          <div class="formula-stage">
+            $$ w_i^{\top}\tilde{w}_j + b_i + \tilde{b}_j \;=\; \log X_{ij} $$
+          </div>
+          <div class="formula-caption">
+            <div class="var-block"><div class="var-symbol">\(X_{ij}\)</div><div class="var-desc"><strong><span lang="ru">со-встречаемость</span><span lang="en">co-occurrence</span></strong><br /><span lang="ru">\(i\) рядом с \(j\)</span><span lang="en">\(i\) near \(j\)</span></div></div>
+            <div class="var-block"><div class="var-symbol">\(w_i,\tilde{w}_j\)</div><div class="var-desc"><strong><span lang="ru">векторы</span><span lang="en">vectors</span></strong><br /><span lang="ru">что учим</span><span lang="en">what we learn</span></div></div>
+            <div class="var-block"><div class="var-symbol">\(\log X_{ij}\)</div><div class="var-desc"><strong><span lang="ru">цель</span><span lang="en">target</span></strong><br /><span lang="ru">лог-счёт</span><span lang="en">log-count</span></div></div>
+          </div>
+          <p class="small muted center mt-2"><span lang="ru">GloVe строит матрицу \(X\) (как часто \(i\) встречается рядом с \(j\) во всём корпусе) и подгоняет векторы так, чтобы скалярное произведение приближало \(\log X_{ij}\). Глобальный счёт вместо локального предсказания — а карта получается та же.</span><span lang="en">GloVe builds the matrix \(X\) (how often \(i\) co-occurs with \(j\) across the corpus) and fits vectors so dot products approximate \(\log X_{ij}\). Global counts instead of local prediction — yet the same map.</span></p>
+          <aside class="slide-notes">GloVe, from Pennington, Socher and Manning in 2014, takes the count road. First build the global co-occurrence matrix X, whose entry i j is how often word i appears near word j across the whole corpus. Then learn vectors whose dot product, plus two bias terms, equals the log of that count. It is a weighted least-squares factorisation of the log co-occurrence matrix, fitted in one global pass rather than streaming windows. The striking result is that this count-based method lands in essentially the same geometry as predictive word2vec — analogies and cosine nearness work the same way. The map is robust to how you draw it.</aside>
+        </section>
+
+        <!-- ============================================ 28 · TABLE · count vs predict ============================================ -->
+        <section class="slide" data-type="table" data-screen-label="28 Count vs predict">
+          <div class="slide-header">
+            <h2><span lang="ru">Счёт против предсказания</span><span lang="en">Count vs predict</span></h2>
+            <span class="slide-kicker"><span lang="ru">две школы, одна геометрия</span><span lang="en">two schools, one geometry</span></span>
+          </div>
+          <table class="cmp-table">
+            <thead><tr><th></th><th>word2vec <span lang="ru">(предсказание)</span><span lang="en">(predict)</span></th><th>GloVe <span lang="ru">(счёт)</span><span lang="en">(count)</span></th></tr></thead>
+            <tbody>
+              <tr><td><span lang="ru">сигнал</span><span lang="en">signal</span></td><td><span lang="ru">локальные окна</span><span lang="en">local windows</span></td><td class="cell-good"><span lang="ru">глобальная матрица</span><span lang="en">global matrix</span></td></tr>
+              <tr><td><span lang="ru">обучение</span><span lang="en">training</span></td><td class="cell-good"><span lang="ru">потоковое, онлайн</span><span lang="en">streaming, online</span></td><td><span lang="ru">за один проход по \(X\)</span><span lang="en">one pass over \(X\)</span></td></tr>
+              <tr><td><span lang="ru">память</span><span lang="en">memory</span></td><td class="cell-good"><span lang="ru">мала</span><span lang="en">small</span></td><td><span lang="ru">матрица \(X\) велика</span><span lang="en">\(X\) is large</span></td></tr>
+              <tr><td><span lang="ru">аналогии</span><span lang="en">analogies</span></td><td class="cell-good"><span lang="ru">работают</span><span lang="en">work</span></td><td class="cell-good"><span lang="ru">работают</span><span lang="en">work</span></td></tr>
+            </tbody>
+          </table>
+          <p class="small muted center mt-2"><span lang="ru">Levy &amp; Goldberg (2014) показали: skip-gram с negative sampling <em>неявно</em> факторизует сдвинутую PMI-матрицу. Предсказание и счёт — две стороны одной монеты.</span><span lang="en">Levy &amp; Goldberg (2014) showed skip-gram with negative sampling <em>implicitly</em> factorises a shifted PMI matrix. Predict and count are two faces of one coin.</span></p>
+          <aside class="slide-notes">A compact trade-off table. word2vec uses local windows, streams through data with a tiny memory footprint, and is naturally online. GloVe uses the global co-occurrence matrix, trains in one weighted least-squares pass, but must hold or stream that large matrix. Both deliver working analogies and good cosine geometry. The deep result, from Levy and Goldberg in 2014, is that they are not really rivals: skip-gram with negative sampling is implicitly factorising a shifted pointwise-mutual-information matrix, which is exactly the kind of object GloVe factorises explicitly. Predict and count are two faces of the same coin.</aside>
+        </section>
+
+        <!-- ============================================ BEAT 7 · stakes-too-many-dims ============================================ -->
+        <!-- ============================================ 29 · FORMULA · 300 numbers per word ============================================ -->
+        <section class="slide" data-type="formula" data-screen-label="29 300 dimensions">
+          <div class="slide-header slide-header--flush">
+            <h2><span lang="ru">300 чисел на слово — это нельзя увидеть</span><span lang="en">300 numbers per word — you can't see it</span></h2>
+            <span class="slide-kicker"><span lang="ru">люди видят 2&ndash;3 измерения</span><span lang="en">humans see 2&ndash;3 dimensions</span></span>
+          </div>
+          <div class="formula-stage">
+            $$ v_{\text{king}} \in \mathbb{R}^{300}, \qquad 300 \;\gg\; 3 $$
+          </div>
+          <div class="callout" data-kind="warn">
+            <div class="callout-icon">!</div>
+            <div class="callout-body">
+              <strong><span lang="ru">Карта реальна, но невидима</span><span lang="en">The map is real but unseeable</span></strong>
+              <p><span lang="ru">Один вектор слова — это \(50\)&ndash;\(300\) вещественных координат. Близость, кластеры, направления — всё это <em>есть</em> в данных, но человеческий глаз привязан к 2&ndash;3 осям. Нам нужно <strong>свернуть</strong> карту, сохранив форму.</span><span lang="en">A single word vector is \(50\)&ndash;\(300\) real coordinates. Nearness, clusters, directions — all of it is <em>there</em> in the data, but the human eye is stuck with 2&ndash;3 axes. We must <strong>fold</strong> the map while keeping its shape.</span></p>
+            </div>
+          </div>
+          <p class="small muted center mt-3"><span lang="ru">Распечатать вектор <code>king</code> — это 300 чисел в строку. Глазами в этом порядка не увидеть. Отсюда — задача снижения размерности.</span><span lang="en">Printing the <code>king</code> vector is 300 numbers in a row. The eye sees no structure in that. Hence: dimensionality reduction.</span></p>
+          <aside class="slide-notes">Zoom out to the stakes. A production embedding gives each word fifty to three hundred real numbers. All the structure we just celebrated — the clusters, the gender and capital directions, the cosine nearness — genuinely lives in that high-dimensional space. But a human being can perceive at most three spatial dimensions, and on a slide really only two. So we are in the strange position of owning a perfect map we cannot look at. The rest of the lecture is about folding that map down to two dimensions while preserving as much of its shape as possible. That is dimensionality reduction.</aside>
+        </section>
+
+        <!-- ============================================ BEAT 8 · turn-dimred (Cartographer) ============================================ -->
+        <!-- ============================================ 30 · DIVIDER · Cartographer ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="30 Divider · The Cartographer">
+          <div class="divider-content">
+            <div class="divider-num"><span lang="ru">Часть 05</span><span lang="en">Part 05</span></div>
+            <h1>Enter the Cartographer</h1>
+            <p class="divider-sub"><em><span lang="ru">Новый персонаж складывает великую карту,</span><span lang="en">A new figure folds the great map</span></em> <span lang="ru">достаточно мелко, чтобы её унести — сохранив форму, отбросив измерения.</span><span lang="en">small enough to carry — keeping the shape, dropping the dimensions.</span></p>
+          </div>
+          <div class="viz-frame fig-fit" style="--fig-max:38cqh; --fig-w:48%;">
+            <img src="assets/img/L5/L5-08-cartographer.png?v=1" alt="The Cartographer creasing a vast star-map, folding many dimensions down into a flat carryable chart" />
+          </div>
+          <aside class="slide-notes">A new minor character joins the cast: the Cartographer, whose one job is to fold the high-dimensional map down to something we can carry and read. The tell is a cartographer creasing a vast star-map along careful lines. The art is in which creases to make. A good fold keeps the overall shape — which points are near which — while collapsing the directions that do not matter. We will meet two folding styles: PCA, which keeps the directions of greatest spread, and t-SNE, which instead protects each point's local neighbourhood.</aside>
+        </section>
+
+        <!-- ============================================ BEAT 9 · climb-pca ============================================ -->
+        <!-- ============================================ 31 · DEFINITION · PCA idea ============================================ -->
+        <section class="slide" data-type="definition" data-screen-label="31 PCA idea">
+          <div class="slide-header">
+            <h2><span lang="ru">PCA: складка вдоль наибольшего разброса</span><span lang="en">PCA: fold along greatest spread</span></h2>
+            <span class="slide-kicker"><span lang="ru">линейно · сохраняет дисперсию</span><span lang="en">linear · preserves variance</span></span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag"><span lang="ru">Метод</span><span lang="en">Method</span></span>
+            <div class="def-term"><span lang="ru">Метод главных компонент</span><span lang="en">Principal Component Analysis</span><span class="term-en">PCA &middot; linear projection</span></div>
+            <div class="def-body">
+              <p><span lang="ru">Найти <strong>ортогональные направления наибольшей дисперсии</strong> (главные компоненты) и спроецировать данные на первые несколько. Сохраняем оси, вдоль которых точки разбросаны сильнее всего.</span><span lang="en">Find the <strong>orthogonal directions of greatest variance</strong> (principal components) and project the data onto the first few. Keep the axes along which the points spread the most.</span></p>
+              <p class="small muted"><span lang="ru">Интуиция: тень 3-D объекта на стену. PCA выбирает <em>тот</em> угол освещения, при котором тень теряет меньше всего информации о форме.</span><span lang="en">Intuition: the shadow of a 3-D object on a wall. PCA picks the lighting angle whose shadow loses the least information about the shape.</span></p>
+            </div>
+          </div>
+          <aside class="slide-notes">Introduce PCA conceptually before the algebra. Principal Component Analysis looks for the orthogonal directions along which the data varies the most, calls them principal components, and projects everything onto the first few. The shadow analogy is the one to hold: a three-dimensional object casts a two-dimensional shadow, and the informativeness of that shadow depends entirely on the angle of the light. PCA chooses the angle that throws the most faithful shadow — the projection that preserves the most variance. It is linear, fast, and the workhorse first look at any high-dimensional dataset.</aside>
+        </section>
+
+        <!-- ============================================ 32 · FORMULA · covariance + eigen ============================================ -->
+        <section class="slide" data-type="formula" data-screen-label="32 PCA math">
+          <div class="slide-header slide-header--flush">
+            <h2><span lang="ru">PCA: ковариация &rarr; собственные векторы</span><span lang="en">PCA: covariance &rarr; eigenvectors</span></h2>
+            <span class="slide-kicker"><span lang="ru">центрировать · диагонализовать · проецировать</span><span lang="en">centre · diagonalise · project</span></span>
+          </div>
+          <div class="formula-stage">
+            $$ C = \tfrac{1}{n}X^{\top}X, \qquad C\,\mathbf{u}_k = \lambda_k\,\mathbf{u}_k, \qquad z = U_d^{\top}\,x $$
+          </div>
+          <div class="formula-caption">
+            <div class="var-block"><div class="var-symbol">\(C\)</div><div class="var-desc"><strong><span lang="ru">ковариация</span><span lang="en">covariance</span></strong><br /><span lang="ru">по центрированным \(X\)</span><span lang="en">of centred \(X\)</span></div></div>
+            <div class="var-block"><div class="var-symbol">\(\mathbf{u}_k\)</div><div class="var-desc"><strong><span lang="ru">компонента</span><span lang="en">component</span></strong><br /><span lang="ru">собственный вектор</span><span lang="en">eigenvector</span></div></div>
+            <div class="var-block"><div class="var-symbol">\(\lambda_k\)</div><div class="var-desc"><strong><span lang="ru">дисперсия</span><span lang="en">variance</span></strong><br /><span lang="ru">вдоль \(\mathbf{u}_k\)</span><span lang="en">along \(\mathbf{u}_k\)</span></div></div>
+          </div>
+          <p class="small muted center mt-2"><span lang="ru">Центрируем данные, считаем ковариацию \(C\), берём её собственные векторы (по убыванию \(\lambda\)) и проецируем на первые \(d\). Доля сохранённой дисперсии — \(\lambda_k / \sum_j \lambda_j\). На практике это делают через SVD матрицы \(X\).</span><span lang="en">Centre the data, form the covariance \(C\), take its eigenvectors (by descending \(\lambda\)), project onto the first \(d\). The variance kept by component \(k\) is \(\lambda_k / \sum_j \lambda_j\). In practice via the SVD of \(X\).</span></p>
+          <aside class="slide-notes">The algorithm in three moves. First centre the data so the mean is at the origin. Second form the covariance matrix C, equal to one over n times X transpose X. Its eigenvectors are the principal components and each eigenvalue lambda sub k is the variance captured along that direction. Third, keep the d eigenvectors with the largest eigenvalues and project every point onto them. The fraction of variance a component explains is its eigenvalue over the sum of all eigenvalues — the number we report next. In practice nobody forms C explicitly; the singular value decomposition of X gives the same components more stably.</aside>
+        </section>
+
+        <!-- ============================================ 33 · WALKTHROUGH · PCA on our words ============================================ -->
+        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="33 PCA variance">
+          <div class="slide-header">
+            <h2><span lang="ru">PCA на 44 словах: сколько дисперсии остаётся?</span><span lang="en">PCA on 44 words: how much variance survives?</span></h2>
+            <span class="slide-kicker"><span lang="ru">GloVe-50 &rarr; 2-D · реальные числа</span><span lang="en">GloVe-50 &rarr; 2-D · real numbers</span></span>
+          </div>
+          <div class="walk-flow">
+            <div class="walk-step" data-step="1" data-color="violet">
+              <div class="walk-num">01</div>
+              <div class="walk-content"><div class="walk-label"><span lang="ru">Вход: 44 слова в \(\mathbb{R}^{50}\)</span><span lang="en">Input: 44 words in \(\mathbb{R}^{50}\)</span></div><div class="walk-detail"><span lang="ru">Семь смысловых групп: royalty, family, animals, countries, capitals, tech, transport.</span><span lang="en">Seven meaning groups: royalty, family, animals, countries, capitals, tech, transport.</span></div></div>
+              <div class="walk-state">\(50\text{-D}\)</div>
+            </div>
+            <div class="walk-step" data-step="2" data-color="cyan">
+              <div class="walk-num">02</div>
+              <div class="walk-content"><div class="walk-label">PC1 <span lang="ru">— ось наибольшего разброса</span><span lang="en">— top spread axis</span></div><div class="walk-detail"><span lang="ru">Первая компонента сохраняет <strong>19.6%</strong> всей дисперсии.</span><span lang="en">The first component keeps <strong>19.6%</strong> of all variance.</span></div></div>
+              <div class="walk-state">\(19.6\%\)</div>
+            </div>
+            <div class="walk-step" data-step="3" data-color="amber">
+              <div class="walk-num">03</div>
+              <div class="walk-content"><div class="walk-label">PC2 <span lang="ru">— вторая ось</span><span lang="en">— second axis</span></div><div class="walk-detail"><span lang="ru">Ортогональна PC1, добавляет ещё <strong>18.1%</strong>.</span><span lang="en">Orthogonal to PC1, adds another <strong>18.1%</strong>.</span></div></div>
+              <div class="walk-state">\(18.1\%\)</div>
+            </div>
+            <div class="walk-step" data-step="4" data-final="true">
+              <div class="walk-num">&rarr;</div>
+              <div class="walk-content"><div class="walk-label"><span lang="ru">2-D карта сохраняет</span><span lang="en">The 2-D map keeps</span></div><div class="walk-detail"><span lang="ru">\(19.6\% + 18.1\% = \mathbf{37.7\%}\). Больше трети формы — в двух осях. Остальные \(\sim 62\%\) свёрнуты, но не потеряны.</span><span lang="en">\(19.6\% + 18.1\% = \mathbf{37.7\%}\). Over a third of the shape in two axes. The other \(\sim 62\%\) is folded away, not lost.</span></div></div>
+              <div class="walk-state">\(37.7\%\)</div>
+            </div>
+          </div>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">4/4</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">The exact PCA climb on our own data. We have forty-four words living in fifty dimensions, in seven semantic groups. The first principal component — the single direction of greatest spread — captures nineteen point six percent of the total variance. The second component, orthogonal to it, adds another eighteen point one percent. So a flat two-dimensional PCA picture retains thirty-seven point seven percent of the shape, the sum of those two, straight from the L5 dimred file. That is a lot for two axes out of fifty, but notice the flip side: nearly sixty-two percent of the structure is folded away. That residual is exactly why we will want a non-linear method next.</aside>
+        </section>
+
+        <!-- ============================================ 34 · VIZ · scree / explained variance ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="34 Scree plot">
+          <div class="slide-header">
+            <h2><span lang="ru">Доля дисперсии по компонентам</span><span lang="en">Explained variance per component</span></h2>
+            <span class="slide-kicker"><span lang="ru">scree-график · быстрый спад</span><span lang="en">scree plot · the fast decay</span></span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1600 470" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="Bar chart of explained variance ratio for the first ten principal components, decaying from 19.6% to 2.75%">
+              <g font-family="var(--font-sans)">
+                <line x1="120" y1="400" x2="1520" y2="400" stroke="var(--ink-3)" stroke-width="2"/>
+                <line x1="120" y1="60" x2="120" y2="400" stroke="var(--ink-3)" stroke-width="2"/>
+                <text x="60" y="80" font-size="20" fill="var(--ink-3)">20%</text>
+                <text x="60" y="240" font-size="20" fill="var(--ink-3)">10%</text>
+                <text x="70" y="405" font-size="20" fill="var(--ink-3)">0</text>
+                <!-- bars: 19.59 18.08 9.15 8.42 7.04 6.21 3.80 3.27 3.03 2.75 ; scale 16px per % -->
+                <g>
+                  <rect x="170" y="86.6" width="100" height="313.4" rx="4" fill="var(--accent)"/>
+                  <rect x="300" y="110.7" width="100" height="289.3" rx="4" fill="var(--accent)"/>
+                  <rect x="430" y="253.6" width="100" height="146.4" rx="4" fill="var(--ink-3)"/>
+                  <rect x="560" y="265.3" width="100" height="134.7" rx="4" fill="var(--ink-3)"/>
+                  <rect x="690" y="287.4" width="100" height="112.6" rx="4" fill="var(--ink-3)"/>
+                  <rect x="820" y="300.6" width="100" height="99.4" rx="4" fill="var(--ink-3)"/>
+                  <rect x="950" y="339.2" width="100" height="60.8" rx="4" fill="var(--ink-3)"/>
+                  <rect x="1080" y="347.7" width="100" height="52.3" rx="4" fill="var(--ink-3)"/>
+                  <rect x="1210" y="351.5" width="100" height="48.5" rx="4" fill="var(--ink-3)"/>
+                  <rect x="1340" y="356.0" width="100" height="44.0" rx="4" fill="var(--ink-3)"/>
+                </g>
+                <g font-size="20" fill="var(--ink-2)" text-anchor="middle">
+                  <text x="220" y="430">PC1</text><text x="350" y="430">PC2</text><text x="480" y="430">PC3</text>
+                  <text x="610" y="430">PC4</text><text x="740" y="430">PC5</text><text x="870" y="430">PC6</text>
+                  <text x="1000" y="430">PC7</text><text x="1130" y="430">PC8</text><text x="1260" y="430">PC9</text><text x="1390" y="430">PC10</text>
+                </g>
+                <text x="220" y="74" font-size="22" fill="var(--accent-ink)" text-anchor="middle" font-weight="600">19.6%</text>
+                <text x="350" y="98" font-size="22" fill="var(--accent-ink)" text-anchor="middle" font-weight="600">18.1%</text>
+              </g>
+            </svg>
+          </div>
+          <p class="viz-caption"><span lang="ru">Первые две компоненты (синие) доминируют: \(19.6\% + 18.1\% = 37.7\%\). Дальше — быстрый спад (9.2%, 8.4%, &hellip;). Локоть после PC2 говорит: двух осей хватит для первого взгляда.</span><span lang="en">The first two components (blue) dominate: \(19.6\% + 18.1\% = 37.7\%\). Then a fast decay (9.2%, 8.4%, &hellip;). The elbow after PC2 says two axes suffice for a first look.</span></p>
+          <aside class="slide-notes">This is the scree plot for our data, the bar heights taken directly from the explained-variance-ratio array in the dimred file: nineteen point six, eighteen point one, then nine point two, eight point four, seven point zero, and on down to two point seven five for the tenth component. Two readings. The two blue bars are the axes we keep, summing to thirty-seven point seven percent. And the elbow — the sharp drop after the second bar — is the standard heuristic for how many components are worth keeping; here it cleanly says two for a first visualisation. The long thin tail is the structure PCA discards.</aside>
+        </section>
+
+        <!-- ============================================ BEAT 10 · turn-manifold ============================================ -->
+        <!-- ============================================ 35 · DIVIDER · manifold ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="35 Divider · the curved map">
+          <div class="divider-content">
+            <div class="divider-num"><span lang="ru">Часть 06</span><span lang="en">Part 06</span></div>
+            <h1>When the Map Curves</h1>
+            <p class="divider-sub"><em><span lang="ru">Линейной складки мало:</span><span lang="en">A linear fold is not enough:</span></em> <span lang="ru">данные лежат на изогнутом многообразии. Сохраняем <em>соседей</em>, а не глобальную геометрию.</span><span lang="en">data lies on a curved manifold. Preserve <em>neighbours</em>, not global geometry.</span></p>
+          </div>
+          <div class="viz-frame fig-fit" style="--fig-max:38cqh; --fig-w:50%;">
+            <img src="assets/img/L5/L5-10-folded-map-manifold.png?v=1" alt="A folded, curved map sheet illustrating a low-dimensional manifold embedded in a higher-dimensional space" />
+          </div>
+          <aside class="slide-notes">PCA is linear: it can only fold along straight directions. But real embedding data often lies on a curved sheet — a manifold — twisting through the high-dimensional space, and a flat projection can crush distant-but-aligned points together or tear neighbours apart. The fix is a different goal entirely: instead of preserving global geometry, preserve each point's local neighbourhood. Keep friends next to friends, and let the global layout bend however it must. That is the philosophy behind t-SNE and UMAP, which we meet next.</aside>
+        </section>
+
+        <!-- ============================================ BEAT 11 · climb-tsne ============================================ -->
+        <!-- ============================================ 36 · DEFINITION · t-SNE idea ============================================ -->
+        <section class="slide" data-type="definition" data-screen-label="36 t-SNE idea">
+          <div class="slide-header">
+            <h2>t-SNE: <span lang="ru">сохранить соседей</span><span lang="en">preserve neighbours</span></h2>
+            <span class="slide-kicker"><span lang="ru">вероятности соседства · van der Maaten 2008</span><span lang="en">neighbour probabilities · van der Maaten 2008</span></span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag"><span lang="ru">Метод</span><span lang="en">Method</span></span>
+            <div class="def-term">t-SNE<span class="term-en">t-distributed stochastic neighbour embedding</span></div>
+            <div class="def-body">
+              <p><span lang="ru">Каждой паре точек в высокой размерности приписывается <strong>вероятность быть соседями</strong>. t-SNE ищет 2-D раскладку, в которой эти вероятности совпадают — близкое остаётся близким.</span><span lang="en">Each pair of high-D points gets a <strong>probability of being neighbours</strong>. t-SNE finds a 2-D layout whose neighbour probabilities match — near stays near.</span></p>
+              <p class="small muted"><span lang="ru">Ключевой рычаг — <strong>perplexity</strong>: сколько соседей считать «близкими». В наших данных perplexity \(= 14\). Тяжёлые хвосты \(t\)-распределения в 2-D разводят кластеры, борясь со скучиванием.</span><span lang="en">The key dial is <strong>perplexity</strong>: how many neighbours count as &ldquo;near&rdquo;. In our data perplexity \(= 14\). The heavy-tailed \(t\)-distribution in 2-D spreads clusters apart, fighting crowding.</span></p>
+            </div>
+          </div>
+          <aside class="slide-notes">t-SNE, from van der Maaten and Hinton in 2008, takes the neighbour-preserving route. In the high-dimensional space it converts distances into probabilities: how likely is point j to be picked as a neighbour of point i. Then it lays points out in two dimensions and adjusts them until the low-dimensional neighbour probabilities match the high-dimensional ones, minimising a Kullback-Leibler divergence. Two knobs matter. Perplexity sets the effective number of neighbours each point pays attention to — fourteen in our run. And using a heavy-tailed Student-t distribution in the plane gives faraway points room, which is what produces those clean, well-separated clusters.</aside>
+        </section>
+
+        <!-- ============================================ 37 · VIZ · the 2-D word map (t-SNE scatter) ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="37 The 2-D word map">
+          <div class="slide-header">
+            <h2><span lang="ru">Карта смысла, нарисованная: 7 кластеров</span><span lang="en">The Map of Meaning, drawn: 7 clusters</span></h2>
+            <span class="slide-kicker"><span lang="ru">t-SNE · 44 слова · perplexity \(=14\)</span><span lang="en">t-SNE · 44 words · perplexity \(=14\)</span></span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1600 760" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="t-SNE scatter of 44 words, coloured by meaning group: royalty, family, animals, countries, capitals, tech, transport — each forming a distinct cluster">
+              <g font-family="var(--font-sans)">
+                <!-- legend -->
+                <g font-size="20">
+                  <circle cx="140" cy="715" r="8" fill="#7C5CD6"/><text x="156" y="721" fill="var(--ink-2)">royalty</text>
+                  <circle cx="290" cy="715" r="8" fill="#D98A1E"/><text x="306" y="721" fill="var(--ink-2)">family</text>
+                  <circle cx="430" cy="715" r="8" fill="#2E9E5B"/><text x="446" y="721" fill="var(--ink-2)">animals</text>
+                  <circle cx="585" cy="715" r="8" fill="#1E9BD9"/><text x="601" y="721" fill="var(--ink-2)">countries</text>
+                  <circle cx="760" cy="715" r="8" fill="#D7522C"/><text x="776" y="721" fill="var(--ink-2)">capitals</text>
+                  <circle cx="915" cy="715" r="8" fill="#2A6FDB"/><text x="931" y="721" fill="var(--ink-2)">tech</text>
+                  <circle cx="1030" cy="715" r="8" fill="#5B6472"/><text x="1046" y="721" fill="var(--ink-2)">transport</text>
+                </g>
+                <g fill="#7C5CD6">
+                  <circle cx="235.8" cy="459.4" r="8"/><text x="247.8" y="464.4" font-size="20" fill="var(--ink-2)">crown</text>
+                  <circle cx="168.8" cy="403.8" r="8"/><text x="180.8" y="408.8" font-size="20" fill="var(--ink-2)">king</text>
+                  <circle cx="220.4" cy="411.6" r="8"/><text x="232.4" y="416.6" font-size="20" fill="var(--ink-2)">prince</text>
+                  <circle cx="351.8" cy="410.7" r="8"/><text x="363.8" y="415.7" font-size="20" fill="var(--ink-2)">princess</text>
+                  <circle cx="295.5" cy="417.9" r="8"/><text x="307.5" y="422.9" font-size="20" fill="var(--ink-2)">queen</text>
+                  <circle cx="150.0" cy="451.9" r="8"/><text x="162.0" y="456.9" font-size="20" fill="var(--ink-2)">throne</text>
+                </g>
+                <g fill="#D98A1E">
+                  <circle cx="437.6" cy="260.5" r="8"/><text x="449.6" y="265.5" font-size="20" fill="var(--ink-2)">boy</text>
+                  <circle cx="251.9" cy="324.8" r="8"/><text x="263.9" y="329.8" font-size="20" fill="var(--ink-2)">father</text>
+                  <circle cx="440.9" cy="287.3" r="8"/><text x="452.9" y="292.3" font-size="20" fill="var(--ink-2)">girl</text>
+                  <circle cx="344.4" cy="250.7" r="8"/><text x="356.4" y="255.7" font-size="20" fill="var(--ink-2)">man</text>
+                  <circle cx="319.6" cy="315.6" r="8"/><text x="331.6" y="320.6" font-size="20" fill="var(--ink-2)">mother</text>
+                  <circle cx="359.2" cy="281.0" r="8"/><text x="371.2" y="286.0" font-size="20" fill="var(--ink-2)">woman</text>
+                </g>
+                <g fill="#2E9E5B">
+                  <circle cx="591.8" cy="172.3" r="8"/><text x="603.8" y="177.3" font-size="20" fill="var(--ink-2)">cat</text>
+                  <circle cx="607.9" cy="110.0" r="8"/><text x="619.9" y="115.0" font-size="20" fill="var(--ink-2)">cow</text>
+                  <circle cx="608.5" cy="190.1" r="8"/><text x="620.5" y="195.1" font-size="20" fill="var(--ink-2)">dog</text>
+                  <circle cx="655.5" cy="225.6" r="8"/><text x="667.5" y="230.6" font-size="20" fill="var(--ink-2)">horse</text>
+                  <circle cx="728.5" cy="144.9" r="8"/><text x="740.5" y="149.9" font-size="20" fill="var(--ink-2)">kitten</text>
+                  <circle cx="504.0" cy="181.5" r="8"/><text x="516.0" y="186.5" font-size="20" fill="var(--ink-2)">lion</text>
+                  <circle cx="676.9" cy="152.7" r="8"/><text x="688.9" y="157.7" font-size="20" fill="var(--ink-2)">puppy</text>
+                  <circle cx="467.8" cy="140.8" r="8"/><text x="479.8" y="145.8" font-size="20" fill="var(--ink-2)">tiger</text>
+                </g>
+                <g fill="#1E9BD9">
+                  <circle cx="1021.5" cy="539.9" r="8"/><text x="1033.5" y="544.9" font-size="20" fill="var(--ink-2)">china</text>
+                  <circle cx="637.4" cy="637.0" r="8"/><text x="649.4" y="642.0" font-size="20" fill="var(--ink-2)">france</text>
+                  <circle cx="734.6" cy="617.1" r="8"/><text x="746.6" y="622.1" font-size="20" fill="var(--ink-2)">germany</text>
+                  <circle cx="553.6" cy="645.1" r="8"/><text x="565.6" y="650.1" font-size="20" fill="var(--ink-2)">italy</text>
+                  <circle cx="1007.4" cy="575.0" r="8"/><text x="1019.4" y="580.0" font-size="20" fill="var(--ink-2)">japan</text>
+                  <circle cx="523.4" cy="650.0" r="8"/><text x="535.4" y="655.0" font-size="20" fill="var(--ink-2)">spain</text>
+                </g>
+                <g fill="#D7522C">
+                  <circle cx="996.0" cy="537.6" r="8"/><text x="1008.0" y="542.6" font-size="20" fill="var(--ink-2)">beijing</text>
+                  <circle cx="712.4" cy="583.4" r="8"/><text x="724.4" y="588.4" font-size="20" fill="var(--ink-2)">berlin</text>
+                  <circle cx="462.4" cy="614.5" r="8"/><text x="474.4" y="619.5" font-size="20" fill="var(--ink-2)">madrid</text>
+                  <circle cx="620.6" cy="586.0" r="8"/><text x="632.6" y="591.0" font-size="20" fill="var(--ink-2)">paris</text>
+                  <circle cx="536.1" cy="588.6" r="8"/><text x="548.1" y="593.6" font-size="20" fill="var(--ink-2)">rome</text>
+                  <circle cx="973.2" cy="589.5" r="8"/><text x="985.2" y="594.5" font-size="20" fill="var(--ink-2)">tokyo</text>
+                </g>
+                <g fill="#2A6FDB">
+                  <circle cx="1312.4" cy="245.2" r="8"/><text x="1324.4" y="250.2" font-size="20" fill="var(--ink-2)">algorithm</text>
+                  <circle cx="1360.0" cy="323.6" r="8"/><text x="1372.0" y="328.6" font-size="20" fill="var(--ink-2)">computer</text>
+                  <circle cx="1283.6" cy="307.5" r="8"/><text x="1295.6" y="312.5" font-size="20" fill="var(--ink-2)">data</text>
+                  <circle cx="1321.1" cy="356.2" r="8"/><text x="1333.1" y="361.2" font-size="20" fill="var(--ink-2)">internet</text>
+                  <circle cx="1293.0" cy="374.7" r="8"/><text x="1305.0" y="379.7" font-size="20" fill="var(--ink-2)">network</text>
+                  <circle cx="1358.0" cy="308.6" r="8"/><text x="1370.0" y="313.6" font-size="20" fill="var(--ink-2)">software</text>
+                </g>
+                <g fill="#5B6472">
+                  <circle cx="837.1" cy="308.1" r="8"/><text x="849.1" y="313.1" font-size="20" fill="var(--ink-2)">airplane</text>
+                  <circle cx="897.5" cy="272.3" r="8"/><text x="909.5" y="277.3" font-size="20" fill="var(--ink-2)">bicycle</text>
+                  <circle cx="760.0" cy="321.0" r="8"/><text x="772.0" y="326.0" font-size="20" fill="var(--ink-2)">boat</text>
+                  <circle cx="943.0" cy="316.4" r="8"/><text x="955.0" y="321.4" font-size="20" fill="var(--ink-2)">car</text>
+                  <circle cx="847.8" cy="343.0" r="8"/><text x="859.8" y="348.0" font-size="20" fill="var(--ink-2)">train</text>
+                  <circle cx="936.3" cy="315.0" r="8"/><text x="948.3" y="320.0" font-size="20" fill="var(--ink-2)">truck</text>
+                </g>
+              </g>
+            </svg>
+          </div>
+          <p class="viz-caption"><span lang="ru">Семь смысловых групп — royalty, family, animals, countries, capitals, tech, transport — собираются в чёткие кластеры <em>без какой-либо разметки</em>. Это и есть нарисованная карта смысла.</span><span lang="en">Seven meaning groups — royalty, family, animals, countries, capitals, tech, transport — fall into clean clusters <em>with no labels at all</em>. This is the Map of Meaning, drawn.</span></p>
+          <aside class="slide-notes">This is the payoff picture and every point is real, projected from the t-SNE coordinates in the data file. Forty-four words, fifty dimensions folded to two, coloured by their semantic group only for our eyes — the layout itself used no labels. Royalty clusters in one corner, animals in another, the tech words off on the right, capitals and countries near each other at the bottom because they genuinely share context. This is what we promised at the very start: a map where nearness means relatedness, now literally drawn on the slide. Note how king sits with queen and throne, exactly the cluster the analogy walked through.</aside>
+        </section>
+
+        <!-- ============================================ 38 · TWO-COL · UMAP ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="38 UMAP">
+          <div class="slide-header">
+            <h2>UMAP: <span lang="ru">быстрее и с сохранением структуры</span><span lang="en">faster, more global structure</span></h2>
+            <span class="slide-kicker"><span lang="ru">McInnes 2018 · соседний метод</span><span lang="en">McInnes 2018 · the sibling method</span></span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3><span lang="ru">Та же идея</span><span lang="en">Same idea</span></h3>
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Строит граф соседей и укладывает его в 2-D, сохраняя связи.</span><span lang="en">Builds a neighbour graph and lays it out in 2-D, preserving links.</span></span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Рычаг — <code>n_neighbors</code> (аналог perplexity).</span><span lang="en">Dial: <code>n_neighbors</code> (the perplexity analogue).</span></span></li>
+              </ul>
+            </div>
+            <div class="twocol-col">
+              <h3><span lang="ru">Где лучше</span><span lang="en">Where it wins</span></h3>
+              <div class="callout" data-kind="info">
+                <div class="callout-icon">i</div>
+                <div class="callout-body">
+                  <strong><span lang="ru">Скорость + глобальность</span><span lang="en">Speed + global shape</span></strong>
+                  <p><span lang="ru">Заметно быстрее t-SNE на больших данных и лучше сохраняет крупную структуру. Но те же предостережения по чтению расстояний остаются.</span><span lang="en">Markedly faster than t-SNE at scale and keeps more of the large-scale structure. But the same caveats about reading distances still apply.</span></p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="small muted center mt-3"><span lang="ru">Практическое правило: UMAP для больших наборов и когда важна глобальная форма; t-SNE для тонкой локальной структуры. Оба — инструменты <em>взгляда</em>, а не признаки для модели.</span><span lang="en">Rule of thumb: UMAP for large sets and when global shape matters; t-SNE for fine local structure. Both are tools to <em>look</em>, not features for a model.</span></p>
+          <aside class="slide-notes">UMAP, from McInnes, Healy and Melville in 2018, is the sibling you will reach for most often in practice. It works on the same neighbour-graph principle but is grounded in a topological construction, runs much faster on large datasets, and tends to preserve more of the global structure than t-SNE. Its main dial, n_neighbors, plays the role perplexity plays in t-SNE. The practical guidance: use UMAP when you have a lot of points or care about the coarse layout, t-SNE when you want the finest local separation. And remember both are visualisation tools — you look at their output, you do not feed it into a downstream model.</aside>
+        </section>
+
+        <!-- ============================================ BEAT 12 · catch-tsne-lies ============================================ -->
+        <!-- ============================================ 39 · DIVIDER · t-SNE mirage ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="39 Divider · the t-SNE mirage">
+          <div class="divider-content">
+            <div class="divider-num"><span lang="ru">Часть 07</span><span lang="en">Part 07</span></div>
+            <h1>Don't Over-read the Map</h1>
+            <p class="divider-sub"><em><span lang="ru">Красивая картинка умеет лгать:</span><span lang="en">The pretty picture can mislead:</span></em> <span lang="ru">на t-SNE расстояния, размеры кластеров и зазоры между ними — <strong>не</strong> глобальны.</span><span lang="en">on a t-SNE plot, distances, cluster sizes and gaps are <strong>not</strong> global.</span></p>
+          </div>
+          <div class="viz-frame fig-fit" style="--fig-max:38cqh; --fig-w:50%;">
+            <img src="assets/img/L5/L5-12-tsne-mirage.png?v=1" alt="A mirage-like distorted map warning that the t-SNE picture can deceive the reader about true distances" />
+          </div>
+          <aside class="slide-notes">The catch beat, and it matters because t-SNE plots are so seductive. The cluster picture we just drew is honest about who is whose neighbour, but it is a mirage about almost everything else. The size of a cluster, the distance between two clusters, the empty space between them — none of that carries reliable meaning, because t-SNE is free to rescale locally to avoid crowding. Treat the plot as a statement about neighbourhoods, not a metric map. The next slide makes the three specific traps explicit.</aside>
+        </section>
+
+        <!-- ============================================ 40 · MISCONCEPTION · t-SNE lies ============================================ -->
+        <section class="slide" data-type="misconception" data-screen-label="40 t-SNE lies">
+          <div class="slide-header">
+            <h2><span lang="ru">Частое заблуждение</span><span lang="en">Common misconception</span></h2>
+            <span class="slide-kicker"><span lang="ru">развенчиваем миф</span><span lang="en">bust the myth</span></span>
+          </div>
+          <div class="misc-card">
+            <div class="misc-label"><span lang="ru">Что думают студенты</span><span lang="en">What students think</span></div>
+            <p class="misc-statement"><span lang="ru">&laquo;Эти два кластера далеко на графике &rArr; они далеки по смыслу&raquo;.</span><span lang="en">&ldquo;These two clusters are far apart on the plot &rArr; they are far apart in meaning.&rdquo;</span></p>
+            <button class="misc-reveal-btn" type="button"><span lang="ru">Показать правду</span><span lang="en">Reveal truth</span></button>
+            <div class="misc-truth"><span lang="ru">Нет. t-SNE сохраняет <strong>локальное соседство</strong>, а не глобальные расстояния. Три ловушки: (1) <strong>размер кластера</strong> не отражает разброс; (2) <strong>расстояние между кластерами</strong> почти ничего не значит; (3) <strong>perplexity всё меняет</strong> — при \(14\) и при \(50\) картинки разные. Всегда смотрите несколько perplexity.</span><span lang="en">No. t-SNE preserves <strong>local neighbourhoods</strong>, not global distances. Three traps: (1) <strong>cluster size</strong> does not reflect spread; (2) <strong>between-cluster distance</strong> means almost nothing; (3) <strong>perplexity changes everything</strong> — perplexity \(14\) and \(50\) give different pictures. Always view several perplexities.</span>
+              <p class="misc-anchor"><strong><span lang="ru">Правило.</span><span lang="en">Rule.</span></strong> <span lang="ru">Читайте t-SNE как «кто рядом с кем», и никогда — как линейку расстояний.</span><span lang="en">Read t-SNE as &ldquo;who is near whom&rdquo;, never as a ruler of distances.</span></p>
+            </div>
+          </div>
+          <aside class="slide-notes">The specific traps, the P7 anti-over-reading beat. Trap one: cluster sizes are meaningless — t-SNE expands dense regions and contracts sparse ones, so a big blob is not a high-variance group. Trap two: the distance between two clusters is not reliable — two clusters drawn far apart can be closer in the original space than two drawn near. Trap three, the big one: perplexity changes the picture qualitatively; at perplexity fourteen you may see seven islands, at fifty they may merge, and neither is the truth on its own. The discipline is simple — read it as a neighbourhood claim, run several perplexities, and never quote a distance off a t-SNE plot.</aside>
+        </section>
+
+        <!-- ============================================ BEAT 13 · catch-gremlin-cornered ============================================ -->
+        <!-- ============================================ 41 · MISCONCEPTION · gremlin cornered ============================================ -->
+        <section class="slide" data-type="misconception" data-screen-label="41 Gremlin cornered">
+          <div class="slide-header">
+            <h2><span lang="ru">Гремлин загнан в угол — но не пойман</span><span lang="en">The Gremlin cornered — but not caged</span></h2>
+            <span class="slide-kicker"><span lang="ru">обратный вызов из L3 · мост к L6</span><span lang="en">callback to L3 · bridge to L6</span></span>
+          </div>
+          <div class="misc-card">
+            <div class="misc-label"><span lang="ru">Победа — и её предел</span><span lang="en">The win — and its limit</span></div>
+            <p class="misc-statement"><span lang="ru">&laquo;Эмбеддинги решили лексический разрыв полностью&raquo;.</span><span lang="en">&ldquo;Embeddings solved the lexical gap completely.&rdquo;</span></p>
+            <button class="misc-reveal-btn" type="button"><span lang="ru">Показать правду</span><span lang="en">Reveal truth</span></button>
+            <div class="misc-truth"><span lang="ru">Почти. Синонимы наконец рядом: <code>couch</code> и <code>sofa</code> близки по косинусу — стена Гремлина из L3 рушится. <strong>Но</strong> у каждого слова <em>ровно один</em> вектор. <code>bank</code> (берег реки) и <code>bank</code> (финансовый) делят одну точку — их смыслы усреднены.</span><span lang="en">Almost. Synonyms finally sit together: <code>couch</code> and <code>sofa</code> are close in cosine — the Gremlin's L3 wall falls. <strong>But</strong> each word has <em>exactly one</em> vector. <code>bank</code> (river) and <code>bank</code> (finance) share a single point — their senses are averaged.</span>
+              <p class="misc-anchor"><strong><span lang="ru">Гремлин загнан, но не пойман.</span><span lang="en">Cornered, not caged.</span></strong> <span lang="ru">Одно слово — много смыслов. Чтобы дать слову <em>контекст</em> и развести смыслы, нужны контекстные эмбеддинги &rarr; это L6.</span><span lang="en">One word, many meanings. To give a word <em>context</em> and split the senses, we need contextual embeddings &rarr; that is L6.</span></p>
+            </div>
+          </div>
+          <aside class="slide-notes">The Gremlin callback, and the honest limit. Big win first: the lexical gap that beat BM25 is largely closed. Couch and sofa now have nearly the same vector, because they share contexts, so a query for one retrieves the other. The Gremlin's wall from Lecture 3 has cracked — synonyms land together. But do not cage him yet. Every word still gets exactly one vector, so a polysemous word like bank — river bank versus financial bank — is forced into a single point that blends both senses. The fix is to make a word's vector depend on its sentence, which is contextual embeddings, and that is precisely the climb of Lecture 6. Cornered, not caged.</aside>
+        </section>
+
+        <!-- ============================================ BEAT 14 · payoff-map-drawn ============================================ -->
+        <!-- ============================================ 42 · DIVIDER · map drawn ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="42 Divider · the map is drawn">
+          <div class="divider-content">
+            <div class="divider-num"><span lang="ru">Развязка</span><span lang="en">Payoff</span></div>
+            <h1>The Map of Meaning is Drawn</h1>
+            <p class="divider-sub"><em><span lang="ru">Слова получили координаты, «близко» стало значить «похоже»,</span><span lang="en">Words have coordinates, &ldquo;near&rdquo; now means &ldquo;related&rdquo;,</span></em> <span lang="ru">и Сэр Косинус едет по этой карте.</span><span lang="en">and Sir Cosine rides this map.</span></p>
+          </div>
+          <div class="viz-frame fig-fit" style="--fig-max:40cqh; --fig-w:52%;">
+            <img src="assets/img/L5/L5-14-map-drawn.png?v=1" alt="The completed Map of Meaning, fully drawn, with Sir Cosine riding across the constellations of clustered words" />
+          </div>
+          <aside class="slide-notes">The payoff. We set out to give the First-Contact alien a place on the map, and we did — every word now has coordinates, learned from nothing but the company it keeps, and on those coordinates nearness means related meaning. Sir Cosine rides this map as its ruler. We earned the coordinates with word2vec, watched meaning become arithmetic, and folded three hundred dimensions down to a picture we can read. One thread remains loose: a word still has only one vector. Giving that map context is the next lecture.</aside>
+        </section>
+
+        <!-- ============================================ 43 · QUOTE · bridge to L6 ============================================ -->
+        <section class="slide" data-type="quote" data-screen-label="43 Bridge">
+          <div>
+            <div class="quote-mark">&ldquo;</div>
+            <blockquote><span lang="ru">Карта смысла нарисована.<br />Но одно слово всё ещё значит две вещи — дайте карте <em>контекст</em>.</span><span lang="en">The Map of Meaning is drawn.<br />But one word still means two things — give the map <em>context</em>.</span></blockquote>
+            <div class="quote-attr">Sir Cosine &middot; &rarr; contextual embeddings (L6)</div>
+          </div>
+          <aside class="slide-notes">Close the loop and bridge forward, in Sir Cosine's voice. The map is drawn and it is genuinely useful — synonyms retrieve each other, analogies hold, clusters form unsupervised. The one unresolved tension is polysemy: bank is still a single point. The next lecture gives every word a vector that depends on its sentence, so the two banks finally separate, and it does so with contrastive learning that finally cages the Gremlin. That is the bridge from a static map to a contextual one.</aside>
+        </section>
+
+        <!-- ============================================ 44 · FINAL ============================================ -->
+        <section class="slide" data-type="final" data-screen-label="44 Final">
+          <div class="final-body">
+            <h1 style="font-size:96px; line-height:1.05; margin-bottom:var(--sp-4);"><span lang="ru">Слова получили координаты.<br />Что значит <em>близко</em>?</span><span lang="en">Words have coordinates now.<br />What does <em>near</em> mean?</span></h1>
+            <p class="final-sub" style="margin-bottom:var(--sp-5);"><strong><span lang="ru">Вопросы?</span><span lang="en">Questions?</span></strong> &middot; <span lang="ru">Слайды, домашка и запись — по QR ниже.</span><span lang="en">Slides, homework &amp; recording via the QR below.</span></p>
+            <div class="contact-grid">
+              <div class="contact-item"><div class="contact-label">Email</div><div class="contact-value">a.nasibullin@innopolis.university</div></div>
+              <div class="contact-item"><div class="contact-label">Office hours</div><div class="contact-value">Wed 16:00–17:40 (before class)</div></div>
+              <div class="contact-item"><div class="contact-label">GitHub</div><div class="contact-value">github.com/levshaazz/deep-learning-for-search-summer-2026</div></div>
+            </div>
+            <div class="qr-block">
+              <div class="qr-canvas" data-qr="https://levshaazz.github.io/deep-learning-for-search-summer-2026/"></div>
+              <div class="qr-caption"><span lang="ru">Материалы лекции</span><span lang="en">Full lecture materials</span><span class="qr-url">levshaazz.github.io/deep-learning-for-search-summer-2026</span></div>
+            </div>
+          </div>
+          <aside class="slide-notes">Q and A. The map is drawn: every word has coordinates, and Sir Cosine rules nearness on it. We earned those coordinates with the word2vec skip-gram objective and negative sampling, read meaning as arithmetic with king minus man plus woman landing on queen at cosine zero point eight six one, and folded fifty dimensions to two — PCA keeping thirty-seven point seven percent of the variance, t-SNE keeping the seven clusters. The open thread, polysemy, is the hook for Lecture 6. The QR points to the course hub with slides, homework and the recording. References follow.</aside>
+        </section>
+
+        <!-- ============================================ 45 · REFERENCES (1/2) ============================================ -->
+        <section class="slide" data-type="refs" data-screen-label="45 References · embeddings">
+          <div class="slide-header">
+            <h2><span lang="ru">Источники и дополнительное чтение</span><span lang="en">References &amp; further reading</span> <span style="font-weight:400;opacity:.6">(1 / 2)</span></h2>
+            <span class="slide-kicker"><span lang="ru">Приложение · эмбеддинги</span><span lang="en">Appendix · the embeddings lineage</span></span>
+          </div>
+          <ol class="ref-list">
+            <li><span class="ref-body"><span class="ref-authors">Firth, J. R.</span> · <span class="ref-title"><a href="https://archive.org/details/studiesinlinguis0000firt" target="_blank" rel="noopener">A Synopsis of Linguistic Theory (&ldquo;you shall know a word by the company it keeps&rdquo;)</a></span> · <span class="ref-venue">Studies in Linguistic Analysis</span></span><span class="ref-year">1957</span></li>
+            <li><span class="ref-body"><span class="ref-authors">Mikolov, T., Chen, K., Corrado, G. &amp; Dean, J.</span> · <span class="ref-title"><a href="https://arxiv.org/abs/1301.3781" target="_blank" rel="noopener">Efficient Estimation of Word Representations in Vector Space (word2vec)</a></span> · <span class="ref-venue">ICLR Workshop</span></span><span class="ref-year">2013</span></li>
+            <li><span class="ref-body"><span class="ref-authors">Mikolov, T., Sutskever, I., Chen, K., Corrado, G. &amp; Dean, J.</span> · <span class="ref-title"><a href="https://arxiv.org/abs/1310.4546" target="_blank" rel="noopener">Distributed Representations of Words and Phrases (negative sampling)</a></span> · <span class="ref-venue">NeurIPS</span></span><span class="ref-year">2013</span></li>
+            <li><span class="ref-body"><span class="ref-authors">Pennington, J., Socher, R. &amp; Manning, C.</span> · <span class="ref-title"><a href="https://aclanthology.org/D14-1162/" target="_blank" rel="noopener">GloVe: Global Vectors for Word Representation</a></span> · <span class="ref-venue">EMNLP</span></span><span class="ref-year">2014</span></li>
+          </ol>
+          <aside class="slide-notes">Appendix, part one — the embeddings lineage. Firth 1957 gives the distributional hypothesis and the catchphrase. Mikolov and colleagues 2013 introduce word2vec and then, in the companion paper, negative sampling — the two papers behind everything in Part 2. Pennington, Socher and Manning 2014 is GloVe, the count-based route in Part 4.</aside>
+        </section>
+
+        <!-- ============================================ 46 · REFERENCES (2/2) ============================================ -->
+        <section class="slide" data-type="refs" data-screen-label="46 References · dimred">
+          <div class="slide-header">
+            <h2><span lang="ru">Источники и дополнительное чтение</span><span lang="en">References &amp; further reading</span> <span style="font-weight:400;opacity:.6">(2 / 2)</span></h2>
+            <span class="slide-kicker"><span lang="ru">Приложение · снижение размерности</span><span lang="en">Appendix · dimensionality reduction</span></span>
+          </div>
+          <ol class="ref-list" start="5">
+            <li><span class="ref-body"><span class="ref-authors">Levy, O. &amp; Goldberg, Y.</span> · <span class="ref-title"><a href="https://papers.nips.cc/paper/2014/hash/feab05aa91085b7a8012516bc3533958-Abstract.html" target="_blank" rel="noopener">Neural Word Embedding as Implicit Matrix Factorization</a></span> · <span class="ref-venue">NeurIPS</span></span><span class="ref-year">2014</span></li>
+            <li><span class="ref-body"><span class="ref-authors">van der Maaten, L. &amp; Hinton, G.</span> · <span class="ref-title"><a href="https://www.jmlr.org/papers/v9/vandermaaten08a.html" target="_blank" rel="noopener">Visualizing Data using t-SNE</a></span> · <span class="ref-venue">JMLR</span></span><span class="ref-year">2008</span></li>
+            <li><span class="ref-body"><span class="ref-authors">Wattenberg, M., Viégas, F. &amp; Johnson, I.</span> · <span class="ref-title"><a href="https://distill.pub/2016/misread-tsne/" target="_blank" rel="noopener">How to Use t-SNE Effectively</a></span> · <span class="ref-venue">Distill</span></span><span class="ref-year">2016</span></li>
+            <li><span class="ref-body"><span class="ref-authors">McInnes, L., Healy, J. &amp; Melville, J.</span> · <span class="ref-title"><a href="https://arxiv.org/abs/1802.03426" target="_blank" rel="noopener">UMAP: Uniform Manifold Approximation and Projection</a></span> · <span class="ref-venue">arXiv / JOSS</span></span><span class="ref-year">2018</span></li>
+          </ol>
+          <aside class="slide-notes">Appendix, part two — the geometry and the folding tools. Levy and Goldberg 2014 prove word2vec is implicit matrix factorisation, unifying the predict and count families from Part 4. van der Maaten and Hinton 2008 is the t-SNE paper; the Distill article by Wattenberg, Viégas and Johnson 2016 is the canonical demonstration of the over-reading traps in Part 7; and McInnes and colleagues 2018 is UMAP. Karen Spärck Jones's idf from Lecture 3 is the count-based ancestor of all of this.</aside>
+        </section>
+
+
+      </div><!-- /.slides -->
+    </div><!-- /.stage -->
+  </div><!-- /.deck -->
+
+  <!-- JS -->
+  <script src="js/deck.js"></script>
+  <script src="js/tools.js"></script>
+  <script src="js/pen.js"></script>
+  <script src="js/notes.js"></script>
+  <script src="js/handout.js"></script>
+  <script src="js/presenter.js"></script>
+  <script src="js/tweaks.js"></script>
+  <script src="js/demos.js"></script>
+  <script src="js/e2e.js"></script>
+  <script src="js/lab.js"></script>
+  <script src="js/archflow.js"></script>
+  <script src="js/sequence.js"></script>
+  <script src="js/budget.js"></script>
+  <script src="js/preflight.js"></script>
+</body>
+</html>

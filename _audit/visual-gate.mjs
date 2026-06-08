@@ -21,7 +21,7 @@ const PORT = 8147;
 const MIME = { '.html':'text/html','.css':'text/css','.js':'text/javascript','.json':'application/json',
   '.woff2':'font/woff2','.woff':'font/woff','.svg':'image/svg+xml','.png':'image/png',
   '.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.map':'application/json' };
-const DECKS = ['00-introduction.html','01-search-ir-ml-system-design.html','02-nlp-tokenization-similarity.html','03-classical-ir-fulltext-fusion.html','04-ranking-metrics.html'];
+const DECKS = ['00-introduction.html','01-search-ir-ml-system-design.html','02-nlp-tokenization-similarity.html','03-classical-ir-fulltext-fusion.html','04-ranking-metrics.html','05-dl-embeddings-dimred.html'];
 const MIN_SIDE = 150;     // px (logical) below which a non-cameo image reads as "tiny"
 const MAX_EMPTY = 0.45;   // fraction of the box left empty by object-fit:contain
 
