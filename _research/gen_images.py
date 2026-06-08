@@ -372,6 +372,127 @@ JOBS = [
      "no caption, no banner text, no title; the deck adds labels later. Make it feel like a "
      "victory-lap callback to Sir Cosine from L2."),
 
+    # ---- L6 · The Council of Attention (Contextual embeddings · Transformers/Attention · Contrastive) ----
+    # NOTE on the gate (same as L5): image-gate.mjs only tags char/L0/L1/L2 jobs as has_serega for
+    # the green-leak check, so L6 images are treated as NON-Serega by the palette gate. That is FINE
+    # as long as Serega's / Sir-Cosine's green tübetey stays a small element (<2% of canvas, like
+    # every existing Serega plate measures 0.6–1.2%) and NO other green appears anywhere. Every L6
+    # plate therefore: (a) uses ONLY black ink + course-blue + warm-orange on off-white (no
+    # reds/purples/greens except the small cap on Serega/Sir-Cosine when present); (b) bakes in ZERO
+    # hand-lettered text/labels/numbers — the deck overlays its own labels, so these plates are
+    # wordless. CRUCIAL: the payoff plate's caged Lexical Gremlin must match the L1/L3 Gremlin —
+    # small mischievous gremlin, pointy bat-like ears, wild spiky BLUE hair, blue body, big toothy
+    # grin, thin noodle limbs (verbatim spec repeated in that scene).
+    ("L6", "L6/L6-00-council-of-attention.png", "16:9", True,
+     "HERO ESTABLISHING SHOT — the Council of Attention. A big round council table seen from a "
+     "gentle top-down-ish flat angle, ringed by 6–8 simple seated councillor stick-figures, where "
+     "EACH councillor is a TOKEN (a word-seat). The single unmistakable TELL: every figure LEANS / "
+     "turns its head and body TOWARD whichever other councillor it is heeding — some lean hard "
+     "across the table toward one neighbour, some only tilt slightly, so the eye reads 'attention is "
+     "listening: each token leans toward whom it heeds'. Draw a few thin ink lean-lines / gaze-lines "
+     "between the leaning figures, a couple of them traced in warm-orange to mark the strongest "
+     "heeding. Serega the cartographer-chairman stands at the LEFT edge of the table, one hand "
+     "raised, presiding over the council — proud and absorbed. The councillors are bare-headed "
+     "(no green on them). The table + figures fill ≥85% of the canvas width edge-to-edge. "
+     "Warm-orange appears ONLY as a few accent lean-lines; everything else is black ink + "
+     "course-blue on off-white. Serega's small green skullcap is the ONLY green in the image. "
+     "ABSOLUTELY NO words, letters, numbers, or hand-lettered labels anywhere — the seats are "
+     "wordless, no caption, no title; the deck adds labels later. This is the lecture centerpiece — "
+     "make it evocative, like a round-table council of listeners."),
+    ("L6", "L6/L6-01-bank-two-meanings.png", "16:9", False,
+     "ONE WORD, TWO WORLDS — the polysemy problem, drawn as a single word-card split down the "
+     "middle. CENTER: one blank word-card / placard (NO text on it, just a plain ink-outlined "
+     "rectangle) sitting on a vertical dividing seam that splits the whole frame into two contrasting "
+     "little scenes. LEFT WORLD: a peaceful RIVER-BANK — a curving river with a grassy sloping shore, "
+     "reeds, a little fish, drawn in black ink with course-blue water. RIGHT WORLD: a MONEY-BANK — a "
+     "small classical bank building with columns, a coin stack and a dollar-bag with a warm-orange "
+     "coin accent. A thin ink crack / lightning-bolt seam runs down between the two worlds straight "
+     "through the single shared word-card, so it reads 'the SAME one word is torn between two "
+     "unrelated meanings — one static vector can't be in two minds'. The split scene fills ≥85% of "
+     "canvas width. NO Serega in this scene, so NO green anywhere at all (the riverbank grass is "
+     "drawn in plain black ink hatching or course-blue, NOT green). ABSOLUTELY NO words, letters, "
+     "numbers, or labels anywhere — the central card is BLANK, no caption, no title; the deck adds "
+     "the word 'bank' later. Keep the two worlds clearly different so the polysemy reads instantly."),
+    ("L6", "L6/L6-04-attention-weights.png", "16:9", False,
+     "ATTENTION WEIGHTS as beams of different thickness — purely visual, no math. ONE central token "
+     "(a bold ink dot / small circle, the 'query' token) sits left-of-centre, and from it a fan of "
+     "BEAMS / threads reaches out to several neighbouring tokens (other small ink dots scattered "
+     "around it). The single clear TELL: the beams have VERY DIFFERENT THICKNESSES — one or two are "
+     "FAT bold warm-orange ribbons (strong attention), some are medium ink lines, and several are "
+     "thin faint hairlines (weak attention), so the eye reads 'this token pays a lot of attention to "
+     "a few neighbours and a little to the rest'. The thickest warm-orange beam clearly dominates "
+     "and points to the most-heeded neighbour. Keep it clean and diagrammatic — just the central "
+     "token, the neighbour dots, and the graded beams. The beam-fan fills ≥85% of canvas width. "
+     "NO Serega in this scene, so NO green anywhere. Warm-orange appears ONLY as the one or two "
+     "thickest dominant beams; the rest are black ink on off-white. ABSOLUTELY NO words, letters, "
+     "numbers, or labels anywhere — the dots are unlabelled, no caption, no title."),
+    ("L6", "L6/L6-07-positional-order.png", "16:9", False,
+     "POSITIONAL ENCODING — giving tokens their order. A horizontal row of identical small "
+     "word-tokens (plain blank ink-outlined tiles, NO text on them) sits along a flowing SINUSOID "
+     "RIBBON — a clean hand-drawn sine wave (alternating sin/cos curves) that undulates left to "
+     "right beneath the row, drawn in course-blue, threading through the tokens like a wave giving "
+     "them their place in line. Below each token, a small ORDER-STAMP marks its position as a "
+     "wordless pictograph: token 1 has one dot, token 2 has two dots, token 3 has three dots, and so "
+     "on (counting pips, NOT digits), so the row reads 'each token gets a position-stamp from the "
+     "wave'. To underline that ORDER MATTERS, show the same handful of token-tiles in two stacked "
+     "rows whose tiles sit in a DIFFERENT left-to-right arrangement (a small swap), making clear "
+     "'reordering changes everything' — the dog-bites-man vs man-bites-dog idea, purely with the "
+     "tiles' positions, no words. Warm-orange appears ONLY as a thin accent on the swap-arrow / the "
+     "crest of one wave. The wave + tokens fill ≥85% of canvas width. NO Serega, so NO green "
+     "anywhere. ABSOLUTELY NO words, letters, numbers (the position-stamps are DOTS not digits), or "
+     "labels anywhere — the tiles are blank, no caption, no title; the deck adds words later."),
+    ("L6", "L6/L6-09-transformer-block.png", "16:9", False,
+     "THE TRANSFORMER BLOCK as an engine — a machine/engine block assembled from stacked stages, "
+     "wordless. Draw a tall mechanical ENGINE built as a vertical stack of clean rectangular "
+     "machine-stages bolted on top of one another (like the cross-section of a layered engine or a "
+     "stacked factory machine): from bottom to top, a few distinct stacked boxes connected by pipes "
+     "and a couple of curving RETURN PIPES looping around the outside of the stack (suggesting "
+     "residual/skip connections) and small gear / bolt details, so it reads as one repeating "
+     "powerful engine-unit. A thin warm-orange flow-arrow runs UP through the centre of the stack "
+     "showing tokens flowing through the engine. To suggest depth, show the same block faintly "
+     "REPEATED / echoed behind it (×N stacking), receding slightly. Keep it crisp, mechanical, and "
+     "diagrammatic — an engine, not a creature. The engine fills ≥85% of canvas width/height. "
+     "NO Serega in this scene, so NO green anywhere. Warm-orange appears ONLY as the thin central "
+     "flow-arrow and one or two accent pipes; the machine body is black ink on off-white with light "
+     "course-blue accents. ABSOLUTELY NO words, letters, numbers, gauge-readings, or labels anywhere "
+     "— the stages are wordless, no caption, no title; the deck labels the stages later."),
+    ("L6", "L6/L6-12-contrastive-pull-push.png", "16:9", False,
+     "CONTRASTIVE LEARNING as magnets — pull synonyms together, push impostors apart, drawn on a "
+     "faint dotted embedding-grid. LEFT/CENTER: TWO small word-dots that are SYNONYMS are drawn as "
+     "two magnets snapping TOGETHER — a short fat warm-orange ATTRACTION arrow pulls them into one "
+     "tight pair, almost touching, with little motion-lines showing them rushing together. "
+     "RIGHT/AROUND: one or two IMPOSTOR word-dots (false matches) are drawn as like-poles being "
+     "SHOVED APART — black ink REPULSION arrows push them outward away from the pair, with "
+     "spread-apart motion-lines, so the whole plate reads 'pull positives together, push negatives "
+     "apart'. Draw the dots as simple horseshoe-magnet or bar-magnet doodles to make the "
+     "attract/repel idea unmistakable. The magnets + arrows fill ≥85% of canvas width. NO Serega in "
+     "this scene, so NO green anywhere. Warm-orange appears ONLY as the single ATTRACTION pull-arrow "
+     "between the synonyms; the repulsion arrows and magnets are black ink on off-white with light "
+     "course-blue magnet bodies. ABSOLUTELY NO words, letters, numbers, or labels anywhere — the "
+     "dots/magnets are unlabelled, no caption, no title; the deck names positives/negatives later."),
+    ("L6", "L6/L6-15-gremlin-caged.png", "16:9", False,
+     "THE PAYOFF — the Lexical Gremlin finally CAGED, the emotional climax. CRITICAL CHARACTER "
+     "CONTINUITY — the caged creature MUST be the SAME recurring Lexical Gremlin from earlier "
+     "lectures: a SMALL mischievous gremlin with a round head, large POINTY bat-like ears sticking "
+     "out sideways, wild SPIKY upward course-blue (#2A6FDB) hair/tuft, a course-blue body, a big "
+     "wide toothy mischievous GRIN, two beady dot eyes, and thin noodle arms and legs — identical "
+     "design to before, just now defeated. Draw this exact Gremlin shut INSIDE a sturdy CAGE: a "
+     "clear box of vertical ink prison BARS with a little barred door, the Gremlin gripping two bars "
+     "from the inside with a sulky / grumpy / pouting face (no longer smug — clearly beaten), small "
+     "annoyed motion-marks around its head. OUTSIDE the cage, to the RIGHT, the satisfying reward: "
+     "TWO word-tokens that used to be kept apart now sit happily TOGETHER, side by side and touching "
+     "— two little couch/sofa pictographs (a simple sofa-shape and a couch-shape, drawn in course-"
+     "blue, clearly the SAME furniture twice) nestled cosily next to each other, with a small "
+     "warm-orange heart or a short warm-orange join-line between them showing 'couch' and 'sofa' "
+     "finally collapsed together. The cage + the reunited couches fill ≥85% of canvas width. "
+     "IMPORTANT PALETTE: the Gremlin's hair and body are course-BLUE (never green); the cage bars "
+     "are black ink; NO Serega in this scene, so there is NO green ANYWHERE in the image at all. "
+     "Warm-orange appears ONLY as the small heart / join-line between the two reunited couches. "
+     "ABSOLUTELY NO words, letters, numbers, or labels anywhere — the couches are wordless "
+     "pictographs, no caption, no title; the deck adds 'couch'/'sofa' later. Make the Gremlin "
+     "RECOGNISABLE (same ears, same spiky blue hair, same grin-now-pout) and CLEARLY caged — this "
+     "is the satisfying defeat, the emotional climax of the whole arc."),
+
     # ---- course cover (banner + GitHub social card) ----
     ("char", "_char/cover.png", "16:9", True,
      "the course cover banner for a graduate course called 'Deep Learning for Search'. Wide "
