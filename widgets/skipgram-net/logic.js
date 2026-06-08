@@ -44,25 +44,29 @@ export const mountSkipgramNet = defineWidget({
     const num = (x) => (typeof x !== 'number' ? '' : Number.isInteger(x) ? String(x) : fmt(x, 3));
     const prob = (x) => (typeof x !== 'number' ? '' : x.toFixed(3));
 
-    // ── geometry: a left→right pipeline in one 480-wide column ────────────────
-    const Wd = 480;
-    const PAD = 14;
-    const ROW = 30;                          // per-vocab-word row pitch (shared by all columns)
-    const topY = 64;                         // first row's top edge (room for the column headings)
+    // ── geometry: a left→right pipeline; WIDE canvas so the five columns (one-hot · W · hidden ·
+    //    logits/probs) each get breathing room and their headings never collide (re-audit fix). ──
+    const Wd = 740;
+    const PAD = 16;
+    const ROW = 32;                          // per-vocab-word row pitch (shared by all columns)
+    const headBand = 36;                     // vertical room above the first row for a 2-line heading
+    const topY = 78;                         // first row's top edge (room for the stacked column headings)
     const cell = 22;                         // square cell size for one-hot / W / hidden
-    const gap = 3;
+    const gap = 5;                           // gap BETWEEN matrix cells (was 3 — cells now read as a grid)
+    const colGap = 60;                       // horizontal breathing room between adjacent columns
 
-    // column x-anchors
-    const vocabW = 70;                       // width reserved for the vocab word label
+    // column x-anchors — each block is separated by colGap so nothing crowds its neighbour.
+    const vocabW = 60;                       // width reserved for the vocab word label
     const vocabX = PAD;
     const oneHotX = vocabX + vocabW;          // the 1-of-8 one-hot column
-    const wX = oneHotX + cell + 22;           // the 8×4 W grid starts here
+    const wX = oneHotX + cell + colGap;       // the 8×4 W grid starts here
     const wW = d * (cell + gap) - gap;
-    const hiddenX = wX + wW + 30;             // the hidden 1×4 row sits to the right of W
-    const barX = wX + wW + 30;                // logits/probs bars share this left edge
-    const barMaxW = Wd - PAD - barX - 56;     // room for the value text on the right
+    const hiddenX = wX + wW + colGap;         // the hidden 1×4 row sits to the right of W
+    const hiddenW = cell;                     // the hidden column is one cell wide
+    const barX = hiddenX + hiddenW + colGap;  // logits/probs bars sit to the right of the hidden column
+    const barMaxW = Wd - PAD - barX - 170;    // room for the value text AND the top-context/runner tags
 
-    const H = frameHeightFor(topY + n * ROW + 8, 14);
+    const H = frameHeightFor(topY + n * ROW + 10, 14);
     const plotRect = { x: 0, y: 0, w: Wd, h: H };   // for clampSegmentToRect on the lookup arrow
 
     const svg = el('svg', { viewBox: `0 0 ${Wd} ${H}`, class: 'wgt-svg sg-svg',
@@ -73,6 +77,39 @@ export const mountSkipgramNet = defineWidget({
     const add = (name, node) => { layers[name].nodes.push(node); return node; };
 
     const rowY = (i) => topY + i * ROW;       // top edge of vocab row i
+
+    // ── column heading: centred over its column and word-wrapped onto (up to) two BALANCED stacked
+    //    lines, so the (often long, often translated) heading stays narrow enough to sit inside its
+    //    own column and never collides with the neighbouring column's heading. Returns the <g> so the
+    //    caller can layer-gate it. Wrapping is by words, splitting as close to the midpoint as possible
+    //    (chars ≈ a proxy for width at this single mono size), so neither line runs long.
+    const headTop = topY - headBand;          // y of the heading's first line
+    const wrapHead = (text) => {
+      const words = String(text || '').trim().split(/\s+/);
+      if (words.length <= 1) return [text || ''];
+      const full = words.join(' ');
+      // pick the word boundary whose running length is nearest half the total → balanced lines.
+      let best = 1, bestDiff = Infinity;
+      for (let i = 1; i < words.length; i++) {
+        const left = words.slice(0, i).join(' ').length;
+        const right = words.slice(i).join(' ').length;
+        const diff = Math.abs(left - right);
+        if (diff < bestDiff) { bestDiff = diff; best = i; }
+      }
+      // single short line: don't wrap (≤ ~18 chars comfortably fits a column).
+      if (full.length <= 18) return [full];
+      return [words.slice(0, best).join(' '), words.slice(best).join(' ')];
+    };
+    const colHead = (name, cx, text) => {
+      const g = el('g', {}, svg);
+      const lines = wrapHead(text);
+      lines.forEach((ln, i) => {
+        const t = el('text', { x: cx, y: headTop + i * 14,
+          class: `sg-colhead${i > 0 ? ' sg-colhead-2' : ''}`, 'text-anchor': 'middle' }, g);
+        t.textContent = ln;
+      });
+      return add(name, g);
+    };
 
     // value → fill: diverging map around 0 (W rows are row-normalised in [-1,1]).
     // positive → accent blue, negative → warm red, magnitude → opacity.
@@ -93,8 +130,7 @@ export const mountSkipgramNet = defineWidget({
 
     // ── STEP 0: the one-hot input column ──────────────────────────────────────
     layer('onehot', 0);
-    add('onehot', el('text', { x: oneHotX + cell / 2, y: topY - 38, class: 'sg-colhead',
-      'text-anchor': 'middle' }, svg)).textContent = labels.inHead || 'input · one-hot';
+    colHead('onehot', oneHotX + cell / 2, labels.inHead || 'input · one-hot');
     oneHot.forEach((bit, i) => {
       const on = bit === 1;
       const g = el('g', {}, svg);
@@ -108,8 +144,7 @@ export const mountSkipgramNet = defineWidget({
 
     // ── STEP 1: the embedding matrix W (8×4) + the lookup arrow + hidden ───────
     layer('matrix', 1);
-    add('matrix', el('text', { x: wX, y: topY - 38, class: 'sg-colhead' }, svg))
-      .textContent = labels.wHead || 'W · embedding matrix = lookup table';
+    colHead('matrix', wX + wW / 2, labels.wHead || 'W · embedding matrix = lookup table');
     const wCells = [];                        // keep row-0 cell refs so we can keep them lit
     W.forEach((row, i) => {
       const isSel = i === centreIndex;
@@ -140,10 +175,13 @@ export const mountSkipgramNet = defineWidget({
 
     // ── STEP 1: the hidden vector (the looked-up row), drawn as 4 cells right ──
     layer('hidden', 1, 1);
-    add('hidden', el('text', { x: hiddenX, y: topY - 38, class: 'sg-colhead' }, svg))
-      .textContent = labels.hiddenHead || 'hidden = the looked-up row';
+    colHead('hidden', hiddenX + hiddenW / 2, labels.hiddenHead || 'hidden = the looked-up row');
+    // centre the 4-cell stack on the matrix's vertical middle (rows 0..n-1), so it never rides up
+    // into the heading band and reads as one tidy 4-vector beside W.
+    const hidMidY = rowY((n - 1) / 2) + cell / 2;          // pixel centre of the matrix block
+    const hidTop0 = hidMidY - (hidden.length / 2) * (cell + gap) + gap / 2;
     hidden.forEach((v, c) => {
-      const cy = rowY(centreIndex) + c * (cell + gap) - 1.5 * (cell + gap);  // centre the 4-cell stack on king's row
+      const cy = hidTop0 + c * (cell + gap);                // stacked downward from the centred top
       const rect = el('rect', { x: hiddenX, y: cy, width: cell, height: cell, rx: 3, class: 'sg-hcell' }, svg);
       rect.setAttribute('fill', cellFill(v));
       add('hidden', rect);
@@ -155,8 +193,7 @@ export const mountSkipgramNet = defineWidget({
     function barColumn(name, from, to, vals, fmtFn, opts = {}) {
       layer(name, from, to);
       const headKey = opts.headKey, headFallback = opts.headFallback;
-      add(name, el('text', { x: barX, y: topY - 38, class: 'sg-colhead' }, svg))
-        .textContent = (labels[headKey] || headFallback);
+      colHead(name, barX + barMaxW / 2, (labels[headKey] || headFallback));
       // scale bars to the largest magnitude so the track is filled (logits can be negative).
       const maxMag = Math.max(1e-6, ...vals.map((v) => Math.abs(v)));
       const zeroX = opts.signed ? barX + (barMaxW * (vals.some((v) => v < 0) ? 0.32 : 0)) : barX;
