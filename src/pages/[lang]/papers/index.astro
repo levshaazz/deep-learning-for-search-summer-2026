@@ -1,0 +1,88 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { LOCALES, t } from '../../../i18n/locales.js';
+import { ui } from '../../../i18n/ui.js';
+import { sections, papers, papersMeta as M } from '../../../lib/papers.js';
+
+export function getStaticPaths() {
+  return LOCALES.map((l) => ({ params: { lang: l } }));
+}
+const { lang } = Astro.params;
+const showFallbackNotice = lang === 'tt';
+const total = Object.keys(papers).length;
+---
+<BaseLayout lang={lang} page="papers" title={t(ui.nav.papers, lang)}>
+  <div class="wrap">
+    <section class="block">
+      <h2>{t(ui.sections.papers, lang)}</h2>
+      <div class="kicker">{t(ui.sections.papersKicker, lang)}</div>
+      {showFallbackNotice && <p class="notice">{t(ui.translationInProgress, lang)}</p>}
+      <p class="lead">{t(M.intro, lang)}</p>
+      <p class="count">{total} {t(M.count, lang)}</p>
+    </section>
+
+    {sections.map((sec) => (
+      <section class="block refs" id={sec.area}>
+        <h3>{t(sec.label, lang)}</h3>
+        {sec.kicker && <div class="kicker">{t(sec.kicker, lang)}</div>}
+        <ul class="paper-list">
+          {sec.items.map((p) => (
+            <li class="paper" id={p.id}>
+              <div class="paper-cite">
+                <span class="authors">{p.authorsShort || (p.authors || []).join(', ')}</span>
+                {p.year ? <span class="year"> ({p.year})</span> : null}
+                <span class="sep"> · </span>
+                <a class="title" href={p.url} target="_blank" rel="noopener">{p.title}</a>
+                {p.venue ? <span class="venue"> · {p.venue}</span> : null}
+              </div>
+              <p class="why">{t(p.why, lang)}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </div>
+
+  <style>
+    .lead { font-size: var(--fz-lead); color: var(--ink-2); max-width: var(--ws-measure); }
+    .count {
+      font-family: var(--font-mono); font-size: var(--fz-tiny); letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--ink-3); margin: var(--ws-2) 0 0;
+    }
+
+    section.refs h3 {
+      font-family: var(--font-serif); font-size: var(--fz-h3); font-weight: 600;
+      margin: 0 0 6px; color: var(--ink); line-height: 1.2;
+    }
+
+    .paper-list { list-style: none; margin: var(--ws-3) 0 0; padding: 0; display: grid; gap: var(--ws-3); }
+
+    li.paper {
+      background: var(--bg-card); border: var(--hairline) solid var(--rule-strong);
+      border-radius: var(--r-md); padding: var(--ws-3);
+      /* min-width:0 lets the long title wrap instead of forcing horizontal overflow at 390px */
+      min-width: 0; overflow-wrap: anywhere;
+    }
+    li.paper:target { border-color: var(--accent); box-shadow: var(--shadow-sm); }
+
+    .paper-cite { font-size: var(--fz-small); line-height: 1.5; color: var(--ink-2); }
+    .paper-cite .authors { color: var(--ink); font-weight: 600; }
+    .paper-cite .year { color: var(--ink-2); }
+    .paper-cite .sep { color: var(--ink-3); }
+    .paper-cite .title {
+      color: var(--accent); font-weight: 600; text-decoration: none;
+      /* break very long titles/URLs rather than overflow the card on narrow screens */
+      overflow-wrap: anywhere;
+    }
+    .paper-cite .title:hover { text-decoration: underline; }
+    .paper-cite .venue {
+      font-family: var(--font-mono); font-size: var(--fz-tiny); color: var(--ink-3);
+    }
+
+    .why { margin: var(--ws-2) 0 0; color: var(--ink-2); font-size: var(--fz-small); line-height: 1.6; max-width: var(--ws-measure); }
+
+    @media (max-width: 480px) {
+      li.paper { padding: var(--ws-2); }
+    }
+  </style>
+</BaseLayout>

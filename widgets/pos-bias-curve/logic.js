@@ -19,9 +19,13 @@ export const mountPosBiasCurve = defineWidget({
 
     const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'wgt-svg pb-svg', role: 'img', 'aria-label': labels.alt || '' }, host);
     el('line', { x1: box.x, y1: box.y + box.h, x2: box.x + box.w, y2: box.y + box.h, class: 'pb-axis' }, svg);
-    el('text', { x: box.x + box.w, y: box.y + box.h + 20, class: 'pb-axlbl', 'text-anchor': 'end' }, svg)
+    // "rank →" dropped onto its own row BELOW the tick labels (was +20, colliding with the "10" tick
+    // at +14) so the last tick and the axis label no longer overlap. (audit #4)
+    el('text', { x: box.x + box.w, y: box.y + box.h + 32, class: 'pb-axlbl', 'text-anchor': 'end' }, svg)
       .textContent = labels.xaxis || 'rank →';
-    el('text', { x: box.x - 6, y: box.y + 8, class: 'pb-axlbl', 'text-anchor': 'end' }, svg)
+    // "clicks" y-label anchored at the LEFT edge inside the box (was end-anchored at x=box.x-6, which
+    // pushed its left edge to x≈-1.7 and clipped on the panel border). (audit #4)
+    el('text', { x: 2, y: box.y + 8, class: 'pb-axlbl', 'text-anchor': 'start' }, svg)
       .textContent = labels.yaxis || 'clicks';
 
     const bw = box.w / ranks.length - 6;

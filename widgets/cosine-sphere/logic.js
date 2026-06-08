@@ -71,8 +71,17 @@ export const mountCosineSphere = defineWidget({
       'marker-end': `url(#${uid}-u)` }, svg));
     add('vectors', el('line', { x1: O.x, y1: O.y, x2: tv.x, y2: tv.y, class: 'cs-vec cs-vec-v',
       'marker-end': `url(#${uid}-v)` }, svg));
-    add('vectors', el('text', { x: tu.x + 8, y: tu.y - 4, class: 'cs-lbl cs-lbl-u' }, svg)).textContent = 'u';
-    add('vectors', el('text', { x: tv.x + 8, y: tv.y - 4, class: 'cs-lbl cs-lbl-v' }, svg)).textContent = 'v';
+    // Tip labels offset ALONG each vector's own direction (outward from the origin), not by a fixed
+    // (+8,-4) screen nudge — so a short vector (e.g. u in the collinear cos=1 pair) still gets its
+    // label pushed clear of the origin instead of piling up there. (audit #3)
+    const tipLbl = (vec, tip, cls, txt) => {
+      const d = norm(vec);                  // unit direction in data space (y up)
+      const off = 16;                       // px past the arrowhead, along the vector
+      add('vectors', el('text', { x: tip.x + d[0] * off, y: tip.y - d[1] * off + 5,
+        class: 'cs-lbl ' + cls, 'text-anchor': 'middle' }, svg)).textContent = txt;
+    };
+    tipLbl(pair.u, tu, 'cs-lbl-u', 'u');
+    tipLbl(pair.v, tv, 'cs-lbl-v', 'v');
 
     // Euclidean ruler tip→tip — step 1
     layer('euclid', 1);
@@ -90,7 +99,9 @@ export const mountCosineSphere = defineWidget({
       add('angle', el('path', { class: 'cs-arc',
         d: `M ${O.x + r * Math.cos(a0)} ${O.y - r * Math.sin(a0)} A ${r} ${r} 0 ${large} ${sweep} ${O.x + r * Math.cos(a1)} ${O.y - r * Math.sin(a1)}` }, svg));
     }
-    const aTag = add('angle', el('text', { x: O.x + 14, y: O.y - 12, class: 'cs-tag cs-tag-angle' }, svg));
+    // Readout pinned to a FIXED top-left corner of the plot, not on the origin — so when u and v are
+    // collinear (cos=1 / θ=0) it never piles onto the "u" label or the angle arc. (audit #3)
+    const aTag = add('angle', el('text', { x: 12, y: 24, class: 'cs-tag cs-tag-angle' }, svg));
     aTag.textContent = `${labels.angleLabel || 'θ'} = ${pair.angleDeg}°   ${labels.cosLabel || 'cos'} = ${pair.cos}`;
 
     // normalized points on the unit sphere — step 3

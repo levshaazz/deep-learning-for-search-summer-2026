@@ -7,6 +7,7 @@
    the caption/counter scaffold, the setStep clamp + host.dataset.step, the el()/svg() namespaced
    SVG builder and the window.mountZipfHeaps registration; render() only draws the two plots. */
 import { defineWidget } from '../_widget-base.js';
+import { padDomain, clampSegmentToRect } from '../_plot-util.js';
 
 const log10 = (x) => Math.log(x) / Math.LN10;
 
@@ -37,9 +38,14 @@ export const mountZipfHeaps = defineWidget({
 
     // ── ZIPF (top): log10(rank) vs log10(count) ──────────────────────────────
     const top = data.top10;
+    // pad the freq y-domain generously (audit #2): the #1 token dot was jammed at the frame top with
+    // its label on the edge — padDomain drops it ~28px below the top so "the ×173,736" has headroom.
+    const zy = padDomain(log10(Math.min(...top.map(t => t.count))), log10(Math.max(...top.map(t => t.count))), 0.32);
+    // pad the rank x-domain a touch on the left too, so the rank-1 dot (log10(1)=0) sits INSIDE the
+    // frame instead of straddling its left edge. (audit #2)
+    const zx = padDomain(0, 1, 0.05);
     const zb = { x: 56, y: 28, w: W - 80, h: 150,
-      xmin: 0, xmax: 1.05, ymin: log10(Math.min(...top.map(t => t.count))) - 0.15,
-      ymax: log10(Math.max(...top.map(t => t.count))) + 0.1 };
+      xmin: zx.min, xmax: zx.max, ymin: zy.min, ymax: zy.max };
     const Z = frame(zb, labels.zipfTitle || 'Zipf: rank ↔ frequency (log–log)');
     el('text', { x: zb.x - 8, y: zb.y + 8, class: 'zh-axlbl', 'text-anchor': 'end' }, svg).textContent = 'freq';
     el('text', { x: zb.x + zb.w, y: zb.y + zb.h + 18, class: 'zh-axlbl', 'text-anchor': 'end' }, svg).textContent = 'rank →';
@@ -52,11 +58,17 @@ export const mountZipfHeaps = defineWidget({
     // label the #1 token
     const t0 = add('zpts', el('text', { x: Z.sx(lr[0]) + 8, y: Z.sy(lc[0]) + 4, class: 'zh-tok' }, svg));
     t0.textContent = `“${top[0].token}” ×${top[0].count.toLocaleString('en-US')}`;
-    // fit line through centroid with Zipf slope
+    // fit line through centroid with Zipf slope — CLAMP to the frame rect so the extrapolated left
+    // end (which used to shoot above the frame to negative screen-y) and the right end stay inside
+    // the plot box. We draw only the segment of the trend that lies within the frame. (audit #2)
     const slope = data.zipf.loglogSlope;
     const xb = lr.reduce((a, b) => a + b, 0) / lr.length, yb = lc.reduce((a, b) => a + b, 0) / lc.length;
     const yAt = (x) => yb + slope * (x - xb);
-    add('zline', el('line', { x1: Z.sx(zb.xmin), y1: Z.sy(yAt(zb.xmin)), x2: Z.sx(zb.xmax), y2: Z.sy(yAt(zb.xmax)), class: 'zh-fit' }, svg));
+    const seg = clampSegmentToRect(
+      Z.sx(zb.xmin), Z.sy(yAt(zb.xmin)), Z.sx(zb.xmax), Z.sy(yAt(zb.xmax)),
+      { x: zb.x, y: zb.y, w: zb.w, h: zb.h }) ||
+      { x1: Z.sx(zb.xmin), y1: zb.y, x2: Z.sx(zb.xmax), y2: zb.y + zb.h };
+    add('zline', el('line', { x1: seg.x1, y1: seg.y1, x2: seg.x2, y2: seg.y2, class: 'zh-fit' }, svg));
     const sl = add('zannot', el('text', { x: zb.x + zb.w - 6, y: zb.y + 22, class: 'zh-eq', 'text-anchor': 'end' }, svg));
     sl.textContent = `slope ≈ ${slope.toFixed(2)}`;
     const hc = add('zannot', el('text', { x: zb.x + zb.w - 6, y: zb.y + 40, class: 'zh-sub', 'text-anchor': 'end' }, svg));
