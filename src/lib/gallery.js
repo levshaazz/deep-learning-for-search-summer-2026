@@ -129,6 +129,30 @@ export const cast = [
     lecture: 'L2',
     href: (lang, localizedPath) => localizedPath(lang, 'book/02'),
   },
+  {
+    id: 'cartographer',
+    name: { en: 'The Cartographer', ru: 'Картограф', tt: 'Картограф' },
+    img: '/Lectures/assets/img/L5/L5-08-cartographer.png',
+    concept: {
+      en: 'dimensionality reduction: folds the 300-D map of meaning down to something you can carry — keep the shape, drop the dimensions (PCA, t-SNE, UMAP).',
+      ru: 'снижение размерности: складывает 300-мерную карту смысла до размера, который можно унести — сохранить форму, отбросить измерения (PCA, t-SNE, UMAP).',
+      tt: 'үлчәмлекне киметү: 300 үлчәмле мәгънә картасын алып йөрерлек итеп бөкли — формасын сакла, үлчәмнәрне ташла (PCA, t-SNE, UMAP).',
+    },
+    lecture: 'L5',
+    href: (lang, localizedPath) => localizedPath(lang, 'book/05'),
+  },
+  {
+    id: 'attention-head',
+    name: { en: 'The Council / Attention-Head', ru: 'Совет / Голова Внимания', tt: 'Совет / Игътибар Башы' },
+    img: '/Lectures/assets/img/L6/L6-00-council-of-attention.png',
+    concept: {
+      en: 'self-attention: each token is a councillor that attends to every other and votes on whom to heed — meaning is built from a weighted blend of neighbours.',
+      ru: 'само-внимание: каждый токен — советник, который смотрит на всех остальных и голосует, кого слушать — смысл строится из взвешенной смеси соседей.',
+      tt: 'үз-игътибар: һәр токен — һәрберсенә игътибар итеп, кемне тыңларга икәнен тавыш бирүче киңәшче — мәгънә күршеләрнең үлчәүле кушылмасыннан төзелә.',
+    },
+    lecture: 'L6',
+    href: (lang, localizedPath) => localizedPath(lang, 'book/06'),
+  },
 ];
 
 // ── Scenes: the narrative illustrations, grouped by lecture ──────────────────
@@ -340,6 +364,68 @@ export const scenes = [
         en: 'the A/B test: split identical users into two parallel universes — one sees system A, one sees B — then compare which world is happier.',
         ru: 'A/B-тест: раздели одинаковых пользователей на две параллельные вселенные — одна видит систему A, другая B — и сравни, в каком мире счастливее.',
         tt: 'A/B-тест: бертөрле кулланучыларны ике параллель галәмгә бүл — берсе A системасын күрә, икенчесе B — аннары кайсы дөнья бәхетлерәк икәнен чагыштыр.' } },
+    ],
+  },
+  {
+    id: 'L5',
+    title: { en: 'Lecture 5 — The Map of Meaning', ru: 'Лекция 5 — Карта Смысла', tt: 'Лекция 5 — Мәгънә Картасы' },
+    href: (lang, localizedPath) => localizedPath(lang, 'book/05'),
+    items: [
+      { img: '/Lectures/assets/img/L5/L5-00-map-of-meaning.png', concept: {
+        en: 'the Map of Meaning: words leave the world of symbols and get coordinates, so near = related. The First-Contact alien finally has a place on the map.',
+        ru: 'Карта Смысла: слова покидают мир символов и получают координаты, так что рядом = связано. Пришелец из «Первого Контакта» наконец-то получает место на карте.',
+        tt: 'Мәгънә Картасы: сүзләр символлар дөньясыннан чыгып координаталар ала, шуңа күрә якын = бәйле. «Беренче Контакт»тагы чит планеталы ниһаять картада урын ала.' } },
+      { img: '/Lectures/assets/img/L5/L5-02-words-to-coordinates.png', concept: {
+        en: 'the distributional hypothesis: "you shall know a word by the company it keeps." Meaning is the contexts a word appears in, turned into coordinates.',
+        ru: 'дистрибутивная гипотеза: «слово узнаётся по компании, в которой оно встречается». Смысл — это контексты слова, превращённые в координаты.',
+        tt: 'дистрибутив гипотеза: «сүз үзе йөргән җәмгыять буенча таныла». Мәгънә — сүз очраган контекстлар, координаталарга әйләндерелгән.' } },
+      { img: '/Lectures/assets/img/L5/L5-05-analogy-arrows.png', concept: {
+        en: 'directions encode relations: king − man + woman ≈ queen. The same arrow that carries man→woman carries king→queen — meaning becomes arithmetic.',
+        ru: 'направления кодируют отношения: король − мужчина + женщина ≈ королева. Та же стрелка, что ведёт мужчина→женщина, ведёт король→королева — смысл становится арифметикой.',
+        tt: 'юнәлешләр мөнәсәбәтләрне кодлый: патша − ир + хатын ≈ патшабикә. Ир→хатын алып барган шул ук ук патша→патшабикәне алып бара — мәгънә арифметикага әйләнә.' } },
+      { img: '/Lectures/assets/img/L5/L5-10-folded-map-manifold.png', concept: {
+        en: 'the manifold: meaning lives on a curved surface inside 300-D, so a straight line isn’t enough — non-linear methods preserve neighbours, not global geometry.',
+        ru: 'многообразие: смысл живёт на изогнутой поверхности внутри 300-мерного пространства, так что прямой недостаточно — нелинейные методы сохраняют соседей, а не глобальную геометрию.',
+        tt: 'күппочмаклык: мәгънә 300 үлчәмле эчендәге кәкре өслектә яши, шуңа күрә туры сызык җитми — сызыкча булмаган ысуллар глобаль геометрияне түгел, күршеләрне саклый.' } },
+      { img: '/Lectures/assets/img/L5/L5-12-tsne-mirage.png', concept: {
+        en: 'the t-SNE mirage (P7): don’t over-read the picture — cluster sizes, gaps and between-cluster distances are NOT global; perplexity changes everything.',
+        ru: 'мираж t-SNE (P7): не вычитывай из картинки лишнего — размеры кластеров, разрывы и расстояния между кластерами НЕ глобальны; perplexity меняет всё.',
+        tt: 'tSNE миражы (P7): рәсемнән артыгын укыма — кластер зурлыклары, ярыклар һәм кластерлар арасы ераклык ГЛОБАЛЬ түгел; perplexity барысын да үзгәртә.' } },
+      { img: '/Lectures/assets/img/L5/L5-14-map-drawn.png', concept: {
+        en: 'the map is drawn: synonyms now land near each other and Sir Cosine rides it — but "bank" is still one vector for two meanings, cornering the Gremlin → L6.',
+        ru: 'карта нарисована: синонимы теперь рядом, и Сэр Косинус скачет по ней — но «банк» всё ещё один вектор на два значения, и Гремлин загнан в угол → L6.',
+        tt: 'карта сызылган: синонимнар хәзер янәшә төшә һәм Сэр Косинус аның буйлап чаба — ләкин «банк» һаман ике мәгънә өчен бер вектор, Гремлинны почмакка кысып → L6.' } },
+    ],
+  },
+  {
+    id: 'L6',
+    title: { en: 'Lecture 6 — The Council of Attention', ru: 'Лекция 6 — Совет Внимания', tt: 'Лекция 6 — Игътибар Советы' },
+    href: (lang, localizedPath) => localizedPath(lang, 'book/06'),
+    items: [
+      { img: '/Lectures/assets/img/L6/L6-01-bank-two-meanings.png', concept: {
+        en: '"bank" — river or money?: one static vector (L5) can’t be in two minds. Context is missing — the same word needs different coordinates per sentence.',
+        ru: '«банк» — берег или деньги?: один статический вектор (L5) не может быть в двух смыслах сразу. Не хватает контекста — одному слову нужны разные координаты в разных предложениях.',
+        tt: '«банк» — яр әллә акчамы?: бер статик вектор (L5) ике уйда була алмый. Контекст җитми — бер сүзгә һәр җөмләдә төрле координаталар кирәк.' } },
+      { img: '/Lectures/assets/img/L6/L6-04-attention-weights.png', concept: {
+        en: 'attention weights: softmax(QKᵀ/√dₖ)V — each token blends its neighbours by how much it attends to them. The heatmap shows who heeds whom.',
+        ru: 'веса внимания: softmax(QKᵀ/√dₖ)V — каждый токен смешивает соседей по тому, насколько он на них смотрит. Тепловая карта показывает, кто кого слушает.',
+        tt: 'игътибар авырлыклары: softmax(QKᵀ/√dₖ)V — һәр токен күршеләрен аларга күпме игътибар итүенә карап кушылдыра. Җылылык картасы кем кемне тыңлаганын күрсәтә.' } },
+      { img: '/Lectures/assets/img/L6/L6-07-positional-order.png', concept: {
+        en: 'attention is order-blind: "dog bites man" = "man bites dog" without position. Sinusoidal encoding sin/cos(pos/10000^{2i/d}) injects the missing order.',
+        ru: 'внимание слепо к порядку: «собака кусает человека» = «человек кусает собаку» без позиции. Синусоидальное кодирование sin/cos(pos/10000^{2i/d}) добавляет недостающий порядок.',
+        tt: 'игътибар тәртипкә сукыр: позициясез «эт кешене тешли» = «кеше этне тешли». Синусоидаль кодлау sin/cos(pos/10000^{2i/d}) җитмәгән тәртипне өсти.' } },
+      { img: '/Lectures/assets/img/L6/L6-09-transformer-block.png', concept: {
+        en: 'the Transformer block: multi-head attention → Add & Norm → feed-forward → Add & Norm, stacked ×N. Residuals + LayerNorm keep deep stacks trainable.',
+        ru: 'блок Трансформера: multi-head attention → Add & Norm → feed-forward → Add & Norm, повторённый ×N. Остаточные связи + LayerNorm удерживают глубокие стопки обучаемыми.',
+        tt: 'Трансформер блогы: multi-head attention → Add & Norm → feed-forward → Add & Norm, ×N тапкыр өелгән. Калдык бәйләнешләр + LayerNorm тирән өемнәрне өйрәнелерлек тота.' } },
+      { img: '/Lectures/assets/img/L6/L6-12-contrastive-pull-push.png', concept: {
+        en: 'contrastive learning (InfoNCE): pull the positive pair together, push the negatives apart — train the space for retrieval, with cosine inside the loss.',
+        ru: 'контрастное обучение (InfoNCE): притяни положительную пару, оттолкни отрицательные — обучи пространство под поиск, с косинусом внутри функции потерь.',
+        tt: 'контраст өйрәнү (InfoNCE): уңай парны тарт, тискәреләрне этәр — пространствоны эзләү өчен өйрәт, югалту функциясе эчендә косинус белән.' } },
+      { img: '/Lectures/assets/img/L6/L6-15-gremlin-caged.png', concept: {
+        en: 'the Lexical Gremlin is finally caged (callback L1): contrastive learning collapses "couch" and "sofa" together — the lexical gap is closed. Bridge → L7.',
+        ru: 'Лексический Гремлин наконец заперт (отсылка к L1): контрастное обучение сводит «диван» и «софу» вместе — лексический разрыв закрыт. Мост → L7.',
+        tt: 'Лексик Гремлин ниһаять читлеккә ябылды (L1’гә ишарә): контраст өйрәнү «диван» белән «софаны» бергә җыя — лексик ярык ябылды. Күпер → L7.' } },
     ],
   },
 ];
