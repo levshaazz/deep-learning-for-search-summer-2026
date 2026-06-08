@@ -50,24 +50,27 @@ def rm(M, n=3):
 
 
 # ── E: layernorm-viz ─────────────────────────────────────────────────────────────────────────────
-def build_layernorm() -> dict:
-    """LayerNorm on ONE toy 8-d feature vector with varied scale/offset.
+def build_layernorm(attn: dict) -> dict:
+    """LayerNorm on the REAL 4-d attention-output vector for the `cat` token.
 
-    x → subtract mean μ → divide by std (√(var+ε)) → scale·γ + β. We use the standard ML LayerNorm
-    population variance (ddof=0) + ε. γ/β are toy learned params (γ slight per-dim gain, β small
-    shift). Facts-check: the normalised (pre-affine) vector has mean≈0 and var≈1."""
-    x = np.array([6.0, 2.0, 9.0, 1.0, 4.0, 8.0, 3.0, 7.0])   # off-centre, spread ~ varied
+    x is the SAME cat context vector the rest of L6 has used — l6-attention.json output[1] =
+    [0.579, 1.996, 0.91, 0.425] — so the Book widget and the deck s38 twin normalise the identical
+    real vector (no abstract toy). x → subtract mean μ → divide by std (√(var+ε)) → scale·γ + β.
+    Standard ML LayerNorm: population variance (ddof=0) + ε. γ/β are toy learned params (γ slight
+    per-dim gain, β small shift), matching the deck twin's γ=[1.2,0.9,1.1,1.0], β=[0.1,−0.1,0,0.2].
+    Facts-check: the normalised (pre-affine) vector has mean≈0 and var≈1 (and ‖normed‖ = √d = 2)."""
+    x = np.asarray(attn["output"], dtype=float)[1]           # cat's attention-output row (real, 4-d)
     eps = 1e-5
     mu = float(x.mean())
     var = float(x.var(ddof=0))
     std = float(np.sqrt(var + eps))
     centred = x - mu
     normed = centred / std                                   # mean≈0, var≈1
-    gamma = np.array([1.2, 0.8, 1.0, 1.1, 0.9, 1.0, 1.3, 0.7])
-    beta = np.array([0.1, -0.1, 0.0, 0.2, -0.2, 0.0, 0.1, -0.1])
+    gamma = np.array([1.2, 0.9, 1.1, 1.0])
+    beta = np.array([0.1, -0.1, 0.0, 0.2])
     out = normed * gamma + beta
     return {
-        "method": "LayerNorm over one 8-d feature vector (population var, ε=1e-5, learned γ,β toy)",
+        "method": "LayerNorm over the real 4-d cat attention-output vector (population var, ε=1e-5, learned γ,β toy)",
         "dim": int(x.size),
         "eps": eps,
         "x": rv(x, 3),                                       # raw (off-centre, spread)
@@ -81,8 +84,9 @@ def build_layernorm() -> dict:
         "gamma": rv(gamma, 3),
         "beta": rv(beta, 3),
         "out": rv(out, 4),                                   # γ·normed + β
-        "note": "subtract mean, divide by std → centred unit-scale vector (on a sphere); then γ scales "
-                "and β shifts. Pre-affine vector has mean≈0, var≈1.",
+        "note": "the real cat attention-output row; subtract mean, divide by std → centred unit-scale "
+                "vector (on a sphere, ‖normed‖=√d=2); then γ scales and β shifts. Pre-affine vector "
+                "has mean≈0, var≈1.",
     }
 
 
@@ -237,7 +241,7 @@ def main() -> int:
         return 2
     attn = json.loads(ATTN_FILE.read_text())
 
-    ln = build_layernorm()
+    ln = build_layernorm(attn)
     res = build_residual()
     geo = build_attention_geo(attn)
     blk = build_block_geo()

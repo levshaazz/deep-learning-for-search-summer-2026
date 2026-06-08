@@ -128,9 +128,15 @@ export const mountResidualStream = defineWidget({
           'text-anchor': 'middle' }));
       // the running vector glyph at this checkpoint
       glyph('stage' + k, st.vec, cx);
-      // the L2-norm readout above the lane
-      add('stage' + k, txt(cx, laneY - glyphH / 2 - 4,
-        (labels.normLbl || '‖x‖') + ' = ' + num(st.norm, 4),
+      // the L2-norm readout above the lane. At the FINAL step all 5 readouts are on screen at once;
+      // each ("‖x‖=2.78", ~58px) is centred on its checkpoint, but adjacent ones used to TOUCH along
+      // the top. We give each checkpoint its OWN lane by staggering the vertical position by parity
+      // (even checkpoints sit higher, odd ones a row lower) so a label can never run into its
+      // neighbour even at the narrow Book width. The norm is shown to 2 dp — enough to read the two
+      // LayerNorm checkpoints as equal (2.45 ≈ √6) while keeping the label short.
+      const normLane = (k % 2 === 0) ? (laneY - glyphH / 2 - 16) : (laneY - glyphH / 2 - 4);
+      add('stage' + k, txt(cx, normLane,
+        (labels.normLbl || '‖x‖') + ' = ' + num(st.norm, 2),
         { font: '700 9px var(--font-mono, monospace)',
           fill: (st.label && /LayerNorm/i.test(st.label)) ? 'var(--c-green-ink, #1F6B40)' : 'var(--warm-ink, #B4521F)',
           'text-anchor': 'middle' }));
