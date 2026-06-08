@@ -1,12 +1,15 @@
 /* layernorm-viz/logic.js — L6 'climb-block' / Add&Norm beat: what LayerNorm DOES to one feature
-   vector, geometrically. A bar view (8 dims on a shared baseline) is paired with a unit-circle view
-   so "normalise = put the vector on a sphere" is literally visible.
+   vector, geometrically. A bar view (the real cat attention-output row, 4 dims on a shared baseline)
+   is paired with a unit-circle view so "normalise = put the vector on a sphere" is literally visible.
+   The widget is dim-agnostic: it reads `dim`/`x` from data and lays out exactly that many bars, and
+   it picks the unit-circle arrow's two coords by value, so any-length vector renders cleanly.
 
    DRIVER-AGNOSTIC (REFERENCE_IMPL_L2 a.6): exposes setStep(k)/maxStep and renders for any step.
    It binds NO keyboard and NO scroll — the SLIDE driver (deck arrow keys) and the BOOK driver
-   (Scrollama) both call setStep(k). EVERY number — x, mean=5.0, var=7.5, std, the centred / normed /
-   out bars, normedMean≈0, normedVar≈1, γ, β — comes straight from data/l6-layernorm.json (the same
-   source the facts-gate checks), never from these strings.
+   (Scrollama) both call setStep(k). EVERY number — x=[0.579,1.996,0.91,0.425], mean=0.9775,
+   var=0.3765, std=0.6136, the centred / normed / out bars, normedMean≈0, normedVar≈1, γ, β — comes
+   straight from data/l6-layernorm.json (the same real cat vector the deck s38 twin uses), never from
+   these strings.
 
    Built on the shared widgets/_widget-base.js factory (host setup, caption/counter scaffold, setStep
    clamp, window.mountLayernormViz registration); render() only draws the figure layers. No raw colors
@@ -14,8 +17,8 @@
    widgets/_base.css drives the per-step reveal, so no per-widget style.css is needed.
 
    Steps (maxStep = 3):
-     0  → raw vector x as 8 bars, off-centre; mean=5.0 baseline, var=7.5 readout.   caption s0
-     1  → subtract the mean: bars → `centred`; the baseline slides 5.0 → 0.         caption s1
+     0  → raw vector x as 4 bars, off-centre; mean=0.98 baseline, var=0.38 readout.  caption s0
+     1  → subtract the mean: bars → `centred`; the baseline slides 0.98 → 0.         caption s1
      2  → divide by std: bars → `normed`; mean 0 / var 1; the vector lands on the
           unit circle (the sphere glyph activates).                                caption s2
      3  → learned γ·normed + β → `out`: per-dim gain/shift bends the bars.          caption s3 */
@@ -80,9 +83,12 @@ export const mountLayernormViz = defineWidget({
     const W = cBox.x + cBox.w + RPAD;         // = 310 + 150 + 64 = 524 (viewBox width)
     const cx = cBox.x + cBox.w / 2, cy = cBox.y + cBox.h / 2 - 4;
     const sphereRect = { x: cBox.x, y: cBox.y, w: cBox.w, h: cBox.h };
-    // pick two dims with opposite sign in `normed` so the arrow points into a clear quadrant.
-    const di = 2, dj = 0;                     // normed[2]=+1.46 (max), normed[0]=+.365 → use [2],[6]
-    const dk = 6;                             // normed[6] = -0.7303 (negative) for a 2-quadrant arrow
+    // pick two dims with opposite sign in `normed` so the arrow points into a clear quadrant: the
+    // largest positive coord (the x-axis component) and the most-negative coord (the y-axis), chosen
+    // by value so the pick is correct for ANY length vector (the 4-d cat row: normed[1]=+1.66 max,
+    // normed[3]=-0.90 most-negative → a clean lower-right quadrant arrow).
+    const di = normed.reduce((bi, v, i) => (v > normed[bi] ? i : bi), 0);   // most-positive coord
+    const dk = normed.reduce((bi, v, i) => (v < normed[bi] ? i : bi), 0);   // most-negative coord
     // raw 2-vector (x) vs normed 2-vector — normalise each to its own L2 so the ring landing is exact.
     const rawVec = [x[di] - mean, x[dk] - mean];                // pre-norm direction (centred coords)
     const normVec = [normed[di], normed[dk]];
@@ -123,7 +129,7 @@ export const mountLayernormViz = defineWidget({
       fill: 'var(--warm-ink, #B4521F)', 'text-anchor': 'start' });
     add('frame', baseLine); add('frame', baseLbl);
 
-    // ── the 8 bars (one rect per dim, redrawn in place each step) ─────────────
+    // ── the bars (one rect per dim — 4 for the cat vector, redrawn in place each step) ─────────────
     const bars = [];
     for (let i = 0; i < dim; i++) {
       const bxi = bx0 + i * slotW + (slotW - barW) / 2;
@@ -133,10 +139,20 @@ export const mountLayernormViz = defineWidget({
       bars.push({ r, bxi });
     }
 
-    // ── mean / var / std readout (two lines under the BAR panel; updates per step) ────
+    // ── op-label lane (the transform applied THIS step) — its OWN row directly under the bars ────
+    // Centred over the bar panel, just below the band floor, so it never shares the top line with the
+    // panel title (top-left) or the circle heading (over the ring). This de-conflicts the step-3
+    // "γ·normed+β" op label that previously collided with the circle heading on the top line.
+    const opY = barBase + 18;
+    const barCx = PAD + gutter + (panelW - gutter) / 2;    // horizontal centre of the bar field
+    const opLbl = txt(barCx, opY, '', { font: '700 11px var(--font-mono, monospace)',
+      fill: 'var(--accent-ink, #1B4FA0)', 'text-anchor': 'middle' });
+    add('frame', opLbl);
+
+    // ── mean / var / std readout (two lines under the op-label; updates per step) ────
     // Anchored under the bars (left) so it has a stable home from step 0, before the circle panel
-    // is revealed — it narrates mean 5→0 / var 7.5→1 / std as the bars transform.
-    const roY = barBase + 18;
+    // is revealed — it narrates mean → 0 / var → 1 / std as the bars transform.
+    const roY = barBase + 38;
     const roLine1 = txt(PAD, roY, '', { font: '700 11px var(--font-mono, monospace)',
       fill: 'var(--ink-2, #3D434E)' });
     const roLine2 = txt(PAD, roY + 16, '', { font: '700 11px var(--font-mono, monospace)',
@@ -206,13 +222,8 @@ export const mountLayernormViz = defineWidget({
     const H = frameHeightFor(Math.max(roY + 16, cBox.y + cBox.h) + 8, 8);
     svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
-    // stage label (the transform applied at this step) — RIGHT-anchored near the bar panel's right
-    // edge so it never collides with the left-anchored "feature vector x (8 dims)" panel title, and
-    // pulled in a little so it clears the centred circle-panel heading on its right.
-    const stageLbl = txt(PAD + panelW - 24, barTop - 12, '',
-      { font: '700 11px var(--font-mono, monospace)', fill: 'var(--accent-ink, #1B4FA0)',
-        'text-anchor': 'end' });
-    add('frame', stageLbl);
+    // the op-label text (declared above as `opLbl`, centred on its own lane under the bars) names the
+    // transform applied at THIS step; its text swaps per step from these i18n keys.
     const stageKey = ['stageRaw', 'stageCentred', 'stageNormed', 'stageOut'];
 
     return function update(k) {
@@ -222,7 +233,7 @@ export const mountLayernormViz = defineWidget({
         const on = k >= L.from && k <= L.to;
         for (const node of L.nodes) node.classList.toggle('is-hidden', !on);
       }
-      // redraw the 8 bars for step k (each spans from the band-floor reference to the value pixel,
+      // redraw the bars for step k (each spans from the band-floor reference to the value pixel,
       // EXCEPT for negative values which hang below — we draw from the value to the baseline ref).
       const vals = series[k] || [];
       const ref = (k === 0) ? barBase : ySym(0);     // bars grow from this reference line
@@ -239,12 +250,12 @@ export const mountLayernormViz = defineWidget({
       const bY = (k === 0) ? yRaw(mean) : ySym(0);
       baseLine.setAttribute('y1', bY); baseLine.setAttribute('y2', bY);
       baseLbl.setAttribute('y', bY - 4);
-      baseLbl.textContent = 'μ = ' + num(baseVal[k], 1);   // short form (gutter); prose is the readout
-      // stage label
-      stageLbl.textContent = labels[stageKey[k]] || '';
-      // mean / var / std readout under the circle
-      roLine1.textContent = (labels.meanLbl || 'mean μ') + ' = ' + num(meanReadout[k], 1)
-        + '   ·   ' + (labels.varLbl || 'var σ²') + ' = ' + num(varReadout[k], 1);
+      baseLbl.textContent = 'μ = ' + num(baseVal[k], 2);   // short form (gutter); prose is the readout
+      // op label (own lane under the bars)
+      opLbl.textContent = labels[stageKey[k]] || '';
+      // mean / var / std readout under the op-label
+      roLine1.textContent = (labels.meanLbl || 'mean μ') + ' = ' + num(meanReadout[k], 2)
+        + '   ·   ' + (labels.varLbl || 'var σ²') + ' = ' + num(varReadout[k], 2);
       roLine2.textContent = (k === 0)
         ? (labels.stdLbl || 'std') + ' = ' + num(std, 4)
         : (k >= 2 ? '✓ ' + (labels.normedTag || 'normed') : '');

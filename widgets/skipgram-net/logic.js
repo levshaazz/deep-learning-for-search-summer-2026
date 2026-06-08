@@ -45,26 +45,33 @@ export const mountSkipgramNet = defineWidget({
     const prob = (x) => (typeof x !== 'number' ? '' : x.toFixed(3));
 
     // ── geometry: a left→right pipeline; WIDE canvas so the five columns (one-hot · W · hidden ·
-    //    logits/probs) each get breathing room and their headings never collide (re-audit fix). ──
-    const Wd = 740;
+    //    logits/probs) each get breathing room and their headings never collide (re-audit fix).
+    //    Widened from 740 → 880 to absorb the now-wider W/hidden decimal cells without squeezing the
+    //    softmax bars or their top-context/runner tags. ──
+    const Wd = 880;
     const PAD = 16;
     const ROW = 32;                          // per-vocab-word row pitch (shared by all columns)
     const headBand = 36;                     // vertical room above the first row for a 2-line heading
     const topY = 78;                         // first row's top edge (room for the stacked column headings)
-    const cell = 22;                         // square cell size for one-hot / W / hidden
-    const gap = 5;                           // gap BETWEEN matrix cells (was 3 — cells now read as a grid)
-    const colGap = 60;                       // horizontal breathing room between adjacent columns
+    const cell = 22;                         // square cell size for the one-hot column (single digit)
+    // The W matrix and the hidden column hold 3-decimal SIGNED values ("-0.573", ~6 chars). A 22px
+    // cell was too narrow, so adjacent decimals ran together (".485.660-0.573-0.022"). Give those
+    // grids a WIDER cell so every value sits fully inside its own box with a clear gap to its
+    // neighbour. The cell HEIGHT stays at `cell` (square-ish rows on the shared ROW pitch).
+    const wCell = 44;                        // wide cell for W / hidden decimals
+    const gap = 6;                           // gap BETWEEN matrix cells
+    const colGap = 56;                       // horizontal breathing room between adjacent columns
 
     // column x-anchors — each block is separated by colGap so nothing crowds its neighbour.
     const vocabW = 60;                       // width reserved for the vocab word label
     const vocabX = PAD;
     const oneHotX = vocabX + vocabW;          // the 1-of-8 one-hot column
     const wX = oneHotX + cell + colGap;       // the 8×4 W grid starts here
-    const wW = d * (cell + gap) - gap;
+    const wW = d * (wCell + gap) - gap;
     const hiddenX = wX + wW + colGap;         // the hidden 1×4 row sits to the right of W
-    const hiddenW = cell;                     // the hidden column is one cell wide
+    const hiddenW = wCell;                    // the hidden column is one (wide) cell wide
     const barX = hiddenX + hiddenW + colGap;  // logits/probs bars sit to the right of the hidden column
-    const barMaxW = Wd - PAD - barX - 170;    // room for the value text AND the top-context/runner tags
+    const barMaxW = Wd - PAD - barX - 200;    // room for the value text AND the top-context/runner tags
 
     const H = frameHeightFor(topY + n * ROW + 10, 14);
     const plotRect = { x: 0, y: 0, w: Wd, h: H };   // for clampSegmentToRect on the lookup arrow
@@ -149,13 +156,13 @@ export const mountSkipgramNet = defineWidget({
     W.forEach((row, i) => {
       const isSel = i === centreIndex;
       row.forEach((v, c) => {
-        const cx = wX + c * (cell + gap);
+        const cx = wX + c * (wCell + gap);     // WIDE pitch so decimals never run together
         const cy = rowY(i);
-        const rect = el('rect', { x: cx, y: cy, width: cell, height: cell, rx: 3,
+        const rect = el('rect', { x: cx, y: cy, width: wCell, height: cell, rx: 3,
           class: `sg-wcell${isSel ? ' sg-wcell-sel' : ''}` }, svg);
         rect.setAttribute('fill', cellFill(v));
         add('matrix', rect);
-        add('matrix', el('text', { x: cx + cell / 2, y: cy + cell / 2 + 3.5,
+        add('matrix', el('text', { x: cx + wCell / 2, y: cy + cell / 2 + 3.5,
           class: 'sg-wval', 'text-anchor': 'middle' }, svg)).textContent = num(v);
       });
     });
@@ -182,10 +189,10 @@ export const mountSkipgramNet = defineWidget({
     const hidTop0 = hidMidY - (hidden.length / 2) * (cell + gap) + gap / 2;
     hidden.forEach((v, c) => {
       const cy = hidTop0 + c * (cell + gap);                // stacked downward from the centred top
-      const rect = el('rect', { x: hiddenX, y: cy, width: cell, height: cell, rx: 3, class: 'sg-hcell' }, svg);
+      const rect = el('rect', { x: hiddenX, y: cy, width: hiddenW, height: cell, rx: 3, class: 'sg-hcell' }, svg);
       rect.setAttribute('fill', cellFill(v));
       add('hidden', rect);
-      add('hidden', el('text', { x: hiddenX + cell / 2, y: cy + cell / 2 + 3.5,
+      add('hidden', el('text', { x: hiddenX + hiddenW / 2, y: cy + cell / 2 + 3.5,
         class: 'sg-wval', 'text-anchor': 'middle' }, svg)).textContent = num(v);
     });
 
@@ -230,12 +237,16 @@ export const mountSkipgramNet = defineWidget({
         topWord: topContext, runnerWord: runnerUp });
 
     // ── STEP 3: top-context + runner-up tags beside the highlighted bars ──────
+    // The tag sits CLEAR of the probability value text. The value ("0.165", ~38px) is drawn at
+    // barMaxW+6; the tag begins at barMaxW+56 so the two never overlap (was +30 → "0.165" ran into
+    // "top context · prince"). The +200 reserved in barMaxW holds value (~44) + the longest tag.
+    const TAG_X = barX + barMaxW + 56;
     layer('toptag', 3, 3);
     const tagFor = (word, tagKey, tagFallback, cls) => {
       const idx = vocab.indexOf(word);
       if (idx < 0) return;
       const cy = rowY(idx) + cell / 2 + 3;
-      add('toptag', el('text', { x: barX + barMaxW + 30, y: cy, class: `sg-toptag ${cls}` }, svg))
+      add('toptag', el('text', { x: TAG_X, y: cy, class: `sg-toptag ${cls}` }, svg))
         .textContent = (labels[tagKey] || tagFallback) + ' · ' + word;
     };
     tagFor(topContext, 'topTag', 'top context', 'sg-toptag-top');
