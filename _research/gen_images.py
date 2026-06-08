@@ -372,6 +372,66 @@ JOBS = [
      "no caption, no banner text, no title; the deck adds labels later. Make it feel like a "
      "victory-lap callback to Sir Cosine from L2."),
 
+    # ---- L5 · The Map of Meaning · DEEPENING (A+ visual remediation, L5-0N range) ----
+    # Same gate posture as the L5 block above: image-gate treats L5 as NON-Serega, so each plate
+    # uses ONLY black ink + course-blue + warm-orange on off-white, keeps Serega's green cap tiny
+    # (<2% canvas) when present, and bakes in ZERO words/letters/numbers (the book overlays labels).
+    # These three break the bald text-wall runs the A+ audit flagged: climb-word2vec (flagship,
+    # had no figure), turn-word2vec-family (dense, back-to-back wall), stakes-too-many-dims.
+    ("L5", "L5/L5-03-word2vec-window.png", "16:9", True,
+     "SKIP-GRAM as a sliding window predicting neighbours — purely visual, wordless. A horizontal "
+     "row of identical small blank word-tiles (plain ink-outlined rectangles, NO text on any of "
+     "them) runs left to right like a sentence strip. Over the MIDDLE tile sits a bold "
+     "rounded-rectangle WINDOW FRAME (a clear viewfinder bracket) highlighting one CENTRE tile, "
+     "drawn thicker / emphasised so it reads as the focus. From that centre tile, a fan of thin "
+     "warm-orange PREDICTION ARROWS shoots OUTWARD to the two neighbour tiles on each side (left "
+     "two, right two) — the centre word reaching out to guess its neighbours. The tiles just "
+     "outside the window are dimmer/fainter so the window's reach is obvious. To convey the "
+     "SLIDING, show a faint ghosted second copy of the window frame shifted one tile to the right "
+     "with a small course-blue motion-arrow under the strip indicating the window slides along. "
+     "Serega stands to the RIGHT, one hand nudging the window along the strip, delighted, his small "
+     "green skullcap the ONLY green in the image. The strip + window + arrows fill ≥85% of canvas "
+     "width. Warm-orange appears ONLY as the prediction arrows; the tiles, window frame and motion "
+     "cue are black ink + light course-blue on off-white. ABSOLUTELY NO words, letters, numbers, "
+     "or labels anywhere — every tile is blank, no caption, no title; the book adds words later. "
+     "Keep it clean and diagrammatic so 'centre word predicts its neighbours, window slides' reads "
+     "instantly."),
+    ("L5", "L5/L5-04-word2vec-family.png", "16:9", False,
+     "THE WORD2VEC FAMILY TREE drawn as a literal little hand-drawn tree / branching diagram, "
+     "wordless. From one common ROOT node at the bottom (a single bold ink dot, the shared "
+     "distributional idea) a trunk rises and splits into branches, each branch ending in a small "
+     "distinct PICTOGRAPH node so the family reads as one idea seen many ways: (1) a left branch "
+     "to a node showing a centre-out FAN of arrows (skip-gram: one tile reaching out to several); "
+     "(2) a right branch to a node showing the MIRROR — several arrows pointing INWARD to one tile "
+     "(CBOW: context predicting the centre); (3) a branch to a node showing a single word-tile "
+     "broken into smaller sub-piece chips (fastText: word as a sum of character-chunk pieces); "
+     "(4) a branch to a node showing a small grid/matrix being squeezed by an arrow into a thin "
+     "stack of dots (the SVD / matrix-factorization cousin). The two top branches (skip-gram and "
+     "CBOW) are drawn as clear mirror-images of each other to show 'same arrow, two directions'. "
+     "Thin warm-orange appears ONLY on the branch lines that connect the root to its children; the "
+     "nodes and pictographs are black ink + light course-blue on off-white. The tree fills ≥85% of "
+     "canvas width. NO Serega in this scene, so NO green anywhere. ABSOLUTELY NO words, letters, "
+     "numbers, or labels anywhere — every node is a wordless pictograph, no caption, no title; the "
+     "book names skip-gram / CBOW / fastText / SVD later. Keep it tidy and balanced like a small "
+     "genealogy chart."),
+    ("L5", "L5/L5-06-too-many-dims.png", "16:9", True,
+     "THE DIMENSIONALITY SQUEEZE — folding a fat high-dimensional vector down to two, wordless. "
+     "On the LEFT, a very TALL narrow bracketed COLUMN VECTOR: a slim vertical stack of MANY small "
+     "ink dots/cells running far up and down the frame (clearly hundreds of stacked cells — too "
+     "many to count, overwhelming), drawn with plain ink, NO numbers inside the cells. A "
+     "warm-orange FUNNEL / press in the centre squeezes that towering column down: thin "
+     "warm-orange motion-arrows show the long stack being compressed through the narrow neck. On "
+     "the RIGHT, what comes out the bottom of the funnel is a TINY result: just TWO bold dots "
+     "plotted on a small clean 2-axis grid (two perpendicular ink axes with a couple of tick "
+     "marks, NO numbers), so the eye reads 'hundreds of dimensions folded down to two you can "
+     "see'. Serega stands at the RIGHT beside the little 2-D grid, gesturing at the two surviving "
+     "dots, his small green skullcap the ONLY green in the image. Warm-orange appears ONLY as the "
+     "funnel and the squeeze-arrows; the tall column, the grid and the two result dots are black "
+     "ink + light course-blue on off-white. The column + funnel + grid fill ≥85% of canvas width. "
+     "ABSOLUTELY NO words, letters, numbers, or labels anywhere — the cells and axes are unlabelled, "
+     "no caption, no title; the book adds '300 -> 2' later. Make the contrast between the towering "
+     "stack and the tiny two-dot result the single dominant idea."),
+
     # ---- L6 · The Council of Attention (Contextual embeddings · Transformers/Attention · Contrastive) ----
     # NOTE on the gate (same as L5): image-gate.mjs only tags char/L0/L1/L2 jobs as has_serega for
     # the green-leak check, so L6 images are treated as NON-Serega by the palette gate. That is FINE
@@ -492,6 +552,170 @@ JOBS = [
      "pictographs, no caption, no title; the deck adds 'couch'/'sofa' later. Make the Gremlin "
      "RECOGNISABLE (same ears, same spiky blue hair, same grin-now-pout) and CLEARLY caged — this "
      "is the satisfying defeat, the emotional climax of the whole arc."),
+
+    # ---- L6 · The Council of Attention · DEEPENING (A+ visual remediation, L6-2N range) ----
+    # Same gate posture as the L6 block above: image-gate treats L6 as NON-Serega, so each plate
+    # uses ONLY black ink + course-blue + warm-orange on off-white, keeps any Serega/Sir-Cosine
+    # green cap tiny (<2% canvas), and bakes in ZERO words/letters/numbers. These seven break the
+    # bald depth/cross-domain text-wall runs the A+ audit flagged (esp. the 5-deep wall
+    # matryoshka -> anisotropy -> numerical -> crossdomain-vision -> crossdomain-everything).
+    ("L6", "L6/L6-20-cost-wall.png", "16:9", True,
+     "ATTENTION'S QUADRATIC COST WALL — the n-squared bottleneck, wordless. CENTER: a square "
+     "SCORE GRID drawn as a checkerboard of small ink cells (rows = tokens, columns = tokens), so "
+     "it reads as 'every token scored against every token' — a full n×n table. The single clear "
+     "TELL of EXPLOSIVE GROWTH: draw the grid THREE times across the frame, growing dramatically — "
+     "a tiny 3×3 grid on the LEFT, a medium 6×6 grid in the MIDDLE, and a huge dense grid on the "
+     "RIGHT whose cells are too many to count, ballooning up toward the top of the frame like a "
+     "rising wall, with thin warm-orange growth-arrows curving steeply upward between them to show "
+     "the cost exploding far faster than the input grows. Behind the largest grid, suggest a sheer "
+     "BRICK WALL the growth slams into (a few ink brick-courses) so the idea 'this is a hard wall "
+     "you hit' lands. Serega stands small at the LEFT, craning up at the towering rightmost grid, "
+     "a tiny comic sweat-drop, his small green skullcap the ONLY green in the image. Warm-orange "
+     "appears ONLY as the steep growth-arrows; the grids and wall are black ink + light "
+     "course-blue on off-white. The three grids + wall fill ≥85% of canvas width. ABSOLUTELY NO "
+     "words, letters, numbers, or labels anywhere — the cells are blank, no caption, no title; the "
+     "book adds the n-squared numbers later. Make the runaway growth of the grid the single "
+     "dominant idea."),
+    ("L6", "L6/L6-21-masks.png", "16:9", False,
+     "CAUSAL vs BIDIRECTIONAL ATTENTION MASKS — two grids side by side, wordless. Draw TWO equal "
+     "square attention grids of small ink cells with a clear gap between them. LEFT grid "
+     "(bidirectional / BERT): the WHOLE grid is filled in — every cell shaded a light course-blue, "
+     "so it reads 'every token may look at every token, both directions'. RIGHT grid (causal / "
+     "GPT): only the lower-left TRIANGLE of cells is filled (a clean diagonal staircase), and the "
+     "upper-right triangle is left blank/empty — a few of those empty future-cells crossed out "
+     "with thin ink X's or a soft warm-orange diagonal barrier line running along the diagonal, so "
+     "it reads 'a token may look only at itself and the past — the future is curtained off'. The "
+     "diagonal divide on the right grid is the visual hero: full square versus triangle. NO Serega "
+     "in this scene, so NO green anywhere (the bidirectional grid is shaded light course-BLUE, not "
+     "green). Warm-orange appears ONLY as the thin diagonal barrier / the X-strokes over the "
+     "masked future cells; everything else is black ink + light course-blue on off-white. The two "
+     "grids fill ≥85% of canvas width. ABSOLUTELY NO words, letters, numbers, or labels anywhere — "
+     "the cells and grids are unlabelled, no caption, no title; the book names causal / "
+     "bidirectional later. Keep the full-square vs triangle contrast unmistakable."),
+    ("L6", "L6/L6-22-heads.png", "16:9", False,
+     "DIFFERENT ATTENTION HEADS ATTEND TO DIFFERENT THINGS — wordless. Draw the SAME short row of "
+     "identical blank word-tiles (plain ink-outlined rectangles, NO text) repeated in THREE "
+     "stacked horizontal strips, one above the other, each strip representing one head reading the "
+     "same sentence. Over each strip, draw a DIFFERENT pattern of thin attention ARCS connecting "
+     "the tiles, so the three heads visibly disagree about who heeds whom: TOP strip — each tile "
+     "arcs to its IMMEDIATE NEIGHBOUR (a tidy 'previous/next token' chain, a positional head); "
+     "MIDDLE strip — arcs link a couple of FAR-APART tiles across the strip (a long-range link, "
+     "like subject to verb); BOTTOM strip — most arcs converge onto ONE special tile (a syntax/"
+     "coreference head pointing at a head-word). One arc in each strip is drawn in warm-orange to "
+     "mark that head's strongest link; the rest are black ink. The three different arc-patterns "
+     "over identical tile-rows are the whole point: 'same sentence, different heads, different "
+     "focus'. NO Serega in this scene, so NO green anywhere. Warm-orange appears ONLY as the one "
+     "dominant arc per strip; the tiles and other arcs are black ink + light course-blue on "
+     "off-white. The three strips fill ≥85% of canvas width and stack to fill the height. "
+     "ABSOLUTELY NO words, letters, numbers, or labels anywhere — every tile is blank, no caption, "
+     "no title; the book labels the heads later."),
+    ("L6", "L6/L6-23-prenorm-highway.png", "16:9", False,
+     "THE RESIDUAL HIGHWAY / PRE-NORM block — why a deep stack trains, wordless and diagrammatic. "
+     "Draw a tall vertical UNINTERRUPTED HIGHWAY LINE running straight from the bottom to the top "
+     "of the frame (a thick clean course-blue spine — the residual path that is never blocked). "
+     "Along this spine, a few small rectangular SUBLAYER BOXES branch off to the SIDE: at each "
+     "level, a thin line leaves the spine, passes through a little normalization gate (a small "
+     "ink lens/funnel symbol) and then a sublayer box, and a curving RETURN ARROW merges its "
+     "output back ONTO the spine via a small plus-circle (a residual add) — crucially the main "
+     "spine itself runs through clean and uninterrupted, the gates sit only on the side-branches. "
+     "Show this branch-and-rejoin pattern repeated up the spine 3 or 4 times (depth by repetition) "
+     "with a faint echoed copy receding behind to suggest ×N. A thin warm-orange flow-arrow runs "
+     "UP the spine showing signal flowing freely top to bottom. NO Serega in this scene, so NO "
+     "green anywhere. Warm-orange appears ONLY as the single up-the-spine flow-arrow; the highway, "
+     "boxes, gates and return-arrows are black ink + light course-blue on off-white. The block "
+     "fills ≥85% of canvas height. ABSOLUTELY NO words, letters, numbers, gauge-readings, or "
+     "labels anywhere — the boxes and gates are wordless, no caption, no title; the book names "
+     "pre-norm / residual / LayerNorm later. Make the clean unblocked spine the dominant idea."),
+    ("L6", "L6/L6-24-hardneg.png", "16:9", False,
+     "A near-miss impostor among scattered dots, wordless, on a faint dotted grid. CENTER: a bold "
+     "ink dot (the query) with a second bold ink dot sitting close beside it, joined by a short "
+     "fat warm-orange ATTRACTION line pulling them together — the genuine close pair. Scattered "
+     "FAR away in the four corners: a few lone ink dots, obviously distant, each with a simple "
+     "thin ink push-away arrow pointing outward — trivially separated, no fuss. Then the hero of "
+     "the plate: ONE more ink dot drawn sitting DECEPTIVELY CLOSE to the central query dot — "
+     "almost as near as the close pair — wearing a tiny disguise so it reads as a sneaky "
+     "look-alike: give THIS one dot a small comedic domino eye-mask and a little curled "
+     "moustache doodle drawn directly ON the dot (a disguised impostor face). A single black ink "
+     "REPULSION arrow shoves this disguised dot away from the query, and one lone hand-drawn "
+     "question-mark glyph '?' floats just above it (the ONLY glyph of any kind in the image) to "
+     "hint it might secretly belong. The tension between the genuinely-close pair and the "
+     "deceptively-close disguised dot is the whole point. NO Serega in this scene, so NO green "
+     "anywhere. Warm-orange appears ONLY as the single attraction line of the close pair; the "
+     "disguised dot, the lone dots and the push-away arrows are black ink + light course-blue on "
+     "off-white. The grid + dots fill ≥85% of canvas width. CRITICAL — this image is 100% "
+     "WORDLESS: there are ABSOLUTELY NO words, no letters, no role-names, no captions, no labels "
+     "of ANY kind anywhere on the canvas (do NOT write 'query', 'positive', 'negative', "
+     "'impostor', or any other word beside any dot) — the ONLY hand-drawn mark that is not part "
+     "of the dots/arrows is the single floating '?' glyph above the disguised dot. The book "
+     "overlays every label later."),
+    ("L6", "L6/L6-25-matryoshka.png", "16:9", False,
+     "MATRYOSHKA EMBEDDINGS — nested, truncatable dimensions, wordless. Draw a set of classic "
+     "Russian NESTING DOLLS in a row, opened and lined up from LARGEST on the LEFT down to "
+     "SMALLEST on the RIGHT (4 or 5 dolls, clearly the same doll at shrinking sizes), each doll "
+     "drawn as a simple ink-outline ovoid with a tiny painted face, bodies a light course-blue. "
+     "The single clear TELL of 'one vector you can chop': BESIDE the dolls, draw a single tall "
+     "bracketed COLUMN VECTOR of stacked ink cells with a warm-orange SCISSORS / cut-line crossing "
+     "it partway down, and thin guide-lines matching each doll to a truncation depth on the column "
+     "— the biggest doll to the full column, the smallest doll to just the top few cells — so the "
+     "eye reads 'keep the first few coordinates for a small fast vector, or the whole thing for "
+     "the accurate one; same vector, nested sizes'. NO Serega in this scene, so NO green anywhere "
+     "(the dolls are light course-BLUE, never green). Warm-orange appears ONLY as the scissors / "
+     "cut-line on the column; the dolls, column and guide-lines are black ink + light course-blue "
+     "on off-white. The dolls + column fill ≥85% of canvas width. ABSOLUTELY NO words, letters, "
+     "numbers, or labels anywhere — the column cells are blank, no caption, no title; the book "
+     "adds 64 / 768 later. Make the shrinking-dolls-equals-truncatable-vector idea unmistakable."),
+    ("L6", "L6/L6-26-anisotropy-cone.png", "16:9", False,
+     "ANISOTROPY — the crowded cone vs the open sphere, wordless. A clear LEFT-vs-RIGHT contrast "
+     "with a warm-orange transformation arrow between the halves. LEFT (anisotropic, the disease): "
+     "a tight NARROW CONE of many thin ink arrows all crammed together pointing in nearly the SAME "
+     "direction, squeezed into one wedge — so the eye reads 'every vector points the same way, "
+     "everything looks similar, no contrast'. RIGHT (isotropic, the cure): the SAME bundle of "
+     "arrows now fanned out EVENLY in all directions from a central origin, spread across a full "
+     "round sphere/disc of directions — balanced, well-spread, using the whole space. A single "
+     "thick warm-orange arrow in the middle points LEFT-to-RIGHT to show the fix (contrastive "
+     "training / normalization opening the cone). This is a direct callback to the L2 "
+     "Curse-of-Dimensionality motif — keep the cramped-cone vs even-sphere reading instant. NO "
+     "Serega in this scene, so NO green anywhere. Warm-orange appears ONLY as the central "
+     "transformation arrow; the cone, the sphere of arrows and the origin are black ink + light "
+     "course-blue on off-white. The cone + sphere fill ≥85% of canvas width. ABSOLUTELY NO words, "
+     "letters, numbers, or labels anywhere — no caption, no title; the book names anisotropy / "
+     "whitening later. Make the squeezed-cone versus open-sphere contrast the dominant idea."),
+    ("L6", "L6/L6-27-vit-patches.png", "16:9", True,
+     "VISION TRANSFORMER — an image becomes a sentence of patches, wordless. On the LEFT, a "
+     "simple hand-drawn PICTURE inside a frame (a plain wordless scene — say a little house with a "
+     "sun, drawn in black ink with light course-blue), overlaid with a tidy GRID of cut-lines that "
+     "slices it into equal square PATCHES (like a 4×4 cut). A warm-orange arrow leads RIGHT, where "
+     "the patches have been UNGRIDDED and laid out in a single horizontal ROW of square tiles — a "
+     "'sentence of patches' — each tile a little fragment of the original image, lined up left to "
+     "right exactly like a row of word-tokens. Under the row, a few wordless position-stamps "
+     "(counting pips: one dot, two dots, three dots — NOT digits) mark each patch's order, echoing "
+     "the positional-encoding plate, so it reads 'patches are tokens; an image is a sentence'. "
+     "Serega stands at the RIGHT pointing at the row of patch-tokens, delighted at the reuse, his "
+     "small green skullcap the ONLY green in the image. Warm-orange appears ONLY as the "
+     "image-to-row arrow; the picture, grid, patch-tiles and pips are black ink + light "
+     "course-blue on off-white. The picture + patch-row fill ≥85% of canvas width. ABSOLUTELY NO "
+     "words, letters, numbers (the position-stamps are DOTS not digits), or labels anywhere — no "
+     "caption, no title; the book names ViT / patches later. Make 'cut the image into a row of "
+     "tokens' the dominant idea."),
+    ("L6", "L6/L6-28-everything-tokens.png", "16:9", False,
+     "EVERYTHING IS A SEQUENCE OF TOKENS — the all-modalities montage, wordless. CENTER: one "
+     "shared SPACE drawn as a faint dotted sphere/disc with a few bold ink dots inside it (the "
+     "common embedding space). Arranged AROUND the edges, several different SOURCE modalities each "
+     "feed INTO that centre via a thin warm-orange arrow, and each source is shown being chopped "
+     "into a little ROW of identical token-tiles before it enters — so the unifying idea 'any "
+     "modality becomes a row of tokens in one space' reads at a glance. Draw 5 wordless source "
+     "pictographs around the centre: (1) a strip of text-tiles (words); (2) a small image cut into "
+     "a patch-row (vision); (3) a sound WAVEFORM sliced into time-window tiles (audio); (4) a "
+     "twisting DNA double-helix / protein chain chopped into bead-tiles (biology); (5) a little "
+     "GRAPH of connected nodes (graph data). Each modality's row of tiles flows along its "
+     "warm-orange arrow into the shared central space and lands as dots among the others, mingling "
+     "— different senses, one map. NO Serega in this scene, so NO green anywhere (the helix, "
+     "waveform and graph are black ink + light course-blue, never green). Warm-orange appears ONLY "
+     "as the five feed-in arrows; all the source pictographs, tiles and the central space are "
+     "black ink + light course-blue on off-white. The montage fills ≥85% of canvas width. "
+     "ABSOLUTELY NO words, letters, numbers, or labels anywhere — every tile is blank, no caption, "
+     "no title; the book names the modalities later. Make 'many different inputs, all tokenized "
+     "into one shared space' the single dominant idea."),
 
     # ---- course cover (banner + GitHub social card) ----
     ("char", "_char/cover.png", "16:9", True,

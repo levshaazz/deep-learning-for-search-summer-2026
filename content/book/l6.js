@@ -120,6 +120,17 @@ export default {
     {
       id: 'depth-cost-wall', kind: 'prose',
       heading: { en: 'The price of listening to everyone', ru: 'Цена слушать всех', tt: 'Барысын тыңлауның бәясе' },
+      img: 'L6/L6-20-cost-wall.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'A square score grid drawn three times, exploding from a tiny 3×3 to a huge dense table that slams into a brick wall as the sequence grows.',
+        ru: 'Квадратная матрица оценок нарисована трижды, разрастаясь от крошечной 3×3 до огромной плотной таблицы, что упирается в кирпичную стену.',
+        tt: 'Квадрат бәя челтәре өч тапкыр сызылган, кечкенә 3×3’тән зур тыгыз таблицага кадәр шартлап үсә һәм кирпеч стенага бәрелә.',
+      },
+      imgCaption: {
+        en: 'Every token scores every token, so the table grows as n². Double the sentence and the work quadruples — the famous quadratic wall.',
+        ru: 'Каждый токен оценивает каждый, так что таблица растёт как n². Удвой предложение — работа учетверится: та самая квадратичная стена.',
+        tt: 'Һәр токен һәр токенны бәяли, шуңа таблица n² кебек үсә. Җөмләне икеләтсәң — эш дүртләтә: атаклы квадратик стена.',
+      },
       body: {
         en: [
           "There is a bill at the bottom of that beautiful scroll, and it's worth reading before we go further. Look again at the score matrix: every one of the \\(n\\) tokens computes a dot product against every one of the \\(n\\) keys, so the table of scores has \\(n \\times n\\) entries. That means attention's cost — both the compute and the memory to hold that table — grows like \\(n^2\\), the *square* of the sequence length. Double the sentence and you quadruple the work; a passage ten times longer costs a hundred times more. This is the famous **quadratic bottleneck**, and it is the single hardest fact about scaling Transformers.",
@@ -162,6 +173,17 @@ export default {
     {
       id: 'depth-masks-families', kind: 'prose',
       heading: { en: 'Who is allowed to look at whom', ru: 'Кому позволено смотреть на кого', tt: 'Кемгә кемгә карарга рөхсәт' },
+      img: 'L6/L6-21-masks.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'Two attention-mask grids side by side: a fully-filled bidirectional square on the left and a lower-triangular causal grid with the future curtained off on the right.',
+        ru: 'Две сетки масок внимания рядом: полностью заполненный двунаправленный квадрат слева и нижне-треугольная каузальная сетка с занавешенным будущим справа.',
+        tt: 'Янәшә ике игътибар маскасы челтәре: сулда тулысынча тулган ике юнәлешле квадрат, уңда киләчәге пәрдәләнгән аскы-өчпочмаклы каузаль челтәр.',
+      },
+      imgCaption: {
+        en: 'One triangular mask is the whole difference: a full square lets a token read both ways (BERT); a triangle hides the future (GPT).',
+        ru: 'Одна треугольная маска — вся разница: полный квадрат даёт токену читать в обе стороны (BERT); треугольник прячет будущее (GPT).',
+        tt: 'Бер өчпочмаклы маска — бөтен аерма: тулы квадрат токенга ике якка укырга бирә (BERT); өчпочмак киләчәкне яшерә (GPT).',
+      },
       body: {
         en: [
           "Self-attention lets every token see every other token — but *should* it always? That single question splits the Transformer world in two. In **BERT**, the answer is yes: every token reads the whole sentence, left and right, both directions at once. That's a **bidirectional encoder**, and it's exactly what you want for *understanding* — to know what \"bank\" means you need to peek at \"river\" whether it came before or after. Search lives here: a retrieval model wants to read the full query and the full document, so retrieval encoders are bidirectional, BERT-style.",
@@ -215,6 +237,17 @@ export default {
     {
       id: 'depth-heads-learn', kind: 'prose',
       heading: { en: 'What the heads actually learn', ru: 'Что головы на самом деле учат', tt: 'Башлар чынлап нәрсә өйрәнә' },
+      img: 'L6/L6-22-heads.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'The same row of word-tiles shown three times, each with a different pattern of attention arcs: neighbour links, a long-range link, and arcs converging on one token.',
+        ru: 'Один и тот же ряд слов-плиток показан трижды, у каждого свой узор дуг внимания: связи соседей, дальняя связь и дуги, сходящиеся на одном токене.',
+        tt: 'Шул ук сүз-плитәләр рәте өч тапкыр күрсәтелгән, һәркайсының үз игътибар дугалары: күршеләр, ерак бәйләнеш, һәм бер токенга җыелган дугалар.',
+      },
+      imgCaption: {
+        en: 'Probe a trained model and the heads really do specialize: one tracks neighbours, one a long-range link, one points at a head-word — a council of specialists.',
+        ru: 'Прощупай обученную модель — головы вправду специализируются: одна следит за соседями, другая за дальней связью, третья указывает на главное слово.',
+        tt: 'Өйрәтелгән модельне тикше — башлар чынлап белгечләшә: берсе күршеләрне, икенчесе ерак бәйләнешне, өченчесе баш-сүзне күзәтә — белгечләр шурасы.',
+      },
       body: {
         en: [
           "I claimed head 1 learns subject-verb, head 2 modifiers, head 3 coreference — but that's the kind of tidy story that deserves to be checked, not asserted. So researchers went and *looked*, probing the attention weights of a trained BERT. The headline finding (Clark et al., 2019; Voita et al., 2019): the heads really do specialize, and often interpretably. Some heads are almost purely **positional** — they attend to the *previous* token, or the *next* one, acting like a learned n-gram. Others track **syntax**: a head that reliably points each verb at its direct object, another that links a determiner to its noun. Others light up on **rare or special tokens**. The metaphor of \"different councillors with different jobs\" turns out to be more literal than you'd guess.",
@@ -301,6 +334,17 @@ export default {
     {
       id: 'depth-block-modern', kind: 'prose',
       heading: { en: 'Why a modern block looks different', ru: 'Почему современный блок выглядит иначе', tt: 'Ни өчен заманча блок башкача күренә' },
+      img: 'L6/L6-23-prenorm-highway.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'A clean uninterrupted vertical residual highway with sublayer boxes branching off to the side through small norm gates and merging back, repeated up the stack.',
+        ru: 'Чистая непрерывная вертикальная остаточная магистраль с под-слоями, ответвляющимися вбок через маленькие гейты нормы и возвращающимися обратно, повторённая вверх по стопке.',
+        tt: 'Чиста, өзлексез вертикаль калдык магистрале, асокатламнар кечкенә норма капкалары аша якка тармаклана һәм кире кушыла, өем буенча кабатлана.',
+      },
+      imgCaption: {
+        en: 'Pre-norm keeps the residual highway unblocked — the norm only cleans each side-branch. That one move is most of why a 100-layer Transformer trains at all.',
+        ru: 'Pre-norm держит остаточную магистраль свободной — норма чистит лишь боковые ветви. Этот ход — большая часть того, почему 100-слойный Трансформер вообще обучается.',
+        tt: 'Pre-norm калдык магистрален ачык тота — норма бары як-тармакларны чистарта. Шул бер йөреш — 100 катламлы Трансформер гомумән өйрәнүенең күп өлеше.',
+      },
       body: {
         en: [
           "If you crack open a Transformer written today and lay it next to the 2017 diagram, one small thing has quietly moved, and it matters more than it looks. In the *original* block, layer normalization sits *after* the residual add: \\(\\mathrm{LayerNorm}(x + \\mathrm{Sublayer}(x))\\) — this is **post-norm**. Modern blocks put the norm *inside*, before the sublayer, and add the raw input back outside: \\(x + \\mathrm{Sublayer}(\\mathrm{LayerNorm}(x))\\) — **pre-norm**. A trivial-looking reshuffle of one operation; a large difference in whether a deep stack trains at all.",
@@ -397,6 +441,17 @@ export default {
     {
       id: 'depth-hardneg', kind: 'prose',
       heading: { en: 'The negatives are the hard part', ru: 'Трудность — в негативах', tt: 'Авырлык — негативларда' },
+      img: 'L6/L6-24-hardneg.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'A query dot with its true answer pulled close, easy negatives far away, and one disguised impostor sitting deceptively near being pushed away.',
+        ru: 'Точка-запрос с притянутым близко верным ответом, лёгкие негативы вдалеке и один замаскированный самозванец, обманчиво близкий, которого отталкивают.',
+        tt: 'Сорау ноктасы, аңа якын тартылган дөрес җавап, ерактагы җиңел негативлар, һәм алдап якын утырган бер битлекле импостор этеп чыгарыла.',
+      },
+      imgCaption: {
+        en: 'Easy negatives teach nothing. The useful one is the impostor that looks relevant but isn’t — and the trap is that it sometimes secretly is.',
+        ru: 'Лёгкие негативы ничему не учат. Полезен самозванец, что выглядит релевантным, но не таков, — и ловушка в том, что иногда он тайно таков.',
+        tt: 'Җиңел негативлар бернигә өйрәтми. Файдалысы — кагылышлы күренгән, әмма булмаган импостор, ә тозак шунда: кайчак ул яшерен рәвештә кагылышлы.',
+      },
       body: {
         en: [
           "Look back at the loss you just computed. The positive — query and its right answer — is handed to you by your labels. The *negatives* are where all the difficulty (and all the art) lives. The cheapest source is **in-batch negatives**: for each query in a batch, treat *every other query's* positive as a negative for this one — free, since they're already in memory, and DPR ([Karpukhin et al., 2020](https://arxiv.org/abs/2004.04906)) showed this alone beats BM25. But in-batch negatives are *easy*: a random passage about cooking is trivially far from a query about astrophysics, so once the model gets the gist, easy negatives stop teaching it anything.",
@@ -418,6 +473,17 @@ export default {
     {
       id: 'depth-matryoshka', kind: 'prose',
       heading: { en: 'Smaller, cheaper, distilled', ru: 'Меньше, дешевле, дистиллировано', tt: 'Кечерәк, арзанрак, дистилляцияләнгән' },
+      img: 'L6/L6-25-matryoshka.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'A row of nesting dolls from large to small beside a tall vector column with a scissors cut-line, each doll matched to a truncation depth.',
+        ru: 'Ряд матрёшек от большой к маленькой рядом с высоким столбцом-вектором с линией разреза-ножниц, каждая матрёшка сопоставлена глубине усечения.',
+        tt: 'Зурдан кечкенәгә матрёшкалар рәте, янәшә кайчы кисү сызыклы биек вектор баганасы, һәр курчак кисү тирәнлегенә туры килә.',
+      },
+      imgCaption: {
+        en: 'Matryoshka embeddings pack the most important information into the first coordinates — so one vector can simply be chopped to whatever size you can afford.',
+        ru: 'Матрёшечные эмбеддинги пакуют важнейшую информацию в первые координаты — так один вектор можно просто отрубить до посильного размера.',
+        tt: 'Матрёшка эмбеддинглары иң мөһим мәгълүматны беренче координаталарга төя — шуңа бер векторны кулайлы зурлыкка кадәр кисеп була.',
+      },
       body: {
         en: [
           "Two production-flavored ideas before we close the contrastive thread, both about making these vectors *cheap enough to actually deploy* — and both pointing straight at the next chapter. The first answers a nagging tension: do you want a fat 768-dim vector (accurate, but heavy to store and slow to search over millions of documents) or a slim 64-dim one (cheap, but blunter)? **Matryoshka embeddings** ([Kusupati et al., 2022](https://arxiv.org/abs/2205.13147)) refuse the choice. The trick is to train the contrastive loss at *several* truncation lengths at once, so the model learns to pack the most important information into the *first* coordinates. The payoff is a single vector you can simply *chop*: keep the first 64 dims for a fast, approximate first pass over the whole index, then re-score the survivors with the full 768. One model, many sizes, nested like the dolls.",
@@ -439,6 +505,17 @@ export default {
     {
       id: 'catch-anisotropy', kind: 'prose',
       heading: { en: 'The cone of crowded vectors', ru: 'Конус тесных векторов', tt: 'Тыгыз векторлар конусы' },
+      img: 'L6/L6-26-anisotropy-cone.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'On the left, many arrows crammed into a narrow cone all pointing the same way; on the right, the same arrows fanned evenly across a full sphere of directions.',
+        ru: 'Слева множество стрелок, втиснутых в узкий конус и смотрящих в одну сторону; справа те же стрелки, ровно разнесённые по всей сфере направлений.',
+        tt: 'Сулда тар конуска кысылган, барысы бер якка караган күп уклар; уңда шул ук уклар тулы юнәлешләр сферасы буенча тигез таралган.',
+      },
+      imgCaption: {
+        en: 'Raw BERT vectors crowd into one narrow cone, so everything looks similar. Contrastive training opens the cone back into a sphere — cosine can discriminate again.',
+        ru: 'Сырые векторы BERT жмутся в узкий конус, и всё кажется похожим. Контрастное обучение раскрывает конус в сферу — косинус снова различает.',
+        tt: 'Чи BERT векторлары тар бер конуска тыгызлана, шуңа барысы охшаш күренә. Контраст өйрәнү конусны кире сферага ача — косинус яңадан аера ала.',
+      },
       body: {
         en: [
           "Before we declare victory, one trap — and it's the reason the contrastive step isn't optional decoration but a *necessity*. Take a raw, un-tuned BERT and look at the geometry of its output vectors directly. You'd hope they spread out evenly over the sphere, pointing every which way. They don't. [Ethayarajh (2019)](https://arxiv.org/abs/1909.00512) measured it: contextual embeddings from BERT, ELMo, and GPT-2 crowd into a *narrow cone* — they're squeezed into one corner of the space, all pointing in roughly the same direction. This is **anisotropy**, and it is exactly the same pathology the Curse-of-Dimensionality Wraith whispered about back in L2: when everything points the same way, *every* pair of vectors looks similar, and your similarity measure loses its discriminating power.",
@@ -481,6 +558,17 @@ export default {
     {
       id: 'crossdomain-vision', kind: 'prose',
       heading: { en: 'Did you know? The same block sees images', ru: 'А ты знал? Тот же блок видит картинки', tt: 'Беләсеңме? Шул ук блок рәсемнәрне күрә' },
+      img: 'L6/L6-27-vit-patches.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'A picture sliced into a grid of square patches, then unrolled into a single row of patch-tiles with position dots beneath — an image turned into a sentence of patches.',
+        ru: 'Картинка, нарезанная на сетку квадратных патчей, затем развёрнутая в один ряд патч-плиток с точками-позициями снизу — картинка как предложение из патчей.',
+        tt: 'Квадрат патчлар челтәренә киселгән рәсем, аннары астында позиция нокталары булган бер патч-плитә рәтенә җәелгән — рәсем патчлардан җөмләгә әйләнгән.',
+      },
+      imgCaption: {
+        en: 'A Vision Transformer chops an image into patches and feeds them to the exact same encoder. Patches are tokens; an image is a sentence — literally the same code.',
+        ru: 'Vision Transformer режет картинку на патчи и подаёт их в ровно тот же энкодер. Патчи — токены, картинка — предложение, буквально тот же код.',
+        tt: 'Vision Transformer рәсемне патчларга кисә һәм аларны нәкъ шул ук энкодерга бирә. Патчлар — токеннар, рәсем — җөмлә, сүзгә-сүз шул ук код.',
+      },
       body: {
         en: [
           "Pause for a Serega did-you-know, because the punchline of this whole chapter is that *nothing we built was about words specifically*. Take the **Vision Transformer** ([Dosovitskiy et al., 2020](https://arxiv.org/abs/2010.11929)). It wants to classify an image — no words anywhere — and here's what it does: chop the image into a grid of 16×16 pixel **patches**, flatten each patch and run it through a linear layer to get a vector, add a positional encoding so the model knows which patch sat where, and then... feed the whole bag into *the exact same Transformer encoder block* you just learned. Patches are tokens. An image is a sentence of patches. The council convenes; each patch attends to the others; the same multi-head self-attention decides which regions heed which. Not an analogy — literally the same code.",
@@ -502,6 +590,17 @@ export default {
     {
       id: 'crossdomain-everything', kind: 'prose',
       heading: { en: 'Everything is a sequence of tokens', ru: 'Всё — последовательность токенов', tt: 'Барысы да — токеннар эзлеклелеге' },
+      img: 'L6/L6-28-everything-tokens.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'Five sources — text, an image, an audio waveform, a DNA helix, and a graph — each chopped into a row of token-tiles and flowing into one shared embedding space.',
+        ru: 'Пять источников — текст, картинка, звуковая волна, спираль ДНК и граф — каждый нарезан в ряд токен-плиток и втекает в одно общее пространство эмбеддингов.',
+        tt: 'Биш чыганак — текст, рәсем, тавыш дулкыны, ДНК спирале һәм граф — һәркайсы токен-плитә рәтенә киселеп бер уртак эмбеддинг киңлегенә ага.',
+      },
+      imgCaption: {
+        en: 'Pick any sense organ, tokenize, embed, attend — and you land in one space where nearness means relatedness. The Council doesn’t care what the councillors are made of.',
+        ru: 'Выбери любой орган чувств, токенизируй, вложи, вними — и попадёшь в одно пространство, где близость значит связанность. Совету всё равно, из чего советники.',
+        tt: 'Теләсә кайсы сизү органын сайла, токенлаштыр, сал, игътибар ит — һәм якынлык бәйлелекне аңлаткан бер киңлеккә керәсең. Шурага киңәшчеләрнең нидән булганы барыбер.',
+      },
       body: {
         en: [
           "Here is the unifying frame, and once it clicks you can't un-see it. There's a single sentence that quietly contains the whole architecture: **a Transformer is a graph neural network operating on a complete graph.** Self-attention is *message passing* — each token gathers a weighted message from its neighbours — and the \"graph\" is simply one where *every* token is connected to every other (that's why it's all-pairs, that's where the \\(n^2\\) came from). Drop the all-connected assumption and you get a real GNN; keep it and add learned edge weights via softmax and you get attention. **GAT — the Graph Attention Network** ([Veličković et al., 2017](https://arxiv.org/abs/1710.10903)) — makes the link explicit: attention weights over a node's actual graph neighbours. Same council, different seating chart.",

@@ -317,20 +317,22 @@
         </section>
 
         <!-- ============================================ 11 · DEFINITION · contextual embedding ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="11 Contextual vs static">
+        <section class="slide" data-type="table" data-screen-label="11 Contextual vs static">
           <div class="slide-header">
             <h2><span lang="ru">Контекстный против статического</span><span lang="en">Contextual vs static</span></h2>
-            <span class="slide-kicker"><span lang="ru">токен «знает» своё предложение</span><span lang="en">the token &ldquo;knows&rdquo; its sentence</span></span>
+            <span class="slide-kicker"><span lang="ru">токен «знает» своё предложение · ELMo / BERT 2018</span><span lang="en">the token &ldquo;knows&rdquo; its sentence · ELMo / BERT 2018</span></span>
           </div>
-          <div class="def-card">
-            <span class="def-tag"><span lang="ru">Контраст</span><span lang="en">Contrast</span></span>
-            <div class="def-term"><span lang="ru">Статический &rarr; контекстный</span><span lang="en">Static &rarr; contextual</span><span class="term-en">ELMo 2018 &middot; BERT 2018</span></div>
-            <div class="def-body">
-              <p><span lang="ru">Статический (word2vec, GloVe): таблица поиска, \(v_{\texttt{bank}}\) фиксирован. Контекстный (BERT): вектор — <strong>выход сети</strong>, зависящий от всего предложения; «bank» рядом с «river» и рядом с «account» — разные векторы.</span><span lang="en">Static (word2vec, GloVe): a lookup table, \(v_{\texttt{bank}}\) is fixed. Contextual (BERT): the vector is a <strong>network output</strong> depending on the whole sentence; &ldquo;bank&rdquo; near &ldquo;river&rdquo; and near &ldquo;account&rdquo; are different vectors.</span></p>
-              <p class="small muted"><span lang="ru">Цена — вычисление: статический эмбеддинг — это просто индекс в таблице; контекстный требует прогона предложения через стек слоёв внимания. Эту машину мы и строим.</span><span lang="en">The cost is compute: a static embedding is a table lookup; a contextual one requires running the sentence through a stack of attention layers. That is the machine we are about to build.</span></p>
-            </div>
-          </div>
-          <aside class="slide-notes">Make the contrast concrete. A static embedding, like word2vec or GloVe, is a lookup table — you index in with the word string and read out a fixed vector. A contextual embedding, as in ELMo in early 2018 and then BERT, is the output of a neural network that has read the whole sentence, so the vector for bank genuinely differs between river bank and bank account. The price is computation: a lookup is instant, but a contextual vector requires running the sentence through a stack of attention layers. The rest of this lecture builds that stack, one mechanism at a time.</aside>
+          <table class="cmp-table">
+            <thead><tr><th></th><th><span lang="ru">Статический (word2vec, GloVe)</span><span lang="en">Static (word2vec, GloVe)</span></th><th><span lang="ru">Контекстный (BERT)</span><span lang="en">Contextual (BERT)</span></th></tr></thead>
+            <tbody>
+              <tr><td><span lang="ru">что это</span><span lang="en">what it is</span></td><td><span lang="ru">таблица поиска</span><span lang="en">a lookup table</span></td><td class="cell-good"><span lang="ru"><strong>выход сети</strong> по всему предложению</span><span lang="en">a <strong>network output</strong> over the whole sentence</span></td></tr>
+              <tr><td>«bank»</td><td class="cell-bad"><span lang="ru">один \(v_{\texttt{bank}}\) на оба смысла</span><span lang="en">one \(v_{\texttt{bank}}\) for both senses</span></td><td class="cell-good"><span lang="ru">«river bank» \(\ne\) «bank account»</span><span lang="en">&ldquo;river bank&rdquo; \(\ne\) &ldquo;bank account&rdquo;</span></td></tr>
+              <tr><td><span lang="ru">зависит от</span><span lang="en">depends on</span></td><td><span lang="ru">только слова \(w\mapsto v_w\)</span><span lang="en">the word only, \(w\mapsto v_w\)</span></td><td class="cell-good"><span lang="ru">слова <em>и</em> контекста \((w,\text{ctx})\mapsto v\)</span><span lang="en">word <em>and</em> context, \((w,\text{ctx})\mapsto v\)</span></td></tr>
+              <tr><td><span lang="ru">цена</span><span lang="en">cost</span></td><td class="cell-good"><span lang="ru">индекс в таблице (мгновенно)</span><span lang="en">a table index (instant)</span></td><td class="cell-meh"><span lang="ru">прогон через стек слоёв внимания</span><span lang="en">a run through a stack of attention layers</span></td></tr>
+            </tbody>
+          </table>
+          <p class="small muted center mt-2"><span lang="ru">Эту машину — стек слоёв внимания — мы и строим всю лекцию.</span><span lang="en">That machine — the stack of attention layers — is what we build for the rest of the lecture.</span></p>
+          <aside class="slide-notes">Make the contrast concrete, as a side-by-side. A static embedding, like word2vec or GloVe, is a lookup table — you index in with the word string and read out a fixed vector, so bank gets one point for both senses, depending only on the word. A contextual embedding, as in ELMo in early 2018 and then BERT, is the output of a neural network that has read the whole sentence, so river bank and bank account get different vectors — it depends on the word and its context. The price is computation: a lookup is instant, but a contextual vector requires running the sentence through a stack of attention layers. The rest of this lecture builds that stack, one mechanism at a time.</aside>
         </section>
 
         <!-- ============================================ BEAT 3 · turn-attention ============================================ -->
@@ -410,8 +412,30 @@
           <aside class="slide-notes">Set up the inputs so the climb is concrete. We have three tokens — the, cat, sat — and a key dimension of four, so each token's query, key and value is a row of four numbers. These are deterministic values from the data file, chosen so the arithmetic is clean and you can check it by hand. Take the query for cat, which is zero two zero one. Dot it with the three keys and you get scores of zero, four, and two — cat's query aligns most strongly with cat's own key. Those raw scores are the first column of the climb on the next slide.</aside>
         </section>
 
-        <!-- ============================================ 17 · E2E · attention computed end to end ============================================ -->
-        <section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="17 Attention end to end">
+        <!-- ============================================ 17 · QUIZ · predict before the reveal (check-for-understanding) ============================================ -->
+        <section class="slide" data-type="quiz" data-screen-label="17 Quiz · who does cat heed?">
+          <div class="slide-header">
+            <h2><span lang="ru">Проверка: кого <code>cat</code> слушает сильнее всего?</span><span lang="en">Quick check: which token does <code>cat</code> heed most?</span></h2>
+            <span class="slide-kicker"><span lang="ru">предскажите до softmax</span><span lang="en">predict before the softmax</span></span>
+          </div>
+          <div class="quiz-frame">
+            <div class="quiz-q"><span lang="ru">Скоры запроса <code>cat</code> против ключей <code>the</code>, <code>cat</code>, <code>sat</code> равны \([0,\,4,\,2]\). После деления на \(\sqrt{d_k}=2\) и softmax — на какой токен ляжет <strong>наибольший</strong> вес внимания?</span><span lang="en">The query for <code>cat</code> scores \([0,\,4,\,2]\) against keys <code>the</code>, <code>cat</code>, <code>sat</code>. After dividing by \(\sqrt{d_k}=2\) and a softmax, which token gets the <strong>largest</strong> attention weight?</span></div>
+            <div class="quiz-options">
+              <div class="quiz-option" data-correct="false"><span class="quiz-letter">A</span><span><code>the</code></span><span></span></div>
+              <div class="quiz-option" data-correct="true"><span class="quiz-letter">B</span><span><code>cat</code></span><span></span></div>
+              <div class="quiz-option" data-correct="false"><span class="quiz-letter">C</span><span><code>sat</code></span><span></span></div>
+              <div class="quiz-option" data-correct="false"><span class="quiz-letter">D</span><span><span lang="ru">поровну (softmax сглаживает)</span><span lang="en">all equal (softmax flattens)</span></span><span></span></div>
+            </div>
+            <details class="hidden-answer mt-4">
+              <summary><span lang="ru">Показать ответ</span><span lang="en">Reveal explanation</span></summary>
+              <div class="ha-content"><strong>B</strong>. <span lang="ru">softmax <em>монотонна</em>: наибольший скор &rarr; наибольший вес. Деление на \(\sqrt{d_k}\) меняет резкость, но не порядок. \([0,4,2]/2=[0,2,1]\xrightarrow{\mathrm{softmax}}[0.09,\,0.665,\,0.245]\) — <code>cat</code> кладёт \(0.665\) на себя. (D неверно: softmax сохраняет порядок, а не уравнивает.)</span><span lang="en">softmax is <em>monotone</em>: the largest score gives the largest weight, and scaling by \(\sqrt{d_k}\) changes sharpness, not the order. \([0,4,2]/2=[0,2,1]\xrightarrow{\mathrm{softmax}}[0.09,\,0.665,\,0.245]\) — <code>cat</code> puts \(0.665\) on itself. (D is wrong: softmax preserves order, it does not equalise.)</span></div>
+            </details>
+          </div>
+          <aside class="slide-notes">A forced prediction before the reveal, to make the next slide land. Students already saw cat's score row, zero four two, on the previous slide. Ask them to commit: after scaling and softmax, which token wins the weight? The answer is cat itself, option B, because softmax is monotone — the biggest score becomes the biggest weight, and dividing by root d k only changes how peaked the distribution is, never the ordering. The distractor D is the common misconception that softmax flattens or equalises; it does not, it sharpens. With the prediction on record, the end-to-end slide that follows confirms the exact weights zero point zero nine, zero point six six five, zero point two four five.</aside>
+        </section>
+
+        <!-- ============================================ 18 · E2E · attention computed end to end ============================================ -->
+        <section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="18 Attention end to end">
           <div class="slide-header">
             <h2><span lang="ru">Attention целиком, по строке «cat»</span><span lang="en">Attention end to end, the &ldquo;cat&rdquo; row</span></h2>
             <span class="slide-kicker">E2E &middot; <span lang="ru">скоры &rarr; масштаб &rarr; softmax &rarr; \(\cdot V\)</span><span lang="en">scores &rarr; scale &rarr; softmax &rarr; \(\cdot V\)</span></span>
@@ -449,7 +473,7 @@
         </section>
 
         <!-- ============================================ 18 · WALKTHROUGH · the full weight matrix ============================================ -->
-        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="18 Full weight matrix">
+        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="19 Full weight matrix">
           <div class="slide-header">
             <h2><span lang="ru">Вся матрица внимания \(A\) (строки \(\sum=1\))</span><span lang="en">The full attention matrix \(A\) (rows sum to 1)</span></h2>
             <span class="slide-kicker"><span lang="ru">кто кого слушает</span><span lang="en">who heeds whom</span></span>
@@ -484,8 +508,27 @@
           <aside class="slide-notes">Look at the whole attention matrix, because the structure is the point. Each row is one token's distribution over who it heeds, and each row sums to one. The row for the is zero point four two two, zero point one five five, zero point four two two — fairly spread. The row for cat is zero point zero nine, zero point six six five, zero point two four five — the sharpest of the three, cat strongly attending to itself. The row for sat is zero point two one two, zero point two one two, zero point five seven six. These are the exact rows of the weights matrix in the data file. Multiplying this matrix A by the value matrix V produces all three contextual output vectors at once. Attention is just this matrix, read as who heeds whom.</aside>
         </section>
 
-        <!-- ============================================ 19 · THEOREM · why divide by root d_k (T6: misconception → variance proposition + proof) ============================================ -->
-        <section class="slide" data-type="theorem" data-screen-label="19 The root d_k variance theorem">
+        <!-- ============================================ BEAT 5 · turn-selfattention (Q/K/V defined BEFORE the theorem & cost-wall that use them) ============================================ -->
+        <!-- ============================================ 19 · DEFINITION · self-attention + projections ============================================ -->
+        <section class="slide" data-type="definition" data-screen-label="20 Self-attention &amp; projections">
+          <div class="slide-header">
+            <h2><span lang="ru">Self-attention: откуда берутся \(Q,K,V\)</span><span lang="en">Self-attention: where \(Q,K,V\) come from</span></h2>
+            <span class="slide-kicker"><span lang="ru">одна последовательность · три обучаемые матрицы</span><span lang="en">one sequence · three learned matrices</span></span>
+          </div>
+          <p class="small muted center" style="margin-bottom:var(--sp-2)"><span lang="ru"><strong>Self-attention</strong>: \(Q\), \(K\), \(V\) берутся из <strong>одной</strong> последовательности — каждый токен запрашивает каждый токен, включая себя. Именно поэтому <code>cat</code> мог положить вес на <code>cat</code>. Это вариант внутри энкодера (BERT).</span><span lang="en"><strong>Self-attention</strong>: \(Q\), \(K\), \(V\) all come from the <strong>same</strong> sequence — every token queries every token, itself included. That is exactly why <code>cat</code> could put weight on <code>cat</code>. This is the variant inside an encoder (BERT).</span></p>
+          <div class="def-card">
+            <span class="def-tag"><span lang="ru">Механика</span><span lang="en">Mechanics</span></span>
+            <div class="def-term"><span lang="ru">Линейные проекции</span><span lang="en">Linear projections</span><span class="term-en">\(Q=XW_Q,\ K=XW_K,\ V=XW_V\)</span></div>
+            <div class="def-body">
+              <p><span lang="ru">Вход \(X\in\mathbb{R}^{T\times d}\) (T токенов). Три обучаемые матрицы \(W_Q,W_K,W_V\) проецируют каждый токен в роли запроса, ключа и значения. Это <em>единственные</em> параметры self-attention — сам механизм без весов.</span><span lang="en">Input \(X\in\mathbb{R}^{T\times d}\) (T tokens). Three learned matrices \(W_Q,W_K,W_V\) project each token into its query, key and value role. These are the <em>only</em> parameters of self-attention — the mechanism itself is weight-free.</span></p>
+              <p class="small muted"><span lang="ru">Обучение настраивает \(W_Q,W_K,W_V\) так, чтобы «полезные» соседи получали высокий скор. В нашем примере \(Q,K,V\) уже даны — мы пропустили проекцию ради чистых чисел. (Позже встретится и <em>cross-attention</em>: \(Q\) — из одной последовательности, \(K,V\) — из другой; арифметика та же.)</span><span lang="en">Training tunes \(W_Q,W_K,W_V\) so that &ldquo;useful&rdquo; neighbours score high. In our example \(Q,K,V\) were given — we skipped the projection for clean numbers. (Later you also meet <em>cross-attention</em>: \(Q\) from one sequence, \(K,V\) from another — the arithmetic is identical.)</span></p>
+            </div>
+          </div>
+          <aside class="slide-notes">A precise naming, then the source of the three matrices — placed before the theorem and the cost wall, both of which already manipulate Q, K and V. First, self-attention: in our worked example the queries, keys and values all came from the same three tokens, so every token both asks and answers and attends to every token including itself — which is exactly why cat could put weight on cat. This is the encoder variant inside BERT. Now where do Q, K and V come from? The layer's input is X, a matrix of T token vectors each of dimension d, and self-attention multiplies X by three learned weight matrices — W Q, W K and W V — to produce the queries, keys and values. Those three projection matrices are the only learnable parameters in attention; the softmax-and-weighted-sum machine itself has no weights. In our worked example we handed you Q, K and V directly and skipped this projection purely to keep the arithmetic clean. Later, in encoder-decoder models, you also meet cross-attention, where the queries come from one sequence and the keys and values from another — but the arithmetic is identical.</aside>
+        </section>
+
+        <!-- ============================================ 20 · THEOREM · why divide by root d_k (T6: misconception → variance proposition + proof) ============================================ -->
+        <section class="slide" data-type="theorem" data-screen-label="21 The root d_k variance theorem">
           <div class="slide-header">
             <h2><span lang="ru">Почему \(\sqrt{d_k}\): дисперсия скоров растёт \(\propto d_k\)</span><span lang="en">Why \(\sqrt{d_k}\): score variance grows \(\propto d_k\)</span></h2>
             <span class="slide-kicker"><span lang="ru">не косметика — это предложение с доказательством</span><span lang="en">not cosmetic — a proposition with a proof</span></span>
@@ -517,7 +560,7 @@
         </section>
 
         <!-- ============================================ 19b · VIZ · attention O(n²) cost wall (NEW: depth #8) ============================================ -->
-        <section class="slide" data-type="viz" data-screen-label="20 The quadratic cost wall">
+        <section class="slide" data-type="viz" data-screen-label="22 The quadratic cost wall">
           <div class="slide-header">
             <h2><span lang="ru">Стена цены: \(QK^\top\) стоит \(O(n^2)\)</span><span lang="en">The cost wall: \(QK^\top\) costs \(O(n^2)\)</span></h2>
             <span class="slide-kicker"><span lang="ru">каждый токен сравнивается с каждым</span><span lang="en">every token compares to every token</span></span>
@@ -544,34 +587,6 @@
           </div>
           <p class="viz-caption"><span lang="ru">Матрица скоров \(QK^\top\) — это \(n\times n\): время <strong>и</strong> память растут как \(O(n^2 d)\). При \(n=512\) это \({\sim}262\text{k}\) пар; при \(n=8\text{k}\) — \({\sim}67\text{M}\) — это и есть стена длинного контекста. Лечение: <strong>sparse</strong> (Longformer, BigBird — окно + глобальные токены), <strong>linear</strong> (Performer/Linear Attention — \(O(n)\)), <strong>FlashAttention</strong> (точное \(O(n^2)\), но IO-aware — не материализует матрицу).</span><span lang="en">The score matrix \(QK^\top\) is \(n\times n\): both time <strong>and</strong> memory grow as \(O(n^2 d)\). At \(n=512\) that is \({\sim}262\text{k}\) pairs; at \(n=8\text{k}\) it is \({\sim}67\text{M}\) — the long-context wall. Fixes: <strong>sparse</strong> (Longformer, BigBird — windows + global tokens), <strong>linear</strong> (Performer / Linear Attention — \(O(n)\)), <strong>FlashAttention</strong> (exact \(O(n^2)\) but IO-aware — never materialises the matrix).</span></p>
           <aside class="slide-notes">The one real cost of attention, and the reason long context is hard. The score matrix Q K transpose is n by n, where n is the sequence length, so both the compute and, crucially, the memory to hold that matrix grow as n squared times the dimension. At five hundred and twelve tokens that is about a quarter of a million pairs; at eight thousand tokens it is sixty-seven million — the curve in red. The dashed blue line is the linear ideal we wish we had. Three families of fixes exist. Sparse attention — Longformer and BigBird — restricts each token to a local window plus a few global tokens, so the matrix becomes mostly empty. Linear attention — the Performer and friends — rewrites the softmax with a kernel feature map so the cost drops to order n. And FlashAttention keeps the exact quadratic computation but is IO-aware: it never writes the full n by n matrix to slow memory, tiling the work in fast on-chip memory, which gives a large constant-factor speedup and is what most modern stacks actually use. For retrieval we usually cap sequence length, so the wall is felt most in long-document and long-generation settings.</aside>
-        </section>
-
-        <!-- ============================================ BEAT 5 · turn-selfattention ============================================ -->
-        <!-- ============================================ 20 · DIVIDER · self-attention ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="21 Divider · self-attention">
-          <div class="divider-content">
-            <div class="divider-num"><span lang="ru">Часть 03 ·</span><span lang="en">Part 03 ·</span></div>
-            <h1>Self-Attention</h1>
-            <p class="divider-sub"><em><span lang="ru">\(Q\), \(K\), \(V\) — из <strong>одной</strong> последовательности:</span><span lang="en">\(Q\), \(K\), \(V\) all come from the <strong>same</strong> sequence:</span></em> <span lang="ru">каждый токен запрашивает каждый токен, включая себя.</span><span lang="en">every token queries every token, including itself.</span></p>
-          </div>
-          <aside class="slide-notes">A precise naming. In our worked example the queries, keys and values all came from the same three tokens — that is self-attention. Every token both asks and answers; every token attends to every token, itself included, which is exactly why cat could put weight on cat. This is the variant inside an encoder like BERT. Later, in encoder-decoder models, you also see cross-attention, where the queries come from one sequence and the keys and values from another — but the arithmetic is identical. For building contextual embeddings, self-attention is the workhorse.</aside>
-        </section>
-
-        <!-- ============================================ 21 · DEFINITION · self-attention projections ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="22 Self-attention projections">
-          <div class="slide-header">
-            <h2><span lang="ru">Откуда берутся \(Q,K,V\): проекции входа</span><span lang="en">Where \(Q,K,V\) come from: projecting the input</span></h2>
-            <span class="slide-kicker"><span lang="ru">три обучаемые матрицы</span><span lang="en">three learned matrices</span></span>
-          </div>
-          <div class="def-card">
-            <span class="def-tag"><span lang="ru">Механика</span><span lang="en">Mechanics</span></span>
-            <div class="def-term"><span lang="ru">Линейные проекции</span><span lang="en">Linear projections</span><span class="term-en">\(Q=XW_Q,\ K=XW_K,\ V=XW_V\)</span></div>
-            <div class="def-body">
-              <p><span lang="ru">Вход \(X\in\mathbb{R}^{T\times d}\) (T токенов). Три обучаемые матрицы \(W_Q,W_K,W_V\) проецируют каждый токен в роли запроса, ключа и значения. Это <em>единственные</em> параметры self-attention — сам механизм без весов.</span><span lang="en">Input \(X\in\mathbb{R}^{T\times d}\) (T tokens). Three learned matrices \(W_Q,W_K,W_V\) project each token into its query, key and value role. These are the <em>only</em> parameters of self-attention — the mechanism itself is weight-free.</span></p>
-              <p class="small muted"><span lang="ru">Обучение настраивает \(W_Q,W_K,W_V\) так, чтобы «полезные» соседи получали высокий скор. В нашем примере \(Q,K,V\) уже даны — мы пропустили проекцию ради чистых чисел.</span><span lang="en">Training tunes \(W_Q,W_K,W_V\) so that &ldquo;useful&rdquo; neighbours score high. In our example \(Q,K,V\) were given — we skipped the projection for clean numbers.</span></p>
-            </div>
-          </div>
-          <aside class="slide-notes">Close the loop on where the three matrices come from. The layer's input is X, a matrix of T token vectors each of dimension d. Self-attention multiplies X by three learned weight matrices — W Q, W K and W V — to produce the queries, keys and values. Those three projection matrices are the only learnable parameters in attention; the softmax-and-weighted-sum machine itself has no weights. Training adjusts W Q, W K and W V so that genuinely relevant tokens end up with aligned query-key pairs and therefore high attention. In our worked example we handed you Q, K and V directly and skipped this projection, purely to keep the arithmetic clean.</aside>
         </section>
 
         <!-- ============================================ BEAT 6 · climb-multihead ============================================ -->
@@ -602,58 +617,63 @@
           <aside class="slide-notes">Multi-head attention, the Council made literal. A single head computes one attention pattern, which can only capture one type of relationship. Multi-head attention splits the model dimension into h smaller subspaces and runs an independent attention head in each, with its own query, key and value projections. Because the subspaces and projections differ, the heads specialise — empirically one head may track subject-verb agreement, another may resolve pronouns, another may attend to the previous token. This is exactly our council metaphor: h councillors, each with its own opinion about who matters. Our data file uses two heads; real models use eight, twelve, sixteen.</aside>
         </section>
 
-        <!-- ============================================ 24 · FORWARD · multi-head data path (T7: viz+formula → layer-walk) ============================================ -->
-        <section class="slide" data-type="forward" data-max-step="4" data-current-step="0" data-screen-label="25 Multi-head, layer by layer">
+        <!-- ============================================ 26 · WALKTHROUGH · multi-head data path (always-on faded pipeline + ledger; populated at step 0) ============================================ -->
+        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="25 Multi-head, layer by layer">
           <div class="slide-header">
             <h2><span lang="ru">Multi-head по слоям: разделить &rarr; внимание &rarr; собрать</span><span lang="en">Multi-head, layer by layer: split &rarr; attend &rarr; recombine</span></h2>
-            <span class="slide-kicker"><span lang="ru">&rarr; раскрывайте путь данных от входа к выходу</span><span lang="en">&rarr; reveal the data path input&rarr;output</span></span>
+            <span class="slide-kicker"><span lang="ru">путь данных от входа к выходу</span><span lang="en">the data path, input&rarr;output</span></span>
           </div>
-          <div class="reverse-stack">
-            <div class="reverse-layer" data-layer="0">
-              <div>
-                <div style="font-family:var(--font-mono);font-size:24px;color:var(--ink-3);margin-bottom:8px;">input</div>
-                <div style="font-size:60px;font-family:var(--font-serif);"><span lang="ru">Вход \(X\)</span><span lang="en">Input \(X\)</span></div>
-                <div style="margin-top:16px;font-size:24px;color:var(--ink-3);"><span lang="ru">\(T\) токенов, каждый размерности \(d\) (\(=4\))</span><span lang="en">\(T\) tokens, each of dimension \(d\) (\(=4\))</span></div>
+          <div class="walk-layout">
+            <!-- LEFT: the full pipeline, always on canvas; future stages fade, the current stage rings (data-arch-step) -->
+            <div class="walk-diagram" aria-label="Multi-head attention pipeline: input, split into heads, attend per head, concatenate, project by W^O">
+              <div class="mh-pipe" style="display:flex;flex-direction:column;gap:12px;align-items:stretch;font-family:var(--font-sans);text-align:center;">
+                <div class="arch-box" data-arch-step="0" style="padding:12px;font-size:24px;"><div style="font-family:var(--font-mono);font-size:17px;color:var(--ink-3);">input</div><span lang="ru">Вход \(X\)</span><span lang="en">Input \(X\)</span></div>
+                <div style="color:var(--ink-4);font-size:20px;">&darr;</div>
+                <div class="arch-box" data-arch-step="1" data-arch-color="cyan" style="padding:12px;font-size:24px;"><div style="font-family:var(--font-mono);font-size:17px;color:var(--ink-3);">split · \(h=2\)</div><span lang="ru">\(h\) подпространств</span><span lang="en">\(h\) subspaces</span></div>
+                <div style="color:var(--ink-4);font-size:20px;">&darr;</div>
+                <div class="arch-box" data-arch-step="2" data-arch-color="violet" style="padding:12px;font-size:24px;"><div style="font-family:var(--font-mono);font-size:17px;color:var(--ink-3);">attend · per head</div>\(\mathrm{head}_i=\mathrm{Attention}(\cdot)\)</div>
+                <div style="color:var(--ink-4);font-size:20px;">&darr;</div>
+                <div class="arch-box" data-arch-step="3" data-arch-color="amber" style="padding:12px;font-size:24px;"><div style="font-family:var(--font-mono);font-size:17px;color:var(--ink-3);">concat</div>\(\mathrm{Concat}(\mathrm{head}_1,\dots,\mathrm{head}_h)\)</div>
+                <div style="color:var(--ink-4);font-size:20px;">&darr;</div>
+                <div class="arch-box" data-arch-step="4" data-arch-color="green" style="padding:12px;font-size:24px;"><div style="font-family:var(--font-mono);font-size:17px;color:var(--ink-3);">project · \(W^O\)</div>\(\mathrm{MultiHead}(X)\)</div>
               </div>
             </div>
-            <div class="reverse-layer" data-layer="1">
-              <div>
-                <div style="font-family:var(--font-mono);font-size:24px;color:var(--ink-3);margin-bottom:8px;">split · \(h=2\)</div>
-                <div style="font-size:60px;font-family:var(--font-serif);"><span lang="ru">\(h\) подпространств</span><span lang="en">\(h\) subspaces</span></div>
-                <div style="margin-top:16px;font-size:24px;color:var(--ink-3);"><span lang="ru">проекции \(XW_Q^{(i)},XW_K^{(i)},XW_V^{(i)}\) — каждая голова в размерности \(d/h=2\)</span><span lang="en">projections \(XW_Q^{(i)},XW_K^{(i)},XW_V^{(i)}\) — each head in dimension \(d/h=2\)</span></div>
+            <!-- RIGHT: ledger; rows reveal cumulatively, step 0 already shows the input row -->
+            <div class="walk-flow">
+              <div class="walk-step" data-step="0">
+                <div class="walk-num">00</div>
+                <div class="walk-content"><div class="walk-label"><span lang="ru">Вход \(X\)</span><span lang="en">Input \(X\)</span></div><div class="walk-detail"><span lang="ru">\(T\) токенов, каждый размерности \(d\) (\(=4\)).</span><span lang="en">\(T\) tokens, each of dimension \(d\) (\(=4\)).</span></div></div>
+                <div class="walk-state">\(\mathbb{R}^{T\times d}\)</div>
               </div>
-            </div>
-            <div class="reverse-layer" data-layer="2">
-              <div>
-                <div style="font-family:var(--font-mono);font-size:24px;color:var(--ink-3);margin-bottom:8px;">attend · per head</div>
-                <div style="font-size:60px;font-family:var(--font-serif);"><span lang="ru">\(\mathrm{head}_i=\mathrm{Attention}(\cdot)\)</span><span lang="en">\(\mathrm{head}_i=\mathrm{Attention}(\cdot)\)</span></div>
-                <div style="margin-top:16px;font-size:24px;color:var(--ink-3);"><span lang="ru">каждая голова считает своё \(\mathrm{softmax}(QK^\top/\sqrt{d_k})V\) — своя связь</span><span lang="en">each head runs its own \(\mathrm{softmax}(QK^\top/\sqrt{d_k})V\) — its own relation</span></div>
+              <div class="walk-step" data-step="1" data-color="cyan">
+                <div class="walk-num">01</div>
+                <div class="walk-content"><div class="walk-label"><span lang="ru">Разделить · \(h=2\)</span><span lang="en">Split · \(h=2\)</span></div><div class="walk-detail"><span lang="ru">проекции \(XW_Q^{(i)},XW_K^{(i)},XW_V^{(i)}\) — каждая голова в \(d/h=2\).</span><span lang="en">projections \(XW_Q^{(i)},XW_K^{(i)},XW_V^{(i)}\) — each head in \(d/h=2\).</span></div></div>
+                <div class="walk-state">\(d/h=2\)</div>
               </div>
-            </div>
-            <div class="reverse-layer" data-layer="3">
-              <div>
-                <div style="font-family:var(--font-mono);font-size:24px;color:var(--ink-3);margin-bottom:8px;">concat</div>
-                <div style="font-size:60px;font-family:var(--font-serif);"><span lang="ru">\(\mathrm{Concat}(\mathrm{head}_1,\dots,\mathrm{head}_h)\)</span><span lang="en">\(\mathrm{Concat}(\mathrm{head}_1,\dots,\mathrm{head}_h)\)</span></div>
-                <div style="margin-top:16px;font-size:24px;color:var(--ink-3);"><span lang="ru">склеиваем выходы голов обратно в размерность \(d\)</span><span lang="en">stack the head outputs back to dimension \(d\)</span></div>
+              <div class="walk-step" data-step="2" data-color="violet">
+                <div class="walk-num">02</div>
+                <div class="walk-content"><div class="walk-label"><span lang="ru">Внимание · на голову</span><span lang="en">Attend · per head</span></div><div class="walk-detail"><span lang="ru">каждая голова считает своё \(\mathrm{softmax}(QK^\top/\sqrt{d_k})V\) — своя связь.</span><span lang="en">each head runs its own \(\mathrm{softmax}(QK^\top/\sqrt{d_k})V\) — its own relation.</span></div></div>
+                <div class="walk-state">\(\times h\)</div>
               </div>
-            </div>
-            <div class="reverse-layer" data-layer="4">
-              <div>
-                <div style="font-family:var(--font-mono);font-size:24px;color:var(--ink-3);margin-bottom:8px;">project · \(W^O\)</div>
-                <div style="font-size:60px;font-family:var(--font-serif);"><span lang="ru">\(\mathrm{MultiHead}(X)=\mathrm{Concat}(\cdot)\,W^O\)</span><span lang="en">\(\mathrm{MultiHead}(X)=\mathrm{Concat}(\cdot)\,W^O\)</span></div>
-                <div style="margin-top:16px;font-size:30px;color:var(--c-green);font-weight:600;"><span lang="ru">\(W^O\) смешивает головы &rarr; выход</span><span lang="en">\(W^O\) mixes the heads &rarr; output</span></div>
+              <div class="walk-step" data-step="3" data-color="amber">
+                <div class="walk-num">03</div>
+                <div class="walk-content"><div class="walk-label">Concat</div><div class="walk-detail"><span lang="ru">склеиваем выходы голов обратно в размерность \(d\).</span><span lang="en">stack the head outputs back to dimension \(d\).</span></div></div>
+                <div class="walk-state">\(\to \mathbb{R}^{T\times d}\)</div>
+              </div>
+              <div class="walk-step" data-step="4" data-final="true">
+                <div class="walk-num">&rarr;</div>
+                <div class="walk-content"><div class="walk-label"><span lang="ru">Проекция \(W^O\)</span><span lang="en">Project \(W^O\)</span></div><div class="walk-detail"><span lang="ru">\(W^O\) <strong>смешивает</strong> головы &rarr; выход. Стоимость почти как у одной головы.</span><span lang="en">\(W^O\) <strong>mixes</strong> the heads &rarr; output. Cost is about that of one head.</span></div></div>
+                <div class="walk-state">\(\mathrm{MultiHead}(X)\)</div>
               </div>
             </div>
           </div>
-          <div class="reverse-counter">
-            <span class="reverse-hint">
-              <span lang="ru"><kbd>&rarr;</kbd> раскрывать слой за слоем · <kbd>&larr;</kbd> назад</span>
-              <span lang="en"><kbd>&rarr;</kbd> reveal layer by layer · <kbd>&larr;</kbd> back</span>
-            </span>
-            layer <span data-reverse-pos>1 / 5</span>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">0/4</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
           </div>
-          <p class="small muted center mt-2"><span lang="ru">Один советник видит одну связь. Разбиваем \(d\) на \(h\) подпространств \(d/h\), в каждом — своя голова внимания; выходы <strong>конкатенируются</strong> и проецируются \(W^O\) обратно в \(d\). Стоимость почти как у одной головы. У нас \(h=2,\ d_k=4\Rightarrow\) подпространство \(=2\).</span><span lang="en">One councillor sees one relation. We split \(d\) into \(h\) subspaces of size \(d/h\), run an attention head in each; the outputs are <strong>concatenated</strong> and projected by \(W^O\) back to \(d\). The cost is about that of one head. Here \(h=2,\ d_k=4\Rightarrow\) subspace \(=2\).</span></p>
-          <aside class="slide-notes">Multi-head attention as a forward data path, built one layer at a time, replacing the old static picture-plus-formula pair. The arrow key reveals the pipeline from input to output. Layer zero: the input X, T token vectors each of dimension d, which is four in our example. Layer one: we split into h heads — here two — by projecting X with per-head query, key and value matrices, so each head works in a subspace of dimension d over h, which is two. Layer two: each head independently runs the full scaled-dot-product attention we just built, so head one might capture one relation and head two a different one. Layer three: we concatenate the heads' outputs back up to the full dimension d. Layer four: a final learned matrix W output mixes the heads together — and this projection is essential, because concatenation alone just stacks them side by side without letting them talk. Because each head lives in a smaller subspace, the total compute is about that of a single full-size head, so we get several attention patterns nearly for free.<aside data-notes-for-step="0">Layer 0 — input X: T tokens of dimension d.</aside><aside data-notes-for-step="1">Layer 1 — split into h=2 heads via per-head Q/K/V projections, each in d/h dims.</aside><aside data-notes-for-step="2">Layer 2 — each head runs its own scaled-dot-product attention.</aside><aside data-notes-for-step="3">Layer 3 — concatenate the head outputs back to dimension d.</aside><aside data-notes-for-step="4">Layer 4 — project by Wᴼ, which mixes the heads → output.</aside></aside>
+          <p class="small muted center mt-2"><span lang="ru">Один советник видит одну связь. Разбиваем \(d\) на \(h\) подпространств \(d/h\), в каждом — своя голова внимания; выходы <strong>конкатенируются</strong> и проецируются \(W^O\) обратно в \(d\). У нас \(h=2,\ d_k=4\Rightarrow\) подпространство \(=2\).</span><span lang="en">One councillor sees one relation. We split \(d\) into \(h\) subspaces of size \(d/h\), run an attention head in each; the outputs are <strong>concatenated</strong> and projected by \(W^O\) back to \(d\). Here \(h=2,\ d_k=4\Rightarrow\) subspace \(=2\).</span></p>
+          <aside class="slide-notes">Multi-head attention as a forward data path. The whole pipeline is on screen from the start — input, split, attend, concatenate, project — with the current stage ringed and the not-yet-reached stages faded, so the projected frame is never empty even at rest. Step zero: the input X, T token vectors each of dimension d, which is four in our example. Step one: we split into h heads — here two — by projecting X with per-head query, key and value matrices, so each head works in a subspace of dimension d over h, which is two. Step two: each head independently runs the full scaled-dot-product attention we just built, so head one might capture one relation and head two a different one. Step three: we concatenate the heads' outputs back up to the full dimension d. Step four: a final learned matrix W output mixes the heads together — and this projection is essential, because concatenation alone just stacks them side by side without letting them talk. Because each head lives in a smaller subspace, the total compute is about that of a single full-size head, so we get several attention patterns nearly for free.<aside data-notes-for-step="0">Step 0 — input X: T tokens of dimension d.</aside><aside data-notes-for-step="1">Step 1 — split into h=2 heads via per-head Q/K/V projections, each in d/h dims.</aside><aside data-notes-for-step="2">Step 2 — each head runs its own scaled-dot-product attention.</aside><aside data-notes-for-step="3">Step 3 — concatenate the head outputs back to dimension d.</aside><aside data-notes-for-step="4">Step 4 — project by Wᴼ, which mixes the heads → output.</aside></aside>
         </section>
 
         <!-- ============================================ BEAT 7 · turn-positional ============================================ -->
@@ -869,14 +889,15 @@
               <div class="af-edge" data-from-node="af-pos" data-to-node="af-an1" data-from="3" data-from-anchor="top" data-to-anchor="top" data-label="residual"></div>
               <div class="af-edge" data-from-node="af-an1" data-to-node="af-an2" data-from="5" data-from-anchor="bottom" data-to-anchor="bottom" data-label="residual"></div>
 
-              <!-- NODES -->
-              <div class="af-node" id="af-in" data-role="input" data-from="1" data-focus="1" style="left:7%;top:50%"><span lang="ru">вход</span><span lang="en">input</span> \(X\)</div>
-              <div class="af-node" id="af-pos" data-role="query" data-from="2" data-focus="2" style="left:22%;top:50%">\(+\) PE</div>
-              <div class="af-node" id="af-mha" data-role="weight" data-from="3" data-focus="3" style="left:39%;top:50%"><span lang="ru">Multi-Head</span><span lang="en">Multi-Head</span><br>Attention</div>
-              <div class="af-node" id="af-an1" data-role="score" data-from="3" data-focus="3" style="left:56%;top:50%">Add &amp;<br>Norm</div>
-              <div class="af-node" id="af-ffn" data-role="value" data-from="4" data-focus="4" style="left:72%;top:50%">FFN</div>
-              <div class="af-node" id="af-an2" data-role="score" data-from="5" data-focus="5" style="left:86%;top:50%">Add &amp;<br>Norm</div>
-              <div class="af-node" id="af-out" data-role="output" data-from="6" data-focus="6" style="left:95%;top:50%">\(\times N\)</div>
+              <!-- NODES: all data-from="0" so the FULL block is on canvas at rest (step 0);
+                   data-focus still rings the active stage as → advances, future nodes read faded -->
+              <div class="af-node" id="af-in" data-role="input" data-from="0" data-focus="1" style="left:7%;top:50%"><span lang="ru">вход</span><span lang="en">input</span> \(X\)</div>
+              <div class="af-node" id="af-pos" data-role="query" data-from="0" data-focus="2" style="left:22%;top:50%">\(+\) PE</div>
+              <div class="af-node" id="af-mha" data-role="weight" data-from="0" data-focus="3" style="left:39%;top:50%"><span lang="ru">Multi-Head</span><span lang="en">Multi-Head</span><br>Attention</div>
+              <div class="af-node" id="af-an1" data-role="score" data-from="0" data-focus="3" style="left:56%;top:50%">Add &amp;<br>Norm</div>
+              <div class="af-node" id="af-ffn" data-role="value" data-from="0" data-focus="4" style="left:72%;top:50%">FFN</div>
+              <div class="af-node" id="af-an2" data-role="score" data-from="0" data-focus="5" style="left:86%;top:50%">Add &amp;<br>Norm</div>
+              <div class="af-node" id="af-out" data-role="output" data-from="0" data-focus="6" style="left:95%;top:50%">\(\times N\)</div>
 
               <div class="af-focus"></div>
             </div>
@@ -1222,50 +1243,19 @@
           <aside class="slide-notes">The trap, made precise, with the L2 callback. Anisotropy means the embedding cloud is not spread evenly — it occupies a thin cone, so any two vectors, even for unrelated sentences, share a small angle and therefore a deceptively high cosine, around zero point six or more on random pairs. Ethayarajh in 2019 measured exactly this in BERT, ELMo and GPT-2. Cosine cannot rank well when everything looks similar, and this is the same curse-of-dimensionality pathology the Wraith embodied back in Lecture 2 — distances concentrate, contrast vanishes. The cure is twofold and is precisely what we just built: contrastive training actively pushes negatives apart, spreading the cone, and normalisation onto the sphere restores a usable geometry. A nod to the Wraith, whose full reckoning waits for Lecture 9.</aside>
         </section>
 
-        <!-- ============================================ BEAT 15 · payoff-gremlin-caged ============================================ -->
-        <!-- ============================================ 51 · DIVIDER · the Gremlin caged ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="50 Divider · the Gremlin caged">
-          <div class="divider-content">
-            <div class="divider-num"><span lang="ru">Развязка</span><span lang="en">Payoff</span></div>
-            <h1>The Lexical Gremlin, Caged</h1>
-            <p class="divider-sub"><em><span lang="ru">Обратный вызов из L1 — главный:</span><span lang="en">The big callback to L1:</span></em> <span lang="ru">«couch» и «sofa» наконец схлопываются вместе. Гремлин пойман.</span><span lang="en">&ldquo;couch&rdquo; and &ldquo;sofa&rdquo; finally collapse together. The Gremlin is caged.</span></p>
-          </div>
-          <div class="viz-frame fig-fit" style="--fig-max:40cqh; --fig-w:52%;">
-            <img src="assets/img/L6/L6-15-gremlin-caged.png?v=1" alt="The Lexical Gremlin finally locked in a cage as synonyms couch and sofa collapse to nearly the same point in the embedding space" />
-          </div>
-          <aside class="slide-notes">The biggest payoff in the whole arc. The Lexical Gremlin has haunted us since Lecture 1, where it personified the lexical gap; it cameoed in Lecture 3 as BM25's blind spot; in Lecture 5 we cornered it but admitted it was not caged, because polysemy survived. Today we cage it. With contextual encoders, couch and sofa are mapped to nearly the same point, so a query for one retrieves the other — synonymy solved. And because the vectors are contextual, bank by a river and bank with money finally separate — polysemy solved too. Both halves of the lexical gap close. This lands as a callback, the resolution of a long thread, not a new idea.</aside>
-        </section>
-
-        <!-- ============================================ 52 · MISCONCEPTION · the win and its scope ============================================ -->
-        <section class="slide" data-type="misconception" data-screen-label="51 The Gremlin caged">
-          <div class="slide-header">
-            <h2><span lang="ru">Синонимы схлопнулись, смыслы развелись</span><span lang="en">Synonyms collapse, senses split</span></h2>
-            <span class="slide-kicker"><span lang="ru">обе половины разрыва закрыты</span><span lang="en">both halves of the gap closed</span></span>
-          </div>
-          <div class="misc-card">
-            <div class="misc-label"><span lang="ru">Победа — и её точная форма</span><span lang="en">The win — and its exact shape</span></div>
-            <p class="misc-statement"><span lang="ru">&laquo;Контекстные эмбеддинги — это просто эмбеддинги получше&raquo;.</span><span lang="en">&ldquo;Contextual embeddings are just slightly better embeddings.&rdquo;</span></p>
-            <button class="misc-reveal-btn" type="button"><span lang="ru">Показать правду</span><span lang="en">Reveal truth</span></button>
-            <div class="misc-truth"><span lang="ru">Это качественный скачок. <strong>Синонимия</strong>: <code>couch</code> и <code>sofa</code> схлопываются в почти одну точку — стена Гремлина из L1/L3 рушится (контрастное обучение тянет их вместе). <strong>Полисемия</strong>: «river bank» и «bank account» <em>расходятся</em>, ведь вектор теперь зависит от контекста. Обе беды лексического разрыва закрыты.</span><span lang="en">It is a qualitative leap. <strong>Synonymy</strong>: <code>couch</code> and <code>sofa</code> collapse to nearly one point — the Gremlin&rsquo;s L1/L3 wall falls (contrastive learning pulls them together). <strong>Polysemy</strong>: &ldquo;river bank&rdquo; and &ldquo;bank account&rdquo; <em>separate</em>, because the vector now depends on context. Both failures of the lexical gap are closed.</span>
-              <p class="misc-anchor"><strong><span lang="ru">Гремлин пойман.</span><span lang="en">The Gremlin is caged.</span></strong> <span lang="ru">Контекст развёл смыслы; контраст собрал синонимы. То, чего не смог one-hot, BM25 и даже статический word2vec.</span><span lang="en">Context split the senses; contrast gathered the synonyms. What one-hot, BM25, and even static word2vec could not do.</span></p>
-            </div>
-          </div>
-          <aside class="slide-notes">Name the win precisely so it does not sound like a small upgrade. Two distinct failures of the lexical gap are closed at once. Synonymy: couch and sofa, which a string matcher and even a one-hot vector treated as orthogonal, now collapse to nearly the same point, because contrastive training pulled co-relevant texts together — a query for one retrieves the other. Polysemy: river bank and bank account, which static word2vec was forced to average into one point, now separate, because the contextual vector depends on the surrounding sentence. Context split the senses; contrast gathered the synonyms. One-hot could not do this, BM25 could not, and even the static map of Lecture 5 could only corner the Gremlin. Here it is finally caged.</aside>
-        </section>
-
-        <!-- ============================================ CROSS-DOMAIN · the same block everywhere ============================================ -->
-        <!-- ============================================ 52b · DIVIDER · everything is tokens ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="52 Divider · everything is tokens">
+        <!-- ============================================ CROSS-DOMAIN cluster · moved BEFORE the Gremlin payoff (mirrors the book; payoff is the last content beat) ============================================ -->
+        <!-- ============================================ DIVIDER · everything is tokens ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="50 Divider · everything is tokens">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Перенос</span><span lang="en">Transfer</span></div>
             <h1>Everything Is a Sequence of Tokens</h1>
             <p class="divider-sub"><em><span lang="ru">Тот же блок — за пределами текста:</span><span lang="en">The same block — beyond text:</span></em> <span lang="ru">пиксели, картинки, аудио, белки, графы. Внимание оказалось универсальным.</span><span lang="en">pixels, images, audio, proteins, graphs. Attention turned out to be universal.</span></p>
           </div>
-          <aside class="slide-notes">A short cross-domain coda before the bridge. The remarkable thing about the encoder block we just built is how little of it is about language. Tokenise anything into a sequence of vectors and the same machinery — attention, residuals, LayerNorm, the feed-forward network — applies. The next three slides make that concrete: images as patches in a Vision Transformer, image-and-text aligned by the very same InfoNCE loss in CLIP, and finally the unifying view that a Transformer is just a graph neural network on a fully-connected graph. The point for this course: contextual encoders and contrastive training are a general recipe for turning any modality into a searchable vector space.</aside>
+          <aside class="slide-notes">A short cross-domain coda — placed just before the payoff so the Gremlin is the last content beat. The remarkable thing about the encoder block we just built is how little of it is about language. Tokenise anything into a sequence of vectors and the same machinery — attention, residuals, LayerNorm, the feed-forward network — applies. The next three slides make that concrete: images as patches in a Vision Transformer, image-and-text aligned by the very same InfoNCE loss in CLIP, and finally the unifying view that a Transformer is just a graph neural network on a fully-connected graph. The point for this course: contextual encoders and contrastive training are a general recipe for turning any modality into a searchable vector space — which brings us all the way home to the creature this whole journey was about.</aside>
         </section>
 
-        <!-- ============================================ 52c · DEFINITION · ViT (cross-domain #22) ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="53 ViT · patches as tokens">
+        <!-- ============================================ DEFINITION · ViT (cross-domain #22) ============================================ -->
+        <section class="slide" data-type="definition" data-screen-label="51 ViT · patches as tokens">
           <div class="slide-header">
             <h2><span lang="ru">ViT: патчи изображения — это токены</span><span lang="en">ViT: image patches are tokens</span></h2>
             <span class="slide-kicker"><span lang="ru">тот же блок-энкодер, другая модальность</span><span lang="en">the same encoder block, a new modality</span></span>
@@ -1282,7 +1272,7 @@
         </section>
 
         <!-- ============================================ 52d · DEFINITION · CLIP (cross-domain #23, SAME InfoNCE) ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="54 CLIP · the same InfoNCE">
+        <section class="slide" data-type="definition" data-screen-label="52 CLIP · the same InfoNCE">
           <div class="slide-header">
             <h2><span lang="ru">CLIP: InfoNCE в общем пространстве картинка&harr;текст</span><span lang="en">CLIP: InfoNCE in a shared image&harr;text space</span></h2>
             <span class="slide-kicker"><span lang="ru">та же контрастная потеря, что и у нас</span><span lang="en">the very same contrastive loss</span></span>
@@ -1299,7 +1289,7 @@
         </section>
 
         <!-- ============================================ 52e · TWO-COL · Transformer = GNN on a complete graph (cross-domain #27) ============================================ -->
-        <section class="slide" data-type="two-col" data-screen-label="55 A Transformer is a GNN">
+        <section class="slide" data-type="two-col" data-screen-label="53 A Transformer is a GNN">
           <div class="slide-header">
             <h2><span lang="ru">Один кадр: Transformer = GNN на полном графе</span><span lang="en">One frame: a Transformer is a GNN on a complete graph</span></h2>
             <span class="slide-kicker"><span lang="ru">внимание = взвешенный message-passing</span><span lang="en">attention = weighted message-passing</span></span>
@@ -1320,10 +1310,41 @@
               <p class="small muted"><span lang="ru">Токенизируй модальность &rarr; обучи контрастом &rarr; ищи по косинусу. Та же геометрия смысла.</span><span lang="en">Tokenise a modality &rarr; train contrastively &rarr; search by cosine. The same geometry of meaning.</span></p>
             </div>
           </div>
-          <aside class="slide-notes">The closing unification. Step back and the Transformer stops looking like a language model and starts looking like something more general. Treat each token as a node in a graph and each attention weight as the strength of an edge; then a single attention layer is exactly one round of message-passing on that graph, where every node collects a weighted sum of messages from its neighbours. The graph just happens to be complete — every token attends to every token — and positional encoding substitutes for the explicit edges that a real graph would carry. Veličković and colleagues' Graph Attention Network from 2018 is the same idea made explicit on arbitrary graphs. And once you see attention as message-passing on tokenised inputs, the whole zoo lines up: wav2vec tokenises audio into signal windows, ViT and CLIP tokenise images, protein language models like ESM treat amino acids as words and replace BLAST search with embedding search, DNABERT does the same for the genome, and graph attention networks operate on molecules and social graphs. The recipe is always the same three moves: tokenise the modality, train contrastively, search by cosine. Everything is a sequence of tokens in a learned space.</aside>
+          <aside class="slide-notes">The closing unification. Step back and the Transformer stops looking like a language model and starts looking like something more general. Treat each token as a node in a graph and each attention weight as the strength of an edge; then a single attention layer is exactly one round of message-passing on that graph, where every node collects a weighted sum of messages from its neighbours. The graph just happens to be complete — every token attends to every token — and positional encoding substitutes for the explicit edges that a real graph would carry. Veličković and colleagues' Graph Attention Network from 2018 is the same idea made explicit on arbitrary graphs. And once you see attention as message-passing on tokenised inputs, the whole zoo lines up: wav2vec tokenises audio into signal windows, ViT and CLIP tokenise images, protein language models like ESM treat amino acids as words and replace BLAST search with embedding search, DNABERT does the same for the genome, and graph attention networks operate on molecules and social graphs. The recipe is always the same three moves: tokenise the modality, train contrastively, search by cosine. Everything is a sequence of tokens in a learned space — which brings us all the way home, to the creature this whole journey was about.</aside>
         </section>
 
-        <!-- ============================================ 53 · QUOTE · bridge to L7 ============================================ -->
+        <!-- ============================================ BEAT 15 · payoff-gremlin-caged (now the LAST content beat before the bridge) ============================================ -->
+        <!-- ============================================ DIVIDER · the Gremlin caged ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="54 Divider · the Gremlin caged">
+          <div class="divider-content">
+            <div class="divider-num"><span lang="ru">Развязка</span><span lang="en">Payoff</span></div>
+            <h1>The Lexical Gremlin, Caged</h1>
+            <p class="divider-sub"><em><span lang="ru">Обратный вызов из L1 — главный:</span><span lang="en">The big callback to L1:</span></em> <span lang="ru">«couch» и «sofa» наконец схлопываются вместе. Гремлин пойман.</span><span lang="en">&ldquo;couch&rdquo; and &ldquo;sofa&rdquo; finally collapse together. The Gremlin is caged.</span></p>
+          </div>
+          <div class="viz-frame fig-fit" style="--fig-max:40cqh; --fig-w:52%;">
+            <img src="assets/img/L6/L6-15-gremlin-caged.png?v=1" alt="The Lexical Gremlin finally locked in a cage as synonyms couch and sofa collapse to nearly the same point in the embedding space" />
+          </div>
+          <aside class="slide-notes">The biggest payoff in the whole arc, and now it lands last — the final content beat before the bridge. The Lexical Gremlin has haunted us since Lecture 1, where it personified the lexical gap; it cameoed in Lecture 3 as BM25's blind spot; in Lecture 5 we cornered it but admitted it was not caged, because polysemy survived. Today we cage it. With contextual encoders, couch and sofa are mapped to nearly the same point, so a query for one retrieves the other — synonymy solved. And because the vectors are contextual, bank by a river and bank with money finally separate — polysemy solved too. Both halves of the lexical gap close. This lands as a callback, the resolution of a long thread, not a new idea.</aside>
+        </section>
+
+        <!-- ============================================ MISCONCEPTION · the win and its scope ============================================ -->
+        <section class="slide" data-type="misconception" data-screen-label="55 The Gremlin caged">
+          <div class="slide-header">
+            <h2><span lang="ru">Синонимы схлопнулись, смыслы развелись</span><span lang="en">Synonyms collapse, senses split</span></h2>
+            <span class="slide-kicker"><span lang="ru">обе половины разрыва закрыты</span><span lang="en">both halves of the gap closed</span></span>
+          </div>
+          <div class="misc-card">
+            <div class="misc-label"><span lang="ru">Победа — и её точная форма</span><span lang="en">The win — and its exact shape</span></div>
+            <p class="misc-statement"><span lang="ru">&laquo;Контекстные эмбеддинги — это просто эмбеддинги получше&raquo;.</span><span lang="en">&ldquo;Contextual embeddings are just slightly better embeddings.&rdquo;</span></p>
+            <button class="misc-reveal-btn" type="button"><span lang="ru">Показать правду</span><span lang="en">Reveal truth</span></button>
+            <div class="misc-truth"><span lang="ru">Это качественный скачок. <strong>Синонимия</strong>: <code>couch</code> и <code>sofa</code> схлопываются в почти одну точку — стена Гремлина из L1/L3 рушится (контрастное обучение тянет их вместе). <strong>Полисемия</strong>: «river bank» и «bank account» <em>расходятся</em>, ведь вектор теперь зависит от контекста. Обе беды лексического разрыва закрыты.</span><span lang="en">It is a qualitative leap. <strong>Synonymy</strong>: <code>couch</code> and <code>sofa</code> collapse to nearly one point — the Gremlin&rsquo;s L1/L3 wall falls (contrastive learning pulls them together). <strong>Polysemy</strong>: &ldquo;river bank&rdquo; and &ldquo;bank account&rdquo; <em>separate</em>, because the vector now depends on context. Both failures of the lexical gap are closed.</span>
+              <p class="misc-anchor"><strong><span lang="ru">Гремлин пойман.</span><span lang="en">The Gremlin is caged.</span></strong> <span lang="ru">Контекст развёл смыслы; контраст собрал синонимы. То, чего не смог one-hot, BM25 и даже статический word2vec.</span><span lang="en">Context split the senses; contrast gathered the synonyms. What one-hot, BM25, and even static word2vec could not do.</span></p>
+            </div>
+          </div>
+          <aside class="slide-notes">Name the win precisely so it does not sound like a small upgrade. Two distinct failures of the lexical gap are closed at once. Synonymy: couch and sofa, which a string matcher and even a one-hot vector treated as orthogonal, now collapse to nearly the same point, because contrastive training pulled co-relevant texts together — a query for one retrieves the other. Polysemy: river bank and bank account, which static word2vec was forced to average into one point, now separate, because the contextual vector depends on the surrounding sentence. Context split the senses; contrast gathered the synonyms. One-hot could not do this, BM25 could not, and even the static map of Lecture 5 could only corner the Gremlin. Here it is finally caged.</aside>
+        </section>
+
+        <!-- ============================================ QUOTE · bridge to L7 ============================================ -->
         <section class="slide" data-type="quote" data-screen-label="56 Bridge">
           <div>
             <div class="quote-mark">&ldquo;</div>

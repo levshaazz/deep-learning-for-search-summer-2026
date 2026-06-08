@@ -95,6 +95,19 @@
   <!-- QR code generator — vendored. -->
   <script src="vendor/qrcode/qrcode.js"
         onerror="window.__assetFail&&window.__assetFail('QR')"></script>
+
+  <!-- Deck-local style: the cosine-vs-angle demo (slide 18) reuses the function-plot
+       engine with the gradient-descent algorithm pinned (lr=0, iters=0) so the red
+       marker sits exactly at (θ, cos θ). Those two pinned knobs + the "steps" readout
+       are inert here, so we hide them — the slide reads cleanly as "move the angle θ,
+       watch cos θ". The <param>/<readout> elements stay in the DOM so the engine still
+       sees lr=0 / iters=0 (keeping the marker pinned); only their generated controls
+       are visually removed. Scoped to this one slide via .demo-cos-angle. -->
+  <style>
+    .demo-cos-angle .demo-knob:has([data-demo-p="lr"]),
+    .demo-cos-angle .demo-knob:has([data-demo-p="iters"]),
+    .demo-cos-angle .demo-readout:has([data-demo-r="iters_used"]) { display: none !important; }
+  </style>
 </head>
 
 <body>
@@ -202,19 +215,19 @@
               <span class="toc-num">03</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Смысл становится арифметикой</span><span lang="en">Meaning becomes arithmetic</span></span><span class="toc-sub">king&minus;man+woman &middot; cosine &middot; the parallelogram</span></span>
             </a>
-            <a class="toc-item" href="#/26">
+            <a class="toc-item" href="#/27">
               <span class="toc-num">04</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">GloVe и проклятие 300-D</span><span lang="en">GloVe &amp; the curse of 300-D</span></span><span class="toc-sub">co-occurrence &middot; count vs predict &middot; you can&rsquo;t see it</span></span>
             </a>
-            <a class="toc-item" href="#/30">
+            <a class="toc-item" href="#/31">
               <span class="toc-num">05</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Картограф складывает карту: PCA</span><span lang="en">The Cartographer: PCA</span></span><span class="toc-sub">covariance &middot; eigenvectors &middot; 37.7% kept</span></span>
             </a>
-            <a class="toc-item" href="#/35">
+            <a class="toc-item" href="#/36">
               <span class="toc-num">06</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Кривая карта: t-SNE</span><span lang="en">When the map curves: t-SNE</span></span><span class="toc-sub">manifold &middot; neighbours &middot; the 2-D word map</span></span>
             </a>
-            <a class="toc-item" href="#/39">
+            <a class="toc-item" href="#/40">
               <span class="toc-num">07</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Ловушки и развязка</span><span lang="en">The traps &amp; the payoff</span></span><span class="toc-sub">t-SNE lies &middot; the Gremlin cornered &middot; bridge to L6</span></span>
             </a>
@@ -497,19 +510,22 @@
         </section>
 
         <!-- ============================================ 20 · DEMO · cosine vs angle (T4: course's first live demo) ============================================ -->
-        <section class="slide" data-type="demo" data-screen-label="18 Cosine vs angle">
+        <section class="slide demo-cos-angle" data-type="demo" data-screen-label="18 Cosine vs angle">
           <div class="slide-header">
             <h2><span lang="ru">Линейка карты: косинус против угла</span><span lang="en">The ruler of the map: cosine vs angle</span></h2>
             <span class="slide-kicker"><span lang="ru">подвигайте угол \(\theta\) · Сэр Косинус, живьём</span><span lang="en">drag the angle \(\theta\) · Sir Cosine, live</span></span>
           </div>
-          <!-- Declarative live demo — engine js/demos.js (function-plot). The curve is y = cos θ over [0, π];
-               the θ slider is x0, lr & iters pinned to 0 so the red marker sits exactly at (θ, cos θ)
-               and the readout reports cos θ. No JS needed. -->
+          <!-- Declarative live demo — engine js/demos.js (function-plot). The curve is y = cos θ over [0, π].
+               Only ONE knob is shown — the angle θ (x0) — and ONE readout — cos θ. The engine's
+               gradient-descent overlay is pinned (lr=0, iters=0) so the red marker just sits at (θ, cos θ)
+               with no trajectory; the loss readout then reports cos θ exactly. The lr/iters <param>s and the
+               steps <readout> are kept in the DOM (so the engine sees lr=0/iters=0 and the marker stays put)
+               but hidden via the .demo-cos-angle style block in <head>. Reads as "move the angle, watch cos θ." -->
           <interactive-demo kind="function-plot" algorithm="gradient-descent">
             <function fn="cos(x)" range="0..3.14159"></function>
             <param name="x0"    label="угол θ (rad) · angle θ" min="0" max="3.14159" step="0.01" default="0.6"></param>
-            <param name="lr"    label="(fixed) · lr"     min="0" max="0" step="0" default="0"></param>
-            <param name="iters" label="(fixed) · iters"  min="0" max="0" step="0" default="0"></param>
+            <param name="lr"    label="lr (pinned)"    min="0" max="0" step="0" default="0"></param>
+            <param name="iters" label="iters (pinned)" min="0" max="0" step="0" default="0"></param>
             <readout name="loss"        label="cos θ"></readout>
             <readout name="iters_used"  label="steps"></readout>
           </interactive-demo>
@@ -538,8 +554,30 @@
           <aside class="slide-notes">These are real cosines from fifty-dimensional GloVe vectors, straight from the L5 data file. Cat and dog sit at zero point nine two two — almost the same direction — because they share enormous context overlap as pets. King and queen at zero point seven eight, dog and puppy at zero point seven eight, cat and kitten at zero point six four. And the unrelated pairs collapse: cat and airplane at zero point three seven, king and computer at zero point two three. Remember that in one-hot every one of these numbers was exactly zero. The whole point of the lecture is summarised in this table: nearness now means relatedness.</aside>
         </section>
 
-        <!-- ============================================ 22 · E2E · king - man + woman ============================================ -->
-        <section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="20 King analogy">
+        <!-- ============================================ 20 · QUIZ · what cosine measures (check-for-understanding before the analogy climb) ============================================ -->
+        <section class="slide" data-type="quiz" data-screen-label="20 Quick check · cosine">
+          <div class="slide-header">
+            <h2><span lang="ru">Быстрая проверка: что измеряет косинус?</span><span lang="en">Quick check: what does cosine measure?</span></h2>
+            <span class="slide-kicker"><span lang="ru">перед арифметикой смысла</span><span lang="en">before the arithmetic of meaning</span></span>
+          </div>
+          <div class="quiz-frame">
+            <div class="quiz-q"><span lang="ru">Косинусная близость \(\cos(\mathbf{a},\mathbf{b})\) фиксирует то, чего <strong>не</strong> видит евклидово расстояние. Что именно?</span><span lang="en">Cosine similarity \(\cos(\mathbf{a},\mathbf{b})\) captures something that Euclidean distance does <strong>not</strong>. What is it?</span></div>
+            <div class="quiz-options">
+              <div class="quiz-option" data-correct="true"><span class="quiz-letter">A</span><span><span lang="ru">Только <strong>направление</strong> (угол): длина векторов отбрасывается, поэтому редкое и частое слово всё ещё могут быть синонимами.</span><span lang="en">Only the <strong>direction</strong> (angle): vector length is divided out, so a rare and a frequent word can still read as synonyms.</span></span><span></span></div>
+              <div class="quiz-option" data-correct="false"><span class="quiz-letter">B</span><span><span lang="ru">Расстояние между концами векторов в пространстве.</span><span lang="en">The straight-line distance between the vectors' tips.</span></span><span></span></div>
+              <div class="quiz-option" data-correct="false"><span class="quiz-letter">C</span><span><span lang="ru">Длину (норму) каждого вектора по отдельности.</span><span lang="en">The length (norm) of each vector on its own.</span></span><span></span></div>
+              <div class="quiz-option" data-correct="false"><span class="quiz-letter">D</span><span><span lang="ru">Частоту слов в обучающем корпусе.</span><span lang="en">The frequency of the words in the training corpus.</span></span><span></span></div>
+            </div>
+            <details class="hidden-answer mt-4">
+              <summary><span lang="ru">Показать ответ</span><span lang="en">Reveal explanation</span></summary>
+              <div class="ha-content"><strong>A</strong>. <span lang="ru">\(\cos(\mathbf{a},\mathbf{b})=\dfrac{\mathbf{a}^{\top}\mathbf{b}}{\lVert\mathbf{a}\rVert\,\lVert\mathbf{b}\rVert}\) делит на обе нормы, поэтому длина сокращается — остаётся только угол. Евклидово расстояние, наоборот, растёт вместе с длиной, и частое (длинное) слово казалось бы «далёким» от редкого синонима. Именно поэтому Сэр Косинус — правильная линейка карты смысла.</span><span lang="en">\(\cos(\mathbf{a},\mathbf{b})=\dfrac{\mathbf{a}^{\top}\mathbf{b}}{\lVert\mathbf{a}\rVert\,\lVert\mathbf{b}\rVert}\) divides by both norms, so length cancels and only the angle survives. Euclidean distance, by contrast, grows with magnitude, making a frequent (long) word look "far" from a rare synonym. That is exactly why Sir Cosine is the right ruler for the map of meaning.</span></div>
+            </details>
+          </div>
+          <aside class="slide-notes">A cheap retention beat right after the cosine table and before we do arithmetic on meaning. The trap is option B — students who half-remember "vectors live in space" reach for Euclidean distance. Push them to commit out loud before revealing. The point: cosine divides out both norms, so it measures direction only; that magnitude-invariance is precisely what we want, because a rare word and a frequent word with very different vector lengths can still be synonyms if they point the same way. This sets up the analogy climb — the gender direction is a direction, not a distance.</aside>
+        </section>
+
+        <!-- ============================================ 21 · E2E · king - man + woman ============================================ -->
+        <section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="21 King analogy">
           <div class="slide-header">
             <h2><span lang="ru">Аналогия как вычитание векторов</span><span lang="en">The analogy as vector subtraction</span></h2>
             <span class="slide-kicker">E2E &middot; \(\text{king} - \text{man} + \text{woman}\)</span>
@@ -577,7 +615,7 @@
         </section>
 
         <!-- ============================================ 23 · WALKTHROUGH · the nearest-neighbour ranking ============================================ -->
-        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="21 Analogy ranking">
+        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="22 Analogy ranking">
           <div class="slide-header">
             <h2><span lang="ru">Рейтинг кандидатов на queen</span><span lang="en">The ranking behind &ldquo;queen&rdquo;</span></h2>
             <span class="slide-kicker"><span lang="ru">cos к \(v_{\text{king}}-v_{\text{man}}+v_{\text{woman}}\)</span><span lang="en">cos to \(v_{\text{king}}-v_{\text{man}}+v_{\text{woman}}\)</span></span>
@@ -613,7 +651,7 @@
         </section>
 
         <!-- ============================================ 24 · TABLE · capital analogy ============================================ -->
-        <section class="slide" data-type="table" data-screen-label="22 Capital analogy">
+        <section class="slide" data-type="table" data-screen-label="23 Capital analogy">
           <div class="slide-header">
             <h2><span lang="ru">Другое направление: столицы</span><span lang="en">A different direction: capitals</span></h2>
             <span class="slide-kicker">\(\text{paris} - \text{france} + \text{italy} \approx \text{rome}\)</span>
@@ -632,7 +670,7 @@
         </section>
 
         <!-- ============================================ 25 · MISCONCEPTION · analogies aren't magic ============================================ -->
-        <section class="slide" data-type="misconception" data-screen-label="23 Analogy caveat">
+        <section class="slide" data-type="misconception" data-screen-label="24 Analogy caveat">
           <div class="slide-header">
             <h2><span lang="ru">Частое заблуждение</span><span lang="en">Common misconception</span></h2>
             <span class="slide-kicker"><span lang="ru">развенчиваем миф</span><span lang="en">bust the myth</span></span>
@@ -649,7 +687,7 @@
         </section>
 
         <!-- ============================================ 26 · MISCONCEPTION · when the analogy FAILS (corner case 17) ============================================ -->
-        <section class="slide" data-type="misconception" data-screen-label="24 When the analogy fails">
+        <section class="slide" data-type="misconception" data-screen-label="25 When the analogy fails">
           <div class="slide-header">
             <h2><span lang="ru">Где king&minus;man+woman промахивается</span><span lang="en">Where king&minus;man+woman misses</span></h2>
             <span class="slide-kicker"><span lang="ru">честная карта провалов</span><span lang="en">an honest map of failures</span></span>
@@ -672,7 +710,7 @@
         </section>
 
         <!-- ============================================ 27 · DEFINITION · bias in embeddings (PLAN item 4 · ethics hook) ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="25 Bias in embeddings">
+        <section class="slide" data-type="definition" data-screen-label="26 Bias in embeddings">
           <div class="slide-header">
             <h2><span lang="ru">Та же геометрия кодирует <em>социальную</em> предвзятость</span><span lang="en">The same geometry encodes <em>social</em> bias</span></h2>
             <span class="slide-kicker"><span lang="ru">вред &middot; и направление дебиасинга</span><span lang="en">the harm &middot; and a debiasing direction</span></span>
@@ -690,7 +728,7 @@
 
         <!-- ============================================ BEAT 6 · turn-glove ============================================ -->
         <!-- ============================================ 28 · DIVIDER · GloVe ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="26 Divider · GloVe">
+        <section class="slide" data-type="divider" data-screen-label="27 Divider · GloVe">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 04</span><span lang="en">Part 04</span></div>
             <h1>GloVe &amp; the Curse of 300-D</h1>
@@ -703,7 +741,7 @@
         </section>
 
         <!-- ============================================ 27 · FORMULA · GloVe co-occurrence ============================================ -->
-        <section class="slide" data-type="formula" data-screen-label="27 GloVe co-occurrence">
+        <section class="slide" data-type="formula" data-screen-label="28 GloVe co-occurrence">
           <div class="slide-header slide-header--flush">
             <h2>GloVe: <span lang="ru">факторизация совместной встречаемости</span><span lang="en">factor the co-occurrence matrix</span></h2>
             <span class="slide-kicker"><span lang="ru">глобальная статистика · Pennington 2014</span><span lang="en">global statistics · Pennington 2014</span></span>
@@ -721,7 +759,7 @@
         </section>
 
         <!-- ============================================ 28 · TABLE · count vs predict ============================================ -->
-        <section class="slide" data-type="table" data-screen-label="28 Count vs predict">
+        <section class="slide" data-type="table" data-screen-label="29 Count vs predict">
           <div class="slide-header">
             <h2><span lang="ru">Счёт против предсказания</span><span lang="en">Count vs predict</span></h2>
             <span class="slide-kicker"><span lang="ru">две школы, одна геометрия</span><span lang="en">two schools, one geometry</span></span>
@@ -741,7 +779,7 @@
 
         <!-- ============================================ BEAT 7 · stakes-too-many-dims ============================================ -->
         <!-- ============================================ 29 · FORMULA · 300 numbers per word ============================================ -->
-        <section class="slide" data-type="formula" data-screen-label="29 300 dimensions">
+        <section class="slide" data-type="formula" data-screen-label="30 300 dimensions">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">300 чисел на слово — это нельзя увидеть</span><span lang="en">300 numbers per word — you can't see it</span></h2>
             <span class="slide-kicker"><span lang="ru">люди видят 2&ndash;3 измерения</span><span lang="en">humans see 2&ndash;3 dimensions</span></span>
@@ -762,7 +800,7 @@
 
         <!-- ============================================ BEAT 8 · turn-dimred (Cartographer) ============================================ -->
         <!-- ============================================ 30 · DIVIDER · Cartographer ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="30 Divider · The Cartographer">
+        <section class="slide" data-type="divider" data-screen-label="31 Divider · The Cartographer">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 05</span><span lang="en">Part 05</span></div>
             <h1>Enter the Cartographer</h1>
@@ -776,7 +814,7 @@
 
         <!-- ============================================ BEAT 9 · climb-pca ============================================ -->
         <!-- ============================================ 31 · DEFINITION · PCA idea ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="31 PCA idea">
+        <section class="slide" data-type="definition" data-screen-label="32 PCA idea">
           <div class="slide-header">
             <h2><span lang="ru">PCA: складка вдоль наибольшего разброса</span><span lang="en">PCA: fold along greatest spread</span></h2>
             <span class="slide-kicker"><span lang="ru">линейно · сохраняет дисперсию</span><span lang="en">linear · preserves variance</span></span>
@@ -793,7 +831,7 @@
         </section>
 
         <!-- ============================================ 32 · DERIVATION · PCA causal chain (T1: covariance → eigen → project → variance) ============================================ -->
-        <section class="slide" data-type="derivation" data-screen-label="32 PCA math">
+        <section class="slide" data-type="derivation" data-screen-label="33 PCA math">
           <div class="slide-header">
             <h2><span lang="ru">PCA: ковариация &rarr; собственные векторы &rarr; проекция</span><span lang="en">PCA: covariance &rarr; eigenvectors &rarr; projection</span></h2>
             <span class="slide-kicker"><span lang="ru">каждый объект строится из предыдущего</span><span lang="en">each object is built from the previous one</span></span>
@@ -833,7 +871,7 @@
         </section>
 
         <!-- ============================================ 33 · WALKTHROUGH · PCA on our words ============================================ -->
-        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="33 PCA variance">
+        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="34 PCA variance">
           <div class="slide-header">
             <h2><span lang="ru">PCA на 44 словах: сколько дисперсии остаётся?</span><span lang="en">PCA on 44 words: how much variance survives?</span></h2>
             <span class="slide-kicker"><span lang="ru">GloVe-50 &rarr; 2-D · реальные числа</span><span lang="en">GloVe-50 &rarr; 2-D · real numbers</span></span>
@@ -869,7 +907,7 @@
         </section>
 
         <!-- ============================================ 34 · VIZ · scree / explained variance ============================================ -->
-        <section class="slide" data-type="viz" data-screen-label="34 Scree plot">
+        <section class="slide" data-type="viz" data-screen-label="35 Scree plot">
           <div class="slide-header">
             <h2><span lang="ru">Доля дисперсии по компонентам</span><span lang="en">Explained variance per component</span></h2>
             <span class="slide-kicker"><span lang="ru">scree-график · быстрый спад</span><span lang="en">scree plot · the fast decay</span></span>
@@ -911,7 +949,7 @@
 
         <!-- ============================================ BEAT 10 · turn-manifold ============================================ -->
         <!-- ============================================ 35 · DIVIDER · manifold ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="35 Divider · the curved map">
+        <section class="slide" data-type="divider" data-screen-label="36 Divider · the curved map">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 06</span><span lang="en">Part 06</span></div>
             <h1>When the Map Curves</h1>
@@ -925,7 +963,7 @@
 
         <!-- ============================================ BEAT 11 · climb-tsne ============================================ -->
         <!-- ============================================ 36 · DEFINITION · t-SNE idea ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="36 t-SNE idea">
+        <section class="slide" data-type="definition" data-screen-label="37 t-SNE idea">
           <div class="slide-header">
             <h2>t-SNE: <span lang="ru">сохранить соседей</span><span lang="en">preserve neighbours</span></h2>
             <span class="slide-kicker"><span lang="ru">вероятности соседства · van der Maaten 2008</span><span lang="en">neighbour probabilities · van der Maaten 2008</span></span>
@@ -942,7 +980,7 @@
         </section>
 
         <!-- ============================================ 37 · VIZ · the 2-D word map (t-SNE scatter) ============================================ -->
-        <section class="slide" data-type="viz" data-screen-label="37 The 2-D word map">
+        <section class="slide" data-type="viz" data-screen-label="38 The 2-D word map">
           <div class="slide-header">
             <h2><span lang="ru">Карта смысла, нарисованная: 7 кластеров</span><span lang="en">The Map of Meaning, drawn: 7 clusters</span></h2>
             <span class="slide-kicker"><span lang="ru">t-SNE · 44 слова · perplexity \(=14\)</span><span lang="en">t-SNE · 44 words · perplexity \(=14\)</span></span>
@@ -1026,7 +1064,7 @@
         </section>
 
         <!-- ============================================ 38 · TWO-COL · UMAP ============================================ -->
-        <section class="slide" data-type="two-col" data-screen-label="38 UMAP">
+        <section class="slide" data-type="two-col" data-screen-label="39 UMAP">
           <div class="slide-header">
             <h2>UMAP: <span lang="ru">быстрее и с сохранением структуры</span><span lang="en">faster, more global structure</span></h2>
             <span class="slide-kicker"><span lang="ru">McInnes 2018 · соседний метод</span><span lang="en">McInnes 2018 · the sibling method</span></span>
@@ -1056,7 +1094,7 @@
 
         <!-- ============================================ BEAT 12 · catch-tsne-lies ============================================ -->
         <!-- ============================================ 39 · DIVIDER · t-SNE mirage ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="39 Divider · the t-SNE mirage">
+        <section class="slide" data-type="divider" data-screen-label="40 Divider · the t-SNE mirage">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 07</span><span lang="en">Part 07</span></div>
             <h1>Don't Over-read the Map</h1>
@@ -1069,7 +1107,7 @@
         </section>
 
         <!-- ============================================ 40 · MISCONCEPTION · t-SNE lies ============================================ -->
-        <section class="slide" data-type="misconception" data-screen-label="40 t-SNE lies">
+        <section class="slide" data-type="misconception" data-screen-label="41 t-SNE lies">
           <div class="slide-header">
             <h2><span lang="ru">Частое заблуждение</span><span lang="en">Common misconception</span></h2>
             <span class="slide-kicker"><span lang="ru">развенчиваем миф</span><span lang="en">bust the myth</span></span>
@@ -1087,7 +1125,7 @@
 
         <!-- ============================================ BEAT 13 · catch-gremlin-cornered ============================================ -->
         <!-- ============================================ 41 · MISCONCEPTION · gremlin cornered ============================================ -->
-        <section class="slide" data-type="misconception" data-screen-label="41 Gremlin cornered">
+        <section class="slide" data-type="misconception" data-screen-label="42 Gremlin cornered">
           <div class="slide-header">
             <h2><span lang="ru">Гремлин загнан в угол — но не пойман</span><span lang="en">The Gremlin cornered — but not caged</span></h2>
             <span class="slide-kicker"><span lang="ru">обратный вызов из L3 · мост к L6</span><span lang="en">callback to L3 · bridge to L6</span></span>
@@ -1105,7 +1143,7 @@
 
         <!-- ============================================ BEAT 13b · cross-domain transfer (PLAN §D · the headline cross-domain ask) ============================================ -->
         <!-- ============================================ 42 · DIVIDER · the same trick everywhere ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="42 Divider · the same trick everywhere">
+        <section class="slide" data-type="divider" data-screen-label="43 Divider · the same trick everywhere">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Интерлюдия</span><span lang="en">Interlude</span></div>
             <h1>The Same Trick Everywhere</h1>
@@ -1115,7 +1153,7 @@
         </section>
 
         <!-- ============================================ 43 · TABLE · cross-domain transfer table ============================================ -->
-        <section class="slide" data-type="table" data-screen-label="43 Embeddings everywhere">
+        <section class="slide" data-type="table" data-screen-label="44 Embeddings everywhere">
           <div class="slide-header">
             <h2><span lang="ru">Один объектив, много областей</span><span lang="en">One trick, many fields</span></h2>
             <span class="slide-kicker"><span lang="ru">последовательность &rarr; токен &rarr; та же карта</span><span lang="en">a sequence &rarr; a token &rarr; the same map</span></span>
@@ -1160,7 +1198,7 @@
 
         <!-- ============================================ BEAT 14 · payoff-map-drawn ============================================ -->
         <!-- ============================================ 44 · DIVIDER · map drawn ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="44 Divider · the map is drawn">
+        <section class="slide" data-type="divider" data-screen-label="45 Divider · the map is drawn">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Развязка</span><span lang="en">Payoff</span></div>
             <h1>The Map of Meaning is Drawn</h1>
@@ -1173,7 +1211,7 @@
         </section>
 
         <!-- ============================================ 43 · QUOTE · bridge to L6 ============================================ -->
-        <section class="slide" data-type="quote" data-screen-label="45 Bridge">
+        <section class="slide" data-type="quote" data-screen-label="46 Bridge">
           <div>
             <div class="quote-mark">&ldquo;</div>
             <blockquote><span lang="ru">Карта смысла нарисована.<br />Но одно слово всё ещё значит две вещи — дайте карте <em>контекст</em>.</span><span lang="en">The Map of Meaning is drawn.<br />But one word still means two things — give the map <em>context</em>.</span></blockquote>
@@ -1183,7 +1221,7 @@
         </section>
 
         <!-- ============================================ 44 · FINAL ============================================ -->
-        <section class="slide" data-type="final" data-screen-label="46 Final">
+        <section class="slide" data-type="final" data-screen-label="47 Final">
           <div class="final-body">
             <h1 style="font-size:96px; line-height:1.05; margin-bottom:var(--sp-4);"><span lang="ru">Слова получили координаты.<br />Что значит <em>близко</em>?</span><span lang="en">Words have coordinates now.<br />What does <em>near</em> mean?</span></h1>
             <p class="final-sub" style="margin-bottom:var(--sp-5);"><strong><span lang="ru">Вопросы?</span><span lang="en">Questions?</span></strong> &middot; <span lang="ru">Слайды, домашка и запись — по QR ниже.</span><span lang="en">Slides, homework &amp; recording via the QR below.</span></p>
@@ -1201,7 +1239,7 @@
         </section>
 
         <!-- ============================================ 45 · REFERENCES (1/2) ============================================ -->
-        <section class="slide" data-type="refs" data-screen-label="47 References · embeddings">
+        <section class="slide" data-type="refs" data-screen-label="48 References · embeddings">
           <div class="slide-header">
             <h2><span lang="ru">Источники и дополнительное чтение</span><span lang="en">References &amp; further reading</span> <span style="font-weight:400;opacity:.6">(1 / 2)</span></h2>
             <span class="slide-kicker"><span lang="ru">Приложение · эмбеддинги</span><span lang="en">Appendix · the embeddings lineage</span></span>
@@ -1216,7 +1254,7 @@
         </section>
 
         <!-- ============================================ 46 · REFERENCES (2/2) ============================================ -->
-        <section class="slide" data-type="refs" data-screen-label="48 References · dimred">
+        <section class="slide" data-type="refs" data-screen-label="49 References · dimred">
           <div class="slide-header">
             <h2><span lang="ru">Источники и дополнительное чтение</span><span lang="en">References &amp; further reading</span> <span style="font-weight:400;opacity:.6">(2 / 2)</span></h2>
             <span class="slide-kicker"><span lang="ru">Приложение · снижение размерности</span><span lang="en">Appendix · dimensionality reduction</span></span>
