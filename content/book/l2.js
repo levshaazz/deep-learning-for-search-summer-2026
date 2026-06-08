@@ -116,6 +116,7 @@ export default {
       },
     },
     { id: 'climb-bpe', kind: 'scrolly', widget: 'bpe-merge-ledger', data: 'l2-bpe' },
+    { id: 'climb-bpe-steps', kind: 'scrolly', widget: 'bpe-steps', data: 'l2-bpe-steps' },
     { id: 'stats-zipf-heaps', kind: 'scrolly', widget: 'zipf-heaps', data: 'l2-corpus-stats' },
     {
       id: 'turn-bpe-nonunique', kind: 'prose',

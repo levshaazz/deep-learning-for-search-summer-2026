@@ -1,0 +1,32 @@
+{
+  "_doc": "Step captions + small labels for bpe-steps (the live BPE training loop). EN canonical + RU; TT falls back to EN. The corpus, pair tallies, winners and merges all live in data/l2-bpe-steps.json (the deck's {low^5, lower^2, newest^6, widest^3} example). s0..s4 narrate the five merges; small labels name the three regions of the figure.",
+  "corpusHead": { "en": "Corpus — current tokens (× word frequency)", "ru": "Корпус — текущие токены (× частота слова)" },
+  "tallyHead": { "en": "Count adjacent pairs, weighted by frequency", "ru": "Считаем соседние пары, взвешенные по частоте" },
+  "mergeHead": { "en": "Merge the winner, re-tokenize", "ru": "Сливаем победителя, ре-токенизируем" },
+  "pairCol": { "en": "pair", "ru": "пара" },
+  "countCol": { "en": "count", "ru": "счёт" },
+  "winnerTag": { "en": "max", "ru": "макс" },
+  "tieTag": { "en": "tie", "ru": "ничья" },
+  "mergeRule": { "en": "rule", "ru": "правило" },
+  "freqMark": { "en": "×", "ru": "×" },
+  "s0": {
+    "en": "Split every word into characters plus an end-of-word marker </w>, then count each adjacent pair weighted by the word's frequency. The pair e·s appears in newest (6) and widest (3), so e·s = 6 + 3 = 9 — the maximum. (s·t and t·</w> also hit 9: ties happen.) Merge e·s → es and re-tokenize: newest becomes n e w es t </w>.",
+    "ru": "Разбиваем каждое слово на символы плюс маркер конца слова </w>, затем считаем каждую соседнюю пару, взвешивая её частотой слова. Пара e·s встречается в newest (6) и widest (3), так что e·s = 6 + 3 = 9 — максимум. (s·t и t·</w> тоже дают 9: ничьи случаются.) Сливаем e·s → es и ре-токенизируем: newest становится n e w es t </w>."
+  },
+  "s1": {
+    "en": "Re-count on the new token sequences. Now es·t carries the same 9 (still from newest + widest), and it wins. Merge es·t → est — the suffix is assembling itself one piece at a time, chosen purely by frequency, nothing hand-coded.",
+    "ru": "Пересчитываем на новых последовательностях токенов. Теперь es·t несёт те же 9 (по-прежнему из newest + widest), и она побеждает. Сливаем es·t → est — суффикс собирается по кусочку, выбранному чисто по частоте, ничего не зашито вручную."
+  },
+  "s2": {
+    "en": "Count again. The pair est·</w> still scores 9, so the suffix binds to the word boundary: est·</w> → est</w>. Both newest and widest now end in one shared piece — exactly the reuse that makes sub-words beat whole words.",
+    "ru": "Считаем снова. Пара est·</w> по-прежнему даёт 9, так что суффикс привязывается к границе слова: est·</w> → est</w>. И newest, и widest теперь оканчиваются одним общим куском — ровно то переиспользование, которое даёт под-словам преимущество над целыми словами."
+  },
+  "s3": {
+    "en": "The 9-count cluster is exhausted; the winner drops to 7. l·o appears in low (5) and lower (2), so l·o = 5 + 2 = 7 (tied with o·w). Merge l·o → lo — the loop has moved on to a different part of the vocabulary, driven only by what is now most frequent.",
+    "ru": "Кластер со счётом 9 исчерпан; победитель падает до 7. l·o встречается в low (5) и lower (2), так что l·o = 5 + 2 = 7 (вничью с o·w). Сливаем l·o → lo — цикл перешёл к другой части словаря, ведомый лишь тем, что теперь чаще всего."
+  },
+  "s4": {
+    "en": "One more: lo·w = 5 + 2 = 7 wins, and lo·w → low. Five merges done — es, est, est</w>, lo, low — and an unseen word like lowest now falls out for free as low + est</w>, no [UNK]. That is the whole algorithm: count, pick the most frequent, merge, repeat.",
+    "ru": "Ещё одно: lo·w = 5 + 2 = 7 побеждает, и lo·w → low. Пять слияний готово — es, est, est</w>, lo, low — и невиданное слово вроде lowest теперь собирается бесплатно как low + est</w>, без [UNK]. Это и есть весь алгоритм: считай, выбирай самую частую, сливай, повторяй."
+  }
+}
