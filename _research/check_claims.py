@@ -29,6 +29,8 @@ DECKS = {
     "L2": ROOT / "Lectures/02-nlp-tokenization-similarity.html",
     "L3": ROOT / "Lectures/03-classical-ir-fulltext-fusion.html",
     "L4": ROOT / "Lectures/04-ranking-metrics.html",
+    "L5": ROOT / "Lectures/05-dl-embeddings-dimred.html",
+    "L6": ROOT / "Lectures/06-contextual-attention-transformers.html",
 }
 
 def load(base, name):
@@ -61,6 +63,13 @@ MULTIQ       = load(DATA, "l4-multiquery.json")         # two-query MRR / MAP
 SYSTEMS      = load(DATA, "l4-systems.json")            # significance: t-test, Wilcoxon, permutation, CI
 ONLINE       = load(DATA, "l4-online.json")             # A/B z-test + team-draft interleaving
 GOODHART     = load(DATA, "l4-goodhart-steps.json")     # binary-gain DCG terms for honest vs gamed
+
+# ── L5 (embeddings + dim-reduction) and L6 (attention/positional/contrastive). Same single source. ──
+EMB     = load(DATA, "l5-embeddings.json")    # GloVe-50 analogies + pairwise cosines (+ raw vectors)
+DIMRED  = load(DATA, "l5-dimred.json")        # PCA explained-variance + t-SNE (44 words / 7 clusters)
+ATTN    = load(DATA, "l6-attention.json")     # scaled-dot-product worked example (√d_k, weights, output)
+POSENC  = load(DATA, "l6-positional.json")    # sinusoidal positional-encoding grid
+CONTRA  = load(DATA, "l6-contrastive.json")   # InfoNCE / triplet cosines + loss (shares L5 cat-pair cosines)
 
 # ── [P] PROVENANCE: curated data/ must equal the generator artifact it was lifted from ──────────
 def provenance_checks(report):
@@ -141,6 +150,43 @@ def provenance_l3l4(report):
     if not bad:
         report.append(("OK", f"provenance-L3L4: {len(checks)} cross-file invariants consistent ✓"))
 
+# ── [P] PROVENANCE (L5/L6 self-consistency): like the L3/L4 generators, gen_l5/gen_l6 emit data/
+#    directly, so we pin cross-file invariants instead of RAW diffs. Two kinds:
+#      (a) the SAME cosine lives in two files — l5-embeddings.json's cat-pair cosines are reused
+#          verbatim by l6-contrastive.json; a drift between the copies must fire.
+#      (b) a derived/structural identity inside one file — InfoNCE loss = −log(p⁺), √d_k = √(d_k),
+#          analogy answerCos = top[0].cos, and each softmax attention row sums to 1.
+#    Plus two data-only PINS: the triplet margin (0.2) and the gender-direction cosine (0.597) are
+#    NEVER displayed numerically in the deck (only symbolic), so the gate cannot reach them via a [C]
+#    claim — we pin them here so a silent edit to those data/ numbers is still caught.
+def provenance_l5l6(report):
+    embp = {(p["a"], p["b"]): p["cos"] for p in EMB["pairs"]}
+    co   = CONTRA["sims"]
+    checks = [
+        # (a) shared cosines: l5-embeddings.json ↔ l6-contrastive.json (cat anchor reused)
+        ("l5l6.cat·dog", embp[("cat", "dog")],      co["positives"]["dog"],      1e-9),
+        ("l5l6.cat·kit", embp[("cat", "kitten")],   co["positives"]["kitten"],   1e-9),
+        ("l5l6.cat·air", embp[("cat", "airplane")], co["negatives"]["airplane"], 1e-9),
+        # (b) structural identities
+        ("infonce.loss",  CONTRA["infoNCE"]["loss"], round(-math.log(CONTRA["infoNCE"]["pPositive"]), 4), 1e-4),
+        ("attn.sqrtdk",   ATTN["sqrtdk"],            math.sqrt(ATTN["d_k"]),      1e-9),
+        ("analogy.answer", EMB["analogy"]["answerCos"], EMB["analogy"]["top"][0]["cos"], 1e-9),
+        # softmax rows are distributions → each sums to 1 (tol absorbs the 3-dp display rounding)
+        ("attn.rowsum0",  sum(ATTN["weights"][0]),   1.0, 2e-3),
+        ("attn.rowsum1",  sum(ATTN["weights"][1]),   1.0, 2e-3),
+        ("attn.rowsum2",  sum(ATTN["weights"][2]),   1.0, 2e-3),
+        # data-only pins (no deck display path) — margin 0.2 and gender-direction cosine 0.597
+        ("contra.margin", CONTRA["margin"],          0.2,   1e-9),
+        ("emb.genderDir", EMB["genderDirectionCos"], 0.597, 1e-9),
+    ]
+    bad = 0
+    for name, a, b, tol in checks:
+        if abs(a - b) > tol:
+            bad += 1
+            report.append(("HARD", f"provenance-L5L6({name}): data/ disagree/invariant broken — {a} vs {b}"))
+    if not bad:
+        report.append(("OK", f"provenance-L5L6: {len(checks)} cross-file/structural invariants consistent ✓"))
+
 # ── [C] CLAIMS: every grounded value read from data/, asserted present+matching in the deck ─────
 def claims():
     pp = primary_pair()
@@ -161,7 +207,7 @@ def claims():
              anchor=r"\b(32\.3)\s*%", must=True),
         dict(id="top-3 %",   deck="L1", value=CLICK["top3Pct"], tol=0.2,
              anchor=r"\b(60\.6)\b", must=True),
-    ] + l3_claims() + l4_claims()
+    ] + l3_claims() + l4_claims() + l5_claims() + l6_claims()
 
 # ── L3 'Star Catalog' [C] claims: every flagship number the deck shows == data/l3-*.json ─────────
 # Anchors match the RENDERED numeric text (KaTeX \(…\)/$$…$$, <code> matrix-labels, captions) — the
@@ -276,6 +322,90 @@ def l4_claims():
              anchor=r"over 5 queries: \} A=9,\\ B=(\d+)", must=True),
     ]
 
+# ── L5 'Map of Meaning' [C] claims: every flagship embedding/dim-red number == data/l5-*.json ─────
+# Same robustness contract as L3/L4: the captured group is a GENERIC number ([\d.]+) and the literal
+# context pins the location, so a value that DRIFTS at that spot is matched and flagged (not silently
+# NOT FOUND). The deck rounds data/ to 3 dp for cosines (0.9218→0.922) and 1 dp for variance %, so
+# `value` is the data/ canonical and `tol`=1e-3 absorbs the display rounding while still catching real
+# drift (a wrong second decimal moves the number far past 1e-3).
+def l5_claims():
+    pp = {(p["a"], p["b"]): p["cos"] for p in EMB["pairs"]}
+    pca = DIMRED["pca"]
+    return [
+        # analogy king−man+woman→queen: answer cosine 0.861 (+ runner-up prince 0.764)
+        dict(id="L5 analogy cos", deck="L5", value=EMB["analogy"]["answerCos"], tol=1e-3,
+             anchor=r'queen</div><div class="arch-shape">\\\(\\cos = ([\d.]+)\\\)', must=True),
+        dict(id="L5 runner-up",   deck="L5", value=round(EMB["analogy"]["top"][1]["cos"], 3), tol=1e-3,
+             anchor=r"queen 0\.861 &middot; prince ([\d.]+) &middot; throne", must=True),
+        # capital paris−france+italy→rome: 0.838
+        dict(id="L5 capital cos", deck="L5", value=EMB["capitalAnalogy"]["top"][0]["cos"], tol=1e-3,
+             anchor=r'<td class="cell-good"><code>rome</code></td><td class="cell-good">([\d.]+)</td>', must=True),
+        # pairwise cosines (the headline "nearness = meaning" table)
+        dict(id="L5 cos cat·dog", deck="L5", value=pp[("cat", "dog")], tol=1e-3,
+             anchor=r'<code>cat &middot; dog</code></td><td class="cell-good">([\d.]+)</td>', must=True),
+        dict(id="L5 cos cat·kit", deck="L5", value=pp[("cat", "kitten")], tol=1e-3,
+             anchor=r'<code>cat &middot; kitten</code></td><td>([\d.]+)</td>', must=True),
+        dict(id="L5 cos cat·air", deck="L5", value=pp[("cat", "airplane")], tol=1e-3,
+             anchor=r'<code>cat &middot; airplane</code></td><td class="cell-bad">([\d.]+)</td>', must=True),
+        dict(id="L5 cos kng·qn",  deck="L5", value=pp[("king", "queen")], tol=1e-3,
+             anchor=r'<code>king &middot; queen</code></td><td>([\d.]+)</td>', must=True),
+        dict(id="L5 cos kng·cmp", deck="L5", value=pp[("king", "computer")], tol=1e-3,
+             anchor=r'<code>king &middot; computer</code></td><td class="cell-bad">([\d.]+)</td>', must=True),
+        # PCA 2-D explained variance: PC1 19.6% + PC2 18.1% = 37.7% (data ratios ×100)
+        dict(id="L5 PCA PC1",     deck="L5", value=round(pca["explainedVarRatio"][0]*100, 1), tol=0.05,
+             anchor=r"→ PC1 ([\d.]+)% \+ PC2 18\.1% = 37\.7%", must=True),
+        dict(id="L5 PCA PC2",     deck="L5", value=round(pca["explainedVarRatio"][1]*100, 1), tol=0.05,
+             anchor=r"→ PC1 19\.6% \+ PC2 ([\d.]+)% = 37\.7%", must=True),
+        dict(id="L5 PCA 2-D",     deck="L5", value=pca["var2dPct"], tol=0.05,
+             anchor=r"→ PC1 19\.6% \+ PC2 18\.1% = ([\d.]+)%", must=True),
+        # dataset shape: 44 words, 7 clusters, t-SNE perplexity 14
+        dict(id="L5 nWords",      deck="L5", value=DIMRED["nWords"], tol=0,
+             anchor=r"PCA на ([\d.]+) словах", must=True),
+        dict(id="L5 nClusters",   deck="L5", value=len(DIMRED["clusters"]), tol=0,
+             anchor=r"нарисованная: ([\d.]+) кластеров", must=True),
+        dict(id="L5 perplexity",  deck="L5", value=DIMRED["tsne"]["perplexity"], tol=0,
+             anchor=r"perplexity \\\(=\s*([\d.]+)\\\)", must=True),
+    ]
+
+# ── L6 'Council of Attention' [C] claims: every flagship transformer number == data/l6-*.json ─────
+# Same robustness contract. The attention weights/output the deck displays are the row for `cat`
+# (weights[1], output[1]); the full weight matrix's other two rows are also shown (the/sat). The
+# triplet margin (0.2) is NOT displayed numerically in the deck (only symbolic m), so it is a [P]
+# cross-file check below, not a [C] claim.
+def l6_claims():
+    w = ATTN["weights"]
+    neg = CONTRA["sims"]["negatives"]
+    return [
+        # scaled dot-product scale √d_k = 2.0 (d_k=4): shown in the var-block and the prose
+        dict(id="L6 √d_k var",    deck="L6", value=ATTN["sqrtdk"], tol=1e-9,
+             anchor=r'<span lang="en">here \\\(=([\d.]+)\\\)</span>', must=True),
+        dict(id="L6 √d_k prose",  deck="L6", value=ATTN["sqrtdk"], tol=1e-9,
+             anchor=r"so \\\(\\sqrt\{d_k\}=([\d.]+)\\\)", must=True),
+        # full softmax attention matrix — every displayed row (each sums to 1)
+        dict(id="L6 w[the][0]",   deck="L6", value=w[0][0], tol=1e-3,
+             anchor=r"\\\(\[([\d.]+),\\,0\.155,\\,0\.422\]\\\)", must=True),
+        dict(id="L6 w[cat][cat]", deck="L6", value=w[1][1], tol=1e-3,
+             anchor=r"puts <strong>([\d.]+)</strong> on itself", must=True),
+        dict(id="L6 w[sat][sat]", deck="L6", value=w[2][2], tol=1e-3,
+             anchor=r"\\\(\[0\.212,\\,0\.212,\\,([\d.]+)\]\\\)", must=True),
+        # cat's output (context) vector = output[1] = [0.579, 1.996, 0.91, 0.425]
+        dict(id="L6 out[cat][0]", deck="L6", value=ATTN["output"][1][0], tol=1e-3,
+             anchor=r"<code>out = \[([\d.]+), 1\.996, 0\.91, 0\.425\]</code>", must=True),
+        # InfoNCE: positive softmax prob 0.8877 and loss −log = 0.1191
+        dict(id="L6 InfoNCE p+",  deck="L6", value=CONTRA["infoNCE"]["pPositive"], tol=1e-4,
+             anchor=r'\}=([\d.]+)\$\$</div><p class="step-caption"><span lang="ru">Softmax', must=True),
+        dict(id="L6 InfoNCE loss",deck="L6", value=CONTRA["infoNCE"]["loss"], tol=1e-4,
+             anchor=r"\\mathcal\{L\}=-\\log\(0\.8877\)=\\mathbf\{([\d.]+)\}", must=True),
+        # temperature τ = 0.1 (shown in the E2E kicker)
+        dict(id="L6 τ",           deck="L6", value=CONTRA["tau"], tol=1e-9,
+             anchor=r"positive <code>kitten</code>, \\\(\\tau=([\d.]+)\\\)", must=True),
+        # contrastive cosines to anchor cat — the two negatives not shared with L5's pair table
+        dict(id="L6 cos cmp",     deck="L6", value=neg["computer"], tol=1e-3,
+             anchor=r'<code>computer</code></td><td>[^<]*<span lang="ru">[^<]*</span><span lang="en">[^<]*</span></td><td class="cell-bad">([\d.]+)</td>', must=True),
+        dict(id="L6 cos france",  deck="L6", value=neg["france"], tol=1e-3,
+             anchor=r'<code>france</code></td><td>[^<]*<span lang="ru">[^<]*</span><span lang="en">[^<]*</span></td><td class="cell-bad">([\d.]+)</td>', must=True),
+    ]
+
 def check_claim(c, text):
     hits = re.findall(c["anchor"], text)
     if not hits:
@@ -315,6 +445,7 @@ def main():
     report = []
     provenance_checks(report)                       # [P] data/ == generator
     provenance_l3l4(report)                         # [P] L3/L4 cross-file data self-consistency
+    provenance_l5l6(report)                         # [P] L5/L6 cross-file + data-only pins
     for c in claims():                              # [C] deck == data/
         report.append(check_claim(c, text[c["deck"]]))
     arithmetic_checks(report, text)                 # [A] recompute
@@ -365,8 +496,36 @@ def selftest():
     GOODHART["gamed"]["ndcg"] = savedG
     okP2 = any(s == "HARD" and "provenance-L3L4" in m for s, m in rep3)
     print("[selftest:prov-L3L4]", next((m for s, m in rep3 if s == "HARD"), "provenance-L3L4: NO FLAG"))
-    ok = okD and okA and okP and okL3 and okL4 and okP2
-    print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 deck & cross-file all fire"
+    # L5 [C]: a deck snippet where the analogy cosine drifted must flag DRIFT (anchor is not blind).
+    cL5 = next(x for x in claims() if x["id"] == "L5 analogy cos")
+    bL5 = r'queen</div><div class="arch-shape">\(\cos = 0.123\)'  # wrong: data/ says 0.861
+    sevL5, msgL5 = check_claim(cL5, bL5)
+    okL5 = sevL5 == "HARD" and "DRIFT" in msgL5
+    print("[selftest:L5]", msgL5)
+    # L6 [C]: a deck snippet where the InfoNCE loss drifted must flag DRIFT.
+    cL6 = next(x for x in claims() if x["id"] == "L6 InfoNCE loss")
+    bL6 = r'$$\mathcal{L}=-\log(0.8877)=\mathbf{0.9999}$$'  # wrong: data/ loss is 0.1191
+    sevL6, msgL6 = check_claim(cL6, bL6)
+    okL6 = sevL6 == "HARD" and "DRIFT" in msgL6
+    print("[selftest:L6]", msgL6)
+    # L5/L6 [P]: a shared cosine drifting between l5-embeddings.json and l6-contrastive.json must flag.
+    rep4 = []
+    savedC = CONTRA["sims"]["positives"]["dog"]
+    CONTRA["sims"]["positives"]["dog"] = 0.1234            # break the l5↔l6 shared cat·dog cosine
+    provenance_l5l6(rep4)
+    CONTRA["sims"]["positives"]["dog"] = savedC
+    okP3 = any(s == "HARD" and "provenance-L5L6" in m for s, m in rep4)
+    print("[selftest:prov-L5L6]", next((m for s, m in rep4 if s == "HARD"), "provenance-L5L6: NO FLAG"))
+    # L5/L6 [P] data-only pin: a silent edit to the (never-displayed) triplet margin must still flag.
+    rep5 = []
+    savedM = CONTRA["margin"]
+    CONTRA["margin"] = 0.5
+    provenance_l5l6(rep5)
+    CONTRA["margin"] = savedM
+    okP4 = any(s == "HARD" and "contra.margin" in m for s, m in rep5)
+    print("[selftest:prov-L5L6-pin]", next((m for s, m in rep5 if s == "HARD"), "provenance-L5L6 pin: NO FLAG"))
+    ok = okD and okA and okP and okL3 and okL4 and okP2 and okL5 and okL6 and okP3 and okP4
+    print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 deck & cross-file (incl. data-only pin) all fire"
           if ok else "FAIL — a check is blind!")
     return 0 if ok else 1
 
