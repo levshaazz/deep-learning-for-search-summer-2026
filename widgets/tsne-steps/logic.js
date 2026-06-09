@@ -116,8 +116,8 @@ export const mountTsneSteps = defineWidget({
     const perpLbl = add('perp', el('text', { x: barBox.x, y: barBox.y + barBox.h - 4,
       class: 'tss-perp' }, svg));
     if (typeof cond.perplexity === 'number' && typeof cond.sigma === 'number')
-      perpLbl.textContent = 'σ=' + cond.sigma.toFixed(2) + ' · perplexity=' + cond.perplexity.toFixed(0)
-        + ' ≈ ' + (labels.effNeighbours || 'eff. neighbours');
+      perpLbl.textContent = 'σ=' + cond.sigma.toFixed(2) + ' · ' + (labels.perplexityLbl || 'perplexity')
+        + '=' + cond.perplexity.toFixed(0) + ' ≈ ' + (labels.effNeighbours || 'eff. neighbours');
 
     // p/q legend at the KL step (which bar is which) — stays through the gradient step.
     layer('pqlegend', 2, 3);

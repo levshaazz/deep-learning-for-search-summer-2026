@@ -63,8 +63,14 @@ export const mountDimredProjection = defineWidget({
     const SP = scalerFor(pcaPts);
     const ST = scalerFor(tsnePts);
 
-    // ── variance-bars region (step 2) — sized so the box grows to fit it ────────
-    const barsTop = PAD_T + plotH + 44;
+    // ── variance-bars region (step 2) ──────────────────────────────────────────
+    // The bars get their OWN compact band that starts near the TOP of the frame (not stacked under
+    // the 280-px scatter region) so step 2 has no large empty band above the chart. We size the SVG
+    // viewBox PER STEP in update(): tall enough for the scatter on steps 0/1/3, just tall enough for
+    // the scree band on step 2 — so the chart is never bottom-anchored under a void. (defect-1 fix)
+    const barsHeadY = PAD_T + 16;             // scree title, near the top of the frame
+    const barsTotY = barsHeadY + 22;          // "PC1 + PC2 keep …" headline
+    const barsTop = barsTotY + 16;            // first bar row
     const barRow = 19;
     const barH = 12;
     const barX = 92;                          // left edge of bar track (room for "PC1 19.6%")
@@ -73,9 +79,11 @@ export const mountDimredProjection = defineWidget({
     const evrMax = evr.length ? Math.max(...evr) : 1;
     const nBars = Math.min(evr.length, 10);
     const barsBottom = barsTop + nBars * barRow;
-    const H = frameHeightFor(barsBottom, 10);
+    // the two candidate frame heights: the full scatter (steps 0/1/3) and the compact scree (step 2).
+    const H_SCATTER = frameHeightFor(PAD_T + plotH, 24);
+    const H_BARS = frameHeightFor(barsBottom, 12);
 
-    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'wgt-svg dr-svg',
+    const svg = el('svg', { viewBox: `0 0 ${W} ${H_SCATTER}`, class: 'wgt-svg dr-svg',
       role: 'img', 'aria-label': labels.alt || '' }, host);
 
     const layers = {};
@@ -112,7 +120,11 @@ export const mountDimredProjection = defineWidget({
         add(name, el('circle', { cx: scaler.sx(p.x), cy: scaler.sy(p.y), r: 5,
           class: 'dr-dot', fill: colorOf(p.c), stroke: 'var(--bg-card, #fff)', 'stroke-width': 1 }, svg));
         if (labelSet.has(p.w)) {
-          const t = add(name, el('text', { x: scaler.sx(p.x) + 7, y: scaler.sy(p.y) + 3,
+          // offset the label clear of its own 5-px dot — push it up-right far enough that the glyph
+          // box (≈10px tall) clears the marker (dy −11 → text bottom sits ≥3px above the dot top),
+          // so the label never sits ON its dot; a near-bg halo (CSS paint-order stroke) keeps it
+          // legible where it grazes a neighbouring dot in the denser regions. (defect-2 fix)
+          const t = add(name, el('text', { x: scaler.sx(p.x) + 9, y: scaler.sy(p.y) - 11,
             class: 'dr-ptlbl' }, svg));
           t.textContent = p.w;
         }
@@ -141,7 +153,7 @@ export const mountDimredProjection = defineWidget({
 
     // ── step 2: per-component explained-variance bars ──────────────────────────
     layer('bars', 2, 2);
-    const bhead = add('bars', el('text', { x: PAD_L, y: PAD_T + plotH + 26, class: 'dr-barshead' }, svg));
+    const bhead = add('bars', el('text', { x: PAD_L, y: barsHeadY, class: 'dr-barshead' }, svg));
     bhead.textContent = labels.evrTitle || 'PCA explained variance per component';
     evr.slice(0, nBars).forEach((v, i) => {
       const cy = barsTop + i * barRow;
@@ -158,7 +170,7 @@ export const mountDimredProjection = defineWidget({
       add('bars', g);
     });
     // the headline: PC1+PC2 = var2dPct of the variance
-    const tot = add('bars', el('text', { x: PAD_L, y: barsTop - 8, class: 'dr-bartot' }, svg));
+    const tot = add('bars', el('text', { x: PAD_L, y: barsTotY, class: 'dr-bartot' }, svg));
     if (typeof var2d === 'number')
       tot.textContent = (labels.first2 || 'PC1 + PC2 keep') + ' ' + var2d.toFixed(1) + '%';
 
@@ -174,6 +186,8 @@ export const mountDimredProjection = defineWidget({
       for (const n of layers.legend.nodes) n.classList.toggle('is-hidden', !legendOn);
       // the scatter frame is up for the cloud + both scatters (0,1,3), hidden for the bars (2).
       frameRect.classList.toggle('is-hidden', k === 2);
+      // narrow the viewBox to the live step's content so step 2 has no empty band above its chart.
+      svg.setAttribute('viewBox', `0 0 ${W} ${k === 2 ? H_BARS : H_SCATTER}`);
 
       // scatter title + subtitle per step
       if (k <= 0) { ttl.textContent = labels.t300 || '300-D space'; sub.textContent = ''; }

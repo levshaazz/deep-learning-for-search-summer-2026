@@ -47,12 +47,14 @@ export const mountGloveCooccur = defineWidget({
     const Wd = 900;
     const PAD = 18;
 
-    // panel vertical bands (top edges); each panel reveals at its step.
+    // panel vertical bands (top edges); each panel reveals at its step. P0 is the tallest band — it
+    // holds the n×n co-occurrence grid, whose cells were enlarged (defect-3b) so the rotated column
+    // headers stay legible after the mobile downscale; the later bands are pushed down to clear it.
     const P0_Y = 14;          // s0: corpus + heatmap
-    const P1_Y = 250;         // s1: f(x) curve
-    const P2_Y = 466;         // s2: worked objective
-    const P3_Y = 690;         // s3: map + loss
-    const P4_Y = 980;         // s4: two faces of one coin
+    const P1_Y = 384;         // s1: f(x) curve
+    const P2_Y = 600;         // s2: worked objective
+    const P3_Y = 824;         // s3: map + loss
+    const P4_Y = 1114;        // s4: two faces of one coin
     const P4_H = 150;
     const H = frameHeightFor(P4_Y + P4_H, 16);
 
@@ -103,18 +105,25 @@ export const mountGloveCooccur = defineWidget({
     panelHead('matrix', mX, mY, labels.matrixHead || 'co-occurrence matrix X');
     // A 7-char header rotated -60° rises ≈ 30px above its anchor (gridTop-6). Keep that rise clear of
     // the head's visual bottom (≈ mY+15): anchor must sit ≥ mY+15+30, so gridTop = mY+52.
-    const gridTop = mY + 52;
     const gridLeft = mX + 60;                   // room for the row labels
-    // cap cell size at 12 so the n-row grid still fits its band below the deeper gridTop.
-    const csz = Math.min(12, Math.floor((Wd - PAD - gridLeft) / n));   // square cell, fits canvas
+    // DEFECT-3b FIX (mobile 390px): the whole 900-wide SVG scales uniformly down to the column width,
+    // so on a 390-px phone a 9-px header renders at ≈4px and the 14 rotated column labels crowd into
+    // illegibility. Widen the cell PITCH (cap raised 12→18) so the rotated headers get real angular
+    // spacing, and render the column labels a notch larger + bolder (gv-mcol) — both survive the
+    // downscale. The wider grid (≈18·14=252px tall) is given room by deepening the s0 panel below
+    // (P1_Y pushed down), so it never spills into the f(x) panel.
+    const csz = Math.min(18, Math.floor((Wd - PAD - gridLeft) / n));   // square cell, fits canvas
+    // a deeper gridTop so the now-larger rotated headers (rise ≈ 34px) clear the head's bottom.
+    const gridTop = mY + 56;
     const gridBottom = gridTop + n * csz;
     const maxX = Math.max(1e-6, ...X.flat());
     // row labels (left of the grid) + column labels (rotated above)
     vocab.forEach((w, i) => {
       text('matrix', gridLeft - 4, gridTop + i * csz + csz - 2, 'gv-mlabel', 'end', w.slice(0, 7));
-      const ct = el('text', { x: gridLeft + i * csz + csz / 2, y: gridTop - 6,
+      const cxh = gridLeft + i * csz + csz / 2;
+      const ct = el('text', { x: cxh, y: gridTop - 6,
         class: 'gv-mlabel gv-mcol', 'text-anchor': 'start',
-        transform: `rotate(-60 ${gridLeft + i * csz + csz / 2} ${gridTop - 6})` }, svg);
+        transform: `rotate(-60 ${cxh} ${gridTop - 6})` }, svg);
       ct.textContent = w.slice(0, 7);
       add('matrix', ct);
     });
@@ -263,21 +272,29 @@ export const mountGloveCooccur = defineWidget({
     // (b) every dot, so no label overprints another label OR any dot. A leader line ties each label
     // back to its dot. The slide-viz-gate flags stacked labels (IoU / centre dist) — this clears it.
     const DOT_R = 5;
-    const LBL_H = 12, GAP = 3, CHARW = 5.0;             // gv-maplabel is 9px mono
+    const LBL_H = 12, GAP = 4, CHARW = 5.0;             // gv-maplabel is 9px mono
     const lblText = (w) => w.slice(0, 8);
     const cenX = dots.reduce((s, d) => s + d.dx, 0) / (dots.length || 1);
     const cenY = dots.reduce((s, d) => s + d.dy, 0) / (dots.length || 1);
     // each label: box width from its glyph count; centre seeded a fixed radius OUTWARD from centroid.
-    const lab = dots.map((d) => {
+    // The central blob (man/woman/chases/rules/kingdom) lands ON the centroid, so a radial seed is
+    // ill-defined there → those labels used to pile up. For dots within ~22px of the centroid we seed
+    // them on a deterministic golden-angle FAN instead, so the crowded centre labels start already
+    // fanned out in distinct directions; the force pass then only has to refine, not untangle them.
+    const GOLDEN = 2.399963;                             // golden angle (rad) → maximally-spread fan
+    const lab = dots.map((d, idx) => {
       const w = Math.max(16, lblText(d.w).length * CHARW + 4);
       let ax = d.dx - cenX, ay = d.dy - cenY;
-      const r = Math.hypot(ax, ay) || 1;
-      ax /= r; ay /= r;                                  // unit radial direction (centroid → dot)
-      const off = 14;                                    // initial label stand-off from the dot
+      const r = Math.hypot(ax, ay);
+      if (r < 22) {                                      // near-centroid: ill-defined radial → fan it
+        const ang = idx * GOLDEN;
+        ax = Math.cos(ang); ay = Math.sin(ang);
+      } else { ax /= r; ay /= r; }                       // unit radial direction (centroid → dot)
+      const off = 20;                                    // initial label stand-off from the dot
       return { w, h: LBL_H, cx: d.dx + ax * off, cy: d.dy + ay * off, ref: d };
     });
     // force relaxation: label↔label and label↔dot separation.
-    for (let iter = 0; iter < 220; iter++) {
+    for (let iter = 0; iter < 320; iter++) {
       // label vs label
       for (let i = 0; i < lab.length; i++) {
         for (let j = i + 1; j < lab.length; j++) {
@@ -306,11 +323,12 @@ export const mountGloveCooccur = defineWidget({
           }
         }
       }
-      // gentle pull back toward the seed direction so labels stay near their own dot
+      // gentle pull back toward the seed direction so labels stay near their own dot — but only
+      // enough to keep the leader short, not enough to re-collapse the fanned central labels.
       for (let i = 0; i < lab.length; i++) {
         const a = lab[i], d = dots[i];
-        a.cx += (d.dx - a.cx) * 0.012;
-        a.cy += (d.dy - a.cy) * 0.012;
+        a.cx += (d.dx - a.cx) * 0.008;
+        a.cy += (d.dy - a.cy) * 0.008;
       }
     }
     // clamp each label box fully inside the map frame (OOB guard).

@@ -158,8 +158,11 @@ export const mountAttentionGeometry = defineWidget({
     el('text', { x: PAD_L + 12, y: calloutTop + 36, class: 'ag-callrow ag-callrow-2' }, cg)
       .textContent = (labels.matchTag || '= attention output row') + ' ' + rowTxt(outRow);
     add('match', cg);
-    // tag the blended diamond as the output once we reach the match step
-    const matchTag = add('match', el('text', { x: bx + 12, y: by + 4, class: 'ag-matchtag' }, svg));
+    // tag the blended diamond as the output once we reach the match step. Placed ABOVE the diamond
+    // (its own lane, left-anchored just right of centre) so it clears the cat→blend line AND the
+    // "weighted average" label that sits BELOW the diamond — they no longer crowd (m4 fix).
+    const matchTag = add('match', el('text', { x: bx + 10, y: by - 13,
+      class: 'ag-matchtag', 'text-anchor': 'start' }, svg));
     matchTag.textContent = '≈ output';
 
     function diamond(cx, cy, r) {
