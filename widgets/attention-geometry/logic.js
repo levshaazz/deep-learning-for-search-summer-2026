@@ -22,7 +22,7 @@
      2  → the blended point = weighted average; an arrow glides cat → blend.          caption s2
      3  → callout: blended4d ≈ l6 attention output row (within tol 2e-3).             caption s3 */
 import { defineWidget, fmt } from '../_widget-base.js';
-import { padDomain, frameHeightFor, clampSegmentToRect } from '../_plot-util.js';
+import { padDomain, frameHeightFor, clampSegmentToRect, makeProtagonist } from '../_plot-util.js';
 
 export const mountAttentionGeometry = defineWidget({
   id: 'attention-geometry',
@@ -86,7 +86,11 @@ export const mountAttentionGeometry = defineWidget({
       'text-anchor': 'end' }, svg)).textContent = labels.axX || 'V →';
 
     // STEP 0: the three value points (the/cat/sat). The query dot is styled distinctly.
+    // We keep each token's group so the PROTAGONIST controller can color-lock + emphasize the
+    // query "cat" and mute the others across every step (pattern 1: follow-one-object).
     const dotXY = valuePoints.map((p) => ({ x: sx(p[0]), y: sy(p[1]) }));
+    const tokenGroups = [];                       // one <g> per value point (dot + word)
+    const restGroups = [];                        // the non-query tokens (muted while cat leads)
     valuePoints.forEach((p, i) => {
       const isQ = i === qi;
       const g = el('g', {}, svg);
@@ -96,6 +100,8 @@ export const mountAttentionGeometry = defineWidget({
         class: `ag-word ${isQ ? 'ag-word-q' : 'ag-word-v'}`, 'text-anchor': 'middle' }, g);
       lt.textContent = tokens[i] || '';
       add('points', g);
+      tokenGroups[i] = g;
+      if (!isQ) restGroups.push(g);
     });
 
     // STEP 1: the query's attention weights as edges (stroke width ∝ weight), clamped to the rect.
@@ -169,12 +175,24 @@ export const mountAttentionGeometry = defineWidget({
       return `M${cx},${(cy - r).toFixed(2)} L${(cx + r).toFixed(2)},${cy} L${cx},${(cy + r).toFixed(2)} L${(cx - r).toFixed(2)},${cy} Z`;
     }
 
+    // PROTAGONIST (pattern 1 · follow-one-object): track the QUERY "cat" across every step.
+    // The halo ring rides whatever the query currently IS — its own value point at steps 0–1,
+    // then the blended point once cat slides there (steps 2–3) — so the eye never loses it. The
+    // other tokens get `is-muted` while cat leads. The halo is a <circle> (never a text stroke),
+    // and its colour is the query role token via `.ag-halo`, so the contract + double-paint gates
+    // both stay green. Created LAST so the ring paints above the dots.
+    const hero = makeProtagonist(svg, { haloClass: 'ag-halo', haloR: 13 });
+
     // per-step update (factory clamps k to [0,maxStep] and owns caption/counter).
     return function update(k) {
       for (const name in layers) {
         const on = k >= layers[name].from;
         for (const node of layers[name].nodes) node.classList.toggle('is-hidden', !on);
       }
+      // follow-one-object: cat is the protagonist throughout. Its tracked position is its own
+      // value point until it slides to the weighted average (the blend) at step 2+.
+      const at = k >= 2 ? { cx: bx, cy: by, r: 13 } : { cx: qPt.x, cy: qPt.y, r: 11 };
+      hero.focus(tokenGroups[qi], restGroups, at);
     };
   },
 });

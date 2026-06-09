@@ -45,8 +45,9 @@
      node _audit/slide-viz-gate.mjs --selftest   # 3 planted fixtures must each fire
      node _audit/slide-viz-gate.mjs --json out.json   # also dump machine-readable report
 
-   EXIT: non-zero if HARD defects found. For THIS first run the goal is the DEFECT LIST,
-   so the exit is kept LENIENT (--strict to make HARD fail the process).
+   EXIT: a CONTRACT HARD defect (off-token / off-contract literal) ALWAYS fails the process
+   (the decks are token-clean, so the contract is a real build gate now). The rendered
+   detectors stay LENIENT by default (--strict makes their HARD findings fail too).
    ========================================================= */
 import { chromium } from 'playwright';
 import { createServer } from 'node:http';
@@ -472,22 +473,23 @@ function anyColor(s) { return hexRGB(s) || parseRGB(s); }   // hex OR rgb()/rgba
                        stroke= that is NOT inside a var(--…) and whose colour IS a
                        contract hue (ΔE < OFF_TOKEN_NEAR to a token). Right colour,
                        wrong mechanism: it won't theme (light/dark) and silently
-                       drifts. WARN (the value is correct today).
+                       drifts. HARD.
      (B) OFF-CONTRACT— a RAW literal whose hue is NOT near ANY approved contract hue
                        (ΔE ≥ OFF_TOKEN_NEAR to the nearest token). A rogue shade: e.g.
                        a SECOND red (#C0392B) that also means "negative" — breaks
-                       "one colour = one meaning". WARN + the precise file:line so a
-                       follow-up can token-swap it.
+                       "one colour = one meaning". HARD + the precise file:line so a
+                       fix can token-swap it.
 
    EXEMPT (never flagged): values inside var(--…, #fallback) (the themeable pattern —
    the hex is just the fallback); pure white/black (#fff/#000 — chip text, halos);
    achromatic greys that resolve to an ink/rule structure token; colours used
    only in box-shadow / text-shadow / gradient stops (decoration, matched by context).
 
-   Severity is WARN by default: the current decks carry off-token + off-contract
-   literals (real, reported below), and a HARD here would break the green build — the
-   task says start NEW sub-checks as WARN and report the real violations. Flip
-   CONTRACT_HARD=1 (env) once those are fixed to promote to HARD.
+   Severity is HARD: the L5/L6 decks were token-cleaned (every semantic fill/stroke now
+   paints with a contract token — see the GloVe/t-SNE legend+clusters, the O(n²) cost
+   curve, the [CLS] vector box, and the bundler-thumbnail var(--…,#fallback) swaps), so
+   BOTH sub-checks now fail the build. A re-introduced raw literal (off-token OR
+   off-contract) breaks the green build instead of silently warning.
    ========================================================================= */
 const CONTRACT_TH = {
   OFF_TOKEN_NEAR: 10,   // ΔE below this to a contract token ⇒ "off-token" (right hue, raw literal).
@@ -592,18 +594,18 @@ function scanContractSource(src, kind, rel, tokens, th) {
     const { token, dE } = nearestToken(c, tokens);
     if (!token) continue;
     if (dE < th.OFF_TOKEN_NEAR) {
-      // right colour, raw literal: it equals a contract token but won't theme. WARN.
-      out.push({ cat: 'CONTRACT', sub: 'OFF-TOKEN', sev: 'WARN', step: 0,
+      // right colour, raw literal: it equals a contract token but won't theme. HARD (decks are clean).
+      out.push({ cat: 'CONTRACT', sub: 'OFF-TOKEN', sev: 'HARD', step: 0,
         msg: `off-token literal ${rel}:${L.line} — ${L.prop} ${L.raw} == ${token.name} (ΔE=${dE.toFixed(1)}); paint with var(${token.name}) so it themes & stays on-contract  ‹${L.ctx}›` });
     } else {
-      // achromatic-but-far greys: structure that drifted from --ink*/--rule* — note as off-token-ish, low risk.
+      // achromatic-but-far greys: structure that drifted from --ink*/--rule* — off-token, use a structure token.
       if (sat < th.ACHROMATIC_SAT) {
-        out.push({ cat: 'CONTRACT', sub: 'OFF-TOKEN', sev: 'WARN', step: 0,
+        out.push({ cat: 'CONTRACT', sub: 'OFF-TOKEN', sev: 'HARD', step: 0,
           msg: `off-token grey ${rel}:${L.line} — ${L.prop} ${L.raw} (lum=${lum.toFixed(2)}) nearest structure ${token.name} ΔE=${dE.toFixed(1)}; use the --ink*/--rule* token  ‹${L.ctx}›` });
       } else {
         // CHROMATIC rogue: a hue that is NOT any approved contract colour ⇒ "one colour = one meaning"
-        // broken (a second red/violet/green/cyan). WARN with the precise site for a token-swap follow-up.
-        out.push({ cat: 'CONTRACT', sub: 'OFF-CONTRACT', sev: 'WARN', step: 0,
+        // broken (a second red/violet/green/cyan). HARD with the precise site for a token-swap fix.
+        out.push({ cat: 'CONTRACT', sub: 'OFF-CONTRACT', sev: 'HARD', step: 0,
           msg: `OFF-CONTRACT hue ${rel}:${L.line} — ${L.prop} ${L.raw} (sat=${sat.toFixed(2)}) is ΔE=${dE.toFixed(1)} from its nearest contract hue ${token.name}: a rogue shade, not on the approved palette. Swap to ${token.name} (or its categorical equivalent) so the role reads without a legend.  ‹${L.ctx}›` });
       }
     }
@@ -1369,7 +1371,11 @@ async function main() {
   // ── SEMANTIC COLOR CONTRACT — static source scan (off-token / off-contract literals) ──
   // Runs once over the L5/L6 deck HTML + every widget style.css/logic.js. Independent of the
   // rendered detectors (it reads the SOURCE, not the painted pixel) — see runContractScan().
-  const contractHard = process.env.CONTRACT_HARD === '1';   // promote OFF-CONTRACT to HARD when clean
+  // CONTRACT is now a HARD gate: the L5/L6 decks were token-cleaned (every semantic fill/stroke
+  // paints with a contract token, no rogue hues), so BOTH sub-checks fail the build. OFF-TOKEN (a
+  // raw hex that EQUALS a token → won't theme) and OFF-CONTRACT (a rogue off-palette hue) are each
+  // HARD — no WARN-only cap, no CONTRACT_HARD env gate. A future drift re-introducing either kind of
+  // literal now breaks the build instead of silently warning.
   const contract = runContractScan(ROOT);
   const cLines = [];
   cLines.push(`\n=== SEMANTIC COLOR CONTRACT scan (${contract.fileCount} source files; palette = tokens/design-tokens.css :root, ${contract.tokens.length} tokens) ===`);
@@ -1381,8 +1387,8 @@ async function main() {
     const offCon = contract.defects.filter(d => d.sub === 'OFF-CONTRACT');
     cLines.push(`  off-token literals: ${offTok.length}  ·  off-contract rogue hues: ${offCon.length}`);
     for (const d of contract.defects) {
-      // OFF-CONTRACT may be promoted to HARD via env once the decks are token-clean; OFF-TOKEN stays WARN.
-      const sev = (contractHard && d.sub === 'OFF-CONTRACT') ? 'HARD' : d.sev;
+      // HARD for both OFF-TOKEN and OFF-CONTRACT — the decks are clean, so any contract literal fails.
+      const sev = 'HARD';
       if (sev === 'HARD') cHard++; else cWarn++;
       cLines.push(`      ${sev === 'HARD' ? '✗' : '⚠'} [CONTRACT/${d.sub} ${sev}] ${d.msg}`);
     }
@@ -1420,9 +1426,13 @@ async function main() {
 
   await browser.close(); dsrv.close(); if (bsrv) bsrv.close();
   console.log(`\n[slide-viz-gate] HARD(stepprog/overlap/overprint/oob/colorcollision/double-paint/contract)=${totalHard}  WARN(color/void/lowhue/borderline-overprint/contract)=${totalWarn}`);
-  console.log(`[slide-viz-gate] color-contract: OFF-TOKEN+OFF-CONTRACT literals found = ${contract.defects.length} (HARD=${cHard} WARN=${cWarn})${contractHard ? ' [CONTRACT_HARD on]' : ' [WARN-only; set CONTRACT_HARD=1 to promote off-contract once decks are token-clean]'}`);
+  console.log(`[slide-viz-gate] color-contract: OFF-TOKEN+OFF-CONTRACT literals found = ${contract.defects.length} (HARD=${cHard} WARN=${cWarn}) [HARD — both sub-checks fail the build; decks are token-clean]`);
+  // The CONTRACT sub-check is now a HARD build gate: a contract HARD defect (off-token / off-contract
+  // literal) ALWAYS fails the process — independent of --strict — so a future colour drift breaks the
+  // build instead of warning. The rendered detectors (step-prog / overlap / colour / double-paint)
+  // keep their --strict leniency, exactly as before.
   const strict = argv.includes('--strict');
-  process.exit(strict && totalHard > 0 ? 1 : 0);
+  process.exit((cHard > 0 || (strict && totalHard > 0)) ? 1 : 0);
 }
 
 function buildMarkdown(results, ranked, tot) {
