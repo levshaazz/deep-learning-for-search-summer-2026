@@ -12,11 +12,21 @@
      (2) OVERLAP / OOB      — two DISTINCT text labels printed on top of each other, or
                               an element whose box spills OUTSIDE the SVG/frame viewBox.
                               visual-gate checks <img> vs the 1920×1080 SLIDE frame but is
-                              blind to overlap/overflow INSIDE an SVG figure.
+                              blind to overlap/overflow INSIDE an SVG figure. This now also
+                              covers TEXT-OVER-TEXT OVERPRINT across BOTH namespaces (SVG
+                              <text> ∪ HTML overlay) via a smaller-box-coverage metric — the
+                              case IoU was blind to (a wide title sitting on a narrow column
+                              header: s30 / glove-cooccur). [DETECTOR B]
      (3) COLOR-COLLISION    — two semantically-distinct shapes painted in near-identical
                               colours (so the viewer cannot tell the categories apart),
                               too few distinct hues for the number of categories, or a
                               fill that is near-black / near-background (the "void").
+     (4) DOUBLE-PAINT       — a SATURATED, ≥2px stroke applied to an SVG <text> (e.g. the
+                              global `[data-arch-step].is-arch-current{stroke:accent;
+                              stroke-width:4}` rule strokes the glyphs and GARBLES them:
+                              hit s38 LayerNorm AND s31 GloVe). The LEGIT near-white / near-bg
+                              halo (paint-order:stroke, -webkit-text-stroke) stays silent.
+                              [DETECTOR A]
 
    It reuses the rendering harness of the sibling gates:
      • DECK slides  — same chromium + Lectures/ static server + theme toggle + #/N hash
@@ -77,12 +87,33 @@ const TH = {
                               //       LayerNorm bars rescaling, t-SNE dots migrating, PCA cloud rotating).
   MOVE_FRAC: 0.10,            // FP#3: if ≥ this fraction of carried-over elements MOVED since the prior
                               //       step, the step made PROGRESS even though no new element appeared.
+  // ── DETECTOR A — double-painted / garbled SVG <text> (colored stroke on glyphs) ──
+  PAINT_STROKE_W: 2,          // a stroke ≥ this px wide ON A <text> is thick enough to double-paint
+                              //   glyphs (the planted bug is stroke-width:4). Below this a hairline
+                              //   stroke can't garble, so we don't bother.
+  HALO_DELTA_E: 26,           // ΔE(stroke→white) OR ΔE(stroke→slide-bg) BELOW this ⇒ a near-white /
+                              //   near-background HALO outline (the LEGIT s36 / glove-map technique)
+                              //   → NEVER flagged, regardless of width. A saturated accent stroke
+                              //   (#2a6fdb is ΔE≈42 to white) sits well ABOVE this and DOES fire.
+  PAINT_SAT_MIN: 0.20,        // the stroke must also be CHROMATIC (HSV saturation ≥ this) to count as
+                              //   a "colored" double-paint. A grey/black thick stroke is not the
+                              //   accent-garble signature and is excluded (kept as a weaker WARN path
+                              //   only if it is also dark — see below).
+  // ── DETECTOR B — text-over-text OVERPRINT (covers the IoU-blind "small text inside big box") ──
+  OVERPRINT_COVER: 0.50,      // if ≥ this fraction of the SMALLER text box is covered by the other
+                              //   text box AND the strings differ ⇒ overprint (this is what IoU
+                              //   MISSED: a wide title sitting on a narrow column header has low IoU
+                              //   because the union is dominated by the title, but the header is
+                              //   ≥50% buried → caught by the smaller-box-coverage metric).
+  OVERPRINT_MIN_AREA: 80,     // px²: ignore overprint between two truly tiny glyph boxes (noise).
 };
 
 // ───────────────────────── targets ─────────────────────────
 // Deck targets are addressed by 1-based slide index (== the screen-label number in these decks).
 const DECK_TARGETS = [
   { deck: '05-dl-embeddings-dimred.html', slide: 17, name: 'L5 s17 skip-gram archflow' },
+  { deck: '05-dl-embeddings-dimred.html', slide: 30, name: 'L5 s30 GloVe co-occurrence' }, // title-over-header / header-over-subtitle (Detector B)
+  { deck: '05-dl-embeddings-dimred.html', slide: 31, name: 'L5 s31 GloVe objective' },     // arch-step <text> double-paint (Detector A)
   { deck: '05-dl-embeddings-dimred.html', slide: 36, name: 'L5 s36 PCA-as-rotation' },
   { deck: '05-dl-embeddings-dimred.html', slide: 47, name: 'L5 s47 cross-domain' },
   { deck: '06-contextual-attention-transformers.html', slide: 19, name: 'L6 s19 attention-pull' },
@@ -233,7 +264,28 @@ const CAPTURE = (rootSel, opt) => {
     const b = el.getBoundingClientRect();
     if (b.width < MINBOX && b.height < MINBOX) return;
     if (isKatexArtifact(el, b)) return;                                // FP#1: skip measuring spans
-    labels.push({ key: keyOf(el, i), text: txt.slice(0, 24), ...rel(b), hi: hiTok(el) });
+    // DETECTOR A — capture the paint of THIS text glyph so the Node side can tell a legitimate
+    // white/bg halo (paint-order:stroke + near-white stroke = GOOD outline) apart from the bug
+    // where the global rule `svg [data-arch-step].is-arch-current{stroke:accent;stroke-width:4}`
+    // strokes the glyphs with a saturated 4px accent and DOUBLE-PAINTS them (garble). We read the
+    // text's OWN computed style: SVG `stroke`/`stroke-width`/`paint-order`, plus CSS
+    // `-webkit-text-stroke` (the s36 PC-label / glove-map halo technique uses that, not SVG stroke).
+    const isSvgText = el.namespaceURI === 'http://www.w3.org/2000/svg' &&
+      (el.tagName.toLowerCase() === 'text' || el.tagName.toLowerCase() === 'tspan');
+    let strokePaint = '', strokeW = 0, paintOrder = '', textStrokePaint = '', textStrokeW = 0, fillPaint = '';
+    if (isSvgText) {
+      const cs = getComputedStyle(el);
+      strokePaint = cs.stroke && cs.stroke !== 'none' ? cs.stroke : '';
+      strokeW = parseFloat(cs.strokeWidth) || 0;
+      paintOrder = (cs.paintOrder || '').trim();
+      fillPaint = cs.fill || '';
+      // CSS text outline (the GOOD halo path: `-webkit-text-stroke: 3px #fff`).
+      textStrokePaint = (cs.webkitTextStrokeColor || cs.WebkitTextStrokeColor || '').trim();
+      textStrokeW = parseFloat(cs.webkitTextStrokeWidth || cs.WebkitTextStrokeWidth || '0') || 0;
+    }
+    labels.push({ key: keyOf(el, i), text: txt.slice(0, 24), ...rel(b), hi: hiTok(el),
+      isSvgText, strokePaint, strokeW, paintOrder, textStrokePaint, textStrokeW, fillPaint,
+      rot: (el.getAttribute && /rotate/i.test(el.getAttribute('transform') || '')) || false });
   });
 
   // ── semantic shapes: SVG primitives + HTML "tile/cell/bar/dot/node" boxes ──
@@ -342,6 +394,10 @@ function deltaE(c1, c2) {           // CIE76 ΔE
   return Math.hypot(l1.L - l2.L, l1.a - l2.a, l1.bb - l2.bb);
 }
 function rgbDist(c1, c2) { return Math.hypot(c1.r - c2.r, c1.g - c2.g, c1.b - c2.b); }
+function hsvSat(c) {                  // HSV saturation: 0 = grey/white/black, →1 = vivid hue
+  const mx = Math.max(c.r, c.g, c.b), mn = Math.min(c.r, c.g, c.b);
+  return mx <= 0 ? 0 : (mx - mn) / mx;
+}
 function quantHue(c) {               // coarse hue bucket for "distinct hue count"
   const r = c.r / 255, g = c.g / 255, b = c.b / 255;
   const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
@@ -451,20 +507,53 @@ function detectOverlapOOB(steps, ctx) {
       if (over.length) out.push({ cat: 'OOB', sev: 'HARD', step: k,
         msg: `${e.kind} "${String(e.id).slice(0, 22)}" box [${e.x.toFixed(0)},${e.y.toFixed(0)} ${e.w.toFixed(0)}×${e.h.toFixed(0)}] exits ${s.frame.src} frame ${FW.toFixed(0)}×${FH.toFixed(0)} (${over.join(', ')})` });
     }
-    // ── OVERLAP: distinct text labels stacked (high IoU OR centres coincident) ──
+    // ── OVERLAP / OVERPRINT: text-over-text across BOTH namespaces (DETECTOR B) ──
+    // s.labels already folds SVG <text>/<tspan> AND HTML overlay text (foreignObject div, .*-label,
+    // .af-cell, …) into ONE relative-to-frame coordinate space, so an HTML panel-TITLE and an SVG
+    // column-HEADER are directly comparable here — that cross-namespace pairing is exactly what the
+    // s30 title-over-header case needs. This is TEXT-vs-TEXT only (shapes are the COLOR detector's
+    // job), and same-string pairs (a label's own shadow/halo duplicate, repeated axis ticks) are
+    // skipped, so a halo never self-reports.
     const L = s.labels.filter(l => l.w >= ctx.TH.MIN_BOX && l.h >= ctx.TH.MIN_BOX && l.text);
     for (let i = 0; i < L.length; i++) {
       for (let j = i + 1; j < L.length; j++) {
         const a = L[i], b = L[j];
-        if (a.text === b.text) continue;                   // same string repeated (e.g. axis ticks) — skip
+        if (a.text === b.text) continue;                   // same string (shadow halo / axis ticks) — skip
+        // one string fully containing the other (e.g. "king" vs "the king has…") is usually a halo
+        // duplicate or a substring leaf inside its own container — not an overprint of two messages.
+        const sa = a.text.replace(/\s+/g, ''), sb = b.text.replace(/\s+/g, '');
+        if (sa && sb && (sa.includes(sb) || sb.includes(sa))) continue;
+        // BOTH-ROTATED suppression: getBoundingClientRect returns the AXIS-ALIGNED box, which for a
+        // rotated <text> is far larger than the leaning glyph ink. Two ADJACENT diagonal column
+        // headers (same rotate(), same band — the s30 / glove-cooccur header row) therefore have
+        // overlapping AABBs even though the leaning glyphs are cleanly separated and legible. That is
+        // exactly the "rotated-label minor touching that's still legible" case we must NOT flag. The
+        // GENUINE s30 defect was a HORIZONTAL title crossing the rotated band (one rotated, one not),
+        // which still fires because this guard requires BOTH to be rotated.
+        if (a.rot && b.rot) continue;
         const ov = iou(a, b);
         const dc = Math.hypot(a.cx - b.cx, a.cy - b.cy);
+        // intersection + smaller-box coverage — the metric IoU MISSED. A wide title sitting on a
+        // narrow rotated header has LOW IoU (the union is dominated by the wide title), yet the
+        // header is mostly buried: inter / min(area) is high. That fraction is what flags it.
+        const ix = Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x));
+        const iy = Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+        const inter = ix * iy;
+        const areaA = a.w * a.h, areaB = b.w * b.h, minArea = Math.min(areaA, areaB);
+        const coverSmaller = minArea > 0 ? inter / minArea : 0;
         if (ov >= ctx.TH.IOU_OVERLAP) {
           out.push({ cat: 'OVERLAP', sev: 'HARD', step: k,
             msg: `labels "${a.text}" × "${b.text}" overlap IoU=${ov.toFixed(2)} (≥${ctx.TH.IOU_OVERLAP}) — printed on top of each other` });
         } else if (dc <= ctx.TH.CENTER_PX && ov > 0.05) {
           out.push({ cat: 'OVERLAP', sev: 'HARD', step: k,
             msg: `labels "${a.text}" × "${b.text}" centres ${dc.toFixed(1)}px apart (≤${ctx.TH.CENTER_PX}px) — stacked` });
+        } else if (inter >= ctx.TH.OVERPRINT_MIN_AREA && coverSmaller >= ctx.TH.OVERPRINT_COVER) {
+          // OVERPRINT: ≥50% of the smaller text box is buried under a different-string text box.
+          // Severity scales with how buried it is — a near-total cover harms legibility (HARD);
+          // a borderline (50–65%) graze on a rotated label that may still be legible is WARN.
+          const sev = coverSmaller >= 0.65 ? 'HARD' : 'WARN';
+          out.push({ cat: 'OVERLAP', sev, step: k,
+            msg: `text overprint: "${a.text}" × "${b.text}" — ${(coverSmaller * 100).toFixed(0)}% of the smaller box buried (IoU=${ov.toFixed(2)} <${ctx.TH.IOU_OVERLAP}, so IoU alone missed it; inter=${inter.toFixed(0)}px²) — two different strings printed over each other` });
         }
       }
     }
@@ -543,6 +632,62 @@ function detectColor(steps, ctx) {
     }
   }
   return out;
+}
+
+/* =========================================================================
+   DETECTOR A — DOUBLE-PAINT / GARBLED SVG <text> (colored stroke on glyphs).
+   ─────────────────────────────────────────────────────────────────────────
+   THE BUG (exact, reproduced): the global slides.css rule
+       svg [data-arch-step].is-arch-current { stroke: var(--accent); stroke-width: 4; ... }
+   is meant to RING a diagram SHAPE at the current step. When the stepped element is a
+   <text> (LayerNorm s38, GloVe s31), it instead paints a 4px SATURATED accent stroke ON the
+   glyphs — SVG strokes text by default OVER the fill — doubling/outlining every character into
+   a garbled blob. The deck fix neutralises it (`svg text { stroke:none }`); this detector fires
+   if that fix is ever missing again.
+
+   FIRE when an SVG <text>/<tspan> has:   stroke ≠ none/transparent
+                                       AND stroke-width ≥ PAINT_STROKE_W (≈2px)
+                                       AND the stroke is a SATURATED/colored paint
+                                           (NOT a near-white and NOT a near-background halo).
+
+   STAY SILENT on the LEGIT halo (s36 PC labels, glove map labels): a small NEAR-WHITE or
+   NEAR-BACKGROUND stroke used as an outline. Two independent silencers, either suffices:
+     (1) the stroke colour is within HALO_DELTA_E of WHITE *or* of the slide BG  → it's a halo,
+         never flagged, ANY width (a fat white outline is still a white outline);
+     (2) paint-order puts the stroke UNDER the fill (`paint-order: stroke …`) AND the stroke is
+         light (not near-black) → the classic behind-the-glyph halo, never flagged.
+   We also require the stroke to be CHROMATIC (HSV sat ≥ PAINT_SAT_MIN): a grey thick stroke is
+   not the accent-garble signature. NOTE: the CSS `-webkit-text-stroke` halo (s36 uses
+   `-webkit-text-stroke:3px #fff`) is NOT the SVG `stroke` property at all, so it never even
+   enters this check — captured separately and ignored here.
+   ========================================================================= */
+function detectDoublePaint(steps, ctx) {
+  const out = [];
+  const WHITE = { r: 255, g: 255, b: 255, a: 1 };
+  steps.forEach((s, k) => {
+    if (!s.ok) return;
+    const bg = s.bgParsed || s.bg || WHITE;
+    for (const t of s.labels) {
+      if (!t.isSvgText) continue;                       // HTML overlay text has no meaningful stroke
+      const sc = parseRGB(t.strokePaint);
+      if (!sc || sc.a <= 0.05) continue;                // stroke:none / transparent → fine
+      if ((t.strokeW || 0) < ctx.TH.PAINT_STROKE_W) continue;   // hairline stroke can't garble glyphs
+      const dE_white = deltaE(sc, WHITE);
+      const dE_bg = deltaE(sc, bg);
+      // silencer (1): near-white OR near-background → it's a halo outline, never a defect.
+      if (dE_white < ctx.TH.HALO_DELTA_E || dE_bg < ctx.TH.HALO_DELTA_E) continue;
+      const sat = hsvSat(sc), lum = relLum(sc);
+      // silencer (2): paint-order draws stroke UNDER the fill AND the stroke is light (not dark) →
+      //   a behind-the-glyph halo; the glyph fill still reads cleanly on top.
+      const strokeUnderFill = /^stroke\b/.test(t.paintOrder || '') && lum > 0.5;
+      if (strokeUnderFill) continue;
+      // must be a CHROMATIC paint to be the accent-garble signature (grey/black thick stroke is not it).
+      if (sat < ctx.TH.PAINT_SAT_MIN) continue;
+      out.push({ cat: 'DOUBLE-PAINT', sev: 'HARD', step: k,
+        msg: `garbled text "${String(t.text).slice(0, 20)}": SVG <text> stroked with a saturated ${(t.strokeW).toFixed(1)}px paint rgb(${sc.r|0},${sc.g|0},${sc.b|0}) (sat=${sat.toFixed(2)}, ΔE→white=${dE_white.toFixed(0)}, ΔE→bg=${dE_bg.toFixed(0)}, paint-order="${t.paintOrder||'normal'}") — a colored stroke doubles/outlines the glyphs (the global \`[data-arch-step].is-arch-current{stroke:accent;stroke-width:4}\` rule painting <text>)` });
+    }
+  });
+  return dedupeFirstStep(out);
 }
 
 function shortKey(k) { return String(k).replace(/#\d+$/, '').replace(/:.*$/, '').slice(0, 22); }
@@ -657,16 +802,17 @@ async function runBook(browser, target, TH) {
   return result;
 }
 
-// run all three detectors over a step array.
+// run all detectors over a step array.
 function analyze(steps, ctx, type) {
   if (!steps.length || !steps[0].ok) return [{ cat: 'CAPTURE', sev: 'WARN', step: 0, msg: 'no capture' }];
-  // attach bg to each step's capture so colour detector can read it.
+  // attach bg to each step's capture so the colour + double-paint detectors can read it.
   for (const s of steps) if (s.bg) s.bgParsed = s.bg;
   const colorSteps = steps.map(s => ({ ...s, bg: s.bgParsed || s.bg }));
   return [
     ...detectStepProgression(steps, ctx),
-    ...detectOverlapOOB(steps, ctx),
+    ...detectOverlapOOB(steps, ctx),       // includes DETECTOR B (text overprint)
     ...detectColor(colorSteps, ctx),
+    ...detectDoublePaint(steps, ctx),      // DETECTOR A (colored stroke on <text> = garble)
   ];
 }
 
@@ -779,6 +925,65 @@ async function selftest(browser) {
   const dTr = detectStepProgression(stepsTr, { TH });
   pass('B3 in-place transform (move/rescale)', dTr.some(d => d.sev === 'HARD'), false,
     `coverage0=${((stepsTr[0].count/stepsTr[stepsTr.length-1].count)*100).toFixed(0)}%, count/step: ${stepsTr.map(s=>s.count).join('→')}`);
+
+  console.log('── C) DETECTOR A — double-paint (colored stroke on SVG <text>) ──');
+
+  // C1 (A FIRES): a stepped <text> with stroke:#2a6fdb; stroke-width:4 — the exact accent
+  //     double-paint the global `[data-arch-step].is-arch-current{stroke:accent;stroke-width:4}`
+  //     rule produces on text. Saturated, ΔE≈42 to white, 4px → must be HARD.
+  const fxGarble = `<svg width="600" height="200" viewBox="0 0 600 200">
+    <text x="60" y="110" font-size="40" fill="#0b1020" stroke="#2a6fdb" stroke-width="4">normed x</text>
+  </svg>`;
+  const dGarble = detectDoublePaint(await capStage(fxGarble, 1, 'void 0'), { TH });
+  pass('C1 accent-stroke garble (#2a6fdb 4px)', dGarble.some(d => d.cat === 'DOUBLE-PAINT' && d.sev === 'HARD'), true,
+    (dGarble.find(d=>d.cat==='DOUBLE-PAINT')||{}).msg);
+
+  // C2 (A SILENT): the LEGIT halo — a 3px NEAR-WHITE stroke with paint-order:stroke (stroke drawn
+  //     UNDER the fill, the s36 PC-label / glove-map technique). ΔE(white→white)=0 < HALO_DELTA_E
+  //     AND paint-order puts stroke below fill → never flagged, regardless of the 3px width.
+  const fxHalo = `<svg width="600" height="200" viewBox="0 0 600 200">
+    <text x="60" y="110" font-size="40" fill="#0b1020" stroke="#ffffff" stroke-width="3" style="paint-order:stroke fill">PC&#8321;</text>
+  </svg>`;
+  const dHalo = detectDoublePaint(await capStage(fxHalo, 1, 'void 0'), { TH });
+  pass('C2 near-white halo (paint-order:stroke)', dHalo.some(d => d.cat === 'DOUBLE-PAINT'), false,
+    `stroke captured = ${(await capStage(fxHalo,1,'void 0'))[0].labels.find(l=>l.isSvgText)?.strokePaint || '(none)'} @ paint-order="${(await capStage(fxHalo,1,'void 0'))[0].labels.find(l=>l.isSvgText)?.paintOrder}"`);
+
+  console.log('── D) DETECTOR B — text-over-text overprint (IoU-blind cases) ──');
+
+  // D1 (B FIRES): a WIDE title sitting on a NARROW column header — DIFFERENT strings, same band.
+  //     This is the s30 shape: IoU is LOW (the wide title dominates the union) so the old IoU≥0.45
+  //     test was blind; the smaller-box-coverage metric buries the header ≥65% → HARD. (The title is
+  //     deliberately given as an HTML overlay div to also exercise the HTML-text-over-SVG-text pair.)
+  const fxOverprint = `<div style="position:relative">
+    <svg width="600" height="200" viewBox="0 0 600 200" style="position:absolute;inset:0">
+      <text x="120" y="40" font-size="13" transform="rotate(-50 120 40)">queen</text>
+    </svg>
+    <div class="blk-label" style="position:absolute;left:20px;top:20px;width:420px;font-size:23px">co-occurrence matrix X · how often i sits near j</div>
+  </div>`;
+  const dOverprint = detectOverlapOOB(await capStage(fxOverprint, 1, 'void 0'), { TH });
+  pass('D1 title-over-header overprint (HTML×SVG)', dOverprint.some(d => d.cat === 'OVERLAP'), true,
+    (dOverprint.find(d=>d.cat==='OVERLAP')||{}).msg);
+
+  // D2 (B SILENT — text over its OWN background rect): the overprint check is TEXT-vs-TEXT only,
+  //     so a label sitting inside its own background chip/rect must NOT fire here (that is the
+  //     COLOR detector's job). Single <text> + a backing <rect>, no second text → silent.
+  const fxTextOnRect = `<svg width="600" height="200" viewBox="0 0 600 200">
+    <rect x="40" y="60" width="220" height="60" rx="6" fill="#e8eefc"/>
+    <text x="60" y="100" font-size="28" fill="#0b1020">on the sphere</text>
+  </svg>`;
+  const dTextOnRect = detectOverlapOOB(await capStage(fxTextOnRect, 1, 'void 0'), { TH });
+  pass('D2 text-over-own-rect (not text-vs-text)', dTextOnRect.some(d => d.cat === 'OVERLAP'), false,
+    `labels=${(await capStage(fxTextOnRect,1,'void 0'))[0].labels.length}`);
+
+  // D3 (B SILENT — halo/duplicate for shadow): the SAME string painted twice at the same spot to
+  //     fake a drop-shadow/outline. Same-string pairs are skipped → never an overprint.
+  const fxShadow = `<svg width="600" height="200" viewBox="0 0 600 200">
+    <text x="60" y="100" font-size="32" fill="#fff" stroke="#fff" stroke-width="3">on the sphere</text>
+    <text x="60" y="100" font-size="32" fill="#0b1020">on the sphere</text>
+  </svg>`;
+  const dShadow = detectOverlapOOB(await capStage(fxShadow, 1, 'void 0'), { TH });
+  pass('D3 shadow duplicate (same string)', dShadow.some(d => d.cat === 'OVERLAP'), false,
+    `label pairs share string "on the sphere"`);
 
   console.log('\n[selftest]', ok
     ? 'PASS — all TRUE-defect fixtures fire AND all FALSE-positive fixtures stay silent'
@@ -893,7 +1098,7 @@ async function main() {
   if (jsonIdx >= 0 && argv[jsonIdx + 1]) await writeFile(argv[jsonIdx + 1], JSON.stringify(results, null, 2));
 
   await browser.close(); dsrv.close(); if (bsrv) bsrv.close();
-  console.log(`\n[slide-viz-gate] HARD(stepprog/overlap/oob/colorcollision)=${totalHard}  WARN(color/void/lowhue)=${totalWarn}`);
+  console.log(`\n[slide-viz-gate] HARD(stepprog/overlap/overprint/oob/colorcollision/double-paint)=${totalHard}  WARN(color/void/lowhue/borderline-overprint)=${totalWarn}`);
   const strict = argv.includes('--strict');
   process.exit(strict && totalHard > 0 ? 1 : 0);
 }
@@ -911,6 +1116,8 @@ function buildMarkdown(results, ranked, tot) {
   L.push('|---|---|---|');
   L.push(`| STEP-PROGRESSION | visible meaningful elements per step; step-0 coverage % of final; dead steps | step-0 ≥ ${TH.STEP0_COVER*100}% ⇒ HARD; unchanged later step ⇒ HARD |`);
   L.push(`| OVERLAP / OOB | distinct text-label IoU & centre distance; element box vs SVG viewBox | IoU ≥ ${TH.IOU_OVERLAP} or centres ≤ ${TH.CENTER_PX}px ⇒ HARD; box exits frame ⇒ HARD |`);
+  L.push(`| OVERPRINT (text-over-text, both namespaces) | smaller-box coverage between two DIFFERENT-string text nodes (SVG \`<text>\` ∪ HTML overlay); both-rotated AABB pairs suppressed | ≥ ${TH.OVERPRINT_COVER*100}% of smaller box buried ⇒ WARN, ≥ 65% ⇒ HARD (catches the IoU-blind title-over-header) |`);
+  L.push(`| DOUBLE-PAINT (garbled \`<text>\`) | SVG \`<text>\` stroke colour + width + paint-order vs white/bg | saturated stroke ≥ ${TH.PAINT_STROKE_W}px, ΔE→white & ΔE→bg ≥ ${TH.HALO_DELTA_E}, sat ≥ ${TH.PAINT_SAT_MIN} ⇒ HARD; near-white/near-bg or paint-order-under-fill halo ⇒ silent |`);
   L.push(`| COLOR-COLLISION | CIE76 ΔE between distinct categories; ΔE to background; hue-bucket diversity | ΔE < ${TH.DELTA_E_MIN} & RGBdist < ${TH.RGB_MIN} ⇒ HARD; near-bg / void / low-hue ⇒ WARN |`);
   L.push('');
   L.push(`## Summary — HARD=${tot.totalHard}, WARN=${tot.totalWarn}`);
