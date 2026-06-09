@@ -67,6 +67,8 @@ GOODHART     = load(DATA, "l4-goodhart-steps.json")     # binary-gain DCG terms 
 # ── L5 (embeddings + dim-reduction) and L6 (attention/positional/contrastive). Same single source. ──
 EMB     = load(DATA, "l5-embeddings.json")    # GloVe-50 analogies + pairwise cosines (+ raw vectors)
 DIMRED  = load(DATA, "l5-dimred.json")        # PCA explained-variance + t-SNE (44 words / 7 clusters)
+GLOVE   = load(DATA, "l5-glove.json")         # GloVe mini-corpus: X / log X / f(x) / worked king·queen + loss
+TSNE    = load(DATA, "l5-tsne-math.json")     # t-SNE on 9 GloVe-50 words: σ/perplexity, p_{j|i}, joint P, q, KL
 ATTN    = load(DATA, "l6-attention.json")     # scaled-dot-product worked example (√d_k, weights, output)
 POSENC  = load(DATA, "l6-positional.json")    # sinusoidal positional-encoding grid
 CONTRA  = load(DATA, "l6-contrastive.json")   # InfoNCE / triplet cosines + loss (shares L5 cat-pair cosines)
@@ -186,6 +188,70 @@ def provenance_l5l6(report):
             report.append(("HARD", f"provenance-L5L6({name}): data/ disagree/invariant broken — {a} vs {b}"))
     if not bad:
         report.append(("OK", f"provenance-L5L6: {len(checks)} cross-file/structural invariants consistent ✓"))
+
+# ── [P] PROVENANCE (L5 GloVe + t-SNE-math self-consistency): gen_l5 emits these data/ files directly,
+#    so (as with L3/L4 and L5/L6) we pin cross-file + structural invariants instead of a RAW diff. The
+#    new l5-glove.json / l5-tsne-math.json carry many internal numbers the deck never displays (the
+#    full worked dot/bias decomposition, the σ↔β↔perplexity tuning, the symmetrised joint P, the KL
+#    summands, the gradient). A silent edit to any of those would not be caught by a [C] deck claim, so
+#    we anchor them here. Two flagship "data-only PINS" the prompt calls out — the GloVe the·king worked
+#    pair (model 1.654 vs log X 1.658, NEVER shown numerically) and the t-SNE entropy log₂5≈2.322 bits
+#    (perplexity = 2^entropy, also not displayed) — live here as their only verification path.
+def provenance_l5_glove_tsne(report):
+    g, t = GLOVE, TSNE
+    wk = {(w["i"], w["j"]): w for w in g["worked"]}
+    kq, tk, cd = wk[("king", "queen")], wk[("the", "king")], wk[("cat", "dog")]
+    c = t["conditional"]
+    P, Q = t["joint"]["P"], t["lowD"]["Q"]
+    near, far = t["worked"]["near"], t["worked"]["far"]
+    # KL(P‖Q) recomputed from the symmetrised joint P and the Student-t Q (the deck shows only 0.0411)
+    klRecomp = sum(P[i][j] * math.log(P[i][j] / Q[i][j])
+                   for i in range(len(P)) for j in range(len(P)) if i != j and P[i][j] > 0 and Q[i][j] > 0)
+    checks = [
+        # ── GloVe worked-pair structural identities (model = dot+b_i+b̃_j; log X = ln X; residual) ──
+        ("glove.kq.logX",   kq["logX"],  math.log(kq["X"]),               1e-3),
+        ("glove.kq.model",  kq["model"], kq["dot"] + kq["bi"] + kq["bj"], 1e-3),
+        ("glove.kq.resid",  kq["residual"], kq["model"] - kq["logX"],     1e-3),
+        ("glove.cd.model",  cd["model"], cd["dot"] + cd["bi"] + cd["bj"], 1e-3),
+        # the·king worked pair — DATA-ONLY PIN (deck shows it only symbolically, never the numbers)
+        ("glove.tk.model",  tk["model"], 1.654,                           1e-3),
+        ("glove.tk.logX",   tk["logX"],  1.6582,                          1e-3),
+        ("glove.tk.modelId",tk["model"], tk["dot"] + tk["bi"] + tk["bj"], 1e-3),
+        # loss collapse: dropPct = 100·(1−after/before); endpoints == the history series ends
+        ("glove.dropPct",   g["loss"]["dropPct"], round(100*(1 - g["loss"]["after"]/g["loss"]["before"]), 2), 1e-2),
+        ("glove.lossBefore",g["loss"]["before"],  g["loss"]["history"][0]["loss"],  1e-9),
+        ("glove.lossAfter", g["loss"]["after"],   g["loss"]["history"][-1]["loss"], 1e-9),
+        # f(x) caps at 1 once x reaches x_max (the green "capped at 1" line in the deck)
+        ("glove.fCap",      next(p["f"] for p in g["fCurve"] if p["x"] == g["xMax"]), 1.0, 1e-9),
+        # ── t-SNE σ↔β↔perplexity↔entropy tuning identities ──
+        ("tsne.rowSum",     sum(c["pRow"]),  1.0,                         1e-6),
+        ("tsne.perpEntropy",c["perplexity"], 2 ** c["entropyBits"],       1e-3),
+        ("tsne.entropyLog2",c["entropyBits"],math.log2(c["perplexity"]),  1e-3),  # entropy = log₂(perplexity)=2.322 bits
+        ("tsne.sigmaBeta",  c["sigma"],      1/math.sqrt(2*c["beta"]),    1e-3),
+        ("tsne.betaSigma",  c["beta"],       1/(2*c["sigma"]**2),         1e-4),
+        # joint P symmetric + normalised; anchorRow is row 0 of P
+        ("tsne.jointSym",   P[0][2],         P[2][0],                     1e-9),
+        ("tsne.jointSum",   sum(sum(r) for r in P), 1.0,                  1e-6),
+        ("tsne.anchorRow",  t["joint"]["anchorRow"][2], P[0][2],          1e-9),
+        # worked near/far entries must equal the array cells the deck reads (cat→dog, cat→throne)
+        ("tsne.near.d2",    near["d2_highD"], t["highD"]["anchorSqDist"][2], 1e-3),
+        ("tsne.near.pcond", near["p_j_given_i"], c["pRow"][2],            1e-9),
+        ("tsne.near.pjoint",near["p_ij_joint"],  P[0][2],                 1e-9),
+        ("tsne.near.q",     near["q_ij"],        Q[0][2],                 1e-9),
+        ("tsne.far.d2",     far["d2_highD"],  t["highD"]["anchorSqDist"][8],  1e-3),
+        ("tsne.far.pjoint", far["p_ij_joint"], P[0][8],                   1e-9),
+        # KL field == recompute from P,Q; gradient anchor magnitude == |anchor vector|; all[0]==anchor
+        ("tsne.kl",         t["kl"],         round(klRecomp, 6),          1e-4),
+        ("tsne.gradMag",    t["gradient"]["anchorMag"], round(math.hypot(*t["gradient"]["anchor"]), 6), 1e-5),
+        ("tsne.gradAnchor", t["gradient"]["all"][0][0], t["gradient"]["anchor"][0], 1e-9),
+    ]
+    bad = 0
+    for name, a, b, tol in checks:
+        if abs(a - b) > tol:
+            bad += 1
+            report.append(("HARD", f"provenance-L5GT({name}): data/ disagree/invariant broken — {a} vs {b}"))
+    if not bad:
+        report.append(("OK", f"provenance-L5GT: {len(checks)} GloVe+t-SNE cross-file/structural invariants consistent ✓"))
 
 # ── [C] CLAIMS: every grounded value read from data/, asserted present+matching in the deck ─────
 def claims():
@@ -363,8 +429,104 @@ def l5_claims():
              anchor=r"PCA на ([\d.]+) словах", must=True),
         dict(id="L5 nClusters",   deck="L5", value=len(DIMRED["clusters"]), tol=0,
              anchor=r"нарисованная: ([\d.]+) кластеров", must=True),
+        # the 44-word map's t-SNE perplexity = 14 (l5-dimred.json). NOTE the anchor is pinned to the
+        # "44 words" kicker: the deck now ALSO shows perplexity \(=5\) on the 9-word t-SNE-math slides
+        # (l5-tsne-math.json, checked separately below), so a bare `perplexity \(=…\)` regex would
+        # collide on the 5 and false-flag. The "44 слова · " prefix is unique to slide 42.
         dict(id="L5 perplexity",  deck="L5", value=DIMRED["tsne"]["perplexity"], tol=0,
-             anchor=r"perplexity \\\(=\s*([\d.]+)\\\)", must=True),
+             anchor=r"44 слова · perplexity \\\(=([\d.]+)\\\)", must=True),
+    ] + l5_glove_claims() + l5_tsne_claims()
+
+# ── L5 GloVe [C] claims (slides 30 "GloVe co-occurrence" + 31 "GloVe objective") == data/l5-glove.json ─
+# Same robustness contract as L3/L4/L5: the captured group is a GENERIC number and the literal context
+# (chip labels, the other numbers in the same expression, the SVG x/y coords) pins the location, so a
+# value that DRIFTS is matched and flagged (not silently NOT FOUND). The deck rounds the worked
+# king·queen pair to 3 dp (X 0.6667→0.667, log X −0.4055→−0.406, f 0.1312→0.131, model −0.4076→−0.408)
+# and the loss to 2 dp (18.0391→18.04); `value` is the data/ canonical, `tol` absorbs that rounding.
+def l5_glove_claims():
+    g  = GLOVE
+    kq = next(w for w in g["worked"] if w["i"] == "king" and w["j"] == "queen")
+    N  = r"([\d.]+)"
+    return [
+        # the worked king·queen entry — the four flagship chips on slide 31 (X, log X, f(X), model)
+        dict(id="L5G X count",   deck="L5", value=round(kq["X"], 3), tol=1e-3,
+             anchor=r'<span class="gob-clab">X \(count\)</span><span class="gob-cval">'+N+r"</span>", must=True),
+        dict(id="L5G logX",      deck="L5", value=round(-kq["logX"], 3), tol=1e-3,  # chip prints &minus;0.406
+             anchor=r'<span class="gob-clab">log X \(target\)</span><span class="gob-cval">&minus;'+N+r"</span>", must=True),
+        dict(id="L5G f(X)",      deck="L5", value=round(kq["f"], 3), tol=1e-3,
+             anchor=r'<span class="gob-clab">f\(X\) \(weight\)</span><span class="gob-cval">'+N+r"</span>", must=True),
+        dict(id="L5G model",     deck="L5", value=round(-kq["model"], 3), tol=1e-3,  # chip prints &minus;0.408
+             anchor=r'<span class="gob-clab">model \(fit\)</span><span class="gob-cval">&minus;'+N+r"</span>", must=True),
+        # the same king·queen X echoed in the slide-30 matrix callout
+        dict(id="L5G X callout", deck="L5", value=round(kq["X"], 3), tol=1e-3,
+             anchor=r'<text x="700" y="228"[^>]*>X = '+N+r"</text>", must=True),
+        # loss collapse 18.04 → 0.005 (99.97% over 600 iters), all on slide 31's SVG
+        dict(id="L5G loss before",deck="L5", value=g["loss"]["before"], tol=1e-2,
+             anchor=r'training loss </tspan><tspan fill="var\(--c-red\)" font-weight="700">'+N+r"</tspan>", must=True),
+        dict(id="L5G loss after", deck="L5", value=g["loss"]["after"], tol=1e-4,
+             anchor=r'<tspan fill="var\(--c-green\)" font-weight="700">'+N+r"</tspan><tspan>  \(99\.97% drop", must=True),
+        dict(id="L5G drop %",     deck="L5", value=g["loss"]["dropPct"], tol=1e-2,
+             anchor=r"\("+N+r"% drop over 600 iters\)", must=True),
+        # weighting hyper-params: x_max=10 (amber marker) and α=0.75 (the f(x) exponent, both langs)
+        dict(id="L5G x_max",      deck="L5", value=g["xMax"], tol=0,
+             anchor=r'<text x="455.5" y="556"[^>]*>x_max='+N+r"</text>", must=True),
+        dict(id="L5G alpha",      deck="L5", value=g["alpha"], tol=1e-9,
+             anchor=r"f\(x\)=\(x/x_\{\\max\}\)\^\{"+N+r"\}", must=True),
+    ]
+
+# ── L5 t-SNE [C] claims (slides 43 "t-SNE affinities" + 44 "t-SNE objective") == data/l5-tsne-math.json ─
+# Same contract. The deck rounds: σ to 3 dp (2.003), the conditional p_{j|i} row to 3 dp (dog 0.405,
+# puppy 0.196, lion 0.140, kitten 0.136, throne 0.003), the high-D squared distances to 2 dp (dog 3.55,
+# throne 43.88), KL to 4 dp (0.0411); the symmetrised joint p_ij (0.0454) and Student-t q_ij (0.06039)
+# are bound verbatim in the slide-44 JS arrays (literal in the HTML source, like the slide-30/31 arrays).
+def l5_tsne_claims():
+    t = TSNE
+    c = t["conditional"]
+    N = r"([\d.]+)"
+    return [
+        # σ ≈ 2.003 (SVG annotation + the step-2 caption, both anchored)
+        dict(id="L5T sigma svg",  deck="L5", value=c["sigma"], tol=1e-3,
+             anchor=r'<tspan font-weight="700">&#963; = '+N+r"</tspan>", must=True),
+        dict(id="L5T sigma cap",  deck="L5", value=c["sigma"], tol=1e-3,
+             anchor=r"here \\\(\\sigma\\approx"+N+r"\\\)", must=True),
+        # perplexity = 5 (the tuning target): the SVG annotation + the slide-43 kicker
+        dict(id="L5T perp svg",   deck="L5", value=c["perplexity"], tol=0,
+             anchor=r'<tspan>the row has </tspan><tspan font-weight="700">perplexity = '+N+r"</tspan>", must=True),
+        dict(id="L5T perp kick",  deck="L5", value=t["targetPerplexity"], tol=0,
+             anchor=r"anchor <code>cat</code> · perplexity \\\(="+N+r"\\\)", must=True),
+        # the anchor's Gaussian conditional p_{j|i} row (the headline affinities, slide-43 caption)
+        dict(id="L5T p dog",      deck="L5", value=round(c["pRow"][2], 3), tol=1e-3,
+             anchor=r"\. <code>dog</code> \\\("+N+r"\\\), <code>puppy</code> \\\(0\.196", must=True),
+        dict(id="L5T p puppy",    deck="L5", value=round(c["pRow"][3], 3), tol=1e-3,
+             anchor=r"<code>dog</code> \\\(0\.405\\\), <code>puppy</code> \\\("+N+r"\\\)", must=True),
+        dict(id="L5T p lion",     deck="L5", value=round(c["pRow"][4], 3), tol=1e-3,
+             anchor=r"<code>puppy</code> \\\(0\.196\\\), <code>lion</code> \\\("+N+r"\\\)", must=True),
+        dict(id="L5T p kitten",   deck="L5", value=round(c["pRow"][1], 3), tol=1e-3,
+             anchor=r"<code>lion</code> \\\(0\.140\\\), <code>kitten</code> \\\("+N+r"\\\)", must=True),
+        dict(id="L5T p throne",   deck="L5", value=round(c["pRow"][8], 3), tol=1e-3,
+             anchor=r"<code>kitten</code> \\\(0\.136\\\), … <code>throne</code> \\\("+N+r"\\\)", must=True),
+        # the dog/throne worked numbers in the slide-43 low-D box (p_{j|i} → q, both displayed)
+        dict(id="L5T near p svg", deck="L5", value=round(c["pRow"][2], 3), tol=1e-3,
+             anchor=r'<tspan fill="var\(--accent-ink\)">dog</tspan><tspan>  \(near\): p='+N, must=True),
+        dict(id="L5T near q svg", deck="L5", value=round(t["lowD"]["Q"][0][2], 3), tol=1e-3,
+             anchor=r"\(near\): p=0\.405  &rarr;  q="+N, must=True),
+        dict(id="L5T far p svg",  deck="L5", value=round(c["pRow"][8], 3), tol=1e-3,
+             anchor=r'<tspan fill="var\(--ink-3\)">throne</tspan><tspan> \(far\):  p='+N, must=True),
+        # high-D squared distances cat→dog (3.55) and cat→throne (43.88), slide-43 step-0 caption
+        dict(id="L5T d2 dog",     deck="L5", value=round(t["highD"]["anchorSqDist"][2], 2), tol=5e-3,
+             anchor=r"nearest \(\\\(d\^2="+N+r"\\\)\)", must=True),
+        dict(id="L5T d2 throne",  deck="L5", value=round(t["highD"]["anchorSqDist"][8], 2), tol=5e-3,
+             anchor=r"farthest \(\\\("+N+r"\\\)\)", must=True),
+        # the symmetrised joint p_ij and Student-t q_ij for cat–dog (slide-44 JS arrays, index 1)
+        dict(id="L5T joint p_ij", deck="L5", value=t["joint"]["P"][0][2], tol=1e-4,
+             anchor=r"var p=\[0\.022072, "+N+r",", must=True),
+        dict(id="L5T q_ij",       deck="L5", value=t["lowD"]["Q"][0][2], tol=1e-5,
+             anchor=r"var q=\[0\.011766, "+N+r",", must=True),
+        # KL(P‖Q) ≈ 0.0411 — the single cost number (SVG annotation + the step-1 KaTeX caption)
+        dict(id="L5T KL svg",     deck="L5", value=round(t["kl"], 4), tol=1e-4,
+             anchor=r"KL\(P‖Q\) = &#931; p log\(p/q\) = "+N, must=True),
+        dict(id="L5T KL cap",     deck="L5", value=round(t["kl"], 4), tol=1e-4,
+             anchor=r"\\frac\{p_\{ij\}\}\{q_\{ij\}\}=\\mathbf\{"+N+r"\}", must=True),
     ]
 
 # ── L6 'Council of Attention' [C] claims: every flagship transformer number == data/l6-*.json ─────
@@ -446,6 +608,7 @@ def main():
     provenance_checks(report)                       # [P] data/ == generator
     provenance_l3l4(report)                         # [P] L3/L4 cross-file data self-consistency
     provenance_l5l6(report)                         # [P] L5/L6 cross-file + data-only pins
+    provenance_l5_glove_tsne(report)                # [P] L5 GloVe + t-SNE-math cross-file + data-only pins
     for c in claims():                              # [C] deck == data/
         report.append(check_claim(c, text[c["deck"]]))
     arithmetic_checks(report, text)                 # [A] recompute
@@ -524,8 +687,53 @@ def selftest():
     CONTRA["margin"] = savedM
     okP4 = any(s == "HARD" and "contra.margin" in m for s, m in rep5)
     print("[selftest:prov-L5L6-pin]", next((m for s, m in rep5 if s == "HARD"), "provenance-L5L6 pin: NO FLAG"))
-    ok = okD and okA and okP and okL3 and okL4 and okP2 and okL5 and okL6 and okP3 and okP4
-    print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 deck & cross-file (incl. data-only pin) all fire"
+    # L5 GloVe [C]: a deck snippet where the king·queen log X chip drifted must flag DRIFT.
+    cGX = next(x for x in claims() if x["id"] == "L5G logX")
+    bGX = r'<span class="gob-clab">log X (target)</span><span class="gob-cval">&minus;0.999</span>'  # data/ −0.406
+    sevGX, msgGX = check_claim(cGX, bGX)
+    okGX = sevGX == "HARD" and "DRIFT" in msgGX
+    print("[selftest:L5G]", msgGX)
+    # L5 t-SNE [C]: a deck snippet where the KL number drifted must flag DRIFT.
+    cTK = next(x for x in claims() if x["id"] == "L5T KL svg")
+    bTK = r'KL(P‖Q) = &#931; p log(p/q) = 0.9999'  # data/ KL is 0.0411
+    sevTK, msgTK = check_claim(cTK, bTK)
+    okTK = sevTK == "HARD" and "DRIFT" in msgTK
+    print("[selftest:L5T-KL]", msgTK)
+    # L5 t-SNE [C]: a deck snippet where σ / perplexity drifted must flag DRIFT (anchor is not blind).
+    cTS = next(x for x in claims() if x["id"] == "L5T sigma svg")
+    bTS = r'<tspan font-weight="700">&#963; = 9.999</tspan>'  # data/ σ is 2.003
+    sevTS, msgTS = check_claim(cTS, bTS)
+    cTP = next(x for x in claims() if x["id"] == "L5T perp kick")
+    bTP = r'anchor <code>cat</code> · perplexity \(=99\)'  # data/ perplexity is 5
+    sevTP, msgTP = check_claim(cTP, bTP)
+    okTS = sevTS == "HARD" and "DRIFT" in msgTS and sevTP == "HARD" and "DRIFT" in msgTP
+    print("[selftest:L5T-σ]", msgTS, "|", msgTP)
+    # L5 GloVe/t-SNE [P]: a drifted king·queen log X identity AND a drifted KL field must flag (in-memory).
+    rep6 = []
+    savedKQ = GLOVE["worked"][0]["logX"]
+    GLOVE["worked"][0]["logX"] = 0.9999            # break the king·queen log X = ln(X) structural identity
+    provenance_l5_glove_tsne(rep6)
+    GLOVE["worked"][0]["logX"] = savedKQ
+    okP5 = any(s == "HARD" and "provenance-L5GT(glove.kq.logX)" in m for s, m in rep6)
+    print("[selftest:prov-L5GT-glove]", next((m for s, m in rep6 if s == "HARD"), "provenance-L5GT glove: NO FLAG"))
+    rep7 = []
+    savedKL = TSNE["kl"]
+    TSNE["kl"] = 0.9999                            # break the KL field vs recomputed-from-P,Q invariant
+    provenance_l5_glove_tsne(rep7)
+    TSNE["kl"] = savedKL
+    okP6 = any(s == "HARD" and "provenance-L5GT(tsne.kl)" in m for s, m in rep7)
+    print("[selftest:prov-L5GT-kl]", next((m for s, m in rep7 if s == "HARD"), "provenance-L5GT kl: NO FLAG"))
+    # L5 t-SNE [P] data-only pin: a silent edit to the (never-displayed) entropy=log₂(perplexity) bits must flag.
+    rep8 = []
+    savedE = TSNE["conditional"]["entropyBits"]
+    TSNE["conditional"]["entropyBits"] = 3.5       # break entropy = log₂5 ≈ 2.322 and perplexity = 2^entropy
+    provenance_l5_glove_tsne(rep8)
+    TSNE["conditional"]["entropyBits"] = savedE
+    okP7 = any(s == "HARD" and "provenance-L5GT(tsne." in m for s, m in rep8)
+    print("[selftest:prov-L5GT-pin]", next((m for s, m in rep8 if s == "HARD"), "provenance-L5GT pin: NO FLAG"))
+    ok = (okD and okA and okP and okL3 and okL4 and okP2 and okL5 and okL6 and okP3 and okP4
+          and okGX and okTK and okTS and okP5 and okP6 and okP7)
+    print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 + L5-GloVe/t-SNE deck & cross-file (incl. data-only pins) all fire"
           if ok else "FAIL — a check is blind!")
     return 0 if ok else 1
 
