@@ -102,21 +102,82 @@ export function defineWidget({ id, maxStep, render, rootClass, exportName, fade 
       host.appendChild(counter);
     }
 
+    // The active label map. Defaults to the (single-language) `labels` the driver passed. If the
+    // caller also handed us a trilingual bundle on ctx.i18nAll ({en:{…},ru:{…},tt:{…}} of FLAT
+    // s0/s1/… maps), we can swap it live on a language switch (TRICK 2) and lock to the tallest
+    // language (TRICK 1). Absent that bundle we degrade gracefully — see below.
+    const i18nAll = (rest && rest.i18nAll && typeof rest.i18nAll === 'object') ? rest.i18nAll : null;
+    let active = labels;
+
     let step = -1;
     function setStep(k) {
       k = Math.max(0, Math.min(MAX, k | 0));
-      if (k === step) return;
+      const same = (k === step);
       step = k;
       host.dataset.step = String(k);
-      if (typeof update === 'function') update(k);
+      if (typeof update === 'function' && !same) update(k); // figure layers: only redraw on real move
       if (scaffold) {
-        cap.textContent = labels['s' + k] || '';
+        cap.textContent = active['s' + k] || '';
         counter.textContent = `${k} / ${MAX}`;
       }
     }
     setStep(0);
 
-    return { setStep, get step() { return step; }, get maxStep() { return MAX; }, root: host };
+    /* ── TRILINGUAL-UX ROBUSTNESS (both tricks live in the factory, so every widget inherits them) ──
+       Vanilla, offline, dependency-free. Feature-detected: each piece no-ops when its precondition
+       (a caption block / an in-place lang switch / a trilingual bundle) is absent, so widgets that
+       render fine are untouched.
+
+       TRICK 1 — theory-height-lock. The per-step caption text differs in length across en/ru/tt, so
+       a language switch (and even plain stepping) reflows the caption block and everything below it.
+       We measure the caption height for EVERY step — across all bundled languages when i18nAll is
+       present, else across the steps of the one language we have — and pin min-height to that MAX, so
+       the block never jumps. (Captions are display:none in the Book's scroll context: a 0-height
+       measure yields no lock, which is the correct no-op there. It bites where captions show: decks
+       and any standalone mount.) */
+    function lockCaptionHeight() {
+      if (!scaffold || !cap || cap.offsetParent === null) return; // no caption, or hidden (Book) → skip
+      const langs = i18nAll ? Object.values(i18nAll) : [active];
+      const prevText = cap.textContent, prevMin = cap.style.minHeight;
+      cap.style.minHeight = '0px';                 // release any prior lock before remeasuring
+      let max = 0;
+      for (const L of langs) for (let k = 0; k <= MAX; k++) {
+        cap.textContent = (L && L['s' + k]) || '';
+        const h = cap.getBoundingClientRect().height; // forces layout; tallest wins
+        if (h > max) max = h;
+      }
+      cap.textContent = prevText;                  // restore the real current-step caption
+      cap.style.minHeight = max > 0 ? Math.ceil(max) + 'px' : prevMin;
+    }
+    lockCaptionHeight();
+
+    /* TRICK 2 — re-render-on-language-switch. The Book mounts one page PER language (full reload), so
+       this matters for surfaces that toggle in place: the deck flips document.documentElement's
+       `data-lang` and lets CSS swap static [lang] spans — but text a widget GENERATES (its captions,
+       and labels its render() drew) won't follow. We watch that attribute and, if we were given a
+       trilingual bundle, swap to the new language's flat label map and re-run render + setStep at the
+       SAME step so generated text regenerates. With no bundle (or no in-place switch) it's a no-op. */
+    let obs = null;
+    if (typeof MutationObserver === 'function' && typeof document !== 'undefined' && document.documentElement) {
+      const rootEl = document.documentElement;
+      const pickLang = () => (rootEl.dataset.lang || rootEl.lang || 'en').slice(0, 2);
+      let curLang = pickLang();
+      obs = new MutationObserver(() => {
+        const lang = pickLang();
+        if (lang === curLang) return;
+        curLang = lang;
+        if (i18nAll && i18nAll[lang]) {
+          active = { ...labels, ...i18nAll[lang] }; // keep non-step keys (alt/role/…), swap step text
+          const at = step; step = -1;               // force setStep to repaint (update + caption) once
+          setStep(at);                              // regenerates render()'s labels AND the caption
+        }
+        lockCaptionHeight();                         // re-pin for the new language's text lengths
+      });
+      obs.observe(rootEl, { attributes: true, attributeFilter: ['data-lang', 'lang'] });
+    }
+
+    return { setStep, get step() { return step; }, get maxStep() { return MAX; }, root: host,
+             relock: lockCaptionHeight, destroy() { if (obs) obs.disconnect(); } };
   }
 
   if (typeof window !== 'undefined') window[exportName || mountName(id)] = mount;

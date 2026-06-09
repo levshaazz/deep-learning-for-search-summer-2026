@@ -51,7 +51,7 @@
 import { chromium } from 'playwright';
 import { createServer } from 'node:http';
 import { readFile, stat, mkdir, writeFile } from 'node:fs/promises';
-import { readFileSync, existsSync, statSync } from 'node:fs';
+import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
 import { join, extname, normalize, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -447,6 +447,182 @@ function iou(a, b) {
   const iy = Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
   const inter = ix * iy; if (inter <= 0) return 0;
   return inter / (a.w * a.h + b.w * b.h - inter);
+}
+
+function hexRGB(h) {                  // "#rgb" | "#rrggbb" → {r,g,b,a:1}
+  h = h.replace('#', '');
+  if (h.length === 3) h = h.split('').map(c => c + c).join('');
+  if (h.length === 8) h = h.slice(0, 6);   // drop alpha channel
+  if (h.length !== 6) return null;
+  const n = parseInt(h, 16); if (isNaN(n)) return null;
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255, a: 1 };
+}
+function anyColor(s) { return hexRGB(s) || parseRGB(s); }   // hex OR rgb()/rgba()
+
+/* =========================================================================
+   SEMANTIC COLOR CONTRACT — static source scan (NEW sub-check).
+   ─────────────────────────────────────────────────────────────────────────
+   The rendered detectors above read the PAINTED rgb of a shape; they cannot tell
+   "this should have been a contract TOKEN" from "this is the right colour by luck".
+   That distinction lives in the SOURCE. So this scanner reads the contract's single
+   source of truth (tokens/design-tokens.css :root) and the figure source (L5/L6 deck
+   HTML inline SVG fills/strokes + every widget style.css / logic.js) and flags:
+
+     (A) OFF-TOKEN   — a RAW hex / rgb() literal on a semantic fill:/stroke:/fill=/
+                       stroke= that is NOT inside a var(--…) and whose colour IS a
+                       contract hue (ΔE < OFF_TOKEN_NEAR to a token). Right colour,
+                       wrong mechanism: it won't theme (light/dark) and silently
+                       drifts. WARN (the value is correct today).
+     (B) OFF-CONTRACT— a RAW literal whose hue is NOT near ANY approved contract hue
+                       (ΔE ≥ OFF_TOKEN_NEAR to the nearest token). A rogue shade: e.g.
+                       a SECOND red (#C0392B) that also means "negative" — breaks
+                       "one colour = one meaning". WARN + the precise file:line so a
+                       follow-up can token-swap it.
+
+   EXEMPT (never flagged): values inside var(--…, #fallback) (the themeable pattern —
+   the hex is just the fallback); pure white/black (#fff/#000 — chip text, halos);
+   achromatic greys that resolve to an ink/rule structure token; colours used
+   only in box-shadow / text-shadow / gradient stops (decoration, matched by context).
+
+   Severity is WARN by default: the current decks carry off-token + off-contract
+   literals (real, reported below), and a HARD here would break the green build — the
+   task says start NEW sub-checks as WARN and report the real violations. Flip
+   CONTRACT_HARD=1 (env) once those are fixed to promote to HARD.
+   ========================================================================= */
+const CONTRACT_TH = {
+  OFF_TOKEN_NEAR: 10,   // ΔE below this to a contract token ⇒ "off-token" (right hue, raw literal).
+                        //   At/above ⇒ "off-contract rogue hue". Calibrated on the live decks:
+                        //   exact-token literals land ΔE 0–6 (#2A6FDB, #6B7280, #5B6472), rogue
+                        //   shades land ΔE 12–30 (#C0392B, #7C5CD6, #1E9BD9, #2E9E5B, #D98A1E).
+  ACHROMATIC_SAT: 0.12, // a literal this un-saturated is grey/near-bg structure (chrome), not a
+                        //   semantic CATEGORY hue. If it's also ΔE-near an --ink*/--rule* token it
+                        //   is on-contract structure; we only WARN-off-contract on CHROMATIC rogues.
+};
+// Load the contract palette straight from the token file's :root (single source of truth) so the
+// gate can never drift from the documented contract. Returns [{name, c:{r,g,b}}] for chromatic +
+// achromatic structure tokens (the approved hues listed in the contract comment).
+function loadContractTokens(rootDir) {
+  const css = readFileSync(join(rootDir, 'tokens', 'design-tokens.css'), 'utf8');
+  // first :root block only (the light theme — the canonical values the source hex literals target).
+  const root = (css.match(/:root\s*\{([\s\S]*?)\}/) || [, ''])[1];
+  const tokens = [];
+  const re = /--([a-z0-9-]+)\s*:\s*(#[0-9a-fA-F]{3,8})\b/g; let m;
+  while ((m = re.exec(root))) {
+    const name = m[1], c = hexRGB(m[2]); if (!c) continue;
+    // contract surface: accent/warm/c-* chromatic roles + ink*/rule* structure. Skip bg/soft tints
+    // and shadow/motion — a SHAPE fill should match a role hue or a structure token, not a -soft wash.
+    if (/^(accent|warm|c-[a-z]+|ink|ink-\d|rule|rule-strong)(-ink)?$/.test(name) && !/-soft$/.test(name)) {
+      tokens.push({ name: '--' + name, c });
+    }
+  }
+  return tokens;
+}
+// nearest contract token to an arbitrary colour, by CIE76 ΔE.
+function nearestToken(c, tokens) {
+  let best = null, bd = Infinity;
+  for (const t of tokens) { const e = deltaE(c, t.c); if (e < bd) { bd = e; best = t; } }
+  return { token: best, dE: bd };
+}
+
+// Pull raw colour literals off semantic paint sites in one source string, skipping var(--…) usages,
+// comments, and decoration (shadows/gradients). Returns [{line, prop, raw, ctx}].
+function extractPaintLiterals(src, kind /* 'html' | 'css' */) {
+  const out = [];
+  const lines = src.split('\n');
+  // a colour literal is "semantic" when it sits on a fill/stroke (SVG) or color/background/fill/stroke
+  // (CSS) — NOT on box-shadow/text-shadow/filter/gradient (decoration). We test the surrounding text.
+  const DECOR = /(box-shadow|text-shadow|drop-shadow|filter\s*:|gradient|outline\s*:)/i;
+  // HTML: attributes  fill="#.."  stroke="#.."  (also style="fill:#..").
+  // CSS : declarations fill: #..  stroke: #..  color: #..  background[-color]: #..
+  const ATTR = kind === 'html'
+    ? /\b(fill|stroke|stop-color)\s*=\s*"([^"]*)"/gi
+    : /\b(fill|stroke|color|background(?:-color)?|stop-color)\s*:\s*([^;}{]+)/gi;
+  lines.forEach((ln, i) => {
+    if (DECOR.test(ln)) return;                        // a whole decoration line — skip
+    let m;
+    const rx = new RegExp(ATTR.source, ATTR.flags);
+    while ((m = rx.exec(ln))) {
+      const prop = m[1].toLowerCase(), val = m[2].trim();
+      if (!val) continue;
+      if (/^(none|transparent|currentcolor|inherit|url\(|var\()/i.test(val)) continue; // tokened/empty
+      // strip out any var(--…, fallback) — the hex inside is a legit fallback, not a raw literal.
+      const stripped = val.replace(/var\([^)]*\)/g, ' ');
+      // a literal hex or rgb()/rgba() left over after removing var()s is a RAW semantic literal.
+      const lit = (stripped.match(/#[0-9a-fA-F]{3,8}\b/) || stripped.match(/rgba?\([^)]*\)/i) || [])[0];
+      if (!lit) continue;
+      out.push({ line: i + 1, prop, raw: lit, ctx: ln.trim().slice(0, 90) });
+    }
+  });
+  return out;
+}
+
+// Files the contract scan covers: the L5/L6 deck HTML (inline SVG figures) + EVERY widget's
+// style.css and logic.js (the figure paint). Returns a list of {rel, kind, abs}.
+function contractScanFiles(rootDir) {
+  const files = [];
+  for (const f of ['05-dl-embeddings-dimred.html', '06-contextual-attention-transformers.html']) {
+    const abs = join(rootDir, 'Lectures', f);
+    if (existsSync(abs)) files.push({ rel: 'Lectures/' + f, kind: 'html', abs });
+  }
+  const wdir = join(rootDir, 'widgets');
+  if (existsSync(wdir)) {
+    for (const name of readdirSync(wdir)) {
+      const d = join(wdir, name);
+      try { if (!statSync(d).isDirectory()) continue; } catch { continue; }
+      for (const f of ['style.css', 'logic.js']) {
+        const abs = join(d, f);
+        if (existsSync(abs)) files.push({ rel: `widgets/${name}/${f}`, kind: f.endsWith('.css') ? 'css' : 'js', abs });
+      }
+    }
+  }
+  return files;
+}
+
+// Run the contract scan over one source string. Pure (testable in selftest). `tokens` from
+// loadContractTokens. Returns defect objects {cat:'CONTRACT', sub:'OFF-TOKEN'|'OFF-CONTRACT', ...}.
+function scanContractSource(src, kind, rel, tokens, th) {
+  const out = [];
+  const lits = extractPaintLiterals(src, kind === 'css' || kind === 'js' ? 'css' : 'html');
+  for (const L of lits) {
+    const c = anyColor(L.raw); if (!c) continue;
+    if (c.a !== undefined && c.a < 0.12) continue;        // a wash/overlay alpha, not a solid paint
+    // pure white / pure black are universal chip-text / halo / void-fill — never a contract violation.
+    const lum = relLum(c), sat = hsvSat(c);
+    if ((c.r > 245 && c.g > 245 && c.b > 245) || (c.r < 12 && c.g < 12 && c.b < 12)) continue;
+    const { token, dE } = nearestToken(c, tokens);
+    if (!token) continue;
+    if (dE < th.OFF_TOKEN_NEAR) {
+      // right colour, raw literal: it equals a contract token but won't theme. WARN.
+      out.push({ cat: 'CONTRACT', sub: 'OFF-TOKEN', sev: 'WARN', step: 0,
+        msg: `off-token literal ${rel}:${L.line} — ${L.prop} ${L.raw} == ${token.name} (ΔE=${dE.toFixed(1)}); paint with var(${token.name}) so it themes & stays on-contract  ‹${L.ctx}›` });
+    } else {
+      // achromatic-but-far greys: structure that drifted from --ink*/--rule* — note as off-token-ish, low risk.
+      if (sat < th.ACHROMATIC_SAT) {
+        out.push({ cat: 'CONTRACT', sub: 'OFF-TOKEN', sev: 'WARN', step: 0,
+          msg: `off-token grey ${rel}:${L.line} — ${L.prop} ${L.raw} (lum=${lum.toFixed(2)}) nearest structure ${token.name} ΔE=${dE.toFixed(1)}; use the --ink*/--rule* token  ‹${L.ctx}›` });
+      } else {
+        // CHROMATIC rogue: a hue that is NOT any approved contract colour ⇒ "one colour = one meaning"
+        // broken (a second red/violet/green/cyan). WARN with the precise site for a token-swap follow-up.
+        out.push({ cat: 'CONTRACT', sub: 'OFF-CONTRACT', sev: 'WARN', step: 0,
+          msg: `OFF-CONTRACT hue ${rel}:${L.line} — ${L.prop} ${L.raw} (sat=${sat.toFixed(2)}) is ΔE=${dE.toFixed(1)} from its nearest contract hue ${token.name}: a rogue shade, not on the approved palette. Swap to ${token.name} (or its categorical equivalent) so the role reads without a legend.  ‹${L.ctx}›` });
+      }
+    }
+  }
+  return out;
+}
+
+// The whole contract scan (all files) — returns {defects[], byFile{}, tokens[]}.
+function runContractScan(rootDir) {
+  const tokens = loadContractTokens(rootDir);
+  const files = contractScanFiles(rootDir);
+  const defects = [], byFile = {};
+  for (const f of files) {
+    let src; try { src = readFileSync(f.abs, 'utf8'); } catch { continue; }
+    const d = scanContractSource(src, f.kind, f.rel, tokens, CONTRACT_TH);
+    if (d.length) byFile[f.rel] = d;
+    defects.push(...d);
+  }
+  return { defects, byFile, tokens, fileCount: files.length };
 }
 
 /* =========================================================================
@@ -1065,6 +1241,45 @@ async function selftest(browser) {
   pass('D3 shadow duplicate (same string)', dShadow.some(d => d.cat === 'OVERLAP'), false,
     `label pairs share string "on the sphere"`);
 
+  console.log('── E) SEMANTIC COLOR CONTRACT — static off-token / off-contract scan ──');
+  // Load the REAL contract palette from tokens/design-tokens.css (the source of truth the scan uses).
+  const ctk = loadContractTokens(ROOT);
+  const tokenNames = ctk.map(t => t.name);
+  pass('E0 contract palette loaded from token file', tokenNames.includes('--accent') && tokenNames.includes('--c-red')
+    && tokenNames.includes('--c-green') && tokenNames.length >= 10, true, `${ctk.length} tokens: ${tokenNames.slice(0, 6).join(', ')}…`);
+
+  // E1 (FIRES — OFF-CONTRACT): a semantic SVG fill with a ROGUE red (#C0392B) — a SECOND "negative"
+  //     hue not on the approved palette (ΔE≈12 to --c-red). This is the exact live-deck violation
+  //     (the O(n²) attention-cost curve). MUST fire as CONTRACT/OFF-CONTRACT.
+  const fxRogue = `<svg viewBox="0 0 100 50"><path d="M0 0 H100" fill="none" stroke="#C0392B" stroke-width="5"/></svg>`;
+  const dRogue = scanContractSource(fxRogue, 'html', 'fixture/rogue.html', ctk, CONTRACT_TH);
+  pass('E1 off-contract rogue hue (semantic stroke #C0392B)',
+    dRogue.some(d => d.cat === 'CONTRACT' && d.sub === 'OFF-CONTRACT'), true,
+    (dRogue.find(d => d.sub === 'OFF-CONTRACT') || {}).msg);
+
+  // E2 (FIRES — OFF-TOKEN): the RIGHT colour (#2A6FDB == --accent) but hardcoded, not var(--accent).
+  //     Right hue, wrong mechanism (won't theme) → CONTRACT/OFF-TOKEN.
+  const fxOffTok = `<svg viewBox="0 0 100 50"><circle cx="20" cy="20" r="8" fill="#2A6FDB"/></svg>`;
+  const dOffTok = scanContractSource(fxOffTok, 'html', 'fixture/offtoken.html', ctk, CONTRACT_TH);
+  pass('E2 off-token literal (semantic fill #2A6FDB == --accent)',
+    dOffTok.some(d => d.cat === 'CONTRACT' && d.sub === 'OFF-TOKEN'), true,
+    (dOffTok.find(d => d.sub === 'OFF-TOKEN') || {}).msg);
+
+  // E3 (SILENT — the COMPLIANT pattern): paint via var(--token, #fallback). The hex is only the
+  //     themeable fallback inside var() — NOT a raw literal. Plus #fff chip text. Must stay clean.
+  const fxClean = `.cs-pos { fill: var(--c-green, #3A8A5C); } .cs-neg { stroke: var(--c-red, #D7522C); }
+    .chip-txt { fill: #fff; } .ax { stroke: var(--rule-strong, #B8B19E); }`;
+  const dClean = scanContractSource(fxClean, 'css', 'fixture/clean.css', ctk, CONTRACT_TH);
+  pass('E3 compliant var(--token,#fallback) + #fff chip', dClean.length > 0, false,
+    `defects=${dClean.length} (var() fallbacks + white chip text must NOT count)`);
+
+  // E4 (SILENT — decoration exempt): a raw rgba() inside box-shadow/text-shadow is decoration, not a
+  //     semantic paint — must not be flagged.
+  const fxDecor = `.pr-node { text-shadow: 0 1px 2px rgba(0,0,0,.35); box-shadow: 0 8px 24px rgba(16,24,40,.08); }`;
+  const dDecor = scanContractSource(fxDecor, 'css', 'fixture/decor.css', ctk, CONTRACT_TH);
+  pass('E4 shadow rgba() is decoration (not semantic paint)', dDecor.length > 0, false,
+    `defects=${dDecor.length}`);
+
   console.log('\n[selftest]', ok
     ? 'PASS — all TRUE-defect fixtures fire AND all FALSE-positive fixtures stay silent'
     : 'FAIL — a detector is BLIND to a real defect or fires on a false positive');
@@ -1151,6 +1366,32 @@ async function main() {
     out.push('\n(!) docs/ not built — BOOK widget targets SKIPPED.');
   }
 
+  // ── SEMANTIC COLOR CONTRACT — static source scan (off-token / off-contract literals) ──
+  // Runs once over the L5/L6 deck HTML + every widget style.css/logic.js. Independent of the
+  // rendered detectors (it reads the SOURCE, not the painted pixel) — see runContractScan().
+  const contractHard = process.env.CONTRACT_HARD === '1';   // promote OFF-CONTRACT to HARD when clean
+  const contract = runContractScan(ROOT);
+  const cLines = [];
+  cLines.push(`\n=== SEMANTIC COLOR CONTRACT scan (${contract.fileCount} source files; palette = tokens/design-tokens.css :root, ${contract.tokens.length} tokens) ===`);
+  let cHard = 0, cWarn = 0;
+  if (!contract.defects.length) {
+    cLines.push('  · clean — every semantic fill/stroke uses a contract token, no rogue hues');
+  } else {
+    const offTok = contract.defects.filter(d => d.sub === 'OFF-TOKEN');
+    const offCon = contract.defects.filter(d => d.sub === 'OFF-CONTRACT');
+    cLines.push(`  off-token literals: ${offTok.length}  ·  off-contract rogue hues: ${offCon.length}`);
+    for (const d of contract.defects) {
+      // OFF-CONTRACT may be promoted to HARD via env once the decks are token-clean; OFF-TOKEN stays WARN.
+      const sev = (contractHard && d.sub === 'OFF-CONTRACT') ? 'HARD' : d.sev;
+      if (sev === 'HARD') cHard++; else cWarn++;
+      cLines.push(`      ${sev === 'HARD' ? '✗' : '⚠'} [CONTRACT/${d.sub} ${sev}] ${d.msg}`);
+    }
+  }
+  const contractText = cLines.join('\n');
+  console.log(contractText);
+  out.push(contractText);
+  totalHard += cHard; totalWarn += cWarn;
+
   // worst-target ranking
   const ranked = results.map(r => {
     let h = 0, w = 0;
@@ -1178,7 +1419,8 @@ async function main() {
   if (jsonIdx >= 0 && argv[jsonIdx + 1]) await writeFile(argv[jsonIdx + 1], JSON.stringify(results, null, 2));
 
   await browser.close(); dsrv.close(); if (bsrv) bsrv.close();
-  console.log(`\n[slide-viz-gate] HARD(stepprog/overlap/overprint/oob/colorcollision/double-paint)=${totalHard}  WARN(color/void/lowhue/borderline-overprint)=${totalWarn}`);
+  console.log(`\n[slide-viz-gate] HARD(stepprog/overlap/overprint/oob/colorcollision/double-paint/contract)=${totalHard}  WARN(color/void/lowhue/borderline-overprint/contract)=${totalWarn}`);
+  console.log(`[slide-viz-gate] color-contract: OFF-TOKEN+OFF-CONTRACT literals found = ${contract.defects.length} (HARD=${cHard} WARN=${cWarn})${contractHard ? ' [CONTRACT_HARD on]' : ' [WARN-only; set CONTRACT_HARD=1 to promote off-contract once decks are token-clean]'}`);
   const strict = argv.includes('--strict');
   process.exit(strict && totalHard > 0 ? 1 : 0);
 }
