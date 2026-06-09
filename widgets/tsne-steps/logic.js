@@ -56,7 +56,12 @@ export const mountTsneSteps = defineWidget({
     const sctBox = { x: barBox.x + barBox.w + GAP, y: box.y,               // right: low-D scatter
       w: box.x + box.w - (barBox.x + barBox.w + GAP), h: box.h };
 
-    const H = frameHeightFor(PAD_T + plotH + 16, 8);
+    // a full-width band UNDER the panels: the gradient formula (step 3) lives here so it has the room
+    // a 220-px column can't give it — and it visually bridges the two halves so neither reads as dead.
+    // Row 1 = the ∂C/∂yᵢ formula; row 2 = the attract/repel key.
+    const bandY = box.y + box.h + 12;
+    const bandH = 44;
+    const H = frameHeightFor(bandY + bandH + 8, 8);
     const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'wgt-svg tss-svg',
       role: 'img', 'aria-label': labels.alt || '' }, host);
 
@@ -68,10 +73,12 @@ export const mountTsneSteps = defineWidget({
     const ttl = el('text', { x: box.x, y: box.y - 12, class: 'tss-title' }, svg);
     const sub = el('text', { x: box.x + box.w, y: box.y - 12, class: 'tss-sub', 'text-anchor': 'end' }, svg);
 
-    // ─────────────────────────── LEFT: affinity bars (steps 0–2) ───────────────────────────
+    // ─────────────────────────── LEFT: affinity bars (steps 0–3) ───────────────────────────
     // one horizontal bar per OTHER word; length ∝ affinity. p (high-D) is shown from step 0; the q
-    // overlay (low-D) is added at step 2 so the KL "match these two" story is visible.
-    layer('barpanel', 0, 2);
+    // overlay (low-D) is added at step 2 so the KL "match these two" story is visible. The bars stay
+    // up through step 3 because the gradient (p_ij−q_ij) is read straight off this p-vs-q comparison
+    // — so the left half is never a dead orphan-header void. Only step 4 (caveat) swaps the left out.
+    layer('barpanel', 0, 3);
     add('barpanel', el('text', { x: barBox.x, y: barBox.y + 12, class: 'tss-panellbl' }, svg))
       .textContent = (labels.affinityFrom || 'affinity from') + ' "' + words[ai] + '"';
 
@@ -82,8 +89,8 @@ export const mountTsneSteps = defineWidget({
     const barMaxW = barBox.x + barBox.w - barX - 30;                       // value text on the right
     const pMax = Math.max(...pRow, ...qRow, 1e-6);                         // shared scale so p & q compare
 
-    layer('pbars', 0, 2);
-    layer('qbars', 2, 2);                                                  // q overlay only at the KL step
+    layer('pbars', 0, 3);
+    layer('qbars', 2, 3);                                                  // q overlay from the KL step on (the gradient reads p−q off it)
     const pBarEls = {}, qBarEls = {}, pValEls = {};
     rows.forEach((j, r) => {
       const cy = barBox.y + 20 + r * rowH;
@@ -112,8 +119,8 @@ export const mountTsneSteps = defineWidget({
       perpLbl.textContent = 'σ=' + cond.sigma.toFixed(2) + ' · perplexity=' + cond.perplexity.toFixed(0)
         + ' ≈ ' + (labels.effNeighbours || 'eff. neighbours');
 
-    // p/q legend at the KL step (which bar is which).
-    layer('pqlegend', 2, 2);
+    // p/q legend at the KL step (which bar is which) — stays through the gradient step.
+    layer('pqlegend', 2, 3);
     const legG = add('pqlegend', el('g', {}, svg));
     el('rect', { x: barBox.x, y: barBox.y + barBox.h - 12, width: 9, height: 9, rx: 2, fill: P_COLOR }, legG);
     el('text', { x: barBox.x + 13, y: barBox.y + barBox.h - 4, class: 'tss-leglbl' }, legG)
@@ -202,6 +209,25 @@ export const mountTsneSteps = defineWidget({
       markerWidth: 6, markerHeight: 6, orient: 'auto-start-reverse' }, defs);
     el('path', { d: 'M0 0 L10 5 L0 10 z', class: 'tss-arrowfill' }, mk);
 
+    // ── GRADIENT FORMULA (step 3) — parity with the deck's "t-SNE objective" slide. The real ∂C/∂yᵢ
+    //    formula sits in the full-width bottom band; a compact attract/repel key (above the scatter,
+    //    in the gap over the right panel) tells the arrows apart.
+    layer('gradmath', 3, 3);
+    // row 1: the real gradient formula, centred, full width.
+    add('gradmath', el('text', { x: box.x + box.w / 2, y: bandY + 14, class: 'tss-gradformula',
+      'text-anchor': 'middle' }, svg)).textContent = labels.gradFormula
+        || '∂C/∂yᵢ = 4 Σⱼ (p_ij−q_ij)(yᵢ−yⱼ)(1+‖yᵢ−yⱼ‖²)⁻¹';
+    // row 2: attract/repel key (p−q sign decides pull vs push) — two swatches on one centred row.
+    const keyY = bandY + 36;
+    add('gradmath', el('rect', { x: box.x + 20, y: keyY - 8, width: 9, height: 9, rx: 2,
+      class: 'tss-keyswatch tss-key-attract' }, svg));
+    add('gradmath', el('text', { x: box.x + 33, y: keyY, class: 'tss-keylbl' }, svg))
+      .textContent = labels.attractLbl || 'p > q → pull together (attract)';
+    add('gradmath', el('rect', { x: box.x + box.w / 2 + 20, y: keyY - 8, width: 9, height: 9, rx: 2,
+      class: 'tss-keyswatch tss-key-repel' }, svg));
+    add('gradmath', el('text', { x: box.x + box.w / 2 + 33, y: keyY, class: 'tss-keylbl' }, svg))
+      .textContent = labels.repelLbl || 'p < q → push apart (repel)';
+
     // ── KL headline (step 2) — the real cost number, under the scatter ──
     layer('klhead', 2, 2);
     const klHead = add('klhead', el('text', { x: sctBox.x + sctBox.w / 2, y: sctBox.y + sctBox.h - 6,
@@ -209,8 +235,40 @@ export const mountTsneSteps = defineWidget({
     if (typeof data.kl === 'number')
       klHead.textContent = 'KL(P‖Q) = ' + data.kl.toFixed(4);
 
-    // ── caveat (step 4) — perplexity changes the picture; gaps/sizes aren't global ──
+    // ── caveat (step 4) — fills the LEFT half (the bars are gone at step 4) so there is no dead
+    //    orphan-header void: a heading + three wrapped caveat lines, the same P7 cautions the caption
+    //    spells out. The scatter stays on the right; a one-line reminder sits under it.
     layer('caveat', 4, 4);
+    const cavX = barBox.x, cavTop = barBox.y + 24;
+    add('caveat', el('text', { x: cavX, y: barBox.y + 12, class: 'tss-panellbl' }, svg))
+      .textContent = labels.caveatHead || 'read a t-SNE map with care';
+    // wrap each caveat sentence to the bar-column width, drawn as a bulleted block.
+    const cavLines = [labels.caveatPerp, labels.caveatGaps, labels.caveatTrust]
+      .filter(Boolean);
+    const wrapW = barBox.w + GAP + 4;                 // a touch into the gap; still left of scatter
+    const approxCharW = 6.1;                          // 10px mono ≈ 6.1px/char
+    const maxChars = Math.max(8, Math.floor(wrapW / approxCharW));
+    let cy = cavTop;
+    cavLines.forEach((line) => {
+      // greedy word-wrap
+      const words2 = line.split(' ');
+      let cur = '';
+      const rows2 = [];
+      for (const w of words2) {
+        const trial = cur ? cur + ' ' + w : w;
+        if (trial.length > maxChars && cur) { rows2.push(cur); cur = w; } else cur = trial;
+      }
+      if (cur) rows2.push(cur);
+      rows2.forEach((r, ri) => {
+        // a small dot marks the first row of each caution
+        if (ri === 0) add('caveat', el('circle', { cx: cavX + 3, cy: cy - 3, r: 2,
+          class: 'tss-cavdot' }, svg));
+        add('caveat', el('text', { x: cavX + 12, y: cy, class: 'tss-cavline' }, svg)).textContent = r;
+        cy += 15;
+      });
+      cy += 5;                                        // gap between cautions
+    });
+    // one-line reminder under the scatter (the headline caveat).
     const caveat = add('caveat', el('text', { x: sctBox.x + sctBox.w / 2, y: sctBox.y + sctBox.h - 6,
       class: 'tss-caveat', 'text-anchor': 'middle' }, svg));
     caveat.textContent = labels.tsneCaveat || 'perplexity changes the picture';

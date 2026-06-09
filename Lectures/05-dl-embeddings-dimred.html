@@ -520,6 +520,11 @@
               <div class="af-label" data-from="2" style="left:30%;top:17%">select row</div>
               <div class="af-label" data-from="3" style="left:78.5%;top:17%">dot each row</div>
               <div class="af-label" data-from="4" style="left:89%;top:17%">softmax</div>
+              <!-- king is the CENTRE word: it has the largest softmax cell (.174) but is excluded from
+                   context prediction → greyed/struck in the column, named here so the top CONTEXT word
+                   reads as prince (.165), not a contradiction. Sits BELOW the softmax column (top:73%),
+                   clear of every cell and the logits column. -->
+              <div class="af-label" data-from="4" style="left:88%;top:80%;font-size:15px;color:var(--ink-3)"><span lang="ru">king = центр · исключён</span><span lang="en">king = centre · excluded</span></div>
 
               <!-- NODES staged one-per-step: the set of SOLID nodes GROWS as → advances.
                    step 0 = vocabulary + one-hot input only (the meaningful START);
@@ -570,9 +575,12 @@
                 <span class="af-cell" style="background:var(--c-red-soft,#F8DAD0);border-color:var(--c-red);color:var(--ink)">.228</span>
                 <span class="af-cell" style="background:var(--c-red-soft,#F8DAD0);border-color:var(--c-red);color:var(--ink)">-.712</span>
               </div>
-              <!-- softmax · context distribution (Σ=1): 8×1, prince row 4 highlighted -->
+              <!-- softmax · context distribution (Σ=1): 8×1, vocab order king/queen/man/woman/prince/…
+                   Row 0 = king = the CENTRE word: its .174 is the largest softmax cell, but the centre
+                   word is EXCLUDED from context prediction, so it is greyed + struck (not a candidate).
+                   The highlighted top CONTEXT word is therefore prince (.165) — matching the caption. -->
               <div class="af-node af-matrix" id="af-p" data-role="output" data-from="4" data-focus="4" style="left:95%;top:50%;--cols:1">
-                <span class="af-cell">.174</span><span class="af-cell">.164</span><span class="af-cell">.109</span><span class="af-cell">.125</span>
+                <span class="af-cell" style="background:var(--bg-alt);border-color:var(--rule);color:var(--ink-3);text-decoration:line-through;opacity:0.7;font-weight:400" title="centre word — excluded from context">.174</span><span class="af-cell">.164</span><span class="af-cell">.109</span><span class="af-cell">.125</span>
                 <span class="af-cell is-rowhi">.165</span><span class="af-cell">.152</span><span class="af-cell">.080</span><span class="af-cell">.031</span>
               </div>
 
@@ -602,7 +610,7 @@
               <div class="af-note" data-step="4" data-label="softmax">
                 <div class="af-note-head">softmax</div>
                 <div class="af-formula">$$p_j=\frac{e^{z_j}}{\sum_k e^{z_k}},\quad \textstyle\sum p_j=1$$</div>
-                <p><span lang="ru">Распределение по контексту: топ — <code>prince</code> (\(.165\)), затем <code>queen</code> (\(.164\)). Сумма \(=1\).</span><span lang="en">A distribution over context: top is <code>prince</code> (\(.165\)), then <code>queen</code> (\(.164\)). They sum to \(1\).</span></p>
+                <p><span lang="ru">Распределение по контексту: центр <code>king</code> (\(.174\)) исключён, поэтому топ-<strong>контекст</strong> — <code>prince</code> (\(.165\)), затем <code>queen</code> (\(.164\)). Сумма \(=1\).</span><span lang="en">A distribution over context: the centre word <code>king</code> (\(.174\)) is excluded, so the top <strong>context</strong> word is <code>prince</code> (\(.165\)), then <code>queen</code> (\(.164\)). They sum to \(1\).</span></p>
               </div>
             </div>
           </div>
@@ -909,6 +917,15 @@
                is-arch-current (deck.js sets it for n === current-step). */
             .gco-slide .gco-cap[data-arch-step] { display: none; }
             .gco-slide .gco-cap[data-arch-step].is-arch-current { display: block; animation: gcoIn var(--dur,.4s) var(--ease,ease) both; }
+            /* step-0-only placeholder for the RIGHT card (the matrix-to-be): shows at step 0
+               (arch-step 0 is current, not past), SWAPS OUT at step 1 when the real X arrives →
+               no empty void at step 0, no overprint at step 1. Overrides the [data-step] block. */
+            .gco-slide .gco-ph[data-arch-step] { display: block; }
+            .gco-slide .gco-ph[data-arch-step].is-arch-past { display: none; }
+            /* same fix as the gob slide: neutralise the global `svg [data-arch-step].is-arch-current`
+               thick-accent-stroke highlight so the step-0 placeholder text never double-paints. */
+            .gco-slide .gco-ph[data-arch-step],
+            .gco-slide .gco-ph[data-arch-step].is-arch-current { stroke: none !important; fill: none !important; opacity: 1 !important; }
             @keyframes gcoIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
             @media (prefers-reduced-motion: reduce) { .gco-slide .gco-cap { animation: none !important; } }
           </style>
@@ -935,50 +952,70 @@
               <div class="gco-stage">
                 <svg viewBox="0 0 1180 560" preserveAspectRatio="xMidYMid meet" role="img" aria-label="The 14-by-14 symmetric co-occurrence matrix X built from the mini-corpus, then the GloVe weighting curve f(x) = (x/x_max)^0.75 capped at 1">
                   <g font-family="var(--font-sans)">
+                    <!-- ── STEP 0: a faint empty matrix-grid placeholder so the right card is never a
+                         glaring void; it SWAPS OUT at step 1 when the real counts arrive (gco-ph hides
+                         once its arch-step is past). Grid frame matches the real grid (gx=208, gy=98,
+                         cw=22, 14×14) so the table visibly "fills in". -->
+                    <g class="gco-ph" data-arch-step="0">
+                      <text x="40" y="32" font-size="23" fill="var(--ink-3)" font-weight="600"><tspan>co-occurrence matrix </tspan><tspan font-style="italic">X</tspan><tspan> — counts fill in next &rarr;</tspan></text>
+                      <rect x="208" y="98" width="308" height="308" rx="3" fill="var(--bg-inset)" opacity="0.4" stroke="var(--rule)" stroke-width="1.2"/>
+                      <g stroke="var(--rule)" stroke-width="0.7" opacity="0.8">
+                        <line x1="208" y1="142" x2="516" y2="142"/><line x1="208" y1="186" x2="516" y2="186"/><line x1="208" y1="230" x2="516" y2="230"/><line x1="208" y1="274" x2="516" y2="274"/><line x1="208" y1="318" x2="516" y2="318"/><line x1="208" y1="362" x2="516" y2="362"/>
+                        <line x1="252" y1="98" x2="252" y2="406"/><line x1="296" y1="98" x2="296" y2="406"/><line x1="340" y1="98" x2="340" y2="406"/><line x1="384" y1="98" x2="384" y2="406"/><line x1="428" y1="98" x2="428" y2="406"/><line x1="472" y1="98" x2="472" y2="406"/>
+                      </g>
+                      <text x="700" y="206" font-size="17" fill="var(--ink-3)">a 14&#215;14 table, one row + column per word.</text>
+                      <text x="700" y="234" font-size="17" fill="var(--ink-3)">Press <tspan fill="var(--accent-ink)" font-weight="700">&rarr;</tspan> to count who sits near whom.</text>
+                    </g>
                     <!-- ── STEP 1: the co-occurrence matrix X heatmap (14×14, real counts) ── -->
                     <g data-step="1">
-                      <text x="40" y="34" font-size="24" fill="var(--ink)" font-weight="600"><tspan>co-occurrence matrix </tspan><tspan font-style="italic">X</tspan><tspan> · how often i sits near j</tspan></text>
-                      <!-- row + column labels -->
-                      <g font-size="14" fill="var(--ink-3)" font-family="var(--font-mono)">
-                        <text x="206" y="78" text-anchor="end">the</text>
-                        <text x="206" y="100" text-anchor="end">king</text>
-                        <text x="206" y="122" text-anchor="end">loves</text>
-                        <text x="206" y="144" text-anchor="end">cat</text>
-                        <text x="206" y="166" text-anchor="end">dog</text>
-                        <text x="206" y="188" text-anchor="end">queen</text>
-                        <text x="206" y="210" text-anchor="end">a</text>
-                        <text x="206" y="232" text-anchor="end">chases</text>
-                        <text x="206" y="254" text-anchor="end">has</text>
-                        <text x="206" y="276" text-anchor="end">man</text>
-                        <text x="206" y="298" text-anchor="end">woman</text>
-                        <text x="206" y="320" text-anchor="end">and</text>
-                        <text x="206" y="342" text-anchor="end">kingd.</text>
-                        <text x="206" y="364" text-anchor="end">rules</text>
-                      </g>
+                      <!-- title sits in a clear band ABOVE the rotated-label band (labels y≈84, grid gy=98)
+                           so the diagonal column ticks never cross it (was the y34/y58 collision). -->
+                      <text x="40" y="32" font-size="23" fill="var(--ink)" font-weight="600"><tspan>co-occurrence matrix </tspan><tspan font-style="italic">X</tspan><tspan> · how often i sits near j</tspan></text>
+                      <!-- row labels (horizontal, full words) -->
                       <g font-size="13" fill="var(--ink-3)" font-family="var(--font-mono)">
-                        <text x="232" y="58" transform="rotate(-55 232 58)">the</text>
-                        <text x="262" y="58" transform="rotate(-55 262 58)">king</text>
-                        <text x="292" y="58" transform="rotate(-55 292 58)">loves</text>
-                        <text x="322" y="58" transform="rotate(-55 322 58)">cat</text>
-                        <text x="352" y="58" transform="rotate(-55 352 58)">dog</text>
-                        <text x="382" y="58" transform="rotate(-55 382 58)">queen</text>
-                        <text x="412" y="58" transform="rotate(-55 412 58)">a</text>
-                        <text x="442" y="58" transform="rotate(-55 442 58)">chases</text>
-                        <text x="472" y="58" transform="rotate(-55 472 58)">has</text>
-                        <text x="502" y="58" transform="rotate(-55 502 58)">man</text>
-                        <text x="532" y="58" transform="rotate(-55 532 58)">woman</text>
-                        <text x="562" y="58" transform="rotate(-55 562 58)">and</text>
-                        <text x="592" y="58" transform="rotate(-55 592 58)">kingd.</text>
-                        <text x="622" y="58" transform="rotate(-55 622 58)">rules</text>
+                        <text x="200" y="113" text-anchor="end">the</text>
+                        <text x="200" y="135" text-anchor="end">king</text>
+                        <text x="200" y="157" text-anchor="end">loves</text>
+                        <text x="200" y="179" text-anchor="end">cat</text>
+                        <text x="200" y="201" text-anchor="end">dog</text>
+                        <text x="200" y="223" text-anchor="end">queen</text>
+                        <text x="200" y="245" text-anchor="end">a</text>
+                        <text x="200" y="267" text-anchor="end">chases</text>
+                        <text x="200" y="289" text-anchor="end">has</text>
+                        <text x="200" y="311" text-anchor="end">man</text>
+                        <text x="200" y="333" text-anchor="end">woman</text>
+                        <text x="200" y="355" text-anchor="end">and</text>
+                        <text x="200" y="377" text-anchor="end">kingd.</text>
+                        <text x="200" y="399" text-anchor="end">rules</text>
+                      </g>
+                      <!-- column labels: full words, diagonal, in their own band (baseline y=92) tucked
+                           just above the grid (gy=98) and clear below the title (y=32). The -50° lean of
+                           the longest 6-char label tops out near y=60, well below the title → no crossing. -->
+                      <g font-size="12" fill="var(--ink-3)" font-family="var(--font-mono)">
+                        <text x="219" y="92" transform="rotate(-50 219 92)">the</text>
+                        <text x="241" y="92" transform="rotate(-50 241 92)">king</text>
+                        <text x="263" y="92" transform="rotate(-50 263 92)">loves</text>
+                        <text x="285" y="92" transform="rotate(-50 285 92)">cat</text>
+                        <text x="307" y="92" transform="rotate(-50 307 92)">dog</text>
+                        <text x="329" y="92" transform="rotate(-50 329 92)">queen</text>
+                        <text x="351" y="92" transform="rotate(-50 351 92)">a</text>
+                        <text x="373" y="92" transform="rotate(-50 373 92)">chases</text>
+                        <text x="395" y="92" transform="rotate(-50 395 92)">has</text>
+                        <text x="417" y="92" transform="rotate(-50 417 92)">man</text>
+                        <text x="439" y="92" transform="rotate(-50 439 92)">woman</text>
+                        <text x="461" y="92" transform="rotate(-50 461 92)">and</text>
+                        <text x="483" y="92" transform="rotate(-50 483 92)">kingd.</text>
+                        <text x="505" y="92" transform="rotate(-50 505 92)">rules</text>
                       </g>
                       <!-- cells: tint ∝ count / xMaxObserved(6.0). king(row1)·queen(col5) outlined. -->
                       <g id="gco-cells"></g>
-                      <!-- king·queen callout (the worked entry, picked up on the next slide) -->
-                      <rect x="370" y="86" width="24" height="24" rx="2" fill="none" stroke="var(--c-violet)" stroke-width="2.5"/>
+                      <!-- king·queen callout (the worked entry, picked up on the next slide).
+                           cell = (col 5, row 1) → x=208+5·22=318, y=98+1·22=120, size cw-2=20. -->
+                      <rect x="319" y="121" width="20" height="20" rx="2" fill="none" stroke="var(--c-violet)" stroke-width="2.5"/>
                       <text x="700" y="200" font-size="19" fill="var(--c-violet)" font-weight="600">king · queen</text>
                       <text x="700" y="228" font-size="18" fill="var(--ink-2)" font-family="var(--font-mono)">X = 0.667</text>
                       <text x="700" y="252" font-size="15" fill="var(--ink-3)">(symmetric · 1/distance counts)</text>
-                      <line x1="394" y1="98" x2="690" y2="190" stroke="var(--c-violet)" stroke-width="1.5" stroke-dasharray="4 4"/>
+                      <line x1="339" y1="131" x2="690" y2="190" stroke="var(--c-violet)" stroke-width="1.5" stroke-dasharray="4 4"/>
                       <text x="700" y="100" font-size="16" fill="var(--accent-ink)">darker cell</text>
                       <text x="700" y="124" font-size="16" fill="var(--ink-2)">= words seen together more</text>
                       <text x="700" y="148" font-size="16" fill="var(--ink-2)">often (the · king = 5.25,</text>
@@ -1036,7 +1073,7 @@
               [1.25,0.333,0,0,0,0,0,0,0,0,0,0,0,0.5],
               [1.5,1.0,0,0,0,0,0,0,0,0,0,0,0.5,0]
             ];
-            var n = 14, cw = 24, gx = 208, gy = 64, xMaxObs = 6.0, NSc = 'http://www.w3.org/2000/svg';
+            var n = 14, cw = 22, gx = 208, gy = 98, xMaxObs = 6.0, NSc = 'http://www.w3.org/2000/svg';
             var cells = document.getElementById('gco-cells');
             if (cells) {
               // grid lines once (so empty cells read as an empty grid on the card, without painting 100+
@@ -1100,10 +1137,19 @@
                animated SVG <text> to double-paint. */
             .gob-slide [data-step] { display: none; }
             .gob-slide [data-step]:not(.is-step-hidden) { display: block; }
-            /* the factorisation placeholder SWAPS OUT once the map step (2) is reached: it shows at
-               steps 0–1 (current/future) and hides at 2–3 (is-arch-past) → never overprints the dots. */
+            /* the step 0–1 skeleton SWAPS OUT once the map step (2) is reached: with data-arch-step="1"
+               it shows at steps 0 & 1 (current/future) and hides at 2–3 (is-arch-past) → fills the left
+               card at step 1 (no blank-white dead area) and never overprints the map dots. */
             .gob-slide .gob-ph[data-arch-step] { display: none; }
             .gob-slide .gob-ph[data-arch-step]:not(.is-arch-past) { display: block; }
+            /* CRITICAL: the global slides.css rule `svg [data-arch-step].is-arch-current` paints a thick
+               accent STROKE on the matched <g>, which INHERITS onto every child <text> as a fat blue
+               outline = the "double-paint" garble that appeared at the current step. This skeleton is
+               plain reading content (not a diagram box to highlight), so neutralise the highlight at
+               every step. Children keep their own explicit fills; with no inherited stroke the text
+               stays crisp and single-painted at steps 0 AND 1. */
+            .gob-slide .gob-ph[data-arch-step],
+            .gob-slide .gob-ph[data-arch-step].is-arch-current { stroke: none !important; fill: none !important; opacity: 1 !important; }
             .gob-slide .gob-layout { display: grid; grid-template-columns: 1.15fr 1fr; gap: var(--sp-5); align-items: stretch; }
             .gob-slide .viz-frame { margin: 0; }
             .gob-slide .gob-stage { position: relative; width: 100%; aspect-ratio: 940 / 540; }
@@ -1140,12 +1186,19 @@
               <div class="gob-stage">
                 <svg viewBox="0 0 940 540" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Factorising X lands the GloVe vectors as a 2-D PCA map where royal, people and animal words separate; the training loss collapses from 18.04 to 0.005">
                   <g font-family="var(--font-sans)">
-                    <!-- placeholder shown at steps 0–1, then SWAPPED OUT once the map appears at step 2
-                         (gob-ph hides when its arch-step is 'past'), so it never overprints the dots. -->
-                    <g class="gob-ph" data-arch-step="0">
-                      <rect x="60" y="70" width="820" height="400" rx="12" fill="var(--bg-inset)" opacity="0.45"/>
-                      <text x="470" y="250" font-size="30" fill="var(--ink-3)" text-anchor="middle" font-style="italic">X &#8776; W W&#771;&#8868;</text>
-                      <text x="470" y="298" font-size="19" fill="var(--ink-3)" text-anchor="middle">fit the table on the right, then factorise &rarr;</text>
+                    <!-- STEP 0–1 skeleton: a clean, meaningful start that also FILLS the left card at
+                         step 1 (no blank-white dead area). It is plain static SVG text — ONE element per
+                         line, no animated/placeholder over-paint — gated by data-arch-step="1" so it
+                         shows at steps 0 & 1 (current/future) and SWAPS OUT at step 2 when the map lands
+                         (is-arch-past), never overprinting the dots. -->
+                    <g class="gob-ph" data-arch-step="1">
+                      <rect x="60" y="70" width="820" height="400" rx="14" fill="var(--bg-inset)" opacity="0.5" stroke="var(--rule)" stroke-width="1.5"/>
+                      <text x="470" y="138" font-size="17" fill="var(--accent-ink)" text-anchor="middle" font-family="var(--font-mono)" letter-spacing="0.06em">THE GOAL · one equation per pair</text>
+                      <!-- the objective skeleton, named on the worked king·queen pair (single clean tspans) -->
+                      <text x="470" y="222" font-size="27" fill="var(--ink)" text-anchor="middle" font-weight="600"><tspan>w</tspan><tspan font-size="16" dy="6">king</tspan><tspan dy="-6"> &#183; w&#771;</tspan><tspan font-size="16" dy="6">queen</tspan><tspan dy="-6"> + b</tspan><tspan font-size="16" dy="6">king</tspan><tspan dy="-6"> + b&#771;</tspan><tspan font-size="16" dy="6">queen</tspan></text>
+                      <text x="470" y="278" font-size="24" fill="var(--accent-ink)" text-anchor="middle" font-weight="700">&#8776;&nbsp;&nbsp;log X</text>
+                      <text x="470" y="350" font-size="18" fill="var(--ink-2)" text-anchor="middle">a dot-product + two biases must hit the log-count.</text>
+                      <text x="470" y="382" font-size="18" fill="var(--ink-3)" text-anchor="middle">fit every pair like this &rarr; factorise X, then the map.</text>
                     </g>
                     <!-- STEP 2: factorise X → the learned vectors as a 2-D map (PCA of W+W̃) -->
                     <g data-step="2">
@@ -1202,19 +1255,38 @@
             var padX=(xmax-xmin)*0.10, padY=(ymax-ymin)*0.12;
             var sx=function(x){return bx.x+(x-(xmin-padX))/((xmax+padX)-(xmin-padX))*bx.w;};
             var sy=function(y){return bx.y+bx.h-(y-(ymin-padY))/((ymax+padY)-(ymin-padY))*bx.h;};
-            // simple label de-overlap (man/woman/chases cluster near origin)
-            var lab=pts.map(function(p){return {lx:sx(p.x)+9,ly:sy(p.y)+4};});
-            for(var it=0; it<70; it++){ for(var i=0;i<lab.length;i++) for(var j=i+1;j<lab.length;j++){
-              var ox=58-Math.abs(lab[i].lx-lab[j].lx), oy=15-Math.abs(lab[i].ly-lab[j].ly);
-              if(ox>0&&oy>0){ var push=oy/2+0.6, dir=lab[i].ly<=lab[j].ly?-1:1; lab[i].ly+=dir*push; lab[j].ly-=dir*push; }
+            // label de-collision — the man/woman/chases/rules/kingdom cluster sits on the origin. Seed
+            // each label to the OUTSIDE of its dot (left-half dots → label LEFT, right-half → RIGHT) so
+            // labels grow AWAY from the crowded centre instead of into each other, then iterate a 2-D
+            // separation that pushes the shorter-overlap axis (vertical fanning for stacked labels).
+            // Each label reserves a collision box scaled by its own length so wide words (kingdom) clear.
+            var LH=19, GW=8.6;                // line height · approx glyph width (15px mono)
+            var cxMid=bx.x+bx.w/2;
+            var lab=pts.map(function(p){var dx=sx(p.x); var right=dx>cxMid; var halfw=p.w.length*GW;
+              return {lx:dx+(right?11:-11),ly:sy(p.y)+4,anchor:right?'start':'end',w:p.w,hw:halfw,right:right};});
+            // centre of each label's box (so collision uses the box centre regardless of anchor side)
+            var cxOf=function(l){return l.lx+(l.right?l.hw/2:-l.hw/2);};
+            for(var it=0; it<300; it++){ for(var i=0;i<lab.length;i++) for(var j=i+1;j<lab.length;j++){
+              var dxo=Math.abs(cxOf(lab[i])-cxOf(lab[j])), dyo=Math.abs(lab[i].ly-lab[j].ly);
+              var minDX=(lab[i].hw+lab[j].hw)/2+6, ox=minDX-dxo, oy=LH-dyo;
+              if(ox>0&&oy>0){
+                if(oy*1.6<=ox){ var pv=oy/2+0.5, dv=lab[i].ly<=lab[j].ly?-1:1; lab[i].ly+=dv*pv; lab[j].ly-=dv*pv; }
+                else { var ph=ox/2+0.5, dh=cxOf(lab[i])<=cxOf(lab[j])?-1:1; lab[i].lx+=dh*ph; lab[j].lx-=dh*ph; }
+              }
             }}
-            lab.forEach(function(l){ l.ly=Math.max(bx.y+12,Math.min(bx.y+bx.h-2,l.ly)); l.lx=Math.max(bx.x+2,Math.min(bx.x+bx.w-58,l.lx)); });
+            // clamp inside the frame, accounting for which side the text extends (anchor + own width)
+            lab.forEach(function(l){ l.ly=Math.max(bx.y+14,Math.min(bx.y+bx.h-4,l.ly));
+              var lo=bx.x+4+(l.right?0:l.hw), hi=bx.x+bx.w-4-(l.right?l.hw:0); l.lx=Math.max(lo,Math.min(hi,l.lx)); });
             var g=document.getElementById('gob-mapdots'), NS='http://www.w3.org/2000/svg';
             if(g) pts.forEach(function(p,i){
               var cx=sx(p.x),cy=sy(p.y),hue=HUE[p.c];
-              var ln=document.createElementNS(NS,'line'); ln.setAttribute('x1',cx);ln.setAttribute('y1',cy);ln.setAttribute('x2',lab[i].lx);ln.setAttribute('y2',lab[i].ly-3.5);ln.setAttribute('stroke',hue);ln.setAttribute('stroke-width',1);ln.setAttribute('opacity',0.45); g.appendChild(ln);
+              // leader line stops a few px shy of the text so it never runs under the glyphs
+              var endX=lab[i].lx+(lab[i].anchor==='end'?5:-5);
+              var ln=document.createElementNS(NS,'line'); ln.setAttribute('x1',cx);ln.setAttribute('y1',cy);ln.setAttribute('x2',endX);ln.setAttribute('y2',lab[i].ly-3.5);ln.setAttribute('stroke',hue);ln.setAttribute('stroke-width',1);ln.setAttribute('opacity',0.45); g.appendChild(ln);
               var c=document.createElementNS(NS,'circle'); c.setAttribute('cx',cx);c.setAttribute('cy',cy);c.setAttribute('r',6);c.setAttribute('fill',hue);c.setAttribute('stroke','var(--bg-card)');c.setAttribute('stroke-width',1.4); g.appendChild(c);
-              var t=document.createElementNS(NS,'text'); t.setAttribute('x',lab[i].lx);t.setAttribute('y',lab[i].ly);t.setAttribute('font-size',15);t.setAttribute('fill','var(--ink-2)');t.setAttribute('font-family','var(--font-mono)');t.textContent=p.w; g.appendChild(t);
+              var t=document.createElementNS(NS,'text'); t.setAttribute('x',lab[i].lx);t.setAttribute('y',lab[i].ly);t.setAttribute('font-size',15);t.setAttribute('fill','var(--ink-2)');t.setAttribute('font-family','var(--font-mono)');t.setAttribute('text-anchor',lab[i].anchor);
+              t.setAttribute('paint-order','stroke');t.setAttribute('stroke','var(--bg-card)');t.setAttribute('stroke-width','3');t.setAttribute('stroke-linejoin','round');
+              t.textContent=p.w; g.appendChild(t);
             });
             // loss polyline (data/l5-glove.json → loss.history): plotted log-ish over the frame width.
             var hist=[[0,18.0391],[50,1.5063],[100,0.5311],[150,0.3969],[200,0.2961],[250,0.1705],[300,0.0756],[350,0.0339],[400,0.0183],[450,0.0118],[500,0.0085],[550,0.0065],[600,0.005]];
@@ -1738,7 +1810,9 @@
               <svg viewBox="0 0 1180 470" preserveAspectRatio="xMidYMid meet" role="img" aria-label="From the anchor word cat: high-D squared distances become a Gaussian conditional affinity p, tuned so the row has perplexity 5 (sigma 2.003); on the low-D side a Student-t heavy tail keeps far points some affinity, fixing crowding">
                 <g font-family="var(--font-sans)">
                   <!-- ───────────── LEFT: high-D Gaussian affinity from anchor 'cat' ───────────── -->
-                  <text x="40" y="34" font-size="22" fill="var(--ink)" font-weight="600"><tspan>high-D · Gaussian affinity from </tspan><tspan fill="var(--accent-ink)" font-style="italic">cat</tspan></text>
+                  <!-- heading on its own line (y=30); the "(anchor: cat)" subtitle is a SEPARATE line
+                       below it (rendered in JS at y=56), and the rows start at y0=80 → no overprint. -->
+                  <text x="40" y="30" font-size="22" fill="var(--ink)" font-weight="600"><tspan>high-D · Gaussian affinity from </tspan><tspan fill="var(--accent-ink)" font-style="italic">cat</tspan></text>
                   <!-- word rows: label (group-coloured) · distance² (step 0) · p bar (step 1) · p value (step 1) -->
                   <g id="tsa-rows"></g>
                   <!-- STEP 2: perplexity / σ tuning annotation -->
@@ -1790,7 +1864,7 @@
             var rows=document.getElementById('tsa-rows');
             // word labels at x=44; the d² value right-anchored at x=250 (a clear gap past the widest
             // word); the p bars start at x=270 → no run-together numbers, all in the 1180 frame.
-            var y0=64, rh=42, barX=270, barMaxW=210, pMax=Math.max.apply(null,p);
+            var y0=80, rh=42, barX=270, barMaxW=210, pMax=Math.max.apply(null,p);
             if(rows) words.forEach(function(w,i){
               var cy=y0+i*rh, hue=HUE[grp[i]];
               // word label, group-coloured
@@ -1805,8 +1879,9 @@
               var pv=document.createElementNS(NS,'text'); pv.setAttribute('x',barX+bw+8);pv.setAttribute('y',cy+5);pv.setAttribute('font-size',15);pv.setAttribute('fill','var(--ink-2)');pv.setAttribute('font-family','var(--font-mono)');pv.textContent=p[i].toFixed(3); pwrap.appendChild(pv);
               rows.appendChild(pwrap);
             });
-            // anchor 'cat' marker at top of the column
-            if(rows){ var a=document.createElementNS(NS,'text'); a.setAttribute('x',44);a.setAttribute('y',y0-22);a.setAttribute('font-size',15);a.setAttribute('fill','var(--ink-3)');a.textContent='(anchor: cat)'; rows.appendChild(a); }
+            // "(anchor: cat)" — its OWN line, well below the heading (y=30) and above the first row
+            // (y0=80) so it is never overprinted by the heading.
+            if(rows){ var a=document.createElementNS(NS,'text'); a.setAttribute('x',44);a.setAttribute('y',56);a.setAttribute('font-size',15);a.setAttribute('fill','var(--ink-3)');a.textContent='(anchor: cat)'; rows.appendChild(a); }
             // Student-t vs Gaussian curves (step 3 inset): d 0→3.2 over px 650→1120; v 0→1 over py 200→92
             var DMAX=3.2, cx0=650,cx1=1120,cy0v=200,cy1v=92;
             var csx=function(d){return cx0+(d/DMAX)*(cx1-cx0);};
@@ -1863,10 +1938,14 @@
                     <rect x="184" y="400" width="13" height="13" rx="2" fill="var(--c-red)"/>
                     <text x="203" y="411" font-size="15" fill="var(--ink-2)">q (low-D)</text>
                   </g>
-                  <!-- STEP 1: the KL number -->
+                  <!-- STEP 1: the KL number. The 0.0411 is the KL of the SYMMETRIC JOINT P over Q
+                       (the p_ij = (p_{j|i}+p_{i|j})/2n form t-SNE actually minimises) — NOT the on-screen
+                       conditional p/q bars, so the footnote names its source (a student recomputing from
+                       the bars gets ≈0.77; this keeps the number honest). -->
                   <g data-step="1">
-                    <rect x="40" y="424" width="500" height="36" rx="8" fill="var(--c-amber-soft)" stroke="var(--c-amber)" stroke-width="1.5"/>
-                    <text x="54" y="448" font-size="17" fill="var(--ink)"><tspan>cost = </tspan><tspan font-weight="700">KL(P‖Q) = &#931; p log(p/q) = 0.0411</tspan></text>
+                    <rect x="40" y="420" width="560" height="44" rx="8" fill="var(--c-amber-soft)" stroke="var(--c-amber)" stroke-width="1.5"/>
+                    <text x="54" y="439" font-size="17" fill="var(--ink)"><tspan>cost = </tspan><tspan font-weight="700">KL(P‖Q) = &#931; p log(p/q) = 0.0411</tspan></text>
+                    <text x="54" y="457" font-size="12.5" fill="var(--ink-3)">KL over the symmetric joint P, Q (&#247;2n) — not the conditional bars above</text>
                   </g>
                   <!-- ───── RIGHT: the 2-D scatter + gradient forces (step 2) ───── -->
                   <text x="620" y="34" font-size="22" fill="var(--ink)" font-weight="600">gradient &rarr; force on each point</text>
