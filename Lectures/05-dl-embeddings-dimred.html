@@ -217,17 +217,17 @@
             </a>
             <a class="toc-item" href="#/28">
               <span class="toc-num">04</span>
-              <span class="toc-text"><span class="toc-title"><span lang="ru">GloVe и проклятие 300-D</span><span lang="en">GloVe &amp; the curse of 300-D</span></span><span class="toc-sub">co-occurrence &middot; count vs predict &middot; you can&rsquo;t see it</span></span>
+              <span class="toc-text"><span class="toc-title"><span lang="ru">GloVe и проклятие 300-D</span><span lang="en">GloVe &amp; the curse of 300-D</span></span><span class="toc-sub">co-occurrence X &middot; f(x) &middot; factorise log X &middot; can&rsquo;t see it</span></span>
             </a>
-            <a class="toc-item" href="#/32">
+            <a class="toc-item" href="#/34">
               <span class="toc-num">05</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Картограф складывает карту: PCA</span><span lang="en">The Cartographer: PCA</span></span><span class="toc-sub">covariance &middot; eigenvectors &middot; 37.7% kept</span></span>
             </a>
-            <a class="toc-item" href="#/38">
+            <a class="toc-item" href="#/40">
               <span class="toc-num">06</span>
-              <span class="toc-text"><span class="toc-title"><span lang="ru">Кривая карта: t-SNE</span><span lang="en">When the map curves: t-SNE</span></span><span class="toc-sub">manifold &middot; neighbours &middot; the 2-D word map</span></span>
+              <span class="toc-text"><span class="toc-title"><span lang="ru">Кривая карта: t-SNE</span><span lang="en">When the map curves: t-SNE</span></span><span class="toc-sub">Gaussian p &middot; perplexity &middot; Student-t q &middot; KL &amp; gradient</span></span>
             </a>
-            <a class="toc-item" href="#/42">
+            <a class="toc-item" href="#/46">
               <span class="toc-num">07</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Ловушки и развязка</span><span lang="en">The traps &amp; the payoff</span></span><span class="toc-sub">t-SNE lies &middot; the Gremlin cornered &middot; bridge to L6</span></span>
             </a>
@@ -877,8 +877,367 @@
           <aside class="slide-notes">GloVe, from Pennington, Socher and Manning in 2014, takes the count road. First build the global co-occurrence matrix X, whose entry i j is how often word i appears near word j across the whole corpus. Then learn vectors whose dot product, plus two bias terms, equals the log of that count. It is a weighted least-squares factorisation of the log co-occurrence matrix, fitted in one global pass rather than streaming windows. The striking result is that this count-based method lands in essentially the same geometry as predictive word2vec — analogies and cosine nearness work the same way. The map is robust to how you draw it.</aside>
         </section>
 
-        <!-- ============================================ 28 · TABLE · count vs predict ============================================ -->
-        <section class="slide" data-type="table" data-screen-label="30 Count vs predict">
+        <!-- ============================================ 30 · VIZ (stepped) · GloVe architecture: corpus → X heatmap → f(x) ============================================ -->
+        <!-- NATIVE deck slide ported from widgets/glove-cooccur (steps 0–1). The deck cannot mount the
+             book widget, so the figure is reimplemented as inline SVG driven by the engine's
+             data-arch-step / data-step stepping (deck.js applyStepVisibility). Every count is from
+             data/l5-glove.json. Geometry that CHANGES across a step swaps via [data-arch-step]; layers
+             that ADD stay via [data-step]. All dynamic labels are HTML overlays (never SVG <text>) to
+             avoid the double-paint the instructor flagged. -->
+        <section class="slide gco-slide" data-type="viz" data-max-step="2" data-current-step="0" data-screen-label="30 GloVe co-occurrence">
+          <style>
+            /* scoped to this slide. Progressive (cumulative) reveal: each panel shows once its
+               step is reached and STAYS — step 0 is the corpus alone (a meaningful START), step 1
+               adds the matrix X, step 2 adds the f(x) curve. No element is at step 0 except the corpus. */
+            /* engine sets .is-step-hidden on every [data-step] with n > current-step; so
+               :not(.is-step-hidden) = steps 0..current = a cumulative reveal (display, not dim). */
+            .gco-slide [data-step] { display: none; }
+            .gco-slide [data-step]:not(.is-step-hidden) { display: block; }
+            .gco-slide .gco-layout { display: grid; grid-template-columns: 0.92fr 1.45fr; gap: var(--sp-5); align-items: stretch; }
+            .gco-slide .gco-stage { position: relative; width: 100%; aspect-ratio: 1180 / 560; }
+            .gco-slide .gco-stage svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+            .gco-slide .viz-frame { margin: 0; }
+            /* corpus card (HTML, left) */
+            .gco-slide .gco-corpus { align-self: center; }
+            .gco-slide .gco-corpus h3 { font-family: var(--font-mono); font-size: 15px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent-ink); margin: 0 0 var(--sp-3); }
+            .gco-slide .gco-line { font-family: var(--font-mono); font-size: 17px; line-height: 1.55; color: var(--ink-2); white-space: nowrap; }
+            .gco-slide .gco-line .gco-win { background: var(--c-amber-soft); border: 1.5px solid var(--c-amber); border-radius: 5px; padding: 0 4px; color: var(--ink); }
+            .gco-slide .gco-line .gco-hi { color: var(--c-violet); font-weight: 700; }
+            .gco-slide .gco-note { font-size: 14px; color: var(--ink-3); margin-top: var(--sp-3); line-height: 1.4; }
+            /* progressive caption column under the figure */
+            /* the caption SWAPS (only the current step's caption) → gate on data-arch-step's
+               is-arch-current (deck.js sets it for n === current-step). */
+            .gco-slide .gco-cap[data-arch-step] { display: none; }
+            .gco-slide .gco-cap[data-arch-step].is-arch-current { display: block; animation: gcoIn var(--dur,.4s) var(--ease,ease) both; }
+            @keyframes gcoIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+            @media (prefers-reduced-motion: reduce) { .gco-slide .gco-cap { animation: none !important; } }
+          </style>
+          <div class="slide-header">
+            <h2><span lang="ru">GloVe-архитектура: корпус &rarr; матрица X &rarr; вес f(x)</span><span lang="en">GloVe architecture: corpus &rarr; matrix X &rarr; weight f(x)</span></h2>
+            <span class="slide-kicker"><span lang="ru">скользящее окно · 8 строк · 14 слов</span><span lang="en">sliding window · 8 lines · 14 words</span></span>
+          </div>
+          <div class="gco-layout">
+            <!-- LEFT: the mini-corpus (HTML, always on) + the f(x) note that appears at step 2 -->
+            <div class="gco-corpus">
+              <h3><span lang="ru">мини-корпус + окно</span><span lang="en">mini-corpus + window</span></h3>
+              <div class="gco-line"><span class="gco-win">the king</span> loves the queen</div>
+              <div class="gco-line">the queen loves the <span class="gco-hi">king</span></div>
+              <div class="gco-line">the <span class="gco-hi">king</span> rules the kingdom</div>
+              <div class="gco-line">the man loves the woman</div>
+              <div class="gco-line">the woman loves the man</div>
+              <div class="gco-line">the cat chases the dog</div>
+              <div class="gco-line">the dog chases the cat</div>
+              <div class="gco-line">the <span class="gco-hi">king</span> has a cat and the <span class="gco-hi">queen</span> has a dog</div>
+              <p class="gco-note"><span lang="ru">Окно \(=4\); слово в \(d\) шагах добавляет \(1/d\). Счёт симметричен.</span><span lang="en">Window \(=4\); a word \(d\) steps away adds \(1/d\). The count is symmetric.</span></p>
+            </div>
+            <!-- RIGHT: the SVG stage (matrix at step 1, f(x) curve at step 2) -->
+            <div class="viz-frame">
+              <div class="gco-stage">
+                <svg viewBox="0 0 1180 560" preserveAspectRatio="xMidYMid meet" role="img" aria-label="The 14-by-14 symmetric co-occurrence matrix X built from the mini-corpus, then the GloVe weighting curve f(x) = (x/x_max)^0.75 capped at 1">
+                  <g font-family="var(--font-sans)">
+                    <!-- ── STEP 1: the co-occurrence matrix X heatmap (14×14, real counts) ── -->
+                    <g data-step="1">
+                      <text x="40" y="34" font-size="24" fill="var(--ink)" font-weight="600"><tspan>co-occurrence matrix </tspan><tspan font-style="italic">X</tspan><tspan> · how often i sits near j</tspan></text>
+                      <!-- row + column labels -->
+                      <g font-size="14" fill="var(--ink-3)" font-family="var(--font-mono)">
+                        <text x="206" y="78" text-anchor="end">the</text>
+                        <text x="206" y="100" text-anchor="end">king</text>
+                        <text x="206" y="122" text-anchor="end">loves</text>
+                        <text x="206" y="144" text-anchor="end">cat</text>
+                        <text x="206" y="166" text-anchor="end">dog</text>
+                        <text x="206" y="188" text-anchor="end">queen</text>
+                        <text x="206" y="210" text-anchor="end">a</text>
+                        <text x="206" y="232" text-anchor="end">chases</text>
+                        <text x="206" y="254" text-anchor="end">has</text>
+                        <text x="206" y="276" text-anchor="end">man</text>
+                        <text x="206" y="298" text-anchor="end">woman</text>
+                        <text x="206" y="320" text-anchor="end">and</text>
+                        <text x="206" y="342" text-anchor="end">kingd.</text>
+                        <text x="206" y="364" text-anchor="end">rules</text>
+                      </g>
+                      <g font-size="13" fill="var(--ink-3)" font-family="var(--font-mono)">
+                        <text x="232" y="58" transform="rotate(-55 232 58)">the</text>
+                        <text x="262" y="58" transform="rotate(-55 262 58)">king</text>
+                        <text x="292" y="58" transform="rotate(-55 292 58)">loves</text>
+                        <text x="322" y="58" transform="rotate(-55 322 58)">cat</text>
+                        <text x="352" y="58" transform="rotate(-55 352 58)">dog</text>
+                        <text x="382" y="58" transform="rotate(-55 382 58)">queen</text>
+                        <text x="412" y="58" transform="rotate(-55 412 58)">a</text>
+                        <text x="442" y="58" transform="rotate(-55 442 58)">chases</text>
+                        <text x="472" y="58" transform="rotate(-55 472 58)">has</text>
+                        <text x="502" y="58" transform="rotate(-55 502 58)">man</text>
+                        <text x="532" y="58" transform="rotate(-55 532 58)">woman</text>
+                        <text x="562" y="58" transform="rotate(-55 562 58)">and</text>
+                        <text x="592" y="58" transform="rotate(-55 592 58)">kingd.</text>
+                        <text x="622" y="58" transform="rotate(-55 622 58)">rules</text>
+                      </g>
+                      <!-- cells: tint ∝ count / xMaxObserved(6.0). king(row1)·queen(col5) outlined. -->
+                      <g id="gco-cells"></g>
+                      <!-- king·queen callout (the worked entry, picked up on the next slide) -->
+                      <rect x="370" y="86" width="24" height="24" rx="2" fill="none" stroke="var(--c-violet)" stroke-width="2.5"/>
+                      <text x="700" y="200" font-size="19" fill="var(--c-violet)" font-weight="600">king · queen</text>
+                      <text x="700" y="228" font-size="18" fill="var(--ink-2)" font-family="var(--font-mono)">X = 0.667</text>
+                      <text x="700" y="252" font-size="15" fill="var(--ink-3)">(symmetric · 1/distance counts)</text>
+                      <line x1="394" y1="98" x2="690" y2="190" stroke="var(--c-violet)" stroke-width="1.5" stroke-dasharray="4 4"/>
+                      <text x="700" y="100" font-size="16" fill="var(--accent-ink)">darker cell</text>
+                      <text x="700" y="124" font-size="16" fill="var(--ink-2)">= words seen together more</text>
+                      <text x="700" y="148" font-size="16" fill="var(--ink-2)">often (the · king = 5.25,</text>
+                      <text x="700" y="172" font-size="16" fill="var(--ink-2)">the · loves = 6.0).</text>
+                    </g>
+                    <!-- ── STEP 2: the weighting curve f(x) = (x/x_max)^0.75, capped at 1 ── -->
+                    <g data-step="2">
+                      <text x="40" y="424" font-size="22" fill="var(--ink)" font-weight="600"><tspan font-style="italic">f(x)</tspan><tspan> = (x / x</tspan><tspan font-size="15" dy="6">max</tspan><tspan dy="-6">)</tspan><tspan font-size="14" dy="-8">0.75</tspan><tspan dy="8"> · cap 1 — trust frequent counts, not rare ones</tspan></text>
+                      <!-- axes (x: 0→15, y: f 0→1) -->
+                      <line x1="120" y1="540" x2="640" y2="540" stroke="var(--ink-3)" stroke-width="1.6"/>
+                      <line x1="120" y1="448" x2="120" y2="540" stroke="var(--ink-3)" stroke-width="1.6"/>
+                      <text x="112" y="454" font-size="14" fill="var(--ink-3)" text-anchor="end">1</text>
+                      <text x="112" y="544" font-size="14" fill="var(--ink-3)" text-anchor="end">0</text>
+                      <text x="640" y="556" font-size="14" fill="var(--ink-3)" text-anchor="end">x</text>
+                      <!-- cap line at f=1 (green) -->
+                      <line x1="120" y1="448" x2="640" y2="448" stroke="var(--c-green)" stroke-width="1.5" stroke-dasharray="6 5"/>
+                      <text x="636" y="444" font-size="14" fill="var(--c-green)" text-anchor="end">capped at 1</text>
+                      <!-- x_max marker (amber) at x=10 → px 120 + (10/15.5)*520 -->
+                      <line x1="455.5" y1="448" x2="455.5" y2="540" stroke="var(--c-amber)" stroke-width="1.5" stroke-dasharray="4 4"/>
+                      <text x="455.5" y="556" font-size="14" fill="var(--c-amber)" text-anchor="middle">x_max=10</text>
+                      <!-- f(x) curve (real fCurve points; cap at 1 from x=10) -->
+                      <polyline id="gco-fcurve" points="" fill="none" stroke="var(--accent)" stroke-width="3"/>
+                      <!-- real cell f-values as dots on the curve -->
+                      <g id="gco-fdots"></g>
+                      <text x="700" y="470" font-size="16" fill="var(--ink-2)">rare pair (x=0.5): <tspan fill="var(--accent-ink)" font-weight="600">f=0.106</tspan> — almost ignored</text>
+                      <text x="700" y="498" font-size="16" fill="var(--ink-2)">frequent (x=6): <tspan fill="var(--accent-ink)" font-weight="600">f=0.682</tspan></text>
+                      <text x="700" y="526" font-size="16" fill="var(--ink-2)">past x_max: weight is frozen at 1</text>
+                    </g>
+                  </g>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <p class="gco-cap small muted center mt-2" data-arch-step="0"><span lang="ru">Шаг 0 — <strong>входные данные GloVe</strong>: восемь строк корпуса, окно скользит по тексту. Никаких предсказаний — только подсчёт соседства. Жмите <kbd>&rarr;</kbd>.</span><span lang="en">Step 0 — <strong>GloVe's input</strong>: eight corpus lines, a window sliding over text. No prediction yet — only counting who sits near whom. Press <kbd>&rarr;</kbd>.</span></p>
+          <p class="gco-cap small muted center mt-2" data-arch-step="1"><span lang="ru">Шаг 1 — <strong>матрица совстречаемости \(X\)</strong> (\(14\times14\), симметрична). Тёмная ячейка = пара чаще вместе. <code>the·loves</code> \(=6.0\) — максимум; <code>king·queen</code> \(=0.667\). Это вся статистика, на которую смотрит GloVe.</span><span lang="en">Step 1 — the <strong>co-occurrence matrix \(X\)</strong> (\(14\times14\), symmetric). Darker cell = pair seen together more. <code>the·loves</code> \(=6.0\) is the peak; <code>king·queen</code> \(=0.667\). This table is all GloVe ever looks at.</span></p>
+          <p class="gco-cap small muted center mt-2" data-arch-step="2"><span lang="ru">Шаг 2 — <strong>весовая функция \(f(x)=(x/x_{\max})^{0.75}\)</strong>, потолок \(1\). Редкие шумные пары почти не влияют; самые частые не доминируют. Точки — реальные \(f\) для ячеек \(X\).</span><span lang="en">Step 2 — the <strong>weighting \(f(x)=(x/x_{\max})^{0.75}\)</strong>, capped at \(1\). Rare noisy pairs barely count; the most frequent can't dominate the fit. Dots are the real \(f\)-values for the \(X\) cells.</span></p>
+          <script>
+          (function () {
+            // Build the heatmap cells + the f(x) curve/dots from the real L5 GloVe numbers, INLINE
+            // (the deck ships no widget bundle here). SVG cells/dots/polyline are static geometry —
+            // the engine's data-step gating shows/hides their parent <g> per step; no double-paint.
+            var X = [
+              [4.667,5.25,6.0,3.5,3.0,3.75,1.0,3.0,1.25,2.75,2.75,1.0,1.25,1.5],
+              [5.25,0,1.5,0.333,0,0.667,0.5,0,1.0,0,0,0.25,0.333,1.0],
+              [6.0,1.5,0,0,0,1.5,0,0,0,1.5,1.5,0,0,0],
+              [3.5,0.333,0,0,0.667,0.333,1.0,1.5,0.75,0,0,1.0,0,0],
+              [3.0,0,0,0.667,0,0.333,1.0,1.5,0.5,0,0,0,0,0],
+              [3.75,0.667,1.5,0.333,0.333,0,0.75,0,1.0,0,0,0.5,0,0],
+              [1.0,0.5,0,1.0,1.0,0.75,0,0,2.0,0,0,0.75,0,0],
+              [3.0,0,0,1.5,1.5,0,0,0,0,0,0,0,0,0],
+              [1.25,1.0,0,0.75,0.5,1.0,2.0,0,0,0,0,0.667,0,0],
+              [2.75,0,1.5,0,0,0,0,0,0,0,0.667,0,0,0],
+              [2.75,0,1.5,0,0,0,0,0,0,0.667,0,0,0,0],
+              [1.0,0.25,0,1.0,0,0.5,0.75,0,0.667,0,0,0,0,0],
+              [1.25,0.333,0,0,0,0,0,0,0,0,0,0,0,0.5],
+              [1.5,1.0,0,0,0,0,0,0,0,0,0,0,0.5,0]
+            ];
+            var n = 14, cw = 24, gx = 208, gy = 64, xMaxObs = 6.0, NSc = 'http://www.w3.org/2000/svg';
+            var cells = document.getElementById('gco-cells');
+            if (cells) {
+              // grid lines once (so empty cells read as an empty grid on the card, without painting 100+
+              // near-white rects the viz-gate flags as "invisible against canvas").
+              for (var k = 0; k <= n; k++) {
+                var vl = document.createElementNS(NSc, 'line'); vl.setAttribute('x1', gx + k * cw); vl.setAttribute('y1', gy); vl.setAttribute('x2', gx + k * cw); vl.setAttribute('y2', gy + n * cw); vl.setAttribute('stroke', 'var(--rule)'); vl.setAttribute('stroke-width', '0.7'); cells.appendChild(vl);
+                var hl = document.createElementNS(NSc, 'line'); hl.setAttribute('x1', gx); hl.setAttribute('y1', gy + k * cw); hl.setAttribute('x2', gx + n * cw); hl.setAttribute('y2', gy + k * cw); hl.setAttribute('stroke', 'var(--rule)'); hl.setAttribute('stroke-width', '0.7'); cells.appendChild(hl);
+              }
+              // only NON-zero cells get a tinted tile (tint ∝ count / xMaxObserved).
+              for (var i = 0; i < n; i++) for (var j = 0; j < n; j++) {
+                var v = X[i][j]; if (v <= 0) continue;
+                var mag = Math.min(1, v / xMaxObs);
+                var r = document.createElementNS(NSc, 'rect');
+                r.setAttribute('x', gx + j * cw + 1); r.setAttribute('y', gy + i * cw + 1);
+                r.setAttribute('width', cw - 2); r.setAttribute('height', cw - 2); r.setAttribute('rx', 2);
+                r.setAttribute('fill', 'color-mix(in srgb, var(--accent) ' + Math.round(28 + mag * 64) + '%, var(--bg-card))');
+                cells.appendChild(r);
+              }
+            }
+            // f(x) curve: x 0→15.5 over px 120→640; f 0→1 over px 540→448 (height 92)
+            var fCurve = [[0,0],[0.5,0.1057],[1,0.1778],[1.5,0.241],[2,0.2991],[2.5,0.3536],[3,0.4054],[3.5,0.455],[4,0.503],[4.5,0.5494],[5,0.5946],[5.5,0.6387],[6,0.6817],[6.5,0.7239],[7,0.7653],[7.5,0.8059],[8,0.8459],[8.5,0.8852],[9,0.924],[9.5,0.9623],[10,1.0],[11,1.0],[12,1.0],[13,1.0],[14,1.0],[15,1.0]];
+            var sx = function (x) { return 120 + (x / 15.5) * 520; };
+            var sy = function (f) { return 540 - f * 92; };
+            var poly = document.getElementById('gco-fcurve');
+            if (poly) poly.setAttribute('points', fCurve.map(function (p) { return sx(p[0]).toFixed(1) + ',' + sy(p[1]).toFixed(1); }).join(' '));
+            var fdots = document.getElementById('gco-fdots');
+            if (fdots) {
+              var xs = [0.5, 1.0, 1.5, 2.0, 3.0, 3.5, 6.0]; // distinct observed cell x-values
+              xs.forEach(function (xv) {
+                var fv = null;
+                for (var k = 0; k < fCurve.length; k++) if (Math.abs(fCurve[k][0] - xv) < 1e-6) { fv = fCurve[k][1]; break; }
+                if (fv === null) return;
+                var c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                c.setAttribute('cx', sx(xv)); c.setAttribute('cy', sy(fv)); c.setAttribute('r', 4);
+                c.setAttribute('fill', 'var(--c-amber)'); c.setAttribute('stroke', 'var(--bg-card)'); c.setAttribute('stroke-width', 1.2);
+                fdots.appendChild(c);
+              });
+            }
+          })();
+          </script>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">0/2</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">The GloVe architecture, built up one piece per step so step zero is a meaningful start, not the whole figure. Step zero shows only the eight-line mini-corpus with a sliding window — the raw input, no prediction, just text. Step one adds the fourteen-by-fourteen symmetric co-occurrence matrix X, every count straight from the L5 GloVe file: a word d steps away adds one over d, so the·loves peaks at six point zero and king and queen sit at zero point six six seven, the entry we work next slide. Darker means seen together more often. Step two adds the weighting curve f of x equals x over x-max to the power nought point seven five, capped at one — it climbs gently so rare noisy pairs barely count, then flattens so the most frequent pairs cannot dominate the least-squares fit; the amber dots are the real f-values for the matrix cells. Press the arrows.<aside data-notes-for-step="0">Step 0 — the mini-corpus and sliding window only.</aside><aside data-notes-for-step="1">Step 1 — the co-occurrence matrix X with real counts.</aside><aside data-notes-for-step="2">Step 2 — the weighting f(x), down-weight rare and cap frequent.</aside></aside>
+        </section>
+
+        <!-- ============================================ 31 · VIZ (stepped) · GloVe objective worked + factorisation ============================================ -->
+        <!-- NATIVE deck slide ported from widgets/glove-cooccur (steps 2–4). The objective worked on the
+             REAL king·queen entry, then X ≈ W W̃ᵀ → vectors land as a map, loss 18.04 → 0.005. Every
+             number from data/l5-glove.json (worked[0], map.points, loss). Progressive via data-step;
+             all changing labels are HTML overlays or static SVG text gated by their parent <g>. -->
+        <section class="slide gob-slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="31 GloVe objective">
+          <style>
+            /* scoped. Cumulative reveal (display, not the global dim) keyed on the engine's
+               is-step-hidden (set for n > current-step). Step 0 = the objective skeleton named on
+               the king·queen pair (a meaningful START); 1 = real numbers fill in; 2 = factorise →
+               the map; 3 = the loss collapse. The map dots / loss bars are static SVG gated by their
+               parent <g data-step>; the per-term numbers are HTML overlays in the math column → no
+               animated SVG <text> to double-paint. */
+            .gob-slide [data-step] { display: none; }
+            .gob-slide [data-step]:not(.is-step-hidden) { display: block; }
+            /* the factorisation placeholder SWAPS OUT once the map step (2) is reached: it shows at
+               steps 0–1 (current/future) and hides at 2–3 (is-arch-past) → never overprints the dots. */
+            .gob-slide .gob-ph[data-arch-step] { display: none; }
+            .gob-slide .gob-ph[data-arch-step]:not(.is-arch-past) { display: block; }
+            .gob-slide .gob-layout { display: grid; grid-template-columns: 1.15fr 1fr; gap: var(--sp-5); align-items: stretch; }
+            .gob-slide .viz-frame { margin: 0; }
+            .gob-slide .gob-stage { position: relative; width: 100%; aspect-ratio: 940 / 540; }
+            .gob-slide .gob-stage svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+            .gob-slide .gob-math { align-self: center; border-left: 3px solid var(--rule); padding-left: var(--sp-5); }
+            .gob-slide .gob-math-head { font-family: var(--font-mono); font-size: 15px; text-transform: uppercase; letter-spacing: 0.13em; color: var(--accent-ink); margin: 0 0 var(--sp-3); }
+            .gob-slide .gob-eq { font-size: 22px; margin: 0 0 var(--sp-3); line-height: 1.3; }
+            /* term chips — each a distinct house hue so the roles read apart */
+            .gob-slide .gob-chips { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: var(--sp-3) 0; }
+            .gob-slide .gob-chip { border-radius: 8px; padding: 7px 11px; border: 1.5px solid; }
+            .gob-slide .gob-chip .gob-clab { display: block; font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.04em; opacity: 0.85; }
+            .gob-slide .gob-chip .gob-cval { display: block; font-size: 21px; font-weight: 700; line-height: 1.15; margin-top: 1px; }
+            .gob-slide .gob-c-x   { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
+            .gob-slide .gob-c-log { background: var(--c-cyan-soft); border-color: var(--c-cyan); color: var(--ink); }
+            .gob-slide .gob-c-f   { background: var(--c-amber-soft); border-color: var(--c-amber); color: var(--ink); }
+            .gob-slide .gob-c-m   { background: var(--c-violet-soft); border-color: var(--c-violet); color: var(--ink); }
+            .gob-slide .gob-c-r   { background: var(--c-green-soft, var(--accent-soft)); border-color: var(--c-green); color: var(--ink); grid-column: span 2; }
+            .gob-slide .gob-detail { font-size: 15px; color: var(--ink-2); line-height: 1.45; margin: var(--sp-3) 0 0; }
+            .gob-slide .gob-detail[data-step] { display: none; }
+            .gob-slide .gob-detail[data-step]:not(.is-step-hidden) { display: block; }
+            /* the map legend chips */
+            .gob-slide .gob-cap[data-arch-step] { display: none; }
+            .gob-slide .gob-cap[data-arch-step].is-arch-current { display: block; animation: gobIn var(--dur,.4s) var(--ease,ease) both; }
+            @keyframes gobIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+            @media (prefers-reduced-motion: reduce) { .gob-slide .gob-cap { animation: none !important; } }
+          </style>
+          <div class="slide-header">
+            <h2><span lang="ru">Цель GloVe по шагам: \(w_i\!\cdot\!\tilde w_j + b_i + \tilde b_j \approx \log X_{ij}\)</span><span lang="en">GloVe's objective, step by step: \(w_i\!\cdot\!\tilde w_j + b_i + \tilde b_j \approx \log X_{ij}\)</span></h2>
+            <span class="slide-kicker"><span lang="ru">разобрано на паре <code>king·queen</code> · факторизация \(X\approx W\tilde W^{\top}\)</span><span lang="en">worked on the <code>king·queen</code> pair · factorise \(X\approx W\tilde W^{\top}\)</span></span>
+          </div>
+          <div class="gob-layout">
+            <!-- LEFT: SVG stage. Step 2 = the 2-D map; step 3 = the loss collapse. -->
+            <div class="viz-frame">
+              <div class="gob-stage">
+                <svg viewBox="0 0 940 540" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Factorising X lands the GloVe vectors as a 2-D PCA map where royal, people and animal words separate; the training loss collapses from 18.04 to 0.005">
+                  <g font-family="var(--font-sans)">
+                    <!-- placeholder shown at steps 0–1, then SWAPPED OUT once the map appears at step 2
+                         (gob-ph hides when its arch-step is 'past'), so it never overprints the dots. -->
+                    <g class="gob-ph" data-arch-step="0">
+                      <rect x="60" y="70" width="820" height="400" rx="12" fill="var(--bg-inset)" opacity="0.45"/>
+                      <text x="470" y="250" font-size="30" fill="var(--ink-3)" text-anchor="middle" font-style="italic">X &#8776; W W&#771;&#8868;</text>
+                      <text x="470" y="298" font-size="19" fill="var(--ink-3)" text-anchor="middle">fit the table on the right, then factorise &rarr;</text>
+                    </g>
+                    <!-- STEP 2: factorise X → the learned vectors as a 2-D map (PCA of W+W̃) -->
+                    <g data-step="2">
+                      <text x="60" y="40" font-size="22" fill="var(--ink)" font-weight="600">factorise X &rarr; the map (PCA-2D of W + W&#771;)</text>
+                      <rect x="60" y="56" width="820" height="430" rx="10" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
+                      <line x1="470" y1="56" x2="470" y2="486" stroke="var(--rule)" stroke-width="1" stroke-dasharray="3 5"/>
+                      <line x1="60" y1="271" x2="880" y2="271" stroke="var(--rule)" stroke-width="1" stroke-dasharray="3 5"/>
+                      <g id="gob-mapdots"></g>
+                    </g>
+                    <!-- STEP 3: the loss collapse 18.04 → 0.005 -->
+                    <g data-step="3">
+                      <text x="60" y="516" font-size="18" fill="var(--ink-2)"><tspan>training loss </tspan><tspan fill="var(--c-red)" font-weight="700">18.04</tspan><tspan> &rarr; </tspan><tspan fill="var(--c-green)" font-weight="700">0.005</tspan><tspan>  (99.97% drop over 600 iters)</tspan></text>
+                      <polyline id="gob-loss" points="" fill="none" stroke="var(--c-red)" stroke-width="2.5" opacity="0.85"/>
+                    </g>
+                  </g>
+                </svg>
+              </div>
+            </div>
+            <!-- RIGHT: the worked objective in HTML (crisp; numbers fill in by step) -->
+            <div class="gob-math">
+              <div class="gob-math-head"><span lang="ru">пара <code>king · queen</code></span><span lang="en">the <code>king · queen</code> pair</span></div>
+              <p class="gob-eq">\(w_{\text{king}}\!\cdot\!\tilde w_{\text{queen}} + b_{\text{king}} + \tilde b_{\text{queen}} \approx \log X\)</p>
+              <!-- step 1: the real numbers -->
+              <div data-step="1">
+                <div class="gob-chips">
+                  <div class="gob-chip gob-c-x"><span class="gob-clab">X (count)</span><span class="gob-cval">0.667</span></div>
+                  <div class="gob-chip gob-c-log"><span class="gob-clab">log X (target)</span><span class="gob-cval">&minus;0.406</span></div>
+                  <div class="gob-chip gob-c-f"><span class="gob-clab">f(X) (weight)</span><span class="gob-cval">0.131</span></div>
+                  <div class="gob-chip gob-c-m"><span class="gob-clab">model (fit)</span><span class="gob-cval">&minus;0.408</span></div>
+                  <div class="gob-chip gob-c-r"><span class="gob-clab">residual = model &minus; log X  (× f → weighted err 1e&minus;6)</span><span class="gob-cval">&minus;0.002 &#8776; 0</span></div>
+                </div>
+                <p class="gob-detail" data-step="1"><span lang="ru"><strong>Разбор:</strong> \(w\!\cdot\!\tilde w=-0.034\), \(b=-0.247\), \(\tilde b=-0.127\) &rArr; модель \(-0.408\). Цель \(\log 0.667=-0.406\). Остаток \(\approx 0\) — пара подогнана.</span><span lang="en"><strong>Read it off:</strong> \(w\!\cdot\!\tilde w=-0.034\), \(b=-0.247\), \(\tilde b=-0.127\) &rArr; model \(-0.408\). Target \(\log 0.667=-0.406\). Residual \(\approx 0\) — the pair is fit.</span></p>
+              </div>
+              <p class="gob-cap gob-detail" data-arch-step="0"><span lang="ru">Шаг 0 — <strong>цель</strong>: скалярное произведение двух векторов плюс два смещения должны дать \(\log X_{ij}\). Берём реальную пару <code>king·queen</code>. Жмите <kbd>&rarr;</kbd>.</span><span lang="en">Step 0 — the <strong>objective</strong>: a dot-product of two vectors plus two biases must hit \(\log X_{ij}\). Take the real <code>king·queen</code> pair. Press <kbd>&rarr;</kbd>.</span></p>
+              <p class="gob-cap gob-detail" data-arch-step="1"><span lang="ru">Шаг 1 — <strong>подставляем числа</strong> из данных: \(X=0.667\), \(\log X=-0.406\), \(f=0.131\); модель \(=-0.408\). Остаток \(\approx 0\) — взвеш. ошибка \(\approx 10^{-6}\).</span><span lang="en">Step 1 — <strong>plug in the numbers</strong> from the data: \(X=0.667\), \(\log X=-0.406\), \(f=0.131\); model \(=-0.408\). Residual \(\approx 0\) — weighted error \(\approx 10^{-6}\).</span></p>
+              <p class="gob-cap gob-detail" data-arch-step="2"><span lang="ru">Шаг 2 — <strong>факторизация</strong>: подгонка всех пар = \(X\approx W\tilde W^{\top}\). Складываем \(W+\tilde W\), проецируем в 2-D — <span style="color:var(--c-violet)">royal</span>, <span style="color:var(--c-amber)">people</span>, <span style="color:var(--c-green)">animal</span> расходятся. Та же карта, что у word2vec.</span><span lang="en">Step 2 — <strong>factorise</strong>: fitting all pairs = \(X\approx W\tilde W^{\top}\). Sum \(W+\tilde W\), project to 2-D — <span style="color:var(--c-violet)">royal</span>, <span style="color:var(--c-amber)">people</span>, <span style="color:var(--c-green)">animal</span> separate. The same map as word2vec.</span></p>
+              <p class="gob-cap gob-detail" data-arch-step="3"><span lang="ru">Шаг 3 — <strong>потеря</strong> взвеш. наименьших квадратов падает \(18.04\to0.005\) за 600 итераций AdaGrad (\(-99.97\%\)). Карта реальна, а не артефакт.</span><span lang="en">Step 3 — the weighted least-squares <strong>loss</strong> collapses \(18.04\to0.005\) over 600 AdaGrad iters (\(-99.97\%\)). The map is real, not an artefact.</span></p>
+            </div>
+          </div>
+          <script>
+          (function () {
+            // Map points = PCA-2D of W+W̃ (data/l5-glove.json → map.points). Category hue: royal/people/animal/structure.
+            var pts = [
+              {w:'the',x:-1.698,y:-0.52,c:'s'},{w:'king',x:-1.265,y:0.722,c:'r'},{w:'loves',x:-0.835,y:-0.298,c:'s'},
+              {w:'cat',x:0.538,y:-1.001,c:'a'},{w:'dog',x:0.31,y:-1.08,c:'a'},{w:'queen',x:-0.578,y:0.804,c:'r'},
+              {w:'a',x:1.77,y:0.636,c:'s'},{w:'chases',x:-0.117,y:0.086,c:'a'},{w:'has',x:0.71,y:1.366,c:'s'},
+              {w:'man',x:-0.009,y:-0.008,c:'p'},{w:'woman',x:-0.074,y:0.042,c:'p'},{w:'and',x:1.008,y:-0.984,c:'s'},
+              {w:'kingdom',x:0.41,y:0.121,c:'r'},{w:'rules',x:-0.169,y:0.114,c:'r'}
+            ];
+            var HUE = {r:'var(--c-violet)', p:'var(--c-amber)', a:'var(--c-green)', s:'var(--ink-3)'};
+            var bx={x:70,y:66,w:800,h:410}; // inside the 60,56,820,430 frame with margin
+            var xs=pts.map(function(p){return p.x;}), ys=pts.map(function(p){return p.y;});
+            var xmin=Math.min.apply(null,xs),xmax=Math.max.apply(null,xs),ymin=Math.min.apply(null,ys),ymax=Math.max.apply(null,ys);
+            var padX=(xmax-xmin)*0.10, padY=(ymax-ymin)*0.12;
+            var sx=function(x){return bx.x+(x-(xmin-padX))/((xmax+padX)-(xmin-padX))*bx.w;};
+            var sy=function(y){return bx.y+bx.h-(y-(ymin-padY))/((ymax+padY)-(ymin-padY))*bx.h;};
+            // simple label de-overlap (man/woman/chases cluster near origin)
+            var lab=pts.map(function(p){return {lx:sx(p.x)+9,ly:sy(p.y)+4};});
+            for(var it=0; it<70; it++){ for(var i=0;i<lab.length;i++) for(var j=i+1;j<lab.length;j++){
+              var ox=58-Math.abs(lab[i].lx-lab[j].lx), oy=15-Math.abs(lab[i].ly-lab[j].ly);
+              if(ox>0&&oy>0){ var push=oy/2+0.6, dir=lab[i].ly<=lab[j].ly?-1:1; lab[i].ly+=dir*push; lab[j].ly-=dir*push; }
+            }}
+            lab.forEach(function(l){ l.ly=Math.max(bx.y+12,Math.min(bx.y+bx.h-2,l.ly)); l.lx=Math.max(bx.x+2,Math.min(bx.x+bx.w-58,l.lx)); });
+            var g=document.getElementById('gob-mapdots'), NS='http://www.w3.org/2000/svg';
+            if(g) pts.forEach(function(p,i){
+              var cx=sx(p.x),cy=sy(p.y),hue=HUE[p.c];
+              var ln=document.createElementNS(NS,'line'); ln.setAttribute('x1',cx);ln.setAttribute('y1',cy);ln.setAttribute('x2',lab[i].lx);ln.setAttribute('y2',lab[i].ly-3.5);ln.setAttribute('stroke',hue);ln.setAttribute('stroke-width',1);ln.setAttribute('opacity',0.45); g.appendChild(ln);
+              var c=document.createElementNS(NS,'circle'); c.setAttribute('cx',cx);c.setAttribute('cy',cy);c.setAttribute('r',6);c.setAttribute('fill',hue);c.setAttribute('stroke','var(--bg-card)');c.setAttribute('stroke-width',1.4); g.appendChild(c);
+              var t=document.createElementNS(NS,'text'); t.setAttribute('x',lab[i].lx);t.setAttribute('y',lab[i].ly);t.setAttribute('font-size',15);t.setAttribute('fill','var(--ink-2)');t.setAttribute('font-family','var(--font-mono)');t.textContent=p.w; g.appendChild(t);
+            });
+            // loss polyline (data/l5-glove.json → loss.history): plotted log-ish over the frame width.
+            var hist=[[0,18.0391],[50,1.5063],[100,0.5311],[150,0.3969],[200,0.2961],[250,0.1705],[300,0.0756],[350,0.0339],[400,0.0183],[450,0.0118],[500,0.0085],[550,0.0065],[600,0.005]];
+            var lpoly=document.getElementById('gob-loss');
+            if(lpoly){
+              var lx0=120,lx1=860,ly0=80,ly1=300; // a compact inset along the top of the frame
+              var lmax=18.0391;
+              var lsx=function(it){return lx0+(it/600)*(lx1-lx0);};
+              var lsy=function(v){return ly1-(v/lmax)*(ly1-ly0);};
+              lpoly.setAttribute('points', hist.map(function(p){return lsx(p[0]).toFixed(1)+','+lsy(p[1]).toFixed(1);}).join(' '));
+            }
+          })();
+          </script>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">0/3</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">GloVe's objective worked end to end on a real pair, one reveal per step. Step zero states the objective as a skeleton — the dot product of two vectors plus two bias terms should equal the log co-occurrence count — and names the king·queen pair we will use. Step one fills in the actual numbers from the L5 file: the count X is zero point six six seven, its log is minus zero point four zero six, the weight f of X is zero point one three one; the model's dot product minus zero point zero three four plus the two biases minus zero point two four seven and minus zero point one two seven sums to minus zero point four zero eight, so the residual is about minus zero point zero zero two — essentially zero, weighted error around ten to the minus six. Step two: fitting every pair like this is exactly factorising X as W times W-tilde transpose; summing W plus W-tilde and projecting to two dimensions lands the vectors as a map where royal, people and animal words separate into their own regions — the same geometry the predictive word2vec route produces. Step three: the weighted least-squares loss collapses from eighteen point zero four to zero point zero zero five over six hundred AdaGrad iterations, a 99.97 percent drop. Every number is straight from the data file.<aside data-notes-for-step="0">Step 0 — the objective skeleton on the king·queen pair.</aside><aside data-notes-for-step="1">Step 1 — fill in X=0.667, logX=−0.406, f=0.131, model=−0.408, residual≈0.</aside><aside data-notes-for-step="2">Step 2 — factorise X ≈ W W̃ᵀ; vectors land as a 2-D map.</aside><aside data-notes-for-step="3">Step 3 — loss 18.04 → 0.005.</aside></aside>
+        </section>
+
+        <!-- ============================================ 32 · TABLE · count vs predict ============================================ -->
+        <section class="slide" data-type="table" data-screen-label="32 Count vs predict">
           <div class="slide-header">
             <h2><span lang="ru">Счёт против предсказания</span><span lang="en">Count vs predict</span></h2>
             <span class="slide-kicker"><span lang="ru">две школы, одна геометрия</span><span lang="en">two schools, one geometry</span></span>
@@ -898,7 +1257,7 @@
 
         <!-- ============================================ BEAT 7 · stakes-too-many-dims ============================================ -->
         <!-- ============================================ 29 · FORMULA · 300 numbers per word ============================================ -->
-        <section class="slide" data-type="formula" data-screen-label="31 300 dimensions">
+        <section class="slide" data-type="formula" data-screen-label="33 300 dimensions">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">300 чисел на слово — это нельзя увидеть</span><span lang="en">300 numbers per word — you can't see it</span></h2>
             <span class="slide-kicker"><span lang="ru">люди видят 2&ndash;3 измерения</span><span lang="en">humans see 2&ndash;3 dimensions</span></span>
@@ -919,7 +1278,7 @@
 
         <!-- ============================================ BEAT 8 · turn-dimred (Cartographer) ============================================ -->
         <!-- ============================================ 30 · DIVIDER · Cartographer ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="32 Divider · The Cartographer">
+        <section class="slide" data-type="divider" data-screen-label="34 Divider · The Cartographer">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 05</span><span lang="en">Part 05</span></div>
             <h1>Enter the Cartographer</h1>
@@ -933,7 +1292,7 @@
 
         <!-- ============================================ BEAT 9 · climb-pca ============================================ -->
         <!-- ============================================ 31 · DEFINITION · PCA idea ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="33 PCA idea">
+        <section class="slide" data-type="definition" data-screen-label="35 PCA idea">
           <div class="slide-header">
             <h2><span lang="ru">PCA: складка вдоль наибольшего разброса</span><span lang="en">PCA: fold along greatest spread</span></h2>
             <span class="slide-kicker"><span lang="ru">линейно · сохраняет дисперсию</span><span lang="en">linear · preserves variance</span></span>
@@ -950,7 +1309,7 @@
         </section>
 
         <!-- ============================================ 32 · DERIVATION · PCA causal chain (T1: covariance → eigen → project → variance) ============================================ -->
-        <section class="slide" data-type="derivation" data-screen-label="34 PCA math">
+        <section class="slide" data-type="derivation" data-screen-label="36 PCA math">
           <div class="slide-header">
             <h2><span lang="ru">PCA: ковариация &rarr; собственные векторы &rarr; проекция</span><span lang="en">PCA: covariance &rarr; eigenvectors &rarr; projection</span></h2>
             <span class="slide-kicker"><span lang="ru">каждый объект строится из предыдущего</span><span lang="en">each object is built from the previous one</span></span>
@@ -990,7 +1349,7 @@
         </section>
 
         <!-- ============================================ 33 · WALKTHROUGH · PCA on our words ============================================ -->
-        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="35 PCA variance">
+        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="37 PCA variance">
           <div class="slide-header">
             <h2><span lang="ru">PCA на 44 словах: сколько дисперсии остаётся?</span><span lang="en">PCA on 44 words: how much variance survives?</span></h2>
             <span class="slide-kicker"><span lang="ru">GloVe-50 &rarr; 2-D · реальные числа</span><span lang="en">GloVe-50 &rarr; 2-D · real numbers</span></span>
@@ -1026,7 +1385,7 @@
         </section>
 
         <!-- ============================================ 36 · VIZ · PCA as rotation (ported from widgets/pca-rotate) ============================================ -->
-        <section class="slide pcr-slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="36 PCA as rotation">
+        <section class="slide pcr-slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="38 PCA as rotation">
           <style>
             /* scoped to this slide.
                Geometry (dots, eigen-axis arrow LINES) lives in the SVG and SWAPS per
@@ -1192,7 +1551,7 @@
         </section>
 
         <!-- ============================================ 34 · VIZ · scree / explained variance ============================================ -->
-        <section class="slide" data-type="viz" data-screen-label="37 Scree plot">
+        <section class="slide" data-type="viz" data-screen-label="39 Scree plot">
           <div class="slide-header">
             <h2><span lang="ru">Доля дисперсии по компонентам</span><span lang="en">Explained variance per component</span></h2>
             <span class="slide-kicker"><span lang="ru">scree-график · быстрый спад</span><span lang="en">scree plot · the fast decay</span></span>
@@ -1234,7 +1593,7 @@
 
         <!-- ============================================ BEAT 10 · turn-manifold ============================================ -->
         <!-- ============================================ 35 · DIVIDER · manifold ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="38 Divider · the curved map">
+        <section class="slide" data-type="divider" data-screen-label="40 Divider · the curved map">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 06</span><span lang="en">Part 06</span></div>
             <h1>When the Map Curves</h1>
@@ -1248,7 +1607,7 @@
 
         <!-- ============================================ BEAT 11 · climb-tsne ============================================ -->
         <!-- ============================================ 36 · DEFINITION · t-SNE idea ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="39 t-SNE idea">
+        <section class="slide" data-type="definition" data-screen-label="41 t-SNE idea">
           <div class="slide-header">
             <h2>t-SNE: <span lang="ru">сохранить соседей</span><span lang="en">preserve neighbours</span></h2>
             <span class="slide-kicker"><span lang="ru">вероятности соседства · van der Maaten 2008</span><span lang="en">neighbour probabilities · van der Maaten 2008</span></span>
@@ -1265,7 +1624,7 @@
         </section>
 
         <!-- ============================================ 37 · VIZ · the 2-D word map (t-SNE scatter) ============================================ -->
-        <section class="slide" data-type="viz" data-screen-label="40 The 2-D word map">
+        <section class="slide" data-type="viz" data-screen-label="42 The 2-D word map">
           <div class="slide-header">
             <h2><span lang="ru">Карта смысла, нарисованная: 7 кластеров</span><span lang="en">The Map of Meaning, drawn: 7 clusters</span></h2>
             <span class="slide-kicker"><span lang="ru">t-SNE · 44 слова · perplexity \(=14\)</span><span lang="en">t-SNE · 44 words · perplexity \(=14\)</span></span>
@@ -1348,8 +1707,243 @@
           <aside class="slide-notes">This is the payoff picture and every point is real, projected from the t-SNE coordinates in the data file. Forty-four words, fifty dimensions folded to two, coloured by their semantic group only for our eyes — the layout itself used no labels. Royalty clusters in one corner, animals in another, the tech words off on the right, capitals and countries near each other at the bottom because they genuinely share context. This is what we promised at the very start: a map where nearness means relatedness, now literally drawn on the slide. Note how king sits with queen and throne, exactly the cluster the analogy walked through.</aside>
         </section>
 
-        <!-- ============================================ 38 · TWO-COL · UMAP ============================================ -->
-        <section class="slide" data-type="two-col" data-screen-label="41 UMAP">
+        <!-- ============================================ 43 · VIZ (stepped) · t-SNE algorithm: Gaussian p → perplexity → Student-t q ============================================ -->
+        <!-- NATIVE deck slide ported from widgets/tsne-steps (steps 0–1 + the perplexity annotation and
+             the Student-t heavy-tail). The deck cannot mount the book widget → reimplemented as inline
+             SVG driven by the engine's data-step / data-arch-step stepping. Every number is from
+             data/l5-tsne-math.json (anchor='cat', perplexity 5, σ≈2.003, the p-row). The affinity bars /
+             scatter are static SVG gated by parent <g data-step>; the changing caption SWAPS via
+             data-arch-step — no animated SVG <text>, so no double-paint. -->
+        <section class="slide tsa-slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="43 t-SNE affinities">
+          <style>
+            /* scoped. Cumulative reveal (display) keyed on is-step-hidden (n > current). Step 0 = the
+               anchor's 8 neighbours by high-D distance (a meaningful START); 1 = the Gaussian p bars;
+               2 = the perplexity/σ tuning; 3 = the low-D Student-t side. Caption SWAPS via data-arch-step. */
+            .tsa-slide [data-step] { display: none; }
+            .tsa-slide [data-step]:not(.is-step-hidden) { display: block; }
+            .tsa-slide .tsa-stage { position: relative; width: 100%; max-width: 1360px; aspect-ratio: 1180 / 470; margin: 0 auto; }
+            .tsa-slide .tsa-stage svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+            .tsa-slide .viz-frame { margin: 0; }
+            .tsa-slide .tsa-cap[data-arch-step] { display: none; }
+            .tsa-slide .tsa-cap[data-arch-step].is-arch-current { display: block; animation: tsaIn var(--dur,.4s) var(--ease,ease) both; }
+            @keyframes tsaIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+            @media (prefers-reduced-motion: reduce) { .tsa-slide .tsa-cap { animation: none !important; } }
+          </style>
+          <div class="slide-header">
+            <h2><span lang="ru">t-SNE, шаг 1: близости. Гаусс \(p_{j|i}\) &rarr; Стьюдент \(q_{ij}\)</span><span lang="en">t-SNE, step 1: the affinities. Gaussian \(p_{j|i}\) &rarr; Student-t \(q_{ij}\)</span></h2>
+            <span class="slide-kicker"><span lang="ru">9 слов GloVe-50 · якорь <code>cat</code> · perplexity \(=5\)</span><span lang="en">9 GloVe-50 words · anchor <code>cat</code> · perplexity \(=5\)</span></span>
+          </div>
+          <div class="viz-frame">
+            <div class="tsa-stage">
+              <svg viewBox="0 0 1180 470" preserveAspectRatio="xMidYMid meet" role="img" aria-label="From the anchor word cat: high-D squared distances become a Gaussian conditional affinity p, tuned so the row has perplexity 5 (sigma 2.003); on the low-D side a Student-t heavy tail keeps far points some affinity, fixing crowding">
+                <g font-family="var(--font-sans)">
+                  <!-- ───────────── LEFT: high-D Gaussian affinity from anchor 'cat' ───────────── -->
+                  <text x="40" y="34" font-size="22" fill="var(--ink)" font-weight="600"><tspan>high-D · Gaussian affinity from </tspan><tspan fill="var(--accent-ink)" font-style="italic">cat</tspan></text>
+                  <!-- word rows: label (group-coloured) · distance² (step 0) · p bar (step 1) · p value (step 1) -->
+                  <g id="tsa-rows"></g>
+                  <!-- STEP 2: perplexity / σ tuning annotation -->
+                  <g data-step="2">
+                    <rect x="40" y="408" width="510" height="48" rx="8" fill="var(--c-cyan-soft)" stroke="var(--c-cyan)" stroke-width="1.5"/>
+                    <text x="54" y="430" font-size="16" fill="var(--ink)"><tspan font-weight="700">&#963; = 2.003</tspan><tspan>  tuned by binary search so</tspan></text>
+                    <text x="54" y="450" font-size="16" fill="var(--ink)"><tspan>the row has </tspan><tspan font-weight="700">perplexity = 5</tspan><tspan> &#8776; eff. # of neighbours</tspan></text>
+                  </g>
+                  <!-- ───────────── RIGHT: low-D Student-t (step 3) ───────────── -->
+                  <g data-step="3">
+                    <text x="620" y="34" font-size="22" fill="var(--ink)" font-weight="600">low-D · Student-t \(q_{ij}\) — heavy tail</text>
+                    <rect x="620" y="50" width="520" height="406" rx="10" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
+                    <!-- the heavy-tail curve inset: Student-t (orange) vs Gaussian (grey) -->
+                    <text x="640" y="80" font-size="15" fill="var(--ink-3)">affinity vs distance d:</text>
+                    <line x1="650" y1="200" x2="1120" y2="200" stroke="var(--ink-3)" stroke-width="1.4"/>
+                    <line x1="650" y1="92" x2="650" y2="200" stroke="var(--ink-3)" stroke-width="1.4"/>
+                    <text x="1120" y="218" font-size="14" fill="var(--ink-3)" text-anchor="end">d &rarr;</text>
+                    <polyline id="tsa-gauss" points="" fill="none" stroke="var(--ink-3)" stroke-width="2" stroke-dasharray="5 4"/>
+                    <polyline id="tsa-tstud" points="" fill="none" stroke="var(--c-red)" stroke-width="2.6"/>
+                    <text x="1112" y="112" font-size="15" fill="var(--c-red)" text-anchor="end" font-weight="600">Student-t (1+d&#178;)&#8315;&#185;</text>
+                    <text x="1112" y="184" font-size="14" fill="var(--ink-3)" text-anchor="end">Gaussian e&#8315;&#7496;&#178; (for contrast)</text>
+                    <text x="900" y="252" font-size="16" fill="var(--ink-2)" text-anchor="middle">the heavy tail keeps far points</text>
+                    <text x="900" y="274" font-size="16" fill="var(--ink-2)" text-anchor="middle">a little affinity &rarr; room for clusters</text>
+                    <text x="900" y="296" font-size="16" fill="var(--ink-2)" text-anchor="middle">(fixes the crowding problem)</text>
+                    <!-- the same dog/throne worked numbers, high-D → low-D -->
+                    <rect x="650" y="318" width="460" height="120" rx="8" fill="var(--bg-inset)" opacity="0.5"/>
+                    <text x="668" y="344" font-size="15" fill="var(--ink-2)" font-family="var(--font-mono)"><tspan fill="var(--accent-ink)">dog</tspan><tspan>  (near): p=0.405  &rarr;  q=0.060</tspan></text>
+                    <text x="668" y="372" font-size="15" fill="var(--ink-2)" font-family="var(--font-mono)"><tspan fill="var(--ink-3)">throne</tspan><tspan> (far):  p=0.003  &rarr;  q=0.002</tspan></text>
+                    <text x="668" y="408" font-size="14" fill="var(--ink-3)">joint P symmetrises p(j|i) &amp; p(i|j); both rows sum to 1.</text>
+                    <text x="668" y="428" font-size="14" fill="var(--ink-3)">next slide: pull q toward p (minimise KL).</text>
+                  </g>
+                </g>
+              </svg>
+            </div>
+          </div>
+          <p class="tsa-cap small muted center mt-2" data-arch-step="0"><span lang="ru">Шаг 0 — <strong>вход</strong>: для якоря <code>cat</code> — 8 других слов по квадрату расстояния в 50-D. <code>dog</code> ближе всего (\(d^2=3.55\)), <code>throne</code> дальше всех (\(43.88\)). Жмите <kbd>&rarr;</kbd>.</span><span lang="en">Step 0 — the <strong>input</strong>: from anchor <code>cat</code>, the 8 other words by squared distance in 50-D. <code>dog</code> is nearest (\(d^2=3.55\)), <code>throne</code> farthest (\(43.88\)). Press <kbd>&rarr;</kbd>.</span></p>
+          <p class="tsa-cap small muted center mt-2" data-arch-step="1"><span lang="ru">Шаг 1 — <strong>гауссова близость</strong> \(p_{j|i}=\frac{\exp(-d^2/2\sigma^2)}{\sum\exp(\cdot)}\). <code>dog</code> \(0.405\), <code>puppy</code> \(0.196\), <code>lion</code> \(0.140\), <code>kitten</code> \(0.136\), … <code>throne</code> \(0.003\). Строка суммируется в \(1\).</span><span lang="en">Step 1 — the <strong>Gaussian affinity</strong> \(p_{j|i}=\frac{\exp(-d^2/2\sigma^2)}{\sum\exp(\cdot)}\). <code>dog</code> \(0.405\), <code>puppy</code> \(0.196\), <code>lion</code> \(0.140\), <code>kitten</code> \(0.136\), … <code>throne</code> \(0.003\). The row sums to \(1\).</span></p>
+          <p class="tsa-cap small muted center mt-2" data-arch-step="2"><span lang="ru">Шаг 2 — <strong>perplexity</strong> задаёт, сколько соседей считать «близкими». Ширину \(\sigma\) не угадывают — её подбирают бинарным поиском так, чтобы perplexity строки \(=5\); здесь \(\sigma\approx2.003\).</span><span lang="en">Step 2 — <strong>perplexity</strong> sets how many neighbours count as &ldquo;near&rdquo;. The width \(\sigma\) is not guessed — binary search tunes it so the row's perplexity \(=5\); here \(\sigma\approx2.003\).</span></p>
+          <p class="tsa-cap small muted center mt-2" data-arch-step="3"><span lang="ru">Шаг 3 — в <strong>2-D</strong> близость измеряют ядром <strong>Стьюдента</strong> \(q_{ij}\propto(1+d^2)^{-1}\), а не гауссовым. Тяжёлый хвост оставляет далёким точкам немного близости — это лечит скучивание.</span><span lang="en">Step 3 — in <strong>2-D</strong> closeness uses a <strong>Student-t</strong> kernel \(q_{ij}\propto(1+d^2)^{-1}\), not a Gaussian. The heavy tail keeps far points a little affinity — that cures crowding.</span></p>
+          <script>
+          (function () {
+            // anchor 'cat' row, from data/l5-tsne-math.json: highD.anchorSqDist + conditional.pRow.
+            var words=['kitten','dog','puppy','lion','tiger','king','queen','throne'];
+            var grp   =['animal','animal','animal','animal','animal','royalty','royalty','royalty'];
+            var d2    =[12.298, 3.552, 9.391, 12.089, 16.998, 30.012, 24.687, 43.883];
+            var p     =[0.136296, 0.405371, 0.195804, 0.139899, 0.075874, 0.014989, 0.029106, 0.002661];
+            var HUE={animal:'var(--c-green)', royalty:'var(--c-violet)'};
+            var NS='http://www.w3.org/2000/svg';
+            var rows=document.getElementById('tsa-rows');
+            // word labels at x=44; the d² value right-anchored at x=250 (a clear gap past the widest
+            // word); the p bars start at x=270 → no run-together numbers, all in the 1180 frame.
+            var y0=64, rh=42, barX=270, barMaxW=210, pMax=Math.max.apply(null,p);
+            if(rows) words.forEach(function(w,i){
+              var cy=y0+i*rh, hue=HUE[grp[i]];
+              // word label, group-coloured
+              var lbl=document.createElementNS(NS,'text'); lbl.setAttribute('x',44);lbl.setAttribute('y',cy+6);lbl.setAttribute('font-size',17);lbl.setAttribute('fill',hue);lbl.setAttribute('font-family','var(--font-mono)');lbl.textContent=w; rows.appendChild(lbl);
+              // step 0: the squared distance (the INPUT) — a small grey number, right-aligned, clear of the word
+              var dwrap=document.createElementNS(NS,'g'); dwrap.setAttribute('data-step','0');
+              var dt=document.createElementNS(NS,'text'); dt.setAttribute('x',250);dt.setAttribute('y',cy+6);dt.setAttribute('font-size',15);dt.setAttribute('fill','var(--ink-3)');dt.setAttribute('text-anchor','end');dt.setAttribute('font-family','var(--font-mono)');dt.textContent='d²='+d2[i].toFixed(2); dwrap.appendChild(dt); rows.appendChild(dwrap);
+              // step 1: the Gaussian p bar + value (the AFFINITY)
+              var pwrap=document.createElementNS(NS,'g'); pwrap.setAttribute('data-step','1');
+              var bw=Math.max(2,(p[i]/pMax)*barMaxW);
+              var bar=document.createElementNS(NS,'rect'); bar.setAttribute('x',barX);bar.setAttribute('y',cy-8);bar.setAttribute('width',bw);bar.setAttribute('height',16);bar.setAttribute('rx',3);bar.setAttribute('fill','var(--accent)'); pwrap.appendChild(bar);
+              var pv=document.createElementNS(NS,'text'); pv.setAttribute('x',barX+bw+8);pv.setAttribute('y',cy+5);pv.setAttribute('font-size',15);pv.setAttribute('fill','var(--ink-2)');pv.setAttribute('font-family','var(--font-mono)');pv.textContent=p[i].toFixed(3); pwrap.appendChild(pv);
+              rows.appendChild(pwrap);
+            });
+            // anchor 'cat' marker at top of the column
+            if(rows){ var a=document.createElementNS(NS,'text'); a.setAttribute('x',44);a.setAttribute('y',y0-22);a.setAttribute('font-size',15);a.setAttribute('fill','var(--ink-3)');a.textContent='(anchor: cat)'; rows.appendChild(a); }
+            // Student-t vs Gaussian curves (step 3 inset): d 0→3.2 over px 650→1120; v 0→1 over py 200→92
+            var DMAX=3.2, cx0=650,cx1=1120,cy0v=200,cy1v=92;
+            var csx=function(d){return cx0+(d/DMAX)*(cx1-cx0);};
+            var csy=function(v){return cy0v-(v)*(cy0v-cy1v);};
+            var build=function(fn){var s='';for(var k=0;k<=40;k++){var d=(k/40)*DMAX; s+=(k===0?'':' ')+csx(d).toFixed(1)+','+csy(fn(d)).toFixed(1);}return s;};
+            var gp=document.getElementById('tsa-gauss'), tp=document.getElementById('tsa-tstud');
+            if(gp) gp.setAttribute('points', build(function(d){return Math.exp(-d*d);}));
+            if(tp) tp.setAttribute('points', build(function(d){return 1/(1+d*d);}));
+          })();
+          </script>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">0/3</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">The inside of t-SNE's first move, built one reveal per step on nine real GloVe words with cat as the anchor. Step zero shows only the input: the eight other words ordered by their squared distance from cat in the fifty-dimensional space — dog nearest at three point five five, throne farthest at forty-three point eight eight. Step one turns those distances into a Gaussian conditional affinity p of j given i, exponential of minus distance-squared over two sigma-squared, normalised so the row sums to one — dog zero point four zero five, puppy zero point one nine six, lion zero point one four zero, kitten zero point one three six, down to throne at zero point zero zero three. Step two is the key idea: sigma is not guessed, it is tuned by binary search so the row's perplexity equals five — perplexity being the effective number of neighbours the anchor attends to — which here gives sigma about two point zero zero three. Step three crosses to the low-dimensional side, where closeness uses a Student-t kernel, one over one plus distance-squared, not a Gaussian; the heavy tail keeps far-apart points a little affinity, which is exactly what gives clusters room and cures the crowding problem. Every number is from the L5 t-SNE data file.<aside data-notes-for-step="0">Step 0 — the anchor's 8 neighbours by high-D squared distance.</aside><aside data-notes-for-step="1">Step 1 — the Gaussian p row (dog 0.405 … throne 0.003), sums to 1.</aside><aside data-notes-for-step="2">Step 2 — perplexity 5 tunes σ≈2.003 by binary search.</aside><aside data-notes-for-step="3">Step 3 — low-D Student-t q, heavy tail fixes crowding.</aside></aside>
+        </section>
+
+        <!-- ============================================ 44 · VIZ (stepped) · t-SNE objective: KL(P‖Q) + gradient forces ============================================ -->
+        <!-- NATIVE deck slide ported from widgets/tsne-steps (steps 2–3). The KL objective (overlay q on
+             p) → the real KL number 0.0411 → the gradient as attractive/repulsive forces on each low-D
+             point → migration. Every number from data/l5-tsne-math.json (lowD.anchorRow, kl, gradient.all).
+             Progressive via data-step; forces are static SVG gated by their parent <g>; caption SWAPS. -->
+        <section class="slide tsb-slide" data-type="viz" data-max-step="2" data-current-step="0" data-screen-label="44 t-SNE objective">
+          <style>
+            /* scoped. Step 0 = the anchor's p bars with the q overlay (the mismatch — a meaningful
+               START showing WHAT we minimise); 1 = the KL number; 2 = the gradient force arrows on the
+               2-D scatter. Cumulative reveal via is-step-hidden; caption SWAPS via data-arch-step. */
+            .tsb-slide [data-step] { display: none; }
+            .tsb-slide [data-step]:not(.is-step-hidden) { display: block; }
+            .tsb-slide .tsb-stage { position: relative; width: 100%; max-width: 1360px; aspect-ratio: 1180 / 470; margin: 0 auto; }
+            .tsb-slide .tsb-stage svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+            .tsb-slide .viz-frame { margin: 0; }
+            .tsb-slide .tsb-cap[data-arch-step] { display: none; }
+            .tsb-slide .tsb-cap[data-arch-step].is-arch-current { display: block; animation: tsbIn var(--dur,.4s) var(--ease,ease) both; }
+            @keyframes tsbIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+            @media (prefers-reduced-motion: reduce) { .tsb-slide .tsb-cap { animation: none !important; } }
+          </style>
+          <div class="slide-header">
+            <h2><span lang="ru">t-SNE, шаг 2: цель \(\mathrm{KL}(P\Vert Q)\) и градиент = силы</span><span lang="en">t-SNE, step 2: the objective \(\mathrm{KL}(P\Vert Q)\) and gradient = forces</span></h2>
+            <span class="slide-kicker"><span lang="ru">тянем \(q\) к \(p\) · притяжение/отталкивание · точки мигрируют</span><span lang="en">pull \(q\) toward \(p\) · attract/repel · points migrate</span></span>
+          </div>
+          <div class="viz-frame">
+            <div class="tsb-stage">
+              <svg viewBox="0 0 1180 470" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Overlaying the anchor's low-D q affinities on its high-D p affinities shows the mismatch t-SNE minimises; the KL divergence is 0.0411; the gradient gives each low-D point an attractive or repulsive force, migrating the points into clusters">
+                <g font-family="var(--font-sans)">
+                  <!-- ───── LEFT: p (blue) vs q (orange) overlay bars from anchor 'cat' ───── -->
+                  <text x="40" y="34" font-size="22" fill="var(--ink)" font-weight="600"><tspan>match </tspan><tspan fill="var(--accent-ink)">q</tspan><tspan> (low-D) to </tspan><tspan fill="var(--accent-ink)">p</tspan><tspan> (high-D)</tspan></text>
+                  <g id="tsb-rows"></g>
+                  <!-- p/q legend -->
+                  <g>
+                    <rect x="44" y="400" width="13" height="13" rx="2" fill="var(--accent)"/>
+                    <text x="63" y="411" font-size="15" fill="var(--ink-2)">p (high-D)</text>
+                    <rect x="184" y="400" width="13" height="13" rx="2" fill="var(--c-red)"/>
+                    <text x="203" y="411" font-size="15" fill="var(--ink-2)">q (low-D)</text>
+                  </g>
+                  <!-- STEP 1: the KL number -->
+                  <g data-step="1">
+                    <rect x="40" y="424" width="500" height="36" rx="8" fill="var(--c-amber-soft)" stroke="var(--c-amber)" stroke-width="1.5"/>
+                    <text x="54" y="448" font-size="17" fill="var(--ink)"><tspan>cost = </tspan><tspan font-weight="700">KL(P‖Q) = &#931; p log(p/q) = 0.0411</tspan></text>
+                  </g>
+                  <!-- ───── RIGHT: the 2-D scatter + gradient forces (step 2) ───── -->
+                  <text x="620" y="34" font-size="22" fill="var(--ink)" font-weight="600">gradient &rarr; force on each point</text>
+                  <rect x="620" y="50" width="520" height="406" rx="10" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
+                  <g id="tsb-scatter"></g>
+                  <g data-step="2"><g id="tsb-forces"></g>
+                    <text x="880" y="446" font-size="15" fill="var(--ink-2)" text-anchor="middle">p&gt;q &rarr; attract · p&lt;q &rarr; repel · points migrate into clusters</text>
+                  </g>
+                  <defs>
+                    <marker id="tsb-ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--c-red)"/></marker>
+                  </defs>
+                </g>
+              </svg>
+            </div>
+          </div>
+          <p class="tsb-cap small muted center mt-2" data-arch-step="0"><span lang="ru">Шаг 0 — что мы минимизируем. Накладываем <span style="color:var(--c-red)">q</span> (2-D) на <span style="color:var(--accent-ink)">p</span> (50-D) для якоря <code>cat</code>. Где столбцы расходятся — раскладка неверна. Жмите <kbd>&rarr;</kbd>.</span><span lang="en">Step 0 — what we minimise. Overlay <span style="color:var(--c-red)">q</span> (2-D) on <span style="color:var(--accent-ink)">p</span> (50-D) for anchor <code>cat</code>. Where the bars differ, the layout is wrong. Press <kbd>&rarr;</kbd>.</span></p>
+          <p class="tsb-cap small muted center mt-2" data-arch-step="1"><span lang="ru">Шаг 1 — единое число рассогласования: \(\mathrm{KL}(P\Vert Q)=\sum p_{ij}\log\frac{p_{ij}}{q_{ij}}=\mathbf{0.0411}\). Всегда \(\ge0\), и \(=0\) только если \(q\) всюду равно \(p\).</span><span lang="en">Step 1 — one number for the mismatch: \(\mathrm{KL}(P\Vert Q)=\sum p_{ij}\log\frac{p_{ij}}{q_{ij}}=\mathbf{0.0411}\). Always \(\ge0\), and \(=0\) only if \(q\) equals \(p\) everywhere.</span></p>
+          <p class="tsb-cap small muted center mt-2" data-arch-step="2"><span lang="ru">Шаг 2 — <strong>градиент</strong> \(\partial C/\partial y_i=4\sum_j(p_{ij}-q_{ij})(y_i-y_j)(1+d^2)^{-1}\) даёт каждой точке силу: \(p\!&gt;\!q\) — притяжение, \(p\!&lt;\!q\) — отталкивание. Шаг за шагом — это и есть миграция в кластеры.</span><span lang="en">Step 2 — the <strong>gradient</strong> \(\partial C/\partial y_i=4\sum_j(p_{ij}-q_{ij})(y_i-y_j)(1+d^2)^{-1}\) gives each point a force: \(p\!&gt;\!q\) attracts, \(p\!&lt;\!q\) repels. Step after step, that is the migration into clusters.</span></p>
+          <script>
+          (function () {
+            // anchor 'cat' p (joint anchorRow) vs q (lowD anchorRow), from data/l5-tsne-math.json.
+            var words=['kitten','dog','puppy','lion','tiger','king','queen','throne'];
+            var grp   =['animal','animal','animal','animal','animal','royalty','royalty','royalty'];
+            // joint P anchor row (index1..8) and Q anchor row (index1..8)
+            var p=[0.022072, 0.0454, 0.025983, 0.032459, 0.021823, 0.004946, 0.006646, 0.003424];
+            var q=[0.011766, 0.06039, 0.028608, 0.03627, 0.02048, 0.002712, 0.003537, 0.00204];
+            var NS='http://www.w3.org/2000/svg';
+            var rows=document.getElementById('tsb-rows');
+            var y0=64, rh=42, barX=150, barMaxW=300, mx=Math.max(Math.max.apply(null,p),Math.max.apply(null,q));
+            if(rows) words.forEach(function(w,i){
+              var cy=y0+i*rh;
+              var lbl=document.createElementNS(NS,'text'); lbl.setAttribute('x',44);lbl.setAttribute('y',cy+4);lbl.setAttribute('font-size',16);lbl.setAttribute('fill','var(--ink-2)');lbl.setAttribute('font-family','var(--font-mono)');lbl.textContent=w; rows.appendChild(lbl);
+              // p bar (blue, upper)
+              var pb=document.createElementNS(NS,'rect'); pb.setAttribute('x',barX);pb.setAttribute('y',cy-12);pb.setAttribute('width',Math.max(2,(p[i]/mx)*barMaxW));pb.setAttribute('height',11);pb.setAttribute('rx',2);pb.setAttribute('fill','var(--accent)'); rows.appendChild(pb);
+              // q bar (orange, lower)
+              var qb=document.createElementNS(NS,'rect'); qb.setAttribute('x',barX);qb.setAttribute('y',cy+1);qb.setAttribute('width',Math.max(2,(q[i]/mx)*barMaxW));qb.setAttribute('height',11);qb.setAttribute('rx',2);qb.setAttribute('fill','var(--c-red)'); rows.appendChild(qb);
+            });
+            // 2-D layout Y (lowD.Y) + per-point gradient (gradient.all). anchor 'cat' index 0.
+            var Y=[[-5.7325,20.6233],[7.2712,55.6207],[-14.052,34.8203],[11.6012,37.1227],[-6.5732,-0.6086],[-33.8751,17.7326],[3.687,-56.5955],[15.6493,-44.0436],[22.0242,-64.6717]];
+            var G=[[-0.001833,0.00205],[0.000796,-0.000688],[0.001249,-0.002443],[-0.000267,0.001827],[-1.4e-05,0.000394],[-0.000291,0.000117],[0.002337,0.000714],[-0.001101,-0.00256],[-0.000875,0.00059]];
+            var gAll=['animal','animal','animal','animal','animal','animal','royalty','royalty','royalty'];
+            var HUE={animal:'var(--c-green)', royalty:'var(--c-violet)'};
+            var NS2=NS;
+            var box={x:640,y:70,w:480,h:366};
+            var xs=Y.map(function(p){return p[0];}), ys=Y.map(function(p){return p[1];});
+            var xmin=Math.min.apply(null,xs),xmax=Math.max.apply(null,xs),ymin=Math.min.apply(null,ys),ymax=Math.max.apply(null,ys);
+            var pad=0.12, dx=(xmax-xmin)*pad, dy=(ymax-ymin)*pad;
+            var side=Math.min(box.w,box.h), ox=box.x+(box.w-side)/2, oy=box.y+(box.h-side)/2;
+            var sx=function(x){return ox+(x-(xmin-dx))/((xmax+dx)-(xmin-dx))*side;};
+            var sy=function(y){return oy+side-(y-(ymin-dy))/((ymax+dy)-(ymin-dy))*side;};
+            var sc=document.getElementById('tsb-scatter'), fl=document.getElementById('tsb-forces');
+            // gradient force arrows: descent dir = -∇C, scaled for visibility (converged gradients tiny)
+            var gmax=Math.max.apply(null,G.map(function(g){return Math.hypot(g[0],g[1]);}))||1e-9;
+            var ARROW=side*0.22;
+            Y.forEach(function(pt,i){
+              var cx=sx(pt[0]),cy=sy(pt[1]),hue=HUE[gAll[i]];
+              if(sc){ var c=document.createElementNS(NS2,'circle'); c.setAttribute('cx',cx);c.setAttribute('cy',cy);c.setAttribute('r',i===0?7:5);c.setAttribute('fill',hue);c.setAttribute('stroke','var(--bg-card)');c.setAttribute('stroke-width',1.4); sc.appendChild(c);
+                var wl=document.createElementNS(NS2,'text'); wl.setAttribute('x',cx+8);wl.setAttribute('y',cy+4);wl.setAttribute('font-size',13);wl.setAttribute('fill','var(--ink-3)');wl.setAttribute('font-family','var(--font-mono)');wl.textContent=(i===0?'cat':['kitten','dog','puppy','lion','tiger','king','queen','throne'][i-1]); sc.appendChild(wl);
+              }
+              if(fl){
+                var g=G[i], gm=Math.hypot(g[0],g[1])||1e-9, len=(gm/gmax)*ARROW;
+                var ux=(-g[0]/gm)*len, uy=(g[1]/gm)*len; // +y screen = down → sy already flips
+                var ln=document.createElementNS(NS2,'line'); ln.setAttribute('x1',cx);ln.setAttribute('y1',cy);ln.setAttribute('x2',cx+ux);ln.setAttribute('y2',cy+uy);ln.setAttribute('stroke','var(--c-red)');ln.setAttribute('stroke-width',2.4);ln.setAttribute('marker-end','url(#tsb-ah)'); fl.appendChild(ln);
+              }
+            });
+          })();
+          </script>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">0/2</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">t-SNE's objective and its mechanics, one reveal per step, on the same nine words with cat as anchor. Step zero shows what t-SNE is trying to do: overlay the low-dimensional affinities q, in orange, on the high-dimensional affinities p, in blue, for the anchor's row — wherever the two bars differ, the current layout is wrong, and that mismatch is the whole story. Step one collapses that mismatch into a single number: the Kullback-Leibler divergence of P from Q, the sum of p times log p over q, which for this real layout is zero point zero four one one; it is always non-negative and zero only when q matches p everywhere. Step two reveals the mechanism: the gradient of that cost with respect to each point yi is four times the sum over j of p minus q, times the offset yi minus yj, times the Student-t factor — drawn here as a force arrow on every low-dimensional point. Where p exceeds q the force is attractive, pulling neighbours together; where p is below q it is repulsive, pushing them apart. Following those forces step after step is exactly the migration into clusters. Every number — the p and q rows, the KL, the gradient — is from the L5 t-SNE data file.<aside data-notes-for-step="0">Step 0 — overlay q on p for the anchor; the mismatch is the cost.</aside><aside data-notes-for-step="1">Step 1 — KL(P‖Q) = 0.0411, the single mismatch number.</aside><aside data-notes-for-step="2">Step 2 — the gradient gives each point an attractive/repulsive force → migration.</aside></aside>
+        </section>
+
+        <!-- ============================================ 45 · TWO-COL · UMAP ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="45 UMAP">
           <div class="slide-header">
             <h2>UMAP: <span lang="ru">быстрее и с сохранением структуры</span><span lang="en">faster, more global structure</span></h2>
             <span class="slide-kicker"><span lang="ru">McInnes 2018 · соседний метод</span><span lang="en">McInnes 2018 · the sibling method</span></span>
@@ -1379,7 +1973,7 @@
 
         <!-- ============================================ BEAT 12 · catch-tsne-lies ============================================ -->
         <!-- ============================================ 39 · DIVIDER · t-SNE mirage ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="42 Divider · the t-SNE mirage">
+        <section class="slide" data-type="divider" data-screen-label="46 Divider · the t-SNE mirage">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 07</span><span lang="en">Part 07</span></div>
             <h1>Don't Over-read the Map</h1>
@@ -1392,7 +1986,7 @@
         </section>
 
         <!-- ============================================ 40 · MISCONCEPTION · t-SNE lies ============================================ -->
-        <section class="slide" data-type="misconception" data-screen-label="43 t-SNE lies">
+        <section class="slide" data-type="misconception" data-screen-label="47 t-SNE lies">
           <div class="slide-header">
             <h2><span lang="ru">Частое заблуждение</span><span lang="en">Common misconception</span></h2>
             <span class="slide-kicker"><span lang="ru">развенчиваем миф</span><span lang="en">bust the myth</span></span>
@@ -1410,7 +2004,7 @@
 
         <!-- ============================================ BEAT 13 · catch-gremlin-cornered ============================================ -->
         <!-- ============================================ 41 · MISCONCEPTION · gremlin cornered ============================================ -->
-        <section class="slide" data-type="misconception" data-screen-label="44 Gremlin cornered">
+        <section class="slide" data-type="misconception" data-screen-label="48 Gremlin cornered">
           <div class="slide-header">
             <h2><span lang="ru">Гремлин загнан в угол — но не пойман</span><span lang="en">The Gremlin cornered — but not caged</span></h2>
             <span class="slide-kicker"><span lang="ru">обратный вызов из L3 · мост к L6</span><span lang="en">callback to L3 · bridge to L6</span></span>
@@ -1428,7 +2022,7 @@
 
         <!-- ============================================ BEAT 13b · cross-domain transfer (PLAN §D · the headline cross-domain ask) ============================================ -->
         <!-- ============================================ 42 · DIVIDER · the same trick everywhere ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="45 Divider · the same trick everywhere">
+        <section class="slide" data-type="divider" data-screen-label="49 Divider · the same trick everywhere">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Интерлюдия</span><span lang="en">Interlude</span></div>
             <h1>The Same Trick Everywhere</h1>
@@ -1438,7 +2032,7 @@
         </section>
 
         <!-- ============================================ 43 · TABLE · cross-domain transfer table ============================================ -->
-        <section class="slide" data-type="table" data-screen-label="46 Embeddings everywhere">
+        <section class="slide" data-type="table" data-screen-label="50 Embeddings everywhere">
           <div class="slide-header">
             <h2><span lang="ru">Один объектив, много областей</span><span lang="en">One trick, many fields</span></h2>
             <span class="slide-kicker"><span lang="ru">последовательность &rarr; токен &rarr; та же карта</span><span lang="en">a sequence &rarr; a token &rarr; the same map</span></span>
@@ -1482,7 +2076,7 @@
         </section>
 
         <!-- ============================================ 47 · VIZ · cross-domain embeddings (ported from widgets/embedding-domains) ============================================ -->
-        <section class="slide ed-slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="47 One shared space, four domains">
+        <section class="slide ed-slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="51 One shared space, four domains">
           <style>
             /* Genuine per-domain BUILD: one modality enters the shared map per step
                (text 0 · image 1 · audio 2 · protein 3 · axes+full legend 4). Geometry
@@ -1578,7 +2172,7 @@
 
         <!-- ============================================ BEAT 14 · payoff-map-drawn ============================================ -->
         <!-- ============================================ 44 · DIVIDER · map drawn ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="48 Divider · the map is drawn">
+        <section class="slide" data-type="divider" data-screen-label="52 Divider · the map is drawn">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Развязка</span><span lang="en">Payoff</span></div>
             <h1>The Map of Meaning is Drawn</h1>
@@ -1591,7 +2185,7 @@
         </section>
 
         <!-- ============================================ 43 · QUOTE · bridge to L6 ============================================ -->
-        <section class="slide" data-type="quote" data-screen-label="49 Bridge">
+        <section class="slide" data-type="quote" data-screen-label="53 Bridge">
           <div>
             <div class="quote-mark">&ldquo;</div>
             <blockquote><span lang="ru">Карта смысла нарисована.<br />Но одно слово всё ещё значит две вещи — дайте карте <em>контекст</em>.</span><span lang="en">The Map of Meaning is drawn.<br />But one word still means two things — give the map <em>context</em>.</span></blockquote>
@@ -1601,7 +2195,7 @@
         </section>
 
         <!-- ============================================ 44 · FINAL ============================================ -->
-        <section class="slide" data-type="final" data-screen-label="50 Final">
+        <section class="slide" data-type="final" data-screen-label="54 Final">
           <div class="final-body">
             <h1 style="font-size:96px; line-height:1.05; margin-bottom:var(--sp-4);"><span lang="ru">Слова получили координаты.<br />Что значит <em>близко</em>?</span><span lang="en">Words have coordinates now.<br />What does <em>near</em> mean?</span></h1>
             <p class="final-sub" style="margin-bottom:var(--sp-5);"><strong><span lang="ru">Вопросы?</span><span lang="en">Questions?</span></strong> &middot; <span lang="ru">Слайды, домашка и запись — по QR ниже.</span><span lang="en">Slides, homework &amp; recording via the QR below.</span></p>
@@ -1619,7 +2213,7 @@
         </section>
 
         <!-- ============================================ 45 · REFERENCES (1/2) ============================================ -->
-        <section class="slide" data-type="refs" data-screen-label="51 References · embeddings">
+        <section class="slide" data-type="refs" data-screen-label="55 References · embeddings">
           <div class="slide-header">
             <h2><span lang="ru">Источники и дополнительное чтение</span><span lang="en">References &amp; further reading</span> <span style="font-weight:400;opacity:.6">(1 / 2)</span></h2>
             <span class="slide-kicker"><span lang="ru">Приложение · эмбеддинги</span><span lang="en">Appendix · the embeddings lineage</span></span>
@@ -1634,7 +2228,7 @@
         </section>
 
         <!-- ============================================ 46 · REFERENCES (2/2) ============================================ -->
-        <section class="slide" data-type="refs" data-screen-label="52 References · dimred">
+        <section class="slide" data-type="refs" data-screen-label="56 References · dimred">
           <div class="slide-header">
             <h2><span lang="ru">Источники и дополнительное чтение</span><span lang="en">References &amp; further reading</span> <span style="font-weight:400;opacity:.6">(2 / 2)</span></h2>
             <span class="slide-kicker"><span lang="ru">Приложение · снижение размерности</span><span lang="en">Appendix · dimensionality reduction</span></span>
