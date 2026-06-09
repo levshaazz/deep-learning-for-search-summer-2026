@@ -96,20 +96,31 @@ export const mountGloveCooccur = defineWidget({
     // ── the X heatmap (symmetric n×n; cell tint ∝ count) ──
     layer('matrix', 0);
     const mX = 360, mY = P0_Y + 12;
-    panelHead('matrix', mX, mY, labels.matrixHead || 'co-occurrence matrix X', labels.matrixSub);
-    const gridTop = mY + 34;
+    // DEFECT-1 FIX: the subtitle no longer sits in the head→grid gap (the rotated -60° column headers
+    // rise UP into that very gap and used to overprint it). We draw ONLY the head up top, give the
+    // rotated headers their own clear band beneath it, and move the subtitle to its OWN line BELOW the
+    // finished grid — so column labels and subtitle occupy disjoint bands and can never collide.
+    panelHead('matrix', mX, mY, labels.matrixHead || 'co-occurrence matrix X');
+    // A 7-char header rotated -60° rises ≈ 30px above its anchor (gridTop-6). Keep that rise clear of
+    // the head's visual bottom (≈ mY+15): anchor must sit ≥ mY+15+30, so gridTop = mY+52.
+    const gridTop = mY + 52;
     const gridLeft = mX + 60;                   // room for the row labels
-    const csz = Math.min(13, Math.floor((Wd - PAD - gridLeft) / n));   // square cell, fits canvas
+    // cap cell size at 12 so the n-row grid still fits its band below the deeper gridTop.
+    const csz = Math.min(12, Math.floor((Wd - PAD - gridLeft) / n));   // square cell, fits canvas
+    const gridBottom = gridTop + n * csz;
     const maxX = Math.max(1e-6, ...X.flat());
     // row labels (left of the grid) + column labels (rotated above)
     vocab.forEach((w, i) => {
       text('matrix', gridLeft - 4, gridTop + i * csz + csz - 2, 'gv-mlabel', 'end', w.slice(0, 7));
-      const ct = el('text', { x: gridLeft + i * csz + csz / 2, y: gridTop - 4,
+      const ct = el('text', { x: gridLeft + i * csz + csz / 2, y: gridTop - 6,
         class: 'gv-mlabel gv-mcol', 'text-anchor': 'start',
-        transform: `rotate(-60 ${gridLeft + i * csz + csz / 2} ${gridTop - 4})` }, svg);
+        transform: `rotate(-60 ${gridLeft + i * csz + csz / 2} ${gridTop - 6})` }, svg);
       ct.textContent = w.slice(0, 7);
       add('matrix', ct);
     });
+    // subtitle on its OWN line below the grid (disjoint from the rotated header band).
+    if (labels.matrixSub)
+      text('matrix', mX, gridBottom + 16, 'gv-subhead', 'start', labels.matrixSub);
     // cells
     for (let i = 0; i < n; i++) {
       for (let j = 0; j < n; j++) {
@@ -218,39 +229,108 @@ export const mountGloveCooccur = defineWidget({
       : ANIMAL.has(w) ? 'animal' : 'structure';
     // dot screen positions
     const dots = mapPts.map((p) => ({ w: p.w, dx: psx(p.x), dy: psy(p.y), cat: catOf(p.w) }));
-    // label positions start beside each dot, then a few rounds of repulsion separate any labels
-    // that the PCA projection placed on top of each other (man/woman/chases cluster at the origin),
-    // so no two label boxes overlap — the slide-viz-gate flags stacked labels (IoU / centre dist).
-    const LBL_W = 46, LBL_H = 12, GAP = 2;
-    const lab = dots.map((d) => ({ lx: d.dx + 8, ly: d.dy + 3.5, ref: d }));
-    for (let iter = 0; iter < 60; iter++) {
-      for (let i = 0; i < lab.length; i++) {
-        for (let j = i + 1; j < lab.length; j++) {
-          const a = lab[i], b = lab[j];
-          const ox = (LBL_W + GAP) - Math.abs(a.lx - b.lx);
-          const oy = (LBL_H + GAP) - Math.abs(a.ly - b.ly);
-          if (ox > 0 && oy > 0) {                          // boxes overlap → push apart vertically
-            const push = (oy / 2) + 0.5;
-            const dir = (a.ly <= b.ly) ? -1 : 1;
-            a.ly += dir * push; b.ly -= dir * push;
+    // PCA drops man/woman/chases/rules almost on the SAME point, so their dots overlap into one blob.
+    // A short symmetric de-overlap pass nudges any two coincident dots just far enough apart to read
+    // as distinct marks (≥ 2·r + 1.5px), preserving the tight cluster (meaning-as-geometry) while
+    // letting each dot — and its leader — stand on its own.  (defect-2 fix, dot half)
+    const DOT_MIN = 2 * 5 + 1.5;
+    for (let iter = 0; iter < 80; iter++) {
+      for (let i = 0; i < dots.length; i++) {
+        for (let j = i + 1; j < dots.length; j++) {
+          const a = dots[i], b = dots[j];
+          let vx = b.dx - a.dx, vy = b.dy - a.dy;
+          let dist = Math.hypot(vx, vy);
+          if (dist < DOT_MIN) {
+            if (dist < 1e-3) { vx = (i - j) || 1; vy = ((i + j) % 2) ? 1 : -1; dist = Math.hypot(vx, vy); }
+            const push = (DOT_MIN - dist) / 2 + 0.3;
+            vx /= dist; vy /= dist;
+            a.dx -= vx * push; a.dy -= vy * push;
+            b.dx += vx * push; b.dy += vy * push;
           }
         }
       }
     }
-    // clamp labels inside the map frame so none exits (OOB guard).
-    lab.forEach((l) => {
-      l.ly = Math.max(pY0 + LBL_H, Math.min(pY1 - 2, l.ly));
-      l.lx = Math.max(pX + 2, Math.min(pX + pW - LBL_W, l.lx));
+    // keep the (now spread) dots inside the frame.
+    dots.forEach((d) => {
+      d.dx = Math.max(pX + 5, Math.min(pX + pW - 5, d.dx));
+      d.dy = Math.max(pY0 + 5, Math.min(pY1 - 5, d.dy));
+    });
+    // ── label de-clutter (defect-2 fix) ──────────────────────────────────────────────────────────
+    // The PCA projection drops man/woman/chases/rules almost on the origin, so their DOTS overlap and
+    // the old "vertical-only" repulsion left labels piled on each other and sitting on dots. We run a
+    // proper anchor+leader layout: each label box (sized to its real text width) is seeded OUTWARD
+    // from the cluster centroid, then a force pass repels it from (a) every other label box and
+    // (b) every dot, so no label overprints another label OR any dot. A leader line ties each label
+    // back to its dot. The slide-viz-gate flags stacked labels (IoU / centre dist) — this clears it.
+    const DOT_R = 5;
+    const LBL_H = 12, GAP = 3, CHARW = 5.0;             // gv-maplabel is 9px mono
+    const lblText = (w) => w.slice(0, 8);
+    const cenX = dots.reduce((s, d) => s + d.dx, 0) / (dots.length || 1);
+    const cenY = dots.reduce((s, d) => s + d.dy, 0) / (dots.length || 1);
+    // each label: box width from its glyph count; centre seeded a fixed radius OUTWARD from centroid.
+    const lab = dots.map((d) => {
+      const w = Math.max(16, lblText(d.w).length * CHARW + 4);
+      let ax = d.dx - cenX, ay = d.dy - cenY;
+      const r = Math.hypot(ax, ay) || 1;
+      ax /= r; ay /= r;                                  // unit radial direction (centroid → dot)
+      const off = 14;                                    // initial label stand-off from the dot
+      return { w, h: LBL_H, cx: d.dx + ax * off, cy: d.dy + ay * off, ref: d };
+    });
+    // force relaxation: label↔label and label↔dot separation.
+    for (let iter = 0; iter < 220; iter++) {
+      // label vs label
+      for (let i = 0; i < lab.length; i++) {
+        for (let j = i + 1; j < lab.length; j++) {
+          const a = lab[i], b = lab[j];
+          const ox = (a.w + b.w) / 2 + GAP - Math.abs(a.cx - b.cx);
+          const oy = (a.h + b.h) / 2 + GAP - Math.abs(a.cy - b.cy);
+          if (ox > 0 && oy > 0) {                        // overlapping → push along the cheaper axis
+            if (oy <= ox) {
+              const push = oy / 2 + 0.4, dir = a.cy <= b.cy ? -1 : 1;
+              a.cy += dir * push; b.cy -= dir * push;
+            } else {
+              const push = ox / 2 + 0.4, dir = a.cx <= b.cx ? -1 : 1;
+              a.cx += dir * push; b.cx -= dir * push;
+            }
+          }
+        }
+      }
+      // label vs EVERY dot (so no label sits on a dot)
+      for (const a of lab) {
+        for (const d of dots) {
+          const ox = a.w / 2 + DOT_R + GAP - Math.abs(a.cx - d.dx);
+          const oy = a.h / 2 + DOT_R + GAP - Math.abs(a.cy - d.dy);
+          if (ox > 0 && oy > 0) {
+            if (oy <= ox) a.cy += (a.cy <= d.dy ? -1 : 1) * (oy + 0.4);
+            else          a.cx += (a.cx <= d.dx ? -1 : 1) * (ox + 0.4);
+          }
+        }
+      }
+      // gentle pull back toward the seed direction so labels stay near their own dot
+      for (let i = 0; i < lab.length; i++) {
+        const a = lab[i], d = dots[i];
+        a.cx += (d.dx - a.cx) * 0.012;
+        a.cy += (d.dy - a.cy) * 0.012;
+      }
+    }
+    // clamp each label box fully inside the map frame (OOB guard).
+    lab.forEach((a) => {
+      a.cx = Math.max(pX + a.w / 2 + 2, Math.min(pX + pW - a.w / 2 - 2, a.cx));
+      a.cy = Math.max(pY0 + a.h / 2 + 2, Math.min(pY1 - a.h / 2 - 2, a.cy));
     });
     dots.forEach((d, i) => {
+      const a = lab[i];
       const g = el('g', {}, svg);
-      el('circle', { cx: d.dx, cy: d.dy, r: 5, class: `gv-mapdot gv-cat-${d.cat}`,
+      el('circle', { cx: d.dx, cy: d.dy, r: DOT_R, class: `gv-mapdot gv-cat-${d.cat}`,
         'data-role': `cat-${d.cat}` }, g);
-      // a faint leader from the dot to its (possibly nudged) label keeps the pairing clear.
-      el('line', { x1: d.dx, y1: d.dy, x2: lab[i].lx, y2: lab[i].ly - 3, class: 'gv-leader',
-        fill: 'none' }, g);
-      el('text', { x: lab[i].lx, y: lab[i].ly, class: 'gv-maplabel' }, g)
-        .textContent = d.w.slice(0, 8);
+      // text anchor: left/right edge of the box, whichever side faces the dot, baseline at box mid.
+      const onLeft = a.cx >= d.dx;                       // box is to the RIGHT of dot → anchor start
+      const tx = onLeft ? a.cx - a.w / 2 + 2 : a.cx + a.w / 2 - 2;
+      const ty = a.cy + 3.2;
+      // leader from the dot to the box edge nearest the dot.
+      el('line', { x1: d.dx, y1: d.dy, x2: tx, y2: a.cy, class: 'gv-leader', fill: 'none' }, g);
+      el('text', { x: tx, y: ty, class: 'gv-maplabel', 'text-anchor': onLeft ? 'start' : 'end' }, g)
+        .textContent = lblText(d.w);
       add('map', g);
     });
     // loss readout (right of the map): before → after, with a shrinking bar.
