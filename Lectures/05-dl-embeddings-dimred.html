@@ -505,10 +505,21 @@
             <div class="af-canvas">
               <!-- EDGES declarative: the engine routes between node anchors. Each edge
                    reveals with the stage it FEEDS, so the wire grows with the pipeline. -->
-              <div class="af-edge" data-from-node="af-oh" data-to-node="af-w" data-from="2" data-from-anchor="right" data-to-anchor="left" data-label="select row"></div>
+              <div class="af-edge" data-from-node="af-oh" data-to-node="af-w" data-from="2" data-from-anchor="right" data-to-anchor="left"></div>
               <div class="af-edge" data-from-node="af-w" data-to-node="af-h" data-from="2" data-from-anchor="right" data-to-anchor="left"></div>
-              <div class="af-edge" data-from-node="af-h" data-to-node="af-z" data-from="3" data-from-anchor="right" data-to-anchor="left" data-label="dot each row"></div>
-              <div class="af-edge" data-from-node="af-z" data-to-node="af-p" data-from="4" data-from-anchor="right" data-to-anchor="left" data-label="softmax"></div>
+              <div class="af-edge" data-from-node="af-h" data-to-node="af-z" data-from="3" data-from-anchor="right" data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-z" data-to-node="af-p" data-from="4" data-from-anchor="right" data-to-anchor="left"></div>
+
+              <!-- TRANSITION LABELS as their own reveal chips, hoisted ABOVE the
+                   matrices (top:16-18%, well clear of every matrix top at ~26%).
+                   Edge data-labels were removed because the engine pins them to the
+                   wire midpoint, which lands ON the tall matrix bodies; an .af-label
+                   carries its own left/top and is NOT auto-positioned, so it reads as
+                   a column header over its transition with zero overprint. Each chip
+                   reveals with the stage it feeds (matching the old edge data-from). -->
+              <div class="af-label" data-from="2" style="left:30%;top:17%">select row</div>
+              <div class="af-label" data-from="3" style="left:78.5%;top:17%">dot each row</div>
+              <div class="af-label" data-from="4" style="left:89%;top:17%">softmax</div>
 
               <!-- NODES staged one-per-step: the set of SOLID nodes GROWS as → advances.
                    step 0 = vocabulary + one-hot input only (the meaningful START);
@@ -533,7 +544,7 @@
                 <span class="af-cell">0</span><span class="af-cell">0</span><span class="af-cell">0</span><span class="af-cell">0</span>
               </div>
               <!-- W · embedding matrix = lookup table: 8×4, king's row 0 highlighted -->
-              <div class="af-node af-matrix" id="af-w" data-role="weight" data-from="1" data-focus="1..2" style="left:46%;top:50%;--cols:4">
+              <div class="af-node af-matrix" id="af-w" data-role="weight" data-from="1" data-focus="1..2" style="left:44%;top:50%;--cols:4">
                 <span class="af-cell is-rowhi">.485</span><span class="af-cell is-rowhi">.660</span><span class="af-cell is-rowhi">-.573</span><span class="af-cell is-rowhi">-.022</span>
                 <span class="af-cell">.168</span><span class="af-cell">.809</span><span class="af-cell">-.561</span><span class="af-cell">-.046</span>
                 <span class="af-cell">-.144</span><span class="af-cell">.655</span><span class="af-cell">-.262</span><span class="af-cell">-.694</span>
@@ -544,7 +555,7 @@
                 <span class="af-cell">.036</span><span class="af-cell">-.375</span><span class="af-cell">.824</span><span class="af-cell">.422</span>
               </div>
               <!-- hidden = the looked-up row (king): 1×4 -->
-              <div class="af-node af-matrix" id="af-h" data-role="value" data-from="2" data-focus="2..3" style="left:67%;top:50%;--cols:4">
+              <div class="af-node af-matrix" id="af-h" data-role="value" data-from="2" data-focus="2..3" style="left:68%;top:50%;--cols:4">
                 <span class="af-cell">.485</span><span class="af-cell">.660</span><span class="af-cell">-.573</span><span class="af-cell">-.022</span>
               </div>
               <!-- logits · score per vocab word: 8×1. Inline fill lifts these neutral
@@ -1048,11 +1059,31 @@
                otherwise) so nothing accumulates or overprints across steps. */
             .pcr-slide .pcr-lab[data-arch-step], .pcr-slide .pcr-badge[data-arch-step] { display: none; }
             .pcr-slide .pcr-lab[data-arch-step].is-arch-current, .pcr-slide .pcr-badge[data-arch-step].is-arch-current { display: block; }
+
+            /* ── Two-column layout: rotation viz (left) + step-synced PCA math (right) ── */
+            .pcr-slide .pcr-layout { display: grid; grid-template-columns: 1.32fr 1fr; gap: var(--sp-5); align-items: stretch; }
+            .pcr-slide .pcr-layout .viz-frame { margin: 0; }
+            .pcr-slide .pcr-math { align-self: center; border-left: 3px solid var(--rule); padding-left: var(--sp-5); }
+            .pcr-slide .pcr-math-head { font-family: var(--font-mono); font-size: 16px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent-ink); margin-bottom: var(--sp-3); }
+            /* PROGRESSIVE (cumulative) reveal: a line shows once its step is reached
+               (current OR past) and stays — so the recipe builds up, never dumped at
+               step 0. Distinct from the viz overlays above, which SWAP. */
+            .pcr-slide .pcr-mrow[data-arch-step] { display: none; margin: 0 0 var(--sp-3); }
+            .pcr-slide .pcr-mrow[data-arch-step].is-arch-current,
+            .pcr-slide .pcr-mrow[data-arch-step].is-arch-past { display: block; animation: pcrMathIn var(--dur) var(--ease) both; }
+            @keyframes pcrMathIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+            .pcr-slide .pcr-mrow .pcr-mlabel { font-family: var(--font-mono); font-size: 14px; letter-spacing: 0.10em; text-transform: uppercase; color: var(--ink-3); display: block; margin-bottom: 2px; }
+            .pcr-slide .pcr-mrow .pcr-mmath { font-size: 21px; margin: 2px 0; line-height: 1.2; }
+            .pcr-slide .pcr-mrow .pcr-mtext { font-size: 16px; line-height: 1.4; color: var(--ink-2); margin: 2px 0 0; }
+            /* the current line gets a subtle accent tick on its label */
+            .pcr-slide .pcr-mrow.is-arch-current .pcr-mlabel { color: var(--accent-ink); }
+            @media (prefers-reduced-motion: reduce) { .pcr-slide .pcr-mrow { animation: none !important; } }
           </style>
           <div class="slide-header">
             <h2><span lang="ru">PCA — это поворот, а не искажение</span><span lang="en">PCA is a rotation, not a distortion</span></h2>
             <span class="slide-kicker"><span lang="ru">3-D облако &rarr; собственные оси &rarr; поворот &rarr; 2-D</span><span lang="en">3-D cloud &rarr; eigen-axes &rarr; rotate &rarr; 2-D</span></span>
           </div>
+          <div class="pcr-layout">
           <div class="viz-frame">
             <div class="pcr-stage">
             <svg viewBox="0 0 1160 540" preserveAspectRatio="none" role="img" aria-label="A correlated 3-D point cloud is rotated rigidly until its principal axes align with the screen, then flattened to 2-D, keeping 97.21% of the spread">
@@ -1105,6 +1136,50 @@
             <span class="pcr-badge pca-label" data-arch-step="3" style="color:var(--c-amber)">aligned</span>
             <span class="pcr-badge pca-label pc2" data-arch-step="4" style="font-weight:700">97.21% kept</span>
             </div>
+          </div>
+          <!-- ── Step-synced PCA recipe on the REAL demo cloud (data/l5-pca-rotate.json):
+               covariance C, its eigen-decomposition, and the kept-variance arithmetic.
+               Each row reveals with its matching visual step and STAYS (cumulative),
+               so the recipe builds up rather than dumping at step 0. KaTeX matrix/eigen
+               math; \lt/\gt never literal <. Numbers match the data file exactly. -->
+          <aside class="pcr-math">
+            <div class="pcr-math-head"><span lang="ru">PCA по шагам · реальные числа</span><span lang="en">PCA recipe · real numbers</span></div>
+
+            <!-- step 0 (cloud): center, then form the covariance matrix C -->
+            <div class="pcr-mrow" data-arch-step="0">
+              <span class="pcr-mlabel"><span lang="ru">1 · центрируем &rarr; ковариация</span><span lang="en">1 · center &rarr; covariance</span></span>
+              <div class="pcr-mmath">\(\displaystyle C=\tfrac1n\sum_i (x_i-\bar x)(x_i-\bar x)^{\top}=\begin{bmatrix}6.1326 & 3.2196 & 1.0354\\ 3.2196 & 4.2826 & 1.2191\\ 1.0354 & 1.2191 & 0.6846\end{bmatrix}\)</div>
+              <p class="pcr-mtext"><span lang="ru">Симметричная \(3\times3\): большие недиагональные члены = оси \(x,y,z\) коррелированы.</span><span lang="en">Symmetric \(3\times3\): the large off-diagonal terms mean the \(x,y,z\) axes are correlated.</span></p>
+            </div>
+
+            <!-- step 1 (axes): eigenvectors = directions, eigenvalues = variance/axis -->
+            <div class="pcr-mrow" data-arch-step="1">
+              <span class="pcr-mlabel"><span lang="ru">2 · собственные векторы C = оси</span><span lang="en">2 · eigenvectors of C = axes</span></span>
+              <div class="pcr-mmath">\(C v_k=\lambda_k v_k,\quad \lambda_1=8.8561\gt\lambda_2=1.934\gt\lambda_3=0.3098\)</div>
+              <p class="pcr-mtext"><span lang="ru">Собственные векторы — главные направления; \(\lambda_k\) — дисперсия вдоль оси. Доли: \(\tfrac{8.8561}{11.0998}=79.79\%,\ \tfrac{1.934}{11.0998}=17.42\%,\ \tfrac{0.3098}{11.0998}=2.79\%\).</span><span lang="en">The eigenvectors are the principal directions; each \(\lambda_k\) is the variance along that axis. Shares: \(\tfrac{8.8561}{11.0998}=79.79\%,\ \tfrac{1.934}{11.0998}=17.42\%,\ \tfrac{0.3098}{11.0998}=2.79\%\).</span></p>
+            </div>
+
+            <!-- step 2 (rotate): the eigenvectors stacked form the rotation R -->
+            <div class="pcr-mrow" data-arch-step="2">
+              <span class="pcr-mlabel"><span lang="ru">3 · поворот в базис собственных векторов</span><span lang="en">3 · rotate into the eigenbasis</span></span>
+              <div class="pcr-mmath">\(y=R^{\top}(x-\bar x),\quad R=[\,v_1\ v_2\ v_3\,]\)</div>
+              <p class="pcr-mtext"><span lang="ru">\(R\) ортогональна (\(R^{\top}R=I\)) &rArr; это жёсткий поворот: длины и углы сохраняются, общая дисперсия не меняется \((\sum\lambda_k=11.0998)\).</span><span lang="en">\(R\) is orthogonal \((R^{\top}R=I)\) &rArr; a rigid rotation: lengths and angles are preserved, total variance is unchanged \((\sum\lambda_k=11.0998)\).</span></p>
+            </div>
+
+            <!-- step 3 (aligned): variance per aligned axis = the eigenvalues -->
+            <div class="pcr-mrow" data-arch-step="3">
+              <span class="pcr-mlabel"><span lang="ru">4 · дисперсия по выровненным осям</span><span lang="en">4 · variance on the aligned axes</span></span>
+              <div class="pcr-mmath">\(\mathrm{Var}(\text{PC}_k)=\lambda_k:\ \ 79.79\%\ \gt\ 17.42\%\ \gt\ 2.79\%\)</div>
+              <p class="pcr-mtext"><span lang="ru">Оси теперь лежат на экране; PC3 несёт лишь \(2.79\%\) разброса.</span><span lang="en">The axes now lie on the screen; PC3 carries only \(2.79\%\) of the spread.</span></p>
+            </div>
+
+            <!-- step 4 (flatten): project onto top-2 eigenvectors → kept variance -->
+            <div class="pcr-mrow" data-arch-step="4">
+              <span class="pcr-mlabel"><span lang="ru">5 · проекция на топ-2 &rarr; сохранено</span><span lang="en">5 · project onto top-2 &rarr; kept</span></span>
+              <div class="pcr-mmath">\(\displaystyle \frac{\lambda_1+\lambda_2}{\lambda_1+\lambda_2+\lambda_3}=\frac{8.8561+1.934}{11.0998}=\frac{10.7901}{11.0998}=\mathbf{97.21\%}\)</div>
+              <p class="pcr-mtext"><span lang="ru">Отбрасываем PC3, оставляем \((\text{PC1},\text{PC2})\): сохранено \(97.21\%\) — это 3-D демо, не 50-мерные слова \((\to 37.7\%)\).</span><span lang="en">Drop PC3, keep \((\text{PC1},\text{PC2})\): \(97.21\%\) is retained — this is the 3-D demo, not the 50-D words \((\to 37.7\%)\).</span></p>
+            </div>
+          </aside>
           </div>
           <p class="viz-caption">
             <span class="pcr-cap" data-arch-step="0"><span lang="ru">Коррелированное 3-D облако: оси экрана \(x,y,z\) не совпадают с направлениями разброса.</span><span lang="en">A correlated 3-D cloud: the screen axes \(x,y,z\) do not line up with the directions of spread.</span></span>
