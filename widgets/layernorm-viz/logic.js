@@ -44,10 +44,14 @@ export const mountLayernormViz = defineWidget({
     // per-step value vector for the bars, and the baseline (μ-line) value in DATA units.
     const series = [x, centred, normed, out];
     const baseVal = [mean, 0, 0, 0];          // s0 baseline = mean 5.0; s1+ baseline = 0
+    // post-affine mean/var, computed FROM the data `out` vector (not invented): after γ⊙·+β the
+    // vector is NO LONGER unit-variance, so step 3 must not reassert σ²=1 / "✓ normed" (m3 fix).
+    const outMean = out.length ? out.reduce((a, b) => a + b, 0) / out.length : 0;
+    const outVar = out.length ? out.reduce((a, b) => a + (b - outMean) * (b - outMean), 0) / out.length : 0;
     // mean/var readout per step (from data; not invented): s0 raw, s1 centred (mean 0, same var),
-    // s2/s3 normalised (mean 0, var 1).
-    const meanReadout = [mean, 0, normedMean, normedMean];
-    const varReadout = [vAr, vAr, normedVar, normedVar];
+    // s2 normalised (mean 0, var 1), s3 post-affine (mean/var read off the γ,β-transformed vector).
+    const meanReadout = [mean, 0, normedMean, outMean];
+    const varReadout = [vAr, vAr, normedVar, outVar];
 
     const num = (v, d = 2) => (typeof v !== 'number' ? '' : Number.isInteger(v) ? String(v) : fmt(v, d));
 
@@ -110,6 +114,11 @@ export const mountLayernormViz = defineWidget({
     };
 
     // ── headings ─────────────────────────────────────────────────────────────
+    // Panel title (top-LEFT, always on), left-anchored at PAD. The circle heading (top-RIGHT,
+    // centred over the ring) shares this top line, so on the LONGER RU/TT strings the two used to
+    // collide (m2). The fix is in the STRINGS, not the font (the SVG `font` attribute is inherited,
+    // not honoured per-element): the RU/TT rawHead drops the redundant "d = 4" (the 4 bars show d)
+    // and the RU/TT sphereHead is shortened, so the left title ends well before the centred heading.
     layer('frame', 0);
     add('frame', txt(PAD, barTop - 12, labels.rawHead || 'feature vector x',
       { font: '700 12px var(--font-mono, monospace)', fill: 'var(--ink-2, #3D434E)' }));
@@ -164,6 +173,9 @@ export const mountLayernormViz = defineWidget({
     // unit circle". Before that the panel is hidden so the build reads one reveal per step.
     // The heading is CENTRED over the circle (it is wider than the 150px panel; left-anchored it ran
     // off the right edge) so it always stays inside the frame.
+    // Centred circle heading. Its RU/TT strings are kept SHORT in i18n so this centred heading's
+    // left edge clears the left-anchored panel title and its right edge stays inside the frame at
+    // every language (m2 fix — font size is inherited, so the clearance comes from the strings).
     layer('sphere', 2);
     add('sphere', txt(cx, barTop - 12, labels.sphereHead || 'the vector on the unit circle',
       { font: '700 11px var(--font-mono, monospace)', fill: 'var(--ink-2, #3D434E)',
@@ -256,9 +268,12 @@ export const mountLayernormViz = defineWidget({
       // mean / var / std readout under the op-label
       roLine1.textContent = (labels.meanLbl || 'mean μ') + ' = ' + num(meanReadout[k], 2)
         + '   ·   ' + (labels.varLbl || 'var σ²') + ' = ' + num(varReadout[k], 2);
+      // step 0 → std; step 2 → "✓ normed" (the unit-variance landing); step 3 → an HONEST note that
+      // γ,β have rescaled away unit variance (so we DON'T reassert "✓ normed" after the affine — m3).
       roLine2.textContent = (k === 0)
         ? (labels.stdLbl || 'std') + ' = ' + num(std, 4)
-        : (k >= 2 ? '✓ ' + (labels.normedTag || 'normed') : '');
+        : (k === 2 ? '✓ ' + (labels.normedTag || 'normed')
+          : (k === 3 ? (labels.affineNote || 'σ² ≠ 1 after γ,β (rescaled)') : ''));
     };
   },
 });

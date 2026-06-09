@@ -88,9 +88,16 @@ export const mountContrastiveSpace = defineWidget({
       const g = el('g', {}, svg);
       el('line', { x1: ox, y1: oy, x2: px, y2: py, class: `cs-ray ${cls}` }, g);
       el('circle', { cx: px, cy: py, r: 6, class: `cs-pt ${cls}` }, g);
-      // label to the right of the point, clamped so the longest word stays in-frame.
-      const lx = Math.min(px + 10, W - PAD - 132);
-      el('text', { x: lx, y: py + 4, class: `cs-pt-lbl ${cls}` }, g).textContent = it.word;
+      // Label placement (m5): POSITIVES are pulled toward the anchor (arrow points inward/left), so
+      // a label to the RIGHT of the dot is clear. NEGATIVES are pushed OUTWARD (arrow points right,
+      // radially away) and that 18px arrow lands exactly where a right-side label used to print — so
+      // negative labels are lifted ABOVE the dot, clear of both the dot and the outward push-arrow.
+      // A near-bg halo (paint-order:stroke, in CSS) keeps every label readable over the rays.
+      const isNeg = it.kind === 'neg';
+      const lx = isNeg ? px : Math.min(px + 10, W - PAD - 132);
+      const ly = isNeg ? py - 14 : py + 4;
+      el('text', { x: lx, y: ly, class: `cs-pt-lbl ${cls}`,
+        'text-anchor': isNeg ? 'middle' : 'start' }, g).textContent = it.word;
       add('scatter', g);
       return { ...it, px, py };
     });

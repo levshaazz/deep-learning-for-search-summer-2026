@@ -54,6 +54,8 @@ export const mountResidualStream = defineWidget({
     const cellW = 16, cellH = 11, cellGap = 1.5;
     const glyphH = dim * (cellH + cellGap) - cellGap;
     // value → cell colour: accent (positive) / warm (negative), opacity ∝ |value| within the column.
+    // Used for the tiny fixed-width DELTA glyph (the "sublayer(x)" side-branch); the main running
+    // vector encodes |value| by bar WIDTH + solid sign-colour instead (see glyph()).
     const cellFill = (v, maxAbs) => {
       const o = Math.max(0.18, Math.min(1, Math.abs(v) / (maxAbs || 1)));
       const base = v < 0 ? 'var(--warm, #E8743B)' : 'var(--accent, #2A6FDB)';
@@ -100,17 +102,23 @@ export const mountResidualStream = defineWidget({
       const maxAbs = Math.max(...vec.map(Math.abs), 1);
       const gx = cx - cellW / 2, gy0 = laneY - glyphH / 2;
       const g = el('g', opts.faint ? { opacity: 0.28 } : {}, svg);
+      // Each dim is a coloured cell whose WIDTH encodes |value| (a horizontal bar growing from the
+      // column's left edge) so the running vector reads as a shape at a glance. Per-cell numeric
+      // labels were dropped: at the only font that fit a 16px cell (6.5px) the digits collided into
+      // an illegible smear across every step/theme/viewport. The ‖x‖ readout above + the bar shape
+      // carry the "x is ADDED to, never replaced" + √6-renorm story (M1 fix).
       vec.forEach((v, i) => {
         const cy = gy0 + i * (cellH + cellGap);
-        el('rect', { x: gx, y: cy, width: cellW, height: cellH, rx: 1.5,
-          fill: faint ? 'var(--ink-4, #9CA3AF)' : cellFill(v, maxAbs),
+        // track (the cell's full extent, faint) so the column always reads as 6 dims
+        el('rect', { x: gx, y: cy, width: cellW, height: cellH, rx: 1.5, fill: 'none',
           stroke: 'var(--rule, #ddd)', 'stroke-width': 0.5 }, g);
-        if (!faint) {
-          const t = el('text', { x: cx, y: cy + cellH - 2.5, 'text-anchor': 'middle',
-            font: '600 6.5px var(--font-mono, monospace)',
-            fill: Math.abs(v) / maxAbs > 0.62 ? '#fff' : 'var(--ink, #14181F)' }, g);
-          t.textContent = num(v, 1);
-        }
+        // value fill: width ∝ |value| within the column (min 2px so a near-zero dim still shows);
+        // colour is SOLID and sign-coded (accent = +, warm = −) so the bar reads at a glance.
+        const fw = faint ? cellW : Math.max(2, (Math.abs(v) / maxAbs) * cellW);
+        el('rect', { x: gx, y: cy, width: fw, height: cellH, rx: 1.5,
+          fill: faint ? 'var(--ink-4, #9CA3AF)'
+            : (v < 0 ? 'var(--warm, #E8743B)' : 'var(--accent, #2A6FDB)'),
+          stroke: 'none' }, g);
       });
       add(parentLayer, g);
       return g;
