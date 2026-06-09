@@ -1,0 +1,184 @@
+/* tokenizer-compare — four tokenizers on ONE input, ranked by token count (L2
+   'climb-tokenizer-compare'). The raw input on top, then one row per cutter
+   (name · family · count badge · token chips · efficiency bar), revealed in
+   count-rank order and colour-graded on the final step: green = fewest (most
+   efficient) … amber = most. Themed via design tokens (light + dark). Responsive:
+   chips wrap, bars flex, width:100%, never overflows a narrow (390px) column. */
+.tc-panel {
+  padding: var(--ws-3, 1.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ws-2, 1rem);
+  width: 100%;
+  min-width: 0;
+}
+
+.tc-region { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+
+.tc-head {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-tiny, .8rem);
+  font-weight: 700;
+  letter-spacing: .5px;
+  color: var(--ink-3, #6B7280);
+}
+
+/* ── region 1: the raw input ──────────────────────────────────────────────── */
+.tc-input-row { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.tc-tok--word {
+  border-style: dashed;
+  color: var(--ink-2, #3D434E);
+}
+
+/* token chip (shared) */
+.tc-tok {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 7px;
+  border-radius: var(--r-sm, 8px);
+  border: var(--hairline, 1.5px) solid var(--rule, #DDD7C7);
+  background: var(--bg-card, #fff);
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-small, .9rem);
+  font-weight: 700;
+  color: var(--ink, #14181F);
+  white-space: nowrap;
+}
+/* marker prefixes (## continuation, ␣ leading-space) read as muted structure, not content */
+.tc-mark { color: var(--ink-4, #9CA3AF); margin-right: 1px; font-weight: 700; }
+.tc-tok--cont, .tc-tok--space { color: var(--ink-2, #3D434E); }
+
+/* ── region 2: one row per tokenizer ──────────────────────────────────────── */
+.tc-grid { display: flex; flex-direction: column; gap: 10px; }
+.tc-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: var(--r-md, 14px);
+  border: var(--hairline, 1.5px) solid var(--rule, #DDD7C7);
+  background: color-mix(in srgb, var(--ink, #14181F) 3%, var(--bg-card, #fff));
+  min-width: 0;
+  transition: opacity var(--dur, 220ms) var(--ease), transform var(--dur, 220ms) var(--ease);
+}
+.tc-row.is-hidden { opacity: 0; transform: translateY(6px); pointer-events: none; }
+.tc-row.is-new { border-color: var(--rule-strong, #B8B19E); }
+
+.tc-row-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.tc-name {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-small, .9rem);
+  font-weight: 700;
+  color: var(--ink, #14181F);
+}
+.tc-fam {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-tiny, .78rem);
+  color: var(--ink-3, #6B7280);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.tc-badge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  flex: 0 0 auto;
+  padding: 1px 8px;
+  border-radius: var(--r-pill, 999px);
+  border: var(--hairline, 1.5px) solid var(--rule, #DDD7C7);
+  background: var(--bg-card, #fff);
+}
+.tc-badge-n {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-body, 1rem);
+  font-weight: 700;
+  color: var(--ink, #14181F);
+}
+.tc-badge-lab {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-tiny, .7rem);
+  color: var(--ink-3, #6B7280);
+  letter-spacing: .5px;
+}
+
+.tc-toks { display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
+
+/* efficiency bar: width ∝ token count (wider = more tokens = less efficient) */
+.tc-bar {
+  height: 6px;
+  width: 100%;
+  border-radius: var(--r-pill, 999px);
+  background: color-mix(in srgb, var(--ink, #14181F) 8%, transparent);
+  overflow: hidden;
+}
+.tc-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--r-pill, 999px);
+  background: color-mix(in srgb, var(--ink, #14181F) 22%, transparent);
+  transition: width var(--dur, 220ms) var(--ease), background var(--dur, 220ms) var(--ease);
+}
+.tc-note {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-tiny, .72rem);
+  color: var(--ink-3, #6B7280);
+  min-height: 1em;
+}
+
+/* ── rank colour-grade (applied only on the final ranked step) ───────────────
+   one colour = one meaning: green = fewest/most-efficient (positive result),
+   amber = most tokens (a category, NOT negative-red), accent/violet = the two
+   distinct middle cutters. All from contract tokens. */
+.tc-row.is-ranked.tc-row--best {
+  border-color: var(--c-green, #3A8A5C);
+  background: color-mix(in srgb, var(--c-green, #3A8A5C) 10%, var(--bg-card, #fff));
+}
+.tc-row--best .tc-badge { border-color: var(--c-green, #3A8A5C); }
+.tc-row--best .tc-badge-n, .tc-row--best .tc-name { color: var(--c-green-ink, #1F6B40); }
+.tc-row--best .tc-bar-fill { background: var(--c-green, #3A8A5C); }
+
+.tc-row.is-ranked.tc-row--mid1 {
+  border-color: color-mix(in srgb, var(--accent, #2A6FDB) 55%, transparent);
+  background: color-mix(in srgb, var(--accent, #2A6FDB) 9%, var(--bg-card, #fff));
+}
+.tc-row--mid1 .tc-badge { border-color: var(--accent, #2A6FDB); }
+.tc-row--mid1 .tc-badge-n, .tc-row--mid1 .tc-name { color: var(--accent-ink, #1B4FA0); }
+.tc-row--mid1 .tc-bar-fill { background: var(--accent, #2A6FDB); }
+
+.tc-row.is-ranked.tc-row--mid2 {
+  border-color: color-mix(in srgb, var(--c-violet, #7D5BA6) 55%, transparent);
+  background: color-mix(in srgb, var(--c-violet, #7D5BA6) 9%, var(--bg-card, #fff));
+}
+.tc-row--mid2 .tc-badge { border-color: var(--c-violet, #7D5BA6); }
+.tc-row--mid2 .tc-badge-n, .tc-row--mid2 .tc-name { color: var(--c-violet, #7D5BA6); }
+.tc-row--mid2 .tc-bar-fill { background: var(--c-violet, #7D5BA6); }
+
+.tc-row.is-ranked.tc-row--worst {
+  border-color: var(--c-amber, #E0A82E);
+  background: color-mix(in srgb, var(--c-amber, #E0A82E) 12%, var(--bg-card, #fff));
+}
+.tc-row--worst .tc-badge { border-color: var(--c-amber, #E0A82E); }
+.tc-row--worst .tc-badge-n, .tc-row--worst .tc-name { color: var(--c-amber-ink, #8A5A00); }
+.tc-row--worst .tc-bar-fill { background: var(--c-amber, #E0A82E); }
+
+/* ── verdict line ─────────────────────────────────────────────────────────── */
+.tc-verdict {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-small, .9rem);
+  font-weight: 700;
+  letter-spacing: .3px;
+  color: var(--c-green-ink, #1F6B40);
+  padding: 8px 12px;
+  border-radius: var(--r-sm, 8px);
+  border: var(--hairline, 1.5px) dashed var(--c-green, #3A8A5C);
+  background: color-mix(in srgb, var(--c-green, #3A8A5C) 6%, transparent);
+  transition: opacity var(--dur, 220ms) var(--ease);
+}
+.tc-verdict.is-hidden { opacity: 0; pointer-events: none; }
+
+@media (max-width: 420px) {
+  .tc-panel { padding: var(--ws-2, 1rem); }
+  .tc-fam { flex-basis: 100%; }
+  .tc-tok { padding: 2px 5px; font-size: var(--fz-tiny, .78rem); }
+}

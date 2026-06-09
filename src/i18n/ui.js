@@ -14,6 +14,7 @@ export const ui = {
     schedule: { en: 'Schedule', ru: 'Расписание', tt: 'Җәдвәл' },
     assignments: { en: 'Assignments', ru: 'Задания', tt: 'Биремнәр' },
     gallery: { en: 'Gallery', ru: 'Галерея', tt: 'Галерея' },
+    playground: { en: 'Playground', ru: 'Площадка', tt: 'Мәйдан' },
     papers: { en: 'Papers', ru: 'Статьи', tt: 'Мәкаләләр' },
   },
 
@@ -41,6 +42,17 @@ export const ui = {
       en: 'The course bibliography · every cited work · grouped by area · with a real link and why it is here',
       ru: 'Библиография курса · каждая цитируемая работа · сгруппирована по областям · с реальной ссылкой и пояснением',
       tt: 'Курс библиографиясе · һәр китерелгән хезмәт · өлкәләр буенча төркемләнгән · реаль сылтама һәм ни өчен кирәклеге белән',
+    },
+    playground: { en: 'Playground — drive the algorithms', ru: 'Площадка — управляй алгоритмами', tt: 'Мәйдан — алгоритмнарны идарә ит' },
+    playgroundKicker: {
+      en: 'The course lab · every interactive figure in free-play · step / scrub / press play · grouped by lecture',
+      ru: 'Лаборатория курса · каждая интерактивная фигура в свободном режиме · шаг / перемотка / запуск · по лекциям',
+      tt: 'Курс лабораториясе · һәр интерактив фигура ирекле режимда · адым / сөйрәп күчерү / җибәрү · лекцияләр буенча',
+    },
+    playgroundIntro: {
+      en: 'This is the lab. Each card is one of the course’s ~35 interactive figures, freed from the scrolling story — step through it, scrub the slider, or press play to watch the algorithm run. The figures are the same ones that appear in the Book; here you drive them yourself.',
+      ru: 'Это лаборатория. Каждая карточка — одна из ~35 интерактивных фигур курса, освобождённая от скролл-истории — пройди по шагам, перемотай ползунок или нажми play, чтобы увидеть работу алгоритма. Это те же фигуры, что в Книге; здесь ты управляешь ими сам.',
+      tt: 'Бу — лаборатория. Әр карта — курсның ~35 интерактив фигурасыннан берсе, скролл-хикәядән аерылган — адымлап уз, тыштаны сөйрә, яки алгоритм эшләвен күрер өчен play бас. Болар — Китаптагы шул үк фигуралар; биредә аларны үзең идарә итәсең.',
     },
     book: { en: 'The Book', ru: 'Книга', tt: 'Китап' },
     bookKicker: {
@@ -79,6 +91,17 @@ export const ui = {
     bio: { en: 'Bio', ru: 'О преподавателе', tt: 'Укытучы турында' },
     theme: { en: 'Toggle theme', ru: 'Сменить тему', tt: 'Теманы алмаштыру' },
     language: { en: 'Language', ru: 'Язык', tt: 'Тел' },
+
+    // Playground transport (the "lab-instrument" controls on each demo card).
+    play: { en: 'Play', ru: 'Запуск', tt: 'Җибәрү' },
+    pause: { en: 'Pause', ru: 'Пауза', tt: 'Пауза' },
+    restart: { en: 'Restart', ru: 'Сначала', tt: 'Баштан' },
+    step: { en: 'Step', ru: 'Шаг', tt: 'Адым' },
+    stepFwd: { en: 'Step forward', ru: 'Шаг вперёд', tt: 'Алга адым' },
+    stepBack: { en: 'Step back', ru: 'Шаг назад', tt: 'Артка адым' },
+    stepSlider: { en: 'Scrub steps', ru: 'Перемотка шагов', tt: 'Адымнарны сөйрәү' },
+    statusPlaying: { en: 'PLAYING', ru: 'ИДЁТ', tt: 'БАРА' },
+    statusPaused: { en: 'PAUSED', ru: 'ПАУЗА', tt: 'ПАУЗА' },
   },
 
   // Shown on a locale whose page coverage is incomplete (fallback content is visible).
