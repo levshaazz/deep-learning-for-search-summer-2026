@@ -133,9 +133,15 @@ export const mountContrastiveSpace = defineWidget({
         const rot = (p.uy <= 0 ? -1 : 1) * 0.9;          // ≈ 51° tangential lean
         const c = Math.cos(rot), s = Math.sin(rot);
         sux = p.ux * c - p.uy * s; suy = p.ux * s + p.uy * c;
-        off = 24;
+        // seed clear of the OUTWARD push-arrow tip: the shaft starts 6px out and runs ARRLEN(20)
+        // further, so the head can land ~26px from the dot. Seed BEYOND that (34) so the label box
+        // never starts under the arrowhead.
+        off = 34;
       } else {
-        off = 18;                                        // positives: arrow points inward, outward clear
+        // positives: the pull-arrow points INWARD (toward the anchor), so the outward radial lane is
+        // clear of the shaft — but the NEIGHBOUR DOT itself + a long word need room, and the head of
+        // an INWARD arrow on a closer (high-cos) dot was landing on a radial label. Seed well out (30).
+        off = 30;
       }
       seeds.push({ word: p.word, ref: { dx: p.px, dy: p.py }, ux: sux, uy: suy, off,
         cls: `cs-pt-lbl ${p.cls}`, isAnchor: false });
@@ -178,11 +184,14 @@ export const mountContrastiveSpace = defineWidget({
           }
         }
         // label vs every arrow SEGMENT — push the label box off the closest point on each arrow shaft
-        // (covers the whole shaft + tip, not just the midpoint) so no shaft runs under a label.
+        // (covers the whole shaft + tip, not just the midpoint) so no shaft runs under a label. The
+        // clearance pad is widened (4→8) to also clear the rendered ARROWHEAD (a 6×6 marker that
+        // overhangs the geometric segment endpoint) so no arrowHEAD touches a label either.
+        const ARR_PAD = 8;
         for (const ar of arrows) {
           const { qx, qy } = segPush(a.cx, a.cy, ar.sx, ar.sy, ar.ex, ar.ey);
-          const ox = a.w / 2 + 4 + GAP - Math.abs(a.cx - qx);
-          const oy = a.h / 2 + 4 + GAP - Math.abs(a.cy - qy);
+          const ox = a.w / 2 + ARR_PAD + GAP - Math.abs(a.cx - qx);
+          const oy = a.h / 2 + ARR_PAD + GAP - Math.abs(a.cy - qy);
           if (ox > 0 && oy > 0) {
             if (oy <= ox) a.cy += (a.cy <= qy ? -1 : 1) * (oy + 0.4);
             else          a.cx += (a.cx <= qx ? -1 : 1) * (ox + 0.4);

@@ -67,7 +67,14 @@ const MIME = { '.html':'text/html','.css':'text/css','.js':'text/javascript','.m
 
 // ───────────────────────── thresholds (tuned for few false positives) ─────────────────────────
 const TH = {
-  OPACITY_MIN: 0.12,          // an element below this computed opacity reads as not-shown
+  OPACITY_MIN: 0.2,           // an element below this computed opacity reads as not-shown. A
+                              //   reveal-PENDING placeholder painted at ~0.16 (positional-enc fades
+                              //   its not-yet-revealed grid rows to opacity:0.16 at step 0, then to
+                              //   1.0 at step 1) is unreadable over a busy heatmap and must NOT count
+                              //   as a shown mark — otherwise the count is flat 103→103 and the genuine
+                              //   step-1 fade-in reveal is misread as a DEAD step. A genuine de-emphasis
+                              //   (a 0.5-opacity dimmed-but-present element) stays well above this and is
+                              //   still counted as shown.
   STEP0_COVER: 0.85,          // step-0 shows ≥85% of the final element count → "everything at once"
   DEAD_STEP_DELTA: 0.001,     // a later step whose salience signature is unchanged → dead step
   IOU_OVERLAP: 0.45,          // text-label IoU above this → significant overlap
@@ -75,6 +82,15 @@ const TH = {
   OOB_PAD: 1.5,               // px an element may poke past the viewBox before it's OOB
   DELTA_E_MIN: 9,             // CIE76 ΔE below this between DISTINGUISHABLE shapes → colour collision
   RGB_MIN: 24,                // simple RGB euclidean distance fallback threshold
+  COLLIDE_SAT_MIN: 0.20,      // a colour-COLLISION is only a category-confusion defect when at least
+                              //   one of the two colliding fills is CHROMATIC (HSV sat ≥ this). Two
+                              //   near-neutral panel TINTS (e.g. attention-e2e .ae-cell rgb(235,231,218)
+                              //   sat≈.07 vs .ae-headbox rgb(251,230,216) sat≈.14, or transformer-block
+                              //   .tb-box backing tints) are CHROME backings told apart by their content
+                              //   + borders, not by a saturated category hue — reusing a near-bg cream is
+                              //   not "two distinct data categories painted the same". A REAL collision
+                              //   (the A3 fixture: two saturated blues rgb(70,130,180)/rgb(72,132,182),
+                              //   sat≈.61) is far above this floor and STILL fires.
   VOID_LUM: 0.045,            // fill relative-luminance below this (and not on dark bg) → near-black void
   MIN_BOX: 9,                 // px: ignore boxes smaller than this on a side (tick marks, hairlines)
   // ── trust-the-gate refinements (kill the confirmed false-positive classes) ──
@@ -123,16 +139,33 @@ const DECK_TARGETS = [
   { deck: '06-contextual-attention-transformers.html', slide: 26, name: 'L6 s26 multi-head walkthrough' },
   { deck: '06-contextual-attention-transformers.html', slide: 36, name: 'L6 s36 feed-forward (def)' },
 ];
-// Book widgets: beat id in the built chapter → friendly name. Driven via window.__figs[beat].setStep.
+// Book widgets: beat id in the built chapter → friendly name. Driven via window.__figs[beat].setStep
+// (the same hook + mount path the existing targets use — load the built chapter, drive setStep(k),
+// capture each step). The list now covers EVERY scrolly (non-prose) widget that mounts in the L5/L6
+// book chapters, so the double-paint / overprint / step-progression detectors run on ALL of them and
+// the contrastive-space class of bug (a colored stroke double-painting SVG <text>) can't recur
+// unnoticed in any book widget. Beats verified against the built docs/{en}/book/{05,06}/ payloads.
 const BOOK_TARGETS = [
+  // ── chapter 05 ──
   { chapter: '05', beat: 'climb-word2vec-net', widget: 'skipgram-net' },
+  { chapter: '05', beat: 'climb-analogy', widget: 'embedding-space' },
+  { chapter: '05', beat: 'climb-glove', widget: 'glove-cooccur' },
   { chapter: '05', beat: 'aside-domains-viz', widget: 'embedding-domains' },
+  { chapter: '05', beat: 'climb-pca', widget: 'dimred-projection' },
   { chapter: '05', beat: 'climb-pca-rotate', widget: 'pca-rotate' },
+  { chapter: '05', beat: 'climb-tsne-steps', widget: 'tsne-steps' },
   { chapter: '05', beat: 'climb-tsne-migrate', widget: 'tsne-migrate' },
+  // ── chapter 06 ──
+  { chapter: '06', beat: 'climb-attention', widget: 'attention-e2e' },
+  { chapter: '06', beat: 'climb-attention-geo', widget: 'attention-geometry' },
+  { chapter: '06', beat: 'climb-positional', widget: 'positional-enc' },
+  { chapter: '06', beat: 'climb-block', widget: 'transformer-block' },
+  { chapter: '06', beat: 'climb-block-geo', widget: 'block-geometry' },
   { chapter: '06', beat: 'climb-layernorm', widget: 'layernorm-viz' },
   { chapter: '06', beat: 'depth-residual-viz', widget: 'residual-stream' },
-  { chapter: '06', beat: 'climb-attention-geo', widget: 'attention-geometry' },
-  { chapter: '06', beat: 'climb-block-geo', widget: 'block-geometry' },
+  // climb-contrastive (contrastive-space) — the beat whose colored-stroke label double-paint
+  // slipped through because it was NOT in this list. Now targeted so DETECTOR A guards it.
+  { chapter: '06', beat: 'climb-contrastive', widget: 'contrastive-space' },
 ];
 
 // ───────────────────────── static servers ─────────────────────────
@@ -572,7 +605,14 @@ function detectColor(steps, ctx) {
   // collect distinguishable filled shapes (skip track/background/grid/none fills + hairlines).
   // "structural"/decoration shapes legitimately reuse a category colour (a LEGEND chip is meant
   // to match its dots; a frame/track/axis is chrome) — they must NOT count as a colliding category.
-  const isStructural = (sh) => /track|grid|axis|frame|bg|background|legend|chip|swatch|guide|callbox|callout|halo|ring|tooltip/i.test(sh.key);
+  // A BAR-FILL (.*-barfill, .*-pbar, .*-bar) is a SECOND, redundant encoding of a category that the
+  // figure ALSO shows as a dot/point/cell — a positive cosine BAR is meant to be the same green as
+  // the positive DOT (embedding-space .es-barfill ↔ .es-dot, tsne-steps .tss-pbar ↔ .tss-dot,
+  // contrastive-space .cs-barfill ↔ .cs-pt). Matching the category hue across the two encodings is
+  // BY DESIGN (same idea as a legend chip matching its dots, already exempt). So a bar-fill never
+  // counts as its own colliding category. (A genuine two-DISTINCT-category same-colour bug still
+  // fires: it would surface on the dots/cells themselves, which are NOT exempted.)
+  const isStructural = (sh) => /track|grid|axis|frame|bg|background|legend|chip|swatch|guide|callbox|callout|halo|ring|tooltip|barfill|pbar|[-_]bar\b/i.test(sh.key);
   const filled = best.shapes
     .map(sh => ({ ...sh, c: parseRGB(sh.fill) }))
     .filter(sh => sh.c && sh.c.a > 0.15 && !(sh.w < ctx.TH.MIN_BOX && sh.h < ctx.TH.MIN_BOX) && !isStructural(sh));
@@ -608,6 +648,11 @@ function detectColor(steps, ctx) {
   const seenCat = new Map();
   for (const sh of filled) {
     if (!isNamed(sh)) continue;                    // skip anonymous generic shapes
+    // <line>/<polyline> paint via STROKE, not fill — their computed `fill` is the meaningless SVG
+    // default rgb(0,0,0). The void branch already skips them; the COLLISION branch must too, else a
+    // pair of stroked rays/arrows (contrastive-space .cs-ray.cs-pos / .cs-arr.*) reads as a black-on-
+    // black fill collision when both actually render in distinct STROKE colours (green vs red).
+    if (sh.tag === 'line' || sh.tag === 'polyline') continue;
     const cat = catOf(sh);
     if (!seenCat.has(cat)) { seenCat.set(cat, { c: sh.c, named: isNamed(sh) }); reps.push({ cat, c: sh.c, sh }); }
   }
@@ -615,7 +660,13 @@ function detectColor(steps, ctx) {
     for (let j = i + 1; j < reps.length; j++) {
       const a = reps[i], b = reps[j];
       const dE = deltaE(a.c, b.c), rd = rgbDist(a.c, b.c);
-      if (dE < ctx.TH.DELTA_E_MIN && rd < ctx.TH.RGB_MIN) {
+      // a category-confusion defect requires at least one of the two near-identical fills to be a
+      // CHROMATIC category hue (HSV sat ≥ COLLIDE_SAT_MIN). Two near-neutral panel/cell TINTS
+      // (attention-e2e .ae-cell ≈ .ae-headbox, transformer-block .tb-box.* — all sat < .15, near-bg
+      // cream/pale tints that are chrome backings, told apart by content + borders) are NOT two data
+      // categories painted the same hue. The A3 fixture's saturated blues (sat≈.61) clear this floor.
+      const satMax = Math.max(hsvSat(a.c), hsvSat(b.c));
+      if (dE < ctx.TH.DELTA_E_MIN && rd < ctx.TH.RGB_MIN && satMax >= ctx.TH.COLLIDE_SAT_MIN) {
         out.push({ cat: 'COLOR', sev: 'HARD', step: 0,
           msg: `colour collision: "${a.cat}" rgb(${a.c.r|0},${a.c.g|0},${a.c.b|0}) ≈ "${b.cat}" rgb(${b.c.r|0},${b.c.g|0},${b.c.b|0}) ΔE=${dE.toFixed(1)} (<${ctx.TH.DELTA_E_MIN}), RGBdist=${rd.toFixed(0)} — distinct categories, indistinguishable colour` });
       }
@@ -947,6 +998,35 @@ async function selftest(browser) {
   const dHalo = detectDoublePaint(await capStage(fxHalo, 1, 'void 0'), { TH });
   pass('C2 near-white halo (paint-order:stroke)', dHalo.some(d => d.cat === 'DOUBLE-PAINT'), false,
     `stroke captured = ${(await capStage(fxHalo,1,'void 0'))[0].labels.find(l=>l.isSvgText)?.strokePaint || '(none)'} @ paint-order="${(await capStage(fxHalo,1,'void 0'))[0].labels.find(l=>l.isSvgText)?.paintOrder}"`);
+
+  // C3 (A FIRES — the CONTRASTIVE-SPACE bug class): a neighbour LABEL stroked with a saturated
+  //     category colour (c-green #3A8A5C / c-red #D7522C) at 2.5px and NO paint-order halo — the exact
+  //     state the bare `.cs-pos{stroke:c-green}` / `.cs-neg{stroke:c-red}` cascade produced on every
+  //     `.cs-pt-lbl` (overriding the bg-card halo). Saturated + 2.5px (≥PAINT_STROKE_W) + far from
+  //     white/bg → must be HARD. This is the planted twin of the bug that slipped through because
+  //     contrastive-space was not a gate target. (Both pos green and neg red are exercised.)
+  const fxCsBug = `<svg width="600" height="200" viewBox="0 0 600 200">
+    <text x="60" y="80" font-size="22" fill="#1F6B40" stroke="#3A8A5C" stroke-width="2.5">dog</text>
+    <text x="60" y="140" font-size="22" fill="#D7522C" stroke="#D7522C" stroke-width="2.5">france</text>
+  </svg>`;
+  const dCsBug = detectDoublePaint(await capStage(fxCsBug, 1, 'void 0'), { TH });
+  pass('C3 contrastive label saturated-stroke (c-green/c-red 2.5px, no halo)',
+    dCsBug.some(d => d.cat === 'DOUBLE-PAINT' && d.sev === 'HARD'), true,
+    (dCsBug.find(d=>d.cat==='DOUBLE-PAINT')||{}).msg);
+
+  // C4 (A SILENT — the FIXED contrastive label): the category colour is carried by FILL only, the
+  //     stroke is the bg-card HALO with paint-order:stroke (light outline UNDER the glyph). Light bg
+  //     (white) → ΔE→white = 0 < HALO_DELTA_E AND paint-order:stroke + light stroke → both silencers
+  //     hold. Dark bg uses a near-black-but-LOW-SAT halo (#1A1F2B, sat≈0.40 but ΔE→that-bg ≈ 0 since
+  //     we pass it as the step bg) — exercised in the second fixture below.
+  const fxCsFix = `<svg width="600" height="200" viewBox="0 0 600 200">
+    <text x="60" y="80" font-size="22" fill="#1F6B40" stroke="#ffffff" stroke-width="2.5" style="paint-order:stroke fill">dog</text>
+    <text x="60" y="140" font-size="22" fill="#D7522C" stroke="#ffffff" stroke-width="2.5" style="paint-order:stroke fill">france</text>
+  </svg>`;
+  const dCsFix = detectDoublePaint(await capStage(fxCsFix, 1, 'void 0'), { TH });
+  pass('C4 fixed contrastive label (bg-card halo, paint-order:stroke, colour in fill)',
+    dCsFix.some(d => d.cat === 'DOUBLE-PAINT'), false,
+    `stroke=${(await capStage(fxCsFix,1,'void 0'))[0].labels.find(l=>l.isSvgText)?.strokePaint} fill=${(await capStage(fxCsFix,1,'void 0'))[0].labels.find(l=>l.isSvgText)?.fillPaint} @ paint-order="${(await capStage(fxCsFix,1,'void 0'))[0].labels.find(l=>l.isSvgText)?.paintOrder}"`);
 
   console.log('── D) DETECTOR B — text-over-text overprint (IoU-blind cases) ──');
 
