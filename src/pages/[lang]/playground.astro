@@ -94,6 +94,36 @@ const payload = {
        hide the factory's caption/counter chrome (the slider + counter replace them). */
     .pg-mount .wgt-caption, .pg-mount .wgt-counter,
     .pg-mount .cs-caption, .pg-mount .cs-counter { display: none; }
+
+    /* ── CONTENT-DRIVEN STAGE for the DOM-flow stepped widgets ────────────────
+       tokenizer-compare and inverted-index reveal their steps by toggling `is-hidden`
+       on BLOCK rows (opacity only — the rows stay in flow), so at step 0 the mount
+       reserves the FULL final-step height and leaves ~1000px of blank below the
+       step-0 content. In the lab (where the transport, not a scroll column, drives
+       stepping) we collapse a hidden row's LAYOUT height so the stage sizes to the
+       step on screen. A short max-height transition (matched to the widget's own
+       opacity fade) keeps stepping smooth — no snap, no void.
+       Scoped to .pg-mount so the Book/slide renderers (which need the reserved
+       height for sticky-scroll stepping) are untouched. SVG-based widgets are
+       unaffected: their height is real geometry inside a fixed-aspect viewBox. */
+    .pg-mount .tc-row, .pg-mount .ix-prow, .pg-mount .ix-merge {
+      max-height: 60vh;
+      overflow: hidden;
+      transition: opacity var(--dur, 220ms) var(--ease), transform var(--dur, 220ms) var(--ease),
+                  max-height var(--dur, 220ms) var(--ease), margin var(--dur, 220ms) var(--ease),
+                  padding var(--dur, 220ms) var(--ease);
+    }
+    .pg-mount .tc-row.is-hidden, .pg-mount .ix-prow.is-hidden, .pg-mount .ix-merge.is-hidden {
+      max-height: 0; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0;
+      border-width: 0;
+    }
+    /* The inverted-index per-doc "hit" marks live inside grid cards that are always
+       visible; only their dots fade in. The postings/merge regions are the tall
+       reserved blocks — collapsing those (above) removes the void without touching
+       the doc grid. */
+    @media (prefers-reduced-motion: reduce) {
+      .pg-mount .tc-row, .pg-mount .ix-prow, .pg-mount .ix-merge { transition: none; }
+    }
   </style>
 
   <style>
@@ -134,10 +164,16 @@ const payload = {
       color: var(--c-green-ink); background: var(--c-green-soft); border-color: var(--c-green);
     }
 
-    /* Stage: white canvas (the off-white widget art reads on it in both themes), like the gallery. */
+    /* Stage: the SAME card surface every widget paints its own panel/SVG with (--bg-card), so the
+       stage and the widget panel read as ONE consistent surface in BOTH themes. (A hardcoded #fff
+       stage left the token-themed widgets that paint their own dark --bg-card panel — contrastive-
+       space, attention-e2e, residual-stream — sitting as dark "islands" on a white stage in dark
+       mode; tracking the token unifies the grid and keeps every widget legible in light + dark.)
+       align-items:flex-start so a content-driven (collapsed-step) widget pins to the top rather than
+       floating mid-stage as it grows/shrinks across steps. */
     .pg-stage {
-      background: #fff; padding: var(--ws-3); display: flex; align-items: center; justify-content: center;
-      min-height: 220px; overflow: hidden;
+      background: var(--bg-card); padding: var(--ws-3); display: flex; align-items: flex-start;
+      justify-content: center; min-height: 220px; overflow: hidden;
     }
     .pg-mount { width: 100%; max-width: 100%; }
     .pg-mount :global(svg), .pg-mount :global(img) { max-width: 100%; height: auto; }
