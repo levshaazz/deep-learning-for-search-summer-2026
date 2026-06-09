@@ -44,6 +44,7 @@ def num(s):  # parse a displayed number: U+2212 minus, thousands spaces/commas, 
 # Curated product data (the single source). Loaded once.
 COS  = load(DATA, "l2-cosine.json")
 CORP = load(DATA, "l2-corpus-stats.json")
+TOK  = load(DATA, "l2-tokenizers.json")     # four tokenizers on one input (BPE/WordPiece/Unigram/byte-BPE)
 CLICK = load(DATA, "l1-click-model.json")
 def primary_pair():
     return next(p for p in COS["pairs"] if p["id"] == COS["primary"])
@@ -252,6 +253,60 @@ def provenance_l5_glove_tsne(report):
             report.append(("HARD", f"provenance-L5GT({name}): data/ disagree/invariant broken — {a} vs {b}"))
     if not bad:
         report.append(("OK", f"provenance-L5GT: {len(checks)} GloVe+t-SNE cross-file/structural invariants consistent ✓"))
+
+# ── [P] PROVENANCE (L2 tokenizer-compare self-consistency): gen_l2_tokenizers.py emits data/ directly
+#    (a Book widget — no deck display path), so we pin the same kind of cross-file + structural
+#    invariants as L3/L4/L5. The flagship facts are the FOUR token counts for the one sample input and
+#    the rare/compound word `unhappiness`'s segmentation per cutter. We verify:
+#      (a) each tokenizer's published count == len(its token list)  [the count can't drift from data];
+#      (b) the `counts` flat map == the per-tokenizer count  [the two copies in the file must agree];
+#      (c) the ranking is sorted fewest→most AND matches the canonical spread BPE 7 < WP 9 < Uni 13 <
+#          byte-BPE 35  [the "fewer = more efficient" story is the whole point of the widget];
+#      (d) the rare word `unhappiness` segments as the four KNOWN splits (data-only PINS: never shown in
+#          a deck, so a silent edit to the generator's corpus/vocab is only caught here).
+TOK_COUNTS = {"BPE": 7, "WordPiece": 9, "Unigram": 13, "Byte-level BPE": 35}
+TOK_UNHAPPY = {                                   # the sample word's per-cutter segmentation (the divergence)
+    "BPE":            ["un", "happiness"],
+    "WordPiece":      ["un", "##h", "##app", "##iness"],
+    "Unigram":        ["un", "happi", "ne", "s", "s"],
+    "Byte-level BPE": ["Ġ", "u", "n", "h", "a", "p", "p", "i", "n", "e", "s", "s"],  # Ġ u n h a p p i n e s s
+}
+def _tok_unhappy(t):
+    pw = next(p for p in t["perWord"] if p["word"] == "unhappiness")
+    return pw["tokens"] if "tokens" in pw else [pp["piece"] for pp in pw["pieces"]]
+def provenance_l2_tokenizers(report):
+    by = {t["name"]: t for t in TOK["tokenizers"]}
+    rank_by = {r["name"]: r for r in TOK["ranking"]}
+    bad = 0
+    # (a)+(b): count == len(tokens) == counts-map == ranking-count, per cutter; AND == the canonical value
+    for name, want in TOK_COUNTS.items():
+        t = by[name]
+        for label, got in [("count==len", t["count"] == len(t["tokens"])),
+                           ("counts-map", TOK["counts"][name] == t["count"]),
+                           ("ranking-count", rank_by[name]["count"] == t["count"]),
+                           ("canonical", t["count"] == want)]:
+            if got is not True and got != True:
+                bad += 1
+                report.append(("HARD", f"provenance-L2TOK({name}/{label}): token count broke "
+                                       f"(count={t['count']}, len={len(t['tokens'])}, want {want})"))
+    # (c): ranking sorted fewest→most and the spread endpoints match
+    rc = [r["count"] for r in TOK["ranking"]]
+    if rc != sorted(rc):
+        bad += 1; report.append(("HARD", f"provenance-L2TOK(rank-order): ranking not fewest→most: {rc}"))
+    if (TOK["spread"]["min"], TOK["spread"]["max"]) != (rc[0], rc[-1]):
+        bad += 1; report.append(("HARD", f"provenance-L2TOK(spread): {TOK['spread']} ≠ ranking ends {rc[0]}…{rc[-1]}"))
+    # (d): the rare word `unhappiness` segmentation per cutter (data-only pins)
+    for name, want in TOK_UNHAPPY.items():
+        got = _tok_unhappy(by[name])
+        if got != want:
+            bad += 1
+            report.append(("HARD", f"provenance-L2TOK({name}/unhappiness): segmentation drifted — "
+                                   f"{got} vs {want}"))
+    if not bad:
+        n = len(TOK_COUNTS) * 4 + 2 + len(TOK_UNHAPPY)
+        report.append(("OK", f"provenance-L2TOK: {n} tokenizer-compare count/ranking/segmentation invariants consistent "
+                             f"(BPE {TOK_COUNTS['BPE']} < WordPiece {TOK_COUNTS['WordPiece']} < "
+                             f"Unigram {TOK_COUNTS['Unigram']} < byte-BPE {TOK_COUNTS['Byte-level BPE']}) ✓"))
 
 # ── [C] CLAIMS: every grounded value read from data/, asserted present+matching in the deck ─────
 def claims():
@@ -609,6 +664,7 @@ def main():
     provenance_l3l4(report)                         # [P] L3/L4 cross-file data self-consistency
     provenance_l5l6(report)                         # [P] L5/L6 cross-file + data-only pins
     provenance_l5_glove_tsne(report)                # [P] L5 GloVe + t-SNE-math cross-file + data-only pins
+    provenance_l2_tokenizers(report)                # [P] L2 tokenizer-compare counts/ranking/segmentation
     for c in claims():                              # [C] deck == data/
         report.append(check_claim(c, text[c["deck"]]))
     arithmetic_checks(report, text)                 # [A] recompute
@@ -731,9 +787,28 @@ def selftest():
     TSNE["conditional"]["entropyBits"] = savedE
     okP7 = any(s == "HARD" and "provenance-L5GT(tsne." in m for s, m in rep8)
     print("[selftest:prov-L5GT-pin]", next((m for s, m in rep8 if s == "HARD"), "provenance-L5GT pin: NO FLAG"))
+    # L2 tokenizer-compare [P]: a drifted token COUNT must flag (count no longer equals len(tokens)).
+    rep9 = []
+    bpe_rec = next(t for t in TOK["tokenizers"] if t["name"] == "BPE")
+    savedN = bpe_rec["count"]
+    bpe_rec["count"] = 99                            # break count==len(tokens) AND the canonical 7
+    provenance_l2_tokenizers(rep9)
+    bpe_rec["count"] = savedN
+    okP8 = any(s == "HARD" and "provenance-L2TOK(BPE" in m for s, m in rep9)
+    print("[selftest:prov-L2TOK-count]", next((m for s, m in rep9 if s == "HARD"), "provenance-L2TOK count: NO FLAG"))
+    # L2 tokenizer-compare [P] data-only pin: a silent edit to the rare word's segmentation must flag.
+    rep10 = []
+    uni_rec = next(t for t in TOK["tokenizers"] if t["name"] == "Unigram")
+    pw = next(p for p in uni_rec["perWord"] if p["word"] == "unhappiness")
+    savedSeg = pw["tokens"]
+    pw["tokens"] = ["un", "happiness"]               # pretend Unigram split it like BPE — must be caught
+    provenance_l2_tokenizers(rep10)
+    pw["tokens"] = savedSeg
+    okP9 = any(s == "HARD" and "provenance-L2TOK(Unigram/unhappiness)" in m for s, m in rep10)
+    print("[selftest:prov-L2TOK-seg]", next((m for s, m in rep10 if s == "HARD"), "provenance-L2TOK seg: NO FLAG"))
     ok = (okD and okA and okP and okL3 and okL4 and okP2 and okL5 and okL6 and okP3 and okP4
-          and okGX and okTK and okTS and okP5 and okP6 and okP7)
-    print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 + L5-GloVe/t-SNE deck & cross-file (incl. data-only pins) all fire"
+          and okGX and okTK and okTS and okP5 and okP6 and okP7 and okP8 and okP9)
+    print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 + L5-GloVe/t-SNE + L2-tokenizers deck & cross-file (incl. data-only pins) all fire"
           if ok else "FAIL — a check is blind!")
     return 0 if ok else 1
 
