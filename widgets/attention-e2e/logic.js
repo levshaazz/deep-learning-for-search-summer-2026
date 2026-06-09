@@ -44,6 +44,10 @@ export const mountAttentionE2e = defineWidget({
 
     // number → compact cell text: integers bare, floats to 3 places (the JSON precision).
     const num = (x) => (typeof x !== 'number' ? '' : Number.isInteger(x) ? String(x) : fmt(x, 3));
+    // FIXED-decimal cell text: ALWAYS 3 places (so a whole value like 1.0 reads "1.000", matching its
+    // 3-decimal siblings instead of printing a bare "1"). NB: the shared fmt() keeps integers bare, so
+    // we call toFixed(3) directly here to force the trailing zeros that keep the output column uniform.
+    const num3 = (x) => (typeof x !== 'number' || !isFinite(x) ? '' : x.toFixed(3));
 
     // ── geometry ───────────────────────────────────────────────────────────
     const W = 480;
@@ -85,6 +89,7 @@ export const mountAttentionE2e = defineWidget({
     function matrix(name, vals, x0, y0, opts = {}) {
       const rowLabels = opts.rowLabels || null;
       const colorFn = opts.colorFn || null;
+      const cellFmt = opts.fmt || num;          // per-matrix cell formatter (output forces 3 decimals)
       const cell = opts.cell || CELL;
       const step = opts.step || STEP;
       const rowPitch = CELL + GAP;                 // keep the vertical pitch constant across matrices
@@ -105,7 +110,7 @@ export const mountAttentionE2e = defineWidget({
           add(name, rect);
           const t = el('text', { x: cx + cell / 2, y: cy + CELL / 2 + 4,
             class: colorFn ? 'ae-val ae-val-heat' : 'ae-val', 'text-anchor': 'middle' }, svg);
-          t.textContent = num(v);
+          t.textContent = cellFmt(v);
           if (colorFn) t.setAttribute('fill', v >= 0.5 ? '#fff' : 'var(--ink, #14181F)');
           add(name, t);
         });
@@ -174,7 +179,7 @@ export const mountAttentionE2e = defineWidget({
     // clearly separated (was the "1.260.460.571.267" run-on).
     layer('output', 3);
     heading('output', labels.outputHead || 'output = weights · V — a context-aware vector per token', 18);
-    matrix('output', output, PAD_L, cursorY, { rowLabels: tokens, cell: WCELL, step: WSTEP });
+    matrix('output', output, PAD_L, cursorY, { rowLabels: tokens, cell: WCELL, step: WSTEP, fmt: num3 });
     cursorY += n * STEP - GAP + 18;
 
     // ── STEP 4: multi-head note ──────────────────────────────────────────────

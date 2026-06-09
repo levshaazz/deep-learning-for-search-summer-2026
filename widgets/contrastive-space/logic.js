@@ -47,15 +47,19 @@ export const mountContrastiveSpace = defineWidget({
     const posItem = info.positive || (items.find((i) => i.kind === 'pos') || {}).word;
 
     // ── geometry ───────────────────────────────────────────────────────────
-    // The anchor sits at the LEFT-centre; the neighbours fan out across evenly-spaced rays in the
-    // right half-disc. We use the cosine for the RADIUS (high cos → near the anchor, low cos →
-    // far), and even angular spacing so the five labels never pile up. "Near = related" — Sir
-    // Cosine's ruler made geometric, and a clean canvas for the pull/push arrows.
+    // FULL-PANEL DISC (defect-1 rework). The anchor sits at the CENTRE of a disc that fills the whole
+    // panel width+height (the old half-disc cowered in the top-left ¼). Each neighbour is placed at
+    // angle = its position on an even angular FAN and radius = its closeness (high cos → near the
+    // anchor, low cos → out toward the rim) — "near = related", Sir Cosine's ruler made geometric.
+    // EVERY label (anchor + positives + negatives) is then laid out by a force pass with LEADER LINES
+    // (the same anchor+relaxation pattern as glove-cooccur) so no label sits on its dot OR on a
+    // push/pull arrow shaft. The disc breathes; the cosine bars + loss below stay intact.
     const W = 480;
     const PAD = 16;
-    const scTop = 24, scH = 196;
-    const ox = PAD + 18, oy = scTop + scH / 2;    // anchor origin (left-centre)
-    const Rmin = 44, Rmax = scH / 2 - 8;          // radius band: cos 1 → Rmin, cos 0 → Rmax
+    const scTop = 22, scH = 250;                  // taller scatter band → the geometry breathes
+    const cx0 = W / 2, cy0 = scTop + scH / 2;     // anchor at the panel CENTRE
+    const Rmax = Math.min(W / 2 - PAD, scH / 2) - 22;  // rim radius (clear of the frame)
+    const Rmin = 46;                              // cos 1 → Rmin (near), cos 0 → Rmax (far)
 
     const svg = el('svg', { viewBox: `0 0 ${W} 10`, class: 'wgt-svg cs-svg',
       role: 'img', 'aria-label': labels.alt || '' }, host);
@@ -64,70 +68,162 @@ export const mountContrastiveSpace = defineWidget({
     const layer = (name, from) => (layers[name] = { from, nodes: [] });
     const add = (name, node) => { layers[name].nodes.push(node); return node; };
 
-    // ── STEP 0: anchor + neighbours, radius = closeness, fanned by even angle ──
+    // ── STEP 0: anchor at centre + neighbours fanned around it, radius = closeness ──
     layer('scatter', 0);
-    // faint radial guides at Rmin and Rmax (the "near" and "far" shells), each a right half-circle
-    // sweeping from the top of the disc (ox, oy−r) down to the bottom (ox, oy+r).
-    [Rmin, Rmax].forEach((r) => add('scatter', el('path',
-      { d: `M ${ox} ${oy - r} A ${r} ${r} 0 0 1 ${ox} ${oy + r}`,
-        class: 'cs-arc', fill: 'none' }, svg)));
-    // the anchor dot + label
-    add('scatter', el('circle', { cx: ox, cy: oy, r: 8, class: 'cs-anchor' }, svg));
-    add('scatter', el('text', { x: ox + 4, y: oy + 26, class: 'cs-anchor-lbl',
-      'text-anchor': 'middle' }, svg)).textContent = anchor;
+    // faint concentric "near" + "far" shells (full circles now, centred on the anchor).
+    [Rmin, Rmax].forEach((r) => add('scatter', el('circle',
+      { cx: cx0, cy: cy0, r, class: 'cs-arc', fill: 'none' }, svg)));
 
-    // even angular fan across the right half-disc (top → bottom), one ray per item.
+    // even angular fan AROUND the anchor (full 360°, started a touch off vertical so no ray is dead
+    // horizontal/vertical), one ray per item; radius from the cosine. The dots scatter across the
+    // whole disc rather than huddling in one corner.
     const N = items.length;
+    const ang0 = -Math.PI / 2 + 0.32;             // first ray near the top, slightly rotated
     const placed = items.map((it, i) => {
-      const frac = N > 1 ? i / (N - 1) : 0.5;            // 0 (top) … 1 (bottom)
-      const ang = -Math.PI / 2 + frac * Math.PI;          // -90° … +90°
+      const ang = ang0 + (i / N) * 2 * Math.PI;    // even fan over the full circle
       const r = Rmin + (1 - Math.max(0, Math.min(1, it.cos))) * (Rmax - Rmin);
-      const px = ox + r * Math.cos(ang);
-      const py = oy + r * Math.sin(ang);
+      const px = cx0 + r * Math.cos(ang);
+      const py = cy0 + r * Math.sin(ang);
       const cls = it.kind === 'pos' ? 'cs-pos' : 'cs-neg';
       const g = el('g', {}, svg);
-      el('line', { x1: ox, y1: oy, x2: px, y2: py, class: `cs-ray ${cls}` }, g);
+      el('line', { x1: cx0, y1: cy0, x2: px, y2: py, class: `cs-ray ${cls}` }, g);
       el('circle', { cx: px, cy: py, r: 6, class: `cs-pt ${cls}` }, g);
-      // Label placement (m5): POSITIVES are pulled toward the anchor (arrow points inward/left), so
-      // a label to the RIGHT of the dot is clear. NEGATIVES are pushed OUTWARD (arrow points right,
-      // radially away) and that 18px arrow lands exactly where a right-side label used to print — so
-      // negative labels are lifted ABOVE the dot, clear of both the dot and the outward push-arrow.
-      // A near-bg halo (paint-order:stroke, in CSS) keeps every label readable over the rays.
-      const isNeg = it.kind === 'neg';
-      const lx = isNeg ? px : Math.min(px + 10, W - PAD - 132);
-      const ly = isNeg ? py - 14 : py + 4;
-      el('text', { x: lx, y: ly, class: `cs-pt-lbl ${cls}`,
-        'text-anchor': isNeg ? 'middle' : 'start' }, g).textContent = it.word;
       add('scatter', g);
-      return { ...it, px, py };
+      return { ...it, px, py, ux: Math.cos(ang), uy: Math.sin(ang), g, cls };
     });
-    // a legend chip in the top-right corner, sized to fit the labels within the frame.
-    const legW = 124, legX = W - PAD - legW;
-    add('scatter', el('rect', { x: legX, y: scTop, width: legW, height: 34, rx: 6,
-      class: 'cs-legbox' }, svg));
-    add('scatter', el('circle', { cx: legX + 12, cy: scTop + 11, r: 5, class: 'cs-pt cs-pos' }, svg));
-    add('scatter', el('text', { x: legX + 22, y: scTop + 15, class: 'cs-leglbl' }, svg))
-      .textContent = labels.posLeg || 'positive';
-    add('scatter', el('circle', { cx: legX + 12, cy: scTop + 26, r: 5, class: 'cs-pt cs-neg' }, svg));
-    add('scatter', el('text', { x: legX + 22, y: scTop + 30, class: 'cs-leglbl' }, svg))
-      .textContent = labels.negLeg || 'negative';
+    // the anchor dot last so it sits ON TOP of the ray ends that meet at the centre.
+    add('scatter', el('circle', { cx: cx0, cy: cy0, r: 8, class: 'cs-anchor' }, svg));
 
-    // ── STEP 2: pull/push arrows (drawn here so they overlay the scatter) ─────
+    // ── STEP 2: pull/push arrows (drawn here so they overlay the scatter; need them BEFORE the label
+    //    relaxation so labels can be repelled away from the arrow shafts). ─────
     layer('forces', 2);
-    placed.forEach((p) => {
+    const ARRLEN = 20;
+    const arrows = placed.map((p) => {
       const pull = p.kind === 'pos';
-      // arrow direction: positives pulled toward the anchor, negatives pushed away.
-      const ux = (p.px - ox) / Math.hypot(p.px - ox, p.py - oy);
-      const uy = (p.py - oy) / Math.hypot(p.px - ox, p.py - oy);
-      const len = 18;
-      const sx = pull ? p.px - ux * 6 : p.px + ux * 6;
-      const sy = pull ? p.py - uy * 6 : p.py + uy * 6;
-      const ex = pull ? sx - ux * len : sx + ux * len;
-      const ey = pull ? sy - uy * len : sy + uy * len;
+      // arrow direction: positives pulled toward the anchor (inward), negatives pushed away (outward).
+      const sx = pull ? p.px - p.ux * 6 : p.px + p.ux * 6;
+      const sy = pull ? p.py - p.uy * 6 : p.py + p.uy * 6;
+      const ex = pull ? sx - p.ux * ARRLEN : sx + p.ux * ARRLEN;
+      const ey = pull ? sy - p.uy * ARRLEN : sy + p.uy * ARRLEN;
       const cls = pull ? 'cs-arr cs-arr-pull' : 'cs-arr cs-arr-push';
       add('forces', el('line', { x1: sx, y1: sy, x2: ex, y2: ey, class: cls,
         'marker-end': pull ? 'url(#cs-pull)' : 'url(#cs-push)' }, svg));
+      return { sx, sy, ex, ey };
     });
+
+    // ── label layout: anchor + LEADER LINES (defect-1) ─────────────────────────────────────────────
+    // Seed each neighbour label off its dot, then run a force pass: repel label↔label, label↔every dot,
+    // and label↔every arrow SEGMENT (closest-point distance, not just the midpoint), so no label
+    // overprints a dot OR a push/pull arrow shaft. A leader ties each label back to its dot. The
+    // NEGATIVE push-arrow points radially OUTWARD — the same direction a radial label would sit — so a
+    // negative label is seeded TANGENTIALLY (rotated ~50° off the radial) to leave the arrow a clear
+    // lane to its side. The anchor "cat" gets a box seeded straight DOWN. Mirrors glove-cooccur's
+    // anchor+relaxation pattern.
+    const CHARW = 6.3, LBL_H = 14, GAP = 5, DOT_R = 6;
+    const lblText = (w) => String(w);
+    // build label seeds: anchor first, then each neighbour.
+    const seeds = [];
+    seeds.push({ word: anchor, ref: { dx: cx0, dy: cy0 }, ux: 0, uy: 1, off: 24, cls: 'cs-anchor-lbl',
+      isAnchor: true });
+    placed.forEach((p) => {
+      let sux = p.ux, suy = p.uy, off;
+      if (p.kind === 'neg') {
+        // rotate the seed direction off the radial so the outward push-arrow doesn't run under the
+        // label; sign chosen so the label leans toward the top/bottom rather than across the disc.
+        const rot = (p.uy <= 0 ? -1 : 1) * 0.9;          // ≈ 51° tangential lean
+        const c = Math.cos(rot), s = Math.sin(rot);
+        sux = p.ux * c - p.uy * s; suy = p.ux * s + p.uy * c;
+        off = 24;
+      } else {
+        off = 18;                                        // positives: arrow points inward, outward clear
+      }
+      seeds.push({ word: p.word, ref: { dx: p.px, dy: p.py }, ux: sux, uy: suy, off,
+        cls: `cs-pt-lbl ${p.cls}`, isAnchor: false });
+    });
+    const lab = seeds.map((s) => ({
+      w: Math.max(18, lblText(s.word).length * CHARW + 6), h: LBL_H,
+      cx: s.ref.dx + s.ux * s.off, cy: s.ref.dy + s.uy * s.off, ...s,
+    }));
+    // distance from a point to a segment's closest point → vector pushing the point off the segment.
+    const segPush = (px, py, x1, y1, x2, y2) => {
+      const dx = x2 - x1, dy = y2 - y1;
+      const L2 = dx * dx + dy * dy || 1;
+      let t = ((px - x1) * dx + (py - y1) * dy) / L2;
+      t = Math.max(0, Math.min(1, t));
+      const qx = x1 + t * dx, qy = y1 + t * dy;          // closest point on the segment
+      return { qx, qy };
+    };
+    for (let iter = 0; iter < 360; iter++) {
+      // label vs label
+      for (let i = 0; i < lab.length; i++) {
+        for (let j = i + 1; j < lab.length; j++) {
+          const a = lab[i], b = lab[j];
+          const ox = (a.w + b.w) / 2 + GAP - Math.abs(a.cx - b.cx);
+          const oy = (a.h + b.h) / 2 + GAP - Math.abs(a.cy - b.cy);
+          if (ox > 0 && oy > 0) {
+            if (oy <= ox) { const push = oy / 2 + 0.4, dir = a.cy <= b.cy ? -1 : 1; a.cy += dir * push; b.cy -= dir * push; }
+            else          { const push = ox / 2 + 0.4, dir = a.cx <= b.cx ? -1 : 1; a.cx += dir * push; b.cx -= dir * push; }
+          }
+        }
+      }
+      // label vs EVERY dot (anchor dot + neighbour dots) — no label sits on a dot.
+      const allDots = [{ dx: cx0, dy: cy0, r: 8 }, ...placed.map((p) => ({ dx: p.px, dy: p.py, r: DOT_R }))];
+      for (const a of lab) {
+        for (const d of allDots) {
+          const ox = a.w / 2 + d.r + GAP - Math.abs(a.cx - d.dx);
+          const oy = a.h / 2 + d.r + GAP - Math.abs(a.cy - d.dy);
+          if (ox > 0 && oy > 0) {
+            if (oy <= ox) a.cy += (a.cy <= d.dy ? -1 : 1) * (oy + 0.4);
+            else          a.cx += (a.cx <= d.dx ? -1 : 1) * (ox + 0.4);
+          }
+        }
+        // label vs every arrow SEGMENT — push the label box off the closest point on each arrow shaft
+        // (covers the whole shaft + tip, not just the midpoint) so no shaft runs under a label.
+        for (const ar of arrows) {
+          const { qx, qy } = segPush(a.cx, a.cy, ar.sx, ar.sy, ar.ex, ar.ey);
+          const ox = a.w / 2 + 4 + GAP - Math.abs(a.cx - qx);
+          const oy = a.h / 2 + 4 + GAP - Math.abs(a.cy - qy);
+          if (ox > 0 && oy > 0) {
+            if (oy <= ox) a.cy += (a.cy <= qy ? -1 : 1) * (oy + 0.4);
+            else          a.cx += (a.cx <= qx ? -1 : 1) * (ox + 0.4);
+          }
+        }
+      }
+      // gentle pull back toward the seed so the leader stays short.
+      for (const a of lab) {
+        const tx = a.ref.dx + a.ux * a.off, ty = a.ref.dy + a.uy * a.off;
+        a.cx += (tx - a.cx) * 0.01; a.cy += (ty - a.cy) * 0.01;
+      }
+    }
+    // clamp each label box fully inside the scatter band (OOB guard).
+    lab.forEach((a) => {
+      a.cx = Math.max(PAD + a.w / 2 + 2, Math.min(W - PAD - a.w / 2 - 2, a.cx));
+      a.cy = Math.max(scTop + a.h / 2 + 2, Math.min(scTop + scH - a.h / 2 - 2, a.cy));
+    });
+    // draw leader + label for each (anchor into 'scatter'; neighbours into their own group so they
+    // hide/show with the scatter layer).
+    lab.forEach((a) => {
+      const onLeft = a.cx >= a.ref.dx;             // box to the RIGHT of dot → text-anchor start
+      const tx = onLeft ? a.cx - a.w / 2 + 3 : a.cx + a.w / 2 - 3;
+      const ty = a.cy + 4;
+      // leader from the dot edge to the box edge nearest the dot.
+      add('scatter', el('line', { x1: a.ref.dx, y1: a.ref.dy, x2: tx, y2: a.cy,
+        class: 'cs-leader', fill: 'none' }, svg));
+      add('scatter', el('text', { x: tx, y: ty, class: a.cls, 'text-anchor': onLeft ? 'start' : 'end' }, svg))
+        .textContent = a.word;
+    });
+
+    // a legend chip in a corner that the labels were already repelled toward the centre away from.
+    const legW = 120, legX = W - PAD - legW, legY = scTop;
+    add('scatter', el('rect', { x: legX, y: legY, width: legW, height: 34, rx: 6,
+      class: 'cs-legbox' }, svg));
+    add('scatter', el('circle', { cx: legX + 12, cy: legY + 11, r: 5, class: 'cs-pt cs-pos' }, svg));
+    add('scatter', el('text', { x: legX + 22, y: legY + 15, class: 'cs-leglbl' }, svg))
+      .textContent = labels.posLeg || 'positive';
+    add('scatter', el('circle', { cx: legX + 12, cy: legY + 26, r: 5, class: 'cs-pt cs-neg' }, svg));
+    add('scatter', el('text', { x: legX + 22, y: legY + 30, class: 'cs-leglbl' }, svg))
+      .textContent = labels.negLeg || 'negative';
+
     // arrow-head defs
     const defs = el('defs', {}, svg);
     [['cs-pull', 'cs-arrhead-pull'], ['cs-push', 'cs-arrhead-push']].forEach(([id, cls]) => {
