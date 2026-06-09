@@ -112,7 +112,9 @@ export const mountBlockGeometry = defineWidget({
         dots[i].setAttribute('cx', X.toFixed(2));
         dots[i].setAttribute('cy', Y.toFixed(2));
         dlbls[i].setAttribute('x', X.toFixed(2));
-        dlbls[i].setAttribute('y', (Y - 11).toFixed(2));
+        // label baseline lifted clear of the r=6 dot's top edge (was 11 → touched the dot on the tight
+        // Add&Norm stages); the CSS halo finishes the separation. (defect-2 fix)
+        dlbls[i].setAttribute('y', (Y - 13).toFixed(2));
       }
       // trails: show on every step after 0 (where the cloud moved); clamp to the rect.
       const showTrails = k > 0;
