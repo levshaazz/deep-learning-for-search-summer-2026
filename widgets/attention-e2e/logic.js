@@ -24,7 +24,7 @@
      3  → weighted sum · V → the contextual output (3×4).                         caption s3
      4  → multi-head: 2 heads run in parallel subspaces → concat + Wᴼ.           caption s4 */
 import { defineWidget, fmt } from '../_widget-base.js';
-import { frameHeightFor } from '../_plot-util.js';
+import { frameHeightFor, makeFormulaReveal } from '../_plot-util.js';
 
 export const mountAttentionE2e = defineWidget({
   id: 'attention-e2e',
@@ -67,6 +67,29 @@ export const mountAttentionE2e = defineWidget({
     const layers = {};
     const layer = (name, from) => (layers[name] = { from, nodes: [] });
     const add = (name, node) => { layers[name].nodes.push(node); return node; };
+
+    // ── TERM-BY-TERM FORMULA REVEAL (pattern 3 · ≈ manim TransformMatchingTex) ──────────────────
+    // A KaTeX bar at the top assembles  output = softmax(QKᵀ/√d_k)·V  ONE TERM AT A TIME as the
+    // matrices below build it: step 0 lays the skeleton "output =", step 1 adds QKᵀ (the scores),
+    // step 2 wraps it in softmax(·/√d_k) (the scaling+normalise), step 3 multiplies by V. Each term
+    // fades in and the just-revealed term is highlighted for one step (the `is-changed` class — a
+    // role token, NOT a text stroke, so no double-paint). Offline via the page's vendored KaTeX.
+    const formula = makeFormulaReveal(host, {
+      display: true,
+      containerClass: 'ae-formula',
+      termClass: 'ae-term',
+      highlightClass: 'is-changed',
+      // Each term is a COMPLETE, valid KaTeX fragment (so `\left(…\right)` is never split). The raw
+      // scores term (step 1) CROSS-FADES into the scaled+softmaxed term (step 2+): as Q Kᵀ fades out,
+      // softmax(Q Kᵀ/√d_k) fades in at the same slot — the "changing term" cross-fade the brief asks
+      // for. `\, V` then appends at step 3, and the multi-head note (step 4) leaves the equation as-is.
+      terms: [
+        { tex: '\\text{output} =', from: 0 },                                       // skeleton (step 0)
+        { tex: 'Q K^{\\top}', from: 1, to: 1 },                                     // raw scores (only step 1)
+        { tex: '\\mathrm{softmax}\\!\\left(\\dfrac{Q K^{\\top}}{\\sqrt{d_k}}\\right)', from: 2 }, // scaled+softmax (2+)
+        { tex: '\\, V', from: 3 },                                                  // weighted sum by V (step 3+)
+      ],
+    });
 
     const svg = el('svg', { viewBox: `0 0 ${W} 10`, class: 'wgt-svg ae-svg',
       role: 'img', 'aria-label': labels.alt || '' }, host);
@@ -201,6 +224,7 @@ export const mountAttentionE2e = defineWidget({
         const on = k >= layers[name].from;
         for (const node of layers[name].nodes) node.classList.toggle('is-hidden', !on);
       }
+      formula.show(k);   // term-by-term reveal of softmax(QKᵀ/√d_k)·V tracking the steps below
     };
   },
 });

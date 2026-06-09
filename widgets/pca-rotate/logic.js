@@ -20,7 +20,7 @@
      3 → fully aligned (frames[3], frac 1.0); per-axis variance % labels.           caption s3
      4 → project to 2-D (final2d): drop PC3; headline 97.21% of spread kept.        caption s4 */
 import { defineWidget } from '../_widget-base.js';
-import { padDomain, clampSegmentToRect, frameHeightFor } from '../_plot-util.js';
+import { padDomain, clampSegmentToRect, frameHeightFor, cameraInit, cameraTo, cameraHome } from '../_plot-util.js';
 
 // PC axis → theme token (PC1 accent, PC2 secondary, PC3 muted) — matches dimred's palette family.
 const PC_COLOR = ['var(--accent, #2A6FDB)', 'var(--c-violet, #7D5BA6)', 'var(--ink-4, #9CA3AF)'];
@@ -88,6 +88,8 @@ export const mountPcaRotate = defineWidget({
     const H = frameHeightFor(PAD_T + plotH + 16, 8);
     const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'wgt-svg pcr-svg',
       role: 'img', 'aria-label': labels.alt || '' }, host);
+    // remember the full viewBox as the camera's pulled-back home (pattern 2 · camera move).
+    cameraInit(svg);
 
     const layers = {};
     const layer = (name, from, to = Infinity) => (layers[name] = { from, to, nodes: [] });
@@ -96,8 +98,12 @@ export const mountPcaRotate = defineWidget({
     // frame rect + title/subtitle
     layer('frame', 0);
     add('frame', el('rect', { x: box.x, y: box.y, width: box.w, height: box.h, class: 'pcr-frame' }, svg));
-    const ttl = el('text', { x: box.x, y: box.y - 12, class: 'pcr-title' }, svg);
-    const sub = el('text', { x: box.x + box.w, y: box.y - 12, class: 'pcr-sub', 'text-anchor': 'end' }, svg);
+    // Title/subtitle sit ABOVE the frame; at step 4 the camera pushes IN past them, so they live in
+    // their own `chrome` layer (steps 0–3) and hide for the 2-D close-up — keeping every visible mark
+    // inside the zoomed viewBox (in-frame). The step-4 headline + caption carry the meaning there.
+    layer('chrome', 0, 3);
+    const ttl = add('chrome', el('text', { x: box.x, y: box.y - 12, class: 'pcr-title' }, svg));
+    const sub = add('chrome', el('text', { x: box.x + box.w, y: box.y - 12, class: 'pcr-sub', 'text-anchor': 'end' }, svg));
 
     // ── the 3-D cloud (one dot per point) — re-projected every step as the cloud turns ──────────
     layer('cloud', 0, 3);
@@ -134,19 +140,39 @@ export const mountPcaRotate = defineWidget({
 
     // ── 2-D projected scatter (step 4) ──────────────────────────────────────────
     layer('flat', 4, 4);
-    // axis cross for the flat view
-    add('flat', el('line', { x1: box.x + 10, y1: cy, x2: box.x + box.w - 10, y2: cy, class: 'pcr-flataxis' }, svg));
-    add('flat', el('line', { x1: cx, y1: box.y + 10, x2: cx, y2: box.y + box.h - 10, class: 'pcr-flataxis' }, svg));
-    add('flat', el('text', { x: box.x + box.w - 6, y: cy - 6, class: 'pcr-flatlbl', 'text-anchor': 'end' }, svg)).textContent = 'PC1';
-    add('flat', el('text', { x: cx + 6, y: box.y + 18, class: 'pcr-flatlbl' }, svg)).textContent = 'PC2';
-    final2d.forEach((p) => {
-      const q = proj2d(p[0], p[1]);
-      add('flat', el('circle', { cx: q.x, cy: q.y, r: 4.5, class: 'pcr-flatdot' }, svg));
-    });
-    // headline: 97.21% kept (from data.var2dPct)
-    const flatHead = add('flat', el('text', { x: box.x + 8, y: box.y + box.h - 10, class: 'pcr-flathead' }, svg));
+    // the flat cloud's screen extent — the axis cross + labels are sized to THIS compact region (not
+    // the whole box) so the entire step-4 scene is a tight cluster the camera can push toward without
+    // shoving anything past the frame (every flat mark stays inside the camera target = in-frame).
+    const flatXY = final2d.map((p) => proj2d(p[0], p[1]));
+    const fxs = flatXY.map((p) => p.x), fys = flatXY.map((p) => p.y);
+    const fMinX = Math.min(...fxs, cx), fMaxX = Math.max(...fxs, cx);
+    const fMinY = Math.min(...fys, cy), fMaxY = Math.max(...fys, cy);
+    const AX_PAD = 22;                               // axis cross overshoot past the cloud
+    const axL = Math.max(box.x + 6, fMinX - AX_PAD), axR = Math.min(box.x + box.w - 6, fMaxX + AX_PAD);
+    const axT = Math.max(box.y + 6, fMinY - AX_PAD), axB = Math.min(box.y + box.h - 6, fMaxY + AX_PAD);
+    // axis cross for the flat view (fitted to the cloud, centred on the projection origin cx/cy)
+    add('flat', el('line', { x1: axL, y1: cy, x2: axR, y2: cy, class: 'pcr-flataxis' }, svg));
+    add('flat', el('line', { x1: cx, y1: axT, x2: cx, y2: axB, class: 'pcr-flataxis' }, svg));
+    add('flat', el('text', { x: axR, y: cy - 6, class: 'pcr-flatlbl', 'text-anchor': 'end' }, svg)).textContent = 'PC1';
+    add('flat', el('text', { x: cx + 6, y: axT + 12, class: 'pcr-flatlbl' }, svg)).textContent = 'PC2';
+    flatXY.forEach((q) => add('flat', el('circle', { cx: q.x, cy: q.y, r: 4.5, class: 'pcr-flatdot' }, svg)));
+    // headline: 97.21% kept (from data.var2dPct) — placed just under the fitted cross so it rides
+    // inside the camera target too (not pinned to the far box corner).
+    const headY = Math.min(box.y + box.h - 8, axB + 24);
+    const flatHead = add('flat', el('text', { x: cx, y: headY, class: 'pcr-flathead', 'text-anchor': 'middle' }, svg));
     if (typeof var2d === 'number')
       flatHead.textContent = (labels.kept2d || 'PC1 + PC2 keep') + ' ' + var2d.toFixed(2) + '%';
+    // camera target (pattern 2): the bounding box of the whole flat scene (cross + cloud + headline),
+    // padded — the region the camera pushes toward at step 4 so "we landed in 2-D" reads as a
+    // deliberate close-up. cameraTo() clamps it to the frame + aspect-corrects, so it always stays
+    // in-frame and never stretches, both themes.
+    const flatTarget = (() => {
+      if (!flatXY.length) return null;
+      const PAD = 26;
+      const minX = Math.min(axL, ...fxs, cx) - PAD, maxX = Math.max(axR, ...fxs, cx) + PAD;
+      const minY = Math.min(axT, ...fys) - PAD, maxY = Math.max(headY, axB, ...fys) + PAD;
+      return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+    })();
 
     // place the rotating dots + eigenvector axes for a given frame index + interpolation toward it.
     function placeFrame(fi) {
@@ -192,6 +218,14 @@ export const mountPcaRotate = defineWidget({
         for (const n of L.nodes) n.classList.toggle('is-hidden', !on);
       }
       if (k <= 3) placeFrame(frameForStep[k]);
+
+      // CAMERA MOVE (pattern 2 · viewBox push/pull): at the 2-D landing (step 4) push the camera
+      // toward the flattened projection so the close-up sells "we collapsed into the plane"; on any
+      // earlier step pull back home to show the full rotating box. cameraTo clamps to the frame
+      // (always in-frame) and aspect-corrects to the svg ratio (no stretch). The smooth viewBox tween
+      // also moves every mark on screen, which the step-progression gate reads as real progress.
+      if (k === 4 && flatTarget) cameraTo(svg, flatTarget, { dur: 620 });
+      else cameraHome(svg, { dur: 480 });
 
       if (k === 0) { ttl.textContent = labels.t3d || '3-D cloud'; sub.textContent = labels.subCorr || 'correlated'; }
       else if (k === 1) { ttl.textContent = labels.tAxes || 'principal axes'; sub.textContent = 'PC1 · PC2 · PC3'; }
