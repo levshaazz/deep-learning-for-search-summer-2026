@@ -11,6 +11,7 @@
    file:// — no server. Exit 1 on any error. Run: node sequence-audit.mjs
    ========================================================= */
 import { chromium } from 'playwright';
+import { HARDENED } from './lib/gate-harness.mjs';
 import { fileURLToPath } from 'node:url';
 
 const DECK = 'file://' + encodeURI(fileURLToPath(new URL('../Lectures Template/Lecture Template.html', import.meta.url)));
@@ -22,7 +23,7 @@ const overlap = (a, b) => (Math.min(a.right, b.right) - Math.max(a.left, b.left)
                           (Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top)) > TOL;
 
 async function main() {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch(HARDENED);
   const page = await browser.newContext({ viewport: { width: 1920, height: 1080 } }).then(c => c.newPage());
   const perr = []; page.on('pageerror', e => perr.push(String(e).slice(0, 140)));
   await page.goto(DECK, { waitUntil: 'load' });

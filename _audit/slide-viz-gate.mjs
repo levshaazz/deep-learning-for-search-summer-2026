@@ -50,6 +50,7 @@
    detectors stay LENIENT by default (--strict makes their HARD findings fail too).
    ========================================================= */
 import { chromium } from 'playwright';
+import { HARDENED } from './lib/gate-harness.mjs';
 import { createServer } from 'node:http';
 import { readFile, stat, mkdir, writeFile } from 'node:fs/promises';
 import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
@@ -1315,7 +1316,7 @@ function printResult(r) {
 // ───────────────────────── main ─────────────────────────
 async function main() {
   const argv = process.argv.slice(2);
-  const browser = await chromium.launch();
+  const browser = await chromium.launch(HARDENED);
   // inject the CAPTURE fn into every page as window.__VIZCAP (defined as a string-built fn).
   const injectCapture = `window.__VIZCAP = ${CAPTURE.toString()};`;
 

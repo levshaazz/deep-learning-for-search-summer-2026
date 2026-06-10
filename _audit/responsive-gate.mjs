@@ -6,31 +6,29 @@
 
    Requires a build first (docs/). Usage:  node _audit/responsive-gate.mjs  |  --selftest
 */
-import { chromium } from 'playwright';
-import { createServer } from 'node:http';
-import { readFileSync, existsSync, statSync } from 'node:fs';
-import { join, dirname, extname } from 'node:path';
+import { existsSync, readdirSync } from 'node:fs';
+import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { serveDir, withBrowser, withPage } from './lib/gate-harness.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DOCS = join(ROOT, 'docs');
 const BASE = '/deep-learning-for-search-summer-2026';
-const PORT = 8099;
 const WIDTHS = [390, 768];
-const PAGES = ['en/book/00/', 'en/book/01/', 'en/book/02/', 'en/book/03/', 'en/book/04/', 'en/book/05/', 'ru/book/04/', 'ru/book/05/', 'en/book/06/', 'ru/book/06/'];
-const MIME = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.mjs': 'text/javascript',
-  '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml', '.jpeg': 'image/jpeg', '.jpg': 'image/jpeg', '.woff2': 'font/woff2' };
+const LANGS = ['en', 'ru'];
 
-function serve() {
-  return createServer((req, res) => {
-    let p = decodeURIComponent(req.url.split('?')[0]);
-    if (p.startsWith(BASE)) p = p.slice(BASE.length);
-    let file = join(DOCS, p);
-    if (existsSync(file) && statSync(file).isDirectory()) file = join(file, 'index.html');
-    if (!existsSync(file)) { res.statusCode = 404; res.end('404'); return; }
-    res.setHeader('Content-Type', MIME[extname(file)] || 'application/octet-stream');
-    res.end(readFileSync(file));
-  });
+// Data-driven (Dim-E H2): every built Book chapter × built language, discovered from docs/.
+// Adding L7 needs ZERO edits here — build the chapter and it is responsive-tested automatically.
+function discoverPages() {
+  const pages = [];
+  for (const lang of LANGS) {
+    const bookDir = join(DOCS, lang, 'book');
+    if (!existsSync(bookDir)) continue;
+    for (const id of readdirSync(bookDir).sort()) {
+      if (existsSync(join(bookDir, id, 'index.html'))) pages.push(`${lang}/book/${id}/`);
+    }
+  }
+  return pages;
 }
 
 // runs IN the page: is there horizontal overflow, and did a widget render?
@@ -51,25 +49,27 @@ function pageChecks() {
 
 async function run() {
   if (!existsSync(DOCS)) { console.error('[responsive] docs/ not found — run npm run build first.'); return 1; }
-  const server = serve(); await new Promise((r) => server.listen(PORT, r));
-  const b = await chromium.launch();
+  const PAGES = discoverPages();
+  if (!PAGES.length) { console.error('[responsive] no built Book pages found under docs/.'); return 1; }
+  const server = await serveDir(DOCS, { base: BASE });
   const report = [];
-  for (const page of PAGES) {
-    for (const w of WIDTHS) {
-      const p = await b.newPage({ viewport: { width: w, height: 820 } });
-      const errs = []; p.on('pageerror', (e) => errs.push(String(e)));
-      await p.goto(`http://localhost:${PORT}${BASE}/${page}`, { waitUntil: 'networkidle' });
-      await p.waitForTimeout(150);
-      const r = await p.evaluate(pageChecks);
-      const bad = [];
-      if (r.overflow > 2) bad.push(`H-OVERFLOW ${r.overflow}px (widest "${r.widestSel}"=${r.widest})`);
-      if (!r.figOk) bad.push(`figure not laid out (${r.figCount} figs)`);
-      if (errs.length) bad.push(`console errors ${errs.length}`);
-      report.push({ page, w, bad });
-      await p.close();
+  await withBrowser(async (b) => {
+    for (const page of PAGES) {
+      for (const w of WIDTHS) {
+        await withPage(b, { viewport: { width: w, height: 820 } }, async (p, cap) => {
+          await p.goto(server.href(page), { waitUntil: 'networkidle' });
+          await p.waitForTimeout(150);
+          const r = await p.evaluate(pageChecks);
+          const bad = [];
+          if (r.overflow > 2) bad.push(`H-OVERFLOW ${r.overflow}px (widest "${r.widestSel}"=${r.widest})`);
+          if (!r.figOk) bad.push(`figure not laid out (${r.figCount} figs)`);
+          if (cap.pageerrors.length) bad.push(`console errors ${cap.pageerrors.length}`);
+          report.push({ page, w, bad });
+        });
+      }
     }
-  }
-  await b.close(); server.close();
+  });
+  await server.close();
   const hard = report.filter((r) => r.bad.length);
   console.log(`[responsive] checked ${PAGES.length} Book pages × ${WIDTHS.join('/')}px`);
   for (const r of report) console.log(`  ${r.bad.length ? '✗' : '·'} ${r.page} @${r.w}  ${r.bad.join('; ') || 'ok'}`);
@@ -78,11 +78,10 @@ async function run() {
 }
 
 async function selftest() {
-  const b = await chromium.launch();
-  const p = await b.newPage({ viewport: { width: 390, height: 800 } });
-  await p.setContent('<main><div style="width:1500px;height:40px;background:#000">wide</div></main>');
-  const r = await p.evaluate(pageChecks);
-  await b.close();
+  const r = await withBrowser((b) => withPage(b, { viewport: { width: 390, height: 800 } }, async (p) => {
+    await p.setContent('<main><div style="width:1500px;height:40px;background:#000">wide</div></main>');
+    return p.evaluate(pageChecks);
+  }));
   const ok = r.overflow > 2;
   console.log('[selftest] overflow on a 1500px element @390:', r.overflow, 'px');
   console.log('[selftest]', ok ? 'PASS — overflow detector fires' : 'FAIL — blind!');

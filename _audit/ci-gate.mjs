@@ -16,16 +16,11 @@
    Run:  node ci-gate.mjs            (from _audit/)
    ========================================================= */
 import { chromium } from 'playwright';
-import { createServer } from 'node:http';
-import { readFile, stat } from 'node:fs/promises';
-import { join, extname, normalize } from 'node:path';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { serveDir, HARDENED } from './lib/gate-harness.mjs';
 
 const TEMPLATE_DIR = join(fileURLToPath(new URL('../Lectures Template/', import.meta.url)));
-const PORT = 8137;
-const MIME = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript',
-  '.json': 'application/json', '.woff2': 'font/woff2', '.svg': 'image/svg+xml',
-  '.png': 'image/png', '.map': 'application/json' };
 
 let pass = 0, fail = 0;
 const ok = (cond, msg, evidence = '') => {
@@ -33,28 +28,11 @@ const ok = (cond, msg, evidence = '') => {
   else { fail++; console.log(`  ✗ FAIL: ${msg}${evidence ? '  ['+evidence+']' : ''}`); }
 };
 
-function startServer() {
-  const srv = createServer(async (req, res) => {
-    try {
-      let p = decodeURIComponent(req.url.split('?')[0]);
-      p = normalize(join(TEMPLATE_DIR, p));
-      if (!p.startsWith(TEMPLATE_DIR)) { res.writeHead(403).end(); return; }
-      const s = await stat(p).catch(() => null);
-      if (!s || s.isDirectory()) { res.writeHead(404).end(); return; }
-      const buf = await readFile(p);
-      res.writeHead(200, { 'content-type': MIME[extname(p)] || 'application/octet-stream' });
-      res.end(buf);
-    } catch { res.writeHead(500).end(); }
-  });
-  return new Promise(r => srv.listen(PORT, () => r(srv)));
-}
-
-const url = (f) => `http://localhost:${PORT}/${encodeURIComponent(f)}`;
-
 async function main() {
-  console.log('[ci-gate] serving', TEMPLATE_DIR, 'on', PORT);
-  const srv = await startServer();
-  const browser = await chromium.launch();
+  const srv = await serveDir(TEMPLATE_DIR);           // free port (listen(0)) via shared harness
+  const url = (f) => srv.href(f);
+  console.log('[ci-gate] serving', TEMPLATE_DIR, 'on', srv.url);
+  const browser = await chromium.launch(HARDENED);
 
   /* ---- editable deck ---- */
   console.log('\n[A–E] Editable deck (Lecture Template.html)');
@@ -112,7 +90,9 @@ async function main() {
   const octx = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
   await octx.route('**/*', route => {
     const u = route.request().url();
-    if (/^(data:|blob:)/.test(u) || u.startsWith('http://localhost')) return route.continue();
+    // Allow ONLY the local static server (where the standalone is hosted) + data:/blob:. Any other
+    // (non-local) request is the failure this test detects — recorded in `blocked` and aborted.
+    if (/^(data:|blob:)/.test(u) || u.startsWith(srv.url) || u.startsWith('http://localhost')) return route.continue();
     blocked.push(u.slice(0, 60)); return route.abort();
   });
   const op = await octx.newPage();
