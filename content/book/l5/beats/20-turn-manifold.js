@@ -1,0 +1,32 @@
+    {
+      id: 'turn-manifold', kind: 'prose',
+      heading: { en: 'When the map is curved', ru: 'Когда карта искривлена', tt: 'Карта бөгелгәндә' },
+      img: 'L5/L5-10-folded-map-manifold.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'A flat sheet trying to capture a curved, rolled-up surface (a Swiss-roll manifold) — a straight projection cuts across the curl.',
+        ru: 'Плоский лист пытается схватить искривлённую свёрнутую поверхность (рулет-многообразие) — прямая проекция режет поперёк завитка.',
+        tt: 'Яссы кәгазь бөгелгән, төрелгән өслекне (рулет-күпьяклык) тотарга тырыша — туры проекция бөтерелешне аркылы кисә.',
+      },
+      imgCaption: {
+        en: 'PCA flattens with a single straight cut. But meaning curls — and a straight cut through a rolled-up sheet glues far-apart points together.',
+        ru: 'PCA сплющивает одним прямым разрезом. Но смысл сворачивается — а прямой разрез сквозь свёрнутый лист склеивает далёкие точки.',
+        tt: 'PCA бер туры кисем белән яссылый. Әмма мәгънә бөтерелә — ә төрелгән кәгазьне аркылы туры кисү ерак нокталарны бер-берсенә ябыштыра.',
+      },
+      body: {
+        en: [
+          "PCA is honest, fast, and *linear* — and that last word is its ceiling. PCA can only rotate the space and flatten it with a single straight cut; it assumes the structure worth keeping lies along straight axes. Often the structure doesn't. Picture data shaped like a Swiss roll — a 2-D sheet rolled up in 3-D. Two points on opposite ends of the *rolled-up* sheet sit physically close in 3-D, but along the surface, the path that actually matters, they're far apart. Slice that roll flat with one straight PCA cut and you glue the far ends together: a catastrophe of false neighbours.",
+          "The fix is to stop preserving *global* distances and preserve *neighbourhoods* instead. The idea, called **manifold learning**, assumes the data — though embedded in 300-D — actually lies on a lower-dimensional curved surface, a *manifold*, like that 2-D sheet curled through 3-D space. We don't care about the straight-line distance between two far-apart words; we care that each word keeps the *same close neighbours* after the fold. Get the local relationships right, let the global layout bend however it must, and unroll the curl instead of slicing through it.",
+          "That's the philosophy behind **t-SNE** ([van der Maaten & Hinton, 2008](https://www.jmlr.org/papers/v9/vandermaaten08a.html)) and its faster cousin **UMAP** ([McInnes, Healy & Melville, 2018](https://arxiv.org/abs/1802.03426)). Both turn distances into neighbour *probabilities* in the high-D space, then arrange points in 2-D so those neighbour relationships match as closely as possible. The picture they produce is the iconic one — tight, well-separated islands of meaning, the plot that launched a thousand papers. We already met it on the last step. It's beautiful. It is also, in a very specific way, a liar — which is the next beat.",
+        ],
+        ru: [
+          'PCA честен, быстр и *линеен* — и последнее слово его потолок. PCA умеет лишь повернуть пространство и сплющить одним прямым разрезом; он предполагает, что структура, которую стоит сохранить, лежит вдоль прямых осей. Часто структура там не лежит. Представь данные в форме рулета — 2-D лист, свёрнутый в 3-D. Две точки на противоположных концах *свёрнутого* листа физически близки в 3-D, но вдоль поверхности — по пути, который реально важен, — они далеки. Сплющь этот рулет одним прямым разрезом PCA — и склеишь дальние концы: катастрофа ложных соседей.',
+          'Лечение — перестать сохранять *глобальные* расстояния и сохранять вместо них *окрестности*. Идея, называемая **обучением многообразий**, предполагает, что данные — хоть и вложены в 300-D — на деле лежат на искривлённой поверхности меньшей размерности, *многообразии*, как тот 2-D лист, свёрнутый в 3-D. Нам не важно расстояние по прямой между двумя далёкими словами; нам важно, чтобы каждое слово сохранило *тех же близких соседей* после сгиба. Возьми локальные связи верно, дай глобальной раскладке гнуться как придётся — и разверни завиток, а не режь сквозь него.',
+          'Это философия за **t-SNE** ([ван дер Маатен и Хинтон, 2008](https://www.jmlr.org/papers/v9/vandermaaten08a.html)) и его более быстрым родичем **UMAP** ([Макиннес, Хили и Мелвилл, 2018](https://arxiv.org/abs/1802.03426)). Оба превращают расстояния в *вероятности* соседства в высокой размерности, а затем расставляют точки в 2-D так, чтобы эти соседства совпали как можно точнее. Картинка, что они выдают, — та самая знаменитая: плотные, чётко разделённые острова смысла, график, запустивший тысячу статей. Мы уже встретили его на прошлом шаге. Он прекрасен. И ещё он, очень определённым образом, лжец — о чём следующий бит.',
+        ],
+        tt: [
+          'PCA намуслы, тиз һәм *линеар* — һәм соңгы сүз аның түшәме. PCA бары киңлекне борып, аны бер туры кисем белән яссылый ала; ул сакларга кирәкле төзелеш туры күчәрләр буенча ята дип фараз итә. Еш кына төзелеш анда ятмый. Рулет формасындагы мәгълүматны күз алдыңа китер — 3-D’да төрелгән 2-D кәгазь. *Төрелгән* кәгазьнең капма-каршы очларындагы ике нокта 3-D’да физик яктан якын, әмма өслек буенча — чынлап мөһим юл буенча — алар ерак. Бу рулетны бер туры PCA кисеме белән яссыла — һәм ерак очларны ябыштырасың: ялган күршеләр фаҗигасе.',
+          'Дәвалау — *глобаль* ераклыкларны саклауны туктатып, аның урынына *тирәләрне* саклау. **Күпьяклык өйрәнү** дип аталган идея, мәгълүмат — 300-D’га салынса да — чынлыкта кечерәк үлчәмле бөгелгән өслектә, *күпьяклыкта*, ята дип фараз итә, шул 3-D аша төрелгән 2-D кәгазь кебек. Безгә ике ерак сүз арасындагы туры сызык ераклыгы кирәкми; безгә һәр сүз бөкләнгәч *шул ук якын күршеләрен* саклавы кирәк. Локаль бәйләнешләрне дөрес ал, глобаль урнашуга ничек туры килсә шулай бөгелергә бир — һәм бөтерелешне аркылы кисмичә җәеп сал.',
+          'Бу — **t-SNE** ([ван дер Маатен һәм Хинтон, 2008](https://www.jmlr.org/papers/v9/vandermaaten08a.html)) һәм аның тизрәк туганы **UMAP** ([Макиннес, Хили һәм Мелвилл, 2018](https://arxiv.org/abs/1802.03426)) артындагы фәлсәфә. Икесе дә ераклыкларны югары үлчәмдә күршелек *ихтималлыкларына* әйләндерә, аннары нокталарны 2-D’да шул күршелекләр мөмкин кадәр төгәл туры килерлек итеп урнаштыра. Алар чыгарган рәсем — шул мәшһүре: тыгыз, ачык аерылган мәгънә утраулары, мең мәкаләне җибәргән график. Без аны узган адымда инде очраттык. Ул искиткеч. Һәм ул, бик билгеле бер ысул белән, ялганчы да — бу хакта киләсе бит.',
+        ],
+      },
+    },
