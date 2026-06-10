@@ -438,12 +438,76 @@ BOOK_ANCHORS = [
     ("L5G loss after",  r"to \\\(([\d.]+)\\\) after 600 AdaGrad"),
     ("L6 InfoNCE loss", r"[−-]ln\(0\.8877\) = ([\d.]+)"),
     ("L6 InfoNCE p+",   r"probability ([\d.]+), so the loss"),
+    # ── widened coverage: every flagship + worked intermediate the Book PROSE states (anchor-probed).
+    #    Optional 3rd element overrides the deck tol where the Book displays a rounded form. ──
+    # L1 / L2
+    ("top-1 %",         r"Rank 1 alone takes ~([\d.]+)% of clicks"),
+    ("top-3 %",         r"top 3 soak up ~([\d.]+)%"),
+    ("heaps β",         r"\\beta \\approx ([\d.]+)"),
+    ("V types",         r"counted ([\d,]+) distinct type"),
+    ("zipf slope",      r"slope is ≈ ([−\d.]+)"),
+    ("euclid",          r"\\sqrt\{162\} \\approx ([\d.]+)"),
+    # L3 — BM25 worked example + PageRank + compression + RRF
+    ("L3 D1 score",     r"\+ 0\.4700 \(dog\) = <strong>([\d.]+)</strong>\. D3"),
+    ("L3 D3 score",     r"D3 = ([\d.]+) \(cat\) \+ 0 \(no"),
+    ("L3 B D2dog",      r"B = 5/3\.875 = ([\d.]+)"),
+    ("L3 idf nasa",     r"three documents \(idf = <strong>([\d.]+)</strong>\)"),
+    ("L3 idf shut",     r"only two \(idf = <strong>([\d.]+)</strong>\)"),
+    ("L3 q2 D2",        r"scores <strong>([\d.]+)</strong> and"),
+    ("L3 q2 D3",        r"trails at ([\d.]+);"),
+    ("L3 PR A",         r"PR = \(([\d.]+), 0\.3974, 0\.3878\)"),
+    ("L3 PR B",         r"PR = \(0\.2148, ([\d.]+), 0\.3878\)"),
+    ("L3 PR C",         r"PR = \(0\.2148, 0\.3974, ([\d.]+)\)"),
+    ("L3 PR Bupd",      r"= 0\.0500 \+ 0\.4250 = ([\d.]+)\."),
+    ("L3 gaps",         r"3, \+5, \+4, \+(\d+)</code>"),
+    ("L3 raw bytes",    r"four 32-bit IDs is (\d+) bytes"),
+    ("L3 RRF top",      r"1/61 \+ 1/61 \\approx ([\d.]+)", 1e-4),
+    # L4 — graded nDCG + significance tests + online A/B
+    ("L4 nDCG lin",     r"graded nDCG = ([\d.]+)</strong>"),
+    ("L4 nDCG exp",     r"lands at <strong>([\d.]+)</strong>"),
+    ("L4 t-stat",       r"paired t=([\d.]+),"),
+    ("L4 p t-test",     r"t=2\.2753, p=([\d.]+);"),
+    ("L4 p wilcox",     r"Wilcoxon W=25, p=([\d.]+);"),
+    ("L4 p perm",       r"It happens ([\d.]+) of the time"),
+    ("L4 CI lo",        r"true gain is \[([\d.]+), 0\.0772\]"),
+    ("L4 CI hi",        r"true gain is \[0\.0023, ([\d.]+)\]"),
+    ("L4 AB z",         r"0\.00469 ≈ ([\d.]+)\."),
+    ("L4 AB p",         r"maps to p ≈ ([\d.]+) ", 1e-3),
+    # L5 — cosines + PCA components + GloVe worked step + t-SNE affinities
+    ("L5 cos cat·dog",  r"cosines 0\.861, ([\d.]+), 0\.3654"),
+    ("L5 cos cat·air",  r"cosines 0\.861, 0\.9218, ([\d.]+)"),
+    ("L5 cos kng·cmp",  r"king·computer just ([\d.]+)", 1e-3),
+    ("L5 PCA PC1",      r"PC1 holds ([\d.]+)%"),
+    ("L5 PCA PC2",      r"PC2 ([\d.]+)%"),
+    ("L5G X count",     r"co-occur \\\(X = ([\d.]+)\\\)"),
+    ("L5G logX",        r"\\log X = [−-]([\d.]+)"),
+    ("L5G f(X)",        r"the weight is \\\(f = ([\d.]+)\\\)"),
+    ("L5G model",       r"\(-0\.127\) = [−-]([\d.]+)"),
+    ("L5G loss before", r"loss falls from \\\(([\d.]+)\\\)", 1e-2),
+    ("L5G alpha",       r"\(6/10\)\^\{([\d.]+)\}"),
+    ("L5T sigma svg",   r"\\sigma = ([\d.]+)\\\)"),
+    ("L5T p dog",       r'"dog" gets \\\(p = ([\d.]+)\\\)'),
+    ("L5T p puppy",     r'"puppy" \\\(([\d.]+)\\\)'),
+    ("L5T p lion",      r'"lion" \\\(([\d.]+)\\\)'),
+    ("L5T p kitten",    r'"kitten" \\\(([\d.]+)\\\)'),
+    ("L5T q_ij",        r"q_\{ij\} = ([\d.]+)\\\)", 5e-4),
+    ("L5T joint p_ij",  r"joint \\\(p_\{ij\} = ([\d.]+)\\\)"),
+    ("L5T KL svg",      r"\\mathrm\{KL\} = ([\d.]+)\\\)"),
+    # L6 — attention weights + DistilBERT stack (pinned to the "bank downtown" context)
+    ("L6 √d_k var",     r"Divide by √d_k = ([\d.]+)"),
+    ("L6 w[cat][cat]",  r"pours ([\d.]+) of its weight"),
+    ("L6 out[cat][0]",  r"becomes ≈ \[([\d.]+), 1\.996"),
+    ("L6 stack cos final", r'downtown"\) sit at cosine \\\(([\d.]+)\\\)'),
 ]
 def book_claims():
     base = {c["id"]: c for c in claims()}
-    return [dict(id="book " + src, deck=base[src]["deck"], value=base[src]["value"],
-                 tol=base[src]["tol"], anchor=anchor, must=True)
-            for src, anchor in BOOK_ANCHORS]
+    out = []
+    for entry in BOOK_ANCHORS:
+        src, anchor = entry[0], entry[1]
+        tol = entry[2] if len(entry) > 2 else base[src]["tol"]   # override where the Book rounds differently
+        out.append(dict(id="book " + src, deck=base[src]["deck"], value=base[src]["value"],
+                        tol=tol, anchor=anchor, must=True))
+    return out
 
 # ── L3 'Star Catalog' [C] claims: every flagship number the deck shows == data/l3-*.json ─────────
 # Anchors match the RENDERED numeric text (KaTeX \(…\)/$$…$$, <code> matrix-labels, captions) — the
@@ -854,7 +918,7 @@ def main():
         for c in book_claims():
             if c["deck"] in book:
                 report.append(check_claim(c, book[c["deck"]]))
-        report.append(("OK", f"book: {nbk} flagship Book-prose numbers gated against data/ ✓"))
+        report.append(("OK", f"book: {nbk} Book-prose numbers gated against data/ ✓"))
     else:
         report.append(("WARN", "Book not built (docs/ absent) — Book [C] claims skipped; run `npm run build`"))
     # [A] recompute: deck fractions + (any) Book fractions, in one pass.
