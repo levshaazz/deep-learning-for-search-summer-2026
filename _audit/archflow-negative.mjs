@@ -13,10 +13,11 @@
    failed to fire or the deck wasn't clean before/after.
    ========================================================= */
 import { chromium } from 'playwright';
+import { HARDENED } from './lib/gate-harness.mjs';
 import { fileURLToPath } from 'node:url';
 
 const BASE = 'file://' + encodeURI(fileURLToPath(new URL('../Lectures Template/Lecture Template.html', import.meta.url)));
-const browser = await chromium.launch();
+const browser = await chromium.launch(HARDENED);
 const page = await browser.newContext({ viewport: { width: 1920, height: 1080 } }).then(c => c.newPage());
 await page.goto(BASE, { waitUntil: 'load' });
 await page.waitForFunction(() => window.Lecture && window.__preflight);

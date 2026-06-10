@@ -69,6 +69,7 @@
    Offline: chromium comes from _audit/node_modules / the cached browser; no network.
    ========================================================================= */
 import { chromium } from 'playwright';
+import { HARDENED } from './lib/gate-harness.mjs';
 import { createServer } from 'node:http';
 import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
 import { writeFileSync } from 'node:fs';
@@ -511,7 +512,7 @@ async function selftest(browser) {
 async function main() {
   const argv = process.argv.slice(2);
   const opt = { ...TH, warnAsError: argv.includes('--warn-as-error') };
-  const browser = await chromium.launch();
+  const browser = await chromium.launch(HARDENED);
   // inject the render-probe into EVERY future page context as window.__RENDERPROBE.
   const injectProbe = `window.__RENDERPROBE = ${PROBE.toString()};`;
   const origNewContext = browser.newContext.bind(browser);
