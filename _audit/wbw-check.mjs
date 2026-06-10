@@ -19,8 +19,9 @@
    Usage:
      node wbw-check.mjs                 # all decks
      node wbw-check.mjs 00-introduction.html   # one deck by filename
+     node wbw-check.mjs --selftest      # plant a KNOWN-BAD deck; assert the gate FLAGS it
    ========================================================= */
-import { readdirSync } from 'node:fs';
+import { readdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { serveDir, withBrowser, withPage, ready } from './lib/gate-harness.mjs';
@@ -37,7 +38,12 @@ const ok = (cond, msg, ev = '') => {
   else { fail++; console.log(`  ✗ FAIL: ${msg}${ev ? '  [' + ev + ']' : ''}`); }
 };
 
+// Run the SAME per-deck checks and report how many FAILED for THIS deck only. The real run
+// drives this for its side effects (pass/fail tallies + log); the selftest drives it to assert
+// the planted defect produced ≥1 fail (proving the detector is not blind). Identical logic ⇒
+// no divergence between what CI checks and what the selftest exercises.
 async function checkDeck(browser, srv, deck) {
+  const failBefore = fail;
   console.log(`\n[${deck.tag}] ${deck.file}`);
   await withPage(browser, { viewport: { width: 1920, height: 1080 } }, async (page, cap) => {
     await page.goto(srv.href(deck.file), { waitUntil: 'networkidle' });
@@ -68,9 +74,66 @@ async function checkDeck(browser, srv, deck) {
     });
     ok(pf.e === 0, 'pre-flight: 0 errors', `errors=${pf.e} warns=${pf.w}${pf.em.length ? ' :: ' + pf.em.join(' ; ') : ''}`);
   });
+  return fail - failBefore;   // how many checks FAILED for this deck
+}
+
+/* =========================================================
+   --selftest — does the gate STILL catch a broken deck, or has it gone blind?
+   Plants a SELF-CONTAINED, OFFLINE, KNOWN-BAD deck under Lectures/ (named so it does NOT
+   match the real-deck glob ^\d\d-.*\.html$, so it can NEVER pollute the real run), drives it
+   through the IDENTICAL checkDeck() pipeline, and asserts it produced ≥1 FAIL.
+
+   The fixture violates MULTIPLE invariants on purpose, every one fully offline (H1 — no src=/network):
+     • window.Lecture.total (2) !== DOM .slide count (1)   → "engine registered every slide" FAILS
+     • a leaked raw `$$x$$` that is NOT KaTeX-typeset       → "KaTeX typeset (no raw $$)" FAILS
+     • a console.error on load                              → "no console errors" FAILS
+   ≥1 FAIL ⇒ detector fires ⇒ selftest PASS (exit 0). 0 FAILs ⇒ detector is BLIND ⇒ FAIL (exit 1).
+   The fixture is ALWAYS deleted afterward (finally), even on error. */
+const SELFTEST_FILE = '_wbw-selftest.html';   // leading _ ⇒ never matches ^\d\d-.*\.html$
+const BAD_DECK_HTML = [
+  '<!doctype html><html lang="en"><head><meta charset="utf-8">',
+  '<title>wbw selftest — KNOWN BAD (offline)</title></head>',
+  '<body>',
+  '  <!-- only ONE real .slide in the DOM ... -->',
+  '  <section class="slide">a leaked raw $$x$$ that no KaTeX ever typeset</section>',
+  '  <script>',
+  '    // ... but the engine claims TWO ⇒ total (2) !== DOM .slide count (1).',
+  '    window.Lecture = { total: 2 };',
+  '    // a runtime console.error on load ⇒ "no console errors" must fire.',
+  "    console.error('wbw-selftest: planted console.error (deck is intentionally broken)');",
+  '    // a pre-flight that reports no errors — the OTHER invariants carry the detection,',
+  '    // so the selftest never leans on pre-flight alone.',
+  '    window.__preflight = { runChecks: () => [] };',
+  '  </script>',
+  '</body></html>',
+].join('\n');
+
+async function selftest() {
+  const fixturePath = join(LECT_DIR, SELFTEST_FILE);
+  let code = 1;
+  try {
+    writeFileSync(fixturePath, BAD_DECK_HTML, 'utf8');
+    const srv = await serveDir(LECT_DIR);
+    console.log('[wbw-check:selftest] serving', LECT_DIR, 'on', srv.url);
+    console.log('[wbw-check:selftest] planted KNOWN-BAD fixture:', SELFTEST_FILE);
+    let deckFails = 0;
+    await withBrowser(async (browser) => {
+      deckFails = await checkDeck(browser, srv, { file: SELFTEST_FILE, tag: 'SELFTEST' });
+    });
+    await srv.close();
+    const detected = deckFails > 0;
+    code = detected ? 0 : 1;
+    console.log(`\n[wbw-check:selftest] ${detected ? 'PASS' : 'FAIL'} — bad fixture produced ${deckFails} fail(s); ` +
+      (detected ? 'detector FIRED (not blind)' : 'detector stayed BLIND — gate would pass a broken deck!'));
+  } finally {
+    rmSync(fixturePath, { force: true });   // ALWAYS remove the fixture, even on error
+  }
+  return code;
 }
 
 async function main() {
+  if (process.argv.includes('--selftest')) { process.exit(await selftest()); }
+
   const only = process.argv[2];
   const decks = only ? DECKS.filter((d) => d.file === only) : DECKS;
   if (!decks.length) { console.error('unknown deck:', only); process.exit(2); }
