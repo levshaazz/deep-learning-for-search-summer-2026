@@ -45,9 +45,9 @@ export const ui = {
     },
     playground: { en: 'Playground — drive the algorithms', ru: 'Площадка — управляй алгоритмами', tt: 'Мәйдан — алгоритмнарны идарә ит' },
     playgroundKicker: {
-      en: 'The course lab · every interactive figure in free-play · step / scrub / press play · grouped by lecture',
-      ru: 'Лаборатория курса · каждая интерактивная фигура в свободном режиме · шаг / перемотка / запуск · по лекциям',
-      tt: 'Курс лабораториясе · һәр интерактив фигура ирекле режимда · адым / сөйрәп күчерү / җибәрү · лекцияләр буенча',
+      en: 'The course lab · every interactive figure in free-play · step / scrub / press play · filter by lecture or topic',
+      ru: 'Лаборатория курса · каждая интерактивная фигура в свободном режиме · шаг / перемотка / запуск · фильтр по лекции или теме',
+      tt: 'Курс лабораториясе · һәр интерактив фигура ирекле режимда · адым / сөйрәп күчерү / җибәрү · лекция яки тема буенча фильтр',
     },
     playgroundIntro: {
       en: 'This is the lab. Each card is one of the course’s ~35 interactive figures, freed from the scrolling story — step through it, scrub the slider, or press play to watch the algorithm run. The figures are the same ones that appear in the Book; here you drive them yourself.',
@@ -102,6 +102,35 @@ export const ui = {
     stepSlider: { en: 'Scrub steps', ru: 'Перемотка шагов', tt: 'Адымнарны сөйрәү' },
     statusPlaying: { en: 'PLAYING', ru: 'ИДЁТ', tt: 'БАРА' },
     statusPaused: { en: 'PAUSED', ru: 'ПАУЗА', tt: 'ПАУЗА' },
+
+    // Lazy-mount placeholder (shown on a card until its widget scrolls into view + mounts).
+    mounting: { en: 'mounting…', ru: 'загрузка…', tt: 'йөкләнә…' },
+  },
+
+  // Playground filter/search toolbar (sticky). All chrome trilingual; the resolver falls tt→ru→en.
+  playgroundFilter: {
+    byLecture: { en: 'Lecture', ru: 'Лекция', tt: 'Лекция' },
+    byTopic: { en: 'Topic', ru: 'Тема', tt: 'Тема' },
+    all: { en: 'All', ru: 'Все', tt: 'Барысы' },
+    searchLabel: { en: 'Search demos', ru: 'Поиск демо', tt: 'Демоларны эзләү' },
+    searchPlaceholder: { en: 'Search by title, topic, lecture…', ru: 'Поиск по названию, теме, лекции…', tt: 'Исем, тема, лекция буенча эзләү…' },
+    // "showing N of M" — the page/client fills {n} and {m}.
+    showing: { en: 'showing {n} of {m}', ru: 'показано {n} из {m}', tt: '{m} дан {n} күрсәтелә' },
+    clear: { en: 'Clear filters', ru: 'Сбросить фильтры', tt: 'Фильтрларны бетерү' },
+    none: { en: 'No demos match these filters.', ru: 'Нет демо под эти фильтры.', tt: 'Бу фильтрларга туры килгән демо юк.' },
+  },
+
+  // CONCEPT topic names — mirror src/lib/playground.js TOPICS (kept here so the G3 coverage gate,
+  // which scans ui.js, reports topic-name translation completeness). Keyed by the topic `id`.
+  playgroundTopics: {
+    foundations: { en: 'Foundations & the IR spine', ru: 'Основы и каркас IR', tt: 'Нигезләр һәм IR кылыч сөяге' },
+    tokenization: { en: 'Tokenization & text', ru: 'Токенизация и текст', tt: 'Токенлаштыру һәм текст' },
+    retrieval: { en: 'Classical retrieval & ranking', ru: 'Классический поиск и ранжирование', tt: 'Классик эзләү һәм ранжлау' },
+    embeddings: { en: 'Embeddings & geometry', ru: 'Эмбеддинги и геометрия', tt: 'Эмбеддинглар һәм геометрия' },
+    dimred: { en: 'Dimensionality reduction', ru: 'Снижение размерности', tt: 'Үлчәмлелекне киметү' },
+    transformers: { en: 'Attention & Transformers', ru: 'Внимание и трансформеры', tt: 'Игътибар һәм трансформерлар' },
+    evaluation: { en: 'Evaluation & metrics', ru: 'Оценивание и метрики', tt: 'Бәяләү һәм метрикалар' },
+    other: { en: 'Other / misc', ru: 'Прочее', tt: 'Башка / төрле' },
   },
 
   // Shown on a locale whose page coverage is incomplete (fallback content is visible).

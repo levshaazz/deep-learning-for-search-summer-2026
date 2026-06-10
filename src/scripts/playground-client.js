@@ -30,9 +30,11 @@ const figs = {};        // demo id → { setStep, maxStep, ... } (headless verif
 const players = {};     // demo id → transport controller
 
 function mountCard(card) {
+  if (card.dataset.mounted === 'true') return;   // mount ONCE (the observer unobserves after, but guard anyway)
   const id = card.dataset.demo;
   const d = byId[id];
   if (!d) return;
+  card.dataset.mounted = 'true';                 // flips CSS to hide the lazy-mount placeholder
   const host = card.querySelector('.pg-mount');
   const mod = MOUNT[id];
   // pick the manifest-declared export; fall back to the PascalCase rule, then any mount* function.
@@ -101,11 +103,128 @@ function mountCard(card) {
   players[id] = { play, stop, go, get step() { return step; }, maxStep };
 }
 
+// ── LAZY MOUNT ───────────────────────────────────────────────────────────────
+// Scales to 70+ widgets: instead of eagerly mounting every .pg-card on load (the old
+// `forEach(mountCard)` — 36 widgets booting at once), an IntersectionObserver mounts a card's widget
+// only when it nears the viewport (rootMargin 280px), then UNOBSERVES it (mount once). Result: on
+// initial load only the handful of cards in/near view mount; scrolling mounts the rest. A card hidden
+// by the filter (display:none → never intersects) is NEVER mounted; revealing it re-observes so it
+// mounts on the next scroll into view.
+const LAZY = 'IntersectionObserver' in window;
+let observer = null;
+
+function observeCard(card) {
+  if (!LAZY) { mountCard(card); return; }       // no IO support → eager fallback (still correct)
+  if (card.dataset.mounted === 'true' || !observer) return;
+  observer.observe(card);
+}
+
+// Build the IntersectionObserver (mount-once-then-unobserve). Created BEFORE the filter runs so that
+// applyFilter()'s initial pass can observe the visible cards. Hidden cards are never observed here.
+function makeObserver() {
+  if (!LAZY) return;
+  observer = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (!e.isIntersecting) continue;
+      const card = e.target;
+      observer.unobserve(card);                  // mount once, then stop watching this card
+      mountCard(card);
+    }
+  }, { rootMargin: '280px 0px', threshold: 0 });
+}
+
+// ── FILTER / SEARCH TOOLBAR ────────────────────────────────────────────────────
+// Composes a LECTURE facet + a TOPIC facet + free-text search. Show/hide is via the `hidden` attr on
+// each .pg-card (CSS: .pg-card[hidden]{display:none}); empty lecture-groups collapse too. Filtering
+// composes with lazy mount: a card hidden by the filter stays unmounted; one revealed by clearing a
+// filter is re-observed so it mounts when scrolled into view. "showing N of M" + clear-filters update
+// live. The active filter state lives here (the chips toggle it).
+function initFilter() {
+  const toolbar = document.querySelector('.pg-toolbar');
+  if (!toolbar) return;
+  const cards = [...document.querySelectorAll('.pg-card')];
+  const groups = [...document.querySelectorAll('.pg-group')];
+  const searchEl = document.getElementById('pg-search');
+  const showingEl = document.querySelector('.pg-showing');
+  const clearBtn = document.getElementById('pg-clear');
+  const emptyEl = document.getElementById('pg-empty');
+  const showingTpl = showingEl ? (showingEl.dataset.tpl || '{n}/{m}') : '{n}/{m}';
+  const total = showingEl ? Number(showingEl.dataset.total) || cards.length : cards.length;
+
+  const state = { lecture: '', topic: '', q: '' };
+
+  const matches = (card) => {
+    if (state.lecture && card.dataset.lecture !== state.lecture) return false;
+    if (state.topic && card.dataset.topic !== state.topic) return false;
+    if (state.q && !(card.dataset.search || '').includes(state.q)) return false;
+    return true;
+  };
+
+  function applyFilter() {
+    let shown = 0;
+    for (const card of cards) {
+      const ok = matches(card);
+      card.hidden = !ok;
+      if (ok) {
+        shown++;
+        // revealed + not yet mounted → re-observe so it lazy-mounts when scrolled into view.
+        if (card.dataset.mounted !== 'true') observeCard(card);
+      }
+    }
+    // Collapse a lecture-group whose cards are all hidden (keeps the headings tidy).
+    for (const g of groups) {
+      const any = [...g.querySelectorAll('.pg-card')].some((c) => !c.hidden);
+      g.hidden = !any;
+    }
+    if (showingEl) showingEl.textContent = showingTpl.replace('{n}', String(shown)).replace('{m}', String(total));
+    if (emptyEl) emptyEl.hidden = shown !== 0;
+    const dirty = !!(state.lecture || state.topic || state.q);
+    if (clearBtn) clearBtn.hidden = !dirty;
+  }
+
+  // Chip toggles (single-select per facet; clicking the active chip / "All" resets that facet).
+  toolbar.querySelectorAll('.pg-chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const facet = chip.dataset.facet;            // 'lecture' | 'topic'
+      const val = chip.dataset.val || '';
+      state[facet] = val;
+      // reflect pressed state across this facet's chips
+      toolbar.querySelectorAll(`.pg-chip[data-facet="${facet}"]`).forEach((c) => {
+        const on = (c.dataset.val || '') === val;
+        c.classList.toggle('is-on', on);
+        c.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      applyFilter();
+    });
+  });
+
+  if (searchEl) searchEl.addEventListener('input', () => {
+    state.q = searchEl.value.trim().toLowerCase();
+    applyFilter();
+  });
+
+  if (clearBtn) clearBtn.addEventListener('click', () => {
+    state.lecture = ''; state.topic = ''; state.q = '';
+    if (searchEl) searchEl.value = '';
+    toolbar.querySelectorAll('.pg-chip').forEach((c) => {
+      const on = (c.dataset.val || '') === '';
+      c.classList.toggle('is-on', on);
+      c.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    applyFilter();
+    if (searchEl) searchEl.focus();
+  });
+
+  applyFilter();   // initial pass (no-op for the "all" default, but sets showing N of M + clear state)
+}
+
 function init() {
-  document.querySelectorAll('.pg-card').forEach(mountCard);
+  makeObserver();  // create the IO first so the filter's initial pass can observe visible cards
+  initFilter();    // sets initial visibility AND observes each visible (non-filtered) card for lazy mount
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
 
 window.__figs = figs;       // mirror the Book's headless hook (manual probe / verification)
 window.__players = players; // transport controllers, for headless verification
+window.__mountCard = mountCard; // headless: force-mount a specific card to test the transport

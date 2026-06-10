@@ -1,17 +1,23 @@
-// playground.js — build-time grouping for the interactive Playground (/[lang]/playground).
+// playground.js — build-time grouping + taxonomy for the interactive Playground (/[lang]/playground).
 //
 // DATA-DRIVEN: the Playground does NOT hardcode a widget list. It reuses WIDGET_META + DATA from
 // widgets.js (which auto-globs `widgets/*/manifest.json` + `data/*.json` at build time), so dropping
 // a new `widgets/<id>/` folder makes the demo appear automatically — ZERO edits here. This module
-// only adds (a) a lecture/topic grouping for the cards, and (b) the per-widget data payload the page
-// injects (the same { data, labels } the Book mounts with).
+// only adds (a) a LECTURE grouping and a TOPIC taxonomy for the cards (BOTH dimensions stay live so
+// the page + client can facet on either), and (b) the per-widget data payload the page injects
+// (the same { data, labels } the Book mounts with).
 //
-// GROUPING: widgets carry no explicit `lecture` field, but their referenced data files are named
-// `l<N>-*` (e.g. `l3-bm25`, `l6-attention`). We derive the lecture from that prefix. Two widgets have
-// no data file (course-map = the L0 spine, transformer-block = an L6 schematic); a tiny override map
-// places them. Any FUTURE widget whose data is `l<N>-…` (e.g. a `tokenizer-compare` → `l2-…`) lands
-// in its lecture group with no edit; one with novel/no data falls into an "Extras" group so it is
-// never dropped.
+// LECTURE GROUPING: widgets carry no explicit `lecture` field, but their referenced data files are
+// named `l<N>-*` (e.g. `l3-bm25`, `l6-attention`). We derive the lecture from that prefix. Two
+// widgets have no data file (course-map = the L0 spine, transformer-block = an L6 schematic); a tiny
+// override map places them. Any FUTURE widget whose data is `l<N>-…` (e.g. a `tokenizer-compare` →
+// `l2-…`) lands in its lecture group with no edit; one with novel/no data falls into an "Extras"
+// group so it is never dropped.
+//
+// TOPIC TAXONOMY: ~7 trilingual CONCEPT topics cut ACROSS lectures (e.g. embeddings span L02 + L05).
+// Every known widget id maps to ONE primary topic via TOPIC_OF. A widget with NO assigned topic
+// falls into the resilient "other" bucket (never dropped). A FUTURE widget auto-appears in the grid
+// (it's enumerated from the registry) under "other"; classify it by adding ONE line to TOPIC_OF.
 
 import { WIDGET_META, DATA } from './widgets.js';
 
@@ -43,6 +49,80 @@ export const GROUPS = [
 ];
 const EXTRAS = { id: 'extras', title: { en: 'More demos', ru: 'Другие демо', tt: 'Башка демолар' } };
 
+// ── TOPIC TAXONOMY (the concept dimension) ──────────────────────────────────
+// ~7 trilingual concept topics. `id` is the stable facet key (used in data-topic + chip filtering);
+// `title` is the trilingual label (also exposed to the i18n-coverage gate via ui.js mirrors). Order
+// here is the chip display order. "other" is the resilient catch-all and is appended last by code.
+export const TOPICS = [
+  { id: 'foundations',  title: { en: 'Foundations & the IR spine', ru: 'Основы и каркас IR', tt: 'Нигезләр һәм IR кылыч сөяге' } },
+  { id: 'tokenization', title: { en: 'Tokenization & text', ru: 'Токенизация и текст', tt: 'Токенлаштыру һәм текст' } },
+  { id: 'retrieval',    title: { en: 'Classical retrieval & ranking', ru: 'Классический поиск и ранжирование', tt: 'Классик эзләү һәм ранжлау' } },
+  { id: 'embeddings',   title: { en: 'Embeddings & geometry', ru: 'Эмбеддинги и геометрия', tt: 'Эмбеддинглар һәм геометрия' } },
+  { id: 'dimred',       title: { en: 'Dimensionality reduction', ru: 'Снижение размерности', tt: 'Үлчәмлелекне киметү' } },
+  { id: 'transformers', title: { en: 'Attention & Transformers', ru: 'Внимание и трансформеры', tt: 'Игътибар һәм трансформерлар' } },
+  { id: 'evaluation',   title: { en: 'Evaluation & metrics', ru: 'Оценивание и метрики', tt: 'Бәяләү һәм метрикалар' } },
+];
+// The resilient catch-all: any widget id NOT in TOPIC_OF (incl. every future widget) lands here, so
+// no demo is ever dropped from the grid or the topic facet.
+export const OTHER_TOPIC = { id: 'other', title: { en: 'Other / misc', ru: 'Прочее', tt: 'Башка / төрле' } };
+
+// id → primary topic. Classified by reading each widget's title/data (see header). Adding a NEW
+// widget needs only ONE line here to classify it; omit the line and it auto-buckets into "other".
+const TOPIC_OF = {
+  // Foundations & the IR spine
+  'course-map': 'foundations',
+  'retrieve-rank-funnel': 'foundations',
+  'pos-bias-curve': 'foundations',
+  // Tokenization & text
+  'bpe-merge-ledger': 'tokenization',
+  'bpe-steps': 'tokenization',
+  'tokenizer-compare': 'tokenization',
+  'zipf-heaps': 'tokenization',
+  // Classical retrieval & ranking
+  'bm25-calc': 'retrieval',
+  'inverted-index': 'retrieval',
+  'pagerank-power': 'retrieval',
+  'postings-compression': 'retrieval',
+  'rrf-fusion': 'retrieval',
+  // Embeddings & geometry
+  'cosine-compute': 'embeddings',
+  'cosine-sphere': 'embeddings',
+  'embedding-space': 'embeddings',
+  'embedding-domains': 'embeddings',
+  'glove-cooccur': 'embeddings',
+  'skipgram-net': 'embeddings',
+  'contrastive-space': 'embeddings',
+  // Dimensionality reduction
+  'highd-histogram': 'dimred',
+  'dimred-projection': 'dimred',
+  'pca-rotate': 'dimred',
+  'tsne-migrate': 'dimred',
+  'tsne-steps': 'dimred',
+  // Attention & Transformers
+  'attention-e2e': 'transformers',
+  'attention-geometry': 'transformers',
+  'block-geometry': 'transformers',
+  'layernorm-viz': 'transformers',
+  'positional-enc': 'transformers',
+  'residual-stream': 'transformers',
+  'transformer-block': 'transformers',
+  // Evaluation & metrics
+  'ab-test': 'evaluation',
+  'ndcg-graded': 'evaluation',
+  'ndcg-multiquery': 'evaluation',
+  'ranking-metrics': 'evaluation',
+  'significance-test': 'evaluation',
+};
+
+// Resolve a widget's primary topic id; unknown → 'other' (resilient catch-all, never dropped).
+function topicOf(id) {
+  return TOPIC_OF[id] || OTHER_TOPIC.id;
+}
+
+// The full topic list in display order, with the catch-all appended. The page renders chips from
+// this; topics with zero demos are filtered out at render time (see topicFacets).
+export const TOPIC_LIST = [...TOPICS, OTHER_TOPIC];
+
 // Merge every data file a manifest references into one object (first-listed key wins on a collision —
 // mirrors the Book, which injects the primary data file per beat). Empty `data` → {} (the widget
 // supplies its own defaults, e.g. transformer-block / course-map).
@@ -61,13 +141,15 @@ function mergeData(manifest) {
 const pascalMount = (id) => 'mount' + id.split('-').map((s) => s[0].toUpperCase() + s.slice(1)).join('');
 
 // Build the full list of demos from the auto-registered widget metadata. Each entry carries
-// everything the page needs to render a card + the client payload to mount the widget.
+// everything the page needs to render a card + the client payload to mount the widget. BOTH facet
+// dimensions (lecture + topic) are attached so the toolbar can filter on either.
 export function buildDemos() {
   const demos = Object.entries(WIDGET_META).map(([id, { manifest, i18n }]) => ({
     id,
     title: manifest.title || { en: id },
     maxStep: typeof manifest.maxStep === 'number' ? manifest.maxStep : 0,
     lecture: lectureOf(id, manifest),
+    topic: topicOf(id),
     mountName: manifest['export'] || pascalMount(id),
     data: mergeData(manifest),
     i18n: i18n || {},          // flat { key: {en,ru,tt} } map — resolved per-lang on the page
@@ -90,4 +172,27 @@ export function groupDemos(demos) {
     .filter((g) => byLec.has(g.id))
     .map((g) => ({ ...g, items: byLec.get(g.id) }));
   return ordered;
+}
+
+// The LECTURE facets actually present (for chip rendering): the GROUPS/EXTRAS entries that have at
+// least one demo, with a count. Mirrors groupDemos' bucketing so chips and groups stay in sync.
+export function lectureFacets(demos) {
+  const count = new Map();
+  for (const d of demos) {
+    const key = GROUPS.some((g) => g.id === d.lecture) ? d.lecture : 'extras';
+    count.set(key, (count.get(key) || 0) + 1);
+  }
+  return [...GROUPS, EXTRAS]
+    .filter((g) => count.has(g.id))
+    .map((g) => ({ id: g.id, title: g.title, count: count.get(g.id) }));
+}
+
+// The TOPIC facets actually present (for chip rendering): the TOPIC_LIST entries that have at least
+// one demo, with a count. Empty topics are dropped; "other" only appears if something landed there.
+export function topicFacets(demos) {
+  const count = new Map();
+  for (const d of demos) count.set(d.topic, (count.get(d.topic) || 0) + 1);
+  return TOPIC_LIST
+    .filter((t) => count.has(t.id))
+    .map((t) => ({ id: t.id, title: t.title, count: count.get(t.id) }));
 }
