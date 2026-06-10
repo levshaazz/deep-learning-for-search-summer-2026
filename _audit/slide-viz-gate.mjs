@@ -50,8 +50,7 @@
    detectors stay LENIENT by default (--strict makes their HARD findings fail too).
    ========================================================= */
 import { chromium } from 'playwright';
-import { HARDENED } from './lib/gate-harness.mjs';
-import { createServer } from 'node:http';
+import { HARDENED, serveDir } from './lib/gate-harness.mjs';
 import { readFile, stat, mkdir, writeFile } from 'node:fs/promises';
 import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
 import { join, extname, normalize, dirname } from 'node:path';
@@ -61,8 +60,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const LECT = join(ROOT, 'Lectures');
 const DOCS = join(ROOT, 'docs');
 const BASE = '/deep-learning-for-search-summer-2026';
-const DECK_PORT = 8151;
-const BOOK_PORT = 8152;
+// Free-port static servers (gate-harness serveDir → no hardcoded-port collision); set in main().
+let dsrv = null, bsrv = null;
 const MIME = { '.html':'text/html','.css':'text/css','.js':'text/javascript','.mjs':'text/javascript',
   '.json':'application/json','.woff2':'font/woff2','.woff':'font/woff','.svg':'image/svg+xml',
   '.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.map':'application/json' };
@@ -171,32 +170,10 @@ const BOOK_TARGETS = [
 ];
 
 // ───────────────────────── static servers ─────────────────────────
-function deckServer() {
-  const s = createServer(async (rq, rs) => {
-    try { let p = decodeURIComponent(rq.url.split('?')[0]); p = normalize(join(LECT, p));
-      if (!p.startsWith(LECT)) { rs.writeHead(403).end(); return; }
-      const st = await stat(p).catch(() => null);
-      if (!st || st.isDirectory()) { rs.writeHead(404).end(); return; }
-      rs.writeHead(200, { 'content-type': MIME[extname(p)] || 'application/octet-stream' });
-      rs.end(await readFile(p));
-    } catch { rs.writeHead(500).end(); }
-  });
-  return new Promise(r => s.listen(DECK_PORT, () => r(s)));
-}
-function bookServer() {
-  const s = createServer((req, res) => {
-    let p = decodeURIComponent(req.url.split('?')[0]);
-    if (p.startsWith(BASE)) p = p.slice(BASE.length);
-    let file = join(DOCS, p);
-    if (existsSync(file) && statSync(file).isDirectory()) file = join(file, 'index.html');
-    if (!existsSync(file)) { res.statusCode = 404; res.end('404'); return; }
-    res.setHeader('Content-Type', MIME[extname(file)] || 'application/octet-stream');
-    res.end(readFileSync(file));
-  });
-  return new Promise(r => s.listen(BOOK_PORT, () => r(s)));
-}
-const deckUrl = f => `http://localhost:${DECK_PORT}/${encodeURIComponent(f)}`;
-const bookUrl = (ch, lang = 'en') => `http://localhost:${BOOK_PORT}${BASE}/${lang}/book/${ch}/`;
+// Static servers are the shared gate-harness serveDir() (free port, path-traversal guard,
+// MIME, dir→index.html, and base-prefix stripping — exactly what the two inline servers did).
+const deckUrl = (f) => dsrv.href(f);
+const bookUrl = (ch, lang = 'en') => bsrv.href(`${lang}/book/${ch}/`);
 
 /* =========================================================================
    capture(root): the IN-PAGE scene-capture, shared by deck slides and widgets.
@@ -1337,10 +1314,9 @@ async function main() {
   const origNewContext = browser.newContext.bind(browser);
   browser.newContext = async (...a) => { const c = await origNewContext(...a); await c.addInitScript(injectCapture); return c; };
 
-  const dsrv = await deckServer();
-  let bsrv = null;
+  dsrv = await serveDir(LECT);
   const bookBuilt = existsSync(join(DOCS, 'en', 'book', '05', 'index.html'));
-  if (bookBuilt) bsrv = await bookServer();
+  if (bookBuilt) bsrv = await serveDir(DOCS, { base: BASE });
 
   console.log('slide-viz-gate — scanning L5/L6 stepped targets (deck slides + book widgets), both themes.');
   console.log(`thresholds: step0-cover≥${TH.STEP0_COVER}, IoU≥${TH.IOU_OVERLAP}, ΔE<${TH.DELTA_E_MIN}, void-lum<${TH.VOID_LUM}\n`);
@@ -1425,7 +1401,7 @@ async function main() {
   const jsonIdx = argv.indexOf('--json');
   if (jsonIdx >= 0 && argv[jsonIdx + 1]) await writeFile(argv[jsonIdx + 1], JSON.stringify(results, null, 2));
 
-  await browser.close(); dsrv.close(); if (bsrv) bsrv.close();
+  await browser.close(); await dsrv.close(); if (bsrv) await bsrv.close();
   console.log(`\n[slide-viz-gate] HARD(stepprog/overlap/overprint/oob/colorcollision/double-paint/contract)=${totalHard}  WARN(color/void/lowhue/borderline-overprint/contract)=${totalWarn}`);
   console.log(`[slide-viz-gate] color-contract: OFF-TOKEN+OFF-CONTRACT literals found = ${contract.defects.length} (HARD=${cHard} WARN=${cWarn}) [HARD — both sub-checks fail the build; decks are token-clean]`);
   // The CONTRACT sub-check is now a HARD build gate: a contract HARD defect (off-token / off-contract
