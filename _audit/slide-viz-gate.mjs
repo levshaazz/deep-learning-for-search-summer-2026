@@ -536,13 +536,20 @@ function extractPaintLiterals(src, kind /* 'html' | 'css' */) {
   return out;
 }
 
-// Files the contract scan covers: the L5/L6 deck HTML (inline SVG figures) + EVERY widget's
+// Files the contract scan covers: EVERY deck HTML (inline SVG figures) + EVERY widget's
 // style.css and logic.js (the figure paint). Returns a list of {rel, kind, abs}.
+// The deck set is AUTO-DISCOVERED (glob Lectures/NN-*.html) rather than the old hardcoded
+// L5/L6 pair, so the off-token / off-contract literal contract is enforced across ALL 7 decks
+// (L0–L4 were token-cleaned to match — their title/logo bundler-thumbnail fills now paint with
+// var(--accent|--ink|--ink-3|--bg|--accent-soft, #fallback)). Adding L7 needs ZERO edit here.
 function contractScanFiles(rootDir) {
   const files = [];
-  for (const f of ['05-dl-embeddings-dimred.html', '06-contextual-attention-transformers.html']) {
-    const abs = join(rootDir, 'Lectures', f);
-    if (existsSync(abs)) files.push({ rel: 'Lectures/' + f, kind: 'html', abs });
+  const lectDir = join(rootDir, 'Lectures');
+  if (existsSync(lectDir)) {
+    for (const f of readdirSync(lectDir).filter(n => /^[0-9][0-9]-.*\.html$/.test(n)).sort()) {
+      const abs = join(lectDir, f);
+      if (existsSync(abs)) files.push({ rel: 'Lectures/' + f, kind: 'html', abs });
+    }
   }
   const wdir = join(rootDir, 'widgets');
   if (existsSync(wdir)) {
