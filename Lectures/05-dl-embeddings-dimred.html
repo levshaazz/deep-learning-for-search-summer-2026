@@ -460,39 +460,266 @@
         </section>
 
         <!-- ============================================ 18 · E2E · one training step ============================================ -->
-        <section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="16 One training step">
+        <section class="slide w2v-slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="16 One training step">
+          <style>
+            /* scoped. LEFT = a big live 2-D map that SWAPS per data-arch-step through the REAL
+               training trajectory (random init → epoch 2/5/10 → converged), data/l5-word2vec-train.json.
+               RIGHT = the worked SGNS step (e2e-step swap). Every changing SVG <text> carries
+               stroke:none so the global is-arch-current accent-stroke can never double-paint it;
+               bold callouts are HTML overlays with #fff halos. All hues are var(--token). */
+            .w2v-slide .w2v-grid { display: grid; grid-template-columns: 1.32fr 1fr; gap: var(--sp-5); align-items: stretch; }
+            .w2v-slide .w2v-vizcol { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
+            .w2v-slide .w2v-stage { position: relative; width: 100%; aspect-ratio: 1060 / 660; max-height: 60vh; }
+            .w2v-slide .w2v-stage svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+            .w2v-slide svg [data-arch-step] { display: none; }
+            .w2v-slide svg [data-arch-step].is-arch-current { display: block; }
+            /* neutralise the global accent-stroke highlight so per-step SVG text never garbles */
+            .w2v-slide svg [data-arch-step], .w2v-slide svg [data-arch-step].is-arch-current { stroke: none; }
+            .w2v-slide .w2v-stage text { stroke: none !important; }
+            /* HTML status badge over the map, SWAP per step */
+            .w2v-slide .w2v-badge { position: absolute; top: 2.5%; right: 2.5%; font-family: var(--font-sans); font-weight: 700; font-size: 21px; padding: 4px 13px; border-radius: 999px; background: var(--bg-card); border: 1.5px solid var(--rule); pointer-events: none; }
+            .w2v-slide .w2v-badge[data-arch-step] { display: none; }
+            .w2v-slide .w2v-badge[data-arch-step].is-arch-current { display: block; }
+            /* the arch ribbon + worked-step math panel */
+            .w2v-slide .e2e-arch { margin-bottom: var(--sp-3); }
+            .w2v-slide .w2v-math { align-self: stretch; border-left: 3px solid var(--rule); padding-left: var(--sp-4); display: flex; flex-direction: column; }
+            .w2v-slide .w2v-math-head { font-family: var(--font-mono); font-size: 14px; text-transform: uppercase; letter-spacing: 0.13em; color: var(--accent-ink); margin: 0 0 var(--sp-2); }
+            .w2v-slide .e2e-step { display: none; }
+            .w2v-slide .e2e-step.is-current { display: block; animation: w2vIn var(--dur,.4s) var(--ease,ease) both; }
+            .w2v-slide .e2e-step .step-formula { font-size: 21px; margin: 0 0 var(--sp-2); }
+            .w2v-slide .e2e-step .step-caption { font-size: 16px; line-height: 1.42; color: var(--ink-2); margin: 0 0 var(--sp-2); }
+            /* SGNS chip table: positive (pull) vs negatives (push) */
+            .w2v-slide .sgns-tab { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 14.5px; margin: var(--sp-2) 0; }
+            .w2v-slide .sgns-tab th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); text-align: right; padding: 2px 7px; font-weight: 600; }
+            .w2v-slide .sgns-tab th:first-child { text-align: left; }
+            .w2v-slide .sgns-tab td { padding: 2.5px 7px; text-align: right; color: var(--ink-2); border-top: 1px solid var(--rule); }
+            .w2v-slide .sgns-tab td:first-child { text-align: left; color: var(--ink); }
+            .w2v-slide .sgns-tab tr.is-pos td { background: var(--c-green-soft, var(--accent-soft)); color: var(--ink); }
+            .w2v-slide .sgns-tab tr.is-pos td:first-child { color: var(--c-green); font-weight: 700; }
+            .w2v-slide .sgns-pull { color: var(--c-green); font-weight: 700; }
+            .w2v-slide .sgns-push { color: var(--c-red); font-weight: 700; }
+            .w2v-slide .w2v-upd { font-size: 16px; line-height: 1.4; }
+            .w2v-slide .w2v-upd .num { font-family: var(--font-mono); }
+            @keyframes w2vIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+            @media (prefers-reduced-motion: reduce) { .w2v-slide .e2e-step.is-current { animation: none; } }
+          </style>
           <div class="slide-header">
-            <h2><span lang="ru">Один шаг обучения, целиком</span><span lang="en">One training step, end to end</span></h2>
-            <span class="slide-kicker">E2E &middot; <span lang="ru">центр <code>cat</code>, окно \(m=2\)</span><span lang="en">centre <code>cat</code>, window \(m=2\)</span></span>
+            <h2><span lang="ru">Один шаг обучения: от случайной инициализации к карте</span><span lang="en">One training step: from random init to the map</span></h2>
+            <span class="slide-kicker">SGNS &middot; <span lang="ru">центр <code>king</code> · контекст <code>loves</code> · 6 негативов · 2-D, seed 7</span><span lang="en">centre <code>king</code> · context <code>loves</code> · 6 negatives · 2-D, seed 7</span></span>
           </div>
           <div class="e2e-arch">
-            <div class="e2e-arch-block" data-role="project" data-step-range="0" data-tooltip="Pick a centre word and its window."><div class="arch-name">window</div><div class="arch-shape"><span lang="ru">центр+контекст</span><span lang="en">centre+ctx</span></div></div>
+            <div class="e2e-arch-block" data-role="project" data-step-range="0" data-tooltip="Seeded random 2-D vectors; pick a centre+context pair."><div class="arch-name"><span lang="ru">старт</span><span lang="en">init</span></div><div class="arch-shape"><span lang="ru">случайн. 2-D</span><span lang="en">random 2-D</span></div></div>
             <div class="e2e-arch-arrow" data-step-range="0..1"></div>
-            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="1" data-tooltip="Score the true pair and sample negatives."><div class="arch-name">score</div><div class="arch-shape">\(u^{\top} v\)</div></div>
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="1" data-tooltip="Score the true pair + sample 6 negatives."><div class="arch-name">score</div><div class="arch-shape">\(\sigma(u^{\top} v)\)</div></div>
             <div class="e2e-arch-arrow" data-step-range="1..2"></div>
-            <div class="e2e-arch-block" data-role="reduce" data-step-range="2" data-tooltip="Gradient pulls true together, pushes negatives apart."><div class="arch-name">update</div><div class="arch-shape"><span lang="ru">тяни/толкай</span><span lang="en">pull/push</span></div></div>
-            <div class="e2e-arch-legend"><span class="leg" data-role="project"><span lang="ru">данные</span><span lang="en">data</span></span><span class="leg" data-role="nonlinear"><span lang="ru">скор</span><span lang="en">score</span></span><span class="leg" data-role="reduce"><span lang="ru">шаг</span><span lang="en">step</span></span></div>
+            <div class="e2e-arch-block" data-role="reduce" data-step-range="2" data-tooltip="Gradient pulls true together, pushes the 6 negatives apart."><div class="arch-name">update</div><div class="arch-shape"><span lang="ru">тяни/толкай</span><span lang="en">pull/push</span></div></div>
+            <div class="e2e-arch-arrow" data-step-range="2..3"></div>
+            <div class="e2e-arch-block" data-role="score" data-step-range="3" data-tooltip="Repeat over 248 pairs × 150 epochs."><div class="arch-name"><span lang="ru">обучение</span><span lang="en">train</span></div><div class="arch-shape">\(\times\,150\)</div></div>
+            <div class="e2e-arch-arrow" data-step-range="3..4"></div>
+            <div class="e2e-arch-block" data-role="output" data-step-range="4" data-tooltip="Related words cluster; loss 4.85 → 2.63."><div class="arch-name"><span lang="ru">карта</span><span lang="en">map</span></div><div class="arch-shape"><span lang="ru">кластеры</span><span lang="en">clusters</span></div></div>
           </div>
-          <div class="e2e-twin">
-            <div class="e2e-panel e2e-math-panel">
-              <div class="panel-head"><span lang="ru">Правило</span><span lang="en">Rule applied</span></div>
-              <div class="e2e-step" data-step="0"><div class="step-formula">$$\text{centre } w=\texttt{cat},\quad c^{+}=\texttt{dog}$$</div><p class="step-caption"><span lang="ru">Истинная пара из окна: <code>cat</code> и сосед <code>dog</code>.</span><span lang="en">A true pair from the window: <code>cat</code> and neighbour <code>dog</code>.</span></p></div>
-              <div class="e2e-step" data-step="1"><div class="step-formula">$$\sigma\!\big(u_{\texttt{dog}}^{\top} v_{\texttt{cat}}\big),\quad \sigma\!\big(u_{c_i}^{\top} v_{\texttt{cat}}\big)$$</div><p class="step-caption"><span lang="ru">Скорим истинную пару и \(k\) случайных негативов (например <code>airplane</code>).</span><span lang="en">Score the true pair and \(k\) random negatives (e.g. <code>airplane</code>).</span></p></div>
-              <div class="e2e-step" data-step="2"><div class="step-formula">$$v_{\texttt{cat}} \leftarrow v_{\texttt{cat}} + \eta\,\nabla$$</div><p class="step-caption"><strong><span lang="ru">Тяни</span><span lang="en">Pull</span></strong> <code>cat</code>&harr;<code>dog</code>, <strong><span lang="ru">толкай</span><span lang="en">push</span></strong> <code>cat</code>&harr;<code>airplane</code>.</p></div>
+          <div class="w2v-grid">
+            <div class="w2v-vizcol">
+              <div class="w2v-stage">
+                <svg viewBox="0 0 1060 700" preserveAspectRatio="xMidYMid meet" role="img" aria-label="The seeded random 2-D word vectors are stepped through training: at random init the cloud is tiny and mixed; by the converged epoch 150 frame, king-queen-prince, man-woman and cat-dog-kitten-puppy have drifted into separate clusters, loss 4.85 to 2.63">
+                  <g font-family="var(--font-sans)">
+                    <rect x="40" y="44" width="980" height="612" rx="10" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
+                    <line x1="530" y1="44" x2="530" y2="656" stroke="var(--rule)" stroke-width="1" stroke-dasharray="3 6" opacity="0.6"/>
+                    <line x1="40" y1="350" x2="1020" y2="350" stroke="var(--rule)" stroke-width="1" stroke-dasharray="3 6" opacity="0.6"/>
+                    <!-- title per step (static text, stroke:none) -->
+                    <g data-arch-step="0"><g id="w2v-f0"></g></g>
+                    <g data-arch-step="1"><g id="w2v-f1"></g></g>
+                    <g data-arch-step="2"><g id="w2v-f2"></g></g>
+                    <g data-arch-step="3"><g id="w2v-f3"></g></g>
+                    <g data-arch-step="4"><g id="w2v-f4"></g></g>
+                  </g>
+                </svg>
+                <span class="w2v-badge" data-arch-step="0">init · loss 4.85</span>
+                <span class="w2v-badge" data-arch-step="1">score the pair</span>
+                <span class="w2v-badge" data-arch-step="2">one update</span>
+                <span class="w2v-badge" data-arch-step="3">epoch 10 · loss 2.70</span>
+                <span class="w2v-badge" data-arch-step="4" style="color:var(--c-green)">converged · 2.63</span>
+              </div>
+              <!-- loss-drop strip + cluster legend, under the map -->
+              <div class="w2v-stage" style="aspect-ratio:1060/150">
+                <svg viewBox="0 0 1060 150" preserveAspectRatio="xMidYMid meet" role="img" aria-label="The training loss curve over 150 epochs falls from 4.85 to 2.63, a 46 percent drop; the colour legend marks royal, people and animal word groups">
+                  <g font-family="var(--font-sans)">
+                    <text x="8" y="20" font-size="15" fill="var(--ink-3)" font-family="var(--font-mono)">loss</text>
+                    <line x1="60" y1="120" x2="1010" y2="120" stroke="var(--ink-3)" stroke-width="1.3"/>
+                    <line x1="60" y1="20" x2="60" y2="120" stroke="var(--ink-3)" stroke-width="1.3"/>
+                    <text x="54" y="26" font-size="12" fill="var(--ink-3)" text-anchor="end">4.85</text>
+                    <text x="54" y="118" font-size="12" fill="var(--ink-3)" text-anchor="end">2.6</text>
+                    <polyline id="w2v-losscurve" points="" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+                    <circle id="w2v-lossmark" cx="60" cy="20" r="5" fill="var(--c-amber)" stroke="var(--bg-card)" stroke-width="1.5"/>
+                    <text x="1010" y="138" font-size="12" fill="var(--ink-3)" text-anchor="end">epoch 150</text>
+                    <!-- legend -->
+                    <circle cx="640" cy="16" r="6" fill="var(--c-violet)"/><text x="652" y="21" font-size="14" fill="var(--ink-2)">royal</text>
+                    <circle cx="720" cy="16" r="6" fill="var(--c-amber)"/><text x="732" y="21" font-size="14" fill="var(--ink-2)">people</text>
+                    <circle cx="812" cy="16" r="6" fill="var(--c-green)"/><text x="824" y="21" font-size="14" fill="var(--ink-2)">animal</text>
+                    <circle cx="900" cy="16" r="6" fill="var(--ink-3)"/><text x="912" y="21" font-size="14" fill="var(--ink-3)">function</text>
+                  </g>
+                </svg>
+              </div>
             </div>
-            <div class="e2e-panel e2e-example-panel">
-              <div class="panel-head"><span lang="ru">Что происходит с векторами</span><span lang="en">What happens to the vectors</span></div>
-              <div class="e2e-step" data-step="0"><div class="step-calc-row"><span class="matrix-label"><code>&hellip; the cat sat on the mat &hellip;</code></span></div></div>
-              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label"><code>true: cat&middot;dog &uarr; · neg: cat&middot;airplane &darr;</code></span></div></div>
-              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label"><code>cos(cat,dog) grows &middot; cos(cat,airplane) shrinks</code></span></div><p class="step-caption tiny"><span lang="ru">после миллионов окон — геометрия смысла.</span><span lang="en">after millions of windows — a geometry of meaning.</span></p></div>
-            </div>
+            <aside class="w2v-math">
+              <div class="w2v-math-head"><span lang="ru">Механика одного шага SGNS</span><span lang="en">The worked SGNS step</span></div>
+              <!-- step 0 -->
+              <div class="e2e-step" data-step="0">
+                <div class="step-formula">$$v_{\texttt{king}}^{(0)}=(-0.247,\ 0.161)$$</div>
+                <p class="step-caption"><span lang="ru"><strong>Старт со случайной инициализации</strong> (seed 7): 28 слов — крошечное облако вокруг нуля, кластеров нет. Берём реальную пару из окна корпуса: центр <code>king</code>, контекст <code>loves</code>.</span><span lang="en"><strong>Start from random init</strong> (seed 7): 28 words sit as a tiny cloud near the origin, no clusters yet. Take a real pair from a corpus window: centre <code>king</code>, context <code>loves</code>.</span></p>
+                <p class="step-caption"><span lang="ru">Размах разброса \(0.19\), потеря \(4.85\). Жмите <kbd>&rarr;</kbd>, чтобы пройти один шаг и затем всё обучение.</span><span lang="en">Spread \(0.19\), loss \(4.85\). Press <kbd>&rarr;</kbd> to work one step, then run the whole training.</span></p>
+              </div>
+              <!-- step 1: score positive + 6 negatives -->
+              <div class="e2e-step" data-step="1">
+                <div class="step-formula">$$\sigma\!\big(u_{c}^{\top} v_{\texttt{king}}\big),\quad c\in\{\texttt{loves}\}\cup\{6\text{ neg}\}$$</div>
+                <table class="sgns-tab">
+                  <thead><tr><th><span lang="ru">слово</span><span lang="en">word</span></th><th>u·v</th><th>σ</th><th><span lang="ru">градиент</span><span lang="en">grad</span></th></tr></thead>
+                  <tbody>
+                    <tr class="is-pos"><td>loves <span lang="en">(+)</span></td><td>&minus;0.014</td><td>0.497</td><td><span class="sgns-pull">&minus;0.503</span></td></tr>
+                    <tr><td>and</td><td>&minus;0.002</td><td>0.500</td><td><span class="sgns-push">+0.500</span></td></tr>
+                    <tr><td>with</td><td>0.000</td><td>0.500</td><td><span class="sgns-push">+0.500</span></td></tr>
+                    <tr><td>live</td><td>0.087</td><td>0.522</td><td><span class="sgns-push">+0.522</span></td></tr>
+                    <tr><td>prince</td><td>0.028</td><td>0.507</td><td><span class="sgns-push">+0.507</span></td></tr>
+                    <tr><td>man</td><td>&minus;0.020</td><td>0.495</td><td><span class="sgns-push">+0.495</span></td></tr>
+                    <tr><td>woman</td><td>&minus;0.037</td><td>0.491</td><td><span class="sgns-push">+0.491</span></td></tr>
+                  </tbody>
+                </table>
+                <p class="step-caption"><span lang="ru"><span class="sgns-pull">&minus; (тяни)</span> для истинного контекста; <span class="sgns-push">+ (толкай)</span> для 6 случайных негативов из \(p(w)^{0.75}\).</span><span lang="en"><span class="sgns-pull">&minus; (pull together)</span> for the true context; <span class="sgns-push">+ (push apart)</span> for the 6 random negatives drawn from \(p(w)^{0.75}\).</span></p>
+              </div>
+              <!-- step 2: the update -->
+              <div class="e2e-step" data-step="2">
+                <div class="step-formula">$$v_{c}\leftarrow v_{c}-\eta\!\sum(\sigma-\text{label})\,u,\quad \eta=0.12$$</div>
+                <p class="w2v-upd"><span lang="ru">Градиент на центр:</span><span lang="en">Gradient on the centre:</span> \(\nabla=(-0.114,\ 0.056)\)</p>
+                <p class="w2v-upd"><span lang="ru">Шаг:</span><span lang="en">Step:</span> \(-\eta\nabla=(+0.0137,\ -0.0067)\)</p>
+                <p class="w2v-upd">\(v_{\texttt{king}}: (-0.2474,\,0.1606)\to\) <strong>\((-0.2337,\,0.1539)\)</strong></p>
+                <p class="step-caption"><span lang="ru">Положительный логит даёт \(\sigma-1\lt0\) &rArr; <code>king</code> движется <strong>к</strong> <code>loves</code>. Каждый негатив даёт \(\sigma-0\gt0\) &rArr; движение <strong>от</strong> него. Один шаг крошечный — но их 248 пар × 150 эпох.</span><span lang="en">The positive logit gives \(\sigma-1\lt0\) &rArr; <code>king</code> moves <strong>toward</strong> <code>loves</code>. Each negative gives \(\sigma-0\gt0\) &rArr; movement <strong>away</strong>. One step is tiny — but there are 248 pairs × 150 epochs.</span></p>
+              </div>
+              <!-- step 3: run the training -->
+              <div class="e2e-step" data-step="3">
+                <div class="step-formula">$$\text{loss: } 4.85 \to 2.74 \to 2.70 \to \dots$$</div>
+                <p class="step-caption"><span lang="ru"><strong>Запускаем обучение.</strong> Те же тяни/толкай по всем 248 парам, эпоха за эпохой. К эпохе 10 потеря уже \(2.70\); облако раздувается (\(\times 6.3\)) и начинает расслаиваться: <span style="color:var(--c-green)">cat·dog·kitten·puppy</span> уходят от <span style="color:var(--c-violet)">king·queen·prince</span>.</span><span lang="en"><strong>Run the training.</strong> The same pull/push over all 248 pairs, epoch after epoch. By epoch 10 the loss is already \(2.70\); the cloud expands (\(\times 6.3\)) and starts to stratify — <span style="color:var(--c-green)">cat·dog·kitten·puppy</span> peel away from <span style="color:var(--c-violet)">king·queen·prince</span>.</span></p>
+                <p class="step-caption"><span lang="ru">Никакого словаря, никаких меток — только предсказание соседей.</span><span lang="en">No dictionary, no labels — only neighbour prediction.</span></p>
+              </div>
+              <!-- step 4: converged -->
+              <div class="e2e-step" data-step="4">
+                <div class="step-formula">$$\cos(\texttt{king},\texttt{queen}):\ 0.70 \to \mathbf{1.00}$$</div>
+                <p class="step-caption"><span lang="ru"><strong>Сошлось</strong> (эпоха 150, потеря \(2.63\), &minus;46%). Расстояние <code>king</code>&ndash;<code>queen</code> упало \(0.226\to0.061\), <code>cat</code>&ndash;<code>dog</code> \(0.211\to0.045\). Похожие слова — рядом; среднее расст. внутри групп \(0.149\) против \(0.319\) между. Геометрия смысла родилась из одного правила «тяни/толкай».</span><span lang="en"><strong>Converged</strong> (epoch 150, loss \(2.63\), &minus;46%). <code>king</code>&ndash;<code>queen</code> distance fell \(0.226\to0.061\), <code>cat</code>&ndash;<code>dog</code> \(0.211\to0.045\). Related words sit together — mean within-group distance \(0.149\) vs \(0.319\) between. A geometry of meaning, grown from one pull/push rule.</span></p>
+              </div>
+            </aside>
           </div>
           <div class="e2e-stepper">
-            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">&larr;</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 3</span></div><button type="button" class="step-btn" data-step-act="next">&rarr;</button></div>
-            <span class="e2e-stage-name">overview</span>
-            <button type="button" class="e2e-toggle">Theory only</button>
+            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">&larr;</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 4</span></div><button type="button" class="step-btn" data-step-act="next">&rarr;</button></div>
+            <span class="e2e-stage-name">init</span>
           </div>
-          <aside class="slide-notes">Walk one update so the abstraction becomes mechanical. Step zero: pick a centre word, cat, and a real neighbour from its window, dog — that is a positive pair. Step one: compute the sigmoid of the dot product for the true pair, and for k random negatives like airplane. Step two: take a gradient step that raises the true pair's score and lowers the negatives'. Geometrically that pulls cat and dog together and pushes cat and airplane apart. Repeat over millions of windows and the cosine geometry we wanted simply emerges — no dictionary, no labels, just prediction.</aside>
+          <script>
+          (function () {
+            // REAL trajectory from data/l5-word2vec-train.json (seed 7). Frames: random init, epoch 2/5/10
+            // (we plot the random-init at step 0–2, epoch-10 at step 3, converged at step 4) so the SAME
+            // map both anchors the worked step AND shows the full pass. Coords are the raw 2-D embedding.
+            var F = [{"e":0,"l":"random init","loss":4.85119,"p":[["the",0.063,0.199,"s"],["a",0.138,-0.137,"s"],["king",-0.247,0.161,"r"],["loves",0.148,-0.016,"s"],["man",-0.099,-0.111,"p"],["queen",-0.123,-0.028,"r"],["woman",0.002,0.027,"p"],["cat",0.248,0.146,"a"],["dog",0.061,0.244,"a"],["kingdom",-0.002,-0.126,"r"],["kitten",-0.244,-0.154,"a"],["prince",0.005,0.174,"r"],["princess",0.07,0.121,"r"],["puppy",-0.204,0.021,"a"]]},
+                     {"e":10,"l":"epoch 10","loss":2.69546,"p":[["the",-1.599,-0.531,"s"],["a",-1.662,-0.726,"s"],["king",-1.001,1.244,"r"],["loves",-0.942,0.586,"s"],["man",-1.192,1.203,"p"],["queen",-0.968,1.211,"r"],["woman",-0.769,1.123,"p"],["cat",-1.038,1.397,"a"],["dog",-0.959,0.996,"a"],["kingdom",-0.945,0.695,"r"],["kitten",-1.106,0.332,"a"],["prince",-1.27,1.186,"r"],["princess",-1.024,0.55,"r"],["puppy",-0.872,1.006,"a"]]},
+                     {"e":150,"l":"converged","loss":2.62796,"p":[["the",-0.415,0.662,"s"],["a",-1.698,-0.532,"s"],["king",-0.883,0.418,"r"],["loves",-0.754,0.439,"s"],["man",-1.031,0.052,"p"],["queen",-0.822,0.411,"r"],["woman",-1.289,-0.168,"p"],["cat",-0.714,0.551,"a"],["dog",-0.669,0.559,"a"],["kingdom",-0.326,1.452,"r"],["kitten",-0.076,2.813,"a"],["prince",-0.731,0.816,"r"],["princess",-0.384,1.668,"r"],["puppy",-0.451,2.596,"a"]]}];
+            var HUE = {r:'var(--c-violet)', p:'var(--c-amber)', a:'var(--c-green)', s:'var(--ink-3)'};
+            var NS = 'http://www.w3.org/2000/svg';
+            var BX={x:70,y:70,w:920,h:560};
+            // PER-FRAME auto-fit: each frame's cloud fills the box (so the tiny random-init cloud is
+            // legible, not a speck), while the badge/spread numbers carry the literal "spread ×6.3".
+            // The DRIFT (related words pulling together) is read from the changing relative arrangement.
+            function scalerFor(f){
+              var xs=f.p.map(function(p){return p[1];}), ys=f.p.map(function(p){return p[2];});
+              var xmin=Math.min.apply(null,xs),xmax=Math.max.apply(null,xs),ymin=Math.min.apply(null,ys),ymax=Math.max.apply(null,ys);
+              var spanx=(xmax-xmin)||1, spany=(ymax-ymin)||1, pxx=spanx*0.16, pyy=spany*0.16;
+              return { sx:function(x){return BX.x+(x-(xmin-pxx))/((xmax+pxx)-(xmin-pxx))*BX.w;},
+                       sy:function(y){return BX.y+BX.h-(y-(ymin-pyy))/((ymax+pyy)-(ymin-pyy))*BX.h;} };
+            }
+            // which trajectory frame each STEP shows: 0,1,2 → random init; 3 → epoch 10; 4 → converged
+            var STEP2FRAME = [0,0,0,1,2];
+            // draw a frame's dots+labels into a group; highlight king/loves on the worked steps
+            function drawFrame(gid, fIdx, opts){
+              var g=document.getElementById(gid); if(!g) return; var f=F[fIdx];
+              var SC=scalerFor(f);
+              // de-collide labels with a small iterative vertical fan over screen positions
+              var L=f.p.map(function(p){ var cx=SC.sx(p[1]), cy=SC.sy(p[2]);
+                var right=cx<=BX.x+BX.w*0.6; return {w:p[0],c:p[3],cx:cx,cy:cy,lx:cx+(right?11:-11),ly:cy+4,right:right}; });
+              for(var it=0; it<160; it++){ for(var i=0;i<L.length;i++) for(var j=i+1;j<L.length;j++){
+                var a=L[i],b=L[j]; if(Math.abs((a.right?a.lx:a.lx-a.w.length*8)-(b.right?b.lx:b.lx-b.w.length*8))>Math.max(a.w.length,b.w.length)*8) continue;
+                var oy=17-Math.abs(a.ly-b.ly); if(oy>0){ var d=a.ly<=b.ly?-1:1; a.ly+=d*(oy/2+0.4); b.ly-=d*(oy/2+0.4); }
+              }}
+              L.forEach(function(p){ p.ly=Math.max(BX.y+12,Math.min(BX.y+BX.h-4,p.ly)); });
+              f.p.forEach(function(p,i){
+                var l=L[i], hue=HUE[p[3]];
+                var isKing=p[0]==='king', isLoves=p[0]==='loves';
+                var r=(isKing&&opts.markKing)?9:(isLoves&&opts.markKing?8:6);
+                var c=document.createElementNS(NS,'circle');
+                c.setAttribute('cx',l.cx);c.setAttribute('cy',l.cy);c.setAttribute('r',r);c.setAttribute('fill',hue);
+                c.setAttribute('stroke',(isKing&&opts.markKing)?'var(--ink)':'var(--bg-card)');c.setAttribute('stroke-width',(isKing&&opts.markKing)?2.4:1.4);
+                g.appendChild(c);
+                // tiny leader from dot to label if displaced
+                if(Math.abs(l.ly-(l.cy+4))>6){ var ln=document.createElementNS(NS,'line'); ln.setAttribute('x1',l.cx);ln.setAttribute('y1',l.cy);ln.setAttribute('x2',l.lx+(l.right?2:-2));ln.setAttribute('y2',l.ly-3);ln.setAttribute('stroke',hue);ln.setAttribute('stroke-width',0.8);ln.setAttribute('opacity',0.4); g.appendChild(ln); }
+                var t=document.createElementNS(NS,'text');
+                t.setAttribute('x',l.lx);t.setAttribute('y',l.ly);
+                t.setAttribute('font-size',(isKing||isLoves)&&opts.markKing?16:14);
+                t.setAttribute('fill',(isKing||isLoves)&&opts.markKing?'var(--ink)':'var(--ink-2)');
+                t.setAttribute('font-family','var(--font-mono)');
+                t.setAttribute('font-weight',(isKing||isLoves)&&opts.markKing?'700':'400');
+                t.setAttribute('text-anchor',l.right?'start':'end');
+                t.setAttribute('stroke','none');
+                t.textContent=p[0]; g.appendChild(t);
+              });
+              // step 2: draw a pull arrow king→loves (green)
+              if(opts.arrows){
+                var ik=f.p.findIndex(function(p){return p[0]==='king';}), il=f.p.findIndex(function(p){return p[0]==='loves';});
+                if(ik>=0&&il>=0){
+                  var ar=document.createElementNS(NS,'line');
+                  ar.setAttribute('x1',L[ik].cx);ar.setAttribute('y1',L[ik].cy);
+                  ar.setAttribute('x2',L[il].cx);ar.setAttribute('y2',L[il].cy);
+                  ar.setAttribute('stroke','var(--c-green)');ar.setAttribute('stroke-width',3);ar.setAttribute('marker-end','url(#w2v-pull)');
+                  g.appendChild(ar);
+                }
+              }
+            }
+            // marker defs (one set, appended to the svg <defs>)
+            var svg=document.querySelector('.w2v-slide .w2v-stage svg');
+            if(svg){ var defs=document.createElementNS(NS,'defs');
+              var mk=document.createElementNS(NS,'marker'); mk.setAttribute('id','w2v-pull');mk.setAttribute('viewBox','0 0 10 10');mk.setAttribute('refX','8');mk.setAttribute('refY','5');mk.setAttribute('markerWidth','7');mk.setAttribute('markerHeight','7');mk.setAttribute('orient','auto-start-reverse');
+              var pa=document.createElementNS(NS,'path');pa.setAttribute('d','M0,0 L10,5 L0,10 z');pa.setAttribute('fill','var(--c-green)');mk.appendChild(pa);defs.appendChild(mk);svg.insertBefore(defs,svg.firstChild);}
+            // step 0: random init plain; step 1: random init + king/loves highlighted; step 2: + pull arrow
+            drawFrame('w2v-f0', STEP2FRAME[0], {});
+            drawFrame('w2v-f1', STEP2FRAME[1], {markKing:true});
+            drawFrame('w2v-f2', STEP2FRAME[2], {markKing:true, arrows:true});
+            drawFrame('w2v-f3', STEP2FRAME[3], {});
+            drawFrame('w2v-f4', STEP2FRAME[4], {});
+            // loss curve (sampled history) + a step marker
+            var LH=[[0,4.851],[6,2.737],[12,2.682],[24,2.685],[36,2.678],[48,2.734],[60,2.676],[72,2.678],[84,2.688],[96,2.663],[108,2.66],[120,2.658],[132,2.624],[144,2.645],[150,2.628]];
+            var lsx=function(e){return 60+(e/150)*950;};
+            var lmin=2.6,lmax=4.851;
+            var lsy=function(v){return 120-((v-lmin)/(lmax-lmin))*100;};
+            var lc=document.getElementById('w2v-losscurve');
+            if(lc) lc.setAttribute('points', LH.map(function(p){return lsx(p[0]).toFixed(1)+','+lsy(p[1]).toFixed(1);}).join(' '));
+            // move the loss marker with the step (0-2 at epoch 0, 3 at epoch 10, 4 at epoch 150)
+            var mark=document.getElementById('w2v-lossmark');
+            var slide=document.querySelector('.w2v-slide');
+            // The e2e stepper buttons (e2e.js) only dispatch slide:step + repaint .e2e-step; they do NOT
+            // call deck.applyStepVisibility, so we drive the SVG/badge data-arch-step toggle ourselves on
+            // EVERY slide:step (keyboard arrows ALSO route through deck.applyStepVisibility, which is
+            // idempotent with this). This keeps the big map in lock-step with the worked-step panel.
+            function syncArch(){ if(!slide) return; var st=parseInt(slide.dataset.currentStep||'0',10);
+              slide.querySelectorAll('[data-arch-step]').forEach(function(el){
+                var n=parseInt(el.getAttribute('data-arch-step'),10);
+                el.classList.toggle('is-arch-current', n===st);
+                el.classList.toggle('is-arch-past', n<st);
+                el.classList.toggle('is-arch-future', n>st);
+              });
+            }
+            function placeMark(){ if(!mark||!slide) return; var st=parseInt(slide.dataset.currentStep||'0',10);
+              var ep=[0,0,0,10,150][st]||0, lv=[4.851,4.851,4.851,2.695,2.628][st]||4.851;
+              mark.setAttribute('cx',lsx(ep));mark.setAttribute('cy',lsy(lv)); }
+            function onStep(){ syncArch(); placeMark(); }
+            onStep();
+            if(slide){ slide.addEventListener('slide:step', onStep); slide.addEventListener('slide:enter', onStep); }
+          })();
+          </script>
+          <aside class="slide-notes">One training step, started from random initialisation and led all the way through to a converged map, using the real word2vec trajectory from the L5 data file. Step zero: the twenty-eight words begin as a seeded random two-D cloud near the origin — king sits at minus point two four seven, point one six one, with no structure, spread point one nine, loss four point eight five. We take a real corpus pair: centre king, context loves. Step one scores that true pair and six random negatives drawn from the unigram distribution to the power nought point seven five — the sigmoids hover near a half because the vectors are still random, and the gradient on the logit is minus point five oh three for the positive, plus roughly a half for every negative. Step two performs the actual update: the gradient on king's vector is minus point one one four, plus point zero five six; with learning rate point one two the step is plus point zero one three seven, minus point zero zero six seven, nudging king from minus point two four seven four, point one six oh six to minus point two three three seven, point one five three nine — toward loves, away from the negatives. Step three runs that same pull-push over all two hundred and forty-eight pairs for a hundred and fifty epochs: by epoch ten the loss is already two point seven, the cloud has expanded six-fold, and the animal words begin peeling away from the royal words. Step four is the converged map at epoch one fifty, loss two point six three, a forty-six percent drop: king and queen have collapsed from distance point two two six to point zero six, cat and dog from point two one to point zero four five, related words sitting together — a geometry of meaning grown from one rule, no dictionary, no labels.</aside>
         </section>
 
         <!-- ============================================ 17 · ARCHFLOW · the skip-gram network (ported from widgets/skipgram-net) ============================================ -->
@@ -892,7 +1119,7 @@
              data/l5-glove.json. Geometry that CHANGES across a step swaps via [data-arch-step]; layers
              that ADD stay via [data-step]. All dynamic labels are HTML overlays (never SVG <text>) to
              avoid the double-paint the instructor flagged. -->
-        <section class="slide gco-slide" data-type="viz" data-max-step="2" data-current-step="0" data-screen-label="30 GloVe co-occurrence">
+        <section class="slide gco-slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="30 GloVe co-occurrence">
           <style>
             /* scoped to this slide. Progressive (cumulative) reveal: each panel shows once its
                step is reached and STAYS — step 0 is the corpus alone (a meaningful START), step 1
@@ -901,6 +1128,12 @@
                :not(.is-step-hidden) = steps 0..current = a cumulative reveal (display, not dim). */
             .gco-slide [data-step] { display: none; }
             .gco-slide [data-step]:not(.is-step-hidden) { display: block; }
+            /* step 3 = the optimisation. It needs the full stage, so at step 3 the matrix (data-step 1)
+               and the f(x) curve (data-step 2) SWAP OUT and the trajectory takes the stage — no overprint.
+               (step 0/1/2 keep the cumulative reveal; only step 3 swaps the prior SVG groups away.) */
+            .gco-slide[data-current-step="3"] svg g[data-step="1"],
+            .gco-slide[data-current-step="3"] svg g[data-step="2"] { display: none; }
+            /* the optimisation runs from random init → converged: the step-3 caption notes the loss drop */
             .gco-slide .gco-layout { display: grid; grid-template-columns: 0.92fr 1.45fr; gap: var(--sp-5); align-items: stretch; }
             .gco-slide .gco-stage { position: relative; width: 100%; aspect-ratio: 1180 / 560; }
             .gco-slide .gco-stage svg { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -930,8 +1163,8 @@
             @media (prefers-reduced-motion: reduce) { .gco-slide .gco-cap { animation: none !important; } }
           </style>
           <div class="slide-header">
-            <h2><span lang="ru">GloVe-архитектура: корпус &rarr; матрица X &rarr; вес f(x)</span><span lang="en">GloVe architecture: corpus &rarr; matrix X &rarr; weight f(x)</span></h2>
-            <span class="slide-kicker"><span lang="ru">скользящее окно · 8 строк · 14 слов</span><span lang="en">sliding window · 8 lines · 14 words</span></span>
+            <h2><span lang="ru">GloVe: корпус &rarr; матрица X &rarr; f(x) &rarr; оптимизация из случайного старта</span><span lang="en">GloVe: corpus &rarr; matrix X &rarr; f(x) &rarr; optimise from random init</span></h2>
+            <span class="slide-kicker"><span lang="ru">скользящее окно · 8 строк · 14 слов · потеря 18.04&rarr;0.005</span><span lang="en">sliding window · 8 lines · 14 words · loss 18.04&rarr;0.005</span></span>
           </div>
           <div class="gco-layout">
             <!-- LEFT: the mini-corpus (HTML, always on) + the f(x) note that appears at step 2 -->
@@ -1044,6 +1277,30 @@
                       <text x="700" y="498" font-size="16" fill="var(--ink-2)">frequent (x=6): <tspan fill="var(--accent-ink)" font-weight="600">f=0.682</tspan></text>
                       <text x="700" y="526" font-size="16" fill="var(--ink-2)">past x_max: weight is frozen at 1</text>
                     </g>
+                    <!-- ── STEP 3: optimise from RANDOM INIT → converged. The scatter (left) animates the
+                         AdaGrad fit (data/l5-glove.json → trajectory.frames, projected through the final
+                         PCA-2 basis so it is one coordinate frame); the loss inset (right) plots
+                         18.04 → 0.005. Title text is plain (stroke:none) — no double-paint. ── -->
+                    <g data-step="3">
+                      <text x="40" y="32" font-size="22" fill="var(--ink)" font-weight="600"><tspan>optimise </tspan><tspan font-style="italic">W,W&#771;,b</tspan><tspan> from RANDOM init &rarr; the map collapses out</tspan></text>
+                      <rect x="40" y="56" width="700" height="468" rx="10" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
+                      <line x1="390" y1="56" x2="390" y2="524" stroke="var(--rule)" stroke-width="1" stroke-dasharray="3 6" opacity="0.6"/>
+                      <line x1="40" y1="290" x2="740" y2="290" stroke="var(--rule)" stroke-width="1" stroke-dasharray="3 6" opacity="0.6"/>
+                      <g id="gco-traj"></g>
+                      <!-- the loss collapse inset (right column) -->
+                      <text x="770" y="80" font-size="17" fill="var(--ink-2)" font-weight="600">weighted least-squares loss</text>
+                      <text x="770" y="104" font-size="15" fill="var(--ink-3)"><tspan fill="var(--c-red)" font-weight="700">18.04</tspan><tspan> &rarr; </tspan><tspan fill="var(--c-green)" font-weight="700">0.005</tspan><tspan> over 600 AdaGrad iters</tspan></text>
+                      <line x1="790" y1="340" x2="1150" y2="340" stroke="var(--ink-3)" stroke-width="1.4"/>
+                      <line x1="790" y1="130" x2="790" y2="340" stroke="var(--ink-3)" stroke-width="1.4"/>
+                      <text x="782" y="136" font-size="13" fill="var(--ink-3)" text-anchor="end">18</text>
+                      <text x="782" y="338" font-size="13" fill="var(--ink-3)" text-anchor="end">0</text>
+                      <text x="1150" y="360" font-size="13" fill="var(--ink-3)" text-anchor="end">iter 600</text>
+                      <polyline id="gco-loss" points="" fill="none" stroke="var(--c-red)" stroke-width="2.6"/>
+                      <text x="790" y="404" font-size="15" fill="var(--ink-2)"><tspan fill="var(--c-violet)" font-weight="600">king&middot;queen</tspan><tspan> drift apart 0.04 &rarr; 0.69 as the</tspan></text>
+                      <text x="790" y="426" font-size="15" fill="var(--ink-2)">scattered start spreads into a real map.</text>
+                      <text x="790" y="454" font-size="15" fill="var(--ink-3)">same geometry the predictive route gives.</text>
+                      <text x="790" y="476" font-size="15" fill="var(--ink-3)">(the worked king&middot;queen entry is next &rarr;)</text>
+                    </g>
                   </g>
                 </svg>
               </div>
@@ -1052,6 +1309,7 @@
           <p class="gco-cap small muted center mt-2" data-arch-step="0"><span lang="ru">Шаг 0 — <strong>входные данные GloVe</strong>: восемь строк корпуса, окно скользит по тексту. Никаких предсказаний — только подсчёт соседства. Жмите <kbd>&rarr;</kbd>.</span><span lang="en">Step 0 — <strong>GloVe's input</strong>: eight corpus lines, a window sliding over text. No prediction yet — only counting who sits near whom. Press <kbd>&rarr;</kbd>.</span></p>
           <p class="gco-cap small muted center mt-2" data-arch-step="1"><span lang="ru">Шаг 1 — <strong>матрица совстречаемости \(X\)</strong> (\(14\times14\), симметрична). Тёмная ячейка = пара чаще вместе. <code>the·loves</code> \(=6.0\) — максимум; <code>king·queen</code> \(=0.667\). Это вся статистика, на которую смотрит GloVe.</span><span lang="en">Step 1 — the <strong>co-occurrence matrix \(X\)</strong> (\(14\times14\), symmetric). Darker cell = pair seen together more. <code>the·loves</code> \(=6.0\) is the peak; <code>king·queen</code> \(=0.667\). This table is all GloVe ever looks at.</span></p>
           <p class="gco-cap small muted center mt-2" data-arch-step="2"><span lang="ru">Шаг 2 — <strong>весовая функция \(f(x)=(x/x_{\max})^{0.75}\)</strong>, потолок \(1\). Редкие шумные пары почти не влияют; самые частые не доминируют. Точки — реальные \(f\) для ячеек \(X\).</span><span lang="en">Step 2 — the <strong>weighting \(f(x)=(x/x_{\max})^{0.75}\)</strong>, capped at \(1\). Rare noisy pairs barely count; the most frequent can't dominate the fit. Dots are the real \(f\)-values for the \(X\) cells.</span></p>
+          <p class="gco-cap small muted center mt-2" data-arch-step="3"><span lang="ru">Шаг 3 — <strong>оптимизация из случайного старта</strong>. AdaGrad подгоняет \(W,\tilde W,b\) так, чтобы \(w_i\!\cdot\!\tilde w_j+b\approx\log X_{ij}f(X)\). Из крошечного облака (потеря \(18.04\)) рождается карта: <span style="color:var(--c-violet)">royal</span>, <span style="color:var(--c-amber)">people</span>, <span style="color:var(--c-green)">animal</span> расходятся; потеря падает до \(0.005\).</span><span lang="en">Step 3 — <strong>optimise from a random start</strong>. AdaGrad fits \(W,\tilde W,b\) so \(w_i\!\cdot\!\tilde w_j+b\approx\log X_{ij}\), weighted by \(f(X)\). From a tiny scattered cloud (loss \(18.04\)) a real map emerges — <span style="color:var(--c-violet)">royal</span>, <span style="color:var(--c-amber)">people</span>, <span style="color:var(--c-green)">animal</span> separate; loss collapses to \(0.005\).</span></p>
           <script>
           (function () {
             // Build the heatmap cells + the f(x) curve/dots from the real L5 GloVe numbers, INLINE
@@ -1112,14 +1370,51 @@
                 fdots.appendChild(c);
               });
             }
+            // ── STEP 3: the optimisation trajectory + loss collapse (data/l5-glove.json → trajectory) ──
+            // The slide is at step 3 only sometimes; we draw the converged frame statically (the SWAP
+            // CSS reveals the whole group at step 3) — a single clear "after random init" map, animated
+            // in narration. Random-init and converged frames are both projected through the FINAL PCA-2
+            // basis (one coordinate frame), so the scatter is coherent.
+            var GT = {"init":[["the",0.356,0.116,"s"],["king",0.389,0.141,"r"],["loves",0.404,0.122,"s"],["cat",0.397,0.09,"a"],["dog",0.402,0.141,"a"],["queen",0.353,0.123,"r"],["a",0.372,0.159,"s"],["chases",0.383,0.147,"a"],["has",0.446,0.172,"s"],["man",0.441,0.129,"p"],["woman",0.392,0.136,"p"],["and",0.415,0.086,"s"],["kingdom",0.456,0.14,"r"],["rules",0.421,0.08,"r"]],
+                      "conv":[["the",-1.698,-0.52,"s"],["king",-1.265,0.722,"r"],["loves",-0.835,-0.298,"s"],["cat",0.538,-1.001,"a"],["dog",0.31,-1.08,"a"],["queen",-0.578,0.804,"r"],["a",1.77,0.636,"s"],["chases",-0.117,0.086,"a"],["has",0.71,1.366,"s"],["man",-0.009,-0.008,"p"],["woman",-0.074,0.042,"p"],["and",1.008,-0.984,"s"],["kingdom",0.41,0.121,"r"],["rules",-0.169,0.114,"r"]]};
+            var GHUE = {r:'var(--c-violet)', p:'var(--c-amber)', a:'var(--c-green)', s:'var(--ink-3)'};
+            var gtraj = document.getElementById('gco-traj'), GNS='http://www.w3.org/2000/svg';
+            if (gtraj) {
+              var TBX={x:60,y:74,w:660,h:432};
+              var cp=GT.conv, gxs=cp.map(function(p){return p[1];}), gys=cp.map(function(p){return p[2];});
+              var gx0=Math.min.apply(null,gxs),gx1=Math.max.apply(null,gxs),gy0=Math.min.apply(null,gys),gy1=Math.max.apply(null,gys);
+              var gpx=(gx1-gx0)*0.14, gpy=(gy1-gy0)*0.14;
+              var gsx=function(x){return TBX.x+(x-(gx0-gpx))/((gx1+gpx)-(gx0-gpx))*TBX.w;};
+              var gsy=function(y){return TBX.y+TBX.h-(y-(gy0-gpy))/((gy1+gpy)-(gy0-gpy))*TBX.h;};
+              // faint ghost of the random-init cloud (mapped through the same basis) → shows the START
+              GT.init.forEach(function(p){ var c=document.createElementNS(GNS,'circle'); c.setAttribute('cx',gsx(p[1]));c.setAttribute('cy',gsy(p[2]));c.setAttribute('r',4);c.setAttribute('fill','var(--ink-3)');c.setAttribute('opacity',0.28); gtraj.appendChild(c); });
+              // ghost-cloud label, parked in a clear band near the top of the box (away from every dot)
+              var ghLine=document.createElementNS(GNS,'line'); ghLine.setAttribute('x1',gsx(GT.init[0][1]));ghLine.setAttribute('y1',gsy(GT.init[0][2]));ghLine.setAttribute('x2',TBX.x+TBX.w*0.5);ghLine.setAttribute('y2',TBX.y+18);ghLine.setAttribute('stroke','var(--ink-3)');ghLine.setAttribute('stroke-width',0.8);ghLine.setAttribute('opacity',0.3);ghLine.setAttribute('stroke-dasharray','3 3'); gtraj.appendChild(ghLine);
+              var ghost=document.createElementNS(GNS,'text'); ghost.setAttribute('x',TBX.x+TBX.w*0.5);ghost.setAttribute('y',TBX.y+14);ghost.setAttribute('font-size',13);ghost.setAttribute('fill','var(--ink-3)');ghost.setAttribute('opacity',0.8);ghost.setAttribute('text-anchor','middle');ghost.setAttribute('font-family','var(--font-mono)');ghost.textContent='random init (loss 18.04)'; gtraj.appendChild(ghost);
+              // converged map + de-collided labels
+              var GL=cp.map(function(p){ var cx=gsx(p[1]),cy=gsy(p[2]); var right=cx<=TBX.x+TBX.w*0.6; return {w:p[0],c:p[3],cx:cx,cy:cy,lx:cx+(right?10:-10),ly:cy+4,right:right}; });
+              for(var git=0; git<160; git++){ for(var i=0;i<GL.length;i++) for(var j=i+1;j<GL.length;j++){ var a=GL[i],b=GL[j];
+                if(Math.abs(a.cx-b.cx)>Math.max(a.w.length,b.w.length)*7.5) continue; var oy=16-Math.abs(a.ly-b.ly);
+                if(oy>0){ var d=a.ly<=b.ly?-1:1; a.ly+=d*(oy/2+0.4); b.ly-=d*(oy/2+0.4);} } }
+              GL.forEach(function(l){ l.ly=Math.max(TBX.y+10,Math.min(TBX.y+TBX.h-4,l.ly)); });
+              cp.forEach(function(p,i){ var l=GL[i],hue=GHUE[p[3]];
+                var c=document.createElementNS(GNS,'circle'); c.setAttribute('cx',l.cx);c.setAttribute('cy',l.cy);c.setAttribute('r',6);c.setAttribute('fill',hue);c.setAttribute('stroke','var(--bg-card)');c.setAttribute('stroke-width',1.4); gtraj.appendChild(c);
+                if(Math.abs(l.ly-(l.cy+4))>6){ var ln=document.createElementNS(GNS,'line'); ln.setAttribute('x1',l.cx);ln.setAttribute('y1',l.cy);ln.setAttribute('x2',l.lx+(l.right?2:-2));ln.setAttribute('y2',l.ly-3);ln.setAttribute('stroke',hue);ln.setAttribute('stroke-width',0.8);ln.setAttribute('opacity',0.4); gtraj.appendChild(ln);}
+                var t=document.createElementNS(GNS,'text'); t.setAttribute('x',l.lx);t.setAttribute('y',l.ly);t.setAttribute('font-size',14);t.setAttribute('fill','var(--ink-2)');t.setAttribute('font-family','var(--font-mono)');t.setAttribute('text-anchor',l.right?'start':'end');t.setAttribute('stroke','none'); t.textContent=p[0]; gtraj.appendChild(t); });
+            }
+            // loss collapse polyline (data/l5-glove.json → trajectory.lossCurve)
+            var GLC=[[0,18.039],[50,1.506],[100,0.531],[150,0.397],[200,0.296],[250,0.171],[300,0.076],[350,0.034],[400,0.018],[450,0.012],[500,0.009],[550,0.006],[600,0.005]];
+            var glsx=function(it){return 790+(it/600)*360;}, glsy=function(v){return 340-(v/18.039)*210;};
+            var glp=document.getElementById('gco-loss');
+            if(glp) glp.setAttribute('points', GLC.map(function(p){return glsx(p[0]).toFixed(1)+','+glsy(p[1]).toFixed(1);}).join(' '));
           })();
           </script>
           <div class="step-controls">
             <button data-step-act="prev" aria-label="Previous step">&larr;</button>
-            <span class="step-counter">0/2</span>
+            <span class="step-counter">0/3</span>
             <button data-step-act="next" aria-label="Next step">&rarr;</button>
           </div>
-          <aside class="slide-notes">The GloVe architecture, built up one piece per step so step zero is a meaningful start, not the whole figure. Step zero shows only the eight-line mini-corpus with a sliding window — the raw input, no prediction, just text. Step one adds the fourteen-by-fourteen symmetric co-occurrence matrix X, every count straight from the L5 GloVe file: a word d steps away adds one over d, so the·loves peaks at six point zero and king and queen sit at zero point six six seven, the entry we work next slide. Darker means seen together more often. Step two adds the weighting curve f of x equals x over x-max to the power nought point seven five, capped at one — it climbs gently so rare noisy pairs barely count, then flattens so the most frequent pairs cannot dominate the least-squares fit; the amber dots are the real f-values for the matrix cells. Press the arrows.<aside data-notes-for-step="0">Step 0 — the mini-corpus and sliding window only.</aside><aside data-notes-for-step="1">Step 1 — the co-occurrence matrix X with real counts.</aside><aside data-notes-for-step="2">Step 2 — the weighting f(x), down-weight rare and cap frequent.</aside></aside>
+          <aside class="slide-notes">The GloVe architecture, built up one piece per step so step zero is a meaningful start, not the whole figure. Step zero shows only the eight-line mini-corpus with a sliding window — the raw input, no prediction, just text. Step one adds the fourteen-by-fourteen symmetric co-occurrence matrix X, every count straight from the L5 GloVe file: a word d steps away adds one over d, so the·loves peaks at six point zero and king and queen sit at zero point six six seven, the entry we work next slide. Darker means seen together more often. Step two adds the weighting curve f of x equals x over x-max to the power nought point seven five, capped at one — it climbs gently so rare noisy pairs barely count, then flattens so the most frequent pairs cannot dominate the least-squares fit; the amber dots are the real f-values for the matrix cells. Step three runs the optimisation from a random start: AdaGrad fits the word and context vectors plus biases so that each dot product reaches the log co-occurrence count, weighted by f. The faint grey ghost is the scattered random-init cloud, loss eighteen point oh four; as the fit proceeds the cloud spreads into a real map where royal, people and animal words separate, and the weighted least-squares loss collapses to zero point zero zero five over six hundred AdaGrad iterations. Press the arrows.<aside data-notes-for-step="0">Step 0 — the mini-corpus and sliding window only.</aside><aside data-notes-for-step="1">Step 1 — the co-occurrence matrix X with real counts.</aside><aside data-notes-for-step="2">Step 2 — the weighting f(x), down-weight rare and cap frequent.</aside><aside data-notes-for-step="3">Step 3 — optimise from random init; loss 18.04 → 0.005, the map separates.</aside></aside>
         </section>
 
         <!-- ============================================ 31 · VIZ (stepped) · GloVe objective worked + factorisation ============================================ -->
@@ -1137,6 +1432,10 @@
                animated SVG <text> to double-paint. */
             .gob-slide [data-step] { display: none; }
             .gob-slide [data-step]:not(.is-step-hidden) { display: block; }
+            /* DEFECT #4 FIX: at step 3 the FULL map (gob-mapfull) SWAPS OUT so the step-3 two-lane
+               layout (compact map on top + loss inset in its OWN frame below) takes the stage. With the
+               full map hidden, the loss curve can never overprint the scatter. */
+            .gob-slide[data-current-step="3"] svg g.gob-mapfull { display: none; }
             /* the step 0–1 skeleton SWAPS OUT once the map step (2) is reached: with data-arch-step="1"
                it shows at steps 0 & 1 (current/future) and hides at 2–3 (is-arch-past) → fills the left
                card at step 1 (no blank-white dead area) and never overprints the map dots. */
@@ -1200,18 +1499,38 @@
                       <text x="470" y="350" font-size="18" fill="var(--ink-2)" text-anchor="middle">a dot-product + two biases must hit the log-count.</text>
                       <text x="470" y="382" font-size="18" fill="var(--ink-3)" text-anchor="middle">fit every pair like this &rarr; factorise X, then the map.</text>
                     </g>
-                    <!-- STEP 2: factorise X → the learned vectors as a 2-D map (PCA of W+W̃) -->
-                    <g data-step="2">
+                    <!-- STEP 2: factorise X → the learned vectors as a 2-D map (PCA of W+W̃).
+                         FULL map (fills the frame). At step 3 this whole group SWAPS OUT (see scoped CSS
+                         .gob-slide[data-current-step="3"] svg g.gob-mapfull{display:none}) and the COMPACT
+                         layout (map on top, loss in its OWN lane below) takes over → the loss curve never
+                         overprints the scatter (defect #4 fix). -->
+                    <g data-step="2" class="gob-mapfull">
                       <text x="60" y="40" font-size="22" fill="var(--ink)" font-weight="600">factorise X &rarr; the map (PCA-2D of W + W&#771;)</text>
                       <rect x="60" y="56" width="820" height="430" rx="10" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
                       <line x1="470" y1="56" x2="470" y2="486" stroke="var(--rule)" stroke-width="1" stroke-dasharray="3 5"/>
                       <line x1="60" y1="271" x2="880" y2="271" stroke="var(--rule)" stroke-width="1" stroke-dasharray="3 5"/>
                       <g id="gob-mapdots"></g>
                     </g>
-                    <!-- STEP 3: the loss collapse 18.04 → 0.005 -->
+                    <!-- STEP 3: TWO SEPARATE LANES — a COMPACT map (top, its own frame) + the loss
+                         collapse 18.04 → 0.005 (bottom, its own framed inset with axes). The two frames
+                         are vertically stacked with a clear gap, so NO text/curve overprints the scatter
+                         at step 3. Only revealed when current step ≥ 3 (data-step gating). -->
                     <g data-step="3">
-                      <text x="60" y="516" font-size="18" fill="var(--ink-2)"><tspan>training loss </tspan><tspan fill="var(--c-red)" font-weight="700">18.04</tspan><tspan> &rarr; </tspan><tspan fill="var(--c-green)" font-weight="700">0.005</tspan><tspan>  (99.97% drop over 600 iters)</tspan></text>
-                      <polyline id="gob-loss" points="" fill="none" stroke="var(--c-red)" stroke-width="2.5" opacity="0.85"/>
+                      <text x="60" y="38" font-size="20" fill="var(--ink)" font-weight="600">the map is real, not an artefact &mdash; the loss collapses</text>
+                      <!-- LANE A: compact map (top) -->
+                      <rect x="60" y="52" width="820" height="296" rx="10" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
+                      <line x1="470" y1="52" x2="470" y2="348" stroke="var(--rule)" stroke-width="1" stroke-dasharray="3 5"/>
+                      <line x1="60" y1="200" x2="880" y2="200" stroke="var(--rule)" stroke-width="1" stroke-dasharray="3 5"/>
+                      <g id="gob-mapdots3"></g>
+                      <!-- LANE B: loss inset (bottom, OWN frame — separated from the map) -->
+                      <rect x="60" y="368" width="820" height="150" rx="10" fill="var(--bg-inset)" opacity="0.4" stroke="var(--rule)" stroke-width="1.2"/>
+                      <text x="78" y="392" font-size="16" fill="var(--ink-2)"><tspan>weighted least-squares loss: </tspan><tspan fill="var(--c-red)" font-weight="700">18.04</tspan><tspan> &rarr; </tspan><tspan fill="var(--c-green)" font-weight="700">0.005</tspan><tspan> (99.97% over 600 AdaGrad iters)</tspan></text>
+                      <line x1="120" y1="500" x2="860" y2="500" stroke="var(--ink-3)" stroke-width="1.4"/>
+                      <line x1="120" y1="406" x2="120" y2="500" stroke="var(--ink-3)" stroke-width="1.4"/>
+                      <text x="112" y="412" font-size="12" fill="var(--ink-3)" text-anchor="end">18</text>
+                      <text x="112" y="500" font-size="12" fill="var(--ink-3)" text-anchor="end">0</text>
+                      <text x="860" y="514" font-size="12" fill="var(--ink-3)" text-anchor="end">iter 600</text>
+                      <polyline id="gob-loss" points="" fill="none" stroke="var(--c-red)" stroke-width="2.6"/>
                     </g>
                   </g>
                 </svg>
@@ -1249,50 +1568,69 @@
               {w:'kingdom',x:0.41,y:0.121,c:'r'},{w:'rules',x:-0.169,y:0.114,c:'r'}
             ];
             var HUE = {r:'var(--c-violet)', p:'var(--c-amber)', a:'var(--c-green)', s:'var(--ink-3)'};
-            var bx={x:70,y:66,w:800,h:410}; // inside the 60,56,820,430 frame with margin
-            var xs=pts.map(function(p){return p.x;}), ys=pts.map(function(p){return p.y;});
-            var xmin=Math.min.apply(null,xs),xmax=Math.max.apply(null,xs),ymin=Math.min.apply(null,ys),ymax=Math.max.apply(null,ys);
-            var padX=(xmax-xmin)*0.10, padY=(ymax-ymin)*0.12;
-            var sx=function(x){return bx.x+(x-(xmin-padX))/((xmax+padX)-(xmin-padX))*bx.w;};
-            var sy=function(y){return bx.y+bx.h-(y-(ymin-padY))/((ymax+padY)-(ymin-padY))*bx.h;};
-            // label de-collision — the man/woman/chases/rules/kingdom cluster sits on the origin. Seed
-            // each label to the OUTSIDE of its dot (left-half dots → label LEFT, right-half → RIGHT) so
-            // labels grow AWAY from the crowded centre instead of into each other, then iterate a 2-D
-            // separation that pushes the shorter-overlap axis (vertical fanning for stacked labels).
-            // Each label reserves a collision box scaled by its own length so wide words (kingdom) clear.
-            var LH=19, GW=8.6;                // line height · approx glyph width (15px mono)
-            var cxMid=bx.x+bx.w/2;
-            var lab=pts.map(function(p){var dx=sx(p.x); var right=dx>cxMid; var halfw=p.w.length*GW;
-              return {lx:dx+(right?11:-11),ly:sy(p.y)+4,anchor:right?'start':'end',w:p.w,hw:halfw,right:right};});
-            // centre of each label's box (so collision uses the box centre regardless of anchor side)
-            var cxOf=function(l){return l.lx+(l.right?l.hw/2:-l.hw/2);};
-            for(var it=0; it<300; it++){ for(var i=0;i<lab.length;i++) for(var j=i+1;j<lab.length;j++){
-              var dxo=Math.abs(cxOf(lab[i])-cxOf(lab[j])), dyo=Math.abs(lab[i].ly-lab[j].ly);
-              var minDX=(lab[i].hw+lab[j].hw)/2+6, ox=minDX-dxo, oy=LH-dyo;
-              if(ox>0&&oy>0){
-                if(oy*1.6<=ox){ var pv=oy/2+0.5, dv=lab[i].ly<=lab[j].ly?-1:1; lab[i].ly+=dv*pv; lab[j].ly-=dv*pv; }
-                else { var ph=ox/2+0.5, dh=cxOf(lab[i])<=cxOf(lab[j])?-1:1; lab[i].lx+=dh*ph; lab[j].lx-=dh*ph; }
-              }
-            }}
-            // clamp inside the frame, accounting for which side the text extends (anchor + own width)
-            lab.forEach(function(l){ l.ly=Math.max(bx.y+14,Math.min(bx.y+bx.h-4,l.ly));
-              var lo=bx.x+4+(l.right?0:l.hw), hi=bx.x+bx.w-4-(l.right?l.hw:0); l.lx=Math.max(lo,Math.min(hi,l.lx)); });
-            var g=document.getElementById('gob-mapdots'), NS='http://www.w3.org/2000/svg';
-            if(g) pts.forEach(function(p,i){
-              var cx=sx(p.x),cy=sy(p.y),hue=HUE[p.c];
-              // leader line stops a few px shy of the text so it never runs under the glyphs
-              var endX=lab[i].lx+(lab[i].anchor==='end'?5:-5);
-              var ln=document.createElementNS(NS,'line'); ln.setAttribute('x1',cx);ln.setAttribute('y1',cy);ln.setAttribute('x2',endX);ln.setAttribute('y2',lab[i].ly-3.5);ln.setAttribute('stroke',hue);ln.setAttribute('stroke-width',1);ln.setAttribute('opacity',0.45); g.appendChild(ln);
-              var c=document.createElementNS(NS,'circle'); c.setAttribute('cx',cx);c.setAttribute('cy',cy);c.setAttribute('r',6);c.setAttribute('fill',hue);c.setAttribute('stroke','var(--bg-card)');c.setAttribute('stroke-width',1.4); g.appendChild(c);
-              var t=document.createElementNS(NS,'text'); t.setAttribute('x',lab[i].lx);t.setAttribute('y',lab[i].ly);t.setAttribute('font-size',15);t.setAttribute('fill','var(--ink-2)');t.setAttribute('font-family','var(--font-mono)');t.setAttribute('text-anchor',lab[i].anchor);
-              t.setAttribute('paint-order','stroke');t.setAttribute('stroke','var(--bg-card)');t.setAttribute('stroke-width','3');t.setAttribute('stroke-linejoin','round');
-              t.textContent=p.w; g.appendChild(t);
-            });
-            // loss polyline (data/l5-glove.json → loss.history): plotted log-ish over the frame width.
+            var NS='http://www.w3.org/2000/svg';
+            // Reusable map drawer — fits the points into box `bx`, de-collides labels, draws dots+labels
+            // into `gEl`. Called twice: the FULL map (step 2) and the COMPACT map (step 3, in its own lane
+            // above the loss inset → defect #4 fix: no curve/text over the scatter).
+            function drawMap(gEl, bx, dotR, fontSz){
+              if(!gEl) return;
+              var xs=pts.map(function(p){return p.x;}), ys=pts.map(function(p){return p.y;});
+              var xmin=Math.min.apply(null,xs),xmax=Math.max.apply(null,xs),ymin=Math.min.apply(null,ys),ymax=Math.max.apply(null,ys);
+              var padX=(xmax-xmin)*0.10, padY=(ymax-ymin)*0.12;
+              var sx=function(x){return bx.x+(x-(xmin-padX))/((xmax+padX)-(xmin-padX))*bx.w;};
+              var sy=function(y){return bx.y+bx.h-(y-(ymin-padY))/((ymax+padY)-(ymin-padY))*bx.h;};
+              var LH=fontSz+4, GW=fontSz*0.58, cxMid=bx.x+bx.w/2;
+              var lab=pts.map(function(p){var dx=sx(p.x); var right=dx>cxMid; var halfw=p.w.length*GW;
+                return {lx:dx+(right?10:-10),ly:sy(p.y)+4,anchor:right?'start':'end',w:p.w,hw:halfw,right:right};});
+              var cxOf=function(l){return l.lx+(l.right?l.hw/2:-l.hw/2);};
+              for(var it=0; it<300; it++){ for(var i=0;i<lab.length;i++) for(var j=i+1;j<lab.length;j++){
+                var dxo=Math.abs(cxOf(lab[i])-cxOf(lab[j])), dyo=Math.abs(lab[i].ly-lab[j].ly);
+                var minDX=(lab[i].hw+lab[j].hw)/2+6, ox=minDX-dxo, oy=LH-dyo;
+                if(ox>0&&oy>0){
+                  if(oy*1.6<=ox){ var pv=oy/2+0.5, dv=lab[i].ly<=lab[j].ly?-1:1; lab[i].ly+=dv*pv; lab[j].ly-=dv*pv; }
+                  else { var ph=ox/2+0.5, dh=cxOf(lab[i])<=cxOf(lab[j])?-1:1; lab[i].lx+=dh*ph; lab[j].lx-=dh*ph; }
+                }
+              }}
+              lab.forEach(function(l){ l.ly=Math.max(bx.y+12,Math.min(bx.y+bx.h-4,l.ly));
+                var lo=bx.x+4+(l.right?0:l.hw), hi=bx.x+bx.w-4-(l.right?l.hw:0); l.lx=Math.max(lo,Math.min(hi,l.lx)); });
+              pts.forEach(function(p,i){
+                var cx=sx(p.x),cy=sy(p.y),hue=HUE[p.c];
+                var endX=lab[i].lx+(lab[i].anchor==='end'?5:-5);
+                var ln=document.createElementNS(NS,'line'); ln.setAttribute('x1',cx);ln.setAttribute('y1',cy);ln.setAttribute('x2',endX);ln.setAttribute('y2',lab[i].ly-3.5);ln.setAttribute('stroke',hue);ln.setAttribute('stroke-width',1);ln.setAttribute('opacity',0.45); gEl.appendChild(ln);
+                var c=document.createElementNS(NS,'circle'); c.setAttribute('cx',cx);c.setAttribute('cy',cy);c.setAttribute('r',dotR);c.setAttribute('fill',hue);c.setAttribute('stroke','var(--bg-card)');c.setAttribute('stroke-width',1.4); gEl.appendChild(c);
+                var t=document.createElementNS(NS,'text'); t.setAttribute('x',lab[i].lx);t.setAttribute('y',lab[i].ly);t.setAttribute('font-size',fontSz);t.setAttribute('fill','var(--ink-2)');t.setAttribute('font-family','var(--font-mono)');t.setAttribute('text-anchor',lab[i].anchor);
+                t.setAttribute('paint-order','stroke');t.setAttribute('stroke','var(--bg-card)');t.setAttribute('stroke-width','3');t.setAttribute('stroke-linejoin','round');
+                t.textContent=p.w; gEl.appendChild(t);
+              });
+            }
+            // FULL map (step 2): frame 60,56,820,430
+            drawMap(document.getElementById('gob-mapdots'), {x:70,y:66,w:800,h:410}, 6, 15);
+            // COMPACT map (step 3): frame 60,52,820,296 → bx with margin, smaller dots/labels.
+            // First lay a faint ghost of the RANDOM-INIT cloud (projected through the same basis) so
+            // step 3 literally reads "random init → converged"; then the converged dots on top.
+            var g3=document.getElementById('gob-mapdots3');
+            if(g3){
+              var INIT=[[0.356,0.116],[0.389,0.141],[0.404,0.122],[0.397,0.09],[0.402,0.141],[0.353,0.123],[0.372,0.159],[0.383,0.147],[0.446,0.172],[0.441,0.129],[0.392,0.136],[0.415,0.086],[0.456,0.14],[0.421,0.08]];
+              // map init coords with the SAME fit as the converged map (so the ghost sits where the
+              // random start projects to — a tight blob), using the converged extent.
+              var cxs=pts.map(function(p){return p.x;}), cys=pts.map(function(p){return p.y;});
+              var cx0=Math.min.apply(null,cxs),cx1=Math.max.apply(null,cxs),cy0=Math.min.apply(null,cys),cy1=Math.max.apply(null,cys);
+              var b3={x:72,y:64,w:796,h:276}, pX=(cx1-cx0)*0.1,pY=(cy1-cy0)*0.12;
+              var i3x=function(x){return b3.x+(x-(cx0-pX))/((cx1+pX)-(cx0-pX))*b3.w;};
+              var i3y=function(y){return b3.y+b3.h-(y-(cy0-pY))/((cy1+pY)-(cy0-pY))*b3.h;};
+              INIT.forEach(function(p){ var c=document.createElementNS(NS,'circle'); c.setAttribute('cx',i3x(p[0]));c.setAttribute('cy',i3y(p[1]));c.setAttribute('r',3.5);c.setAttribute('fill','var(--ink-3)');c.setAttribute('opacity',0.26); g3.appendChild(c); });
+              // ghost label parked high in the clear band, with a faint leader to the blob
+              var blobX=i3x(0.41), blobY=i3y(0.12);
+              var glLn=document.createElementNS(NS,'line'); glLn.setAttribute('x1',blobX);glLn.setAttribute('y1',blobY);glLn.setAttribute('x2',b3.x+b3.w*0.62);glLn.setAttribute('y2',b3.y+16);glLn.setAttribute('stroke','var(--ink-3)');glLn.setAttribute('stroke-width',0.7);glLn.setAttribute('opacity',0.28);glLn.setAttribute('stroke-dasharray','3 3'); g3.appendChild(glLn);
+              var gl=document.createElementNS(NS,'text'); gl.setAttribute('x',b3.x+b3.w*0.62);gl.setAttribute('y',b3.y+12);gl.setAttribute('font-size',12);gl.setAttribute('fill','var(--ink-3)');gl.setAttribute('opacity',0.8);gl.setAttribute('text-anchor','middle');gl.setAttribute('font-family','var(--font-mono)');gl.setAttribute('stroke','none');gl.textContent='random init'; g3.appendChild(gl);
+            }
+            drawMap(g3, {x:72,y:64,w:796,h:276}, 5, 13);
+            // loss polyline (data/l5-glove.json → loss.history) in its OWN bottom lane (y 406..500),
+            // separated from the compact map above → never overprints the scatter.
             var hist=[[0,18.0391],[50,1.5063],[100,0.5311],[150,0.3969],[200,0.2961],[250,0.1705],[300,0.0756],[350,0.0339],[400,0.0183],[450,0.0118],[500,0.0085],[550,0.0065],[600,0.005]];
             var lpoly=document.getElementById('gob-loss');
             if(lpoly){
-              var lx0=120,lx1=860,ly0=80,ly1=300; // a compact inset along the top of the frame
+              var lx0=120,lx1=860,ly0=406,ly1=500; // dedicated bottom lane inside the loss inset frame
               var lmax=18.0391;
               var lsx=function(it){return lx0+(it/600)*(lx1-lx0);};
               var lsy=function(v){return ly1-(v/lmax)*(ly1-ly0);};
@@ -1457,7 +1795,7 @@
         </section>
 
         <!-- ============================================ 36 · VIZ · PCA as rotation (ported from widgets/pca-rotate) ============================================ -->
-        <section class="slide pcr-slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="38 PCA as rotation">
+        <section class="slide pcr-slide" data-type="viz" data-max-step="5" data-current-step="0" data-screen-label="38 PCA as rotation">
           <style>
             /* scoped to this slide.
                Geometry (dots, eigen-axis arrow LINES) lives in the SVG and SWAPS per
@@ -1469,13 +1807,16 @@
                0 raw cloud · 1 +axes & names · 2 rotating · 3 aligned +variance · 4 flat +97.21%. */
             .pcr-slide svg [data-arch-step] { display: none; }
             .pcr-slide svg [data-arch-step].is-arch-current { display: block; }
-            .pcr-slide .pcr-dot { fill: var(--accent); fill-opacity: 0.82; }
-            .pcr-slide .pcr-flatdot { fill: var(--c-violet); fill-opacity: 0.82; }
+            .pcr-slide .pcr-dot { fill: var(--accent); fill-opacity: 0.85; }
+            .pcr-slide .pcr-flatdot { fill: var(--c-violet); fill-opacity: 0.85; }
+            /* bigger figure: scale every plotted dot up via a CSS transform-box trick is fragile in SVG,
+               so the radii are set inline below; this just lifts the figure's footprint. */
             .pcr-slide .pcr-cap[data-arch-step] { display: none; }
             .pcr-slide .pcr-cap[data-arch-step].is-arch-current { display: block; }
             /* aspect-locked stage so HTML overlays line up 1:1 with SVG viewBox (1160×540) */
-            .pcr-slide .pcr-stage { position: relative; width: 100%; max-width: 1340px; aspect-ratio: 1160 / 540; margin: 0 auto; }
+            .pcr-slide .pcr-stage { position: relative; width: 100%; max-width: 1180px; aspect-ratio: 1000 / 620; margin: 0 auto; }
             .pcr-slide .pcr-stage svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+            .pcr-slide #pcr-ovl { position: absolute; inset: 0; pointer-events: none; }
             /* Halo: the stage renders on a white card in BOTH themes, so a white text
                outline lifts every PC label clear of the arrows AND the blue dots it may
                cross — legible over both. paint-order keeps the stroke BEHIND the glyph. */
@@ -1492,7 +1833,7 @@
             .pcr-slide .pcr-lab[data-arch-step].is-arch-current, .pcr-slide .pcr-badge[data-arch-step].is-arch-current { display: block; }
 
             /* ── Two-column layout: rotation viz (left) + step-synced PCA math (right) ── */
-            .pcr-slide .pcr-layout { display: grid; grid-template-columns: 1.32fr 1fr; gap: var(--sp-5); align-items: stretch; }
+            .pcr-slide .pcr-layout { display: grid; grid-template-columns: 1.5fr 1fr; gap: var(--sp-5); align-items: stretch; }
             .pcr-slide .pcr-layout .viz-frame { margin: 0; }
             .pcr-slide .pcr-math { align-self: center; border-left: 3px solid var(--rule); padding-left: var(--sp-5); }
             .pcr-slide .pcr-math-head { font-family: var(--font-mono); font-size: 16px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent-ink); margin-bottom: var(--sp-3); }
@@ -1512,60 +1853,32 @@
           </style>
           <div class="slide-header">
             <h2><span lang="ru">PCA — это поворот, а не искажение</span><span lang="en">PCA is a rotation, not a distortion</span></h2>
-            <span class="slide-kicker"><span lang="ru">3-D облако &rarr; собственные оси &rarr; поворот &rarr; 2-D</span><span lang="en">3-D cloud &rarr; eigen-axes &rarr; rotate &rarr; 2-D</span></span>
+            <span class="slide-kicker"><span lang="ru">сырое 3-D &rarr; центр &rarr; ковариация C &rarr; собств. оси &rarr; поворот &rarr; 2-D (97.21%)</span><span lang="en">raw 3-D &rarr; centre &rarr; covariance C &rarr; eigen-axes &rarr; rotate &rarr; 2-D (97.21%)</span></span>
           </div>
           <div class="pcr-layout">
           <div class="viz-frame">
             <div class="pcr-stage">
-            <svg viewBox="0 0 1160 540" preserveAspectRatio="none" role="img" aria-label="A correlated 3-D point cloud is rotated rigidly until its principal axes align with the screen, then flattened to 2-D, keeping 97.21% of the spread">
+            <svg viewBox="0 0 1000 620" preserveAspectRatio="none" role="img" aria-label="A correlated 3-D point cloud is centred, its covariance eigenvectors drawn as principal axes, then the whole cloud is rotated rigidly until those axes align with the screen, and finally flattened to 2-D, keeping 97.21% of the spread">
               <defs>
                 <marker id="pcrah0" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c-amber)"/></marker>
                 <marker id="pcrah1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c-violet)"/></marker>
                 <marker id="pcrah2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink-3)"/></marker>
               </defs>
-              <rect x="120" y="40" width="920" height="470" rx="8" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
-              <!-- five geometry frames; only the current is shown. PC1 amber · PC2 violet · PC3 grey
-                   (distinct from the BLUE dots so axes never collide with the data colour). -->
-              <g data-arch-step="0"><circle cx="635.7" cy="407.1" r="6" class="pcr-dot"/><circle cx="695.2" cy="303.7" r="6" class="pcr-dot"/><circle cx="606.7" cy="377.9" r="6" class="pcr-dot"/><circle cx="548.3" cy="425.7" r="6" class="pcr-dot"/><circle cx="614.7" cy="219.5" r="6" class="pcr-dot"/><circle cx="520.1" cy="416.6" r="6" class="pcr-dot"/><circle cx="648.0" cy="258.3" r="6" class="pcr-dot"/><circle cx="819.9" cy="85.5" r="6" class="pcr-dot"/><circle cx="604.4" cy="380.7" r="6" class="pcr-dot"/><circle cx="584.5" cy="338.9" r="6" class="pcr-dot"/><circle cx="709.1" cy="220.4" r="6" class="pcr-dot"/><circle cx="731.5" cy="275.9" r="6" class="pcr-dot"/><circle cx="662.5" cy="383.5" r="6" class="pcr-dot"/><circle cx="535.5" cy="332.0" r="6" class="pcr-dot"/><circle cx="645.1" cy="134.6" r="6" class="pcr-dot"/><circle cx="718.4" cy="353.6" r="6" class="pcr-dot"/><circle cx="493.2" cy="293.9" r="6" class="pcr-dot"/><circle cx="601.5" cy="300.3" r="6" class="pcr-dot"/><circle cx="404.4" cy="464.5" r="6" class="pcr-dot"/><circle cx="483.7" cy="158.7" r="6" class="pcr-dot"/><circle cx="429.1" cy="338.1" r="6" class="pcr-dot"/><circle cx="616.1" cy="401.8" r="6" class="pcr-dot"/><circle cx="484.9" cy="347.9" r="6" class="pcr-dot"/><circle cx="697.1" cy="206.0" r="6" class="pcr-dot"/><circle cx="675.7" cy="283.3" r="6" class="pcr-dot"/><circle cx="653.8" cy="243.6" r="6" class="pcr-dot"/><circle cx="326.6" cy="451.2" r="6" class="pcr-dot"/><circle cx="597.7" cy="258.2" r="6" class="pcr-dot"/><circle cx="644.7" cy="130.2" r="6" class="pcr-dot"/><circle cx="652.1" cy="316.0" r="6" class="pcr-dot"/></g>
-              <g data-arch-step="1"><circle cx="635.7" cy="407.1" r="6" class="pcr-dot"/><circle cx="695.2" cy="303.7" r="6" class="pcr-dot"/><circle cx="606.7" cy="377.9" r="6" class="pcr-dot"/><circle cx="548.3" cy="425.7" r="6" class="pcr-dot"/><circle cx="614.7" cy="219.5" r="6" class="pcr-dot"/><circle cx="520.1" cy="416.6" r="6" class="pcr-dot"/><circle cx="648.0" cy="258.3" r="6" class="pcr-dot"/><circle cx="819.9" cy="85.5" r="6" class="pcr-dot"/><circle cx="604.4" cy="380.7" r="6" class="pcr-dot"/><circle cx="584.5" cy="338.9" r="6" class="pcr-dot"/><circle cx="709.1" cy="220.4" r="6" class="pcr-dot"/><circle cx="731.5" cy="275.9" r="6" class="pcr-dot"/><circle cx="662.5" cy="383.5" r="6" class="pcr-dot"/><circle cx="535.5" cy="332.0" r="6" class="pcr-dot"/><circle cx="645.1" cy="134.6" r="6" class="pcr-dot"/><circle cx="718.4" cy="353.6" r="6" class="pcr-dot"/><circle cx="493.2" cy="293.9" r="6" class="pcr-dot"/><circle cx="601.5" cy="300.3" r="6" class="pcr-dot"/><circle cx="404.4" cy="464.5" r="6" class="pcr-dot"/><circle cx="483.7" cy="158.7" r="6" class="pcr-dot"/><circle cx="429.1" cy="338.1" r="6" class="pcr-dot"/><circle cx="616.1" cy="401.8" r="6" class="pcr-dot"/><circle cx="484.9" cy="347.9" r="6" class="pcr-dot"/><circle cx="697.1" cy="206.0" r="6" class="pcr-dot"/><circle cx="675.7" cy="283.3" r="6" class="pcr-dot"/><circle cx="653.8" cy="243.6" r="6" class="pcr-dot"/><circle cx="326.6" cy="451.2" r="6" class="pcr-dot"/><circle cx="597.7" cy="258.2" r="6" class="pcr-dot"/><circle cx="644.7" cy="130.2" r="6" class="pcr-dot"/><circle cx="652.1" cy="316.0" r="6" class="pcr-dot"/><line x1="601.4" y1="303.6" x2="478.0" y2="393.3" stroke="var(--c-amber)" stroke-width="3.6" marker-end="url(#pcrah0)"/><line x1="601.4" y1="303.6" x2="481.0" y2="181.3" stroke="var(--c-violet)" stroke-width="3.6" marker-end="url(#pcrah1)"/><line x1="601.4" y1="303.6" x2="662.1" y2="321.1" stroke="var(--ink-3)" stroke-width="2.4" marker-end="url(#pcrah2)"/></g>
-              <g data-arch-step="2"><circle cx="648.4" cy="410.8" r="6" class="pcr-dot"/><circle cx="542.5" cy="320.0" r="6" class="pcr-dot"/><circle cx="649.8" cy="375.2" r="6" class="pcr-dot"/><circle cx="773.8" cy="368.4" r="6" class="pcr-dot"/><circle cx="541.0" cy="220.7" r="6" class="pcr-dot"/><circle cx="756.6" cy="377.1" r="6" class="pcr-dot"/><circle cx="499.4" cy="300.7" r="6" class="pcr-dot"/><circle cx="224.1" cy="202.8" r="6" class="pcr-dot"/><circle cx="699.8" cy="341.1" r="6" class="pcr-dot"/><circle cx="665.1" cy="311.9" r="6" class="pcr-dot"/><circle cx="430.9" cy="278.1" r="6" class="pcr-dot"/><circle cx="541.3" cy="267.9" r="6" class="pcr-dot"/><circle cx="630.4" cy="381.1" r="6" class="pcr-dot"/><circle cx="675.0" cy="309.4" r="6" class="pcr-dot"/><circle cx="392.5" cy="199.9" r="6" class="pcr-dot"/><circle cx="527.8" cy="398.9" r="6" class="pcr-dot"/><circle cx="684.4" cy="258.5" r="6" class="pcr-dot"/><circle cx="608.2" cy="293.3" r="6" class="pcr-dot"/><circle cx="884.4" cy="385.6" r="6" class="pcr-dot"/><circle cx="526.2" cy="182.8" r="6" class="pcr-dot"/><circle cx="771.3" cy="277.0" r="6" class="pcr-dot"/><circle cx="675.2" cy="388.2" r="6" class="pcr-dot"/><circle cx="711.8" cy="320.4" r="6" class="pcr-dot"/><circle cx="452.9" cy="243.1" r="6" class="pcr-dot"/><circle cx="532.8" cy="303.2" r="6" class="pcr-dot"/><circle cx="547.2" cy="239.5" r="6" class="pcr-dot"/><circle cx="925.6" cy="358.2" r="6" class="pcr-dot"/><circle cx="580.2" cy="253.3" r="6" class="pcr-dot"/><circle cx="392.2" cy="193.8" r="6" class="pcr-dot"/><circle cx="549.7" cy="346.5" r="6" class="pcr-dot"/><line x1="601.4" y1="303.6" x2="662.8" y2="334.1" stroke="var(--c-amber)" stroke-width="3.6" marker-end="url(#pcrah0)"/><line x1="601.4" y1="303.6" x2="560.4" y2="166.9" stroke="var(--c-violet)" stroke-width="3.6" marker-end="url(#pcrah1)"/><line x1="601.4" y1="303.6" x2="559.9" y2="276.5" stroke="var(--ink-3)" stroke-width="2.4" marker-end="url(#pcrah2)"/></g>
-              <g data-arch-step="3"><circle cx="659.7" cy="407.2" r="6" class="pcr-dot"/><circle cx="525.5" cy="349.1" r="6" class="pcr-dot"/><circle cx="658.3" cy="366.5" r="6" class="pcr-dot"/><circle cx="734.3" cy="333.9" r="6" class="pcr-dot"/><circle cx="519.8" cy="236.5" r="6" class="pcr-dot"/><circle cx="755.3" cy="335.6" r="6" class="pcr-dot"/><circle cx="534.5" cy="322.3" r="6" class="pcr-dot"/><circle cx="262.0" cy="302.8" r="6" class="pcr-dot"/><circle cx="653.2" cy="330.5" r="6" class="pcr-dot"/><circle cx="638.4" cy="301.2" r="6" class="pcr-dot"/><circle cx="454.4" cy="324.1" r="6" class="pcr-dot"/><circle cx="465.0" cy="311.5" r="6" class="pcr-dot"/><circle cx="615.5" cy="388.7" r="6" class="pcr-dot"/><circle cx="675.6" cy="284.8" r="6" class="pcr-dot"/><circle cx="439.1" cy="238.3" r="6" class="pcr-dot"/><circle cx="555.0" cy="428.9" r="6" class="pcr-dot"/><circle cx="676.5" cy="225.9" r="6" class="pcr-dot"/><circle cx="596.7" cy="293.7" r="6" class="pcr-dot"/><circle cx="884.2" cy="301.1" r="6" class="pcr-dot"/><circle cx="586.6" cy="167.4" r="6" class="pcr-dot"/><circle cx="761.7" cy="217.9" r="6" class="pcr-dot"/><circle cx="667.6" cy="378.8" r="6" class="pcr-dot"/><circle cx="730.9" cy="277.9" r="6" class="pcr-dot"/><circle cx="447.3" cy="286.9" r="6" class="pcr-dot"/><circle cx="526.0" cy="329.3" r="6" class="pcr-dot"/><circle cx="505.3" cy="263.8" r="6" class="pcr-dot"/><circle cx="935.9" cy="251.3" r="6" class="pcr-dot"/><circle cx="565.1" cy="258.4" r="6" class="pcr-dot"/><circle cx="435.3" cy="232.6" r="6" class="pcr-dot"/><circle cx="576.2" cy="361.1" r="6" class="pcr-dot"/><line x1="601.4" y1="303.6" x2="758.0" y2="303.6" stroke="var(--c-amber)" stroke-width="3.6" marker-end="url(#pcrah0)"/><line x1="601.4" y1="303.6" x2="601.4" y2="159.4" stroke="var(--c-violet)" stroke-width="3.6" marker-end="url(#pcrah1)"/><line x1="601.4" y1="303.6" x2="507.3" y2="253.4" stroke="var(--ink-3)" stroke-width="2.4" marker-end="url(#pcrah2)"/></g>
-              <g data-arch-step="4"><line x1="130" y1="275.0" x2="1030" y2="275.0" stroke="var(--ink-3)" stroke-width="1.6"/><line x1="580.0" y1="50" x2="580.0" y2="500" stroke="var(--ink-3)" stroke-width="1.6"/><circle cx="641.8" cy="410.0" r="6" class="pcr-flatdot"/><circle cx="519.1" cy="355.2" r="6" class="pcr-flatdot"/><circle cx="645.3" cy="363.9" r="6" class="pcr-flatdot"/><circle cx="757.0" cy="340.8" r="6" class="pcr-flatdot"/><circle cx="524.7" cy="226.6" r="6" class="pcr-flatdot"/><circle cx="757.4" cy="329.6" r="6" class="pcr-flatdot"/><circle cx="501.0" cy="306.5" r="6" class="pcr-flatdot"/><circle cx="209.0" cy="288.6" r="6" class="pcr-flatdot"/><circle cx="674.5" cy="340.9" r="6" class="pcr-flatdot"/><circle cx="649.6" cy="300.8" r="6" class="pcr-flatdot"/><circle cx="421.7" cy="314.1" r="6" class="pcr-flatdot"/><circle cx="491.7" cy="332.7" r="6" class="pcr-flatdot"/><circle cx="611.1" cy="398.3" r="6" class="pcr-flatdot"/><circle cx="675.0" cy="271.9" r="6" class="pcr-flatdot"/><circle cx="399.0" cy="207.6" r="6" class="pcr-flatdot"/><circle cx="518.7" cy="431.9" r="6" class="pcr-flatdot"/><circle cx="685.8" cy="206.7" r="6" class="pcr-flatdot"/><circle cx="596.8" cy="287.8" r="6" class="pcr-flatdot"/><circle cx="897.6" cy="286.8" r="6" class="pcr-flatdot"/><circle cx="554.7" cy="118.1" r="6" class="pcr-flatdot"/><circle cx="778.6" cy="196.4" r="6" class="pcr-flatdot"/><circle cx="663.5" cy="383.3" r="6" class="pcr-flatdot"/><circle cx="724.1" cy="256.7" r="6" class="pcr-flatdot"/><circle cx="433.9" cy="281.1" r="6" class="pcr-flatdot"/><circle cx="515.5" cy="328.8" r="6" class="pcr-flatdot"/><circle cx="518.8" cy="265.4" r="6" class="pcr-flatdot"/><circle cx="951.0" cy="224.7" r="6" class="pcr-flatdot"/><circle cx="567.9" cy="248.9" r="6" class="pcr-flatdot"/><circle cx="397.4" cy="202.3" r="6" class="pcr-flatdot"/><circle cx="547.4" cy="353.3" r="6" class="pcr-flatdot"/></g>
+              <rect x="60" y="40" width="880" height="540" rx="8" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
+              <!-- SIX geometry frames (JS-filled from data/l5-pca-rotate.json, bigger cloud + screen-space
+                   eigen-axes). Only the current is shown (SWAP). 0 raw · 1 centre · 2 axes · 3 rotating ·
+                   4 aligned+variance · 5 flat 2-D. PC1 amber · PC2 violet · PC3 grey (≠ the BLUE dots). -->
+              <g data-arch-step="0" id="pcr-g0"></g>
+              <g data-arch-step="1" id="pcr-g1"></g>
+              <g data-arch-step="2" id="pcr-g2"></g>
+              <g data-arch-step="3" id="pcr-g3"></g>
+              <g data-arch-step="4" id="pcr-g4"></g>
+              <g data-arch-step="5" id="pcr-g5"></g>
             </svg>
-            <!-- HTML overlay labels (crisp; never SVG text). Positioned by % of the
-                 1160×540 viewBox. SWAP per step (data-arch-step) so axis names follow
-                 their arrows through the turn with no overprint; the variance %s and
-                 the 2-D axes appear only at their stage, so the solid set still grows. -->
-            <!-- step 1: eigen-axis names appear with the arrows. Each name sits just
-                 BEYOND its arrow tip (offset off the arrowhead) + the white halo, so the
-                 label never overprints its own arrowhead nor the blue dots. -->
-            <span class="pcr-lab pca-label pc1" data-arch-step="1" style="left:37.5%;top:78.0%">PC1</span>
-            <span class="pcr-lab pca-label pc2" data-arch-step="1" style="left:37.8%;top:27.0%">PC2</span>
-            <span class="pcr-lab pca-label pc3" data-arch-step="1" style="left:63.5%;top:66.5%">PC3</span>
-            <!-- step 2: rotated axis names — offset off the arrowheads + clear of dots -->
-            <span class="pcr-lab pca-label pc1" data-arch-step="2" style="left:62.5%;top:66.0%">PC1</span>
-            <span class="pcr-lab pca-label pc2" data-arch-step="2" style="left:44.0%;top:23.0%">PC2</span>
-            <span class="pcr-lab pca-label pc3" data-arch-step="2" style="left:41.5%;top:46.0%">PC3</span>
-            <!-- step 3: aligned axis names + per-axis variance (the % appears here) -->
-            <span class="pcr-lab pca-label pc1" data-arch-step="3" style="left:66.7%;top:54.5%">PC1</span>
-            <span class="pcr-lab pca-label pc2" data-arch-step="3" style="left:53.0%;top:27.7%">PC2</span>
-            <span class="pcr-lab pca-label pc3" data-arch-step="3" style="left:42.5%;top:45.6%">PC3</span>
-            <span class="pcr-lab pca-label pc1" data-arch-step="3" style="left:69.5%;top:64.5%;font-size:20px">79.79%</span>
-            <span class="pcr-lab pca-label pc2" data-arch-step="3" style="left:58.5%;top:36.0%;font-size:20px">17.42%</span>
-            <span class="pcr-lab pca-label pc3" data-arch-step="3" style="left:38.5%;top:55.5%;font-size:20px">2.79%</span>
-            <!-- step 4: 2-D screen axes labels + per-axis kept variance + dropped-PC3 note.
-                 (The two kept %s show 79.8 + 17.4 = 97.21, the badge total.) -->
-            <span class="pcr-lab pca-label pc1" data-arch-step="4" style="left:91.5%;top:46.5%">PC1</span>
-            <span class="pcr-lab pca-label pc2" data-arch-step="4" style="left:53.0%;top:9.5%">PC2</span>
-            <span class="pcr-lab pca-label pc1" data-arch-step="4" style="left:84.5%;top:54.5%;font-size:18px">79.8%</span>
-            <span class="pcr-lab pca-label pc2" data-arch-step="4" style="left:60.5%;top:16.5%;font-size:18px">17.4%</span>
-            <span class="pcr-lab pca-label pc3" data-arch-step="4" style="left:24%;top:90%;font-size:18px;color:var(--ink-3)">PC3 dropped</span>
-            <!-- top-right status badge (one element per step; only current shown) -->
-            <span class="pcr-badge pca-label pc3" data-arch-step="0" style="color:var(--ink-3)">3-D cloud</span>
-            <span class="pcr-badge pca-label pc2" data-arch-step="1">PC1·PC2·PC3</span>
-            <span class="pcr-badge pca-label pc1" data-arch-step="2">rotating…</span>
-            <span class="pcr-badge pca-label" data-arch-step="3" style="color:var(--c-amber)">aligned</span>
-            <span class="pcr-badge pca-label pc2" data-arch-step="4" style="font-weight:700">97.21% kept</span>
+            <!-- HTML overlay labels are now JS-positioned (kept crisp, never SVG text) inside #pcr-ovl,
+                 in sync with the JS geometry, so axis names + variance %s never drift from their arrows. -->
+            <div id="pcr-ovl"></div>
+            <!-- the old static SVG dot frames + % overlays were replaced by the data-driven build below -->
             </div>
           </div>
           <!-- ── Step-synced PCA recipe on the REAL demo cloud (data/l5-pca-rotate.json):
@@ -1577,49 +1890,138 @@
             <div class="pcr-math-head"><span lang="ru">PCA по шагам · реальные числа</span><span lang="en">PCA recipe · real numbers</span></div>
 
             <!-- step 0 (cloud): center, then form the covariance matrix C -->
+            <!-- step 0 (raw): the correlated cloud, axes mismatched -->
             <div class="pcr-mrow" data-arch-step="0">
-              <span class="pcr-mlabel"><span lang="ru">1 · центрируем &rarr; ковариация</span><span lang="en">1 · center &rarr; covariance</span></span>
+              <span class="pcr-mlabel"><span lang="ru">1 · сырое облако (n = 30, 3-D)</span><span lang="en">1 · raw cloud (n = 30, 3-D)</span></span>
+              <div class="pcr-mmath">\(x_i\in\mathbb{R}^3,\quad i=1\ldots 30\)</div>
+              <p class="pcr-mtext"><span lang="ru">Коррелированное облако: оси экрана \(x,y,z\) не совпадают с направлениями разброса. Жмите <kbd>&rarr;</kbd>.</span><span lang="en">A correlated cloud: the screen axes \(x,y,z\) do not line up with how the data spreads. Press <kbd>&rarr;</kbd>.</span></p>
+            </div>
+
+            <!-- step 1 (centre): subtract the mean → covariance C -->
+            <div class="pcr-mrow" data-arch-step="1">
+              <span class="pcr-mlabel"><span lang="ru">2 · центрируем &rarr; ковариация C</span><span lang="en">2 · centre &rarr; covariance C</span></span>
               <div class="pcr-mmath">\(\displaystyle C=\tfrac1n\sum_i (x_i-\bar x)(x_i-\bar x)^{\top}=\begin{bmatrix}6.1326 & 3.2196 & 1.0354\\ 3.2196 & 4.2826 & 1.2191\\ 1.0354 & 1.2191 & 0.6846\end{bmatrix}\)</div>
               <p class="pcr-mtext"><span lang="ru">Симметричная \(3\times3\): большие недиагональные члены = оси \(x,y,z\) коррелированы.</span><span lang="en">Symmetric \(3\times3\): the large off-diagonal terms mean the \(x,y,z\) axes are correlated.</span></p>
             </div>
 
-            <!-- step 1 (axes): eigenvectors = directions, eigenvalues = variance/axis -->
-            <div class="pcr-mrow" data-arch-step="1">
-              <span class="pcr-mlabel"><span lang="ru">2 · собственные векторы C = оси</span><span lang="en">2 · eigenvectors of C = axes</span></span>
+            <!-- step 2 (axes): eigenvectors = directions, eigenvalues = variance/axis -->
+            <div class="pcr-mrow" data-arch-step="2">
+              <span class="pcr-mlabel"><span lang="ru">3 · собственные векторы C = оси</span><span lang="en">3 · eigenvectors of C = axes</span></span>
               <div class="pcr-mmath">\(C v_k=\lambda_k v_k,\quad \lambda_1=8.8561\gt\lambda_2=1.934\gt\lambda_3=0.3098\)</div>
               <p class="pcr-mtext"><span lang="ru">Собственные векторы — главные направления; \(\lambda_k\) — дисперсия вдоль оси. Доли: \(\tfrac{8.8561}{11.0998}=79.79\%,\ \tfrac{1.934}{11.0998}=17.42\%,\ \tfrac{0.3098}{11.0998}=2.79\%\).</span><span lang="en">The eigenvectors are the principal directions; each \(\lambda_k\) is the variance along that axis. Shares: \(\tfrac{8.8561}{11.0998}=79.79\%,\ \tfrac{1.934}{11.0998}=17.42\%,\ \tfrac{0.3098}{11.0998}=2.79\%\).</span></p>
             </div>
 
-            <!-- step 2 (rotate): the eigenvectors stacked form the rotation R -->
-            <div class="pcr-mrow" data-arch-step="2">
-              <span class="pcr-mlabel"><span lang="ru">3 · поворот в базис собственных векторов</span><span lang="en">3 · rotate into the eigenbasis</span></span>
+            <!-- step 3 (rotate): the eigenvectors stacked form the rotation R -->
+            <div class="pcr-mrow" data-arch-step="3">
+              <span class="pcr-mlabel"><span lang="ru">4 · поворот в базис собственных векторов</span><span lang="en">4 · rotate into the eigenbasis</span></span>
               <div class="pcr-mmath">\(y=R^{\top}(x-\bar x),\quad R=[\,v_1\ v_2\ v_3\,]\)</div>
               <p class="pcr-mtext"><span lang="ru">\(R\) ортогональна (\(R^{\top}R=I\)) &rArr; это жёсткий поворот: длины и углы сохраняются, общая дисперсия не меняется \((\sum\lambda_k=11.0998)\).</span><span lang="en">\(R\) is orthogonal \((R^{\top}R=I)\) &rArr; a rigid rotation: lengths and angles are preserved, total variance is unchanged \((\sum\lambda_k=11.0998)\).</span></p>
             </div>
 
-            <!-- step 3 (aligned): variance per aligned axis = the eigenvalues -->
-            <div class="pcr-mrow" data-arch-step="3">
-              <span class="pcr-mlabel"><span lang="ru">4 · дисперсия по выровненным осям</span><span lang="en">4 · variance on the aligned axes</span></span>
+            <!-- step 4 (aligned): variance per aligned axis = the eigenvalues -->
+            <div class="pcr-mrow" data-arch-step="4">
+              <span class="pcr-mlabel"><span lang="ru">5 · дисперсия по выровненным осям</span><span lang="en">5 · variance on the aligned axes</span></span>
               <div class="pcr-mmath">\(\mathrm{Var}(\text{PC}_k)=\lambda_k:\ \ 79.79\%\ \gt\ 17.42\%\ \gt\ 2.79\%\)</div>
               <p class="pcr-mtext"><span lang="ru">Оси теперь лежат на экране; PC3 несёт лишь \(2.79\%\) разброса.</span><span lang="en">The axes now lie on the screen; PC3 carries only \(2.79\%\) of the spread.</span></p>
             </div>
 
-            <!-- step 4 (flatten): project onto top-2 eigenvectors → kept variance -->
-            <div class="pcr-mrow" data-arch-step="4">
-              <span class="pcr-mlabel"><span lang="ru">5 · проекция на топ-2 &rarr; сохранено</span><span lang="en">5 · project onto top-2 &rarr; kept</span></span>
+            <!-- step 5 (flatten): project onto top-2 eigenvectors → kept variance -->
+            <div class="pcr-mrow" data-arch-step="5">
+              <span class="pcr-mlabel"><span lang="ru">6 · проекция на топ-2 &rarr; сохранено</span><span lang="en">6 · project onto top-2 &rarr; kept</span></span>
               <div class="pcr-mmath">\(\displaystyle \frac{\lambda_1+\lambda_2}{\lambda_1+\lambda_2+\lambda_3}=\frac{8.8561+1.934}{11.0998}=\frac{10.7901}{11.0998}=\mathbf{97.21\%}\)</div>
               <p class="pcr-mtext"><span lang="ru">Отбрасываем PC3, оставляем \((\text{PC1},\text{PC2})\): сохранено \(97.21\%\) — это 3-D демо, не 50-мерные слова \((\to 37.7\%)\).</span><span lang="en">Drop PC3, keep \((\text{PC1},\text{PC2})\): \(97.21\%\) is retained — this is the 3-D demo, not the 50-D words \((\to 37.7\%)\).</span></p>
             </div>
           </aside>
           </div>
           <p class="viz-caption">
-            <span class="pcr-cap" data-arch-step="0"><span lang="ru">Коррелированное 3-D облако: оси экрана \(x,y,z\) не совпадают с направлениями разброса.</span><span lang="en">A correlated 3-D cloud: the screen axes \(x,y,z\) do not line up with the directions of spread.</span></span>
-            <span class="pcr-cap" data-arch-step="1"><span lang="ru">Собственные векторы ковариации дают три оси: PC1 (главный разброс), PC2, PC3.</span><span lang="en">The covariance eigenvectors give three axes: PC1 (top spread), PC2, PC3.</span></span>
-            <span class="pcr-cap" data-arch-step="2"><span lang="ru">Жёсткий поворот: облако и его оси поворачиваются вместе — ничего не искажается, только разворот.</span><span lang="en">A rigid rotation: cloud and axes turn together — nothing is distorted, it is just a turn.</span></span>
-            <span class="pcr-cap" data-arch-step="3"><span lang="ru">Оси совмещены с экраном. Дисперсия по осям: PC1 \(79.79\%\), PC2 \(17.42\%\), PC3 — тонкая, \(2.79\%\).</span><span lang="en">Axes aligned with the screen. Variance per axis: PC1 \(79.79\%\), PC2 \(17.42\%\), PC3 thin at \(2.79\%\).</span></span>
-            <span class="pcr-cap" data-arch-step="4"><span lang="ru">Отбрасываем тонкую PC3 &rarr; 2-D. PC1+PC2 сохраняют \(\mathbf{97.21\%}\) разброса (это 3-D демо, не 50-D слова \(\to 37.7\%\)).</span><span lang="en">Drop the thin PC3 &rarr; 2-D. PC1+PC2 keep \(\mathbf{97.21\%}\) of the spread (this is the 3-D demo, not the 50-D words at \(37.7\%\)).</span></span>
+            <span class="pcr-cap" data-arch-step="0"><span lang="ru">Сырое коррелированное 3-D облако: оси экрана \(x,y,z\) не совпадают с направлениями разброса.</span><span lang="en">A raw, correlated 3-D cloud: the screen axes \(x,y,z\) do not line up with the directions of spread.</span></span>
+            <span class="pcr-cap" data-arch-step="1"><span lang="ru">Центрируем (вычитаем среднее) и считаем ковариацию \(C\) — большие недиагональные члены кодируют корреляцию.</span><span lang="en">Centre the cloud (subtract the mean) and form the covariance \(C\) — its large off-diagonals encode the correlation.</span></span>
+            <span class="pcr-cap" data-arch-step="2"><span lang="ru">Собственные векторы ковариации дают три оси: PC1 (главный разброс), PC2, PC3.</span><span lang="en">The covariance eigenvectors give three axes: PC1 (top spread), PC2, PC3.</span></span>
+            <span class="pcr-cap" data-arch-step="3"><span lang="ru">Жёсткий поворот: облако и его оси поворачиваются вместе — ничего не искажается, только разворот.</span><span lang="en">A rigid rotation: cloud and axes turn together — nothing is distorted, it is just a turn.</span></span>
+            <span class="pcr-cap" data-arch-step="4"><span lang="ru">Оси совмещены с экраном. Дисперсия по осям: PC1 \(79.79\%\), PC2 \(17.42\%\), PC3 — тонкая, \(2.79\%\).</span><span lang="en">Axes aligned with the screen. Variance per axis: PC1 \(79.79\%\), PC2 \(17.42\%\), PC3 thin at \(2.79\%\).</span></span>
+            <span class="pcr-cap" data-arch-step="5"><span lang="ru">Отбрасываем тонкую PC3 &rarr; 2-D. PC1+PC2 сохраняют \(\mathbf{97.21\%}\) разброса (это 3-D демо, не 50-D слова \(\to 37.7\%\)).</span><span lang="en">Drop the thin PC3 &rarr; 2-D. PC1+PC2 keep \(\mathbf{97.21\%}\) of the spread (this is the 3-D demo, not the 50-D words at \(37.7\%\)).</span></span>
           </p>
-          <aside class="slide-notes">This is the geometry of PCA made visible, ported from the book's rotation widget. Step zero: a correlated three-D cloud, where the screen axes do not align with how the data actually spreads. Step one: we draw the three covariance eigenvectors — PC1 along the greatest spread, PC2 next, PC3 the thinnest. Step two: a rigid rotation begins — the whole cloud and its axes turn together, nothing is stretched or sheared, it is purely a turn. Step three: fully aligned, with the principal axes now lying on the screen axes, and the per-axis variance labelled — seventy-nine point seven nine, seventeen point four two, and a thin two point seven nine percent on PC3. Step four: we drop that thin third axis and land in two dimensions, keeping ninety-seven point two one percent of the spread. Keep this distinct from the thirty-seven point seven percent on the earlier slide — that was the fifty-dimensional GloVe words; this is the three-D demo cloud where two axes capture almost everything.</aside>
+          <aside class="slide-notes">This is the geometry of PCA made visible, now stepped through the full pipeline on the real thirty-point demo cloud from the L5 data file. Step zero: the raw correlated three-D cloud, where the screen axes do not align with how the data spreads. Step one: we centre the cloud by subtracting the mean and form the three-by-three covariance matrix C — its large off-diagonal terms, three point two two and one point oh four, are exactly the correlation. Step two: the eigenvectors of C give three principal axes — PC1 along the greatest spread carrying seventy-nine point eight percent, PC2 seventeen point four, PC3 a thin two point eight. Step three: a rigid rotation — the whole cloud and its axes turn together, nothing stretched or sheared, total variance unchanged at eleven point one. Step four: fully aligned, the principal axes now lying on the screen, per-axis variance labelled. Step five: we drop the thin PC3 and land in two dimensions, keeping ninety-seven point two one percent of the spread. Keep this distinct from the thirty-seven point seven percent earlier — that was the fifty-dimensional GloVe words; this is the three-D demo where two axes capture almost everything. Every number is from the L5 PCA-rotate data file.</aside>
+          <script>
+          (function () {
+            // Data-driven PCA-as-rotation on data/l5-pca-rotate.json (n=30 real cloud). The 4 data frames
+            // (frac 0/.33/.66/1) are projected (x,y) into ONE coordinate frame so the turn reads as a
+            // rigid rotation; the flat step lays the final PC1/PC2 on screen axes. Eigen-axes are drawn
+            // from the RAW cloud's screen-space covariance (clean principal directions). HTML overlay
+            // labels (#pcr-ovl) are positioned in % of the 1000×620 viewBox → no SVG <text> to double-paint.
+            var RAW=[[0.676,-2.401],[1.89,0.083],[0.059,-1.719],[-1.919,-2.435],[0.228,2.019],[-2.073,-2.485],[1.556,0.752],[5.8,4.531],[-0.655,-1.401],[-0.771,-0.597],[2.865,1.657],[2.051,1.101],[1.011,-1.701],[-0.197,1.45],[3.247,2.711],[-1.658,-2.706],[2.689,1.973],[0.405,0.0],[-5.51,-0.243],[3.392,3.62],[-2.939,1.49],[-0.69,-1.97],[-1.95,0.92],[3.69,2.38],[0.46,0.0],[2.39,1.49],[-6.49,-1.49],[1.26,0.46],[3.41,3.62],[0.05,-1.13]];
+            // Precise projected screen coords (one coordinate frame; viewBox 1000×620, fit box 120,90,760,440).
+            // raw=frame0, rot1/rot2=interp toward eigenbasis (frac .33/.66→1), aligned=frame3, flat=final2d.
+            var FR={"raw":[[529.1,398.3],[566,322.8],[510.3,377.5],[450.2,399.3],[515.5,264],[445.6,400.8],[555.8,302.5],[684.8,187.6],[488.6,367.9],[485.1,343.5],[595.6,275],[570.9,291.9],[539.3,377],[462.3,344],[566.2,220.9],[594.4,366.2],[433.1,316],[504.7,320.7],[364.4,432.4],[460.4,238.5],[386.1,344.9],[509.3,390.5],[433.6,358.1],[577.8,258.9],[557.7,310.9],[532.8,276.4],[316.4,424.7],[503.6,291.3],[565,217.2],[551.7,339.9]],"rot1":[[525.7,398.5],[548.3,335.8],[513.5,374.3],[507.8,371.7],[513.3,268.6],[486.4,377.1],[513.5,321.8],[565,252],[527.6,352.4],[511.9,331.9],[536.8,305.7],[575.9,301],[541.1,378.3],[485.7,330.2],[500.6,252.1],[548.7,388.7],[469.4,295.9],[511.5,318.5],[446,384.4],[438.1,242.1],[448.9,309.5],[523,383.6],[462.8,338],[539.1,282.5],[536.8,324.2],[535.2,281.6],[413.1,366.3],[508,291.1],[501.1,248],[521.4,353.5]],"rot2":[[529.3,396.3],[499.3,354.2],[527.2,368.9],[582.8,348.9],[490.2,278.3],[563.3,350.4],[463.7,336.2],[369.7,316.7],[560.5,344.8],[539.2,324.6],[445.3,335.6],[517.2,327.7],[531.3,382.9],[531,314.4],[416.5,277.5],[485.5,408.4],[531.9,274.8],[514.1,318.6],[602.1,330.2],[449.4,233.2],[560.6,271.5],[542.6,377.4],[535.9,311],[459.9,310.5],[490.6,340.9],[502.3,296.5],[607.5,297.9],[502.9,294.1],[417.2,273.6],[486.9,363.3]],"aligned":[[536.9,393.6],[463.7,361],[538.9,366.2],[605.5,352.4],[467,284.3],[605.7,345.8],[452.9,332],[278.8,321.3],[556.4,352.5],[541.5,328.6],[405.6,336.5],[447.3,347.6],[518.6,386.7],[556.6,311.4],[392.1,273],[463.4,406.7],[563,272.5],[510,320.8],[689.3,320.2],[484.9,219.7],[618.4,266.3],[549.8,377.8],[585.9,302.3],[412.9,316.8],[461.5,345.3],[463.5,307.5],[721.2,283.2],[492.8,297.6],[391.1,269.9],[480.6,359.9]],"flat":[[536.9,393.6],[463.7,361],[538.9,366.2],[605.5,352.4],[467,284.3],[605.7,345.8],[452.9,332],[278.8,321.3],[556.4,352.5],[541.5,328.6],[405.6,336.5],[447.3,347.6],[518.6,386.7],[556.6,311.4],[392.1,273],[463.4,406.7],[563,272.5],[510,320.8],[689.3,320.2],[484.9,219.7],[618.4,266.3],[549.8,377.8],[585.9,302.3],[412.9,316.8],[461.5,345.3],[463.5,307.5],[721.2,283.2],[492.8,297.6],[391.1,269.9],[480.6,359.9]]};
+            var NS='http://www.w3.org/2000/svg';
+            function dots(gid, arr, cls){ var g=document.getElementById(gid); if(!g) return;
+              arr.forEach(function(p){ var c=document.createElementNS(NS,'circle'); c.setAttribute('cx',p[0]);c.setAttribute('cy',p[1]);c.setAttribute('r',8);c.setAttribute('class',cls); g.appendChild(c); }); }
+            function line(g,x1,y1,x2,y2,stroke,w,mk){ var l=document.createElementNS(NS,'line'); l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2);l.setAttribute('stroke',stroke);l.setAttribute('stroke-width',w); if(mk)l.setAttribute('marker-end',mk); g.appendChild(l); }
+            // cloud centre on screen (origin of the projection)
+            var C=[508.5,325.3];
+            // screen-space eigen directions (PC1 along raw cloud spread, PC2 orthogonal; from RAW 2D cov)
+            var E1=[0.799,0.602], E2=[-0.602,0.799];
+            // STEP 0: raw cloud
+            dots('pcr-g0', FR.raw, 'pcr-dot');
+            // STEP 1: centred cloud + a small centre cross (mean marker)
+            dots('pcr-g1', FR.raw, 'pcr-dot');
+            (function(){ var g=document.getElementById('pcr-g1'); if(g){ line(g,C[0]-14,C[1],C[0]+14,C[1],'var(--ink-3)',2); line(g,C[0],C[1]-14,C[0],C[1]+14,'var(--ink-3)',2); } })();
+            // STEP 2: raw cloud + eigen-axes (PC1 amber, PC2 violet, PC3 grey short)
+            dots('pcr-g2', FR.raw, 'pcr-dot');
+            (function(){ var g=document.getElementById('pcr-g2'); if(!g) return;
+              line(g,C[0],C[1],C[0]+E1[0]*150,C[1]-E1[1]*150,'var(--c-amber)',3.6,'url(#pcrah0)');
+              line(g,C[0],C[1],C[0]+E2[0]*78,C[1]-E2[1]*78,'var(--c-violet)',3.6,'url(#pcrah1)');
+              line(g,C[0],C[1],C[0]-30,C[1]+22,'var(--ink-3)',2.4,'url(#pcrah2)'); })();
+            // STEP 3: rotating (mid frame) + turning axes
+            dots('pcr-g3', FR.rot2, 'pcr-dot');
+            (function(){ var g=document.getElementById('pcr-g3'); if(!g) return;
+              line(g,C[0],C[1],C[0]+120,C[1]-58,'var(--c-amber)',3.6,'url(#pcrah0)');
+              line(g,C[0],C[1],C[0]-46,C[1]-100,'var(--c-violet)',3.6,'url(#pcrah1)');
+              line(g,C[0],C[1],C[0]-44,C[1]+18,'var(--ink-3)',2.4,'url(#pcrah2)'); })();
+            // STEP 4: aligned + screen-aligned axes
+            dots('pcr-g4', FR.aligned, 'pcr-dot');
+            (function(){ var g=document.getElementById('pcr-g4'); if(!g) return;
+              line(g,C[0],C[1],C[0]+150,C[1],'var(--c-amber)',3.6,'url(#pcrah0)');
+              line(g,C[0],C[1],C[0],C[1]-78,'var(--c-violet)',3.6,'url(#pcrah1)');
+              line(g,C[0],C[1],C[0]-40,C[1]+22,'var(--ink-3)',2.4,'url(#pcrah2)'); })();
+            // STEP 5: flat 2-D (PC1 on x, PC2 on y) with screen axes
+            (function(){ var g=document.getElementById('pcr-g5'); if(!g) return;
+              line(g,80,C[1],920,C[1],'var(--ink-3)',1.6); line(g,C[0],60,C[0],560,'var(--ink-3)',1.6); })();
+            dots('pcr-g5', FR.flat, 'pcr-flatdot');
+            // HTML overlay labels — % of the 1000×620 viewBox (left=x/10 %, top=y/6.2 %).
+            var ovl=document.getElementById('pcr-ovl');
+            function lab(step, leftPct, topPct, cls, txt, fs){ if(!ovl) return; var s=document.createElement('span');
+              s.className='pcr-lab pca-label '+cls; s.setAttribute('data-arch-step',step);
+              s.style.left=leftPct; s.style.top=topPct; if(fs)s.style.fontSize=fs; s.textContent=txt; ovl.appendChild(s); }
+            function badge(step, cls, txt, extra){ if(!ovl) return; var s=document.createElement('span');
+              s.className='pcr-badge pca-label '+cls; s.setAttribute('data-arch-step',step); if(extra)s.setAttribute('style',extra); s.textContent=txt; ovl.appendChild(s); }
+            // axis names per step (positioned just beyond each arrow tip)
+            // step2 (axes appear on raw)
+            lab(2,'67.5%','35%','pc1','PC1'); lab(2,'42%','26%','pc2','PC2'); lab(2,'45%','58%','pc3','PC3');
+            // step3 (rotating)
+            lab(3,'66%','38%','pc1','PC1'); lab(3,'44%','22%','pc2','PC2'); lab(3,'44%','57%','pc3','PC3');
+            // step4 (aligned) + per-axis variance
+            lab(4,'80%','49%','pc1','PC1'); lab(4,'52%','25%','pc2','PC2'); lab(4,'42%','61%','pc3','PC3');
+            lab(4,'78%','58%','pc1','79.79%','20px'); lab(4,'60%','33%','pc2','17.42%','20px'); lab(4,'37%','65%','pc3','2.79%','20px');
+            // step5 (flat) screen-axis names + kept variance + dropped PC3
+            lab(5,'90%','46%','pc1','PC1'); lab(5,'53%','8%','pc2','PC2');
+            lab(5,'82%','55%','pc1','79.8%','18px'); lab(5,'58%','15%','pc2','17.4%','18px');
+            lab(5,'20%','90%','pc3','PC3 dropped','18px');
+            // status badges (one per step; only current shown)
+            badge(0,'pc3','raw 3-D cloud','color:var(--ink-3)');
+            badge(1,'pc2','centred');
+            badge(2,'pc2','PC1·PC2·PC3');
+            badge(3,'pc1','rotating…');
+            badge(4,'','aligned','color:var(--c-amber)');
+            badge(5,'pc2','97.21% kept','font-weight:700');
+            // The overlay spans use data-arch-step; deck.applyStepVisibility already toggles is-arch-current
+            // on them (keyboard path). For the click/stepper path we also re-toggle on slide:step.
+            var slide=document.querySelector('.pcr-slide');
+            function syncOvl(){ if(!slide) return; var st=parseInt(slide.dataset.currentStep||'0',10);
+              slide.querySelectorAll('#pcr-ovl [data-arch-step]').forEach(function(el){ var n=parseInt(el.getAttribute('data-arch-step'),10); el.classList.toggle('is-arch-current', n===st); }); }
+            syncOvl(); if(slide){ slide.addEventListener('slide:step', syncOvl); slide.addEventListener('slide:enter', syncOvl); }
+          })();
+          </script>
         </section>
 
         <!-- ============================================ 34 · VIZ · scree / explained variance ============================================ -->
@@ -1786,13 +2188,19 @@
              data/l5-tsne-math.json (anchor='cat', perplexity 5, σ≈2.003, the p-row). The affinity bars /
              scatter are static SVG gated by parent <g data-step>; the changing caption SWAPS via
              data-arch-step — no animated SVG <text>, so no double-paint. -->
-        <section class="slide tsa-slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="43 t-SNE affinities">
+        <section class="slide tsa-slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="43 t-SNE affinities">
           <style>
             /* scoped. Cumulative reveal (display) keyed on is-step-hidden (n > current). Step 0 = the
                anchor's 8 neighbours by high-D distance (a meaningful START); 1 = the Gaussian p bars;
-               2 = the perplexity/σ tuning; 3 = the low-D Student-t side. Caption SWAPS via data-arch-step. */
+               2 = the perplexity/σ tuning; 3 = the low-D Student-t side; 4 = the FULL PASS — the real
+               t-SNE run migrating a scattered init into clusters (data/l5-tsne-migrate.json). Caption SWAPS. */
             .tsa-slide [data-step] { display: none; }
             .tsa-slide [data-step]:not(.is-step-hidden) { display: block; }
+            /* step 4 swaps out the affinity-math groups and gives the migration scatter the full stage */
+            .tsa-slide[data-current-step="4"] #tsa-rows,
+            .tsa-slide[data-current-step="4"] svg g[data-step="2"],
+            .tsa-slide[data-current-step="4"] svg g[data-step="3"],
+            .tsa-slide[data-current-step="4"] svg text.tsa-affhead { display: none; }
             .tsa-slide .tsa-stage { position: relative; width: 100%; max-width: 1360px; aspect-ratio: 1180 / 470; margin: 0 auto; }
             .tsa-slide .tsa-stage svg { position: absolute; inset: 0; width: 100%; height: 100%; }
             .tsa-slide .viz-frame { margin: 0; }
@@ -1802,8 +2210,8 @@
             @media (prefers-reduced-motion: reduce) { .tsa-slide .tsa-cap { animation: none !important; } }
           </style>
           <div class="slide-header">
-            <h2><span lang="ru">t-SNE, шаг 1: близости. Гаусс \(p_{j|i}\) &rarr; Стьюдент \(q_{ij}\)</span><span lang="en">t-SNE, step 1: the affinities. Gaussian \(p_{j|i}\) &rarr; Student-t \(q_{ij}\)</span></h2>
-            <span class="slide-kicker"><span lang="ru">9 слов GloVe-50 · якорь <code>cat</code> · perplexity \(=5\)</span><span lang="en">9 GloVe-50 words · anchor <code>cat</code> · perplexity \(=5\)</span></span>
+            <h2><span lang="ru">t-SNE: близости \(p\to q\), затем полный проход в кластеры</span><span lang="en">t-SNE: the affinities \(p\to q\), then the full pass into clusters</span></h2>
+            <span class="slide-kicker"><span lang="ru">якорь <code>cat</code> · perplexity \(=5\) · σ=2.003 · KL · миграция из случайного старта</span><span lang="en">anchor <code>cat</code> · perplexity \(=5\) · σ=2.003 · KL · migration from a scattered init</span></span>
           </div>
           <div class="viz-frame">
             <div class="tsa-stage">
@@ -1812,7 +2220,7 @@
                   <!-- ───────────── LEFT: high-D Gaussian affinity from anchor 'cat' ───────────── -->
                   <!-- heading on its own line (y=30); the "(anchor: cat)" subtitle is a SEPARATE line
                        below it (rendered in JS at y=56), and the rows start at y0=80 → no overprint. -->
-                  <text x="40" y="30" font-size="22" fill="var(--ink)" font-weight="600"><tspan>high-D · Gaussian affinity from </tspan><tspan fill="var(--accent-ink)" font-style="italic">cat</tspan></text>
+                  <text x="40" y="30" font-size="22" fill="var(--ink)" font-weight="600" class="tsa-affhead"><tspan>high-D · Gaussian affinity from </tspan><tspan fill="var(--accent-ink)" font-style="italic">cat</tspan></text>
                   <!-- word rows: label (group-coloured) · distance² (step 0) · p bar (step 1) · p value (step 1) -->
                   <g id="tsa-rows"></g>
                   <!-- STEP 2: perplexity / σ tuning annotation -->
@@ -1844,6 +2252,31 @@
                     <text x="668" y="408" font-size="14" fill="var(--ink-3)">joint P symmetrises p(j|i) &amp; p(i|j); both rows sum to 1.</text>
                     <text x="668" y="428" font-size="14" fill="var(--ink-3)">next slide: pull q toward p (minimise KL).</text>
                   </g>
+                  <!-- ── STEP 4: THE FULL PASS — real t-SNE migration (data/l5-tsne-migrate.json, 40 words,
+                       4 meaning groups). LEFT = scattered PCA init; RIGHT = converged clusters. Following
+                       the p-vs-q forces (prev step) point-by-point IS this migration. Title is plain text
+                       (stroke:none implicit; no colored stroke) → no double-paint. ── -->
+                  <g data-step="4">
+                    <text x="40" y="30" font-size="22" fill="var(--ink)" font-weight="600">the full pass: those affinities migrate a scattered init into clusters</text>
+                    <!-- LEFT: init -->
+                    <text x="60" y="62" font-size="16" fill="var(--ink-3)" font-family="var(--font-mono)">init (PCA) — scattered, spread 0.75</text>
+                    <rect x="40" y="72" width="520" height="384" rx="10" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
+                    <g id="tsa-mig-init"></g>
+                    <!-- arrow between panels -->
+                    <text x="590" y="270" font-size="34" fill="var(--accent-ink)" text-anchor="middle">&rarr;</text>
+                    <text x="590" y="296" font-size="13" fill="var(--ink-3)" text-anchor="middle">1000 iters</text>
+                    <!-- RIGHT: converged -->
+                    <text x="620" y="62" font-size="16" fill="var(--ink-3)" font-family="var(--font-mono)">converged — 4 tight clusters</text>
+                    <rect x="620" y="72" width="520" height="384" rx="10" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
+                    <g id="tsa-mig-conv"></g>
+                    <!-- legend -->
+                    <g font-size="14">
+                      <circle cx="650" cy="448" r="7" fill="var(--c-green)"/><text x="662" y="453" fill="var(--ink-2)">animals</text>
+                      <circle cx="752" cy="448" r="7" fill="var(--c-violet)"/><text x="764" y="453" fill="var(--ink-2)">royalty</text>
+                      <circle cx="852" cy="448" r="7" fill="var(--accent)"/><text x="864" y="453" fill="var(--ink-2)">tech</text>
+                      <circle cx="932" cy="448" r="7" fill="var(--c-red)"/><text x="944" y="453" fill="var(--ink-2)">places</text>
+                    </g>
+                  </g>
                 </g>
               </svg>
             </div>
@@ -1852,6 +2285,7 @@
           <p class="tsa-cap small muted center mt-2" data-arch-step="1"><span lang="ru">Шаг 1 — <strong>гауссова близость</strong> \(p_{j|i}=\frac{\exp(-d^2/2\sigma^2)}{\sum\exp(\cdot)}\). <code>dog</code> \(0.405\), <code>puppy</code> \(0.196\), <code>lion</code> \(0.140\), <code>kitten</code> \(0.136\), … <code>throne</code> \(0.003\). Строка суммируется в \(1\).</span><span lang="en">Step 1 — the <strong>Gaussian affinity</strong> \(p_{j|i}=\frac{\exp(-d^2/2\sigma^2)}{\sum\exp(\cdot)}\). <code>dog</code> \(0.405\), <code>puppy</code> \(0.196\), <code>lion</code> \(0.140\), <code>kitten</code> \(0.136\), … <code>throne</code> \(0.003\). The row sums to \(1\).</span></p>
           <p class="tsa-cap small muted center mt-2" data-arch-step="2"><span lang="ru">Шаг 2 — <strong>perplexity</strong> задаёт, сколько соседей считать «близкими». Ширину \(\sigma\) не угадывают — её подбирают бинарным поиском так, чтобы perplexity строки \(=5\); здесь \(\sigma\approx2.003\).</span><span lang="en">Step 2 — <strong>perplexity</strong> sets how many neighbours count as &ldquo;near&rdquo;. The width \(\sigma\) is not guessed — binary search tunes it so the row's perplexity \(=5\); here \(\sigma\approx2.003\).</span></p>
           <p class="tsa-cap small muted center mt-2" data-arch-step="3"><span lang="ru">Шаг 3 — в <strong>2-D</strong> близость измеряют ядром <strong>Стьюдента</strong> \(q_{ij}\propto(1+d^2)^{-1}\), а не гауссовым. Тяжёлый хвост оставляет далёким точкам немного близости — это лечит скучивание.</span><span lang="en">Step 3 — in <strong>2-D</strong> closeness uses a <strong>Student-t</strong> kernel \(q_{ij}\propto(1+d^2)^{-1}\), not a Gaussian. The heavy tail keeps far points a little affinity — that cures crowding.</span></p>
+          <p class="tsa-cap small muted center mt-2" data-arch-step="4"><span lang="ru">Шаг 4 — <strong>полный проход</strong>: реальный запуск t-SNE (40 слов, 4 группы). Точки стартуют как разбросанная PCA-инициализация и под действием сил \(p\!-\!q\) (предыдущий шаг) за 1000 итераций мигрируют в 4 плотных кластера. Близости — рецепт, миграция — результат.</span><span lang="en">Step 4 — the <strong>full pass</strong>: a real t-SNE run (40 words, 4 groups). Points start as a scattered PCA init and, driven by the \(p\!-\!q\) forces (previous step), migrate over 1000 iterations into 4 tight clusters. The affinities are the recipe; the migration is the result.</span></p>
           <script>
           (function () {
             // anchor 'cat' row, from data/l5-tsne-math.json: highD.anchorSqDist + conditional.pRow.
@@ -1890,14 +2324,30 @@
             var gp=document.getElementById('tsa-gauss'), tp=document.getElementById('tsa-tstud');
             if(gp) gp.setAttribute('points', build(function(d){return Math.exp(-d*d);}));
             if(tp) tp.setAttribute('points', build(function(d){return 1/(1+d*d);}));
+            // ── STEP 4 migration scatter (data/l5-tsne-migrate.json): init (PCA, scattered) → converged.
+            // c: 0 animals(green) · 1 royalty(violet) · 2 tech(accent) · 3 places(red). Same coordinate
+            // frame per panel (own auto-fit) so each panel fills its box; arrows show the time direction.
+            var MINIT=[[-0.962,-0.119,0],[-0.971,-0.164,0],[-0.943,-0.118,0],[-0.951,-0.096,0],[-0.996,-0.099,0],[-0.973,-0.139,0],[-1,-0.107,0],[-0.917,-0.027,0],[-0.964,-0.031,0],[-0.939,-0.105,0],[0.664,-0.525,1],[0.509,-0.52,1],[0.505,-0.581,1],[0.602,-0.57,1],[0.646,-0.566,1],[0.638,-0.589,1],[0.616,-0.665,1],[0.581,-0.606,1],[0.577,-0.556,1],[0.574,-0.618,1],[0.025,-0.09,2],[0.089,-0.134,2],[0.05,-0.083,2],[0.047,-0.082,2],[0.018,-0.131,2],[0.009,-0.039,2],[0.057,-0.079,2],[0.052,-0.128,2],[0.044,-0.101,2],[0.07,-0.041,2],[0.384,0.791,3],[0.339,0.739,3],[0.28,0.789,3],[0.372,0.803,3],[0.344,0.84,3],[0.319,0.71,3],[0.306,0.72,3],[0.317,0.747,3],[0.346,0.799,3],[0.234,0.773,3]];
+            var MCONV=[[-0.524,-0.918,0],[-0.567,-0.951,0],[-0.515,-0.987,0],[-0.5,-0.943,0],[-0.535,-0.956,0],[-0.54,-0.934,0],[-0.52,-0.939,0],[-0.522,-1,0],[-0.487,-0.954,0],[-0.531,-0.98,0],[0.463,-0.462,1],[0.426,-0.438,1],[0.394,-0.431,1],[0.468,-0.432,1],[0.465,-0.418,1],[0.452,-0.402,1],[0.445,-0.382,1],[0.445,-0.411,1],[0.43,-0.441,1],[0.421,-0.389,1],[-0.742,0.789,2],[-0.765,0.771,2],[-0.755,0.751,2],[-0.768,0.736,2],[-0.699,0.78,2],[-0.791,0.767,2],[-0.73,0.732,2],[-0.736,0.774,2],[-0.738,0.753,2],[-0.711,0.734,2],[0.843,0.578,3],[0.807,0.581,3],[0.81,0.632,3],[0.845,0.591,3],[0.816,0.602,3],[0.824,0.66,3],[0.848,0.628,3],[0.793,0.646,3],[0.84,0.616,3],[0.843,0.643,3]];
+            var MHUE={0:'var(--c-green)',1:'var(--c-violet)',2:'var(--accent)',3:'var(--c-red)'};
+            function drawMig(gid, pts, bx){ var g=document.getElementById(gid); if(!g) return;
+              var xs=pts.map(function(p){return p[0];}), ys=pts.map(function(p){return p[1];});
+              var x0=Math.min.apply(null,xs),x1=Math.max.apply(null,xs),y0=Math.min.apply(null,ys),y1=Math.max.apply(null,ys);
+              var px=(x1-x0)*0.12||0.1, py=(y1-y0)*0.12||0.1;
+              var sx=function(x){return bx.x+(x-(x0-px))/((x1+px)-(x0-px))*bx.w;};
+              var sy=function(y){return bx.y+bx.h-(y-(y0-py))/((y1+py)-(y0-py))*bx.h;};
+              pts.forEach(function(p){ var c=document.createElementNS(NS,'circle'); c.setAttribute('cx',sx(p[0]).toFixed(1));c.setAttribute('cy',sy(p[1]).toFixed(1));c.setAttribute('r',6);c.setAttribute('fill',MHUE[p[2]]);c.setAttribute('stroke','var(--bg-card)');c.setAttribute('stroke-width',1.2);c.setAttribute('fill-opacity',0.9); g.appendChild(c); });
+            }
+            drawMig('tsa-mig-init', MINIT, {x:62,y:92,w:476,h:344});
+            drawMig('tsa-mig-conv', MCONV, {x:642,y:92,w:476,h:344});
           })();
           </script>
           <div class="step-controls">
             <button data-step-act="prev" aria-label="Previous step">&larr;</button>
-            <span class="step-counter">0/3</span>
+            <span class="step-counter">0/4</span>
             <button data-step-act="next" aria-label="Next step">&rarr;</button>
           </div>
-          <aside class="slide-notes">The inside of t-SNE's first move, built one reveal per step on nine real GloVe words with cat as the anchor. Step zero shows only the input: the eight other words ordered by their squared distance from cat in the fifty-dimensional space — dog nearest at three point five five, throne farthest at forty-three point eight eight. Step one turns those distances into a Gaussian conditional affinity p of j given i, exponential of minus distance-squared over two sigma-squared, normalised so the row sums to one — dog zero point four zero five, puppy zero point one nine six, lion zero point one four zero, kitten zero point one three six, down to throne at zero point zero zero three. Step two is the key idea: sigma is not guessed, it is tuned by binary search so the row's perplexity equals five — perplexity being the effective number of neighbours the anchor attends to — which here gives sigma about two point zero zero three. Step three crosses to the low-dimensional side, where closeness uses a Student-t kernel, one over one plus distance-squared, not a Gaussian; the heavy tail keeps far-apart points a little affinity, which is exactly what gives clusters room and cures the crowding problem. Every number is from the L5 t-SNE data file.<aside data-notes-for-step="0">Step 0 — the anchor's 8 neighbours by high-D squared distance.</aside><aside data-notes-for-step="1">Step 1 — the Gaussian p row (dog 0.405 … throne 0.003), sums to 1.</aside><aside data-notes-for-step="2">Step 2 — perplexity 5 tunes σ≈2.003 by binary search.</aside><aside data-notes-for-step="3">Step 3 — low-D Student-t q, heavy tail fixes crowding.</aside></aside>
+          <aside class="slide-notes">The inside of t-SNE's first move, built one reveal per step on nine real GloVe words with cat as the anchor. Step zero shows only the input: the eight other words ordered by their squared distance from cat in the fifty-dimensional space — dog nearest at three point five five, throne farthest at forty-three point eight eight. Step one turns those distances into a Gaussian conditional affinity p of j given i, exponential of minus distance-squared over two sigma-squared, normalised so the row sums to one — dog zero point four zero five, puppy zero point one nine six, lion zero point one four zero, kitten zero point one three six, down to throne at zero point zero zero three. Step two is the key idea: sigma is not guessed, it is tuned by binary search so the row's perplexity equals five — perplexity being the effective number of neighbours the anchor attends to — which here gives sigma about two point zero zero three. Step three crosses to the low-dimensional side, where closeness uses a Student-t kernel, one over one plus distance-squared, not a Gaussian; the heavy tail keeps far-apart points a little affinity, which is exactly what gives clusters room and cures the crowding problem. Every number is from the L5 t-SNE data file.<aside data-notes-for-step="0">Step 0 — the anchor's 8 neighbours by high-D squared distance.</aside><aside data-notes-for-step="1">Step 1 — the Gaussian p row (dog 0.405 … throne 0.003), sums to 1.</aside><aside data-notes-for-step="2">Step 2 — perplexity 5 tunes σ≈2.003 by binary search.</aside><aside data-notes-for-step="3">Step 3 — low-D Student-t q, heavy tail fixes crowding.</aside><aside data-notes-for-step="4">Step 4 — the full pass: a real 40-word t-SNE run migrates the scattered PCA init into four tight clusters; the affinities are the recipe, the migration is the result.</aside></aside>
         </section>
 
         <!-- ============================================ 44 · VIZ (stepped) · t-SNE objective: KL(P‖Q) + gradient forces ============================================ -->
@@ -2022,32 +2472,145 @@
         </section>
 
         <!-- ============================================ 45 · TWO-COL · UMAP ============================================ -->
-        <section class="slide" data-type="two-col" data-screen-label="45 UMAP">
+        <section class="slide umap-slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="45 UMAP">
+          <style>
+            /* scoped. CONCRETE, not abstract: a REAL UMAP run on 44 GloVe-50 words (umap-learn 0.5.12).
+               The scatter SWAPS through the actual epoch snapshots (spectral init → converged); the right
+               panel reveals the params, the tightness drop, and the UMAP-vs-t-SNE contrast cumulatively.
+               Hues are var(--token); cluster dots are SVG circles (no text stroke → no double-paint). */
+            .umap-slide .um-layout { display: grid; grid-template-columns: 1.4fr 1fr; gap: var(--sp-5); align-items: stretch; }
+            .umap-slide .um-vizcol { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
+            .umap-slide .um-stage { position: relative; width: 100%; aspect-ratio: 720 / 600; }
+            .umap-slide .um-stage svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+            .umap-slide svg g[data-arch-step] { display: none; }
+            .umap-slide svg g[data-arch-step].is-arch-current { display: block; }
+            .umap-slide .um-stage text { stroke: none !important; }
+            .umap-slide .um-badge { position: absolute; top: 2.5%; left: 2.5%; font-family: var(--font-sans); font-weight: 700; font-size: 19px; padding: 3px 12px; border-radius: 999px; background: var(--bg-card); border: 1.5px solid var(--rule); pointer-events: none; }
+            .umap-slide .um-badge[data-arch-step] { display: none; }
+            .umap-slide .um-badge[data-arch-step].is-arch-current { display: block; }
+            /* right info panel — cumulative reveal */
+            .umap-slide .um-info { align-self: center; border-left: 3px solid var(--rule); padding-left: var(--sp-5); }
+            .umap-slide .um-info-head { font-family: var(--font-mono); font-size: 14px; text-transform: uppercase; letter-spacing: 0.13em; color: var(--accent-ink); margin: 0 0 var(--sp-2); }
+            .umap-slide .um-params { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; margin: var(--sp-2) 0 var(--sp-3); }
+            .umap-slide .um-chip { border: 1.5px solid var(--rule); border-radius: 8px; padding: 6px 10px; background: var(--bg-inset); }
+            .umap-slide .um-chip .k { display: block; font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+            .umap-slide .um-chip .v { display: block; font-size: 19px; font-weight: 700; color: var(--ink); }
+            .umap-slide .um-row[data-step] { display: none; }
+            .umap-slide .um-row[data-step]:not(.is-step-hidden) { display: block; animation: umIn var(--dur,.4s) var(--ease,ease) both; }
+            .umap-slide .um-row { font-size: 16px; line-height: 1.4; color: var(--ink-2); margin: 0 0 var(--sp-2); }
+            .umap-slide .um-row strong { color: var(--ink); }
+            .umap-slide .um-vs { margin-top: var(--sp-3); border-top: 1px solid var(--rule); padding-top: var(--sp-3); }
+            .umap-slide .um-vs h4 { font-family: var(--font-mono); font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent-ink); margin: 0 0 6px; }
+            .umap-slide .um-vs ul { margin: 0; padding-left: 18px; }
+            .umap-slide .um-vs li { font-size: 15px; line-height: 1.45; color: var(--ink-2); margin-bottom: 4px; }
+            .umap-slide .um-cap[data-arch-step] { display: none; }
+            .umap-slide .um-cap[data-arch-step].is-arch-current { display: block; animation: umIn var(--dur,.4s) var(--ease,ease) both; }
+            @keyframes umIn { from { opacity:0; transform: translateY(6px);} to {opacity:1; transform:none;} }
+            @media (prefers-reduced-motion: reduce){ .umap-slide .um-row, .umap-slide .um-cap { animation: none !important; } }
+          </style>
           <div class="slide-header">
-            <h2>UMAP: <span lang="ru">быстрее и с сохранением структуры</span><span lang="en">faster, more global structure</span></h2>
-            <span class="slide-kicker"><span lang="ru">McInnes 2018 · соседний метод</span><span lang="en">McInnes 2018 · the sibling method</span></span>
+            <h2>UMAP: <span lang="ru">реальный прогон на 44 словах — из спектрального старта в кластеры</span><span lang="en">a real run on 44 words — from spectral init to clusters</span></h2>
+            <span class="slide-kicker"><span lang="ru">umap-learn 0.5.12 · n_neighbors=10 · min_dist=0.1 · 500 эпох · McInnes 2018</span><span lang="en">umap-learn 0.5.12 · n_neighbors=10 · min_dist=0.1 · 500 epochs · McInnes 2018</span></span>
           </div>
-          <div class="twocol">
-            <div class="twocol-col">
-              <h3><span lang="ru">Та же идея</span><span lang="en">Same idea</span></h3>
-              <ul class="obj-list">
-                <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Строит граф соседей и укладывает его в 2-D, сохраняя связи.</span><span lang="en">Builds a neighbour graph and lays it out in 2-D, preserving links.</span></span></li>
-                <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Рычаг — <code>n_neighbors</code> (аналог perplexity).</span><span lang="en">Dial: <code>n_neighbors</code> (the perplexity analogue).</span></span></li>
-              </ul>
-            </div>
-            <div class="twocol-col">
-              <h3><span lang="ru">Где лучше</span><span lang="en">Where it wins</span></h3>
-              <div class="callout" data-kind="info">
-                <div class="callout-icon">i</div>
-                <div class="callout-body">
-                  <strong><span lang="ru">Скорость + глобальность</span><span lang="en">Speed + global shape</span></strong>
-                  <p><span lang="ru">Заметно быстрее t-SNE на больших данных и лучше сохраняет крупную структуру. Но те же предостережения по чтению расстояний остаются.</span><span lang="en">Markedly faster than t-SNE at scale and keeps more of the large-scale structure. But the same caveats about reading distances still apply.</span></p>
-                </div>
+          <div class="um-layout">
+            <div class="um-vizcol">
+              <div class="um-stage">
+                <svg viewBox="0 0 720 600" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A real UMAP run on 44 GloVe-50 word vectors: the spectral initialisation already carries some global structure, and over 500 epochs the seven meaning clusters — animals, capitals, countries, family, royalty, tech, transport — tighten; the within/between distance ratio drops from 0.147 to 0.061">
+                  <g font-family="var(--font-sans)">
+                    <rect x="40" y="44" width="640" height="496" rx="10" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
+                    <!-- cluster legend INSIDE the svg, in a clear band BELOW the plot frame (y≈540-588) so it
+                         never collides with the slide footer; static (always visible). -->
+                    <g font-size="14" font-family="var(--font-sans)">
+                      <circle cx="50" cy="568" r="6" fill="var(--c-green)"/><text x="61" y="573" fill="var(--ink-2)">animals</text>
+                      <circle cx="138" cy="568" r="6" fill="var(--c-violet)"/><text x="149" y="573" fill="var(--ink-2)">royalty</text>
+                      <circle cx="220" cy="568" r="6" fill="var(--c-amber)"/><text x="231" y="573" fill="var(--ink-2)">family</text>
+                      <circle cx="292" cy="568" r="6" fill="var(--c-red)"/><text x="303" y="573" fill="var(--ink-2)">capitals</text>
+                      <circle cx="382" cy="568" r="6" fill="var(--c-cyan)"/><text x="393" y="573" fill="var(--ink-2)">countries</text>
+                      <circle cx="492" cy="568" r="6" fill="var(--accent)"/><text x="503" y="573" fill="var(--ink-2)">tech</text>
+                      <circle cx="560" cy="568" r="6" fill="var(--ink-3)"/><text x="571" y="573" fill="var(--ink-2)">transport</text>
+                    </g>
+                    <g data-arch-step="0" id="um-f0"></g>
+                    <g data-arch-step="1" id="um-f1"></g>
+                    <g data-arch-step="2" id="um-f2"></g>
+                    <g data-arch-step="3" id="um-f3"></g>
+                    <g data-arch-step="4" id="um-f4"></g>
+                  </g>
+                </svg>
+                <span class="um-badge" data-arch-step="0">spectral init · ratio 0.147</span>
+                <span class="um-badge" data-arch-step="1">epoch 80 · tightening</span>
+                <span class="um-badge" data-arch-step="2">epoch 300</span>
+                <span class="um-badge" data-arch-step="3" style="color:var(--c-green)">converged · ratio 0.061</span>
+                <span class="um-badge" data-arch-step="4" style="color:var(--c-green)">converged · ratio 0.061</span>
               </div>
             </div>
+            <aside class="um-info">
+              <div class="um-info-head"><span lang="ru">Параметры прогона</span><span lang="en">Run parameters</span></div>
+              <div class="um-params">
+                <div class="um-chip"><span class="k">n_neighbors</span><span class="v">10</span></div>
+                <div class="um-chip"><span class="k">min_dist</span><span class="v">0.1</span></div>
+                <div class="um-chip"><span class="k">metric</span><span class="v" style="font-size:16px">cosine</span></div>
+                <div class="um-chip"><span class="k">epochs</span><span class="v">500</span></div>
+              </div>
+              <p class="um-row" data-step="0"><span lang="ru"><strong>n_neighbors</strong> — аналог perplexity: сколько соседей считать «местными». <strong>min_dist</strong> — насколько плотно паковать точки.</span><span lang="en"><strong>n_neighbors</strong> is the perplexity analogue — how many neighbours count as &ldquo;local&rdquo;. <strong>min_dist</strong> sets how tightly points may pack.</span></p>
+              <p class="um-row" data-step="1"><span lang="ru"><strong>Спектральный старт</strong> уже несёт глобальную структуру (преимущество над случайным стартом t-SNE) — кластеры лишь сжимаются.</span><span lang="en">The <strong>spectral init</strong> already carries global structure (UMAP&rsquo;s edge over a random t-SNE start) — the clusters then just tighten.</span></p>
+              <p class="um-row" data-step="3"><span lang="ru"><strong>Плотность</strong> (within/between) падает \(0.147\to0.061\) — кластеры стали в \(2.4\times\) теснее относительно зазоров.</span><span lang="en"><strong>Tightness</strong> (within/between ratio) drops \(0.147\to0.061\) — clusters end \(2.4\times\) tighter relative to the gaps.</span></p>
+              <div class="um-vs um-row" data-step="4">
+                <h4>UMAP vs t-SNE</h4>
+                <ul>
+                  <li><span lang="ru">строит <strong>нечёткое симплициальное множество</strong> (взвеш. граф k-NN), минимизирует <strong>кросс-энтропию</strong> — не KL по Гаусс/Стьюдент.</span><span lang="en">builds a <strong>fuzzy simplicial set</strong> (weighted k-NN graph), minimises <strong>cross-entropy</strong> — not KL on Gaussian-vs-Student-t.</span></li>
+                  <li><span lang="ru">лучше сохраняет <strong>глобальную</strong> структуру, <strong>быстрее</strong> и масштабируется на большие \(n\); умеет <code>transform</code> новых точек.</span><span lang="en">keeps more <strong>global</strong> structure, is <strong>faster</strong> and scales to large \(n\); can <code>transform</code> new points.</span></li>
+                  <li><span lang="ru">как и t-SNE — абсолютные расстояния/размеры кластеров <strong>не буквальны</strong>.</span><span lang="en">like t-SNE, absolute distances / cluster sizes are <strong>not literal</strong>.</span></li>
+                </ul>
+              </div>
+            </aside>
           </div>
-          <p class="small muted center mt-3"><span lang="ru">Практическое правило: UMAP для больших наборов и когда важна глобальная форма; t-SNE для тонкой локальной структуры. Оба — инструменты <em>взгляда</em>, а не признаки для модели.</span><span lang="en">Rule of thumb: UMAP for large sets and when global shape matters; t-SNE for fine local structure. Both are tools to <em>look</em>, not features for a model.</span></p>
-          <aside class="slide-notes">UMAP, from McInnes, Healy and Melville in 2018, is the sibling you will reach for most often in practice. It works on the same neighbour-graph principle but is grounded in a topological construction, runs much faster on large datasets, and tends to preserve more of the global structure than t-SNE. Its main dial, n_neighbors, plays the role perplexity plays in t-SNE. The practical guidance: use UMAP when you have a lot of points or care about the coarse layout, t-SNE when you want the finest local separation. And remember both are visualisation tools — you look at their output, you do not feed it into a downstream model.</aside>
+          <p class="um-cap small muted center mt-2" data-arch-step="0"><span lang="ru">Шаг 0 — <strong>спектральная инициализация</strong>: UMAP не стартует со случайного шума, а с собственных векторов графа соседей, поэтому крупная структура уже видна. Жмите <kbd>&rarr;</kbd>.</span><span lang="en">Step 0 — the <strong>spectral initialisation</strong>: UMAP starts not from random noise but from the neighbour-graph&rsquo;s eigenvectors, so coarse structure is already visible. Press <kbd>&rarr;</kbd>.</span></p>
+          <p class="um-cap small muted center mt-2" data-arch-step="1"><span lang="ru">Шаг 1 — к <strong>эпохе 80</strong> оптимизация нечёткого графа стягивает каждую группу; межгрупповые зазоры растут.</span><span lang="en">Step 1 — by <strong>epoch 80</strong> the fuzzy-graph optimisation is pulling each group together; the between-group gaps widen.</span></p>
+          <p class="um-cap small muted center mt-2" data-arch-step="2"><span lang="ru">Шаг 2 — <strong>эпоха 300</strong>: семь смысловых кластеров почти разделены — animals, royalty, family, capitals, countries, tech, transport.</span><span lang="en">Step 2 — <strong>epoch 300</strong>: the seven meaning clusters are nearly separated — animals, royalty, family, capitals, countries, tech, transport.</span></p>
+          <p class="um-cap small muted center mt-2" data-arch-step="3"><span lang="ru">Шаг 3 — <strong>сошлось</strong> (эпоха 500). Семь чётких кластеров; плотность within/between упала \(0.147\to0.061\).</span><span lang="en">Step 3 — <strong>converged</strong> (epoch 500). Seven crisp clusters; the within/between tightness fell \(0.147\to0.061\).</span></p>
+          <p class="um-cap small muted center mt-2" data-arch-step="4"><span lang="ru">Шаг 4 — чем UMAP отличается от t-SNE: <strong>нечёткое симплициальное множество</strong> + <strong>кросс-энтропия</strong>, лучше глобальная структура, быстрее. Карта реальна — но абсолютные расстояния по-прежнему не буквальны.</span><span lang="en">Step 4 — how UMAP differs from t-SNE: a <strong>fuzzy simplicial set</strong> + <strong>cross-entropy</strong>, better global structure, faster. The map is real — but absolute distances are still not literal.</span></p>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">0/4</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <script>
+          (function () {
+            // REAL UMAP snapshots (data/l5-umap.json → snapshots, Procrustes-aligned to the converged frame,
+            // so the animation is one coordinate frame). cluster letters: a animals · r royalty · f family ·
+            // c capitals · o countries · t tech · p transport. Steps map: 0 init, 1 epoch80, 2 epoch300, 3+4 converged.
+            var UMAP_SNAPS=[{"e":0,"l":"init","sp":0.747,"ti":0.1469,"p":[[-0.24,0.634,"p"],[-0.452,0.699,"t"],[-0.553,-0.435,"c"],[-0.527,-0.709,"c"],[-0.213,0.636,"p"],[-0.127,0.562,"p"],[0.564,0.114,"f"],[-0.293,0.712,"p"],[0.531,0.262,"a"],[-0.593,-0.317,"o"],[-0.61,0.816,"t"],[0.394,0.181,"a"],[0.697,-0.295,"r"],[-0.625,0.808,"t"],[0.542,0.281,"a"],[0.668,-0.154,"f"],[-0.547,-0.832,"o"],[-0.587,-0.787,"o"],[0.614,0.024,"f"],[0.293,0.344,"a"],[-0.631,0.774,"t"],[-0.598,-0.898,"o"],[-0.563,-0.438,"o"],[0.75,-0.355,"r"],[0.436,0.129,"a"],[0.429,0.129,"a"],[-0.479,-0.78,"c"],[0.52,0.129,"f"],[0.659,-0.097,"f"],[-0.595,0.654,"t"],[-0.551,-0.817,"c"],[0.744,-0.375,"r"],[0.689,-0.276,"r"],[0.447,0.188,"a"],[0.815,-0.349,"r"],[-0.497,-0.836,"c"],[-0.657,0.878,"t"],[-0.533,-0.84,"o"],[0.715,-0.345,"r"],[0.38,0.199,"a"],[-0.513,-0.426,"c"],[-0.317,0.578,"p"],[-0.189,0.637,"p"],[0.603,-0.007,"f"]]},{"e":80,"l":"epoch 80","sp":0.689,"ti":0.1151,"p":[[-0.015,-0.05,"p"],[-0.276,-0.203,"t"],[-0.686,-0.561,"c"],[-0.739,-0.715,"c"],[0.046,-0.058,"p"],[0.014,-0.011,"p"],[0.519,0.544,"f"],[0.015,-0.128,"p"],[0.286,0.485,"a"],[-0.606,-0.599,"o"],[-0.281,-0.245,"t"],[0.278,0.45,"a"],[0.94,0.505,"r"],[-0.296,-0.244,"t"],[0.284,0.466,"a"],[0.71,0.49,"f"],[-0.862,-0.683,"o"],[-0.764,-0.654,"o"],[0.555,0.586,"f"],[0.263,0.335,"a"],[-0.317,-0.281,"t"],[-0.903,-0.706,"o"],[-0.646,-0.562,"o"],[0.85,0.523,"r"],[0.376,0.553,"a"],[0.324,0.358,"a"],[-0.923,-0.721,"c"],[0.509,0.451,"f"],[0.625,0.48,"f"],[-0.265,-0.23,"t"],[-0.905,-0.66,"c"],[0.947,0.596,"r"],[0.938,0.432,"r"],[0.296,0.526,"a"],[0.882,0.444,"r"],[-0.842,-0.753,"c"],[-0.386,-0.227,"t"],[-0.858,-0.639,"o"],[0.933,0.548,"r"],[0.252,0.393,"a"],[-0.711,-0.506,"c"],[-0.066,-0.148,"p"],[-0.071,-0.065,"p"],[0.575,0.482,"f"]]},{"e":300,"l":"epoch 300","sp":0.724,"ti":0.1059,"p":[[-0.039,0.282,"p"],[-0.423,0.019,"t"],[-0.693,-0.805,"c"],[-0.78,-0.762,"c"],[-0.09,0.331,"p"],[0.013,0.32,"p"],[0.589,0.424,"f"],[-0.132,0.274,"p"],[0.423,0.448,"a"],[-0.623,-0.731,"o"],[-0.514,-0.008,"t"],[0.438,0.498,"a"],[0.817,0.232,"r"],[-0.464,0,"t"],[0.373,0.483,"a"],[0.721,0.285,"f"],[-0.871,-0.694,"o"],[-0.731,-0.77,"o"],[0.661,0.44,"f"],[0.261,0.429,"a"],[-0.485,-0.063,"t"],[-0.786,-0.631,"o"],[-0.651,-0.819,"o"],[0.842,0.17,"r"],[0.495,0.506,"a"],[0.334,0.405,"a"],[-0.808,-0.611,"c"],[0.566,0.34,"f"],[0.715,0.345,"f"],[-0.428,-0.075,"t"],[-0.849,-0.707,"c"],[0.87,0.258,"r"],[0.932,0.179,"r"],[0.432,0.55,"a"],[0.865,0.141,"r"],[-0.782,-0.691,"c"],[-0.433,-0.037,"t"],[-0.769,-0.598,"o"],[0.855,0.184,"r"],[0.382,0.378,"a"],[-0.693,-0.863,"c"],[-0.086,0.248,"p"],[-0.081,0.316,"p"],[0.627,0.382,"f"]]},{"e":500,"l":"converged","sp":0.686,"ti":0.0612,"p":[[0.113,0.355,"p"],[0.284,-0.008,"t"],[-0.849,-0.785,"c"],[-0.929,-0.768,"c"],[0.148,0.362,"p"],[0.156,0.341,"p"],[0.433,0.396,"f"],[0.129,0.32,"p"],[0.368,0.439,"a"],[-0.871,-0.781,"o"],[0.222,-0.003,"t"],[0.358,0.451,"a"],[0.6,0.234,"r"],[0.252,-0.02,"t"],[0.336,0.423,"a"],[0.507,0.323,"f"],[-0.972,-0.818,"o"],[-0.915,-0.79,"o"],[0.455,0.384,"f"],[0.282,0.419,"a"],[0.237,0.003,"t"],[-0.95,-0.825,"o"],[-0.883,-0.774,"o"],[0.559,0.296,"r"],[0.401,0.465,"a"],[0.311,0.488,"a"],[-1,-0.791,"c"],[0.401,0.371,"f"],[0.49,0.353,"f"],[0.202,0.014,"t"],[-0.984,-0.783,"c"],[0.559,0.25,"r"],[0.569,0.29,"r"],[0.371,0.491,"a"],[0.546,0.24,"r"],[-0.98,-0.76,"c"],[0.262,0.015,"t"],[-0.995,-0.832,"o"],[0.585,0.266,"r"],[0.312,0.459,"a"],[-0.856,-0.76,"c"],[0.144,0.3,"p"],[0.14,0.374,"p"],[0.452,0.371,"f"]]}];
+            var UHUE={a:'var(--c-green)',r:'var(--c-violet)',f:'var(--c-amber)',c:'var(--c-red)',o:'var(--c-cyan)',t:'var(--accent)',p:'var(--ink-3)'};
+            var NS='http://www.w3.org/2000/svg';
+            // shared fit over ALL snapshots (one coordinate frame; Procrustes-aligned upstream)
+            var allP=UMAP_SNAPS.reduce(function(acc,s){return acc.concat(s.p);},[]);
+            var xs=allP.map(function(p){return p[0];}), ys=allP.map(function(p){return p[1];});
+            var x0=Math.min.apply(null,xs),x1=Math.max.apply(null,xs),y0=Math.min.apply(null,ys),y1=Math.max.apply(null,ys);
+            var pad=0.08, px=(x1-x0)*pad, py=(y1-y0)*pad;
+            var BX={x:70,y:70,w:580,h:460};
+            var sx=function(x){return BX.x+(x-(x0-px))/((x1+px)-(x0-px))*BX.w;};
+            var sy=function(y){return BX.y+BX.h-(y-(y0-py))/((y1+py)-(y0-py))*BX.h;};
+            function draw(gid, snap){ var g=document.getElementById(gid); if(!g) return;
+              snap.p.forEach(function(p){ var c=document.createElementNS(NS,'circle');
+                c.setAttribute('cx',sx(p[0]).toFixed(1));c.setAttribute('cy',sy(p[1]).toFixed(1));c.setAttribute('r',7);
+                c.setAttribute('fill',UHUE[p[2]]);c.setAttribute('stroke','var(--bg-card)');c.setAttribute('stroke-width',1.3);c.setAttribute('fill-opacity',0.9); g.appendChild(c); }); }
+            // step→snapshot: 0 init, 1 epoch80, 2 epoch300, 3 & 4 converged
+            draw('um-f0', UMAP_SNAPS[0]);
+            draw('um-f1', UMAP_SNAPS[1]);
+            draw('um-f2', UMAP_SNAPS[2]);
+            draw('um-f3', UMAP_SNAPS[3]);
+            draw('um-f4', UMAP_SNAPS[3]);
+            // The viz uses data-arch-step on the SVG frame groups + badges; deck.applyStepVisibility
+            // toggles is-arch-current on keyboard nav, and the .step-controls path dispatches slide:step
+            // which deck also handles. We re-sync the arch groups on slide:step for the click path too.
+            var slide=document.querySelector('.umap-slide');
+            function syncArch(){ if(!slide) return; var st=parseInt(slide.dataset.currentStep||'0',10);
+              slide.querySelectorAll('[data-arch-step]').forEach(function(el){ var n=parseInt(el.getAttribute('data-arch-step'),10);
+                el.classList.toggle('is-arch-current', n===st); el.classList.toggle('is-arch-past', n<st); el.classList.toggle('is-arch-future', n>st); }); }
+            syncArch(); if(slide){ slide.addEventListener('slide:step', syncArch); slide.addEventListener('slide:enter', syncArch); }
+          })();
+          </script>
+          <aside class="slide-notes">UMAP made concrete, not abstract: a real umap-learn run on the forty-four GloVe-fifty word vectors, stepped through its actual epoch snapshots. Step zero is the spectral initialisation — crucially, UMAP does not start from random noise like a naive t-SNE run, it starts from the eigenvectors of the neighbour graph, so coarse global structure is already visible. Step one, by epoch eighty, the fuzzy-graph optimisation is pulling each meaning group together and widening the gaps. Step two, epoch three hundred, the seven clusters — animals, royalty, family, capitals, countries, tech, transport — are nearly separated. Step three, converged at epoch five hundred: seven crisp clusters, the within-over-between tightness ratio fallen from zero point one four seven to zero point zero six one, so clusters end about two-point-four times tighter relative to the gaps. The dials are n_neighbors, ten — the perplexity analogue — and min_dist, zero point one. Step four spells out how UMAP differs from t-SNE: it builds a fuzzy simplicial set, a weighted k-nearest-neighbour graph of fuzzy membership strengths, and minimises the cross-entropy between that high-dimensional graph and a low-dimensional one, rather than t-SNE's KL divergence on Gaussian-versus-Student-t affinities; it preserves more global structure, is markedly faster, scales to large n, and can even transform new points. But the same caveat holds — absolute UMAP distances and cluster sizes are not literal.<aside data-notes-for-step="0">Step 0 — spectral init; global structure already present.</aside><aside data-notes-for-step="1">Step 1 — epoch 80; clusters tightening.</aside><aside data-notes-for-step="2">Step 2 — epoch 300; seven groups nearly separated.</aside><aside data-notes-for-step="3">Step 3 — converged; tightness 0.147 → 0.061.</aside><aside data-notes-for-step="4">Step 4 — UMAP vs t-SNE: fuzzy simplicial set, cross-entropy, better global, faster.</aside></aside>
         </section>
 
         <!-- ============================================ BEAT 12 · catch-tsne-lies ============================================ -->

@@ -216,19 +216,19 @@
               <span class="toc-num">03</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Scaled dot-product attention</span><span lang="en">Scaled dot-product attention</span></span><span class="toc-sub">\(\mathrm{softmax}(QK^\top/\sqrt{d_k})V\) &middot; exact</span></span>
             </a>
-            <a class="toc-item" href="#/24">
+            <a class="toc-item" href="#/25">
               <span class="toc-num">04</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Много голов &middot; позиция</span><span lang="en">Many heads &amp; position</span></span><span class="toc-sub">multi-head &middot; sinusoidal PE</span></span>
             </a>
-            <a class="toc-item" href="#/33">
+            <a class="toc-item" href="#/34">
               <span class="toc-num">05</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Блок Transformer целиком</span><span lang="en">The full Transformer block</span></span><span class="toc-sub">Add &amp; Norm &middot; FFN &middot; stack &times;N</span></span>
             </a>
-            <a class="toc-item" href="#/43">
+            <a class="toc-item" href="#/44">
               <span class="toc-num">06</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Обучить пространство для поиска</span><span lang="en">Train the space for search</span></span><span class="toc-sub">InfoNCE &middot; triplet &middot; in-batch negatives</span></span>
             </a>
-            <a class="toc-item" href="#/50">
+            <a class="toc-item" href="#/51">
               <span class="toc-num">07</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Ловушка и развязка</span><span lang="en">The trap &amp; the payoff</span></span><span class="toc-sub">anisotropy &middot; the Gremlin caged &middot; bridge to L7</span></span>
             </a>
@@ -492,104 +492,314 @@
           <aside class="slide-notes">The flagship attention climb, one row at a time, all exact. Step zero: take cat's query, zero two zero one. Step one: dot it with the three keys to get the score row zero, four, two. Step two: divide by root d k, which is two, giving zero, two, one, then apply softmax to get the weights zero point zero nine, zero point six six five, zero point two four five — note they sum to one, and cat puts most of its weight, zero point six six five, on itself. Step three: take the weighted sum of the three value rows using those weights, and you land on cat's output vector, zero point five seven nine, one point nine nine six, zero point nine one, zero point four two five. That output is cat's new, context-aware representation — every number straight from the data file.</aside>
         </section>
 
+        <!-- ============================================ 18b · ARCHFLOW · Scaled-Dot-Product Attention, the FULL matrix computation in the #37 step-by-step style ============================================ -->
+        <section class="slide afsdpa-slide" data-type="archflow" data-max-step="6" data-current-step="0" data-screen-label="19 Archflow · scaled dot-product attention">
+          <style>
+            /* DISTINCT ROLE COLOURS — the global archflow.css *-soft palette is near-white and the
+               SDPA roles collide there (key≈value, score≈output). Saturated tints in this scoped
+               <style> only (CSS background:/border-color: in a style block is NOT a semantic SVG
+               attribute, so it is off the contract scan; the double-paint detector only flags
+               coloured strokes on SVG <text>, of which there are none here). Every pairwise ΔE > 20.
+                 Q = teal-green   Kᵀ = blue(accent)   QKᵀ scores = cyan   ÷√dₖ scaled = amber
+                 softmax weights = pink   V = violet   output = bright leaf-green (≠ Q, ΔE>20)   */
+            .afsdpa-slide .af-node { color: #14181F; font-weight: 600; }
+            .afsdpa-slide .af-node[data-role="query"]  { background: #5fae9e; border-color: var(--c-green);  }
+            .afsdpa-slide .af-node[data-role="key"]    { background: #77a3e8; border-color: var(--accent);   }
+            .afsdpa-slide .af-node[data-role="score"]  { background: #6cc7d0; border-color: var(--c-cyan);   }
+            .afsdpa-slide .af-node[data-role="input"]  { background: #ebc779; border-color: var(--c-amber);  }
+            .afsdpa-slide .af-node[data-role="weight"] { background: #dc87aa; border-color: var(--c-pink);   }
+            .afsdpa-slide .af-node[data-role="value"]  { background: #ac96c6; border-color: var(--c-violet); }
+            .afsdpa-slide .af-node[data-role="output"] { background: #9ccf6e; border-color: var(--c-green); font-weight: 700; }
+            :root[data-theme="dark"] .afsdpa-slide .af-node[data-role="query"]  { background: #4FB39A; border-color: #2E7D6A; }
+            :root[data-theme="dark"] .afsdpa-slide .af-node[data-role="key"]    { background: #6FA8FF; border-color: #2A6FDB; }
+            :root[data-theme="dark"] .afsdpa-slide .af-node[data-role="score"]  { background: #5DD3DE; border-color: #1AA7B5; }
+            :root[data-theme="dark"] .afsdpa-slide .af-node[data-role="input"]  { background: #F4C975; border-color: #C8901E; }
+            :root[data-theme="dark"] .afsdpa-slide .af-node[data-role="weight"] { background: #E879A8; border-color: #C9447A; }
+            :root[data-theme="dark"] .afsdpa-slide .af-node[data-role="value"]  { background: #B89BE0; border-color: #7D5BA6; }
+            :root[data-theme="dark"] .afsdpa-slide .af-node[data-role="output"] { background: #A6D86B; border-color: #6FA83A; }
+            /* matrix cells inherit the node tint but sit on a slightly lighter ground for legibility */
+            .afsdpa-slide .af-matrix .af-cell { background: rgba(255,255,255,0.55); color: #14181F; font-weight: 700; min-width: 30px; }
+            :root[data-theme="dark"] .afsdpa-slide .af-matrix .af-cell { background: rgba(255,255,255,0.30); color: #0E1116; }
+            .afsdpa-slide .af-mlabel { font-family: var(--font-mono); font-weight: 800; font-size: 17px; display: block; margin-bottom: 3px; color: #14181F; }
+            :root[data-theme="dark"] .afsdpa-slide .af-mlabel { color: #0E1116; }
+            .afsdpa-slide .af-edge-label { font-family: var(--font-mono); font-weight: 700; }
+          </style>
+          <div class="slide-header">
+            <h2><span lang="ru">Scaled dot-product attention, по шагам</span><span lang="en">Scaled dot-product attention, step by step</span></h2>
+            <span class="slide-kicker">Archflow · <span lang="ru">scores &rarr; scale &rarr; softmax &rarr; &middot;V, все матрицы точно</span><span lang="en">scores &rarr; scale &rarr; softmax &rarr; &middot;V, every matrix exact</span></span>
+          </div>
+          <div class="af-stage">
+            <div class="af-canvas">
+              <!-- EDGES (declarative; the engine routes them). The flow:
+                   Q + Kᵀ → scores → scaled → weights → (·V) → output. -->
+              <div class="af-edge" data-from-node="af-Q"   data-to-node="af-S"   data-from="2" data-from-anchor="right"  data-to-anchor="left"  data-label="&lt;span class='af-fwd'&gt;dot&lt;/span&gt;"></div>
+              <div class="af-edge" data-from-node="af-Kt"  data-to-node="af-S"   data-from="2" data-from-anchor="right"  data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-S"   data-to-node="af-Sc"  data-from="3" data-from-anchor="right"  data-to-anchor="left"  data-label="&lt;span class='af-fwd'&gt;&divide;2&lt;/span&gt;"></div>
+              <div class="af-edge" data-from-node="af-Sc"  data-to-node="af-W"   data-from="4" data-from-anchor="top"    data-to-anchor="left"  data-label="&lt;span class='af-fwd'&gt;softmax&lt;/span&gt;"></div>
+              <div class="af-edge" data-from-node="af-W"   data-to-node="af-O"   data-from="6" data-from-anchor="right"  data-to-anchor="top"   data-label="&lt;span class='af-fwd'&gt;&middot;V&lt;/span&gt;"></div>
+              <div class="af-edge" data-from-node="af-V"   data-to-node="af-O"   data-from="6" data-from-anchor="right"  data-to-anchor="bottom"></div>
+
+              <!-- NODES build one stage per step (data-from grows 0→6). -->
+              <!-- Q (3×4) and Kᵀ (4×3): the inputs, present from step 1. -->
+              <div class="af-node af-matrix" id="af-Q" data-role="query" data-from="1" data-focus="1" style="left:9%;top:24%;--cols:4">
+                <span class="af-mlabel">Q (3&times;4)</span>
+                <span class="af-cell">1</span><span class="af-cell">0</span><span class="af-cell">1</span><span class="af-cell">0</span>
+                <span class="af-cell">0</span><span class="af-cell">2</span><span class="af-cell">0</span><span class="af-cell">1</span>
+                <span class="af-cell">1</span><span class="af-cell">1</span><span class="af-cell">0</span><span class="af-cell">0</span>
+              </div>
+              <div class="af-node af-matrix" id="af-Kt" data-role="key" data-from="1" data-focus="1" style="left:9%;top:74%;--cols:3">
+                <span class="af-mlabel">K&#7488; (4&times;3)</span>
+                <span class="af-cell">1</span><span class="af-cell">0</span><span class="af-cell">2</span>
+                <span class="af-cell">0</span><span class="af-cell">1</span><span class="af-cell">1</span>
+                <span class="af-cell">1</span><span class="af-cell">0</span><span class="af-cell">0</span>
+                <span class="af-cell">0</span><span class="af-cell">2</span><span class="af-cell">0</span>
+              </div>
+              <!-- scores QKᵀ (3×3): step 2 -->
+              <div class="af-node af-matrix" id="af-S" data-role="score" data-from="2" data-focus="2" style="left:31%;top:50%;--cols:3">
+                <span class="af-mlabel">QK&#7488; (3&times;3)</span>
+                <span class="af-cell">2</span><span class="af-cell">0</span><span class="af-cell">2</span>
+                <span class="af-cell">0</span><span class="af-cell">4</span><span class="af-cell">2</span>
+                <span class="af-cell">1</span><span class="af-cell">1</span><span class="af-cell">3</span>
+              </div>
+              <!-- scaled ÷√dₖ (3×3): step 3 -->
+              <div class="af-node af-matrix" id="af-Sc" data-role="input" data-from="3" data-focus="3" style="left:50%;top:50%;--cols:3">
+                <span class="af-mlabel">&divide;&radic;d&#8342; = &divide;2</span>
+                <span class="af-cell">1</span><span class="af-cell">0</span><span class="af-cell">1</span>
+                <span class="af-cell">0</span><span class="af-cell">2</span><span class="af-cell">1</span>
+                <span class="af-cell">.5</span><span class="af-cell">.5</span><span class="af-cell">1.5</span>
+              </div>
+              <!-- softmax weights (3×3): step 4 -->
+              <div class="af-node af-matrix" id="af-W" data-role="weight" data-from="4" data-focus="4..5" style="left:72%;top:23%;--cols:3">
+                <span class="af-mlabel">softmax = A (rows&Sigma;=1)</span>
+                <span class="af-cell">.42</span><span class="af-cell">.16</span><span class="af-cell">.42</span>
+                <span class="af-cell">.09</span><span class="af-cell">.67</span><span class="af-cell">.25</span>
+                <span class="af-cell">.21</span><span class="af-cell">.21</span><span class="af-cell">.58</span>
+              </div>
+              <!-- V (3×4): step 5 -->
+              <div class="af-node af-matrix" id="af-V" data-role="value" data-from="5" data-focus="5" style="left:72%;top:77%;--cols:4">
+                <span class="af-mlabel">V (3&times;4)</span>
+                <span class="af-cell">1</span><span class="af-cell">0</span><span class="af-cell">0</span><span class="af-cell">2</span>
+                <span class="af-cell">0</span><span class="af-cell">3</span><span class="af-cell">1</span><span class="af-cell">0</span>
+                <span class="af-cell">2</span><span class="af-cell">0</span><span class="af-cell">1</span><span class="af-cell">1</span>
+              </div>
+              <!-- output A·V (3×4): step 6 -->
+              <div class="af-node af-matrix" id="af-O" data-role="output" data-from="6" data-focus="6" style="left:93%;top:50%;--cols:4">
+                <span class="af-mlabel">A&middot;V (3&times;4) = out</span>
+                <span class="af-cell">1.27</span><span class="af-cell">.47</span><span class="af-cell">.58</span><span class="af-cell">1.27</span>
+                <span class="af-cell">.58</span><span class="af-cell">2.0</span><span class="af-cell">.91</span><span class="af-cell">.43</span>
+                <span class="af-cell">1.36</span><span class="af-cell">.64</span><span class="af-cell">.79</span><span class="af-cell">1.0</span>
+              </div>
+
+              <div class="af-focus"></div>
+            </div>
+
+            <div class="af-panel">
+              <div class="af-note is-current" data-step="0" data-label="overview">
+                <div class="af-formula">$$\mathrm{Attn}(Q,K,V)=\mathrm{softmax}\!\Big(\tfrac{QK^{\top}}{\sqrt{d_k}}\Big)V$$</div>
+                <p><span lang="ru">Соберём SDPA по шагам, с реальными матрицами (\(d_k=4\)). Жмите <kbd>&rarr;</kbd>.</span><span lang="en">Let&rsquo;s build SDPA step by step, with the real matrices (\(d_k=4\)). Press <kbd>&rarr;</kbd>.</span></p>
+              </div>
+              <div class="af-note" data-step="1" data-label="inputs">
+                <div class="af-note-head"><span lang="ru">Входы \(Q,\;K^{\top}\)</span><span lang="en">Inputs \(Q,\;K^{\top}\)</span></div>
+                <div class="af-formula">$$Q\in\mathbb{R}^{3\times 4},\quad K^{\top}\in\mathbb{R}^{4\times 3}$$</div>
+                <p><span lang="ru">3 токена, \(d_k=4\). \(Q\) — что ищет каждый токен; \(K\) — чем он выделяется.</span><span lang="en">3 tokens, \(d_k=4\). \(Q\) is what each token asks; \(K\) is what it advertises.</span></p>
+              </div>
+              <div class="af-note" data-step="2" data-label="scores">
+                <div class="af-note-head"><span lang="ru">Скоры \(QK^{\top}\)</span><span lang="en">Scores \(QK^{\top}\)</span></div>
+                <div class="af-formula">$$S = QK^{\top}\in\mathbb{R}^{3\times 3}$$</div>
+                <p><span lang="ru">Каждая ячейка — скалярное произведение запроса с ключом. Диагональ <code>cat</code>: \(S_{22}=4\) — самый большой.</span><span lang="en">Each cell is a query&middot;key dot product. The <code>cat</code> diagonal \(S_{22}=4\) is the largest.</span></p>
+              </div>
+              <div class="af-note" data-step="3" data-label="scale">
+                <div class="af-note-head"><span lang="ru">Масштаб \(\div\sqrt{d_k}\)</span><span lang="en">Scale \(\div\sqrt{d_k}\)</span></div>
+                <div class="af-formula">$$\frac{S}{\sqrt{d_k}}=\frac{S}{2}$$</div>
+                <p><span lang="ru">\(\sqrt{d_k}=\sqrt{4}=2\). Делим, чтобы дисперсия скоров не росла с \(d_k\) — иначе softmax насыщается.</span><span lang="en">\(\sqrt{d_k}=\sqrt{4}=2\). Divide so the score variance doesn&rsquo;t grow with \(d_k\) &mdash; otherwise softmax saturates.</span></p>
+              </div>
+              <div class="af-note" data-step="4" data-label="softmax">
+                <div class="af-note-head">softmax</div>
+                <div class="af-formula">$$A=\mathrm{softmax}\big(\tfrac{S}{2}\big),\quad \textstyle\sum_j A_{ij}=1$$</div>
+                <p><span lang="ru">Row-softmax превращает скоры в веса внимания: каждая строка суммируется в 1. Строка <code>cat</code>: \([.09,.67,.25]\).</span><span lang="en">Row-softmax turns scores into attention weights: each row sums to 1. The <code>cat</code> row is \([.09,.67,.25]\).</span></p>
+              </div>
+              <div class="af-note" data-step="5" data-label="values">
+                <div class="af-note-head"><span lang="ru">Значения \(V\)</span><span lang="en">The values \(V\)</span></div>
+                <div class="af-formula">$$V\in\mathbb{R}^{3\times 4}$$</div>
+                <p><span lang="ru">\(V\) — содержимое, которое будем смешивать. Веса \(A\) скажут, сколько каждого взять.</span><span lang="en">\(V\) holds the content to mix. The weights \(A\) say how much of each to take.</span></p>
+              </div>
+              <div class="af-note" data-step="6" data-label="output">
+                <div class="af-note-head"><span lang="ru">Выход \(A\cdot V\)</span><span lang="en">Output \(A\cdot V\)</span></div>
+                <div class="af-formula">$$\mathrm{out}=A\,V\in\mathbb{R}^{3\times 4}$$</div>
+                <p><span lang="ru">Каждая строка выхода — взвешенная сумма строк \(V\). Строка <code>cat</code>: \([0.58,2.0,0.91,0.43]\) — её контекстный вектор.</span><span lang="en">Each output row is a weighted sum of \(V\) rows. The <code>cat</code> row is \([0.58,2.0,0.91,0.43]\) &mdash; its contextual vector.</span></p>
+              </div>
+            </div>
+          </div>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">0/6</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">The mechanical companion to the geometric pull — scaled dot-product attention assembled one matrix at a time, in the same archflow style as the Transformer-block slide, every number exact from the data file. Step zero, the wrapper formula: softmax of Q K-transpose over root d-k, times V. Step one, the inputs — Q is three-by-four, K-transpose is four-by-three, with d-k equal to four. Step two, multiply to get the three-by-three score matrix Q K-transpose; the cat-on-cat diagonal entry, four, is the largest. Step three, divide every score by root d-k, which is two, so the variance does not blow up with dimension. Step four, row-softmax turns each row into attention weights that sum to one — the cat row is point-zero-nine, point-six-seven, point-two-five. Step five, bring in the value matrix V, the content to be mixed. Step six, multiply the weights by V to get the three-by-four output; each row is a weighted sum of value rows, and the cat row, point-five-eight, two, point-nine-one, point-four-three, is cat's contextual vector — exactly the row the next slide draws as a geometric pull.</aside>
+        </section>
+
         <!-- ============================================ 19 · VIZ · attention is a geometric pull (native port of attention-geometry) ============================================ -->
-        <section class="slide attg-slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="19 Attention is a geometric pull">
+        <section class="slide attg-slide" data-type="viz" data-max-step="5" data-current-step="0" data-screen-label="20 Attention is a geometric pull">
           <style>
             /* cumulative reveal driven by data-step (engine fades step > current via .is-step-hidden) */
             .attg-slide .attg-frame { fill: none; stroke: var(--rule); stroke-width: 1.5; }
-            .attg-slide .attg-dot { stroke: var(--bg-card); stroke-width: 2; }
+            .attg-slide .attg-dot { stroke: var(--bg-card); stroke-width: 2.5; }
             .attg-slide .attg-dot-v { fill: var(--c-violet); }
             .attg-slide .attg-dot-q { fill: var(--accent); }
             .attg-slide .attg-edge { stroke: var(--accent); fill: none; }
-            .attg-slide .attg-guide { stroke: var(--rule-strong); stroke-width: 1; stroke-dasharray: 3 4; }
-            .attg-slide .attg-arrow { stroke: var(--c-amber); stroke-width: 3.5; fill: none; }
-            .attg-slide .attg-blend { fill: var(--c-amber); stroke: var(--c-amber-ink); stroke-width: 1.5; }
+            .attg-slide .attg-guide { stroke: var(--rule-strong); stroke-width: 1.2; stroke-dasharray: 3 4; }
+            .attg-slide .attg-arrow { stroke: var(--c-amber); stroke-width: 4.5; fill: none; }
+            .attg-slide .attg-blend { fill: var(--c-green); stroke: var(--c-green-ink); stroke-width: 1.5; }
+            /* the right-hand computation panel: each step's worked row SWAPS in (data-arch-step) */
+            .attg-slide svg .attg-calc[data-arch-step] { display: none; }
+            .attg-slide svg .attg-calc[data-arch-step].is-arch-current { display: block; }
             /* captions SWAP (only the current step's caption shows) — driven by data-arch-step */
             .attg-slide .attg-cap[data-arch-step] { display: none; }
             .attg-slide .attg-cap[data-arch-step].is-arch-current { display: block; }
-            /* future SVG steps fully hidden (not the global 0.08 ghost) so the dense plane stays clean */
+            /* future SVG steps fully hidden (not the global 0.08 ghost) so the dense plane stays clean.
+               text carries its own fill + stroke:none so the global highlight rule can't double-paint it. */
             .attg-slide svg [data-step].is-step-hidden { display: none; }
+            .attg-slide svg text { stroke: none; paint-order: fill; }
           </style>
           <div class="slide-header">
             <h2><span lang="ru">Внимание — это геометрическое притяжение</span><span lang="en">Attention is a geometric pull</span></h2>
-            <span class="slide-kicker"><span lang="ru">тот же ряд «cat», но как движение точки в пространстве \(V\)</span><span lang="en">the same &ldquo;cat&rdquo; row, but as a point moving in \(V\) space</span></span>
+            <span class="slide-kicker"><span lang="ru">тот же ряд «cat»: значения &rarr; запрос &rarr; веса &rarr; взвешенное среднее &rarr; выход</span><span lang="en">the same &ldquo;cat&rdquo; row: values &rarr; query &rarr; weights &rarr; weighted average &rarr; output</span></span>
           </div>
           <div class="viz-frame">
-            <svg viewBox="0 0 1160 540" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="Three value points the, cat, sat in a 2-D plane; the query token cat draws an attention-weighted edge to each, then glides to their weighted average — the blended point that equals cat's attention output row">
+            <svg viewBox="0 0 1600 760" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="Three value points the, cat, sat in a large 2-D plane; the query token cat draws an attention-weighted edge to each, then the weighted average is computed numerically and cat glides to that blended point — which equals cat's attention output row">
               <defs>
-                <marker id="attgHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c-amber)"/></marker>
+                <marker id="attgHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c-amber)"/></marker>
               </defs>
               <g font-family="var(--font-sans)">
-                <!-- the value plane -->
-                <rect data-step="0" class="attg-frame" x="170" y="70" width="560" height="380" rx="8"/>
-                <text data-step="0" x="170" y="58" font-size="20" fill="var(--ink-3)" font-family="var(--font-mono)">value space V (2-D)</text>
-                <text data-step="0" x="182" y="92" font-size="17" fill="var(--ink-3)" font-family="var(--font-mono)">V &uarr;</text>
-                <text data-step="0" x="718" y="442" font-size="17" fill="var(--ink-3)" text-anchor="end" font-family="var(--font-mono)">V &rarr;</text>
+                <!-- ===== LEFT: the big value plane (fills the slide) ===== -->
+                <rect data-step="0" class="attg-frame" x="180" y="80" width="640" height="540" rx="10"/>
+                <text data-step="0" x="180" y="64" font-size="26" fill="var(--ink-3)" font-family="var(--font-mono)">value space V (2-D projection)</text>
+                <text data-step="0" x="196" y="110" font-size="22" fill="var(--ink-3)" font-family="var(--font-mono)">V &uarr;</text>
+                <text data-step="0" x="806" y="608" font-size="22" fill="var(--ink-3)" text-anchor="end" font-family="var(--font-mono)">V &rarr;</text>
 
-                <!-- STEP 1: the query's attention weights as edges (width proportional to weight) -->
-                <g data-step="1">
-                  <line class="attg-edge" x1="644.4" y1="391.9" x2="255.6" y2="128.1" stroke-width="2.22" stroke-opacity="0.33"/>
-                  <text x="450.0" y="256" class="attg-wlbl" font-size="18" fill="var(--accent-ink)" text-anchor="middle" font-weight="600" font-family="var(--font-mono)">.09</text>
-                  <line class="attg-edge" x1="644.4" y1="391.9" x2="255.6" y2="260" stroke-width="4.32" stroke-opacity="0.47"/>
-                  <text x="450.0" y="321.9" class="attg-wlbl" font-size="18" fill="var(--accent-ink)" text-anchor="middle" font-weight="600" font-family="var(--font-mono)">.245</text>
-                  <text x="664" y="416" font-size="18" fill="var(--accent-ink)" font-weight="700" font-family="var(--font-mono)">.665 self</text>
-                </g>
-
-                <!-- STEP 2: blend point + amber arrow gliding cat -> weighted average.
-                     The arrow STOPS short of the blend point (ends at 533,336) so its amber
-                     arrowhead does NOT collide with the green output diamond. The "weighted avg"
-                     label sits clear UP-RIGHT in ink (high contrast on cream) with a thin leader
-                     to the diamond — amber is reserved for the arrow only. -->
+                <!-- STEP 2: the query's attention weights as edges (width proportional to weight) -->
                 <g data-step="2">
-                  <line class="attg-guide" x1="514.2" y1="335.9" x2="255.6" y2="128.1"/>
-                  <line class="attg-guide" x1="514.2" y1="335.9" x2="644.4" y2="391.9"/>
-                  <line class="attg-guide" x1="514.2" y1="335.9" x2="255.6" y2="260"/>
-                  <line class="attg-arrow" x1="644.4" y1="391.9" x2="535.0" y2="342.0" marker-end="url(#attgHead)"/>
-                  <line x1="610" y1="296" x2="520" y2="330" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="2 3"/>
-                  <path class="attg-blend" d="M514.2,323.9 L526.2,335.9 L514.2,347.9 L502.2,335.9 Z" style="fill:var(--c-green);stroke:var(--c-green-ink);stroke-width:1.5"/>
-                  <text x="616" y="292" font-size="18" fill="var(--ink)" text-anchor="start" font-weight="700" font-family="var(--font-mono)">weighted avg</text>
+                  <line class="attg-edge" x1="670.8" y1="420.7" x2="249.2" y2="139.3" stroke-width="2.13" stroke-opacity="0.36"/>
+                  <text x="460.0" y="272" font-size="24" fill="var(--accent-ink)" text-anchor="middle" font-weight="700" font-family="var(--font-mono)">.09 &rarr; the</text>
+                  <line class="attg-edge" x1="670.8" y1="420.7" x2="249.2" y2="280.0" stroke-width="3.21" stroke-opacity="0.50"/>
+                  <text x="460.0" y="362" font-size="24" fill="var(--accent-ink)" text-anchor="middle" font-weight="700" font-family="var(--font-mono)">.245 &rarr; sat</text>
+                  <text x="692" y="452" font-size="24" fill="var(--accent-ink)" font-weight="800" font-family="var(--font-mono)">.665 self</text>
                 </g>
 
-                <!-- STEP 0 points: the three value tokens (drawn last so dots sit atop edges) -->
-                <g data-step="0">
-                  <circle class="attg-dot attg-dot-v" cx="255.6" cy="128.1" r="9"/>
-                  <text x="255.6" y="112" font-size="20" fill="var(--c-violet)" font-weight="700" text-anchor="middle" font-family="var(--font-mono)">the</text>
-                  <circle class="attg-dot attg-dot-q" cx="644.4" cy="391.9" r="11"/>
-                  <text x="644.4" y="374" font-size="20" fill="var(--accent)" font-weight="700" text-anchor="middle" font-family="var(--font-mono)">cat (query)</text>
-                  <circle class="attg-dot attg-dot-v" cx="255.6" cy="260" r="9"/>
-                  <text x="255.6" y="244" font-size="20" fill="var(--c-violet)" font-weight="700" text-anchor="middle" font-family="var(--font-mono)">sat</text>
-                </g>
-
-                <!-- STEP 3: callout tying the 2-D / 4-D blend to the l6 attention output row (tolerance, not =).
-                     "= output" label moved UP-LEFT of the diamond (own leader) so it no longer piles
-                     onto the diamond + arrowhead + "cat (query)"; coloured green-ink to match the
-                     output diamond and read clearly on cream. -->
+                <!-- STEP 3: numeric weighted-average lines from each value to the blend (guides) -->
                 <g data-step="3">
-                  <line x1="470" y1="300" x2="508" y2="330" stroke="var(--c-green-ink)" stroke-width="1" stroke-dasharray="2 3"/>
-                  <text x="466" y="296" font-size="18" fill="var(--c-green-ink)" text-anchor="end" font-weight="700" font-family="var(--font-mono)">&asymp; output point</text>
-                  <rect x="170" y="470" width="820" height="58" rx="8" fill="var(--c-amber-soft)" stroke="var(--c-amber)" stroke-width="1.2"/>
-                  <text x="186" y="496" font-size="20" fill="var(--ink)" font-family="var(--font-mono)">blend &middot; V = [0.58, 1.995, 0.91, 0.425]</text>
-                  <text x="186" y="520" font-size="20" fill="var(--c-green-ink)" font-weight="700" font-family="var(--font-mono)">&asymp; attention output row = [0.579, 1.996, 0.91, 0.425]</text>
+                  <line class="attg-guide" x1="529.6" y1="360.9" x2="249.2" y2="139.3"/>
+                  <line class="attg-guide" x1="529.6" y1="360.9" x2="670.8" y2="420.7"/>
+                  <line class="attg-guide" x1="529.6" y1="360.9" x2="249.2" y2="280.0"/>
+                </g>
+
+                <!-- STEP 4: amber arrow gliding cat -> weighted average. The arrow STOPS short of the
+                     blend point so its amber head does not collide with the green output diamond. -->
+                <g data-step="4">
+                  <line class="attg-arrow" x1="670.8" y1="420.7" x2="552" y2="376" marker-end="url(#attgHead)"/>
+                </g>
+
+                <!-- the blended point (green diamond) arrives at step 3 with the arithmetic -->
+                <g data-step="3">
+                  <path class="attg-blend" d="M529.6,344.9 L545.6,360.9 L529.6,376.9 L513.6,360.9 Z"/>
+                  <line x1="600" y1="300" x2="540" y2="354" stroke="var(--c-green-ink)" stroke-width="1.2" stroke-dasharray="2 3"/>
+                  <text x="606" y="296" font-size="23" fill="var(--c-green-ink)" text-anchor="start" font-weight="800" font-family="var(--font-mono)">weighted avg</text>
+                </g>
+
+                <!-- STEP 0 points: the three value tokens + query (drawn last so dots sit atop edges) -->
+                <g data-step="0">
+                  <circle class="attg-dot attg-dot-v" cx="249.2" cy="139.3" r="12"/>
+                  <text x="249.2" y="118" font-size="26" fill="var(--c-violet)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">the</text>
+                  <text x="249.2" y="170" font-size="19" fill="var(--c-violet)" text-anchor="middle" font-family="var(--font-mono)">[0, 2]</text>
+                  <circle class="attg-dot attg-dot-v" cx="249.2" cy="280.0" r="12"/>
+                  <text x="174" y="286" font-size="26" fill="var(--c-violet)" font-weight="800" text-anchor="end" font-family="var(--font-mono)">sat</text>
+                  <text x="170" y="310" font-size="19" fill="var(--c-violet)" text-anchor="end" font-family="var(--font-mono)">[0, 1]</text>
+                </g>
+                <!-- query point reveals at step 1 (its own beat) -->
+                <g data-step="1">
+                  <circle class="attg-dot attg-dot-q" cx="670.8" cy="420.7" r="15"/>
+                  <text x="670.8" y="400" font-size="26" fill="var(--accent)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">cat (query)</text>
+                  <text x="670.8" y="456" font-size="19" fill="var(--accent)" text-anchor="middle" font-family="var(--font-mono)">[3, 0]</text>
+                </g>
+
+                <!-- STEP 5: confirm the blend == attention output row -->
+                <g data-step="5">
+                  <rect x="180" y="640" width="640" height="96" rx="10" fill="var(--c-green-soft)" stroke="var(--c-green)" stroke-width="1.4"/>
+                  <text x="200" y="678" font-size="23" fill="var(--ink)" font-family="var(--font-mono)">blend &middot; V (full d) = [0.58, 1.995, 0.91, 0.425]</text>
+                  <text x="200" y="714" font-size="23" fill="var(--c-green-ink)" font-weight="800" font-family="var(--font-mono)">&asymp; attention output row = [0.579, 1.996, 0.91, 0.425]</text>
+                </g>
+
+                <!-- ===== RIGHT: the worked weighted-average computation panel (SWAPS per step) ===== -->
+                <rect data-step="0" x="880" y="80" width="700" height="540" rx="10" fill="var(--bg-inset)" stroke="var(--rule)" stroke-width="1.5"/>
+                <text data-step="0" x="912" y="128" font-size="26" fill="var(--ink-2)" font-weight="800" font-family="var(--font-mono)">the computation</text>
+
+                <g class="attg-calc" data-arch-step="0">
+                  <text x="912" y="200" font-size="24" fill="var(--ink)" font-family="var(--font-mono)">3 value vectors V (projected 4&rarr;2):</text>
+                  <text x="912" y="252" font-size="24" fill="var(--c-violet)" font-weight="700" font-family="var(--font-mono)">the = [0, 2]</text>
+                  <text x="912" y="296" font-size="24" fill="var(--accent)" font-weight="700" font-family="var(--font-mono)">cat = [3, 0]</text>
+                  <text x="912" y="340" font-size="24" fill="var(--c-violet)" font-weight="700" font-family="var(--font-mono)">sat = [0, 1]</text>
+                  <text x="912" y="408" font-size="22" fill="var(--ink-3)" font-family="var(--font-mono)">these are the rows of V we built</text>
+                  <text x="912" y="438" font-size="22" fill="var(--ink-3)" font-family="var(--font-mono)">on the &ldquo;attention end to end&rdquo; slide.</text>
+                </g>
+                <g class="attg-calc" data-arch-step="1">
+                  <text x="912" y="200" font-size="24" fill="var(--ink)" font-family="var(--font-mono)">the query: which value is</text>
+                  <text x="912" y="232" font-size="24" fill="var(--ink)" font-family="var(--font-mono)">cat asking about?</text>
+                  <text x="912" y="304" font-size="26" fill="var(--accent)" font-weight="800" font-family="var(--font-mono)">cat sits at [3, 0]</text>
+                  <text x="912" y="372" font-size="22" fill="var(--ink-3)" font-family="var(--font-mono)">attention will pull this point</text>
+                  <text x="912" y="402" font-size="22" fill="var(--ink-3)" font-family="var(--font-mono)">toward the values it heeds.</text>
+                </g>
+                <g class="attg-calc" data-arch-step="2">
+                  <text x="912" y="196" font-size="24" fill="var(--ink)" font-family="var(--font-mono)">attention weights (cat row),</text>
+                  <text x="912" y="228" font-size="24" fill="var(--ink)" font-family="var(--font-mono)">from softmax &mdash; they sum to 1:</text>
+                  <text x="912" y="296" font-size="26" fill="var(--accent-ink)" font-weight="700" font-family="var(--font-mono)">w(the)=.09  w(cat)=.665</text>
+                  <text x="912" y="334" font-size="26" fill="var(--accent-ink)" font-weight="700" font-family="var(--font-mono)">w(sat)=.245</text>
+                  <text x="912" y="396" font-size="22" fill="var(--ink-3)" font-family="var(--font-mono)">.09 + .665 + .245 = 1.00</text>
+                  <text x="912" y="438" font-size="22" fill="var(--accent-ink)" font-weight="700" font-family="var(--font-mono)">cat heeds itself most (.665).</text>
+                </g>
+                <g class="attg-calc" data-arch-step="3">
+                  <text x="912" y="184" font-size="24" fill="var(--ink)" font-weight="700" font-family="var(--font-mono)">weighted average = &Sigma; w&middot;V:</text>
+                  <text x="912" y="240" font-size="23" fill="var(--ink)" font-family="var(--font-mono)">.09&middot;[0,2]  +  .665&middot;[3,0]</text>
+                  <text x="912" y="276" font-size="23" fill="var(--ink)" font-family="var(--font-mono)">          +  .245&middot;[0,1]</text>
+                  <text x="912" y="332" font-size="23" fill="var(--ink-2)" font-family="var(--font-mono)">= [0,.18] + [1.995,0] + [0,.245]</text>
+                  <text x="912" y="396" font-size="28" fill="var(--c-green-ink)" font-weight="800" font-family="var(--font-mono)">= [1.995, 0.425]</text>
+                  <text x="912" y="444" font-size="22" fill="var(--ink-3)" font-family="var(--font-mono)">the green diamond &mdash; cat&rsquo;s new home.</text>
+                </g>
+                <g class="attg-calc" data-arch-step="4">
+                  <text x="912" y="200" font-size="24" fill="var(--ink)" font-family="var(--font-mono)">cat GLIDES from [3, 0]</text>
+                  <text x="912" y="256" font-size="24" fill="var(--c-amber-ink)" font-weight="800" font-family="var(--font-mono)">&rarr; to [1.995, 0.425]</text>
+                  <text x="912" y="328" font-size="22" fill="var(--ink-2)" font-family="var(--font-mono)">THIS move is the attention</text>
+                  <text x="912" y="360" font-size="22" fill="var(--ink-2)" font-family="var(--font-mono)">operation &mdash; a point pulled to a</text>
+                  <text x="912" y="392" font-size="22" fill="var(--ink-2)" font-family="var(--font-mono)">weighted centroid, not a pile of</text>
+                  <text x="912" y="424" font-size="22" fill="var(--ink-2)" font-family="var(--font-mono)">&ldquo;QKV numbers&rdquo;.</text>
+                </g>
+                <g class="attg-calc" data-arch-step="5">
+                  <text x="912" y="200" font-size="24" fill="var(--ink)" font-family="var(--font-mono)">in full dimension (d=4) the same</text>
+                  <text x="912" y="232" font-size="24" fill="var(--ink)" font-family="var(--font-mono)">&Sigma; w&middot;V gives cat&rsquo;s output row:</text>
+                  <text x="912" y="304" font-size="25" fill="var(--c-green-ink)" font-weight="800" font-family="var(--font-mono)">[0.579, 1.996, 0.91, 0.425]</text>
+                  <text x="912" y="376" font-size="22" fill="var(--ink-3)" font-family="var(--font-mono)">the 2-D blend matches the 4-D</text>
+                  <text x="912" y="408" font-size="22" fill="var(--ink-3)" font-family="var(--font-mono)">output to rounding (&asymp;, not =).</text>
                 </g>
               </g>
             </svg>
           </div>
           <p class="viz-caption">
-            <span class="attg-cap" data-arch-step="0"><span lang="ru">Три значения <code>the</code>/<code>cat</code>/<code>sat</code> как точки в плоскости \(V\). <code>cat</code> — точка-запрос.</span><span lang="en">The three values <code>the</code>/<code>cat</code>/<code>sat</code> as points in the \(V\) plane. <code>cat</code> is the query point.</span></span>
-            <span class="attg-cap" data-arch-step="1"><span lang="ru">Веса внимания <code>cat</code> — это рёбра: толщина \(\propto\) весу. <code>cat</code> сильнее всего тянется к себе (\(.665\)).</span><span lang="en"><code>cat</code>&rsquo;s attention weights are edges: thickness \(\propto\) weight. <code>cat</code> pulls hardest on itself (\(.665\)).</span></span>
-            <span class="attg-cap" data-arch-step="2"><span lang="ru"><code>cat</code> скользит к <strong>взвешенному среднему</strong> точек-значений — это и есть операция внимания, не «числа QKV».</span><span lang="en"><code>cat</code> glides to the <strong>weighted average</strong> of the value points &mdash; that is the attention operation, not &ldquo;QKV numbers&rdquo;.</span></span>
-            <span class="attg-cap" data-arch-step="3"><span lang="ru">В полной размерности эта смешанная точка \(\approx\) строке выхода внимания из e2e (с точностью округления).</span><span lang="en">In full dimension this blended point \(\approx\) the attention output row from the e2e slide (to rounding).</span></span>
+            <span class="attg-cap" data-arch-step="0"><span lang="ru">Три значения <code>the</code>/<code>cat</code>/<code>sat</code> как точки в плоскости \(V\): \([0,2]\), \([3,0]\), \([0,1]\).</span><span lang="en">The three values <code>the</code>/<code>cat</code>/<code>sat</code> as points in the \(V\) plane: \([0,2]\), \([3,0]\), \([0,1]\).</span></span>
+            <span class="attg-cap" data-arch-step="1"><span lang="ru"><code>cat</code> — точка-запрос в \([3,0]\): её и будет тянуть внимание.</span><span lang="en"><code>cat</code> is the query point at \([3,0]\): this is the point attention will pull.</span></span>
+            <span class="attg-cap" data-arch-step="2"><span lang="ru">Веса внимания <code>cat</code> — рёбра, толщина \(\propto\) весу: \(.09,.665,.245\) (\(\sum=1\)). <code>cat</code> сильнее всего тянется к себе.</span><span lang="en"><code>cat</code>&rsquo;s attention weights are edges, thickness \(\propto\) weight: \(.09,.665,.245\) (\(\sum=1\)). <code>cat</code> pulls hardest on itself.</span></span>
+            <span class="attg-cap" data-arch-step="3"><span lang="ru">Взвешенное среднее \(\sum_j w_j V_j = [1.995,\,0.425]\) — зелёный ромб, новый дом <code>cat</code>.</span><span lang="en">The weighted average \(\sum_j w_j V_j = [1.995,\,0.425]\) &mdash; the green diamond, <code>cat</code>&rsquo;s new home.</span></span>
+            <span class="attg-cap" data-arch-step="4"><span lang="ru"><code>cat</code> скользит к этому центроиду — <strong>это и есть</strong> операция внимания.</span><span lang="en"><code>cat</code> glides to that centroid &mdash; <strong>that is</strong> the attention operation.</span></span>
+            <span class="attg-cap" data-arch-step="5"><span lang="ru">В полной размерности \(d=4\) то же \(\sum w V\) даёт строку выхода \([0.579,1.996,0.91,0.425]\) (с точностью округления).</span><span lang="en">In full dimension \(d=4\) the same \(\sum w V\) gives the output row \([0.579,1.996,0.91,0.425]\) (to rounding).</span></span>
           </p>
           <div class="step-controls">
             <button data-step-act="prev" aria-label="Previous step">&larr;</button>
-            <span class="step-counter">0/3</span>
+            <span class="step-counter">0/5</span>
             <button data-step-act="next" aria-label="Next step">&rarr;</button>
           </div>
-          <aside class="slide-notes">The geometric companion to the numeric end-to-end slide, ported from the book's attention-geometry widget — same cat row, but seen as motion in space. Step zero: plot the three value vectors the, cat and sat as points in a two-D value plane; cat is the query point, drawn larger. Step one: draw cat's attention weights as edges from the cat point to each value, with thickness proportional to the weight — thin to the at zero point zero nine, medium to sat at zero point two four five, and the heaviest, zero point six six five, on itself. Step two: cat then glides along the amber arrow to the weighted average of the three value points — the diamond. That single move IS attention; it is not a pile of QKV numbers, it is a point being pulled toward a weighted centroid. Step three: in full dimension that blended point matches cat's attention output row from the earlier slide — zero point five eight versus zero point five seven nine, and so on — equal to rounding, which is why we write approximately, not equals.</aside>
+          <aside class="slide-notes">The geometric companion to the numeric end-to-end slide, now walked as a full computation. Step zero: plot the three value vectors the at zero-two, cat at three-zero, sat at zero-one as points in a big two-D value plane; the panel on the right lists them. Step one: mark cat as the query point at three-zero — this is the point attention will pull. Step two: draw cat's attention weights as edges, thickness proportional to weight — point-zero-nine to the, point-two-four-five to sat, and the heaviest, point-six-six-five, on itself; they sum to one. Step three: compute the weighted average explicitly — point-zero-nine times zero-two plus point-six-six-five times three-zero plus point-two-four-five times zero-one equals one-point-nine-nine-five, zero-point-four-two-five, the green diamond. Step four: cat glides along the amber arrow to that centroid — THIS move is the attention operation, a point pulled to a weighted centroid, not a pile of QKV numbers. Step five: in full four-dimensional space the same weighted sum gives cat's output row, zero-point-five-seven-nine, one-point-nine-nine-six, zero-point-nine-one, zero-point-four-two-five — equal to the two-D blend up to rounding, which is why we write approximately.</aside>
         </section>
 
         <!-- ============================================ 20 · WALKTHROUGH · the full weight matrix ============================================ -->
-        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="20 Full weight matrix">
+        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="21 Full weight matrix">
           <div class="slide-header">
             <h2><span lang="ru">Вся матрица внимания \(A\) (строки \(\sum=1\))</span><span lang="en">The full attention matrix \(A\) (rows sum to 1)</span></h2>
             <span class="slide-kicker"><span lang="ru">кто кого слушает</span><span lang="en">who heeds whom</span></span>
@@ -626,7 +836,7 @@
 
         <!-- ============================================ BEAT 5 · turn-selfattention (Q/K/V defined BEFORE the theorem & cost-wall that use them) ============================================ -->
         <!-- ============================================ 19 · DEFINITION · self-attention + projections ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="21 Self-attention &amp; projections">
+        <section class="slide" data-type="definition" data-screen-label="22 Self-attention &amp; projections">
           <div class="slide-header">
             <h2><span lang="ru">Self-attention: откуда берутся \(Q,K,V\)</span><span lang="en">Self-attention: where \(Q,K,V\) come from</span></h2>
             <span class="slide-kicker"><span lang="ru">одна последовательность · три обучаемые матрицы</span><span lang="en">one sequence · three learned matrices</span></span>
@@ -644,7 +854,7 @@
         </section>
 
         <!-- ============================================ 20 · THEOREM · why divide by root d_k (T6: misconception → variance proposition + proof) ============================================ -->
-        <section class="slide" data-type="theorem" data-screen-label="22 The root d_k variance theorem">
+        <section class="slide" data-type="theorem" data-screen-label="23 The root d_k variance theorem">
           <div class="slide-header">
             <h2><span lang="ru">Почему \(\sqrt{d_k}\): дисперсия скоров растёт \(\propto d_k\)</span><span lang="en">Why \(\sqrt{d_k}\): score variance grows \(\propto d_k\)</span></h2>
             <span class="slide-kicker"><span lang="ru">не косметика — это предложение с доказательством</span><span lang="en">not cosmetic — a proposition with a proof</span></span>
@@ -676,7 +886,7 @@
         </section>
 
         <!-- ============================================ 19b · VIZ · attention O(n²) cost wall (NEW: depth #8) ============================================ -->
-        <section class="slide" data-type="viz" data-screen-label="23 The quadratic cost wall">
+        <section class="slide" data-type="viz" data-screen-label="24 The quadratic cost wall">
           <div class="slide-header">
             <h2><span lang="ru">Стена цены: \(QK^\top\) стоит \(O(n^2)\)</span><span lang="en">The cost wall: \(QK^\top\) costs \(O(n^2)\)</span></h2>
             <span class="slide-kicker"><span lang="ru">каждый токен сравнивается с каждым</span><span lang="en">every token compares to every token</span></span>
@@ -707,7 +917,7 @@
 
         <!-- ============================================ BEAT 6 · climb-multihead ============================================ -->
         <!-- ============================================ 22 · DIVIDER · multi-head ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="24 Divider · Many heads &amp; position">
+        <section class="slide" data-type="divider" data-screen-label="25 Divider · Many heads &amp; position">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 04</span><span lang="en">Part 04</span></div>
             <h1>Many Heads &amp; Position</h1>
@@ -720,7 +930,7 @@
         </section>
 
         <!-- ============================================ 23 · DEFINITION · multi-head idea ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="25 Multi-head idea">
+        <section class="slide" data-type="definition" data-screen-label="26 Multi-head idea">
           <div class="slide-header">
             <h2><span lang="ru">Multi-head: совет из \(h\) голов</span><span lang="en">Multi-head: a council of \(h\) heads</span></h2>
             <span class="slide-kicker"><span lang="ru">параллельные подпространства</span><span lang="en">parallel subspaces</span></span>
@@ -737,7 +947,7 @@
         </section>
 
         <!-- ============================================ 26 · WALKTHROUGH · multi-head data path (always-on faded pipeline + ledger; populated at step 0) ============================================ -->
-        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="26 Multi-head, layer by layer">
+        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="27 Multi-head, layer by layer">
           <div class="slide-header">
             <h2><span lang="ru">Multi-head по слоям: разделить &rarr; внимание &rarr; собрать</span><span lang="en">Multi-head, layer by layer: split &rarr; attend &rarr; recombine</span></h2>
             <span class="slide-kicker"><span lang="ru">путь данных от входа к выходу</span><span lang="en">the data path, input&rarr;output</span></span>
@@ -797,7 +1007,7 @@
 
         <!-- ============================================ BEAT 7 · turn-positional ============================================ -->
         <!-- ============================================ 26 · DIVIDER · inject position ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="27 Divider · inject position">
+        <section class="slide" data-type="divider" data-screen-label="28 Divider · inject position">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 04 ·</span><span lang="en">Part 04 ·</span></div>
             <h1>Attention is Order-Blind</h1>
@@ -810,7 +1020,7 @@
         </section>
 
         <!-- ============================================ 27 · MISCONCEPTION · permutation invariance ============================================ -->
-        <section class="slide" data-type="misconception" data-screen-label="28 Permutation invariance">
+        <section class="slide" data-type="misconception" data-screen-label="29 Permutation invariance">
           <div class="slide-header">
             <h2><span lang="ru">Внимание перестановочно-инвариантно</span><span lang="en">Attention is permutation-invariant</span></h2>
             <span class="slide-kicker"><span lang="ru">почему нужен явный сигнал позиции</span><span lang="en">why position must be explicit</span></span>
@@ -828,7 +1038,7 @@
 
         <!-- ============================================ BEAT 8 · climb-positional ============================================ -->
         <!-- ============================================ 28 · FORMULA · sinusoidal PE ============================================ -->
-        <section class="slide" data-type="formula" data-screen-label="29 Sinusoidal PE">
+        <section class="slide" data-type="formula" data-screen-label="30 Sinusoidal PE">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">Синусоидальное позиционное кодирование</span><span lang="en">Sinusoidal positional encoding</span></h2>
             <span class="slide-kicker"><span lang="ru">фиксированное, не обучаемое</span><span lang="en">fixed, not learned</span></span>
@@ -846,7 +1056,7 @@
         </section>
 
         <!-- ============================================ 29 · DEMO · sinusoid frequency sweep (T5: viz → live function-plot) ============================================ -->
-        <section class="slide demo-pe-sweep" data-type="demo" data-screen-label="30 The PE frequency sweep">
+        <section class="slide demo-pe-sweep" data-type="demo" data-screen-label="31 The PE frequency sweep">
           <div class="slide-header">
             <h2><span lang="ru">Развёртка частоты: \(\sin(pos/10000^{2i/d})\)</span><span lang="en">Sweeping the frequency: \(\sin(pos/10000^{2i/d})\)</span></h2>
             <span class="slide-kicker"><span lang="ru">двигайте позицию по быстрой синусоиде измерения \(i=0\) · живьём</span><span lang="en">drag position along dimension \(i=0\)&rsquo;s fast sinusoid · live</span></span>
@@ -868,7 +1078,7 @@
         </section>
 
         <!-- ============================================ 30 · WALKTHROUGH · reading the grid ============================================ -->
-        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="31 Reading the PE grid">
+        <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="32 Reading the PE grid">
           <div class="slide-header">
             <h2><span lang="ru">Как читать сетку — реальные значения</span><span lang="en">How to read the grid — real values</span></h2>
             <span class="slide-kicker"><span lang="ru">из data/l6-positional.json</span><span lang="en">from data/l6-positional.json</span></span>
@@ -904,7 +1114,7 @@
         </section>
 
         <!-- ============================================ 31 · TABLE · fixed vs learned PE ============================================ -->
-        <section class="slide" data-type="table" data-screen-label="32 Fixed vs learned PE">
+        <section class="slide" data-type="table" data-screen-label="33 Fixed vs learned PE">
           <div class="slide-header">
             <h2><span lang="ru">Фиксированное против обучаемого кодирования</span><span lang="en">Fixed vs learned positional encoding</span></h2>
             <span class="slide-kicker"><span lang="ru">две школы, одна цель</span><span lang="en">two schools, one goal</span></span>
@@ -924,7 +1134,7 @@
 
         <!-- ============================================ BEAT 9 · turn-block ============================================ -->
         <!-- ============================================ 32 · DIVIDER · the Transformer block ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="33 Divider · the Transformer block">
+        <section class="slide" data-type="divider" data-screen-label="34 Divider · the Transformer block">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 05</span><span lang="en">Part 05</span></div>
             <h1>Assemble the Transformer Block</h1>
@@ -938,7 +1148,7 @@
 
         <!-- ============================================ BEAT 10 · climb-block ============================================ -->
         <!-- ============================================ 33 · DEFINITION · residual + LayerNorm ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="34 Residual + LayerNorm">
+        <section class="slide" data-type="definition" data-screen-label="35 Residual + LayerNorm">
           <div class="slide-header">
             <h2><span lang="ru">Add &amp; Norm: остаток + нормализация</span><span lang="en">Add &amp; Norm: residual + layer norm</span></h2>
             <span class="slide-kicker"><span lang="ru">почему стек вообще обучается</span><span lang="en">why a deep stack trains at all</span></span>
@@ -955,7 +1165,7 @@
         </section>
 
         <!-- ============================================ 34 · FORMULA · LayerNorm ============================================ -->
-        <section class="slide" data-type="formula" data-screen-label="35 LayerNorm formula">
+        <section class="slide" data-type="formula" data-screen-label="36 LayerNorm formula">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">LayerNorm, точно</span><span lang="en">LayerNorm, exactly</span></h2>
             <span class="slide-kicker"><span lang="ru">по признакам токена, не по батчу</span><span lang="en">over a token&rsquo;s features, not the batch</span></span>
@@ -973,7 +1183,7 @@
         </section>
 
         <!-- ============================================ 35 · DEFINITION · the FFN ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="36 The feed-forward network">
+        <section class="slide" data-type="definition" data-screen-label="37 The feed-forward network">
           <div class="slide-header">
             <h2><span lang="ru">Position-wise FFN: думать по каждому токену</span><span lang="en">Position-wise FFN: think per token</span></h2>
             <span class="slide-kicker"><span lang="ru">два линейных слоя + нелинейность</span><span lang="en">two linear layers + a nonlinearity</span></span>
@@ -990,7 +1200,7 @@
         </section>
 
         <!-- ============================================ 36 · ARCHFLOW · the full encoder block (HEADLINE) ============================================ -->
-        <section class="slide afblk-slide" data-type="archflow" data-max-step="6" data-current-step="0" data-screen-label="37 Archflow · the Transformer block">
+        <section class="slide afblk-slide" data-type="archflow" data-max-step="6" data-current-step="0" data-screen-label="38 Archflow · the Transformer block">
           <style>
             /* RESIDUAL HIGHWAY emphasis: the two skip arcs (pos→an1, an1→an2) are the bypass that
                carries x AROUND each sublayer; draw them as a thick, solid accent highway so the
@@ -1126,7 +1336,7 @@
         </section>
 
         <!-- ============================================ 37 · VIZ · what LayerNorm DOES (native port of layernorm-viz) ============================================ -->
-        <section class="slide lnv-slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="38 What LayerNorm does">
+        <section class="slide lnv-slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="39 What LayerNorm does">
           <style>
             /* scoped: data-arch-step groups SWAP (only the current step's bars/arrow/readout show)
                so the SAME vector visibly recentres then rescales onto the unit circle. */
@@ -1159,107 +1369,111 @@
             <span class="slide-kicker"><span lang="ru">центрировать &rarr; масштаб &rarr; на единичную сферу &rarr; \(\gamma,\beta\)</span><span lang="en">recentre &rarr; rescale &rarr; onto the unit sphere &rarr; \(\gamma,\beta\)</span></span>
           </div>
           <div class="viz-frame">
-            <svg viewBox="0 0 1160 540" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="The 4-dimensional attention-output vector for the cat token (0.579, 1.996, 0.91, 0.425) with mean 0.98 and variance 0.38 is recentred to mean 0, rescaled to variance 1 — landing on the unit circle — then bent by the learned scale gamma and shift beta">
+            <svg viewBox="0 0 1600 720" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="The 4-dimensional attention-output vector for the cat token (0.579, 1.996, 0.91, 0.425) with mean 0.98 and variance 0.38 is recentred to mean 0, rescaled to variance 1 — landing on the unit circle — then bent by the learned scale gamma and shift beta, with the exact per-dimension arithmetic shown at each step">
               <defs>
-                <marker id="lnvRaw" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink-4)"/></marker>
                 <marker id="lnvNorm" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker>
               </defs>
               <g font-family="var(--font-sans)">
                 <!-- REAL DATA: the cat token's attention-output row from the e2e/s19 example,
-                     x = [0.579, 1.996, 0.91, 0.425]  (μ=0.978, σ²=0.377, σ=0.614). LayerNorm
-                     normalises the SAME vector the rest of the lecture has used. -->
+                     x = [0.579, 1.996, 0.91, 0.425]  (μ=0.9775, σ²=0.3765, σ=0.6136). LayerNorm
+                     normalises the SAME vector the rest of the lecture has used. VERIFIED: centred
+                     mean=0, normed var=1, ‖normed‖=√d=2, out=γ·normed+β. -->
                 <!-- bar panel frame + persistent heading + dim ticks (never stepped) -->
-                <rect x="120" y="76" width="540" height="434" rx="8" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
-                <text x="140" y="106" font-size="20" fill="var(--ink-2)" font-weight="700" stroke="none" font-family="var(--font-mono)">x = attn-out(&ldquo;cat&rdquo;), d = 4</text>
-                <text x="209.2" y="490" font-size="15" fill="var(--ink-3)" text-anchor="middle" stroke="none" font-family="var(--font-mono)">d&#8321;</text>
-                <text x="327.8" y="490" font-size="15" fill="var(--ink-3)" text-anchor="middle" stroke="none" font-family="var(--font-mono)">d&#8322;</text>
-                <text x="446.2" y="490" font-size="15" fill="var(--ink-3)" text-anchor="middle" stroke="none" font-family="var(--font-mono)">d&#8323;</text>
-                <text x="564.8" y="490" font-size="15" fill="var(--ink-3)" text-anchor="middle" stroke="none" font-family="var(--font-mono)">d&#8324;</text>
-                <!-- stage label, swaps per step, centred over the bars -->
-                <g data-arch-step="0"><text x="390" y="532" font-size="20" fill="var(--accent-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">raw x</text></g>
-                <g data-arch-step="1"><text x="390" y="532" font-size="20" fill="var(--accent-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">x &minus; &mu;  (recentred)</text></g>
-                <g data-arch-step="2"><text x="390" y="532" font-size="20" fill="var(--accent-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">(x &minus; &mu;) / &sigma;  (normed)</text></g>
-                <g data-arch-step="3"><text x="390" y="532" font-size="20" fill="var(--accent-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&gamma; &middot; normed + &beta;  (out)</text></g>
+                <rect x="150" y="100" width="700" height="500" rx="10" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
+                <text x="172" y="142" font-size="27" fill="var(--ink-2)" font-weight="800" stroke="none" font-family="var(--font-mono)">x = attn-out(&ldquo;cat&rdquo;), d = 4</text>
+                <text x="255" y="582" font-size="20" fill="var(--ink-3)" text-anchor="middle" stroke="none" font-family="var(--font-mono)">d&#8321;</text>
+                <text x="415" y="582" font-size="20" fill="var(--ink-3)" text-anchor="middle" stroke="none" font-family="var(--font-mono)">d&#8322;</text>
+                <text x="575" y="582" font-size="20" fill="var(--ink-3)" text-anchor="middle" stroke="none" font-family="var(--font-mono)">d&#8323;</text>
+                <text x="735" y="582" font-size="20" fill="var(--ink-3)" text-anchor="middle" stroke="none" font-family="var(--font-mono)">d&#8324;</text>
 
                 <!-- per-step bar groups (SWAP). Each <g data-arch-step> wraps its OWN bars+labels so
                      only one step shows; text carries stroke="none" so the global highlight rule
                      can't outline it (the old double-paint bug). -->
-                <!-- STEP 0 · raw: floor y=440 (value 0), 150 px/unit; mean line at μ=0.978 → y=293.4 -->
+                <!-- STEP 0 · raw: floor y=560 (value 0), 200 px/unit; mean line at μ=0.9775 → y=364.5 -->
                 <g data-arch-step="0">
-                  <line x1="150" y1="293.4" x2="624" y2="293.4" stroke="var(--warm)" stroke-width="2" stroke-dasharray="7 4"/>
-                  <text x="146" y="286.4" font-size="16" fill="var(--warm-ink)" font-weight="700" text-anchor="end" stroke="none" font-family="var(--font-mono)">&mu; = 0.98</text>
-                  <rect x="177.2" y="353.1" width="64" height="86.9" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/>
-                  <rect x="295.8" y="140.6" width="64" height="299.4" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/>
-                  <rect x="414.2" y="303.5" width="64" height="136.5" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/>
-                  <rect x="532.8" y="376.2" width="64" height="63.8" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/>
-                  <text x="209.2" y="345.1" font-size="17" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" stroke="none" font-family="var(--font-mono)">0.579</text>
-                  <text x="327.8" y="132.6" font-size="17" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" stroke="none" font-family="var(--font-mono)">1.996</text>
-                  <text x="446.2" y="295.5" font-size="17" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" stroke="none" font-family="var(--font-mono)">0.910</text>
-                  <text x="564.8" y="368.2" font-size="17" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" stroke="none" font-family="var(--font-mono)">0.425</text>
+                  <line x1="172" y1="364.5" x2="828" y2="364.5" stroke="var(--warm)" stroke-width="2.5" stroke-dasharray="8 5"/>
+                  <text x="172" y="356" font-size="20" fill="var(--warm-ink)" font-weight="800" text-anchor="start" stroke="none" font-family="var(--font-mono)">&mu; = 0.98</text>
+                  <rect x="205" y="444.2" width="100" height="115.8" rx="4" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.4"/>
+                  <rect x="365" y="160.8" width="100" height="399.2" rx="4" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.4"/>
+                  <rect x="525" y="378.0" width="100" height="182.0" rx="4" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.4"/>
+                  <rect x="685" y="475.0" width="100" height="85.0" rx="4" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.4"/>
+                  <text x="255" y="434" font-size="22" fill="var(--accent-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">0.579</text>
+                  <text x="415" y="150" font-size="22" fill="var(--accent-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">1.996</text>
+                  <text x="575" y="368" font-size="22" fill="var(--accent-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">0.910</text>
+                  <text x="735" y="465" font-size="22" fill="var(--accent-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">0.425</text>
                 </g>
-                <!-- STEP 1 · centred (x − μ): zero baseline y=270, 130 px/unit; positives up (blue), negatives down (warm) -->
+                <!-- STEP 1 · centred (x − μ): zero baseline y=370, 170 px/unit; positives up (blue), negatives down (warm) -->
                 <g data-arch-step="1">
-                  <line x1="150" y1="270" x2="624" y2="270" stroke="var(--warm)" stroke-width="2" stroke-dasharray="7 4"/>
-                  <text x="146" y="263" font-size="16" fill="var(--warm-ink)" font-weight="700" text-anchor="end" stroke="none" font-family="var(--font-mono)">&mu; = 0</text>
-                  <rect x="177.2" y="270" width="64" height="51.8" rx="3" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.2"/>
-                  <rect x="295.8" y="137.6" width="64" height="132.4" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/>
-                  <rect x="414.2" y="270" width="64" height="8.8" rx="3" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.2"/>
-                  <rect x="532.8" y="270" width="64" height="71.8" rx="3" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.2"/>
-                  <text x="209.2" y="341.8" font-size="16" fill="var(--warm-ink)" font-weight="600" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.40</text>
-                  <text x="327.8" y="129.6" font-size="16" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" stroke="none" font-family="var(--font-mono)">1.02</text>
-                  <text x="446.2" y="298.8" font-size="16" fill="var(--warm-ink)" font-weight="600" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.07</text>
-                  <text x="564.8" y="361.8" font-size="16" fill="var(--warm-ink)" font-weight="600" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.55</text>
+                  <line x1="172" y1="370" x2="828" y2="370" stroke="var(--warm)" stroke-width="2.5" stroke-dasharray="8 5"/>
+                  <text x="172" y="361" font-size="20" fill="var(--warm-ink)" font-weight="800" text-anchor="start" stroke="none" font-family="var(--font-mono)">&mu; = 0</text>
+                  <rect x="205" y="370" width="100" height="67.7" rx="4" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.4"/>
+                  <rect x="365" y="196.9" width="100" height="173.1" rx="4" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.4"/>
+                  <rect x="525" y="370" width="100" height="11.5" rx="4" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.4"/>
+                  <rect x="685" y="370" width="100" height="93.9" rx="4" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.4"/>
+                  <text x="255" y="461" font-size="22" fill="var(--warm-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.40</text>
+                  <text x="415" y="186" font-size="22" fill="var(--accent-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">1.02</text>
+                  <text x="575" y="405" font-size="22" fill="var(--warm-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.07</text>
+                  <text x="735" y="487" font-size="22" fill="var(--warm-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.55</text>
                 </g>
-                <!-- STEP 2 · normed ((x − μ)/σ): zero baseline y=270, 80 px/unit; lands on the unit sphere -->
+                <!-- STEP 2 · normed ((x − μ)/σ): zero baseline y=370, 110 px/unit; lands on the unit sphere -->
                 <g data-arch-step="2">
-                  <line x1="150" y1="270" x2="624" y2="270" stroke="var(--warm)" stroke-width="2" stroke-dasharray="7 4"/>
-                  <text x="146" y="263" font-size="16" fill="var(--warm-ink)" font-weight="700" text-anchor="end" stroke="none" font-family="var(--font-mono)">&mu; = 0</text>
-                  <rect x="177.2" y="270" width="64" height="51.9" rx="3" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.2"/>
-                  <rect x="295.8" y="137.2" width="64" height="132.8" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/>
-                  <rect x="414.2" y="270" width="64" height="8.8" rx="3" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.2"/>
-                  <rect x="532.8" y="270" width="64" height="72" rx="3" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.2"/>
-                  <text x="209.2" y="342" font-size="16" fill="var(--warm-ink)" font-weight="600" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.65</text>
-                  <text x="327.8" y="129.2" font-size="16" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" stroke="none" font-family="var(--font-mono)">1.66</text>
-                  <text x="446.2" y="298.8" font-size="16" fill="var(--warm-ink)" font-weight="600" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.11</text>
-                  <text x="564.8" y="362" font-size="16" fill="var(--warm-ink)" font-weight="600" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.90</text>
+                  <line x1="172" y1="370" x2="828" y2="370" stroke="var(--warm)" stroke-width="2.5" stroke-dasharray="8 5"/>
+                  <text x="172" y="361" font-size="20" fill="var(--warm-ink)" font-weight="800" text-anchor="start" stroke="none" font-family="var(--font-mono)">&mu; = 0</text>
+                  <rect x="205" y="370" width="100" height="71.4" rx="4" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.4"/>
+                  <rect x="365" y="187.4" width="100" height="182.6" rx="4" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.4"/>
+                  <rect x="525" y="370" width="100" height="12.1" rx="4" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.4"/>
+                  <rect x="685" y="370" width="100" height="99.0" rx="4" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.4"/>
+                  <text x="255" y="465" font-size="22" fill="var(--warm-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.65</text>
+                  <text x="415" y="177" font-size="22" fill="var(--accent-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">1.66</text>
+                  <text x="575" y="405" font-size="22" fill="var(--warm-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.11</text>
+                  <text x="735" y="492" font-size="22" fill="var(--warm-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.90</text>
                 </g>
-                <!-- STEP 3 · γ·normed + β: γ=[1.2,0.9,1.1,1.0], β=[0.1,−0.1,0,0.2] → bend; 80 px/unit -->
+                <!-- STEP 3 · γ·normed + β: γ=[1.2,0.9,1.1,1.0], β=[0.1,−0.1,0,0.2] → bend; 110 px/unit -->
                 <g data-arch-step="3">
-                  <line x1="150" y1="270" x2="624" y2="270" stroke="var(--warm)" stroke-width="2" stroke-dasharray="7 4"/>
-                  <text x="146" y="263" font-size="16" fill="var(--warm-ink)" font-weight="700" text-anchor="end" stroke="none" font-family="var(--font-mono)">&mu; = 0</text>
-                  <rect x="177.2" y="270" width="64" height="54.3" rx="3" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.2"/>
-                  <rect x="295.8" y="158.5" width="64" height="111.5" rx="3" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.2"/>
-                  <rect x="414.2" y="270" width="64" height="9.7" rx="3" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.2"/>
-                  <rect x="532.8" y="270" width="64" height="56" rx="3" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.2"/>
-                  <text x="209.2" y="344.3" font-size="16" fill="var(--warm-ink)" font-weight="600" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.68</text>
-                  <text x="327.8" y="150.5" font-size="16" fill="var(--accent-ink)" font-weight="600" text-anchor="middle" stroke="none" font-family="var(--font-mono)">1.39</text>
-                  <text x="446.2" y="299.7" font-size="16" fill="var(--warm-ink)" font-weight="600" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.12</text>
-                  <text x="564.8" y="346" font-size="16" fill="var(--warm-ink)" font-weight="600" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.70</text>
+                  <line x1="172" y1="370" x2="828" y2="370" stroke="var(--warm)" stroke-width="2.5" stroke-dasharray="8 5"/>
+                  <text x="172" y="361" font-size="20" fill="var(--warm-ink)" font-weight="800" text-anchor="start" stroke="none" font-family="var(--font-mono)">&mu; = 0</text>
+                  <rect x="205" y="370" width="100" height="74.7" rx="4" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.4"/>
+                  <rect x="365" y="216.7" width="100" height="153.3" rx="4" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.4"/>
+                  <rect x="525" y="370" width="100" height="13.3" rx="4" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.4"/>
+                  <rect x="685" y="370" width="100" height="77.0" rx="4" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.4"/>
+                  <text x="255" y="468" font-size="22" fill="var(--warm-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.68</text>
+                  <text x="415" y="206" font-size="22" fill="var(--accent-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">1.39</text>
+                  <text x="575" y="405" font-size="22" fill="var(--warm-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.12</text>
+                  <text x="735" y="470" font-size="22" fill="var(--warm-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.70</text>
                 </g>
 
-                <!-- UNIT-CIRCLE PANEL — GATED to step ≥ 2 (data-step="2"). The whole panel (heading,
-                     ring, axes, centre dot, and the vector-on-the-sphere arrow) is HIDDEN at steps 0–1
-                     so step 0 shows the raw bars + readout ONLY; it ARRIVES at step 2 when the vector
-                     actually lands on the unit sphere. No arrow is drawn before step 2 (the raw-arrow
-                     groups for steps 0/1 were removed). Inside, the step-2 vs step-3 arrow still swaps
-                     via data-arch-step (both draw the on-the-sphere arrow). -->
+                <!-- stage label, swaps per step, centred over the bars -->
+                <g data-arch-step="0"><text x="500" y="636" font-size="25" fill="var(--accent-ink)" font-weight="800" text-anchor="middle" stroke="none" font-family="var(--font-mono)">step 0 &middot; raw x</text></g>
+                <g data-arch-step="1"><text x="500" y="636" font-size="25" fill="var(--accent-ink)" font-weight="800" text-anchor="middle" stroke="none" font-family="var(--font-mono)">step 1 &middot; x &minus; &mu;  (recentred)</text></g>
+                <g data-arch-step="2"><text x="500" y="636" font-size="25" fill="var(--accent-ink)" font-weight="800" text-anchor="middle" stroke="none" font-family="var(--font-mono)">step 2 &middot; (x &minus; &mu;) / &sigma;  (normed)</text></g>
+                <g data-arch-step="3"><text x="500" y="636" font-size="25" fill="var(--accent-ink)" font-weight="800" text-anchor="middle" stroke="none" font-family="var(--font-mono)">step 3 &middot; &gamma; &middot; normed + &beta;  (output)</text></g>
+
+                <!-- ===== RIGHT: unit-circle panel + the EXACT per-dimension arithmetic (swaps per step) ===== -->
+                <!-- UNIT-CIRCLE PANEL — GATED to step ≥ 2 (data-step="2"). HIDDEN at steps 0–1 so step 0
+                     shows the raw bars + readout ONLY; ARRIVES at step 2 when the vector lands on the sphere. -->
                 <g data-step="2">
-                  <text x="720" y="106" font-size="20" fill="var(--ink-2)" font-weight="700" stroke="none" font-family="var(--font-mono)">the vector on the unit sphere</text>
-                  <circle cx="870" cy="270" r="110" fill="none" stroke="var(--rule-strong)" stroke-width="1.5"/>
-                  <line x1="754" y1="270" x2="986" y2="270" stroke="var(--rule)" stroke-width="1"/>
-                  <line x1="870" y1="154" x2="870" y2="386" stroke="var(--rule)" stroke-width="1"/>
-                  <circle cx="870" cy="270" r="4" fill="var(--ink-3)"/>
-                  <!-- normed arrow lands ON the ring (length 2.0 → √d) at steps 2,3 -->
-                  <g data-arch-step="2"><line x1="870" y1="270" x2="965.3" y2="325" stroke="var(--accent)" stroke-width="3.5" marker-end="url(#lnvNorm)"/><circle cx="965.3" cy="325" r="6" fill="var(--accent)"/><text x="972" y="344" font-size="17" fill="var(--accent-ink)" font-weight="700" stroke="none" font-family="var(--font-mono)">on the sphere</text></g>
-                  <g data-arch-step="3"><line x1="870" y1="270" x2="965.3" y2="325" stroke="var(--accent)" stroke-width="3.5" marker-end="url(#lnvNorm)"/><circle cx="965.3" cy="325" r="6" fill="var(--accent)"/><text x="972" y="344" font-size="17" fill="var(--accent-ink)" font-weight="700" stroke="none" font-family="var(--font-mono)">on the sphere</text></g>
+                  <text x="1230" y="142" font-size="26" fill="var(--ink-2)" font-weight="800" text-anchor="middle" stroke="none" font-family="var(--font-mono)">the vector on the unit sphere</text>
+                  <circle cx="1230" cy="320" r="140" fill="none" stroke="var(--rule-strong)" stroke-width="1.8"/>
+                  <line x1="1078" y1="320" x2="1382" y2="320" stroke="var(--rule)" stroke-width="1.2"/>
+                  <line x1="1230" y1="168" x2="1230" y2="472" stroke="var(--rule)" stroke-width="1.2"/>
+                  <circle cx="1230" cy="320" r="5" fill="var(--ink-3)"/>
+                  <g data-arch-step="2"><line x1="1230" y1="320" x2="1351.2" y2="390" stroke="var(--accent)" stroke-width="4" marker-end="url(#lnvNorm)"/><circle cx="1351.2" cy="390" r="7" fill="var(--accent)"/><text x="1360" y="412" font-size="20" fill="var(--accent-ink)" font-weight="800" stroke="none" font-family="var(--font-mono)">&#8741;normed&#8741;=&radic;d=2</text></g>
+                  <g data-arch-step="3"><line x1="1230" y1="320" x2="1351.2" y2="390" stroke="var(--accent)" stroke-width="4" marker-end="url(#lnvNorm)"/><circle cx="1351.2" cy="390" r="7" fill="var(--accent)"/><text x="1360" y="412" font-size="20" fill="var(--accent-ink)" font-weight="800" stroke="none" font-family="var(--font-mono)">on the sphere</text></g>
                 </g>
 
                 <!-- mean / var readout under the circle (swaps per step) -->
-                <g data-arch-step="0"><text x="870" y="436" font-size="22" fill="var(--ink-2)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&mu; = 0.98  &middot;  &sigma;&sup2; = 0.38</text></g>
-                <g data-arch-step="1"><text x="870" y="436" font-size="22" fill="var(--ink-2)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&mu; = 0.00  &middot;  &sigma;&sup2; = 0.38</text></g>
-                <g data-arch-step="2"><text x="870" y="436" font-size="22" fill="var(--c-green-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&mu; = 0.00  &middot;  &sigma;&sup2; = 1.00  &check;</text></g>
-                <g data-arch-step="3"><text x="870" y="436" font-size="22" fill="var(--ink-2)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&gamma; scales &middot; &beta; shifts each dim</text></g>
-                <text x="870" y="466" font-size="17" fill="var(--ink-3)" text-anchor="middle" stroke="none" font-family="var(--font-mono)">std &sigma; = 0.6136</text>
+                <g data-arch-step="0"><text x="1230" y="512" font-size="26" fill="var(--ink-2)" font-weight="800" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&mu; = 0.9775  &middot;  &sigma;&sup2; = 0.3765</text></g>
+                <g data-arch-step="1"><text x="1230" y="512" font-size="26" fill="var(--ink-2)" font-weight="800" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&mu; = 0.0000  &middot;  &sigma;&sup2; = 0.3765</text></g>
+                <g data-arch-step="2"><text x="1230" y="512" font-size="26" fill="var(--c-green-ink)" font-weight="800" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&mu; = 0.0000  &middot;  &sigma;&sup2; = 1.0000  &check;</text></g>
+                <g data-arch-step="3"><text x="1230" y="512" font-size="26" fill="var(--ink-2)" font-weight="800" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&gamma; scales &middot; &beta; shifts each dim</text></g>
+                <text x="1230" y="548" font-size="20" fill="var(--ink-3)" text-anchor="middle" stroke="none" font-family="var(--font-mono)">std &sigma; = 0.6136</text>
+
+                <!-- THE EXACT ARITHMETIC strip (bottom, full width, swaps per step) -->
+                <rect x="150" y="652" width="1300" height="56" rx="8" fill="var(--bg-inset)" stroke="var(--rule)" stroke-width="1.2"/>
+                <g data-arch-step="0"><text x="170" y="688" font-size="22" fill="var(--ink-2)" stroke="none" font-family="var(--font-mono)">&mu; = (0.579 + 1.996 + 0.91 + 0.425) / 4 = 0.9775   &middot;   &sigma;&sup2; = mean of (x&#8722;&mu;)&sup2; = 0.3765   &middot;   &sigma; = 0.6136</text></g>
+                <g data-arch-step="1"><text x="170" y="688" font-size="22" fill="var(--ink-2)" stroke="none" font-family="var(--font-mono)">x &#8722; &mu;:  0.579&#8722;0.98=&#8722;0.40   &middot;   1.996&#8722;0.98=1.02   &middot;   0.91&#8722;0.98=&#8722;0.07   &middot;   0.425&#8722;0.98=&#8722;0.55  &rarr; mean now 0</text></g>
+                <g data-arch-step="2"><text x="170" y="688" font-size="22" fill="var(--ink-2)" stroke="none" font-family="var(--font-mono)">&divide; &sigma; = 0.6136:  &#8722;0.40/&sigma;=&#8722;0.65   &middot;   1.02/&sigma;=1.66   &middot;   &#8722;0.07/&sigma;=&#8722;0.11   &middot;   &#8722;0.55/&sigma;=&#8722;0.90  &rarr; var now 1</text></g>
+                <g data-arch-step="3"><text x="170" y="688" font-size="22" fill="var(--ink-2)" stroke="none" font-family="var(--font-mono)">&gamma;&middot;n+&beta;:  1.2(&#8722;.65)+.1=&#8722;0.68   &middot;   0.9(1.66)&#8722;.1=1.39   &middot;   1.1(&#8722;.11)+0=&#8722;0.12   &middot;   1.0(&#8722;.90)+.2=&#8722;0.70</text></g>
               </g>
             </svg>
           </div>
@@ -1278,7 +1492,7 @@
         </section>
 
         <!-- ============================================ 38 · FORMULA · the block as one equation ============================================ -->
-        <section class="slide" data-type="formula" data-screen-label="39 The block in two lines">
+        <section class="slide" data-type="formula" data-screen-label="40 The block in two lines">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">Весь блок в двух строках</span><span lang="en">The whole block in two lines</span></h2>
             <span class="slide-kicker"><span lang="ru">внимание, затем FFN — каждое обёрнуто</span><span lang="en">attention, then FFN — each wrapped</span></span>
@@ -1298,7 +1512,7 @@
         </section>
 
         <!-- ============================================ 38 · TABLE · BERT sizes ============================================ -->
-        <section class="slide" data-type="table" data-screen-label="40 BERT sizes">
+        <section class="slide" data-type="table" data-screen-label="41 BERT sizes">
           <div class="slide-header">
             <h2><span lang="ru">Глубина = повтор: размеры BERT</span><span lang="en">Depth = repetition: BERT sizes</span></h2>
             <span class="slide-kicker"><span lang="ru">тот же блок, больше слоёв</span><span lang="en">same block, more layers</span></span>
@@ -1318,59 +1532,134 @@
 
         <!-- ============================================ BEAT 11 · turn-contextual-payoff ============================================ -->
         <!-- ============================================ 39 · VIZ · stack to contextual vectors ============================================ -->
-        <section class="slide" data-type="viz" data-screen-label="41 Stack to contextual vectors">
+        <section class="slide stk-slide" data-type="viz" data-max-step="7" data-current-step="0" data-screen-label="42 Stack to contextual vectors">
+          <style>
+            /* the 6 block rows light up cumulatively (data-step); the two bank trajectories +
+               their cosine readout SWAP per layer (data-arch-step). text carries its own fill,
+               stroke:none, so the global highlight rule can't double-paint glyphs. */
+            .stk-slide svg [data-step].is-step-hidden { display: none; }
+            .stk-slide svg .stk-cos[data-arch-step] { display: none; }
+            .stk-slide svg .stk-cos[data-arch-step].is-arch-current { display: block; }
+            .stk-slide svg text { stroke: none; paint-order: fill; }
+            .stk-slide .stk-cap[data-arch-step] { display: none; }
+            .stk-slide .stk-cap[data-arch-step].is-arch-current { display: block; }
+          </style>
           <div class="slide-header">
-            <h2><span lang="ru">Стек &rarr; контекстные векторы &rarr; вектор предложения</span><span lang="en">Stack &rarr; contextual vectors &rarr; a sentence vector</span></h2>
-            <span class="slide-kicker"><span lang="ru">[CLS] и mean-pooling</span><span lang="en">[CLS] and mean-pooling</span></span>
+            <h2><span lang="ru">Стек блоков &rarr; контекстные векторы: одно слово, разные векторы</span><span lang="en">The block stack &rarr; contextual vectors: one word, different vectors</span></h2>
+            <span class="slide-kicker"><span lang="ru">«bank» (берег vs банк) сквозь 6 блоков DistilBERT &mdash; реальная модель</span><span lang="en">&ldquo;bank&rdquo; (river vs money) through 6 DistilBERT blocks &mdash; real model</span></span>
           </div>
           <div class="viz-frame">
-            <svg viewBox="0 0 1600 500" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="A stack of N Transformer blocks turns input token embeddings into contextual token vectors, then pooling collapses them into one sentence vector">
+            <svg viewBox="0 0 1600 600" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="The same word bank in a river sentence and a money sentence enters the stack as one shared static embedding; passing through 6 DistilBERT blocks, the two contextual vectors drift apart in a 2-D PCA plane and the cross-sense cosine falls from 0.96 toward 0.65 — one word, two vectors, decided by context">
+              <defs>
+                <marker id="stkA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-3)"/></marker>
+              </defs>
               <g font-family="var(--font-sans)">
-                <g font-size="22" fill="var(--ink-2)" text-anchor="middle">
-                  <text x="190" y="60">[CLS] the cat sat</text>
+                <!-- ===== LEFT: the stack of N blocks; the bank token rises through them ===== -->
+                <text x="80" y="56" font-size="23" fill="var(--ink-2)" font-weight="700">two sentences, the SAME word &ldquo;bank&rdquo;</text>
+                <rect data-step="0" x="80" y="76" width="430" height="66" rx="8" fill="var(--bg-inset)" stroke="var(--ink-3)" stroke-width="2"/>
+                <text data-step="0" x="98" y="104" font-size="17" fill="var(--c-cyan-ink, var(--ink-2))" font-family="var(--font-mono)">river: &ldquo;grassy <tspan font-weight="800">bank</tspan> of the river&rdquo;</text>
+                <text data-step="0" x="98" y="130" font-size="17" fill="var(--c-amber-ink)" font-family="var(--font-mono)">money: &ldquo;deposited at the <tspan font-weight="800">bank</tspan>&rdquo;</text>
+
+                <!-- input embedding row (shared static vector at step 0) -->
+                <rect data-step="0" x="140" y="168" width="240" height="44" rx="8" fill="none" stroke="var(--ink-3)" stroke-width="2"/>
+                <text data-step="0" x="260" y="196" text-anchor="middle" font-size="19" fill="var(--ink-3)">embed + PE (shared)</text>
+                <line data-step="0" x1="260" y1="212" x2="260" y2="236" stroke="var(--ink-3)" stroke-width="2.5" marker-end="url(#stkA)"/>
+
+                <!-- 6 block rows, each revealed at its step -->
+                <rect data-step="1" x="140" y="244" width="240" height="40" rx="7" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5"/><text data-step="1" x="260" y="271" text-anchor="middle" font-size="19" fill="var(--accent-ink)" font-weight="700">block 1 &middot; attn + FFN</text>
+                <rect data-step="2" x="140" y="290" width="240" height="40" rx="7" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5"/><text data-step="2" x="260" y="317" text-anchor="middle" font-size="19" fill="var(--accent-ink)" font-weight="700">block 2 &middot; attn + FFN</text>
+                <rect data-step="3" x="140" y="336" width="240" height="40" rx="7" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5"/><text data-step="3" x="260" y="363" text-anchor="middle" font-size="19" fill="var(--accent-ink)" font-weight="700">block 3 &middot; attn + FFN</text>
+                <rect data-step="4" x="140" y="382" width="240" height="40" rx="7" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5"/><text data-step="4" x="260" y="409" text-anchor="middle" font-size="19" fill="var(--accent-ink)" font-weight="700">block 4 &middot; attn + FFN</text>
+                <rect data-step="5" x="140" y="428" width="240" height="40" rx="7" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5"/><text data-step="5" x="260" y="455" text-anchor="middle" font-size="19" fill="var(--accent-ink)" font-weight="700">block 5 &middot; attn + FFN</text>
+                <rect data-step="6" x="140" y="474" width="240" height="40" rx="7" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5"/><text data-step="6" x="260" y="501" text-anchor="middle" font-size="19" fill="var(--accent-ink)" font-weight="700">block 6 &middot; attn + FFN</text>
+                <!-- the two contextual outputs at the top of the stack (step 7) -->
+                <g data-step="7">
+                  <rect x="120" y="540" width="130" height="42" rx="7" fill="none" stroke="var(--c-cyan)" stroke-width="2.5"/><text x="185" y="567" text-anchor="middle" font-size="18" fill="var(--c-cyan-ink)" font-weight="700">bank (river)</text>
+                  <rect x="270" y="540" width="130" height="42" rx="7" fill="none" stroke="var(--c-amber)" stroke-width="2.5"/><text x="335" y="567" text-anchor="middle" font-size="18" fill="var(--c-amber-ink)" font-weight="700">bank (money)</text>
                 </g>
-                <g>
-                  <rect x="80" y="80" width="220" height="50" rx="8" fill="none" stroke="var(--ink-3)" stroke-width="2"/>
-                  <text x="190" y="113" text-anchor="middle" font-size="20" fill="var(--ink-3)">input embeddings + PE</text>
+
+                <!-- ===== RIGHT: the 2-D PCA plane — the two bank vectors fan apart per layer ===== -->
+                <rect x="560" y="120" width="640" height="440" rx="10" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
+                <text x="560" y="104" font-size="23" fill="var(--ink-3)" font-family="var(--font-mono)">contextual-vector plane (PCA of &ldquo;bank&rdquo;)</text>
+
+                <!-- river trajectory (cyan) — points appear cumulatively, the active one larger -->
+                <!-- shared embed point at step 0 -->
+                <g data-step="0">
+                  <circle cx="942.6" cy="270.1" r="9" fill="var(--c-cyan)"/>
+                  <circle cx="940.0" cy="290.0" r="9" fill="var(--c-amber)"/>
+                  <text x="900" y="246" font-size="19" fill="var(--ink-2)" font-weight="700" text-anchor="end" font-family="var(--font-mono)">same point: cos &asymp; 1.0</text>
+                  <line x1="905" y1="252" x2="938" y2="276" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="2 3"/>
                 </g>
-                <rect x="80" y="170" width="220" height="210" rx="12" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="3"/>
-                <text x="190" y="265" text-anchor="middle" font-size="26" fill="var(--accent-ink)">N blocks</text>
-                <text x="190" y="298" text-anchor="middle" font-size="20" fill="var(--accent-ink)">(attention + FFN)</text>
-                <g stroke="var(--ink-3)" stroke-width="2.5" marker-end="url(#cv)" fill="none">
-                  <line x1="190" y1="130" x2="190" y2="168"/>
-                  <line x1="300" y1="275" x2="430" y2="275"/>
+                <!-- river polyline segments, each revealed at its block step -->
+                <g stroke="var(--c-cyan)" stroke-width="3" fill="none">
+                  <line data-step="1" x1="942.6" y1="270.1" x2="1174.1" y2="185.9"/>
+                  <line data-step="2" x1="1174.1" y1="185.9" x2="1310.3" y2="140.0"/>
+                  <line data-step="3" x1="1310.3" y1="140.0" x2="1420.5" y2="188.2"/>
+                  <line data-step="4" x1="1420.5" y1="188.2" x2="1503.4" y2="246.1"/>
+                  <line data-step="5" x1="1503.4" y1="246.1" x2="1540.0" y2="301.4"/>
+                  <line data-step="6" x1="1540.0" y1="301.4" x2="1353.7" y2="302.8"/>
                 </g>
-                <!-- contextual token vectors -->
-                <g>
-                  <rect x="440" y="180" width="170" height="42" rx="6" fill="none" stroke="var(--c-violet)" stroke-width="2"/><text x="525" y="207" text-anchor="middle" font-size="18" fill="var(--c-violet)">[CLS] vector</text>
-                  <rect x="440" y="232" width="170" height="42" rx="6" fill="none" stroke="var(--ink-3)" stroke-width="2"/><text x="525" y="259" text-anchor="middle" font-size="18" fill="var(--ink-3)">the (ctx)</text>
-                  <rect x="440" y="284" width="170" height="42" rx="6" fill="none" stroke="var(--ink-3)" stroke-width="2"/><text x="525" y="311" text-anchor="middle" font-size="18" fill="var(--ink-3)">cat (ctx)</text>
-                  <rect x="440" y="336" width="170" height="42" rx="6" fill="none" stroke="var(--ink-3)" stroke-width="2"/><text x="525" y="363" text-anchor="middle" font-size="18" fill="var(--ink-3)">sat (ctx)</text>
+                <g fill="var(--c-cyan)">
+                  <circle data-step="1" cx="1174.1" cy="185.9" r="7"/>
+                  <circle data-step="2" cx="1310.3" cy="140.0" r="7"/>
+                  <circle data-step="3" cx="1420.5" cy="188.2" r="7"/>
+                  <circle data-step="4" cx="1503.4" cy="246.1" r="7"/>
+                  <circle data-step="5" cx="1540.0" cy="301.4" r="7"/>
+                  <circle data-step="6" cx="1353.7" cy="302.8" r="9" stroke="var(--bg-card)" stroke-width="2"/>
                 </g>
-                <text x="525" y="160" text-anchor="middle" font-size="20" fill="var(--ink-2)">contextual token vectors</text>
-                <g stroke="var(--ink-3)" stroke-width="2.5" marker-end="url(#cv)" fill="none">
-                  <line x1="610" y1="278" x2="740" y2="278"/>
+                <text data-step="6" x="1353.7" y="288" font-size="19" fill="var(--c-cyan-ink)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">river bank</text>
+                <!-- money polyline -->
+                <g stroke="var(--c-amber)" stroke-width="3" fill="none">
+                  <line data-step="1" x1="940.0" y1="290.0" x2="1083.7" y2="411.5"/>
+                  <line data-step="2" x1="1083.7" y1="411.5" x2="1178.1" y2="468.8"/>
+                  <line data-step="3" x1="1178.1" y1="468.8" x2="1271.9" y2="518.2"/>
+                  <line data-step="4" x1="1271.9" y1="518.2" x2="1336.1" y2="540.0"/>
+                  <line data-step="5" x1="1336.1" y1="540.0" x2="1382.4" y2="538.2"/>
+                  <line data-step="6" x1="1382.4" y1="538.2" x2="1281.4" y2="438.6"/>
                 </g>
-                <!-- pooling -->
-                <rect x="750" y="230" width="200" height="96" rx="12" fill="none" stroke="var(--ink-2)" stroke-width="3"/>
-                <text x="850" y="270" text-anchor="middle" font-size="24" fill="var(--ink-2)">pool</text>
-                <text x="850" y="300" text-anchor="middle" font-size="18" fill="var(--ink-3)">[CLS] or mean</text>
-                <g stroke="var(--ink-3)" stroke-width="2.5" marker-end="url(#cv)" fill="none">
-                  <line x1="950" y1="278" x2="1080" y2="278"/>
+                <g fill="var(--c-amber)">
+                  <circle data-step="1" cx="1083.7" cy="411.5" r="7"/>
+                  <circle data-step="2" cx="1178.1" cy="468.8" r="7"/>
+                  <circle data-step="3" cx="1271.9" cy="518.2" r="7"/>
+                  <circle data-step="4" cx="1336.1" cy="540.0" r="7"/>
+                  <circle data-step="5" cx="1382.4" cy="538.2" r="7"/>
+                  <circle data-step="6" cx="1281.4" cy="438.6" r="9" stroke="var(--bg-card)" stroke-width="2"/>
                 </g>
-                <rect x="1090" y="230" width="220" height="96" rx="12" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="3"/>
-                <text x="1200" y="272" text-anchor="middle" font-size="24" fill="var(--accent-ink)"><span>one sentence</span></text>
-                <text x="1200" y="302" text-anchor="middle" font-size="22" fill="var(--accent-ink)">vector</text>
-                <defs><marker id="cv" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-3)"/></marker></defs>
+                <text data-step="6" x="1281.4" y="424" font-size="19" fill="var(--c-amber-ink)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">money bank</text>
+
+                <!-- per-layer cross-sense cosine readout (SWAPS) — the headline number. Centred
+                     in the right panel band so the longest line stays inside the 1600 viewBox. -->
+                <g class="stk-cos" data-arch-step="0"><text x="880" y="592" font-size="23" fill="var(--ink-2)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">cross-sense cos(bank, bank) = 0.957  (embed: nearly identical)</text></g>
+                <g class="stk-cos" data-arch-step="1"><text x="880" y="592" font-size="23" fill="var(--ink-2)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">after block 1: cos = 0.711  (senses start to split)</text></g>
+                <g class="stk-cos" data-arch-step="2"><text x="880" y="592" font-size="23" fill="var(--ink-2)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">after block 2: cos = 0.605</text></g>
+                <g class="stk-cos" data-arch-step="3"><text x="880" y="592" font-size="23" fill="var(--ink-2)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">after block 3: cos = 0.639</text></g>
+                <g class="stk-cos" data-arch-step="4"><text x="880" y="592" font-size="23" fill="var(--ink-2)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">after block 4: cos = 0.683</text></g>
+                <g class="stk-cos" data-arch-step="5"><text x="880" y="592" font-size="23" fill="var(--ink-2)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">after block 5: cos = 0.751</text></g>
+                <g class="stk-cos" data-arch-step="6"><text x="880" y="592" font-size="23" fill="var(--c-green-ink)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">final: cos = 0.647  &mdash; one word, two vectors</text></g>
+                <g class="stk-cos" data-arch-step="7"><text x="880" y="592" font-size="23" fill="var(--c-green-ink)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">pool (CLS or mean) &rarr; one sentence vector</text></g>
               </g>
             </svg>
           </div>
-          <p class="viz-caption"><span lang="ru">Стек выдаёт <strong>контекстный вектор на каждый токен</strong>. Чтобы получить <em>один</em> вектор предложения/документа для поиска: берём вектор <code>[CLS]</code> или усредняем токены (mean-pooling).</span><span lang="en">The stack outputs <strong>one contextual vector per token</strong>. To get <em>one</em> sentence/document vector for search: take the <code>[CLS]</code> vector or average the tokens (mean-pooling).</span></p>
-          <aside class="slide-notes">Connect the architecture back to retrieval. After the input passes through the N blocks, every token has a contextual vector — the cat vector now knows it sits next to the and sat. But search needs a single vector per sentence or document, not one per token. Two standard ways to pool: take the special [CLS] token's vector, which BERT is trained to use as a sequence summary, or mean-pool — average all the token vectors. As we will see in a moment, plain mean-pooling of an untuned BERT is surprisingly poor for similarity, which is exactly what contrastive training fixes. Either way, this pooled vector is the contextual embedding we drop into the cosine geometry from Lecture 5.</aside>
+          <p class="viz-caption">
+            <span class="stk-cap" data-arch-step="0"><span lang="ru">Одно слово <code>bank</code> в двух предложениях входит в стек как <strong>один</strong> статический эмбеддинг (cos&nbsp;&asymp;&nbsp;1).</span><span lang="en">The single word <code>bank</code> in two sentences enters the stack as <strong>one</strong> static embedding (cos&nbsp;&asymp;&nbsp;1).</span></span>
+            <span class="stk-cap" data-arch-step="1"><span lang="ru">Блок 1 подмешивает контекст — два вектора начинают расходиться (cos&nbsp;0.71).</span><span lang="en">Block 1 mixes in context &mdash; the two vectors begin to separate (cos&nbsp;0.71).</span></span>
+            <span class="stk-cap" data-arch-step="2"><span lang="ru">Блок 2: расхождение растёт (cos&nbsp;0.61).</span><span lang="en">Block 2: they drift further apart (cos&nbsp;0.61).</span></span>
+            <span class="stk-cap" data-arch-step="3"><span lang="ru">Блок 3 (cos&nbsp;0.64).</span><span lang="en">Block 3 (cos&nbsp;0.64).</span></span>
+            <span class="stk-cap" data-arch-step="4"><span lang="ru">Блок 4 (cos&nbsp;0.68).</span><span lang="en">Block 4 (cos&nbsp;0.68).</span></span>
+            <span class="stk-cap" data-arch-step="5"><span lang="ru">Блок 5 (cos&nbsp;0.75).</span><span lang="en">Block 5 (cos&nbsp;0.75).</span></span>
+            <span class="stk-cap" data-arch-step="6"><span lang="ru">На выходе стека <code>bank</code>-берег и <code>bank</code>-банк — <strong>разные</strong> контекстные векторы (cos&nbsp;0.65). Контекст решил смысл.</span><span lang="en">Out of the stack, river-<code>bank</code> and money-<code>bank</code> are <strong>different</strong> contextual vectors (cos&nbsp;0.65). Context decided the sense.</span></span>
+            <span class="stk-cap" data-arch-step="7"><span lang="ru">Пулинг (<code>[CLS]</code> или mean) сворачивает токены в <em>один</em> вектор предложения для поиска.</span><span lang="en">Pooling (<code>[CLS]</code> or mean) collapses the tokens into <em>one</em> sentence vector for search.</span></span>
+          </p>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">0/7</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">The dynamic payoff: connect the stack back to retrieval, using a real run of DistilBERT — six blocks. Take the same word, bank, in two sentences: a river sentence and a money sentence. Step zero: at the embedding layer the two bank tokens are essentially the same static vector — cross-sense cosine zero-point-nine-six, the two points sit almost on top of each other in the PCA plane. Then watch them split, one block at a time. Block one drops the cosine to zero-point-seven-one; the river-bank point arcs up, the money-bank point arcs down. Through blocks two to six the two trajectories fan apart and settle, ending at cross-sense cosine zero-point-six-five — exactly the number from the contextual-vectors data file. That is the whole point of the stack: one word, but two different contextual vectors, decided entirely by context — something a single static embedding can never do. Step seven: to search, pool each side, with the CLS token or a mean, into one sentence vector. Untuned mean-pooling is weak for similarity, which is what the contrastive training coming next fixes.</aside>
         </section>
 
         <!-- ============================================ 40 · DEFINITION · [CLS] vs mean-pooling ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="42 Pooling to one vector">
+        <section class="slide" data-type="definition" data-screen-label="43 Pooling to one vector">
           <div class="slide-header">
             <h2><span lang="ru">Пулинг: из токенов — один вектор</span><span lang="en">Pooling: from tokens to one vector</span></h2>
             <span class="slide-kicker"><span lang="ru">[CLS] · mean · что брать</span><span lang="en">[CLS] · mean · which to use</span></span>
@@ -1388,7 +1677,7 @@
 
         <!-- ============================================ BEAT 12 · turn-contrastive ============================================ -->
         <!-- ============================================ 41 · DIVIDER · train for retrieval ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="43 Divider · train for retrieval">
+        <section class="slide" data-type="divider" data-screen-label="44 Divider · train for retrieval">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 06</span><span lang="en">Part 06</span></div>
             <h1>Train the Space for Search</h1>
@@ -1402,7 +1691,7 @@
 
         <!-- ============================================ BEAT 13 · climb-contrastive ============================================ -->
         <!-- ============================================ 42 · DEFINITION · contrastive setup ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="44 Contrastive setup">
+        <section class="slide" data-type="definition" data-screen-label="45 Contrastive setup">
           <div class="slide-header">
             <h2><span lang="ru">Якорь, позитив, негативы</span><span lang="en">Anchor, positive, negatives</span></h2>
             <span class="slide-kicker"><span lang="ru">геометрия, заданная парами</span><span lang="en">geometry defined by pairs</span></span>
@@ -1419,7 +1708,7 @@
         </section>
 
         <!-- ============================================ 43 · DERIVATION · triplet → softmax-over-candidates → InfoNCE (T3: two formula → one FLIP-morph) ============================================ -->
-        <section class="slide" data-type="derivation" data-screen-label="45 From triplet to InfoNCE">
+        <section class="slide" data-type="derivation" data-screen-label="46 From triplet to InfoNCE">
           <div class="slide-header">
             <h2><span lang="ru">От triplet к InfoNCE: один кадр алгебры</span><span lang="en">From triplet to InfoNCE: one moving frame of algebra</span></h2>
             <span class="slide-kicker"><span lang="ru">margin \(\to\) softmax по кандидатам \(\to -\log p^{+}\)</span><span lang="en">margin \(\to\) softmax over candidates \(\to -\log p^{+}\)</span></span>
@@ -1454,7 +1743,7 @@
         </section>
 
         <!-- ============================================ 45 · TABLE · the cosines ============================================ -->
-        <section class="slide" data-type="table" data-screen-label="46 The cosines">
+        <section class="slide" data-type="table" data-screen-label="47 The cosines">
           <div class="slide-header">
             <h2><span lang="ru">Косинусы к якорю <code>cat</code> — реальные числа</span><span lang="en">Cosines to the anchor <code>cat</code> — real numbers</span></h2>
             <span class="slide-kicker"><span lang="ru">позитивы близко, негативы далеко</span><span lang="en">positives near, negatives far</span></span>
@@ -1474,46 +1763,146 @@
         </section>
 
         <!-- ============================================ 46 · E2E · InfoNCE loss computed ============================================ -->
-        <section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="47 InfoNCE loss = 0.1191">
+        <section class="slide nce-slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="48 InfoNCE loss = 0.1191">
+          <style>
+            /* the contrastive geometry (anchor + 4 candidates) + the softmax bars + the loss
+               readout all SWAP per training checkpoint (data-arch-step 0..3 = setup, untuned, mid,
+               tuned). The loss-curve dots reveal cumulatively (data-step). text: own fill, no stroke. */
+            .nce-slide svg [data-step].is-step-hidden { display: none; }
+            .nce-slide svg .nce-stage[data-arch-step] { display: none; }
+            .nce-slide svg .nce-stage[data-arch-step].is-arch-current { display: block; }
+            .nce-slide svg text { stroke: none; paint-order: fill; }
+            .nce-slide .nce-cap[data-arch-step] { display: none; }
+            .nce-slide .nce-cap[data-arch-step].is-arch-current { display: block; }
+          </style>
           <div class="slide-header">
-            <h2><span lang="ru">InfoNCE целиком: потеря \(= 0.1191\)</span><span lang="en">InfoNCE end to end: loss \(= 0.1191\)</span></h2>
-            <span class="slide-kicker">E2E &middot; <span lang="ru">позитив <code>kitten</code>, \(\tau=0.1\)</span><span lang="en">positive <code>kitten</code>, \(\tau=0.1\)</span></span>
+            <h2><span lang="ru">InfoNCE целиком: тянем позитив, отталкиваем негативы &rarr; потеря \(\to 0.1191\)</span><span lang="en">InfoNCE end to end: pull the positive, push the negatives &rarr; loss \(\to 0.1191\)</span></h2>
+            <span class="slide-kicker"><span lang="ru">якорь <code>cat</code>, позитив <code>kitten</code>, \(\tau=0.1\) &mdash; траектория обучения</span><span lang="en">anchor <code>cat</code>, positive <code>kitten</code>, \(\tau=0.1\) &mdash; the training trajectory</span></span>
           </div>
-          <div class="e2e-arch" style="min-height:104px; padding-top:10px; padding-bottom:10px;">
-            <div class="e2e-arch-block" data-role="project" data-step-range="0..1" data-tooltip="Divide every cosine by the temperature."><div class="arch-name"><span lang="ru">логиты</span><span lang="en">logits</span></div><div class="arch-shape">\(/\tau\)</div></div>
-            <div class="e2e-arch-arrow" data-step-range="1..2"></div>
-            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="2" data-tooltip="Softmax over positive and negatives."><div class="arch-name">softmax</div><div class="arch-shape">\(p^{+}\)</div></div>
-            <div class="e2e-arch-arrow" data-step-range="2..3"></div>
-            <div class="e2e-arch-block" data-role="reduce" data-step-range="3" data-tooltip="Negative log of the positive's probability."><div class="arch-name"><span lang="ru">потеря</span><span lang="en">loss</span></div><div class="arch-shape">\(-\log p^{+}\)</div></div>
-            <div class="e2e-arch-legend"><span class="leg" data-role="project"><span lang="ru">логиты</span><span lang="en">logits</span></span><span class="leg" data-role="nonlinear"><span lang="ru">вероятн.</span><span lang="en">prob</span></span><span class="leg" data-role="reduce"><span lang="ru">потеря</span><span lang="en">loss</span></span></div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1600 600" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="The anchor cat at the centre of an embedding plane; the positive kitten and three negatives orbit it, distance encoding cosine. Across three training checkpoints the positive is pulled inside the positive zone and the negatives pushed out; the softmax over candidates concentrates on the positive and the InfoNCE loss falls from 3.31 to 0.86 to 0.1191.">
+              <defs>
+                <marker id="ncePull" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c-green)"/></marker>
+              </defs>
+              <g font-family="var(--font-sans)">
+                <!-- ===== LEFT: the contrastive embedding geometry (anchor at centre) ===== -->
+                <text x="200" y="64" font-size="24" fill="var(--ink-2)" font-weight="700">embedding plane &middot; distance = (1 &minus; cosine)</text>
+                <!-- the positive zone: inside this ring = high cosine to the anchor -->
+                <circle cx="430" cy="330" r="156.7" fill="var(--c-green-soft)" stroke="var(--c-green)" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="430" y="200" font-size="18" fill="var(--c-green-ink)" font-weight="700" text-anchor="middle" font-family="var(--font-mono)">&ldquo;close&rdquo; zone (cos &gt; 0)</text>
+                <!-- anchor at centre -->
+                <circle cx="430" cy="330" r="14" fill="var(--accent)" stroke="var(--bg-card)" stroke-width="2.5"/>
+                <text x="430" y="364" font-size="22" fill="var(--accent)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">cat (anchor)</text>
+
+                <!-- STEP 0 · setup: candidates at untuned positions, all four labelled, no verdict yet -->
+                <g class="nce-stage" data-arch-step="0">
+                  <line x1="430" y1="330" x2="523.4" y2="373.6" stroke="var(--c-green-ink)" stroke-width="2" stroke-dasharray="3 3"/>
+                  <line x1="430" y1="330" x2="472.5" y2="300.3" stroke="var(--c-red)" stroke-width="2" stroke-dasharray="3 3"/>
+                  <line x1="430" y1="330" x2="371.7" y2="169.9" stroke="var(--c-red)" stroke-width="2" stroke-dasharray="3 3"/>
+                  <line x1="430" y1="330" x2="195.0" y2="330.0" stroke="var(--c-red)" stroke-width="2" stroke-dasharray="3 3"/>
+                  <circle cx="523.4" cy="373.6" r="11" fill="var(--c-green)"/><text x="540" y="392" font-size="20" fill="var(--c-green-ink)" font-weight="800" font-family="var(--font-mono)">kitten +</text>
+                  <circle cx="472.5" cy="300.3" r="11" fill="var(--c-red)"/><text x="488" y="294" font-size="19" fill="var(--c-red)" font-weight="700" font-family="var(--font-mono)">airplane &minus;</text>
+                  <circle cx="371.7" cy="169.9" r="11" fill="var(--c-red)"/><text x="371.7" y="156" font-size="19" fill="var(--c-red)" font-weight="700" text-anchor="middle" font-family="var(--font-mono)">computer &minus;</text>
+                  <circle cx="195.0" cy="330.0" r="11" fill="var(--c-red)"/><text x="195" y="358" font-size="19" fill="var(--c-red)" font-weight="700" text-anchor="middle" font-family="var(--font-mono)">france &minus;</text>
+                </g>
+                <!-- STEP 1 · untuned: the negative airplane is CLOSER than the positive — wrong! -->
+                <g class="nce-stage" data-arch-step="1">
+                  <line x1="430" y1="330" x2="523.4" y2="373.6" stroke="var(--c-green-ink)" stroke-width="2" stroke-dasharray="3 3"/>
+                  <circle cx="523.4" cy="373.6" r="11" fill="var(--c-green)"/><text x="540" y="392" font-size="20" fill="var(--c-green-ink)" font-weight="800" font-family="var(--font-mono)">kitten + (cos .34)</text>
+                  <circle cx="472.5" cy="300.3" r="13" fill="var(--c-red)" stroke="var(--c-red-soft)" stroke-width="3"/><text x="488" y="294" font-size="19" fill="var(--c-red)" font-weight="800" font-family="var(--font-mono)">airplane &minus; (cos .67)</text>
+                  <circle cx="371.7" cy="169.9" r="11" fill="var(--c-red)"/>
+                  <circle cx="195.0" cy="330.0" r="11" fill="var(--c-red)"/>
+                  <text x="430" y="510" font-size="22" fill="var(--c-red)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">a NEGATIVE sits closest &mdash; loss is high</text>
+                </g>
+                <!-- STEP 2 · mid: pull-in arrow on the positive, push-out on the negatives -->
+                <g class="nce-stage" data-arch-step="2">
+                  <line x1="430" y1="330" x2="501.3" y2="363.3" stroke="var(--c-green)" stroke-width="3.5" marker-end="url(#ncePull)"/>
+                  <circle cx="501.3" cy="363.3" r="12" fill="var(--c-green)"/><text x="518" y="382" font-size="20" fill="var(--c-green-ink)" font-weight="800" font-family="var(--font-mono)">kitten + (cos .50)</text>
+                  <circle cx="490.9" cy="287.4" r="11" fill="var(--c-red)"/><text x="506" y="282" font-size="19" fill="var(--c-red)" font-weight="700" font-family="var(--font-mono)">airplane &minus; (cos .53)</text>
+                  <circle cx="383.7" cy="202.8" r="11" fill="var(--c-red)"/>
+                  <circle cx="239.7" cy="330.0" r="11" fill="var(--c-red)"/>
+                  <text x="430" y="510" font-size="22" fill="var(--c-amber-ink)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">pull + in, push &minus; out &mdash; loss dropping</text>
+                </g>
+                <!-- STEP 3 · tuned: positive pulled inside the close zone, negatives out; the deck's numbers -->
+                <g class="nce-stage" data-arch-step="3">
+                  <line x1="430" y1="330" x2="481.3" y2="353.9" stroke="var(--c-green)" stroke-width="3.5" marker-end="url(#ncePull)"/>
+                  <circle cx="481.3" cy="353.9" r="13" fill="var(--c-green)" stroke="var(--c-green-soft)" stroke-width="3"/><text x="498" y="372" font-size="20" fill="var(--c-green-ink)" font-weight="800" font-family="var(--font-mono)">kitten + (cos .64)</text>
+                  <circle cx="511.4" cy="273.0" r="11" fill="var(--c-red)"/><text x="527" y="268" font-size="19" fill="var(--c-red)" font-weight="700" font-family="var(--font-mono)">airplane &minus; (.37)</text>
+                  <circle cx="395.3" cy="234.7" r="11" fill="var(--c-red)"/><text x="395" y="222" font-size="19" fill="var(--c-red)" font-weight="700" text-anchor="middle" font-family="var(--font-mono)">computer &minus; (.35)</text>
+                  <circle cx="287.6" cy="330.0" r="11" fill="var(--c-red)"/><text x="270" y="358" font-size="19" fill="var(--c-red)" font-weight="700" text-anchor="end" font-family="var(--font-mono)">france &minus; (.09)</text>
+                  <text x="430" y="510" font-size="22" fill="var(--c-green-ink)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">positive is closest &mdash; solved</text>
+                </g>
+
+                <!-- ===== RIGHT: softmax over candidates (bars) + loss curve ===== -->
+                <text x="900" y="64" font-size="24" fill="var(--ink-2)" font-weight="700">softmax over candidates,  z = cos / &#964;  (&#964; = 0.1)</text>
+                <!-- bar baseline y=300; 4 bars; height ∝ probability (×220). labels under. -->
+                <line x1="900" y1="300" x2="1540" y2="300" stroke="var(--rule)" stroke-width="1.5"/>
+                <g font-size="18" fill="var(--ink-3)" text-anchor="middle" font-family="var(--font-mono)">
+                  <text x="960" y="328">kitten+</text><text x="1110" y="328">airplane&minus;</text><text x="1260" y="328">computer&minus;</text><text x="1410" y="328">france&minus;</text>
+                </g>
+                <!-- STEP 1 · untuned bars: p = [.037,.963,.001,0] — airplane towers -->
+                <g class="nce-stage" data-arch-step="1">
+                  <rect x="925" y="291.9" width="70" height="8.1" rx="3" fill="var(--c-green)"/>
+                  <rect x="1075" y="88.1" width="70" height="211.9" rx="3" fill="var(--c-red)"/>
+                  <rect x="1225" y="299.8" width="70" height="0.2" rx="3" fill="var(--c-red)"/>
+                  <rect x="1375" y="300" width="70" height="0" rx="3" fill="var(--c-red)"/>
+                  <text x="1110" y="78" font-size="20" fill="var(--c-red)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">.963</text>
+                  <text x="960" y="284" font-size="18" fill="var(--c-green-ink)" font-weight="700" text-anchor="middle" font-family="var(--font-mono)">.037</text>
+                </g>
+                <!-- STEP 2 · mid bars: p = [.425,.563,.011,0] -->
+                <g class="nce-stage" data-arch-step="2">
+                  <rect x="925" y="206.5" width="70" height="93.5" rx="3" fill="var(--c-green)"/>
+                  <rect x="1075" y="176.1" width="70" height="123.9" rx="3" fill="var(--c-red)"/>
+                  <rect x="1225" y="297.6" width="70" height="2.4" rx="3" fill="var(--c-red)"/>
+                  <rect x="1375" y="300" width="70" height="0" rx="3" fill="var(--c-red)"/>
+                  <text x="960" y="196" font-size="20" fill="var(--c-green-ink)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">.425</text>
+                  <text x="1110" y="166" font-size="20" fill="var(--c-red)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">.563</text>
+                </g>
+                <!-- STEP 3 · tuned bars: p = [.888,.058,.051,.004] — the deck's p+ = 0.8877 -->
+                <g class="nce-stage" data-arch-step="3">
+                  <rect x="925" y="104.6" width="70" height="195.4" rx="3" fill="var(--c-green)"/>
+                  <rect x="1075" y="287.2" width="70" height="12.8" rx="3" fill="var(--c-red)"/>
+                  <rect x="1225" y="288.8" width="70" height="11.2" rx="3" fill="var(--c-red)"/>
+                  <rect x="1375" y="299.1" width="70" height="0.9" rx="3" fill="var(--c-red)"/>
+                  <text x="960" y="94" font-size="22" fill="var(--c-green-ink)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">.888 = p&#8314;</text>
+                </g>
+
+                <!-- the loss readout + a 3-point loss curve (dots reveal cumulatively) -->
+                <text x="900" y="392" font-size="24" fill="var(--ink-2)" font-weight="700" font-family="var(--font-mono)">InfoNCE loss  L = &minus;log p&#8314;</text>
+                <rect x="900" y="408" width="640" height="150" rx="10" fill="var(--bg-inset)" stroke="var(--rule)" stroke-width="1.2"/>
+                <!-- curve axes: x = checkpoint (untuned/mid/tuned at x=980/1210/1440), y = loss (0..3.5 over y 540..428) -->
+                <line x1="960" y1="540" x2="1500" y2="540" stroke="var(--rule)" stroke-width="1.2"/>
+                <line x1="960" y1="428" x2="960" y2="540" stroke="var(--rule)" stroke-width="1.2"/>
+                <text x="952" y="434" font-size="15" fill="var(--ink-3)" text-anchor="end" font-family="var(--font-mono)">3.5</text>
+                <text x="952" y="544" font-size="15" fill="var(--ink-3)" text-anchor="end" font-family="var(--font-mono)">0</text>
+                <!-- segments reveal as we advance -->
+                <g stroke="var(--c-green)" stroke-width="3" fill="none">
+                  <line data-step="2" x1="1020" y1="434" x2="1230" y2="513.3"/>
+                  <line data-step="3" x1="1230" y1="513.3" x2="1440" y2="536.2"/>
+                </g>
+                <!-- L=3.31 → y= 540-3.31/3.5*112 = 434.1 ; L=.86 → 512.5 ; L=.119 → 536.2 -->
+                <g class="nce-stage" data-arch-step="1"><circle cx="1020" cy="434.1" r="8" fill="var(--c-red)"/><text x="1020" y="420" font-size="20" fill="var(--c-red)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">L = 3.31</text><text x="1020" y="560" font-size="16" fill="var(--ink-3)" text-anchor="middle" font-family="var(--font-mono)">untuned</text></g>
+                <g class="nce-stage" data-arch-step="2"><circle cx="1020" cy="434.1" r="6" fill="var(--ink-3)"/><circle cx="1230" cy="512.5" r="8" fill="var(--c-amber)"/><text x="1230" y="500" font-size="20" fill="var(--c-amber-ink)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">L = 0.86</text><text x="1020" y="560" font-size="16" fill="var(--ink-3)" text-anchor="middle" font-family="var(--font-mono)">untuned</text><text x="1230" y="560" font-size="16" fill="var(--ink-3)" text-anchor="middle" font-family="var(--font-mono)">mid</text></g>
+                <g class="nce-stage" data-arch-step="3"><circle cx="1020" cy="434.1" r="6" fill="var(--ink-3)"/><circle cx="1230" cy="512.5" r="6" fill="var(--ink-3)"/><circle cx="1440" cy="536.2" r="9" fill="var(--c-green)" stroke="var(--c-green-soft)" stroke-width="3"/><text x="1440" y="524" font-size="22" fill="var(--c-green-ink)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">L = 0.1191</text><text x="1020" y="560" font-size="16" fill="var(--ink-3)" text-anchor="middle" font-family="var(--font-mono)">untuned</text><text x="1230" y="560" font-size="16" fill="var(--ink-3)" text-anchor="middle" font-family="var(--font-mono)">mid</text><text x="1440" y="560" font-size="16" fill="var(--ink-3)" text-anchor="middle" font-family="var(--font-mono)">tuned</text></g>
+              </g>
+            </svg>
           </div>
-          <div class="e2e-twin">
-            <div class="e2e-panel e2e-math-panel">
-              <div class="panel-head"><span lang="ru">Правило</span><span lang="en">Rule applied</span></div>
-              <div class="e2e-step" data-step="0"><div class="step-formula">$$\cos: \texttt{kitten}\,0.639,\ \texttt{airplane}\,0.365,\dots$$</div><p class="step-caption"><span lang="ru">Позитив <code>kitten</code>; негативы — <code>airplane</code>, <code>computer</code>, <code>france</code>.</span><span lang="en">Positive <code>kitten</code>; negatives <code>airplane</code>, <code>computer</code>, <code>france</code>.</span></p></div>
-              <div class="e2e-step" data-step="1"><div class="step-formula">$$z = \mathrm{sim}/\tau:\quad 6.39,\ 3.65,\ 3.53,\ 0.91$$</div><p class="step-caption"><span lang="ru">Делим каждый косинус на \(\tau=0.1\).</span><span lang="en">Divide each cosine by \(\tau=0.1\).</span></p></div>
-              <div class="e2e-step" data-step="2"><div class="step-formula">$$p^{+}=\frac{e^{6.39}}{e^{6.39}+e^{3.65}+e^{3.53}+e^{0.91}}=0.8877$$</div><p class="step-caption"><span lang="ru">Softmax: вероятность настоящего позитива.</span><span lang="en">Softmax: probability of the true positive.</span></p></div>
-              <div class="e2e-step" data-step="3"><div class="step-formula">$$\mathcal{L}=-\log(0.8877)=\mathbf{0.1191}$$</div><p class="step-caption"><strong><span lang="ru">Потеря InfoNCE — точно из данных.</span><span lang="en">The InfoNCE loss — exact from the data.</span></strong></p></div>
-            </div>
-            <div class="e2e-panel e2e-example-panel">
-              <div class="panel-head"><span lang="ru">Числа</span><span lang="en">The numbers</span></div>
-              <div class="e2e-step" data-step="0"><div class="step-calc-row"><span class="matrix-label"><code>pos 0.639 · negs 0.365 / 0.353 / 0.091</code></span></div></div>
-              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label"><code>logits = [6.39, 3.65, 3.53, 0.91]</code></span></div></div>
-              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label"><code>p+ = 0.8877</code></span></div><p class="step-caption tiny"><span lang="ru">позитив уже выигрывает softmax.</span><span lang="en">the positive already wins the softmax.</span></p></div>
-              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label"><code>loss = 0.1191</code></span></div><p class="step-caption tiny"><span lang="ru">мала, т.к. \(p^{+}\) близка к 1.</span><span lang="en">small because \(p^{+}\) is near 1.</span></p></div>
-            </div>
+          <p class="viz-caption">
+            <span class="nce-cap" data-arch-step="0"><span lang="ru">Якорь <code>cat</code> в центре; кандидаты вокруг, расстояние \(=1-\cos\). Позитив <code>kitten</code> (зелёный), негативы <code>airplane/computer/france</code> (красные).</span><span lang="en">Anchor <code>cat</code> at the centre; candidates around it, distance \(=1-\cos\). Positive <code>kitten</code> (green), negatives <code>airplane/computer/france</code> (red).</span></span>
+            <span class="nce-cap" data-arch-step="1"><span lang="ru"><strong>До обучения</strong>: негатив <code>airplane</code> ближе позитива &rarr; softmax ставит на негатив (\(.96\)), потеря большая: \(\mathcal{L}=3.31\).</span><span lang="en"><strong>Untuned</strong>: the negative <code>airplane</code> is closer than the positive &rarr; softmax bets on the negative (\(.96\)), loss is high: \(\mathcal{L}=3.31\).</span></span>
+            <span class="nce-cap" data-arch-step="2"><span lang="ru">Обучение <strong>тянет позитив внутрь</strong> и отталкивает негативы; \(p^{+}\) растёт до \(.43\), потеря падает: \(\mathcal{L}=0.86\).</span><span lang="en">Training <strong>pulls the positive in</strong> and pushes the negatives out; \(p^{+}\) rises to \(.43\), loss falls: \(\mathcal{L}=0.86\).</span></span>
+            <span class="nce-cap" data-arch-step="3"><span lang="ru"><strong>После</strong>: позитив ближе всех (\(\cos .64\)), \(p^{+}=0.8877\), и \(\mathcal{L}=-\log 0.8877=\mathbf{0.1191}\) &mdash; точное число дека.</span><span lang="en"><strong>Tuned</strong>: the positive is closest (\(\cos .64\)), \(p^{+}=0.8877\), and \(\mathcal{L}=-\log 0.8877=\mathbf{0.1191}\) &mdash; the deck&rsquo;s exact number.</span></span>
+          </p>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">0/3</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
           </div>
-          <p class="tiny muted center" style="margin:2px 0 0; line-height:1.25;"><span lang="ru">Логиты показаны округлёнными; <code>0.1191</code> — полная точность из косинусов (<code>l6-contrastive.json</code>). По округлённым логитам — \(\approx 0.119\).</span><span lang="en">Logits shown rounded; <code>0.1191</code> is full-precision from the cosines (<code>l6-contrastive.json</code>). From the rounded logits, \(\approx 0.119\).</span></p>
-          <div class="e2e-stepper">
-            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">&larr;</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 3</span></div><button type="button" class="step-btn" data-step-act="next">&rarr;</button></div>
-            <span class="e2e-stage-name">overview</span>
-            <button type="button" class="e2e-toggle">Theory only</button>
-          </div>
-          <aside class="slide-notes">The InfoNCE climb, computed exactly to the data file's number. Step zero: the cosines to the anchor — positive kitten at zero point six three nine, negatives airplane zero point three six five, computer zero point three five three, france zero point zero nine one. Step one: divide each by the temperature zero point one to get the logits six point three nine, three point six five, three point five three, zero point nine one — the temperature has stretched the gaps. Step two: softmax over those logits gives the positive a probability of zero point eight eight seven seven; the positive already dominates. Step three: negative log of zero point eight eight seven seven is zero point one one nine one — the exact InfoNCE loss. It is small because the encoder already ranks kitten first; the loss would be large if a negative had crept above the positive.</aside>
+          <aside class="slide-notes">InfoNCE as an optimization, shown end to end, with the final state pinned to the data file's exact number. Step zero, the setup: the anchor cat sits at the centre of an embedding plane; the positive kitten and the three negatives — airplane, computer, france — orbit it, with distance equal to one minus cosine, so closer means more similar; a dashed green ring marks the close zone, cosine above zero. Step one, untuned: the catch — the negative airplane has crept closer to the anchor than the positive kitten, so the softmax over candidates bets ninety-six percent on the negative, the positive gets only three-point-seven percent, and the InfoNCE loss, minus log of that, is a large three-point-three-one. Step two, mid-training: the gradient pulls the positive inward and pushes the negatives outward; the positive's probability climbs to forty-three percent and the loss falls to zero-point-eight-six. Step three, tuned: the positive is now the closest point, cosine zero-point-six-four — exactly the deck's cosines, kitten point-six-four, airplane point-three-seven, computer point-three-five, france point-zero-nine — the softmax concentrates p-plus at zero-point-eight-eight-seven-seven, and the loss is minus log of that, zero-point-one-one-nine-one. The loss curve on the right tells the whole story: three-point-three-one, down to zero-point-eight-six, down to zero-point-one-two.</aside>
         </section>
 
         <!-- ============================================ 47 · DEFINITION · in-batch negatives ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="48 In-batch negatives">
+        <section class="slide" data-type="definition" data-screen-label="49 In-batch negatives">
           <div class="slide-header">
             <h2><span lang="ru">In-batch negatives: негативы бесплатно</span><span lang="en">In-batch negatives: negatives for free</span></h2>
             <span class="slide-kicker"><span lang="ru">остальные примеры батча — твои негативы</span><span lang="en">the rest of the batch are your negatives</span></span>
@@ -1530,7 +1919,7 @@
         </section>
 
         <!-- ============================================ 48 · MISCONCEPTION · normalize / cosine ============================================ -->
-        <section class="slide" data-type="misconception" data-screen-label="49 Why normalize">
+        <section class="slide" data-type="misconception" data-screen-label="50 Why normalize">
           <div class="slide-header">
             <h2><span lang="ru">Зачем нормировать и брать косинус?</span><span lang="en">Why normalise and use cosine?</span></h2>
             <span class="slide-kicker"><span lang="ru">длина мешает близости</span><span lang="en">length distracts from nearness</span></span>
@@ -1548,7 +1937,7 @@
 
         <!-- ============================================ BEAT 14 · catch-anisotropy ============================================ -->
         <!-- ============================================ 49 · DIVIDER · the anisotropy trap ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="50 Divider · the anisotropy trap">
+        <section class="slide" data-type="divider" data-screen-label="51 Divider · the anisotropy trap">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 07</span><span lang="en">Part 07</span></div>
             <h1>The Anisotropy Trap</h1>
@@ -1561,7 +1950,7 @@
         </section>
 
         <!-- ============================================ 50 · MISCONCEPTION · anisotropy (callback L2) ============================================ -->
-        <section class="slide" data-type="misconception" data-screen-label="51 Anisotropy">
+        <section class="slide" data-type="misconception" data-screen-label="52 Anisotropy">
           <div class="slide-header">
             <h2><span lang="ru">Сырые BERT-векторы анизотропны</span><span lang="en">Raw BERT vectors are anisotropic</span></h2>
             <span class="slide-kicker"><span lang="ru">обратный вызов L2 · проклятие размерности</span><span lang="en">callback L2 · curse of dimensionality</span></span>
@@ -1579,7 +1968,7 @@
 
         <!-- ============================================ CROSS-DOMAIN cluster · moved BEFORE the Gremlin payoff (mirrors the book; payoff is the last content beat) ============================================ -->
         <!-- ============================================ DIVIDER · everything is tokens ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="52 Divider · everything is tokens">
+        <section class="slide" data-type="divider" data-screen-label="53 Divider · everything is tokens">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Перенос</span><span lang="en">Transfer</span></div>
             <h1>Everything Is a Sequence of Tokens</h1>
@@ -1592,7 +1981,7 @@
         </section>
 
         <!-- ============================================ DEFINITION · ViT (cross-domain #22) ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="53 ViT · patches as tokens">
+        <section class="slide" data-type="definition" data-screen-label="54 ViT · patches as tokens">
           <div class="slide-header">
             <h2><span lang="ru">ViT: патчи изображения — это токены</span><span lang="en">ViT: image patches are tokens</span></h2>
             <span class="slide-kicker"><span lang="ru">тот же блок-энкодер, другая модальность</span><span lang="en">the same encoder block, a new modality</span></span>
@@ -1609,7 +1998,7 @@
         </section>
 
         <!-- ============================================ 52d · DEFINITION · CLIP (cross-domain #23, SAME InfoNCE) ============================================ -->
-        <section class="slide" data-type="definition" data-screen-label="54 CLIP · the same InfoNCE">
+        <section class="slide" data-type="definition" data-screen-label="55 CLIP · the same InfoNCE">
           <div class="slide-header">
             <h2><span lang="ru">CLIP: InfoNCE в общем пространстве картинка&harr;текст</span><span lang="en">CLIP: InfoNCE in a shared image&harr;text space</span></h2>
             <span class="slide-kicker"><span lang="ru">та же контрастная потеря, что и у нас</span><span lang="en">the very same contrastive loss</span></span>
@@ -1626,7 +2015,7 @@
         </section>
 
         <!-- ============================================ 52e · TWO-COL · Transformer = GNN on a complete graph (cross-domain #27) ============================================ -->
-        <section class="slide" data-type="two-col" data-screen-label="55 A Transformer is a GNN">
+        <section class="slide" data-type="two-col" data-screen-label="56 A Transformer is a GNN">
           <div class="slide-header">
             <h2><span lang="ru">Один кадр: Transformer = GNN на полном графе</span><span lang="en">One frame: a Transformer is a GNN on a complete graph</span></h2>
             <span class="slide-kicker"><span lang="ru">внимание = взвешенный message-passing</span><span lang="en">attention = weighted message-passing</span></span>
@@ -1652,7 +2041,7 @@
 
         <!-- ============================================ BEAT 15 · payoff-gremlin-caged (now the LAST content beat before the bridge) ============================================ -->
         <!-- ============================================ DIVIDER · the Gremlin caged ============================================ -->
-        <section class="slide" data-type="divider" data-screen-label="56 Divider · the Gremlin caged">
+        <section class="slide" data-type="divider" data-screen-label="57 Divider · the Gremlin caged">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Развязка</span><span lang="en">Payoff</span></div>
             <h1>The Lexical Gremlin, Caged</h1>
@@ -1665,7 +2054,7 @@
         </section>
 
         <!-- ============================================ MISCONCEPTION · the win and its scope ============================================ -->
-        <section class="slide" data-type="misconception" data-screen-label="57 The Gremlin caged">
+        <section class="slide" data-type="misconception" data-screen-label="58 The Gremlin caged">
           <div class="slide-header">
             <h2><span lang="ru">Синонимы схлопнулись, смыслы развелись</span><span lang="en">Synonyms collapse, senses split</span></h2>
             <span class="slide-kicker"><span lang="ru">обе половины разрыва закрыты</span><span lang="en">both halves of the gap closed</span></span>
@@ -1682,7 +2071,7 @@
         </section>
 
         <!-- ============================================ QUOTE · bridge to L7 ============================================ -->
-        <section class="slide" data-type="quote" data-screen-label="58 Bridge">
+        <section class="slide" data-type="quote" data-screen-label="59 Bridge">
           <div>
             <div class="quote-mark">&ldquo;</div>
             <blockquote><span lang="ru">Совет научился слушать.<br />Теперь — как <em>искать</em> им за миллисекунды?</span><span lang="en">The Council has learned to listen.<br />Now — how do we <em>search</em> with it in milliseconds?</span></blockquote>
@@ -1692,7 +2081,7 @@
         </section>
 
         <!-- ============================================ 54 · FINAL ============================================ -->
-        <section class="slide" data-type="final" data-screen-label="59 Final">
+        <section class="slide" data-type="final" data-screen-label="60 Final">
           <div class="final-body">
             <h1 style="font-size:96px; line-height:1.05; margin-bottom:var(--sp-4);"><span lang="ru">Каждый токен научился слушать.<br />Кого <em>слушаете</em> вы?</span><span lang="en">Every token learned to listen.<br />Who do <em>you</em> heed?</span></h1>
             <p class="final-sub" style="margin-bottom:var(--sp-5);"><strong><span lang="ru">Вопросы?</span><span lang="en">Questions?</span></strong> &middot; <span lang="ru">Слайды, домашка и запись — по QR ниже.</span><span lang="en">Slides, homework &amp; recording via the QR below.</span></p>
@@ -1710,7 +2099,7 @@
         </section>
 
         <!-- ============================================ 55 · REFERENCES (1/2) ============================================ -->
-        <section class="slide" data-type="refs" data-screen-label="60 References · attention &amp; transformers">
+        <section class="slide" data-type="refs" data-screen-label="61 References · attention &amp; transformers">
           <div class="slide-header">
             <h2><span lang="ru">Источники и дополнительное чтение</span><span lang="en">References &amp; further reading</span> <span style="font-weight:400;opacity:.6">(1 / 2)</span></h2>
             <span class="slide-kicker"><span lang="ru">Приложение · внимание и Transformer</span><span lang="en">Appendix · attention &amp; the Transformer</span></span>
@@ -1727,7 +2116,7 @@
         </section>
 
         <!-- ============================================ 56 · REFERENCES (2/2) ============================================ -->
-        <section class="slide" data-type="refs" data-screen-label="61 References · contrastive &amp; retrieval">
+        <section class="slide" data-type="refs" data-screen-label="62 References · contrastive &amp; retrieval">
           <div class="slide-header">
             <h2><span lang="ru">Источники и дополнительное чтение</span><span lang="en">References &amp; further reading</span> <span style="font-weight:400;opacity:.6">(2 / 2)</span></h2>
             <span class="slide-kicker"><span lang="ru">Приложение · контраст и поиск</span><span lang="en">Appendix · contrastive &amp; retrieval</span></span>

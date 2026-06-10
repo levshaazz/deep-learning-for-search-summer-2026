@@ -74,6 +74,12 @@ ATTN    = load(DATA, "l6-attention.json")     # scaled-dot-product worked exampl
 POSENC  = load(DATA, "l6-positional.json")    # sinusoidal positional-encoding grid
 CONTRA  = load(DATA, "l6-contrastive.json")   # InfoNCE / triplet cosines + loss (shares L5 cat-pair cosines)
 
+# ── Enrichment data files (the L5/L6 re-layout DISPLAYS these new trajectory numbers; pin them) ──
+W2V     = load(DATA, "l5-word2vec-train.json")  # SGNS training: loss 4.85→2.63, worked SGNS step, related/unrelated pairs
+UMAP    = load(DATA, "l5-umap.json")            # REAL UMAP-44: n_neighbors=10, min_dist=0.1, tightness 0.147→0.061
+STACK   = load(DATA, "l6-stack-layers.json")    # DistilBERT cross-sense cos(bank,bank) fan 0.957→0.647 over 6 blocks
+CTRAJ   = load(DATA, "l6-contrastive-traj.json")# InfoNCE optimisation trajectory: loss 3.31→0.86→0.1191
+
 # ── [P] PROVENANCE: curated data/ must equal the generator artifact it was lifted from ──────────
 def provenance_checks(report):
     raw_heaps, raw_zipf, raw_pos, raw_cos = (load(RAW, "heaps_summary.json"), load(RAW, "zipf_summary.json"),
@@ -308,6 +314,74 @@ def provenance_l2_tokenizers(report):
                              f"(BPE {TOK_COUNTS['BPE']} < WordPiece {TOK_COUNTS['WordPiece']} < "
                              f"Unigram {TOK_COUNTS['Unigram']} < byte-BPE {TOK_COUNTS['Byte-level BPE']}) ✓"))
 
+# ── [P] PROVENANCE (L5/L6 ENRICHMENT cross-file + structural): the new trajectory data files the
+#    re-layout introduced (l5-word2vec-train, l5-umap, l5-glove.trajectory, l6-stack-layers,
+#    l6-contrastive-traj) carry many internal frames the deck only shows the ENDPOINTS of. We pin the
+#    cross-file identities so an enrichment number cannot drift between files (and still pass [C]):
+#      • the GloVe ANIMATION trajectory's first/last frame loss == the canonical static loss before/after
+#        (18.0391 / 0.005) — the animated curve must land on the same endpoints the inset prints;
+#      • the InfoNCE optimisation trajectory's TUNED endpoint == the canonical InfoNCE state in
+#        l6-contrastive.json: loss 0.1191, p⁺ 0.8877, and all four tuned cosines (kitten/airplane/
+#        computer/france) — the animation must converge to the deck's exact final numbers;
+#      • word2vec/SGNS: related pairs end TIGHTER than unrelated (the whole point of the slide), the
+#        separation ratio == unrelated/related mean dist, the loss endpoints == the history-series ends,
+#        and the dropPct identity; the worked SGNS step's negatives all push apart (positive σ/grad);
+#      • UMAP tightness endpoints == the snapshot series ends; DistilBERT cross-sense final == last layer.
+def provenance_enrichment(report):
+    g, w, u, s, ct = GLOVE, W2V, UMAP, STACK, CTRAJ
+    tr = g["trajectory"]
+    tuned = next(c for c in ct["checkpoints"] if c["name"] == "tuned")
+    ss = w["similaritySummary"]
+    snap = {sn["epoch"]: sn for sn in u["snapshots"]}
+    ck = {c["name"]: c for c in ct["checkpoints"]}
+    checks = [
+        # GloVe animation trajectory ↔ canonical static loss endpoints (18.0391 / 0.005)
+        ("glove.traj.lossBefore", tr["frames"][0]["loss"],  g["loss"]["before"], 1e-9),
+        ("glove.traj.lossAfter",  tr["frames"][-1]["loss"], g["loss"]["after"],  1e-9),
+        # InfoNCE optimisation trajectory TUNED endpoint ↔ l6-contrastive.json canonical final state
+        ("ctraj.tuned.loss",   tuned["loss"],              CONTRA["infoNCE"]["loss"],      1e-9),
+        ("ctraj.tuned.pPos",   tuned["pPositive"],         CONTRA["infoNCE"]["pPositive"], 1e-9),
+        ("ctraj.tuned.kitten", tuned["cosines"]["kitten"], CONTRA["sims"]["positives"]["kitten"], 1e-9),
+        ("ctraj.tuned.airplane",tuned["cosines"]["airplane"],CONTRA["sims"]["negatives"]["airplane"],1e-9),
+        ("ctraj.tuned.computer",tuned["cosines"]["computer"],CONTRA["sims"]["negatives"]["computer"],1e-9),
+        ("ctraj.tuned.france", tuned["cosines"]["france"], CONTRA["sims"]["negatives"]["france"],  1e-9),
+        # the lossCurve summary == the per-checkpoint losses (untuned/mid/tuned), in order
+        ("ctraj.curve.untuned", ct["lossCurve"][0],  ck["untuned"]["loss"], 1e-9),
+        ("ctraj.curve.mid",     ct["lossCurve"][1],  ck["mid"]["loss"],     1e-9),
+        ("ctraj.curve.tuned",   ct["lossCurve"][2],  ck["tuned"]["loss"],   1e-9),
+        # word2vec/SGNS: loss endpoints == history-series ends; dropPct identity
+        ("w2v.lossBefore", w["loss"]["before"], w["loss"]["history"][0]["loss"],  1e-9),
+        ("w2v.lossAfter",  w["loss"]["after"],  w["loss"]["history"][-1]["loss"], 1e-9),
+        ("w2v.dropPct",    w["loss"]["dropPct"], round(100*(1 - w["loss"]["after"]/w["loss"]["before"]), 2), 1e-2),
+        # separation ratio == unrelated/related mean final distance
+        ("w2v.sepRatio",   ss["separationRatio"],
+                           round(ss["unrelatedMeanDistFinal"]/ss["relatedMeanDistFinal"], 3), 1e-2),
+        # UMAP tightness endpoints == snapshot-series ends (0.1469 → 0.0612)
+        ("umap.tight.init",  round(snap[0]["tightness"], 4),   round(u["snapshots"][0]["tightness"], 4),  1e-9),
+        ("umap.tight.final", round(snap[500]["tightness"], 4), round(u["snapshots"][-1]["tightness"], 4), 1e-9),
+        # DistilBERT cross-sense fan: final == the last block's cosine in the by-layer series
+        ("stack.final",    s["finalCrossSenseCos"], s["crossSenseCosByLayer"][-1], 1e-9),
+    ]
+    bad = 0
+    for name, a, b, tol in checks:
+        if abs(a - b) > tol:
+            bad += 1
+            report.append(("HARD", f"provenance-ENR({name}): data/ disagree/invariant broken — {a} vs {b}"))
+    # structural data-only pin: related pairs MUST end tighter than unrelated (the slide's whole claim);
+    # and the worked SGNS step's negatives all push apart (positive σ on a negative ⇒ +grad). Never
+    # displayed numerically, so this is their only verification path.
+    if not ss["relatedTighter"] or not (ss["relatedMeanDistFinal"] < ss["unrelatedMeanDistFinal"]):
+        bad += 1
+        report.append(("HARD", f"provenance-ENR(w2v.tighter): related not tighter than unrelated — "
+                               f'{ss["relatedMeanDistFinal"]} vs {ss["unrelatedMeanDistFinal"]}'))
+    if not all(neg["sigmoid"] > 0 and "push apart" in neg["gradSign"] for neg in w["workedStep"]["negatives"]):
+        bad += 1
+        report.append(("HARD", "provenance-ENR(w2v.workedStep): a negative-sample grad does not push apart"))
+    if not bad:
+        report.append(("OK", f"provenance-ENR: {len(checks) + 2} enrichment cross-file/structural invariants "
+                             f"consistent (GloVe 18.0391→0.005 · InfoNCE traj→0.1191/p⁺0.8877 · "
+                             f"w2v related tighter · UMAP 0.1469→0.0612 · DistilBERT fan→0.6465) ✓"))
+
 # ── [C] CLAIMS: every grounded value read from data/, asserted present+matching in the deck ─────
 def claims():
     pp = primary_pair()
@@ -490,7 +564,7 @@ def l5_claims():
         # collide on the 5 and false-flag. The "44 слова · " prefix is unique to slide 42.
         dict(id="L5 perplexity",  deck="L5", value=DIMRED["tsne"]["perplexity"], tol=0,
              anchor=r"44 слова · perplexity \\\(=([\d.]+)\\\)", must=True),
-    ] + l5_glove_claims() + l5_tsne_claims()
+    ] + l5_glove_claims() + l5_tsne_claims() + l5_enrichment_claims()
 
 # ── L5 GloVe [C] claims (slides 30 "GloVe co-occurrence" + 31 "GloVe objective") == data/l5-glove.json ─
 # Same robustness contract as L3/L4/L5: the captured group is a GENERIC number and the literal context
@@ -515,13 +589,17 @@ def l5_glove_claims():
         # the same king·queen X echoed in the slide-30 matrix callout
         dict(id="L5G X callout", deck="L5", value=round(kq["X"], 3), tol=1e-3,
              anchor=r'<text x="700" y="228"[^>]*>X = '+N+r"</text>", must=True),
-        # loss collapse 18.04 → 0.005 (99.97% over 600 iters), all on slide 31's SVG
+        # loss collapse 18.04 → 0.005 (−99.97% over 600 AdaGrad iters), slide 31 (re-laid-out inset).
+        # ROBUST anchors: pin on a STABLE nearby TEXTUAL label + the number (not the old exact
+        # <tspan fill=…/font-weight=…> chain, which the enrichment rewrote). "least-squares loss:" is
+        # the inset's caption label; "18.04\to" is the math-prose collapse transition (RU+EN); the drop
+        # rides the "% over 600 AdaGrad iters" trailing label — all survive a future re-layout.
         dict(id="L5G loss before",deck="L5", value=g["loss"]["before"], tol=1e-2,
-             anchor=r'training loss </tspan><tspan fill="var\(--c-red\)" font-weight="700">'+N+r"</tspan>", must=True),
+             anchor=r"least-squares loss:.{0,80}?>"+N+r"</tspan>", must=True),
         dict(id="L5G loss after", deck="L5", value=g["loss"]["after"], tol=1e-4,
-             anchor=r'<tspan fill="var\(--c-green\)" font-weight="700">'+N+r"</tspan><tspan>  \(99\.97% drop", must=True),
+             anchor=r"18\.04\\to"+N+r"\\", must=True),
         dict(id="L5G drop %",     deck="L5", value=g["loss"]["dropPct"], tol=1e-2,
-             anchor=r"\("+N+r"% drop over 600 iters\)", must=True),
+             anchor=r"\("+N+r"% over 600 AdaGrad iters\)", must=True),
         # weighting hyper-params: x_max=10 (amber marker) and α=0.75 (the f(x) exponent, both langs)
         dict(id="L5G x_max",      deck="L5", value=g["xMax"], tol=0,
              anchor=r'<text x="455.5" y="556"[^>]*>x_max='+N+r"</text>", must=True),
@@ -584,6 +662,36 @@ def l5_tsne_claims():
              anchor=r"\\frac\{p_\{ij\}\}\{q_\{ij\}\}=\\mathbf\{"+N+r"\}", must=True),
     ]
 
+# ── L5 ENRICHMENT [C] claims: the re-laid-out slides now DISPLAY two new trajectories the gate must pin
+#    so they cannot silently drift — (1) the word2vec/SGNS training-loss endpoints 4.85→2.63 (the new
+#    "watch it train" slide) and (2) the REAL-UMAP dials n_neighbors=10, min_dist=0.1 and the
+#    within/between tightness collapse 0.147→0.061 (the new UMAP slide). Same robustness contract as the
+#    rest of L5: a GENERIC captured number with a STABLE nearby textual label (narrative phrase / KaTeX
+#    caption / kicker dial) pinning the spot, so a drift is matched + flagged (not silently NOT FOUND).
+#    `value` is the data/ canonical; the deck rounds the losses/tightness to 2–3 dp, `tol` absorbs that.
+def l5_enrichment_claims():
+    w, u = W2V, UMAP
+    p = u["params"]
+    snap = {s["epoch"]: s for s in u["snapshots"]}
+    N = r"([\d.]+)"
+    return [
+        # word2vec/SGNS loss curve endpoints: 4.85 (random init) → 2.63 (epoch 150, −46%)
+        dict(id="L5W loss before", deck="L5", value=w["loss"]["before"], tol=1e-2,
+             anchor=r"loss "+N+r" (?:&rarr;|→) 2\.63", must=True),
+        dict(id="L5W loss after",  deck="L5", value=w["loss"]["after"],  tol=1e-2,
+             anchor=r"loss \\\("+N+r"\\\), &minus;46%", must=True),
+        # REAL-UMAP dials shown in the slide kicker (n_neighbors = perplexity analogue; min_dist packing)
+        dict(id="L5U n_neighbors", deck="L5", value=p["nNeighbors"], tol=0,
+             anchor=r"n_neighbors="+N+r" ", must=True),
+        dict(id="L5U min_dist",    deck="L5", value=p["minDist"], tol=1e-9,
+             anchor=r"min_dist="+N+r" ", must=True),
+        # within/between tightness collapse 0.147 → 0.061 over the 500-epoch optimisation (init→converged)
+        dict(id="L5U tightness init", deck="L5", value=round(snap[0]["tightness"], 3), tol=1e-3,
+             anchor=r"drops \\\("+N+r"\\to0\.061\\\)", must=True),
+        dict(id="L5U tightness final",deck="L5", value=round(snap[500]["tightness"], 3), tol=1e-3,
+             anchor=r"drops \\\(0\.147\\to"+N+r"\\\)", must=True),
+    ]
+
 # ── L6 'Council of Attention' [C] claims: every flagship transformer number == data/l6-*.json ─────
 # Same robustness contract. The attention weights/output the deck displays are the row for `cat`
 # (weights[1], output[1]); the full weight matrix's other two rows are also shown (the/sat). The
@@ -608,11 +716,14 @@ def l6_claims():
         # cat's output (context) vector = output[1] = [0.579, 1.996, 0.91, 0.425]
         dict(id="L6 out[cat][0]", deck="L6", value=ATTN["output"][1][0], tol=1e-3,
              anchor=r"<code>out = \[([\d.]+), 1\.996, 0\.91, 0\.425\]</code>", must=True),
-        # InfoNCE: positive softmax prob 0.8877 and loss −log = 0.1191
+        # InfoNCE: positive softmax prob 0.8877 and loss −log = 0.1191. Slide 47/48 is now a dynamic
+        # InfoNCE diagram (re-laid-out), so we ROBUSTLY anchor on the STABLE KaTeX labels rather than
+        # the old div/step-caption markup chain: p⁺ rides its symbol `\(p^{+}=N\)`, and the loss rides
+        # the `\mathcal{L}=-\log … =\mathbf{N}` identity — both survive a re-layout of the surrounding box.
         dict(id="L6 InfoNCE p+",  deck="L6", value=CONTRA["infoNCE"]["pPositive"], tol=1e-4,
-             anchor=r'\}=([\d.]+)\$\$</div><p class="step-caption"><span lang="ru">Softmax', must=True),
+             anchor=r"\\\(p\^\{\+\}=([\d.]+)\\\)", must=True),
         dict(id="L6 InfoNCE loss",deck="L6", value=CONTRA["infoNCE"]["loss"], tol=1e-4,
-             anchor=r"\\mathcal\{L\}=-\\log\(0\.8877\)=\\mathbf\{([\d.]+)\}", must=True),
+             anchor=r"\\mathcal\{L\}=-\\log[^=]*=\\mathbf\{([\d.]+)\}", must=True),
         # temperature τ = 0.1 (shown in the E2E kicker)
         dict(id="L6 τ",           deck="L6", value=CONTRA["tau"], tol=1e-9,
              anchor=r"positive <code>kitten</code>, \\\(\\tau=([\d.]+)\\\)", must=True),
@@ -621,6 +732,34 @@ def l6_claims():
              anchor=r'<code>computer</code></td><td>[^<]*<span lang="ru">[^<]*</span><span lang="en">[^<]*</span></td><td class="cell-bad">([\d.]+)</td>', must=True),
         dict(id="L6 cos france",  deck="L6", value=neg["france"], tol=1e-3,
              anchor=r'<code>france</code></td><td>[^<]*<span lang="ru">[^<]*</span><span lang="en">[^<]*</span></td><td class="cell-bad">([\d.]+)</td>', must=True),
+    ] + l6_enrichment_claims()
+
+# ── L6 ENRICHMENT [C] claims: the re-laid-out slides now DISPLAY two new trajectories the gate must pin
+#    so they cannot silently drift — (1) the slide-41 DistilBERT "same word, two senses" fan: the
+#    cross-sense cosine of `bank`(river) vs `bank`(money) starting near-identical at the embed layer
+#    (0.957) and DRIFTING apart to the final-block value (0.647); and (2) the slide-47 dynamic InfoNCE
+#    diagram's loss trajectory endpoints 3.31 → … → 0.1191 (the tuned endpoint 0.1191 is already the
+#    canonical InfoNCE loss, here pinned as the END of the animated curve too). Same robustness contract:
+#    a GENERIC captured number with a STABLE textual label pinning the spot (the SVG caption phrase / the
+#    KaTeX `\mathcal{L}=N` / the diagram's aria narrative). `value` is the data/ canonical, `tol` absorbs
+#    the deck's display rounding (the fan prints 4 dp → 3 dp; the trajectory prints 2 dp / the exact loss).
+def l6_enrichment_claims():
+    s, ct = STACK, CTRAJ
+    cp = {c["name"]: c for c in ct["checkpoints"]}
+    N = r"([\d.]+)"
+    return [
+        # slide-41 cross-sense cos(bank,bank): embed-layer (block 0) ≈ 0.957 → final block ≈ 0.647
+        # `value` is the data/ canonical (raw, un-rounded); `tol`=1e-3 absorbs the deck's 3-dp display
+        # rounding (0.9572→0.957, 0.6465→0.647) while still catching a real drift in the 2nd/3rd decimal.
+        dict(id="L6 stack cos init",  deck="L6", value=s["crossSenseCosByLayer"][0], tol=1e-3,
+             anchor=r"cross-sense cos\(bank, bank\) = "+N, must=True),
+        dict(id="L6 stack cos final", deck="L6", value=s["finalCrossSenseCos"], tol=1e-3,
+             anchor=r"final: cos = "+N+r"  &mdash;", must=True),
+        # slide-47 InfoNCE loss-trajectory endpoints: untuned 3.31 → tuned 0.1191 (the animated curve)
+        dict(id="L6 traj loss start", deck="L6", value=cp["untuned"]["loss"], tol=1e-2,
+             anchor=r"loss is high: \\\(\\mathcal\{L\}="+N+r"\\\)", must=True),
+        dict(id="L6 traj loss end",   deck="L6", value=cp["tuned"]["loss"], tol=1e-4,
+             anchor=r"InfoNCE loss falls from 3\.31 to 0\.86 to "+N+r"\.", must=True),
     ]
 
 def check_claim(c, text):
@@ -665,6 +804,7 @@ def main():
     provenance_l5l6(report)                         # [P] L5/L6 cross-file + data-only pins
     provenance_l5_glove_tsne(report)                # [P] L5 GloVe + t-SNE-math cross-file + data-only pins
     provenance_l2_tokenizers(report)                # [P] L2 tokenizer-compare counts/ranking/segmentation
+    provenance_enrichment(report)                   # [P] L5/L6 enrichment trajectory cross-file + data-only pins
     for c in claims():                              # [C] deck == data/
         report.append(check_claim(c, text[c["deck"]]))
     arithmetic_checks(report, text)                 # [A] recompute
@@ -806,9 +946,43 @@ def selftest():
     pw["tokens"] = savedSeg
     okP9 = any(s == "HARD" and "provenance-L2TOK(Unigram/unhappiness)" in m for s, m in rep10)
     print("[selftest:prov-L2TOK-seg]", next((m for s, m in rep10 if s == "HARD"), "provenance-L2TOK seg: NO FLAG"))
+    # ── ENRICHMENT fixtures: the four new trajectory anchors must be drift-catchers, not blind. ──
+    # L5 [C]: a drifted word2vec/SGNS training loss endpoint must flag DRIFT (anchor is not blind).
+    cW = next(x for x in claims() if x["id"] == "L5W loss before")
+    bW = r"loss 9.99 &rarr; 2.63"  # data/ word2vec loss before is 4.85
+    sevW, msgW = check_claim(cW, bW)
+    okW = sevW == "HARD" and "DRIFT" in msgW
+    print("[selftest:L5W]", msgW)
+    # L5 [C]: a drifted UMAP min_dist dial must flag DRIFT.
+    cU = next(x for x in claims() if x["id"] == "L5U min_dist")
+    bU = r"n_neighbors=10 · min_dist=0.99 · 500 epochs"  # data/ min_dist is 0.1
+    sevU, msgU = check_claim(cU, bU)
+    okU = sevU == "HARD" and "DRIFT" in msgU
+    print("[selftest:L5U]", msgU)
+    # L6 [C]: a drifted slide-41 DistilBERT cross-sense cosine must flag DRIFT.
+    cS = next(x for x in claims() if x["id"] == "L6 stack cos final")
+    bS = r"final: cos = 0.999  &mdash; one word, two vectors"  # data/ final cross-sense is 0.6465
+    sevS, msgS = check_claim(cS, bS)
+    okS = sevS == "HARD" and "DRIFT" in msgS
+    print("[selftest:L6stack]", msgS)
+    # L6 [C]: a drifted slide-47 InfoNCE loss-trajectory endpoint must flag DRIFT.
+    cT47 = next(x for x in claims() if x["id"] == "L6 traj loss start")
+    bT47 = r"the negative, loss is high: \(\mathcal{L}=9.99\)"  # data/ untuned trajectory loss is 3.31
+    sevT47, msgT47 = check_claim(cT47, bT47)
+    okT47 = sevT47 == "HARD" and "DRIFT" in msgT47
+    print("[selftest:L6traj]", msgT47)
+    # ENR [P]: a drifted GloVe-animation endpoint (vs the canonical static loss after) must flag (in-memory).
+    rep11 = []
+    savedTrj = GLOVE["trajectory"]["frames"][-1]["loss"]
+    GLOVE["trajectory"]["frames"][-1]["loss"] = 9.99   # break traj-last == canonical loss after (0.005)
+    provenance_enrichment(rep11)
+    GLOVE["trajectory"]["frames"][-1]["loss"] = savedTrj
+    okPE = any(s == "HARD" and "provenance-ENR(glove.traj.lossAfter)" in m for s, m in rep11)
+    print("[selftest:prov-ENR]", next((m for s, m in rep11 if s == "HARD"), "provenance-ENR: NO FLAG"))
     ok = (okD and okA and okP and okL3 and okL4 and okP2 and okL5 and okL6 and okP3 and okP4
-          and okGX and okTK and okTS and okP5 and okP6 and okP7 and okP8 and okP9)
-    print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 + L5-GloVe/t-SNE + L2-tokenizers deck & cross-file (incl. data-only pins) all fire"
+          and okGX and okTK and okTS and okP5 and okP6 and okP7 and okP8 and okP9
+          and okW and okU and okS and okT47 and okPE)
+    print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 + L5-GloVe/t-SNE + L2-tokenizers + enrichment-trajectory deck & cross-file (incl. data-only pins) all fire"
           if ok else "FAIL — a check is blind!")
     return 0 if ok else 1
 
