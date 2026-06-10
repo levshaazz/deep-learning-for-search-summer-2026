@@ -26,10 +26,14 @@ from __future__ import annotations
 import re, sys, pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+# Glob-discovered (matches check_claims.py): adding Lectures/NN-*.html is picked up with ZERO edits.
+# The key "L<n>" is derived from the numeric filename prefix (00-introduction.html → L0), preserving
+# the exact id→path mapping (00-…→L0 … 06-…→L6) the per-deck report addresses by deck id.
+# Lectures/NN-*.html are BUILD OUTPUT (gitignored, reassembled by `npm run build`) and may be ABSENT
+# on a fresh checkout — the empty-glob guard in run() skips the deck checks gracefully (no crash).
 DECKS = {
-    "L0": ROOT / "Lectures/00-introduction.html",
-    "L1": ROOT / "Lectures/01-search-ir-ml-system-design.html",
-    "L2": ROOT / "Lectures/02-nlp-tokenization-similarity.html",
+    f"L{int(p.name[:2])}": p
+    for p in sorted((ROOT / "Lectures").glob("[0-9][0-9]-*.html"))
 }
 SECTION = re.compile(r'<section class="slide"([^>]*)>')
 DTYPE   = re.compile(r'data-type="([^"]*)"')
@@ -73,6 +77,11 @@ def check(deck, html):
     return issues, total, len(agenda)
 
 def run():
+    if not DECKS:
+        # Decks are build output (gitignored) — absent on a fresh checkout. Skip rather than crash.
+        print("[narrative-gate] no decks found in Lectures/ — decks not built; "
+              "run `npm run build` first. Skipping anchor/agenda checks.")
+        return 0
     report, hard, warn = [], 0, 0
     for deck, p in DECKS.items():
         issues, total, na = check(deck, p.read_text())
