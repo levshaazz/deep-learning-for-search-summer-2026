@@ -50,16 +50,13 @@ jobs:
 
       - run: npm ci
 
-      # Book-shard drift-guard: for every sharded chapter (content/book/<stem>/beats/),
-      # the committed content/book/<stem>.js MUST equal assemble(beats) byte-for-byte.
-      - name: Book-chapter consistency (committed chapter === assemble(beats))
-        run: node scripts/assemble-chapter.mjs check
-
-      # Build assembles the decks from their fragments (scripts/assemble-deck.mjs build),
-      # then renders the Book for the gates to inspect. The shipped Lectures/NN-*.html are
-      # BUILD OUTPUT (gitignored) reassembled byte-identically from Lectures/<slug>/parts/;
-      # every deck-reading gate below runs AFTER this step, so the decks are present.
-      - name: Build site (assemble decks + render Book)
+      # Build assembles BOTH the Book chapters (content/book/lN.js) and the decks
+      # (Lectures/NN-*.html) from their fragments, then renders the site. Both are BUILD
+      # OUTPUT (gitignored) reassembled byte-identically from their tracked fragments
+      # (content/book/<stem>/beats/, Lectures/<slug>/parts/). Every gate below — including
+      # the four that read content/book/lN.js directly (beat-coverage, i18n, scroll-step,
+      # widget-render) — runs AFTER this step, so the chapters and decks are present.
+      - name: Build site (assemble chapters + decks + render)
         run: npm run build
 
       # G1 — facts-gate: data/ is the single source; decks must match; provenance + arithmetic.
