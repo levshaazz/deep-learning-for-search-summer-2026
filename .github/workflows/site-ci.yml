@@ -50,13 +50,11 @@ jobs:
 
       - run: npm ci
 
-      # Deck-shard drift-guard: for every sharded deck (Lectures/<slug>/parts/),
-      # the committed Lectures/<slug>.html MUST equal assemble(parts) byte-for-byte.
-      # Catches "edited the monolith instead of the fragment" (and vice-versa).
-      - name: Deck-shard consistency (committed deck === assemble(parts))
-        run: node scripts/assemble-deck.mjs check
-
-      - name: Build site (renders the Book for the gates to inspect)
+      # Build assembles the decks from their fragments (scripts/assemble-deck.mjs build),
+      # then renders the Book for the gates to inspect. The shipped Lectures/NN-*.html are
+      # BUILD OUTPUT (gitignored) reassembled byte-identically from Lectures/<slug>/parts/;
+      # every deck-reading gate below runs AFTER this step, so the decks are present.
+      - name: Build site (assemble decks + render Book)
         run: npm run build
 
       # G1 — facts-gate: data/ is the single source; decks must match; provenance + arithmetic.

@@ -79,12 +79,15 @@ function assembleParts(dir) {
   return files.map((f) => readFileSync(join(dir, f), 'utf8')).join('');
 }
 
-// Discover sharded decks: Lectures/<slug>/parts/ that sits next to Lectures/<slug>.html.
+// Discover sharded decks by the PRESENCE OF A parts/ DIR (Lectures/<slug>/parts/).
+// NOT by the deck file — the deck Lectures/<slug>.html is BUILD OUTPUT (gitignored) and
+// may be absent on a fresh checkout until `build` regenerates it.
 function shardedSlugs() {
   return readdirSync(LECT)
     .filter((name) => {
       const d = join(LECT, name);
-      return statSync(d).isDirectory() && existsSync(join(d, 'parts')) && existsSync(deckPath(name));
+      try { return statSync(d).isDirectory() && existsSync(join(d, 'parts')); }
+      catch { return false; }
     })
     .sort();
 }
@@ -117,16 +120,17 @@ function cmdCheck() {
   let drift = 0;
   for (const s of slugs) {
     const assembled = assembleParts(partsDir(s));
-    const committed = readFileSync(deckPath(s), 'utf8');
-    if (assembled === committed) {
-      console.log(`  ✓ ${s}: committed deck === assemble(parts)`);
+    if (!existsSync(deckPath(s))) { console.log(`  · ${s}: not built yet (Lectures/${s}.html is build output) — run npm run build`); continue; }
+    const onDisk = readFileSync(deckPath(s), 'utf8');
+    if (assembled === onDisk) {
+      console.log(`  ✓ ${s}: on-disk deck === assemble(parts)`);
     } else {
       drift++;
-      console.log(`  ✗ DRIFT ${s}: committed Lectures/${s}.html != assemble(parts). Run: node scripts/assemble-deck.mjs build ${s}`);
+      console.log(`  ✗ STALE ${s}: Lectures/${s}.html != assemble(parts). Run: node scripts/assemble-deck.mjs build ${s}`);
     }
   }
-  if (drift) { console.error(`[check] ${drift} deck(s) drifted — fragments and committed deck disagree`); process.exit(1); }
-  console.log(`[check] ${slugs.length} sharded deck(s) consistent`);
+  if (drift) { console.error(`[check] ${drift} deck(s) stale — on-disk deck disagrees with fragments (rebuild)`); process.exit(1); }
+  console.log(`[check] ${slugs.length} sharded deck(s) checked`);
 }
 
 const [cmd, arg] = process.argv.slice(2);
