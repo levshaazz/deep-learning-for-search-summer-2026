@@ -23,14 +23,12 @@ import json, re, sys, math, pathlib
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"               # curated product source of truth
 RAW  = ROOT / "_research/data"     # generator artifacts (upstream provenance)
+# Glob-discovered: adding Lectures/NN-*.html is picked up here with ZERO edits.
+# The key "L<n>" is derived from the numeric filename prefix (00-introduction.html → L0),
+# preserving the exact id→path mapping the per-deck [C] claim checks address by key.
 DECKS = {
-    "L0": ROOT / "Lectures/00-introduction.html",
-    "L1": ROOT / "Lectures/01-search-ir-ml-system-design.html",
-    "L2": ROOT / "Lectures/02-nlp-tokenization-similarity.html",
-    "L3": ROOT / "Lectures/03-classical-ir-fulltext-fusion.html",
-    "L4": ROOT / "Lectures/04-ranking-metrics.html",
-    "L5": ROOT / "Lectures/05-dl-embeddings-dimred.html",
-    "L6": ROOT / "Lectures/06-contextual-attention-transformers.html",
+    f"L{int(p.name[:2])}": p
+    for p in sorted((ROOT / "Lectures").glob("[0-9][0-9]-*.html"))
 }
 
 def load(base, name):
