@@ -3,13 +3,16 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { LOCALES, t, withBase, localizedPath } from '../../i18n/locales.js';
 import { ui } from '../../i18n/ui.js';
 import { course } from '../../lib/course.js';
+import { chapterIds } from '../../lib/chapters.js';
 
 export function getStaticPaths() {
   return LOCALES.map((l) => ({ params: { lang: l } }));
 }
 const { lang } = Astro.params;
 const m = course.meta;
-const BOOK_READY = ['00', '01', '02', '03', '04', '05', '06']; // lectures with a built Book chapter
+// Glob-discovered: a lecture shows "Read book" iff a content/book/lN.js chapter exists for it
+// (chapters.js globs them) AND it's in the catalog. Adding L7's chapter needs ZERO edits here.
+const BOOK_READY = chapterIds.filter((id) => course.lectures.some((l) => l.id === id));
 const showFallbackNotice = lang === 'tt'; // Phase 1: TT renders mostly via fallback
 const cover = withBase('/Lectures/assets/img/_char/cover.png');
 ---

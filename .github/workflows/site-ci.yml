@@ -13,8 +13,10 @@ on:
       - 'widgets/**'
       - 'narrative/**'
       - 'tokens/**'
+      - 'Lectures/**'
       - '_research/check_claims.py'
       - '_audit/*-gate.mjs'
+      - '_audit/wbw-check.mjs'
       - 'package.json'
       - 'package-lock.json'
       - 'astro.config.mjs'
@@ -27,8 +29,10 @@ on:
       - 'widgets/**'
       - 'narrative/**'
       - 'tokens/**'
+      - 'Lectures/**'
       - '_research/check_claims.py'
       - '_audit/*-gate.mjs'
+      - '_audit/wbw-check.mjs'
   workflow_dispatch: {}
 
 jobs:
@@ -109,3 +113,11 @@ jobs:
       - name: G10 widget-render-check self-test
         working-directory: _audit
         run: node widget-render-check.mjs --selftest
+
+      # G11 — word-by-word gate over the SHIPPED decks (Lectures/NN-*.html): engine registered
+      #        every slide (total === DOM .slide count), 0 pageerrors, 0 console errors, KaTeX
+      #        typeset (no raw $$), pre-flight 0 errors. Deck list is glob-derived (zero edits for
+      #        L7). Closes the coverage hole: ci.yml only smoke-tests the template, never the decks.
+      - name: G11 wbw-check (shipped decks)
+        working-directory: _audit
+        run: node wbw-check.mjs
