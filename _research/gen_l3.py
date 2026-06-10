@@ -490,19 +490,6 @@ def main():
 
     (DATA / "l3-benchmarks.json").write_text(json.dumps(benchmarks, indent=2, ensure_ascii=False) + "\n")
 
-    (DATA / "l3-tfidf-examples.json").write_text(json.dumps({
-        "_doc": "Bag-of-Words & TF-IDF live examples for L3: (a) BoW document-term count matrix; "
-                "(b) car/truck TF-IDF table with idf=log(2/df) (common words → idf 0, vanish); "
-                "(c) keyword extraction = top TF-IDF terms of corpus doc D2.",
-        "_source": prov + " · (a)+(b) self-contained; (c) over the 8-doc 20NG vocab",
-        "bow": {"sentences": bow_sentences, "vocab": bow_vocab, "matrix": bow_matrix},
-        "carTruck": {"docs": ct_docs, "N": ct_N, "idfFormula": "log(2/df)", "rows": ct_rows,
-                     "note": "the, is, driven, on appear in both → df=2 → idf=0 → contribute nothing; "
-                             "only car/road (A) and truck/highway (B) score."},
-        "keywords": {"doc": kw_doc, "snippet": next(d["snippet"] for d in docs if d["id"] == kw_doc),
-                     "top": kw_terms, "idfFormula": "ln((N-df+0.5)/(df+0.5)+1), N=8"},
-    }, indent=2, ensure_ascii=False) + "\n")
-
     # ── NEW FILES (от-и-до intermediate steps) ──────────────────────────────────────────────────────
     (DATA / "l3-bm25-catdog-steps.json").write_text(json.dumps({
         "_doc": "Fully-substituted INTERMEDIATE steps for the cat/dog BM25 flagship (companion to "
@@ -549,7 +536,7 @@ def main():
     print(f"[gen_l3] PageRank final={pr_final} ({len(iters)-1} iters) workedUpdate PR1(B)={pr_worked_update['pr1']}")
     print(f"[gen_l3] cat/dog steps: D1 sum={cd_steps_docs[0]['docSum']} (B·idf weights per doc emitted)")
     print(f"[gen_l3] nasa/shuttle steps: D2 rowSum={round(q2_d2_sum,4)} (shuttle/nasa B-factors emitted)")
-    print("[gen_l3] wrote l3-index/bm25/rrf + l3-bm25-q2/-catdog/-compression/-pagerank/-benchmarks/-tfidf-examples")
+    print("[gen_l3] wrote l3-index/bm25/rrf + l3-bm25-q2/-catdog/-compression/-pagerank/-benchmarks")
     print("[gen_l3] wrote NEW steps: l3-bm25-catdog-steps, l3-bm25-q2-steps")
 
 if __name__ == "__main__":
