@@ -49,6 +49,13 @@ jobs:
           python-version: '3.12'
 
       - run: npm ci
+
+      # Deck-shard drift-guard: for every sharded deck (Lectures/<slug>/parts/),
+      # the committed Lectures/<slug>.html MUST equal assemble(parts) byte-for-byte.
+      # Catches "edited the monolith instead of the fragment" (and vice-versa).
+      - name: Deck-shard consistency (committed deck === assemble(parts))
+        run: node scripts/assemble-deck.mjs check
+
       - name: Build site (renders the Book for the gates to inspect)
         run: npm run build
 
