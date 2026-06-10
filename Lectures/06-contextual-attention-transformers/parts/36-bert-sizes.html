@@ -1,0 +1,148 @@
+<section class="slide" data-type="table" data-screen-label="41 BERT sizes">
+          <div class="slide-header">
+            <h2><span lang="ru">Глубина = повтор: размеры BERT</span><span lang="en">Depth = repetition: BERT sizes</span></h2>
+            <span class="slide-kicker"><span lang="ru">тот же блок, больше слоёв</span><span lang="en">same block, more layers</span></span>
+          </div>
+          <table class="cmp-table">
+            <thead><tr><th></th><th>BERT-base</th><th>BERT-large</th></tr></thead>
+            <tbody>
+              <tr><td><span lang="ru">слоёв \(N\)</span><span lang="en">layers \(N\)</span></td><td class="cell-good">12</td><td>24</td></tr>
+              <tr><td><span lang="ru">размерность \(d\)</span><span lang="en">width \(d\)</span></td><td>768</td><td>1024</td></tr>
+              <tr><td><span lang="ru">голов \(h\)</span><span lang="en">heads \(h\)</span></td><td>12</td><td>16</td></tr>
+              <tr><td><span lang="ru">параметров</span><span lang="en">parameters</span></td><td>110M</td><td>340M</td></tr>
+            </tbody>
+          </table>
+          <p class="small muted center mt-2"><span lang="ru">Это <em>тот же</em> блock, просто \(N\) раз: BERT-base — \(12\) слоёв, \(d=768\), \(12\) голов, \(110\)M параметров. Глубже = богаче контекст, но дороже. Размерность \(d\) делится на \(h\): \(768/12=64\) — это и есть \(d_k\) одной головы.</span><span lang="en">It is the <em>same</em> block, just \(N\) times: BERT-base is \(12\) layers, \(d=768\), \(12\) heads, \(110\)M params. Deeper = richer context but costlier. The width \(d\) splits over \(h\): \(768/12=64\) — that is one head&rsquo;s \(d_k\).</span></p>
+          <aside class="slide-notes">Concrete numbers so the abstraction has a body. BERT-base stacks twelve of the block we just built, with a model width of seven hundred sixty-eight, twelve attention heads, and about a hundred and ten million parameters. BERT-large doubles the depth to twenty-four layers, widens to one thousand twenty-four, uses sixteen heads, and reaches three hundred forty million parameters. Notice the relationship we predicted earlier: the model width divides over the heads, so seven hundred sixty-eight over twelve gives sixty-four — that sixty-four is the key dimension d k of a single head, and root sixty-four equals eight is the scaling divisor at real scale. Depth buys richer context at higher cost; the unit being repeated never changes.</aside>
+        </section>
+
+        <!-- ============================================ BEAT 11 · turn-contextual-payoff ============================================ -->
+        <!-- ============================================ 39 · VIZ · stack to contextual vectors ============================================ -->
+        <section class="slide stk-slide" data-type="viz" data-max-step="7" data-current-step="0" data-screen-label="42 Stack to contextual vectors">
+          <style>
+            /* the 6 block rows light up cumulatively (data-step); the two bank trajectories +
+               their cosine readout SWAP per layer (data-arch-step). text carries its own fill,
+               stroke:none, so the global highlight rule can't double-paint glyphs. */
+            .stk-slide svg [data-step].is-step-hidden { display: none; }
+            .stk-slide svg .stk-cos[data-arch-step] { display: none; }
+            .stk-slide svg .stk-cos[data-arch-step].is-arch-current { display: block; }
+            .stk-slide svg text { stroke: none; paint-order: fill; }
+            .stk-slide .stk-cap[data-arch-step] { display: none; }
+            .stk-slide .stk-cap[data-arch-step].is-arch-current { display: block; }
+          </style>
+          <div class="slide-header">
+            <h2><span lang="ru">Стек блоков &rarr; контекстные векторы: одно слово, разные векторы</span><span lang="en">The block stack &rarr; contextual vectors: one word, different vectors</span></h2>
+            <span class="slide-kicker"><span lang="ru">«bank» (берег vs банк) сквозь 6 блоков DistilBERT &mdash; реальная модель</span><span lang="en">&ldquo;bank&rdquo; (river vs money) through 6 DistilBERT blocks &mdash; real model</span></span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1600 600" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="The same word bank in a river sentence and a money sentence enters the stack as one shared static embedding; passing through 6 DistilBERT blocks, the two contextual vectors drift apart in a 2-D PCA plane and the cross-sense cosine falls from 0.96 toward 0.65 — one word, two vectors, decided by context">
+              <defs>
+                <marker id="stkA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-3)"/></marker>
+              </defs>
+              <g font-family="var(--font-sans)">
+                <!-- ===== LEFT: the stack of N blocks; the bank token rises through them ===== -->
+                <text x="80" y="56" font-size="23" fill="var(--ink-2)" font-weight="700">two sentences, the SAME word &ldquo;bank&rdquo;</text>
+                <rect data-step="0" x="80" y="76" width="430" height="66" rx="8" fill="var(--bg-inset)" stroke="var(--ink-3)" stroke-width="2"/>
+                <text data-step="0" x="98" y="104" font-size="17" fill="var(--c-cyan-ink, var(--ink-2))" font-family="var(--font-mono)">river: &ldquo;grassy <tspan font-weight="800">bank</tspan> of the river&rdquo;</text>
+                <text data-step="0" x="98" y="130" font-size="17" fill="var(--c-amber-ink)" font-family="var(--font-mono)">money: &ldquo;deposited at the <tspan font-weight="800">bank</tspan>&rdquo;</text>
+
+                <!-- input embedding row (shared static vector at step 0) -->
+                <rect data-step="0" x="140" y="168" width="240" height="44" rx="8" fill="none" stroke="var(--ink-3)" stroke-width="2"/>
+                <text data-step="0" x="260" y="196" text-anchor="middle" font-size="19" fill="var(--ink-3)">embed + PE (shared)</text>
+                <line data-step="0" x1="260" y1="212" x2="260" y2="236" stroke="var(--ink-3)" stroke-width="2.5" marker-end="url(#stkA)"/>
+
+                <!-- 6 block rows, each revealed at its step -->
+                <rect data-step="1" x="140" y="244" width="240" height="40" rx="7" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5"/><text data-step="1" x="260" y="271" text-anchor="middle" font-size="19" fill="var(--accent-ink)" font-weight="700">block 1 &middot; attn + FFN</text>
+                <rect data-step="2" x="140" y="290" width="240" height="40" rx="7" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5"/><text data-step="2" x="260" y="317" text-anchor="middle" font-size="19" fill="var(--accent-ink)" font-weight="700">block 2 &middot; attn + FFN</text>
+                <rect data-step="3" x="140" y="336" width="240" height="40" rx="7" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5"/><text data-step="3" x="260" y="363" text-anchor="middle" font-size="19" fill="var(--accent-ink)" font-weight="700">block 3 &middot; attn + FFN</text>
+                <rect data-step="4" x="140" y="382" width="240" height="40" rx="7" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5"/><text data-step="4" x="260" y="409" text-anchor="middle" font-size="19" fill="var(--accent-ink)" font-weight="700">block 4 &middot; attn + FFN</text>
+                <rect data-step="5" x="140" y="428" width="240" height="40" rx="7" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5"/><text data-step="5" x="260" y="455" text-anchor="middle" font-size="19" fill="var(--accent-ink)" font-weight="700">block 5 &middot; attn + FFN</text>
+                <rect data-step="6" x="140" y="474" width="240" height="40" rx="7" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5"/><text data-step="6" x="260" y="501" text-anchor="middle" font-size="19" fill="var(--accent-ink)" font-weight="700">block 6 &middot; attn + FFN</text>
+                <!-- the two contextual outputs at the top of the stack (step 7) -->
+                <g data-step="7">
+                  <rect x="120" y="540" width="130" height="42" rx="7" fill="none" stroke="var(--c-cyan)" stroke-width="2.5"/><text x="185" y="567" text-anchor="middle" font-size="18" fill="var(--c-cyan-ink)" font-weight="700">bank (river)</text>
+                  <rect x="270" y="540" width="130" height="42" rx="7" fill="none" stroke="var(--c-amber)" stroke-width="2.5"/><text x="335" y="567" text-anchor="middle" font-size="18" fill="var(--c-amber-ink)" font-weight="700">bank (money)</text>
+                </g>
+
+                <!-- ===== RIGHT: the 2-D PCA plane — the two bank vectors fan apart per layer ===== -->
+                <rect x="560" y="120" width="640" height="440" rx="10" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
+                <text x="560" y="104" font-size="23" fill="var(--ink-3)" font-family="var(--font-mono)">contextual-vector plane (PCA of &ldquo;bank&rdquo;)</text>
+
+                <!-- river trajectory (cyan) — points appear cumulatively, the active one larger -->
+                <!-- shared embed point at step 0 -->
+                <g data-step="0">
+                  <circle cx="942.6" cy="270.1" r="9" fill="var(--c-cyan)"/>
+                  <circle cx="940.0" cy="290.0" r="9" fill="var(--c-amber)"/>
+                  <text x="900" y="246" font-size="19" fill="var(--ink-2)" font-weight="700" text-anchor="end" font-family="var(--font-mono)">same point: cos &asymp; 1.0</text>
+                  <line x1="905" y1="252" x2="938" y2="276" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="2 3"/>
+                </g>
+                <!-- river polyline segments, each revealed at its block step -->
+                <g stroke="var(--c-cyan)" stroke-width="3" fill="none">
+                  <line data-step="1" x1="942.6" y1="270.1" x2="1174.1" y2="185.9"/>
+                  <line data-step="2" x1="1174.1" y1="185.9" x2="1310.3" y2="140.0"/>
+                  <line data-step="3" x1="1310.3" y1="140.0" x2="1420.5" y2="188.2"/>
+                  <line data-step="4" x1="1420.5" y1="188.2" x2="1503.4" y2="246.1"/>
+                  <line data-step="5" x1="1503.4" y1="246.1" x2="1540.0" y2="301.4"/>
+                  <line data-step="6" x1="1540.0" y1="301.4" x2="1353.7" y2="302.8"/>
+                </g>
+                <g fill="var(--c-cyan)">
+                  <circle data-step="1" cx="1174.1" cy="185.9" r="7"/>
+                  <circle data-step="2" cx="1310.3" cy="140.0" r="7"/>
+                  <circle data-step="3" cx="1420.5" cy="188.2" r="7"/>
+                  <circle data-step="4" cx="1503.4" cy="246.1" r="7"/>
+                  <circle data-step="5" cx="1540.0" cy="301.4" r="7"/>
+                  <circle data-step="6" cx="1353.7" cy="302.8" r="9" stroke="var(--bg-card)" stroke-width="2"/>
+                </g>
+                <text data-step="6" x="1353.7" y="288" font-size="19" fill="var(--c-cyan-ink)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">river bank</text>
+                <!-- money polyline -->
+                <g stroke="var(--c-amber)" stroke-width="3" fill="none">
+                  <line data-step="1" x1="940.0" y1="290.0" x2="1083.7" y2="411.5"/>
+                  <line data-step="2" x1="1083.7" y1="411.5" x2="1178.1" y2="468.8"/>
+                  <line data-step="3" x1="1178.1" y1="468.8" x2="1271.9" y2="518.2"/>
+                  <line data-step="4" x1="1271.9" y1="518.2" x2="1336.1" y2="540.0"/>
+                  <line data-step="5" x1="1336.1" y1="540.0" x2="1382.4" y2="538.2"/>
+                  <line data-step="6" x1="1382.4" y1="538.2" x2="1281.4" y2="438.6"/>
+                </g>
+                <g fill="var(--c-amber)">
+                  <circle data-step="1" cx="1083.7" cy="411.5" r="7"/>
+                  <circle data-step="2" cx="1178.1" cy="468.8" r="7"/>
+                  <circle data-step="3" cx="1271.9" cy="518.2" r="7"/>
+                  <circle data-step="4" cx="1336.1" cy="540.0" r="7"/>
+                  <circle data-step="5" cx="1382.4" cy="538.2" r="7"/>
+                  <circle data-step="6" cx="1281.4" cy="438.6" r="9" stroke="var(--bg-card)" stroke-width="2"/>
+                </g>
+                <text data-step="6" x="1281.4" y="424" font-size="19" fill="var(--c-amber-ink)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">money bank</text>
+
+                <!-- per-layer cross-sense cosine readout (SWAPS) — the headline number. Centred
+                     in the right panel band so the longest line stays inside the 1600 viewBox. -->
+                <g class="stk-cos" data-arch-step="0"><text x="880" y="592" font-size="23" fill="var(--ink-2)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">cross-sense cos(bank, bank) = 0.957  (embed: nearly identical)</text></g>
+                <g class="stk-cos" data-arch-step="1"><text x="880" y="592" font-size="23" fill="var(--ink-2)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">after block 1: cos = 0.711  (senses start to split)</text></g>
+                <g class="stk-cos" data-arch-step="2"><text x="880" y="592" font-size="23" fill="var(--ink-2)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">after block 2: cos = 0.605</text></g>
+                <g class="stk-cos" data-arch-step="3"><text x="880" y="592" font-size="23" fill="var(--ink-2)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">after block 3: cos = 0.639</text></g>
+                <g class="stk-cos" data-arch-step="4"><text x="880" y="592" font-size="23" fill="var(--ink-2)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">after block 4: cos = 0.683</text></g>
+                <g class="stk-cos" data-arch-step="5"><text x="880" y="592" font-size="23" fill="var(--ink-2)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">after block 5: cos = 0.751</text></g>
+                <g class="stk-cos" data-arch-step="6"><text x="880" y="592" font-size="23" fill="var(--c-green-ink)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">final: cos = 0.647  &mdash; one word, two vectors</text></g>
+                <g class="stk-cos" data-arch-step="7"><text x="880" y="592" font-size="23" fill="var(--c-green-ink)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">pool (CLS or mean) &rarr; one sentence vector</text></g>
+              </g>
+            </svg>
+          </div>
+          <p class="viz-caption">
+            <span class="stk-cap" data-arch-step="0"><span lang="ru">Одно слово <code>bank</code> в двух предложениях входит в стек как <strong>один</strong> статический эмбеддинг (cos&nbsp;&asymp;&nbsp;1).</span><span lang="en">The single word <code>bank</code> in two sentences enters the stack as <strong>one</strong> static embedding (cos&nbsp;&asymp;&nbsp;1).</span></span>
+            <span class="stk-cap" data-arch-step="1"><span lang="ru">Блок 1 подмешивает контекст — два вектора начинают расходиться (cos&nbsp;0.71).</span><span lang="en">Block 1 mixes in context &mdash; the two vectors begin to separate (cos&nbsp;0.71).</span></span>
+            <span class="stk-cap" data-arch-step="2"><span lang="ru">Блок 2: расхождение растёт (cos&nbsp;0.61).</span><span lang="en">Block 2: they drift further apart (cos&nbsp;0.61).</span></span>
+            <span class="stk-cap" data-arch-step="3"><span lang="ru">Блок 3 (cos&nbsp;0.64).</span><span lang="en">Block 3 (cos&nbsp;0.64).</span></span>
+            <span class="stk-cap" data-arch-step="4"><span lang="ru">Блок 4 (cos&nbsp;0.68).</span><span lang="en">Block 4 (cos&nbsp;0.68).</span></span>
+            <span class="stk-cap" data-arch-step="5"><span lang="ru">Блок 5 (cos&nbsp;0.75).</span><span lang="en">Block 5 (cos&nbsp;0.75).</span></span>
+            <span class="stk-cap" data-arch-step="6"><span lang="ru">На выходе стека <code>bank</code>-берег и <code>bank</code>-банк — <strong>разные</strong> контекстные векторы (cos&nbsp;0.65). Контекст решил смысл.</span><span lang="en">Out of the stack, river-<code>bank</code> and money-<code>bank</code> are <strong>different</strong> contextual vectors (cos&nbsp;0.65). Context decided the sense.</span></span>
+            <span class="stk-cap" data-arch-step="7"><span lang="ru">Пулинг (<code>[CLS]</code> или mean) сворачивает токены в <em>один</em> вектор предложения для поиска.</span><span lang="en">Pooling (<code>[CLS]</code> or mean) collapses the tokens into <em>one</em> sentence vector for search.</span></span>
+          </p>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">0/7</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">The dynamic payoff: connect the stack back to retrieval, using a real run of DistilBERT — six blocks. Take the same word, bank, in two sentences: a river sentence and a money sentence. Step zero: at the embedding layer the two bank tokens are essentially the same static vector — cross-sense cosine zero-point-nine-six, the two points sit almost on top of each other in the PCA plane. Then watch them split, one block at a time. Block one drops the cosine to zero-point-seven-one; the river-bank point arcs up, the money-bank point arcs down. Through blocks two to six the two trajectories fan apart and settle, ending at cross-sense cosine zero-point-six-five — exactly the number from the contextual-vectors data file. That is the whole point of the stack: one word, but two different contextual vectors, decided entirely by context — something a single static embedding can never do. Step seven: to search, pool each side, with the CLS token or a mean, into one sentence vector. Untuned mean-pooling is weak for similarity, which is what the contrastive training coming next fixes.</aside>
+        </section>
+
+        <!-- ============================================ 40 · DEFINITION · [CLS] vs mean-pooling ============================================ -->
+        

@@ -1,0 +1,47 @@
+<section class="slide" data-type="arch" data-screen-label="43 SRM gate">
+          <div class="slide-header">
+            <h2>Trust the experiment before you trust the result</h2>
+            <span class="slide-kicker">Validate the test, then read it</span>
+          </div>
+
+          <div class="arch-diagram" style="height:320px">
+            <div class="arch-node">
+              <div class="arch-icon">50/50</div>
+              <div class="arch-name">Traffic</div>
+              <div class="arch-shape">random assignment</div>
+            </div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node" data-color="red">
+              <div class="arch-icon">χ²</div>
+              <div class="arch-name">SRM gate</div>
+              <div class="arch-shape">split as intended?</div>
+            </div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node" data-color="amber">
+              <div class="arch-icon">!</div>
+              <div class="arch-name">Guardrail gate</div>
+              <div class="arch-shape">\(p_{99}\), revenue OK?</div>
+            </div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node" data-color="green">
+              <div class="arch-icon">✓</div>
+              <div class="arch-name">Read metric</div>
+              <div class="arch-shape">+ segment cuts</div>
+            </div>
+          </div>
+
+          <div class="callout" data-kind="info" style="margin-top:var(--sp-4)">
+            <div class="callout-icon">i</div>
+            <div class="callout-body">
+              <strong>SRM = Sample-Ratio Mismatch.</strong>
+              <p>You assigned traffic 50/50, but observe, say, 50.2 / 49.8. A chi-square test says that gap is <em>not</em> chance — it points to a logging or assignment bug (bot filtering, a redirect, lost events), so the whole experiment is untrustworthy. Microsoft's rule: pass the SRM check <em>before</em> you look at any metric. Treat a failed SRM like a fever — diagnose before trusting anything.</p>
+            </div>
+          </div>
+
+          <aside class="slide-notes">Sample-Ratio Mismatch (SRM) is the first thing to check, before you even look at the primary metric. If you assigned 50/50 but observe a significant deviation, something upstream is broken — bot filtering, a redirect, logging loss — and the experiment is untrustworthy. Microsoft's rule: every A/B passes an SRM chi-square test before any analysis. Then guardrails, then the metric — and always with segment cuts, because of Simpson's paradox (next on the drift slide).</aside>
+        </section>
+
+        <!-- ============================================
+             43 · VIZ · data flywheel + evil twin
+             ============================================ -->
+        

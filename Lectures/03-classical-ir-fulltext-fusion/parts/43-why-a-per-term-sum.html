@@ -1,0 +1,38 @@
+<section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="43 Why a per-term sum">
+          <div class="slide-header">
+            <h2>From odds to a sum over query terms</h2>
+            <span class="slide-kicker">why every scorer here is a \(\sum_{t\in q}\)</span>
+          </div>
+          <p class="small muted mt-2">Where the \(\sum_{t\in q}\) shape comes from &mdash; sketched on a 2-term query \(q=\{t_1, t_2\}\). <strong>This derivation is motivation, not examinable</strong>; you only need the boxed result.</p>
+          <div class="walk-flow">
+            <div class="walk-step" data-step="1" data-color="violet">
+              <div class="walk-num">01</div>
+              <div class="walk-content"><div class="walk-label">Start from the odds</div><div class="walk-detail">PRP says rank by \(O(R\mid d)=\frac{P(R{=}1\mid d)}{P(R{=}0\mid d)}\). A ratio is awkward to compute directly &mdash; so transform it.</div></div>
+              <div class="walk-state">odds</div>
+            </div>
+            <div class="walk-step" data-step="2" data-color="amber">
+              <div class="walk-num">02</div>
+              <div class="walk-content"><div class="walk-label">Bayes flips it to likelihoods</div><div class="walk-detail">\(\frac{P(R{=}1\mid d)}{P(R{=}0\mid d)} = \frac{P(d\mid R{=}1)}{P(d\mid R{=}0)}\cdot\frac{P(R{=}1)}{P(R{=}0)}\). The prior is the same for every \(d\) &rarr; it doesn't change the order.</div></div>
+              <div class="walk-state">likelihood ratio</div>
+            </div>
+            <div class="walk-step" data-step="3" data-color="cyan">
+              <div class="walk-num">03</div>
+              <div class="walk-content"><div class="walk-label">Term independence factorizes</div><div class="walk-detail">Assume terms are independent given relevance: \(P(d\mid R)=\prod_t P(t\mid R)\). The ratio becomes a <strong>product</strong> over terms: \(\frac{P(t_1\mid R{=}1)}{P(t_1\mid R{=}0)}\cdot\frac{P(t_2\mid R{=}1)}{P(t_2\mid R{=}0)}\).</div></div>
+              <div class="walk-state">\(\prod_{t}\)</div>
+            </div>
+            <div class="walk-step" data-step="4" data-final="true">
+              <div class="walk-num">&rarr;</div>
+              <div class="walk-content"><div class="walk-label">Take logs &rarr; a sum</div><div class="walk-detail">\(\log\) turns the product into \(\sum_{t\in q} w(t)\), with \(w(t)=\log\frac{P(t\mid R{=}1)}{P(t\mid R{=}0)}\). <strong>That is the per-term weight</strong> &mdash; the next slide names it BM1.</div></div>
+              <div class="walk-state">\(\sum_{t\in q} w(t)\)</div>
+            </div>
+          </div>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">4/4</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">The scaffold that makes the prerequisite cliff honest. Students should not have to take "the odds factorise into a sum over terms" on faith. Four short moves on a two-term query: (1) PRP hands us the odds of relevance; (2) Bayes rewrites the posterior odds as a likelihood ratio times a prior, and the prior is constant across documents so it drops out of the ranking; (3) the term-independence assumption — strong and admittedly false, but the working assumption of the Binary Independence Model — factorises the document likelihood into a product over terms; (4) taking logs turns that product into a sum of per-term log-likelihood-ratio weights. That sum is exactly the shape of BM1, BM25, and every scorer in this part. State plainly that this is motivation, not an examinable derivation — the boxed per-term weight on the next slide is all they need to carry forward.</aside>
+        </section>
+
+        <!-- ============================================ 41 · FORMULA · BIM &rarr; RSJ weight = BM1 ============================================ -->
+        

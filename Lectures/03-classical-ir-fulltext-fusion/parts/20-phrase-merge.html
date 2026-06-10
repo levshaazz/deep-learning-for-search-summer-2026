@@ -1,0 +1,38 @@
+<section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="20 Phrase merge">
+          <div class="slide-header">
+            <h2>Positional index &amp; phrase queries</h2>
+            <span class="slide-kicker">"new york" &mdash; adjacency in positions</span>
+          </div>
+          <p class="small muted mt-2">Positional postings: <code>new &rarr; D5:[3, 11]</code>, <code>york &rarr; D5:[4, 27]</code>. Phrase = positions one apart.</p>
+          <div class="walk-flow">
+            <div class="walk-step" data-step="1" data-color="violet">
+              <div class="walk-num">01</div>
+              <div class="walk-content"><div class="walk-label">Both terms in D5</div><div class="walk-detail">Doc-level AND first: <code>new</code> and <code>york</code> both occur in D5. Necessary, not sufficient for the phrase.</div></div>
+              <div class="walk-state">D5 candidate</div>
+            </div>
+            <div class="walk-step" data-step="2" data-color="amber">
+              <div class="walk-num">02</div>
+              <div class="walk-content"><div class="walk-label">Check positions</div><div class="walk-detail">Is there \(p\in\{3,11\}\) and \(p'\in\{4,27\}\) with \(p' - p = 1\)? Test \(p=3\): \(p'=4\) gives \(4-3=1\). <strong>Hit.</strong></div></div>
+              <div class="walk-state">3 &rarr; 4 ✓</div>
+            </div>
+            <div class="walk-step" data-step="3" data-color="cyan">
+              <div class="walk-num">03</div>
+              <div class="walk-content"><div class="walk-label">Reject the false pair</div><div class="walk-detail">\(p=11\): nearest <code>york</code> is 27, gap 16 &mdash; not adjacent. Two co-occurrences, but only one is the phrase.</div></div>
+              <div class="walk-state">11 &rarr; 27 ✗</div>
+            </div>
+            <div class="walk-step" data-step="4" data-final="true">
+              <div class="walk-num">&rarr;</div>
+              <div class="walk-content"><div class="walk-label">Proximity, generalized</div><div class="walk-detail">Phrase = gap \(=1\); proximity "within \(k\)" = gap \(\le k\). Positions cost index space but enable exact and near matches.</div></div>
+              <div class="walk-state">"new york" in D5</div>
+            </div>
+          </div>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">4/4</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">Phrase queries need more than co-occurrence. The positional index stores, per posting, the list of token offsets. To match "new york" you first AND the documents, then walk the two position lists looking for offsets exactly one apart. In D5, new at 3 and york at 4 satisfy the phrase; new at 11 and york at 27 do not, so the document matches once. Generalising the gap to at most k gives proximity search. The cost is a larger index, paid because exact phrase matching is essential for names and quotations.</aside>
+        </section>
+
+        <!-- ============================================ 19 · QUOTE · boolean is brittle ============================================ -->
+        

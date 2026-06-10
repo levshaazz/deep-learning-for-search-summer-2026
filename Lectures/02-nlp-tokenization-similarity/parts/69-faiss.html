@@ -1,0 +1,31 @@
+<section class="slide" data-type="two-col" data-screen-label="69 FAISS">
+          <div class="slide-header">
+            <h2>In practice: FAISS, vector DBs, numerics</h2>
+            <span class="slide-kicker">match the metric to the training</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>FAISS has no native cosine</h3>
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><code>METRIC_L2</code> returns <strong>squared</strong> \(L_2\) (no sqrt).</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><code>METRIC_INNER_PRODUCT</code> for dot.</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">Cosine = L2-normalize, then <code>IndexFlatIP</code>. Forget to normalize → silently wrong.</span></li>
+              </ul>
+            </div>
+            <div class="twocol-col">
+              <h3>Match &amp; guard</h3>
+              <p>Pick the vector-DB metric to match how the embedding model was <strong>trained</strong>: most sentence models → cosine; some retrievers → dot.</p>
+              <div class="callout" data-kind="warn">
+                <div class="callout-icon">!</div>
+                <div class="callout-body">
+                  <strong>Numerics</strong>
+                  <p>Cosine is undefined for a zero vector (add \(\varepsilon\)); KL needs smoothing for zero bins; pre-normalize once and store unit vectors.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <aside class="slide-notes">The deployment reality. FAISS returns squared L2 (cheaper, same ordering) and has no cosine metric — you L2-normalize and use inner product. The single most common production bug is forgetting to normalize, which silently turns your "cosine" search into dot-product search that rewards long vectors. And always match the index metric to the model's training objective; a cosine-trained sentence model behaves oddly under raw dot. Numerics: guard the zero vector with ε, smooth KL's zero bins.</aside>
+        </section>
+
+        <!-- ============================================ 67 · QUOTE · takeaway / bridge ============================================ -->
+        

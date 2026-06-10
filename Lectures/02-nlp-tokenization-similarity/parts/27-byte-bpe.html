@@ -1,0 +1,28 @@
+<section class="slide" data-type="two-col" data-screen-label="27 Byte BPE">
+          <div class="slide-header">
+            <h2>Byte-level BPE: UNK becomes impossible</h2>
+            <span class="slide-kicker">GPT-2 and friends</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>Start from 256 bytes</h3>
+              <p>There are ~138,000 Unicode code points — too many to enumerate. GPT-2 instead starts BPE from the <strong>256 raw bytes</strong> and merges upward.</p>
+              <div class="callout" data-kind="info">
+                <div class="callout-icon">i</div>
+                <div class="callout-body">
+                  <strong>Any byte sequence is representable</strong>
+                  <p>Emoji, Chinese, source code, binary garbage — all decode to bytes, so <span class="term">[UNK]</span> is <em>mathematically impossible</em>.</p>
+                </div>
+              </div>
+            </div>
+            <div class="twocol-col">
+              <h3>Whitespace as a token</h3>
+              <p>A regex pre-tokenizer keeps the leading space attached, so <code>" the"</code> is a single token distinct from <code>"the"</code>.</p>
+              <p class="small muted">This makes encoding reversible (you can reconstruct the exact bytes) and is why a trailing space can change a model's behaviour — a corner case we return to in Part 3.</p>
+            </div>
+          </div>
+          <aside class="slide-notes">Byte-level BPE is the elegant fix to OOV: by grounding the base vocabulary in bytes, the worst case for any input is "fall back to bytes", never UNK. The leading-space trick (" the" vs "the") preserves reversibility and word boundaries without a language-specific pre-tokenizer. Remember the trailing-space gotcha — it comes straight from this design.</aside>
+        </section>
+
+        <!-- ============================================ 26 · MISCONCEPTION · BPE non-uniqueness ============================================ -->
+        

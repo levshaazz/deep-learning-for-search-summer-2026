@@ -1,0 +1,37 @@
+<section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="17 Compression">
+          <div class="slide-header">
+            <h2>Postings compression: gaps + variable-byte</h2>
+            <span class="slide-kicker">E2E · docIDs <code>[3, 8, 12, 30]</code></span>
+          </div>
+          <div class="e2e-arch">
+            <div class="e2e-arch-block" data-role="project" data-step-range="0" data-tooltip="Raw sorted docIDs stored as 32-bit ints."><div class="arch-name">docIDs</div><div class="arch-shape">16 bytes</div></div>
+            <div class="e2e-arch-arrow" data-step-range="0..1"></div>
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="1" data-tooltip="Store successive differences instead of absolute IDs."><div class="arch-name">gaps (delta)</div><div class="arch-shape">small ints</div></div>
+            <div class="e2e-arch-arrow" data-step-range="1..2"></div>
+            <div class="e2e-arch-block" data-role="reduce" data-step-range="2" data-tooltip="Each small gap fits in one varbyte."><div class="arch-name">varbyte</div><div class="arch-shape">4 bytes</div></div>
+            <div class="e2e-arch-legend"><span class="leg" data-role="project">raw</span><span class="leg" data-role="nonlinear">transform</span><span class="leg" data-role="reduce">encoded</span></div>
+          </div>
+          <div class="e2e-twin">
+            <div class="e2e-panel e2e-math-panel">
+              <div class="panel-head">What happens</div>
+              <div class="e2e-step" data-step="0"><div class="step-formula">$$\texttt{[3, 8, 12, 30]} \;\Rightarrow\; 4 \times 4 = 16 \text{ bytes}$$</div><p class="step-caption">Naive: four 32-bit integers. Postings lists dominate index size, so every byte counts.</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-formula">$$\text{gaps} = [3,\;8{-}3,\;12{-}8,\;30{-}12] = [3, 5, 4, 18]$$</div><p class="step-caption"><strong>Delta encoding.</strong> Sorted IDs &rarr; store differences. Gaps are small because postings are dense.</p></div>
+              <div class="e2e-step" data-step="2"><div class="step-formula">$$1\text{ byte} = \underbrace{1}_{\text{cont.}} + \underbrace{7}_{\text{data}} \text{ bits} \Rightarrow 0\text{–}127;\quad \max(\text{gaps})=18 < 128$$</div><p class="step-caption"><strong>Variable-byte.</strong> One continuation bit + 7 data bits per byte holds \(0\)–\(127\); every gap \(\le 18 < 128\) &rarr; <strong>1 byte each</strong> = 4 bytes. \(16 \to 4\) = <strong>4&times;</strong>.</p></div>
+            </div>
+            <div class="e2e-panel e2e-example-panel">
+              <div class="panel-head">Byte budget</div>
+              <div class="e2e-step" data-step="0"><div class="step-calc-row"><span class="matrix-label"><code>naive = 16 bytes</code></span></div></div>
+              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label"><code>gaps [3, 5, 4, 18]</code></span></div><p class="step-caption tiny">all &lt; 128.</p></div>
+              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label is-highlight"><code>varbyte = 4 bytes &rarr; 4&times;</code></span></div><p class="step-caption tiny">smaller index &rarr; fits in cache &rarr; less IO.</p></div>
+            </div>
+          </div>
+          <div class="e2e-stepper">
+            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">&larr;</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 3</span></div><button type="button" class="step-btn" data-step-act="next">&rarr;</button></div>
+            <span class="e2e-stage-name">overview</span>
+            <button type="button" class="e2e-toggle">Theory only</button>
+          </div>
+          <aside class="slide-notes">Exact from the compression JSON. Storing four docIDs as 32-bit ints is 16 bytes. Because postings are sorted, we store gaps instead: 3, 5, 4, 18. Every gap is below 128, so variable-byte coding — seven data bits plus a continuation bit per byte — uses one byte each, four bytes total, a four-times reduction. Why bother: postings dominate index size, and a smaller index stays in cache and cuts IO, which is the real bottleneck at query time. Modern engines use fancier codecs (PForDelta, Simple-9, Roaring) but the gap-then-encode idea is the same.</aside>
+        </section>
+
+        <!-- ============================================ 16 · WALKTHROUGH · skip pointers + two-pointer merge ============================================ -->
+        

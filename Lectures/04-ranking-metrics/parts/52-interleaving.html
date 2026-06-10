@@ -1,0 +1,54 @@
+<section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="52 Interleaving">
+          <div class="slide-header">
+            <h2>Team-draft interleaving</h2>
+            <span class="slide-kicker">E2E · far more sensitive than A/B</span>
+          </div>
+          <div class="e2e-arch">
+            <div class="e2e-arch-block" data-role="project" data-step-range="1" data-tooltip="Draft one combined list from both rankers.">
+              <div class="arch-name">draft list</div><div class="arch-shape">A,B,A,B…</div></div>
+            <div class="e2e-arch-arrow" data-step-range="1..2"></div>
+            <div class="e2e-arch-block" data-role="reduce" data-step-range="2" data-tooltip="Credit each click to the ranker that placed it.">
+              <div class="arch-name">credit</div><div class="arch-shape">per click</div></div>
+            <div class="e2e-arch-arrow" data-step-range="2..3"></div>
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="3" data-tooltip="Sum credit over queries.">
+              <div class="arch-name">totals</div><div class="arch-shape">A:9 B:17</div></div>
+            <div class="e2e-arch-arrow" data-step-range="3..4"></div>
+            <div class="e2e-arch-block" data-role="project" data-step-range="4" data-tooltip="Preference for B.">
+              <div class="arch-name">preference</div><div class="arch-shape">B \(0.654\)</div></div>
+            <div class="e2e-arch-legend"><span class="leg" data-role="project">mix / result</span><span class="leg" data-role="reduce">credit</span><span class="leg" data-role="nonlinear">totals</span></div>
+          </div>
+          <div class="e2e-twin">
+            <div class="e2e-panel e2e-math-panel">
+              <div class="panel-head">What happens</div>
+              <div class="e2e-step" data-step="0"><div class="step-formula">$$A=[a_1,a_2,a_3,a_4],\quad B=[b_1,b_2,b_3,b_4]$$</div><p class="step-caption">Query q1: two input rankings. Take turns (coin flip) picking each next slot — like a sports team draft.</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-formula">$$\text{draft }[b_1,a_1,b_2,a_2,b_3,b_4] \;\text{tagged}\; [B,A,B,A,B,B]$$</div><p class="step-caption"><strong>Draft.</strong> B won the first coin flip; each slot keeps the source tag of the ranker that placed it.</p></div>
+              <div class="e2e-step" data-step="2"><div class="step-formula">$$\text{all 6 slots clicked} \Rightarrow \mathrm{credit}_A=2,\ \mathrm{credit}_B=4$$</div><p class="step-caption"><strong>Credit.</strong> Clicks on A-tagged slots \((a_1,a_2)\) score A; the four B-tagged slots score B — this is the q1 row.</p></div>
+              <div class="e2e-step" data-step="3"><div class="step-formula">$$\text{over 5 queries: } A=9,\ B=17$$</div><p class="step-caption"><strong>Totals.</strong> B preferred in \(4\) of \(5\) queries.</p></div>
+              <div class="e2e-step" data-step="4"><div class="step-formula">$$\frac{17}{9+17} = 0.6538 > 0.5 \Rightarrow B \text{ wins}$$</div><p class="step-caption"><strong>Credit share.</strong> Within-query comparison <em>largely</em> cancels position bias.</p></div>
+            </div>
+            <div class="e2e-panel e2e-example-panel">
+              <div class="panel-head">q1 draft, then 5-query totals</div>
+              <div class="e2e-step" data-step="0"><p class="step-caption">↓ One concrete team-draft query, then credit over five.</p></div>
+              <div class="e2e-step" data-step="1">
+                <div class="step-calc-row"><span class="matrix-label">slot 1–6 doc</span><span class="matrix-label">\(b_1\,a_1\,b_2\,a_2\,b_3\,b_4\)</span></div>
+                <div class="step-calc-row"><span class="matrix-label">source tag</span><span class="matrix-label is-highlight">B A B A B B</span></div>
+              </div>
+              <div class="e2e-step" data-step="2">
+                <div class="step-calc-row"><span class="matrix-label">A-tagged clicks \((a_1,a_2)\)</span><span class="matrix-label">\(\mathrm{credit}_A=2\)</span></div>
+                <div class="step-calc-row"><span class="matrix-label">B-tagged clicks</span><span class="matrix-label is-highlight">\(\mathrm{credit}_B=4\)</span></div>
+                <div class="step-calc-row"><span class="matrix-label">q1 row</span><span class="matrix-label">A 2 · B 4</span></div>
+              </div>
+              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label">q2…q5</span><span class="matrix-label">1·3, 3·2, 1·5, 2·3</span></div><div class="step-calc-row"><span class="matrix-label">total A</span><span class="matrix-label">\(9\)</span></div><div class="step-calc-row"><span class="matrix-label">total B</span><span class="matrix-label is-highlight">\(17\)</span></div></div>
+              <div class="e2e-step" data-step="4"><div class="step-calc-row"><span class="matrix-label">credit share B</span><span class="matrix-label is-highlight">\(0.6538\)</span></div><p class="step-caption tiny">credit share \(\neq\) win rate: B also wins 4/5 queries.</p></div>
+            </div>
+          </div>
+          <div class="e2e-stepper">
+            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">←</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 4</span></div><button type="button" class="step-btn" data-step-act="next">→</button></div>
+            <span class="e2e-stage-name">overview</span>
+            <button type="button" class="e2e-toggle">Theory only</button>
+          </div>
+          <aside class="slide-notes">Interleaving is the sharpest tool in online evaluation. Instead of showing A to one group and B to another, you blend both rankers into a single list the user sees — team-draft alternates picks like captains choosing a team, tagging each slot with its source. Every click credits the ranker that placed that result. Because both rankers compete within the same list for the same user, position bias largely cancels: each occupies high and low slots equally often. Over five queries A earns 9 credits, B earns 17, preference for B is 17/26 = 0.6538, B preferred in four of five queries. Joachims showed interleaving needs far less traffic than A/B to reach the same confidence.</aside>
+        </section>
+
+        <!-- ============================================ 52 · FORMULA · counterfactual / IPS ============================================ -->
+        

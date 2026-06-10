@@ -1,0 +1,38 @@
+<section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="39 TF-IDF flaws">
+          <div class="slide-header">
+            <h2>TF-IDF is too crude &rarr; bridge to BM25</h2>
+            <span class="slide-kicker">E2E · linear tf · term <code>space</code></span>
+          </div>
+          <div class="e2e-arch">
+            <div class="e2e-arch-block" data-role="project" data-step-range="0" data-tooltip="idf is the same for every doc here."><div class="arch-name">idf</div><div class="arch-shape">\(0.6931\)</div></div>
+            <div class="e2e-arch-arrow" data-step-range="0..1"></div>
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="1" data-tooltip="Multiply by raw term frequency."><div class="arch-name">&times; tf</div><div class="arch-shape">linear</div></div>
+            <div class="e2e-arch-arrow" data-step-range="1..2"></div>
+            <div class="e2e-arch-block" data-role="reduce" data-step-range="2" data-tooltip="Score grows without bound in tf."><div class="arch-name">score</div><div class="arch-shape">\(tf\cdot\operatorname{idf}\)</div></div>
+            <div class="e2e-arch-legend"><span class="leg" data-role="project">weight</span><span class="leg" data-role="nonlinear">step</span></div>
+          </div>
+          <div class="e2e-twin">
+            <div class="e2e-panel e2e-math-panel">
+              <div class="panel-head">Rule applied</div>
+              <div class="e2e-step" data-step="0"><div class="step-formula">$$\operatorname{idf}(\texttt{space}) = \ln\!\frac{8}{4} \approx 0.6931$$</div><p class="step-caption">Same idf for every document, since \(df\) is a corpus property.</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-formula">$$w(\texttt{space},d) = tf \cdot 0.6931$$</div><p class="step-caption"><strong>Linear in tf.</strong> Two occurrences score exactly twice one occurrence.</p></div>
+              <div class="e2e-step" data-step="2"><div class="step-formula">$$\text{D3, } tf=3 \;\Rightarrow\; 3 \times 0.6931 \approx 2.08$$</div><p class="step-caption"><strong>Problem.</strong> Pure repetition keeps winning &mdash; no diminishing return, no length penalty.</p></div>
+            </div>
+            <div class="e2e-panel e2e-example-panel">
+              <div class="panel-head">TF-IDF for <code>space</code></div>
+              <div class="e2e-step" data-step="0"><div class="step-calc-row"><span class="matrix-label"><code>D0 tf=1 · D2 tf=2 · D3 tf=3</code></span></div></div>
+              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label"><code>D0 = 0.6931</code></span></div><p class="step-caption tiny">\(tf=1\).</p></div>
+              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label"><code>D2 = 1.39 · D3 = 2.08</code></span></div><p class="step-caption tiny">order D3 &gt; D2 &gt; D0 &mdash; repetition wins.</p></div>
+            </div>
+          </div>
+          <div class="e2e-stepper">
+            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">&larr;</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 3</span></div><button type="button" class="step-btn" data-step-act="next">&rarr;</button></div>
+            <span class="e2e-stage-name">overview</span>
+            <button type="button" class="e2e-toggle">Theory only</button>
+          </div>
+          <aside class="slide-notes">Numbers from the bm25 JSON. With idf of space at 0.6931, plain TF-IDF multiplies by raw term frequency: D0 with one occurrence scores 0.6931, D2 with two scores 1.39, D3 with three scores 2.08. The ranking puts D3 first purely because it repeats the word most. Two flaws are now visible: term frequency never saturates, so the tenth occurrence counts as much as the first, and there is no penalty for a long document that accumulates occurrences just by being long. BM25 fixes exactly these two things — that is the next part.</aside>
+        </section>
+
+        <!-- ============================================ PART 05 — THE BM25 SAGA ============================================ -->
+        <!-- ============================================ 37 · DIVIDER · PART 05 ============================================ -->
+        

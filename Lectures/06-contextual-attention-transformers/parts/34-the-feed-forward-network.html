@@ -1,0 +1,310 @@
+<section class="slide" data-type="definition" data-screen-label="37 The feed-forward network">
+          <div class="slide-header">
+            <h2><span lang="ru">Position-wise FFN: думать по каждому токену</span><span lang="en">Position-wise FFN: think per token</span></h2>
+            <span class="slide-kicker"><span lang="ru">два линейных слоя + нелинейность</span><span lang="en">two linear layers + a nonlinearity</span></span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag"><span lang="ru">Подслой</span><span lang="en">Sublayer</span></span>
+            <div class="def-term"><span lang="ru">Feed-forward network</span><span lang="en">Feed-forward network</span><span class="term-en">\(\mathrm{FFN}(x)=\max(0,\,xW_1+b_1)W_2+b_2\)</span></div>
+            <div class="def-body">
+              <p><span lang="ru">После внимания (смешивания <em>между</em> токенами) каждый токен проходит <strong>один и тот же</strong> MLP <em>независимо</em>: расширение до \(4d\), нелинейность (ReLU/GELU), сжатие назад до \(d\). Здесь токен «обдумывает» собранную информацию.</span><span lang="en">After attention (mixing <em>across</em> tokens) each token passes through the <strong>same</strong> MLP <em>independently</em>: expand to \(4d\), a nonlinearity (ReLU/GELU), contract back to \(d\). Here a token &ldquo;digests&rdquo; the information it gathered.</span></p>
+              <p class="small muted"><span lang="ru">Разделение труда: внимание <em>перемешивает</em> токены, FFN <em>преобразует</em> каждый. Большая часть параметров блока живёт именно в FFN (скрытый слой \(\approx 4d\)).</span><span lang="en">Division of labour: attention <em>mixes</em> tokens, the FFN <em>transforms</em> each. Most of a block&rsquo;s parameters live in the FFN (hidden width \(\approx 4d\)).</span></p>
+            </div>
+          </div>
+          <aside class="slide-notes">The feed-forward network, the block's other half. Attention's job is to move information between tokens; the FFN's job is to transform each token on its own. It is a small two-layer perceptron applied identically and independently at every position: a linear layer that expands the dimension by a factor of about four, a nonlinearity such as ReLU or GELU, then a linear layer back down to d. Position-wise means the same weights are reused at every token but each token is processed separately, so there is no mixing here. Think of it as the moment each councillor, having listened, privately digests what it heard. Most of a block's parameters actually sit in this FFN because of that four-times-wider hidden layer.</aside>
+        </section>
+
+        <!-- ============================================ 36 · ARCHFLOW · the full encoder block (HEADLINE) ============================================ -->
+        <section class="slide afblk-slide" data-type="archflow" data-max-step="6" data-current-step="0" data-screen-label="38 Archflow · the Transformer block">
+          <style>
+            /* RESIDUAL HIGHWAY emphasis: the two skip arcs (pos→an1, an1→an2) are the bypass that
+               carries x AROUND each sublayer; draw them as a thick, solid accent highway so the
+               "x + sublayer(x)" path is unmistakable (the engine tags paths with their endpoints).
+               IMPORTANT: only restyle the STROKE/WIDTH — gate visibility on .is-shown so each arc
+               ARRIVES with its sublayer (step 3 / step 5), not pre-drawn floating at step 0. */
+            .afblk-slide .af-wires path[data-from-node="af-pos"][data-to-node="af-an1"],
+            .afblk-slide .af-wires path[data-from-node="af-an1"][data-to-node="af-an2"] {
+              stroke: var(--accent); stroke-width: 3.5; stroke-dasharray: none;
+            }
+            .afblk-slide .af-edge-label { font-family: var(--font-mono); font-weight: 700; }
+            /* The two FORWARD geometric-effect labels (blend ↔ / warp ⟂) are auto-placed at
+               the edge midpoint, which lands in the tight gap BETWEEN adjacent nodes — they
+               crowd the node text and each other. Lift each one into the clear band ABOVE its
+               own edge (clear of the node tops, well below the skip-arc label), shrink a touch,
+               and give it a rounded paper chip so it reads on its own. Targets ONLY the forward
+               labels via the .af-fwd marker span baked into their data-label. */
+            .afblk-slide .af-edge-label:has(.af-fwd) {
+              transform: translate(-50%, -50%) translateY(-3.6em);
+              font-size: 15px; padding: 2px 8px; letter-spacing: 0.02em;
+              background: var(--bg-card); border: 1px solid var(--rule); border-radius: 999px;
+              color: var(--ink-2); box-shadow: 0 1px 3px rgba(0,0,0,0.10);
+            }
+
+            /* ── DISTINCT ROLE COLOURS (overrides the global `*-soft` near-white palette in
+               archflow.css, whose tints collide: query≈value ΔE=8.1, weight≈value 7.7,
+               score≈output 8.9). Each of the 6 distinct roles gets a SATURATED fill +
+               matching strong border + dark ink text, so every pairwise CIE ΔE > 20.
+               LIGHT: 64%-saturated tints on white (dark ink reads ≥6.7:1).
+               DARK : the bright house hues used DIRECTLY as fills (dark ink reads ≥6.5:1).
+               The two Add&Norm nodes share the SAME colour (same role, "score") — intended.
+                 input  = amber   query(+PE) = pink   weight(MHA) = blue
+                 score(Add&Norm) = cyan   value(FFN) = violet   output(×N) = green        */
+            .afblk-slide .af-node { color: #14181F; font-weight: 600; }
+            .afblk-slide .af-node[data-role="input"]  { background: #ebc779; border-color: var(--c-amber);  }
+            .afblk-slide .af-node[data-role="query"]  { background: #dc87aa; border-color: var(--c-pink);   }
+            .afblk-slide .af-node[data-role="weight"] { background: #77a3e8; border-color: var(--accent);   }
+            .afblk-slide .af-node[data-role="score"]  { background: #6cc7d0; border-color: var(--c-cyan);   }
+            .afblk-slide .af-node[data-role="value"]  { background: #ac96c6; border-color: var(--c-violet); }
+            .afblk-slide .af-node[data-role="output"] { background: #81b497; border-color: var(--c-green);  }
+            /* small caption inside a node ("rescale ⊙") inherits the dark ink too */
+            .afblk-slide .af-node small { color: #2b2f38; }
+            :root[data-theme="dark"] .afblk-slide .af-node[data-role="input"]  { background: #F4C975; border-color: #C8901E; }
+            :root[data-theme="dark"] .afblk-slide .af-node[data-role="query"]  { background: #E879A8; border-color: #C9447A; }
+            :root[data-theme="dark"] .afblk-slide .af-node[data-role="weight"] { background: #6FA8FF; border-color: #2A6FDB; }
+            :root[data-theme="dark"] .afblk-slide .af-node[data-role="score"]  { background: #5DD3DE; border-color: #1AA7B5; }
+            :root[data-theme="dark"] .afblk-slide .af-node[data-role="value"]  { background: #B89BE0; border-color: #7D5BA6; }
+            :root[data-theme="dark"] .afblk-slide .af-node[data-role="output"] { background: #6BCB8E; border-color: #3A8A5C; }
+          </style>
+          <div class="slide-header">
+            <h2><span lang="ru">Блок энкодера Transformer, по шагам</span><span lang="en">The Transformer encoder block, step by step</span></h2>
+            <span class="slide-kicker">Archflow · <span lang="ru">остаточная магистраль + LayerNorm &times;2</span><span lang="en">residual highway + LayerNorm &times;2</span></span>
+          </div>
+          <div class="af-stage">
+            <div class="af-canvas">
+              <!-- EDGES declarative: the engine routes between node anchors.
+                   Forward edges into the two transform sublayers carry a GEOMETRIC-EFFECT label
+                   (attention blends → FFN warps), ported from block-geometry. -->
+              <div class="af-edge" data-from-node="af-in" data-to-node="af-pos" data-from="1" data-from-anchor="right" data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-pos" data-to-node="af-mha" data-from="2" data-from-anchor="right" data-to-anchor="left" data-label="&lt;span class='af-fwd'&gt;blend ↔&lt;/span&gt;"></div>
+              <div class="af-edge" data-from-node="af-mha" data-to-node="af-an1" data-from="3" data-from-anchor="right" data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-an1" data-to-node="af-ffn" data-from="4" data-from-anchor="right" data-to-anchor="left" data-label="&lt;span class='af-fwd'&gt;warp ⟂&lt;/span&gt;"></div>
+              <div class="af-edge" data-from-node="af-ffn" data-to-node="af-an2" data-from="5" data-from-anchor="right" data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-an2" data-to-node="af-out" data-from="6" data-from-anchor="right" data-to-anchor="left"></div>
+              <!-- the RESIDUAL HIGHWAY: x bypasses each sublayer and is ADDED back at Add&Norm.
+                   Each skip arc is labelled with the explicit formula x + sublayer(x). Add&Norm then
+                   RESCALES onto the unit-RMS ring (block-geometry effect). -->
+              <div class="af-edge af-skip" data-from-node="af-pos" data-to-node="af-an1" data-from="3" data-from-anchor="top" data-to-anchor="top" data-label="x + attn(x)"></div>
+              <div class="af-edge af-skip" data-from-node="af-an1" data-to-node="af-an2" data-from="5" data-from-anchor="bottom" data-to-anchor="bottom" data-label="x + ffn(x)"></div>
+
+              <!-- NODES re-staged: the block BUILDS one node per step (data-from grows 0→6) so the
+                   solid set GROWS — step 0 = input X only; +PE, MHA, Add&Norm(+its arc), FFN,
+                   Add&Norm(+its arc), ×N arrive in turn. data-focus rings the active stage.
+                   DISTINCT role colours come from the slide-scoped <style> above (the global
+                   archflow.css `*-soft` palette is near-white and collides). The 6 distinct roles —
+                   input=amber, query/+PE=pink, weight/MHA=blue, score/Add&Norm=cyan, value/FFN=violet,
+                   output/×N=green — are saturated fills with every pairwise CIE ΔE > 20 on both themes.
+                   The two Add&Norm nodes share "score"=cyan (same role) by design. -->
+              <div class="af-node" id="af-in" data-role="input" data-from="0" data-focus="1" style="left:7%;top:50%"><span lang="ru">вход</span><span lang="en">input</span> \(X\)</div>
+              <div class="af-node" id="af-pos" data-role="query" data-from="1" data-focus="2" style="left:22%;top:50%">\(+\) PE</div>
+              <div class="af-node" id="af-mha" data-role="weight" data-from="2" data-focus="3" style="left:39%;top:50%"><span lang="ru">Multi-Head</span><span lang="en">Multi-Head</span><br>Attention</div>
+              <div class="af-node" id="af-an1" data-role="score" data-from="3" data-focus="3" style="left:56%;top:50%">Add &amp;<br>Norm<br><small>rescale &#8857;</small></div>
+              <div class="af-node" id="af-ffn" data-role="value" data-from="4" data-focus="4" style="left:72%;top:50%">FFN</div>
+              <div class="af-node" id="af-an2" data-role="score" data-from="5" data-focus="5" style="left:84%;top:50%">Add &amp;<br>Norm<br><small>rescale &#8857;</small></div>
+              <div class="af-node" id="af-out" data-role="output" data-from="6" data-focus="6" style="left:95.5%;top:50%">\(\times N\)</div>
+
+              <div class="af-focus"></div>
+            </div>
+
+            <div class="af-panel">
+              <div class="af-note is-current" data-step="0" data-label="overview">
+                <div class="af-formula">$$\mathrm{LayerNorm}\big(x+\mathrm{Sublayer}(x)\big)$$</div>
+                <p><span lang="ru">Соберём блок энкодера по шагам. Жмите <kbd>→</kbd>.</span><span lang="en">Let&rsquo;s assemble the encoder block step by step. Press <kbd>→</kbd>.</span></p>
+              </div>
+              <div class="af-note" data-step="1" data-label="input">
+                <div class="af-note-head"><span lang="ru">Вход</span><span lang="en">Input</span></div>
+                <div class="af-formula">$$X \in \mathbb{R}^{T\times d}$$</div>
+                <p><span lang="ru"><strong>T</strong> токенов, каждый — вектор размерности <strong>d</strong>.</span><span lang="en"><strong>T</strong> tokens, each a vector of dimension <strong>d</strong>.</span></p>
+              </div>
+              <div class="af-note" data-step="2" data-label="position">
+                <div class="af-note-head"><span lang="ru">+ позиция</span><span lang="en">+ position</span></div>
+                <div class="af-formula">$$X' = X + \mathrm{PE}$$</div>
+                <p><span lang="ru">Прибавляем позиционное кодирование — иначе слой order-blind.</span><span lang="en">Add the positional encoding — otherwise the layer is order-blind.</span></p>
+              </div>
+              <div class="af-note" data-step="3" data-label="attn">
+                <div class="af-note-head"><span lang="ru">Внимание + Add&amp;Norm</span><span lang="en">Attention + Add&amp;Norm</span></div>
+                <div class="af-formula">$$H=\mathrm{LayerNorm}\big(X' + \mathrm{MHA}(X')\big)$$</div>
+                <p><span lang="ru">Внимание <strong>смешивает</strong> токены (тянет вместе). Толстая магистраль несёт \(X'\) <strong>в обход</strong> — это \(x+\mathrm{attn}(x)\); LayerNorm масштабирует на единичную сферу.</span><span lang="en">Attention <strong>blends</strong> tokens (pulls them together). The thick highway carries \(X'\) <strong>around</strong> &mdash; that is \(x+\mathrm{attn}(x)\); LayerNorm rescales onto the unit sphere.</span></p>
+              </div>
+              <div class="af-note" data-step="4" data-label="ffn">
+                <div class="af-note-head">FFN</div>
+                <div class="af-formula">$$F=\max(0,\,HW_1+b_1)W_2+b_2$$</div>
+                <p><span lang="ru">FFN <strong>искажает</strong> каждый токен <strong>независимо</strong> (без смешивания) — тот же MLP на всех.</span><span lang="en">The FFN <strong>warps</strong> each token <strong>independently</strong> (no mixing) &mdash; the same MLP for all.</span></p>
+              </div>
+              <div class="af-note" data-step="5" data-label="norm2">
+                <div class="af-note-head"><span lang="ru">Add&amp;Norm снова</span><span lang="en">Add&amp;Norm again</span></div>
+                <div class="af-formula">$$Z=\mathrm{LayerNorm}\big(H + F\big)$$</div>
+                <p><span lang="ru">Вторая магистраль: \(x+\mathrm{ffn}(x)\) в обход FFN, затем LayerNorm снова масштабирует на сферу.</span><span lang="en">The second highway: \(x+\mathrm{ffn}(x)\) around the FFN, then LayerNorm rescales onto the sphere again.</span></p>
+              </div>
+              <div class="af-note" data-step="6" data-label="stack">
+                <div class="af-note-head"><span lang="ru">Стек &times;N</span><span lang="en">Stack &times;N</span></div>
+                <div class="af-formula">$$Z \to \text{next block} \to \cdots \ (\times N)$$</div>
+                <p><span lang="ru">Выход \(Z\) — вход следующего блока. Глубина = повтор (BERT-base: \(N=12\)).</span><span lang="en">Output \(Z\) feeds the next block. Depth = repetition (BERT-base: \(N=12\)).</span></p>
+              </div>
+            </div>
+          </div>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">0/6</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">The headline diagram, walked end to end. Step zero shows the wrapper that repeats: LayerNorm of input plus sublayer. Step one, the input — T tokens of dimension d. Step two, add the positional encoding so the block is not order-blind. Step three, multi-head attention mixes the tokens, then the first Add and Norm wraps it — note the residual edge carrying the pre-attention signal forward over the top. Step four, the position-wise feed-forward network transforms each token independently. Step five, the second Add and Norm wraps the FFN, with its own residual along the bottom. Step six, the block's output becomes the next block's input — depth is just repetition; BERT-base stacks twelve of these, BERT-large twenty-four. Every contextual vector we use comes out the far end of this stack.</aside>
+        </section>
+
+        <!-- ============================================ 37 · VIZ · what LayerNorm DOES (native port of layernorm-viz) ============================================ -->
+        <section class="slide lnv-slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="39 What LayerNorm does">
+          <style>
+            /* scoped: data-arch-step groups SWAP (only the current step's bars/arrow/readout show)
+               so the SAME vector visibly recentres then rescales onto the unit circle. */
+            .lnv-slide svg [data-arch-step] { display: none; }
+            .lnv-slide svg [data-arch-step].is-arch-current { display: block; }
+            .lnv-slide .lnv-cap[data-arch-step] { display: none; }
+            .lnv-slide .lnv-cap[data-arch-step].is-arch-current { display: block; }
+            /* DOUBLE-PAINT FIX: the global rule `svg [data-arch-step].is-arch-current`
+               (slides.css) paints a 4px accent STROKE + accent-soft FILL onto the current
+               step's element — meant for diagram SHAPES, it garbled every <text> into a
+               doubled/outlined blob. Here all step text lives in <g data-arch-step> wrappers,
+               and we force text to render with its own fill and NO stroke so glyphs are clean. */
+            .lnv-slide svg text { stroke: none !important; paint-order: fill; }
+            .lnv-slide svg g[data-arch-step].is-arch-current { stroke: none; fill: none; }
+            /* --warm/--warm-ink live only in the (unloaded) tokens file, so var(--warm)
+               resolved to NONE here → negative bars were invisible. Define a theme-aware
+               warm/red locally so the below-zero bars + mean line + minus-labels render. */
+            .lnv-slide { --warm: #D7522C; --warm-ink: #A8431F; }
+            :root[data-theme="dark"] .lnv-slide { --warm: #F08664; --warm-ink: #F0875A; }
+            /* STAGING: the right-hand unit-circle panel (ring + axes + the vector-on-the-sphere)
+               is GATED — it must not exist at rest. We wrap it in <g data-step="2">; the engine
+               adds .is-step-hidden until currentStep ≥ 2. The GLOBAL rule only fades to opacity .08
+               (still a faint ghost), so we HARD-hide it here with display:none, exactly like the
+               per-step bar SWAP — so step 0 = raw bars + readout ONLY, the circle panel arrives at
+               step 2. (The bars themselves transform in place across steps and legitimately persist.) */
+            .lnv-slide svg g[data-step].is-step-hidden { display: none; }
+          </style>
+          <div class="slide-header">
+            <h2><span lang="ru">Что делает LayerNorm — геометрически</span><span lang="en">What LayerNorm actually does &mdash; geometrically</span></h2>
+            <span class="slide-kicker"><span lang="ru">центрировать &rarr; масштаб &rarr; на единичную сферу &rarr; \(\gamma,\beta\)</span><span lang="en">recentre &rarr; rescale &rarr; onto the unit sphere &rarr; \(\gamma,\beta\)</span></span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1600 720" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="The 4-dimensional attention-output vector for the cat token (0.579, 1.996, 0.91, 0.425) with mean 0.98 and variance 0.38 is recentred to mean 0, rescaled to variance 1 — landing on the unit circle — then bent by the learned scale gamma and shift beta, with the exact per-dimension arithmetic shown at each step">
+              <defs>
+                <marker id="lnvNorm" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker>
+              </defs>
+              <g font-family="var(--font-sans)">
+                <!-- REAL DATA: the cat token's attention-output row from the e2e/s19 example,
+                     x = [0.579, 1.996, 0.91, 0.425]  (μ=0.9775, σ²=0.3765, σ=0.6136). LayerNorm
+                     normalises the SAME vector the rest of the lecture has used. VERIFIED: centred
+                     mean=0, normed var=1, ‖normed‖=√d=2, out=γ·normed+β. -->
+                <!-- bar panel frame + persistent heading + dim ticks (never stepped) -->
+                <rect x="150" y="100" width="700" height="500" rx="10" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
+                <text x="172" y="142" font-size="27" fill="var(--ink-2)" font-weight="800" stroke="none" font-family="var(--font-mono)">x = attn-out(&ldquo;cat&rdquo;), d = 4</text>
+                <text x="255" y="582" font-size="20" fill="var(--ink-3)" text-anchor="middle" stroke="none" font-family="var(--font-mono)">d&#8321;</text>
+                <text x="415" y="582" font-size="20" fill="var(--ink-3)" text-anchor="middle" stroke="none" font-family="var(--font-mono)">d&#8322;</text>
+                <text x="575" y="582" font-size="20" fill="var(--ink-3)" text-anchor="middle" stroke="none" font-family="var(--font-mono)">d&#8323;</text>
+                <text x="735" y="582" font-size="20" fill="var(--ink-3)" text-anchor="middle" stroke="none" font-family="var(--font-mono)">d&#8324;</text>
+
+                <!-- per-step bar groups (SWAP). Each <g data-arch-step> wraps its OWN bars+labels so
+                     only one step shows; text carries stroke="none" so the global highlight rule
+                     can't outline it (the old double-paint bug). -->
+                <!-- STEP 0 · raw: floor y=560 (value 0), 200 px/unit; mean line at μ=0.9775 → y=364.5 -->
+                <g data-arch-step="0">
+                  <line x1="172" y1="364.5" x2="828" y2="364.5" stroke="var(--warm)" stroke-width="2.5" stroke-dasharray="8 5"/>
+                  <text x="172" y="356" font-size="20" fill="var(--warm-ink)" font-weight="800" text-anchor="start" stroke="none" font-family="var(--font-mono)">&mu; = 0.98</text>
+                  <rect x="205" y="444.2" width="100" height="115.8" rx="4" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.4"/>
+                  <rect x="365" y="160.8" width="100" height="399.2" rx="4" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.4"/>
+                  <rect x="525" y="378.0" width="100" height="182.0" rx="4" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.4"/>
+                  <rect x="685" y="475.0" width="100" height="85.0" rx="4" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.4"/>
+                  <text x="255" y="434" font-size="22" fill="var(--accent-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">0.579</text>
+                  <text x="415" y="150" font-size="22" fill="var(--accent-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">1.996</text>
+                  <text x="575" y="368" font-size="22" fill="var(--accent-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">0.910</text>
+                  <text x="735" y="465" font-size="22" fill="var(--accent-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">0.425</text>
+                </g>
+                <!-- STEP 1 · centred (x − μ): zero baseline y=370, 170 px/unit; positives up (blue), negatives down (warm) -->
+                <g data-arch-step="1">
+                  <line x1="172" y1="370" x2="828" y2="370" stroke="var(--warm)" stroke-width="2.5" stroke-dasharray="8 5"/>
+                  <text x="172" y="361" font-size="20" fill="var(--warm-ink)" font-weight="800" text-anchor="start" stroke="none" font-family="var(--font-mono)">&mu; = 0</text>
+                  <rect x="205" y="370" width="100" height="67.7" rx="4" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.4"/>
+                  <rect x="365" y="196.9" width="100" height="173.1" rx="4" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.4"/>
+                  <rect x="525" y="370" width="100" height="11.5" rx="4" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.4"/>
+                  <rect x="685" y="370" width="100" height="93.9" rx="4" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.4"/>
+                  <text x="255" y="461" font-size="22" fill="var(--warm-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.40</text>
+                  <text x="415" y="186" font-size="22" fill="var(--accent-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">1.02</text>
+                  <text x="575" y="405" font-size="22" fill="var(--warm-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.07</text>
+                  <text x="735" y="487" font-size="22" fill="var(--warm-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.55</text>
+                </g>
+                <!-- STEP 2 · normed ((x − μ)/σ): zero baseline y=370, 110 px/unit; lands on the unit sphere -->
+                <g data-arch-step="2">
+                  <line x1="172" y1="370" x2="828" y2="370" stroke="var(--warm)" stroke-width="2.5" stroke-dasharray="8 5"/>
+                  <text x="172" y="361" font-size="20" fill="var(--warm-ink)" font-weight="800" text-anchor="start" stroke="none" font-family="var(--font-mono)">&mu; = 0</text>
+                  <rect x="205" y="370" width="100" height="71.4" rx="4" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.4"/>
+                  <rect x="365" y="187.4" width="100" height="182.6" rx="4" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.4"/>
+                  <rect x="525" y="370" width="100" height="12.1" rx="4" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.4"/>
+                  <rect x="685" y="370" width="100" height="99.0" rx="4" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.4"/>
+                  <text x="255" y="465" font-size="22" fill="var(--warm-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.65</text>
+                  <text x="415" y="177" font-size="22" fill="var(--accent-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">1.66</text>
+                  <text x="575" y="405" font-size="22" fill="var(--warm-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.11</text>
+                  <text x="735" y="492" font-size="22" fill="var(--warm-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.90</text>
+                </g>
+                <!-- STEP 3 · γ·normed + β: γ=[1.2,0.9,1.1,1.0], β=[0.1,−0.1,0,0.2] → bend; 110 px/unit -->
+                <g data-arch-step="3">
+                  <line x1="172" y1="370" x2="828" y2="370" stroke="var(--warm)" stroke-width="2.5" stroke-dasharray="8 5"/>
+                  <text x="172" y="361" font-size="20" fill="var(--warm-ink)" font-weight="800" text-anchor="start" stroke="none" font-family="var(--font-mono)">&mu; = 0</text>
+                  <rect x="205" y="370" width="100" height="74.7" rx="4" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.4"/>
+                  <rect x="365" y="216.7" width="100" height="153.3" rx="4" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="1.4"/>
+                  <rect x="525" y="370" width="100" height="13.3" rx="4" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.4"/>
+                  <rect x="685" y="370" width="100" height="77.0" rx="4" fill="var(--warm)" stroke="var(--warm-ink)" stroke-width="1.4"/>
+                  <text x="255" y="468" font-size="22" fill="var(--warm-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.68</text>
+                  <text x="415" y="206" font-size="22" fill="var(--accent-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">1.39</text>
+                  <text x="575" y="405" font-size="22" fill="var(--warm-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.12</text>
+                  <text x="735" y="470" font-size="22" fill="var(--warm-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.70</text>
+                </g>
+
+                <!-- stage label, swaps per step, centred over the bars -->
+                <g data-arch-step="0"><text x="500" y="636" font-size="25" fill="var(--accent-ink)" font-weight="800" text-anchor="middle" stroke="none" font-family="var(--font-mono)">step 0 &middot; raw x</text></g>
+                <g data-arch-step="1"><text x="500" y="636" font-size="25" fill="var(--accent-ink)" font-weight="800" text-anchor="middle" stroke="none" font-family="var(--font-mono)">step 1 &middot; x &minus; &mu;  (recentred)</text></g>
+                <g data-arch-step="2"><text x="500" y="636" font-size="25" fill="var(--accent-ink)" font-weight="800" text-anchor="middle" stroke="none" font-family="var(--font-mono)">step 2 &middot; (x &minus; &mu;) / &sigma;  (normed)</text></g>
+                <g data-arch-step="3"><text x="500" y="636" font-size="25" fill="var(--accent-ink)" font-weight="800" text-anchor="middle" stroke="none" font-family="var(--font-mono)">step 3 &middot; &gamma; &middot; normed + &beta;  (output)</text></g>
+
+                <!-- ===== RIGHT: unit-circle panel + the EXACT per-dimension arithmetic (swaps per step) ===== -->
+                <!-- UNIT-CIRCLE PANEL — GATED to step ≥ 2 (data-step="2"). HIDDEN at steps 0–1 so step 0
+                     shows the raw bars + readout ONLY; ARRIVES at step 2 when the vector lands on the sphere. -->
+                <g data-step="2">
+                  <text x="1230" y="142" font-size="26" fill="var(--ink-2)" font-weight="800" text-anchor="middle" stroke="none" font-family="var(--font-mono)">the vector on the unit sphere</text>
+                  <circle cx="1230" cy="320" r="140" fill="none" stroke="var(--rule-strong)" stroke-width="1.8"/>
+                  <line x1="1078" y1="320" x2="1382" y2="320" stroke="var(--rule)" stroke-width="1.2"/>
+                  <line x1="1230" y1="168" x2="1230" y2="472" stroke="var(--rule)" stroke-width="1.2"/>
+                  <circle cx="1230" cy="320" r="5" fill="var(--ink-3)"/>
+                  <g data-arch-step="2"><line x1="1230" y1="320" x2="1351.2" y2="390" stroke="var(--accent)" stroke-width="4" marker-end="url(#lnvNorm)"/><circle cx="1351.2" cy="390" r="7" fill="var(--accent)"/><text x="1360" y="412" font-size="20" fill="var(--accent-ink)" font-weight="800" stroke="none" font-family="var(--font-mono)">&#8741;normed&#8741;=&radic;d=2</text></g>
+                  <g data-arch-step="3"><line x1="1230" y1="320" x2="1351.2" y2="390" stroke="var(--accent)" stroke-width="4" marker-end="url(#lnvNorm)"/><circle cx="1351.2" cy="390" r="7" fill="var(--accent)"/><text x="1360" y="412" font-size="20" fill="var(--accent-ink)" font-weight="800" stroke="none" font-family="var(--font-mono)">on the sphere</text></g>
+                </g>
+
+                <!-- mean / var readout under the circle (swaps per step) -->
+                <g data-arch-step="0"><text x="1230" y="512" font-size="26" fill="var(--ink-2)" font-weight="800" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&mu; = 0.9775  &middot;  &sigma;&sup2; = 0.3765</text></g>
+                <g data-arch-step="1"><text x="1230" y="512" font-size="26" fill="var(--ink-2)" font-weight="800" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&mu; = 0.0000  &middot;  &sigma;&sup2; = 0.3765</text></g>
+                <g data-arch-step="2"><text x="1230" y="512" font-size="26" fill="var(--c-green-ink)" font-weight="800" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&mu; = 0.0000  &middot;  &sigma;&sup2; = 1.0000  &check;</text></g>
+                <g data-arch-step="3"><text x="1230" y="512" font-size="26" fill="var(--ink-2)" font-weight="800" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&gamma; scales &middot; &beta; shifts each dim</text></g>
+                <text x="1230" y="548" font-size="20" fill="var(--ink-3)" text-anchor="middle" stroke="none" font-family="var(--font-mono)">std &sigma; = 0.6136</text>
+
+                <!-- THE EXACT ARITHMETIC strip (bottom, full width, swaps per step) -->
+                <rect x="150" y="652" width="1300" height="56" rx="8" fill="var(--bg-inset)" stroke="var(--rule)" stroke-width="1.2"/>
+                <g data-arch-step="0"><text x="170" y="688" font-size="22" fill="var(--ink-2)" stroke="none" font-family="var(--font-mono)">&mu; = (0.579 + 1.996 + 0.91 + 0.425) / 4 = 0.9775   &middot;   &sigma;&sup2; = mean of (x&#8722;&mu;)&sup2; = 0.3765   &middot;   &sigma; = 0.6136</text></g>
+                <g data-arch-step="1"><text x="170" y="688" font-size="22" fill="var(--ink-2)" stroke="none" font-family="var(--font-mono)">x &#8722; &mu;:  0.579&#8722;0.98=&#8722;0.40   &middot;   1.996&#8722;0.98=1.02   &middot;   0.91&#8722;0.98=&#8722;0.07   &middot;   0.425&#8722;0.98=&#8722;0.55  &rarr; mean now 0</text></g>
+                <g data-arch-step="2"><text x="170" y="688" font-size="22" fill="var(--ink-2)" stroke="none" font-family="var(--font-mono)">&divide; &sigma; = 0.6136:  &#8722;0.40/&sigma;=&#8722;0.65   &middot;   1.02/&sigma;=1.66   &middot;   &#8722;0.07/&sigma;=&#8722;0.11   &middot;   &#8722;0.55/&sigma;=&#8722;0.90  &rarr; var now 1</text></g>
+                <g data-arch-step="3"><text x="170" y="688" font-size="22" fill="var(--ink-2)" stroke="none" font-family="var(--font-mono)">&gamma;&middot;n+&beta;:  1.2(&#8722;.65)+.1=&#8722;0.68   &middot;   0.9(1.66)&#8722;.1=1.39   &middot;   1.1(&#8722;.11)+0=&#8722;0.12   &middot;   1.0(&#8722;.90)+.2=&#8722;0.70</text></g>
+              </g>
+            </svg>
+          </div>
+          <p class="viz-caption">
+            <span class="lnv-cap" data-arch-step="0"><span lang="ru">Тот же вектор: строка выхода внимания для <code>cat</code> = \([0.579,\,1.996,\,0.91,\,0.425]\) — \(\mu=0.98\), \(\sigma^2=0.38\). Сырые значения смещены: среднее не ноль.</span><span lang="en">The same vector: <code>cat</code>&rsquo;s attention-output row \([0.579,\,1.996,\,0.91,\,0.425]\) &mdash; \(\mu=0.98\), \(\sigma^2=0.38\). The raw values sit off-centre: the mean is not zero.</span></span>
+            <span class="lnv-cap" data-arch-step="1"><span lang="ru">Вычитаем среднее: базовая линия съезжает \(0.98\to 0\), бары перецентрированы вокруг нуля. Дисперсия пока та же (\(0.38\)).</span><span lang="en">Subtract the mean: the baseline slides \(0.98\to 0\), the bars recentre on zero. Variance is still \(0.38\) for now.</span></span>
+            <span class="lnv-cap" data-arch-step="2"><span lang="ru">Делим на \(\sigma=0.61\): дисперсия \(0.38\to 1\). Вектор приземляется <strong>точно на единичную сферу</strong> — это и есть нормализация.</span><span lang="en">Divide by \(\sigma=0.61\): the variance goes \(0.38\to 1\). The vector lands <strong>exactly on the unit sphere</strong> &mdash; that is the normalisation.</span></span>
+            <span class="lnv-cap" data-arch-step="3"><span lang="ru">Обучаемые \(\gamma\) (масштаб) и \(\beta\) (сдвиг) по каждому измерению слегка изгибают бары — сеть возвращает себе свободу после нормализации.</span><span lang="en">Learned \(\gamma\) (scale) and \(\beta\) (shift) per dimension bend the bars slightly &mdash; the network buys back freedom after the normalisation.</span></span>
+          </p>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">0/3</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">The named gap — what LayerNorm actually does, made geometric, ported from the book's layernorm widget, and driven by the SAME vector the rest of the lecture has used: cat's attention-output row, zero point five seven nine, one point nine nine six, zero point nine one, zero point four two five — four dimensions. Step zero: the raw values sit off-centre, with mean zero point nine eight and variance zero point three eight; on the right, the vector as an arrow pokes out past the unit circle. Step one: subtract the mean — the dashed baseline slides from zero point nine eight down to zero and the bars recentre, negatives now hanging below in warm colour; the variance is unchanged at zero point three eight. Step two: divide by the standard deviation, zero point six one — the variance collapses to one, and the arrow lands exactly on the unit circle (length two, which is root d). That is the whole normalisation: recentre to mean zero, rescale to unit variance, which is the same as putting the vector on a sphere. Step three: the learned gamma scales and beta shifts each dimension, bending the bars a little, so the network is not forced to stay perfectly normalised — it buys back expressive freedom. That is LayerNorm, applied to the very vector we built with attention.</aside>
+        </section>
+
+        <!-- ============================================ 38 · FORMULA · the block as one equation ============================================ -->
+        

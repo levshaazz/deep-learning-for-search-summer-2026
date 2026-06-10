@@ -1,0 +1,29 @@
+<section class="slide" data-type="viz" data-screen-label="10 Latency budget">
+          <div class="slide-header">
+            <h2>Where the ~100 ms budget comes from</h2>
+            <span class="slide-kicker">attention · QPS · fan-out</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Human attention.</strong> Past ~100&nbsp;ms a UI feels sluggish; past ~1&nbsp;s users abandon. Search must feel instant.</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Throughput (QPS).</strong> A big engine serves tens of thousands of queries per second; per-query cost is multiplied by that rate.</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Fan-out.</strong> One query hits hundreds of index shards in parallel; the slowest shard sets the latency, so each must finish in a few ms.</span></li>
+              </ul>
+            </div>
+            <div class="twocol-col">
+              <div class="callout" data-kind="info">
+                <div class="callout-icon">i</div>
+                <div class="callout-body">
+                  <strong>The budget is a hard wall</strong>
+                  <p>A retrieval stage gets only a slice of ~100&nbsp;ms; the rest goes to re-ranking, snippet generation, and the network. So first-stage retrieval must be <em>sublinear</em> in the corpus size.</p>
+                  <p class="small muted">This is why we precompute a structure once and consult it per query, instead of scanning documents.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <aside class="slide-notes">The budget is not arbitrary. It is set by human perception (a sluggish UI loses users), by throughput (cost is paid tens of thousands of times per second), and by fan-out (a query is split across many shards and the slowest one wins). Within that hundred-millisecond wall, first-stage retrieval gets only a slice — so it has to be sublinear in N. That requirement is the whole motivation for the inverted index.</aside>
+        </section>
+
+        <!-- ============================================ 09 · DEFINITION · the move (precompute once) ============================================ -->
+        

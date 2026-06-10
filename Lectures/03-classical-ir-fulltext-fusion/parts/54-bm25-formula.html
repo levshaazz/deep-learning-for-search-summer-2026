@@ -1,0 +1,19 @@
+<section class="slide" data-type="formula" data-screen-label="54 BM25 formula">
+          <div class="slide-header slide-header--flush">
+            <h2>The BM25 formula &amp; its limits</h2>
+            <span class="slide-kicker">\(k_1\in[1.2,2.0]\) · \(b\approx 0.75\)</span>
+          </div>
+          <div class="formula-stage">
+            $$ \mathrm{BM25}(q,d) = \sum_{t\in q}\;\underbrace{\frac{(k_1+1)f}{k_1\big[(1-b)+b\frac{\mathrm{len}}{\mathrm{avgdl}}\big]+f}}_{\mathcal{B}\text{: saturating, length-aware tf}}\;\cdot\;\underbrace{\ln\!\Big(1+\frac{N-n_t+0.5}{n_t+0.5}\Big)}_{\text{idf (clamped, slide 31)}} $$
+          </div>
+          <div class="formula-caption">
+            <div class="var-block"><div class="var-symbol">\(k_1=0\)</div><div class="var-desc"><strong>Binary</strong><br />tf ignored &rarr; BM1</div></div>
+            <div class="var-block"><div class="var-symbol">\(k_1\to\infty\)</div><div class="var-desc"><strong>Raw tf</strong><br />no saturation</div></div>
+            <div class="var-block"><div class="var-symbol">\(b\)</div><div class="var-desc"><strong>Length dial</strong><br />\(0\)..\(1\)</div></div>
+          </div>
+          <p class="small muted center mt-2">Defaults <strong>\(k_1=1.5\)</strong>, <strong>\(b=0.75\)</strong>. <strong>Notation:</strong> we now write \(k_1\) for the saga's \(K_1\); the scale \(S_1=k_1+1\) is folded into the numerator \((k_1+1)f\). <span style="opacity:.72"><strong>Variants:</strong> BM25F (per-field \(b\), what engines run) · BM25+ (floor \(\delta\)) · Lucene/ATIRE (\(\max(0,\cdot)\) idf clamp).</span></p>
+          <aside class="slide-notes">The complete scorer: a sum over query terms of the saturating, length-aware tf factor times the smoothed idf. Read the parameters through their limits. At k1 zero the tf factor is constant, so BM25 collapses to BM1 — presence only. As k1 grows without bound the factor becomes linear in tf, recovering un-saturated term frequency. b at zero or one gives BM15 or BM11. The standard defaults, k1 around 1.5 and b around 0.75, sit deliberately between these poles. Those defaults are what every worked number in this deck uses. One notation point: the saga wrote the saturation constant as capital K1 and a separate scale S1; the standard modern form writes lowercase k1 and folds S1 = k1+1 into the numerator (k1+1)f — it is the same factor, just renamed. The variants footnote replaces a full encyclopedia slide: BM25F normalises each field by its own average length and is what Lucene/Elasticsearch run; BM25+ adds a small floor so a long document does not score essentially zero on a term it genuinely contains; the Lucene and ATIRE forms clamp idf non-negative. Knowing these exist explains why two libraries can give slightly different BM25 scores.</aside>
+        </section>
+
+        <!-- ============================================ 51 · E2E · flagship cat/dog/mouse BM25 ============================================ -->
+        
