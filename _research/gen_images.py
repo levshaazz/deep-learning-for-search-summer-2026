@@ -122,10 +122,6 @@ JOBS = [
     ("L3", "L3/L3-02-bm25-sextant.png", "4:3", True,
      "Serega squinting through a trusty brass sextant up at a few bright stars, ranking them by how "
      "bright each one looks; the sextant reads as an old reliable instrument. Warm-accent brass, blue stars."),
-    ("L3", "L3/L3-03-rank-fusion-council.png", "16:9", True,
-     "Serega and one other small crew member each hold up a different star-chart that orders the same "
-     "stars differently; their two light-beams meet and merge into a single brighter agreed "
-     "constellation in the middle. Conveys two rankers' votes fused into one result."),
     ("L3", "L3/L3-04-lexical-gremlin-wall.png", "16:9", True,
      "the Lexical Gremlin, a small mischievous gremlin, wedges a brick wall between two "
      "identical-looking couches drawn on either side (a sofa shape on the left, a couch shape on the "
