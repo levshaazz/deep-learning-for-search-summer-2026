@@ -23,6 +23,7 @@ import json, re, sys, math, pathlib
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"               # curated product source of truth
 RAW  = ROOT / "_research/data"     # generator artifacts (upstream provenance)
+DOCS = ROOT / "docs"               # built site (Book HTML) — present after `npm run build`
 # Glob-discovered: adding Lectures/NN-*.html is picked up here with ZERO edits.
 # The key "L<n>" is derived from the numeric filename prefix (00-introduction.html → L0),
 # preserving the exact id→path mapping the per-deck [C] claim checks address by key.
@@ -38,6 +39,18 @@ def num(s):  # parse a displayed number: U+2212 minus, thousands spaces/commas, 
     s = s.replace("−", "-").replace(",", "").replace(" ", "")
     s = re.sub(r"\.+$", "", s)
     return float(s)
+
+def load_book():
+    """Built Book chapters docs/<en>/book/NN/index.html, keyed L<n> (glob — L7 auto-covered).
+    Empty dict if docs/ is not built (the gate then WARNs and skips Book [C] claims)."""
+    out, base = {}, DOCS / "en" / "book"
+    if not base.exists():
+        return out
+    for d in sorted(base.iterdir()):
+        idx = d / "index.html"
+        if d.is_dir() and d.name.isdigit() and idx.exists():
+            out["L" + str(int(d.name))] = idx.read_text()
+    return out
 
 # Curated product data (the single source). Loaded once.
 COS  = load(DATA, "l2-cosine.json")
@@ -401,6 +414,36 @@ def claims():
         dict(id="top-3 %",   deck="L1", value=CLICK["top3Pct"], tol=0.2,
              anchor=r"\b(60\.6)\b", must=True),
     ] + l3_claims() + l4_claims() + l5_claims() + l6_claims()
+
+# ── [C] BOOK CLAIMS: the built Book PROSE must show the same flagship numbers as data/ ───────────
+# The Book restates the decks' worked examples in its own prose/KaTeX, so the deck anchors do NOT
+# match it (only 7/111 do). Each Book claim REUSES the value+tol of the corresponding deck claim by
+# id (single source — the number itself is never re-typed here), pairing it with a Book-markup
+# anchor (a generic ([\d.]+) capture pinned by stable surrounding literals, so a number that DRIFTS
+# at that spot is captured and flagged, not silently missed). Closes the standing gap: until now the
+# Book's numbers were ungated (check_claims docstring's own TODO). Adding more is just more rows here.
+BOOK_ANCHORS = [
+    ("L3 idf cat",      r"\\ln\(1\.1429\) = ([\d.]+)"),
+    ("L3 idf dog",      r"\\ln\(1\.6\) = ([\d.]+)"),
+    ("L3 D2 score",     r"0\.1161 \(cat\) \+ 0\.6065 \(dog\) = <strong>([\d.]+)</strong>"),
+    ("L3 BEIR",         r"BM25 still scores around ([\d.]+) nDCG@10"),
+    ("L4 nDCG hon",     r"\\frac\{1\.7333\}\{2\.5616\}=([\d.]+)"),
+    ("L4 nDCG gam",     r"\\frac\{1\.3919\}\{2\.5616\}=\\mathbf\{([\d.]+)\}"),
+    ("L4 MRR",          r"\\frac\{0\.5\+1\.0\}\{2\}=\\mathbf\{([\d.]+)\}"),
+    ("L4 MAP",          r"\\frac\{0\.5\+0\.747\}\{2\}=\\mathbf\{([\d.]+)\}"),
+    ("L5 PCA 2-D",      r"keep ([\d.]+)% of the original"),
+    ("L5 analogy cos",  r"cosine ([\d.]+), far ahead"),
+    ("L5 runner-up",    r"prince \(([\d.]+)\) and throne"),
+    ("L5G drop %",      r"a \\\(([\d.]+)\\%\\\) drop"),
+    ("L5G loss after",  r"to \\\(([\d.]+)\\\) after 600 AdaGrad"),
+    ("L6 InfoNCE loss", r"[−-]ln\(0\.8877\) = ([\d.]+)"),
+    ("L6 InfoNCE p+",   r"probability ([\d.]+), so the loss"),
+]
+def book_claims():
+    base = {c["id"]: c for c in claims()}
+    return [dict(id="book " + src, deck=base[src]["deck"], value=base[src]["value"],
+                 tol=base[src]["tol"], anchor=anchor, must=True)
+            for src, anchor in BOOK_ANCHORS]
 
 # ── L3 'Star Catalog' [C] claims: every flagship number the deck shows == data/l3-*.json ─────────
 # Anchors match the RENDERED numeric text (KaTeX \(…\)/$$…$$, <code> matrix-labels, captions) — the
@@ -796,6 +839,7 @@ def arithmetic_checks(report, texts):
 
 def main():
     text = {k: p.read_text() for k, p in DECKS.items()}
+    book = load_book()                              # built Book HTML (empty if docs/ not built)
     report = []
     provenance_checks(report)                       # [P] data/ == generator
     provenance_l3l4(report)                         # [P] L3/L4 cross-file data self-consistency
@@ -805,7 +849,16 @@ def main():
     provenance_enrichment(report)                   # [P] L5/L6 enrichment trajectory cross-file + data-only pins
     for c in claims():                              # [C] deck == data/
         report.append(check_claim(c, text[c["deck"]]))
-    arithmetic_checks(report, text)                 # [A] recompute
+    if book:                                        # [C] Book == data/ (the Book restates the flagship numbers)
+        nbk = sum(1 for c in book_claims() if c["deck"] in book)
+        for c in book_claims():
+            if c["deck"] in book:
+                report.append(check_claim(c, book[c["deck"]]))
+        report.append(("OK", f"book: {nbk} flagship Book-prose numbers gated against data/ ✓"))
+    else:
+        report.append(("WARN", "Book not built (docs/ absent) — Book [C] claims skipped; run `npm run build`"))
+    # [A] recompute: deck fractions + (any) Book fractions, in one pass.
+    arithmetic_checks(report, {**text, **{"book " + k: v for k, v in book.items()}})
     hard = sum(1 for s, _ in report if s == "HARD")
     warn = sum(1 for s, _ in report if s == "WARN")
     print(f"[facts-gate] {len(report)} checks — source: data/ (provenance→curated→deck)")
@@ -977,10 +1030,16 @@ def selftest():
     GLOVE["trajectory"]["frames"][-1]["loss"] = savedTrj
     okPE = any(s == "HARD" and "provenance-ENR(glove.traj.lossAfter)" in m for s, m in rep11)
     print("[selftest:prov-ENR]", next((m for s, m in rep11 if s == "HARD"), "provenance-ENR: NO FLAG"))
+    # Book [C]: a Book chapter where a flagship PROSE number drifted must flag DRIFT (anchor not blind).
+    cBK = next(x for x in book_claims() if x["id"] == "book L5 PCA 2-D")
+    bBK = r'these two axes keep 99.9% of the original variance'  # wrong: data/ says 37.7
+    sevBK, msgBK = check_claim(cBK, bBK)
+    okBK = sevBK == "HARD" and "DRIFT" in msgBK
+    print("[selftest:book]", msgBK)
     ok = (okD and okA and okP and okL3 and okL4 and okP2 and okL5 and okL6 and okP3 and okP4
           and okGX and okTK and okTS and okP5 and okP6 and okP7 and okP8 and okP9
-          and okW and okU and okS and okT47 and okPE)
-    print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 + L5-GloVe/t-SNE + L2-tokenizers + enrichment-trajectory deck & cross-file (incl. data-only pins) all fire"
+          and okW and okU and okS and okT47 and okPE and okBK)
+    print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 + L5-GloVe/t-SNE + L2-tokenizers + enrichment-trajectory + Book-prose deck & cross-file (incl. data-only pins) all fire"
           if ok else "FAIL — a check is blind!")
     return 0 if ok else 1
 
