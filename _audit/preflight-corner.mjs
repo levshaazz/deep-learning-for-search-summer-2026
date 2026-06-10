@@ -1,4 +1,26 @@
 import { chromium } from 'playwright';
+import { createServer } from 'node:http';
+import { readFile, stat } from 'node:fs/promises';
+import { join, extname, normalize } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// Self-contained: serve the template dir on :8099 (ci.yml runs this standalone with no server up).
+const TEMPLATE_DIR = join(fileURLToPath(new URL('../Lectures Template/', import.meta.url)));
+const MIME = { '.html':'text/html','.css':'text/css','.js':'text/javascript','.json':'application/json',
+  '.woff2':'font/woff2','.svg':'image/svg+xml','.png':'image/png','.map':'application/json' };
+const srv = createServer(async (req, res) => {
+  try {
+    let p = decodeURIComponent(req.url.split('?')[0]);
+    p = normalize(join(TEMPLATE_DIR, p));
+    if (!p.startsWith(TEMPLATE_DIR)) { res.writeHead(403).end(); return; }
+    const s = await stat(p).catch(() => null);
+    if (!s || s.isDirectory()) { res.writeHead(404).end(); return; }
+    res.writeHead(200, { 'content-type': MIME[extname(p)] || 'application/octet-stream' });
+    res.end(await readFile(p));
+  } catch { res.writeHead(500).end(); }
+});
+await new Promise((r) => srv.listen(8099, r));
+
 const BASE = 'http://localhost:8099/Lecture%20Template.html';
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
@@ -79,3 +101,12 @@ out.cases = await page.evaluate(() => {
 
 console.log(JSON.stringify(out, null, 2));
 await browser.close();
+srv.close();
+
+// Real gate: FAIL if the clean template reports errors, any detector didn't fire, or revert wasn't clean.
+const c = out.cases || {};
+const detectorsOk = ['dupLabel','dupContent','dupStepError','offCanvas','demoSyntax','demoBlacklist']
+  .every((k) => c[k] === true) && (c.cleanAfterRevert?.err === 0);
+const pass = out.clean.err === 0 && detectorsOk;
+console.log(`[preflight-corner] ${pass ? 'PASS' : 'FAIL'} — clean err=${out.clean.err}, detectors fired=${detectorsOk}`);
+process.exit(pass ? 0 : 1);
