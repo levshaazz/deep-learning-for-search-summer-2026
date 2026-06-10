@@ -14,10 +14,14 @@ from __future__ import annotations
 import re, json, pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+# Glob-discovered (matches check_claims.py): adding Lectures/NN-*.html is picked up with ZERO edits.
+# The key "L<n>" is derived from the numeric filename prefix (00-introduction.html → L0), preserving
+# the exact id→path mapping (00-…→L0 … 06-…→L6) the downstream CoVe verifier addresses by deck id.
+# Lectures/NN-*.html are BUILD OUTPUT (gitignored, reassembled by `npm run build`) and may be ABSENT
+# on a fresh checkout — the empty-glob guard in extract()/__main__ skips gracefully instead of crashing.
 DECKS = {
-    "L0": ROOT / "Lectures/00-introduction.html",
-    "L1": ROOT / "Lectures/01-search-ir-ml-system-design.html",
-    "L2": ROOT / "Lectures/02-nlp-tokenization-similarity.html",
+    f"L{int(p.name[:2])}": p
+    for p in sorted((ROOT / "Lectures").glob("[0-9][0-9]-*.html"))
 }
 # author(s) + year — "Smith 2008", "Smith & Jones 2005", "Smith et al. (2016)"
 CITE = re.compile(r'([A-Z][a-zA-Z]+(?:(?:,? (?:&|and) [A-Z][a-zA-Z]+)|(?:,? et al\.?))?)[,\s]+\(?((?:19|20)\d{2})\)?')
@@ -69,6 +73,12 @@ def extract():
     return out
 
 if __name__ == "__main__":
+    if not DECKS:
+        # Decks are build output (gitignored) — absent on a fresh checkout. Skip rather than crash,
+        # and leave the tracked citations.json untouched (do not clobber it with an empty array).
+        print("[extract_citations] no decks found in Lectures/ — decks not built; "
+              "run `npm run build` first. Skipping (citations.json left unchanged).")
+        raise SystemExit(0)
     cites = extract()
     (ROOT / "_research/data/citations.json").write_text(json.dumps(cites, indent=2) + "\n")
     print(f"[extract_citations] {len(cites)} unique attributions → _research/data/citations.json")
