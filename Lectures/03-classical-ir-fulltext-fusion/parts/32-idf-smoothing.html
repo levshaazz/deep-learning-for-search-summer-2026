@@ -1,0 +1,37 @@
+<section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="32 IDF smoothing">
+          <div class="slide-header">
+            <h2>IDF: failure, then fix</h2>
+            <span class="slide-kicker">zero-division &rarr; smoothing &rarr; BM25 form</span>
+          </div>
+          <div class="walk-flow">
+            <div class="walk-step" data-step="1" data-color="violet">
+              <div class="walk-num">01</div>
+              <div class="walk-content"><div class="walk-label">The naive form breaks</div><div class="walk-detail">\(\log\frac{N}{df}\): if a query term is <strong>unseen</strong> (\(df=0\)) we divide by zero. Even \(df=N\) gives exactly 0 &mdash; brittle at the edges.</div></div>
+              <div class="walk-state">\(df=0\) ✗</div>
+            </div>
+            <div class="walk-step" data-step="2" data-color="amber">
+              <div class="walk-num">02</div>
+              <div class="walk-content"><div class="walk-label">Add-half smoothing</div><div class="walk-detail">\(\log\frac{N-df+0.5}{df+0.5}\): the \(+0.5\) terms keep the ratio finite and well-behaved. This is the RSJ / probabilistic form.</div></div>
+              <div class="walk-state">\(+0.5\)</div>
+            </div>
+            <div class="walk-step" data-step="3" data-color="cyan">
+              <div class="walk-num">03</div>
+              <div class="walk-content"><div class="walk-label">Can it go negative?</div><div class="walk-detail">If \(df>N/2\) the ratio drops below 1 and the log goes negative. Lucene adds \(+1\) inside the log to clamp it: \(\log\!\big(\frac{N-df+0.5}{df+0.5}+1\big)\).</div></div>
+              <div class="walk-state">\(+1\) clamp</div>
+            </div>
+            <div class="walk-step" data-step="4" data-final="true">
+              <div class="walk-num">&rarr;</div>
+              <div class="walk-content"><div class="walk-label">The form we use &mdash; substituted</div><div class="walk-detail">\(\operatorname{idf}(t)=\ln\!\big(1+\frac{N-df+0.5}{df+0.5}\big)\). On our corpus \(N=3\), \(df(\texttt{cat})=3\), \(df(\texttt{dog})=2\):<br><span class="katex-line">\(\operatorname{idf}(\texttt{cat})=\ln\!\big(1+\frac{3-3+0.5}{3+0.5}\big)=\ln(1.1429)=0.1335\)</span><br><span class="katex-line">\(\operatorname{idf}(\texttt{dog})=\ln\!\big(1+\frac{3-2+0.5}{2+0.5}\big)=\ln(1.6000)=0.4700\)</span></div></div>
+              <div class="walk-state">cat 0.13 · dog 0.47</div>
+            </div>
+          </div>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">4/4</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">The build animation the old deck had. Plain log N over df divides by zero for an unseen term and bottoms out at zero when a term is everywhere. Adding a half to numerator and denominator — the Robertson–Spärck-Jones probabilistic form — keeps it finite. But that form can go negative when more than half the documents contain the term, so Lucene adds one inside the log to clamp it non-negative. The final smoothed idf gives cat 0.1335 and dog 0.4700 on the flagship collection, the exact values we use in the BM25 worked example later.</aside>
+        </section>
+
+        <!-- ============================================ 31 · FORMULA · TF-IDF boxed + SMART ============================================ -->
+        

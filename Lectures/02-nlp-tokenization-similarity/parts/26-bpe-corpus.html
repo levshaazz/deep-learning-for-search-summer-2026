@@ -1,0 +1,79 @@
+<section class="slide" data-type="e2e" data-max-step="6" data-current-step="0" data-screen-label="26 BPE corpus">
+          <div class="slide-header">
+            <h2>BPE on a real word corpus</h2>
+            <span class="slide-kicker">E2E · {low, lower, newest, widest}</span>
+          </div>
+          <div class="e2e-arch">
+            <div class="e2e-arch-block" data-role="project" data-step-range="1" data-tooltip="Split each word into chars + end-of-word marker.">
+              <div class="arch-name">chars</div><div class="arch-shape">+ &lt;/w&gt;</div></div>
+            <div class="e2e-arch-arrow" data-step-range="1..2"></div>
+            <div class="e2e-arch-block" data-role="reduce" data-step-range="2" data-tooltip="Count adjacent pairs weighted by word frequency.">
+              <div class="arch-name">count pairs</div><div class="arch-shape">freq</div></div>
+            <div class="e2e-arch-arrow" data-step-range="2..5"></div>
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="3..5" data-tooltip="Merge the top pair; repeat.">
+              <div class="arch-name">merge top</div><div class="arch-shape">×K</div></div>
+            <div class="e2e-arch-arrow" data-step-range="5..6"></div>
+            <div class="e2e-arch-block" data-role="project" data-step-range="6" data-tooltip="Encode an unseen word from learned pieces.">
+              <div class="arch-name">generalize</div><div class="arch-shape">no UNK</div></div>
+            <div class="e2e-arch-legend"><span class="leg" data-role="project">setup / result</span><span class="leg" data-role="reduce">counting</span><span class="leg" data-role="nonlinear">merge</span></div>
+          </div>
+          <div class="e2e-twin">
+            <div class="e2e-panel e2e-math-panel">
+              <div class="panel-head">What happens</div>
+              <div class="e2e-step" data-step="0"><div class="step-formula">$$\{\,\texttt{low}^{5},\ \texttt{lower}^{2},\ \texttt{newest}^{6},\ \texttt{widest}^{3}\,\}$$</div><p class="step-caption">Four words with corpus frequencies (superscripts). <code>&lt;/w&gt;</code> marks end-of-word.</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-formula">$$\texttt{word}\to\text{chars}+\texttt{&lt;/w&gt;}$$</div><p class="step-caption">Initial vocabulary = the single characters plus the end marker.</p></div>
+              <div class="e2e-step" data-step="2"><div class="step-formula">$$\text{count pairs, weighted by freq}$$</div><p class="step-caption">The pair <code>e&nbsp;s</code> appears in <code>newest</code> (\(6\)) and <code>widest</code> (\(3\)) \(\Rightarrow 9\), the maximum.</p></div>
+              <div class="e2e-step" data-step="3"><div class="step-formula">$$\texttt{e}+\texttt{s}\to\texttt{es}\;(9),\quad \texttt{es}+\texttt{t}\to\texttt{est}\;(9)$$</div><p class="step-caption"><strong>Merges 1–2.</strong> Both have count \(9\) (from newest+widest).</p></div>
+              <div class="e2e-step" data-step="4"><div class="step-formula">$$\texttt{est}+\texttt{&lt;/w&gt;}\to\texttt{est&lt;/w&gt;}\;(9)$$</div><p class="step-caption"><strong>Merge 3.</strong> Still \(6+3=9\) — bind the suffix to the word boundary.</p></div>
+              <div class="e2e-step" data-step="5"><div class="step-formula">$$\texttt{l}+\texttt{o}\to\texttt{lo}\;(7),\quad \texttt{lo}+\texttt{w}\to\texttt{low}\;(7)$$</div><p class="step-caption"><strong>Merges 4–5.</strong> Count \(5+2=7\) (from low+lower).</p></div>
+              <div class="e2e-step" data-step="6"><div class="step-formula">$$\texttt{lowest}\;(\text{unseen})\to\texttt{low}\;\texttt{est&lt;/w&gt;}$$</div><p class="step-caption"><strong>Result.</strong> A word never in training is built from learned pieces — no <span class="term">[UNK]</span>.</p></div>
+            </div>
+            <div class="e2e-panel e2e-example-panel">
+              <div class="panel-head">Concrete state</div>
+              <div class="e2e-step" data-step="0"><p class="step-caption">↓ Token sequences update at every merge.</p></div>
+              <div class="e2e-step" data-step="1">
+                <div class="step-calc-row"><span class="matrix-label"><code>low</code><sup>5</sup></span><span class="matrix-label">→ <code>l o w &lt;/w&gt;</code></span></div>
+                <div class="step-calc-row"><span class="matrix-label"><code>lower</code><sup>2</sup></span><span class="matrix-label">→ <code>l o w e r &lt;/w&gt;</code></span></div>
+                <div class="step-calc-row"><span class="matrix-label"><code>newest</code><sup>6</sup></span><span class="matrix-label">→ <code>n e w e s t &lt;/w&gt;</code></span></div>
+                <div class="step-calc-row"><span class="matrix-label"><code>widest</code><sup>3</sup></span><span class="matrix-label">→ <code>w i d e s t &lt;/w&gt;</code></span></div>
+              </div>
+              <div class="e2e-step" data-step="2">
+                <p class="step-caption tiny">Top pair counts:</p>
+                <div class="step-calc-row"><span class="matrix-label"><code>e s</code></span><span class="matrix-label">= \(6+3=9\) ✓</span></div>
+                <div class="step-calc-row"><span class="matrix-label"><code>s t</code></span><span class="matrix-label">= \(6+3=9\)</span></div>
+                <div class="step-calc-row"><span class="matrix-label"><code>l o</code></span><span class="matrix-label">= \(5+2=7\)</span></div>
+              </div>
+              <div class="e2e-step" data-step="3">
+                <div class="step-calc-row"><span class="matrix-label"><code>newest</code></span><span class="matrix-label">→ <code>n e w <b>est</b> &lt;/w&gt;</code></span></div>
+                <div class="step-calc-row"><span class="matrix-label"><code>widest</code></span><span class="matrix-label">→ <code>w i d <b>est</b> &lt;/w&gt;</code></span></div>
+                <p class="step-caption tiny">Vocab gains <code>es</code>, <code>est</code>.</p>
+              </div>
+              <div class="e2e-step" data-step="4">
+                <div class="step-calc-row"><span class="matrix-label"><code>newest</code></span><span class="matrix-label">→ <code>n e w <b>est&lt;/w&gt;</b></code></span></div>
+                <div class="step-calc-row"><span class="matrix-label"><code>widest</code></span><span class="matrix-label">→ <code>w i d <b>est&lt;/w&gt;</b></code></span></div>
+                <p class="step-caption tiny">Vocab gains <code>est&lt;/w&gt;</code>.</p>
+              </div>
+              <div class="e2e-step" data-step="5">
+                <div class="step-calc-row"><span class="matrix-label"><code>low</code></span><span class="matrix-label">→ <code><b>low</b> &lt;/w&gt;</code></span></div>
+                <div class="step-calc-row"><span class="matrix-label"><code>lower</code></span><span class="matrix-label">→ <code><b>low</b> e r &lt;/w&gt;</code></span></div>
+                <p class="step-caption tiny">Vocab gains <code>lo</code>, <code>low</code>.</p>
+              </div>
+              <div class="e2e-step" data-step="6">
+                <div class="step-calc-row"><span class="matrix-label"><code>lowest</code><sup>(unseen)</sup></span></div>
+                <div class="step-calc-row"><span class="matrix-label">→ <code><b>low</b> <b>est&lt;/w&gt;</b></code></span></div>
+                <p class="step-caption tiny">Built from learned pieces — generalizes.</p>
+              </div>
+            </div>
+          </div>
+          <div class="e2e-stepper">
+            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">←</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 6</span></div><button type="button" class="step-btn" data-step-act="next">→</button></div>
+            <span class="e2e-stage-name">overview</span>
+            <button type="button" class="e2e-toggle">Theory only</button>
+          </div>
+          <aside class="slide-notes">The flagship. Five merges, all arithmetic on the right and self-consistent: es (9), est (9), est&lt;/w&gt; (9), lo (7), low (7). The es/st tie at 9 is broken by a fixed rule (here es first). The payoff at step 6: "lowest" was never in the corpus, yet it tokenizes cleanly as low · est&lt;/w&gt; from learned pieces — no UNK. That generalization is the whole reason subword tokenization won.</aside>
+          <aside data-notes-for-step="2">Ask the room which pair is most frequent before revealing. "e s" and "s t" tie at 9; ties broken by a fixed rule.</aside>
+          <aside data-notes-for-step="6">Merges apply in learned order — that is why "lowest" becomes low · est&lt;/w&gt; and nothing else.</aside>
+        </section>
+
+        <!-- ============================================ 25 · TWO-COL · byte-level BPE ============================================ -->
+        

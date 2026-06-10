@@ -1,0 +1,48 @@
+<section class="slide" data-type="table" data-screen-label="50 Table · Cascade systems">
+          <div class="slide-header">
+            <h2>The cascade is a systems knob</h2>
+            <span class="slide-kicker">Latency &amp; cost vs relevance gain</span>
+          </div>
+
+          <table class="cmp-table">
+            <thead>
+              <tr>
+                <th>Stage choice</th>
+                <th>Added latency</th>
+                <th>Relevance gain</th>
+                <th>Note</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>ANN retrieval (millions → ~100)</td>
+                <td class="cell-good">~10ms</td>
+                <td class="cell-meh">sets the recall ceiling</td>
+                <td>~99.99% reduction</td>
+              </tr>
+              <tr>
+                <td>Light re-ranker (MiniLM, 100→20)</td>
+                <td class="cell-meh">~60ms</td>
+                <td class="cell-good">+5–15 \(\text{nDCG}@10\)</td>
+                <td>distilled: 70–90% of gain at 30–50% cost</td>
+              </tr>
+              <tr>
+                <td>Heavy re-ranker (top-20→5)</td>
+                <td class="cell-bad">~+200ms</td>
+                <td class="cell-good">finalises the order</td>
+                <td>only on a tiny shortlist</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p class="small muted center mt-3">
+            Candidate-set size and per-stage model complexity are the two dials. Halving the candidate set (100 → 50) roughly halves cost for a tiny relevance loss — that is the trade you tune.
+          </p>
+
+          <aside class="slide-notes">This reframes the Part 02 cascade as an explicit engineering decision rather than an IR abstraction. The numbers matter: a distilled 60–120M-parameter re-ranker recovers most of the relevance gain at a fraction of the cost — usually the right default. The two tunable dials are candidate-set size and model complexity per stage; you spend your latency budget where it buys the most \(\text{nDCG}\) per millisecond.</aside>
+        </section>
+
+        <!-- ============================================
+             50 · TWO-COL · case study before/after ledger
+             ============================================ -->
+        

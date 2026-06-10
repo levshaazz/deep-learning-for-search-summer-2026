@@ -1,0 +1,19 @@
+<section class="slide" data-type="formula" data-screen-label="36 LayerNorm formula">
+          <div class="slide-header slide-header--flush">
+            <h2><span lang="ru">LayerNorm, точно</span><span lang="en">LayerNorm, exactly</span></h2>
+            <span class="slide-kicker"><span lang="ru">по признакам токена, не по батчу</span><span lang="en">over a token&rsquo;s features, not the batch</span></span>
+          </div>
+          <div class="formula-stage">
+            $$ \mathrm{LayerNorm}(x) = \gamma \odot \frac{x-\mu}{\sqrt{\sigma^{2}+\varepsilon}} + \beta, \qquad \mu=\frac{1}{d}\sum_{j=1}^{d} x_j,\ \ \sigma^{2}=\frac{1}{d}\sum_{j=1}^{d}(x_j-\mu)^{2} $$
+          </div>
+          <div class="formula-caption">
+            <div class="var-block"><div class="var-symbol">\(\mu,\sigma^{2}\)</div><div class="var-desc"><strong><span lang="ru">по \(d\)</span><span lang="en">over \(d\)</span></strong><br /><span lang="ru">признаки токена</span><span lang="en">a token&rsquo;s features</span></div></div>
+            <div class="var-block"><div class="var-symbol">\(\gamma,\beta\)</div><div class="var-desc"><strong><span lang="ru">обучаемые</span><span lang="en">learned</span></strong><br /><span lang="ru">масштаб/сдвиг</span><span lang="en">scale/shift</span></div></div>
+            <div class="var-block"><div class="var-symbol">\(\varepsilon\)</div><div class="var-desc"><strong><span lang="ru">стабильность</span><span lang="en">stability</span></strong><br /><span lang="ru">\(\sim 10^{-5}\)</span><span lang="en">\(\sim 10^{-5}\)</span></div></div>
+          </div>
+          <p class="small muted center mt-2"><span lang="ru">Среднее \(\mu\) и дисперсия \(\sigma^2\) считаются <strong>по \(d\) признакам одного токена</strong> (не по батчу — в этом отличие от BatchNorm). Затем масштаб \(\gamma\) и сдвиг \(\beta\) возвращают сети свободу. Не зависит от размера батча — идеально для переменной длины.</span><span lang="en">The mean \(\mu\) and variance \(\sigma^2\) are taken <strong>over a single token&rsquo;s \(d\) features</strong> (not the batch — the difference from BatchNorm). A learned scale \(\gamma\) and shift \(\beta\) restore freedom. Independent of batch size — ideal for variable-length sequences.</span></p>
+          <aside class="slide-notes">LayerNorm precisely, because the over-what matters. For each token independently, compute the mean and variance across that token's d feature values, subtract the mean, divide by the standard deviation plus a tiny epsilon for numerical safety, then apply a learned per-feature scale gamma and shift beta. The crucial contrast with batch normalisation is the axis: BatchNorm normalises each feature across the examples in a batch, whereas LayerNorm normalises each example across its features. That makes LayerNorm independent of batch size and of the other sequences in the batch — exactly what you want for variable-length text where batch statistics would be unstable. This is the Norm in every Add and Norm.</aside>
+        </section>
+
+        <!-- ============================================ 35 · DEFINITION · the FFN ============================================ -->
+        

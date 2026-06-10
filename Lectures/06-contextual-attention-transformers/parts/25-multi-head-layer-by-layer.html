@@ -1,0 +1,61 @@
+<section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="27 Multi-head, layer by layer">
+          <div class="slide-header">
+            <h2><span lang="ru">Multi-head по слоям: разделить &rarr; внимание &rarr; собрать</span><span lang="en">Multi-head, layer by layer: split &rarr; attend &rarr; recombine</span></h2>
+            <span class="slide-kicker"><span lang="ru">путь данных от входа к выходу</span><span lang="en">the data path, input&rarr;output</span></span>
+          </div>
+          <div class="walk-layout">
+            <!-- LEFT: the full pipeline, always on canvas; future stages fade, the current stage rings (data-arch-step) -->
+            <div class="walk-diagram" aria-label="Multi-head attention pipeline: input, split into heads, attend per head, concatenate, project by W^O">
+              <div class="mh-pipe" style="display:flex;flex-direction:column;gap:12px;align-items:stretch;font-family:var(--font-sans);text-align:center;">
+                <div class="arch-box" data-arch-step="0" style="padding:12px;font-size:24px;"><div style="font-family:var(--font-mono);font-size:17px;color:var(--ink-3);">input</div><span lang="ru">Вход \(X\)</span><span lang="en">Input \(X\)</span></div>
+                <div style="color:var(--ink-4);font-size:20px;">&darr;</div>
+                <div class="arch-box" data-arch-step="1" data-arch-color="cyan" style="padding:12px;font-size:24px;"><div style="font-family:var(--font-mono);font-size:17px;color:var(--ink-3);">split · \(h=2\)</div><span lang="ru">\(h\) подпространств</span><span lang="en">\(h\) subspaces</span></div>
+                <div style="color:var(--ink-4);font-size:20px;">&darr;</div>
+                <div class="arch-box" data-arch-step="2" data-arch-color="violet" style="padding:12px;font-size:24px;"><div style="font-family:var(--font-mono);font-size:17px;color:var(--ink-3);">attend · per head</div>\(\mathrm{head}_i=\mathrm{Attention}(\cdot)\)</div>
+                <div style="color:var(--ink-4);font-size:20px;">&darr;</div>
+                <div class="arch-box" data-arch-step="3" data-arch-color="amber" style="padding:12px;font-size:24px;"><div style="font-family:var(--font-mono);font-size:17px;color:var(--ink-3);">concat</div>\(\mathrm{Concat}(\mathrm{head}_1,\dots,\mathrm{head}_h)\)</div>
+                <div style="color:var(--ink-4);font-size:20px;">&darr;</div>
+                <div class="arch-box" data-arch-step="4" data-arch-color="green" style="padding:12px;font-size:24px;"><div style="font-family:var(--font-mono);font-size:17px;color:var(--ink-3);">project · \(W^O\)</div>\(\mathrm{MultiHead}(X)\)</div>
+              </div>
+            </div>
+            <!-- RIGHT: ledger; rows reveal cumulatively, step 0 already shows the input row -->
+            <div class="walk-flow">
+              <div class="walk-step" data-step="0">
+                <div class="walk-num">00</div>
+                <div class="walk-content"><div class="walk-label"><span lang="ru">Вход \(X\)</span><span lang="en">Input \(X\)</span></div><div class="walk-detail"><span lang="ru">\(T\) токенов, каждый размерности \(d\) (\(=4\)).</span><span lang="en">\(T\) tokens, each of dimension \(d\) (\(=4\)).</span></div></div>
+                <div class="walk-state">\(\mathbb{R}^{T\times d}\)</div>
+              </div>
+              <div class="walk-step" data-step="1" data-color="cyan">
+                <div class="walk-num">01</div>
+                <div class="walk-content"><div class="walk-label"><span lang="ru">Разделить · \(h=2\)</span><span lang="en">Split · \(h=2\)</span></div><div class="walk-detail"><span lang="ru">проекции \(XW_Q^{(i)},XW_K^{(i)},XW_V^{(i)}\) — каждая голова в \(d/h=2\).</span><span lang="en">projections \(XW_Q^{(i)},XW_K^{(i)},XW_V^{(i)}\) — each head in \(d/h=2\).</span></div></div>
+                <div class="walk-state">\(d/h=2\)</div>
+              </div>
+              <div class="walk-step" data-step="2" data-color="violet">
+                <div class="walk-num">02</div>
+                <div class="walk-content"><div class="walk-label"><span lang="ru">Внимание · на голову</span><span lang="en">Attend · per head</span></div><div class="walk-detail"><span lang="ru">каждая голова считает своё \(\mathrm{softmax}(QK^\top/\sqrt{d_k})V\) — своя связь.</span><span lang="en">each head runs its own \(\mathrm{softmax}(QK^\top/\sqrt{d_k})V\) — its own relation.</span></div></div>
+                <div class="walk-state">\(\times h\)</div>
+              </div>
+              <div class="walk-step" data-step="3" data-color="amber">
+                <div class="walk-num">03</div>
+                <div class="walk-content"><div class="walk-label">Concat</div><div class="walk-detail"><span lang="ru">склеиваем выходы голов обратно в размерность \(d\).</span><span lang="en">stack the head outputs back to dimension \(d\).</span></div></div>
+                <div class="walk-state">\(\to \mathbb{R}^{T\times d}\)</div>
+              </div>
+              <div class="walk-step" data-step="4" data-final="true">
+                <div class="walk-num">&rarr;</div>
+                <div class="walk-content"><div class="walk-label"><span lang="ru">Проекция \(W^O\)</span><span lang="en">Project \(W^O\)</span></div><div class="walk-detail"><span lang="ru">\(W^O\) <strong>смешивает</strong> головы &rarr; выход. Стоимость почти как у одной головы.</span><span lang="en">\(W^O\) <strong>mixes</strong> the heads &rarr; output. Cost is about that of one head.</span></div></div>
+                <div class="walk-state">\(\mathrm{MultiHead}(X)\)</div>
+              </div>
+            </div>
+          </div>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">0/4</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <p class="small muted center mt-2"><span lang="ru">Один советник видит одну связь. Разбиваем \(d\) на \(h\) подпространств \(d/h\), в каждом — своя голова внимания; выходы <strong>конкатенируются</strong> и проецируются \(W^O\) обратно в \(d\). У нас \(h=2,\ d_k=4\Rightarrow\) подпространство \(=2\).</span><span lang="en">One councillor sees one relation. We split \(d\) into \(h\) subspaces of size \(d/h\), run an attention head in each; the outputs are <strong>concatenated</strong> and projected by \(W^O\) back to \(d\). Here \(h=2,\ d_k=4\Rightarrow\) subspace \(=2\).</span></p>
+          <aside class="slide-notes">Multi-head attention as a forward data path. The whole pipeline is on screen from the start — input, split, attend, concatenate, project — with the current stage ringed and the not-yet-reached stages faded, so the projected frame is never empty even at rest. Step zero: the input X, T token vectors each of dimension d, which is four in our example. Step one: we split into h heads — here two — by projecting X with per-head query, key and value matrices, so each head works in a subspace of dimension d over h, which is two. Step two: each head independently runs the full scaled-dot-product attention we just built, so head one might capture one relation and head two a different one. Step three: we concatenate the heads' outputs back up to the full dimension d. Step four: a final learned matrix W output mixes the heads together — and this projection is essential, because concatenation alone just stacks them side by side without letting them talk. Because each head lives in a smaller subspace, the total compute is about that of a single full-size head, so we get several attention patterns nearly for free.<aside data-notes-for-step="0">Step 0 — input X: T tokens of dimension d.</aside><aside data-notes-for-step="1">Step 1 — split into h=2 heads via per-head Q/K/V projections, each in d/h dims.</aside><aside data-notes-for-step="2">Step 2 — each head runs its own scaled-dot-product attention.</aside><aside data-notes-for-step="3">Step 3 — concatenate the head outputs back to dimension d.</aside><aside data-notes-for-step="4">Step 4 — project by Wᴼ, which mixes the heads → output.</aside></aside>
+        </section>
+
+        <!-- ============================================ BEAT 7 · turn-positional ============================================ -->
+        <!-- ============================================ 26 · DIVIDER · inject position ============================================ -->
+        

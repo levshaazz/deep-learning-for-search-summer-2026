@@ -1,0 +1,31 @@
+<section class="slide" data-type="viz" data-screen-label="60 WAND">
+          <div class="slide-header">
+            <h2>WAND: why we don't score every posting</h2>
+            <span class="slide-kicker">top-\(k\) with score upper bounds</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>The idea</h3>
+              <p>Each term has a <strong>max-score</strong> upper bound. Keep a running threshold = the \(k\)-th best score so far. Skip any document whose <em>best possible</em> sum can't beat the threshold.</p>
+              <div class="callout" data-kind="info">
+                <div class="callout-icon">i</div>
+                <div class="callout-body">
+                  <strong>BlockMax-WAND</strong>
+                  <p>Stores max-scores per <em>block</em> of postings, so whole blocks are skipped. Sublinear top-\(k\) in practice.</p>
+                </div>
+              </div>
+            </div>
+            <div class="twocol-col">
+              <h3>Why it matters</h3>
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">We only need the top \(k\) (e.g. 1000), not every score.</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">Most documents can't reach the threshold &rarr; never fully scored.</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">Closes the loop with Part 1: this is how BM25 hits the latency budget at web scale.</span></li>
+              </ul>
+            </div>
+          </div>
+          <aside class="slide-notes">The bridge back to the latency budget. We claimed the index lets us avoid scoring most documents; WAND is the algorithm that delivers it for ranked retrieval. Each term knows the maximum contribution it can ever make, so the algorithm maintains a threshold equal to the current k-th best score and refuses to fully evaluate any document whose optimistic upper-bound sum cannot beat that threshold. BlockMax-WAND tightens this with per-block maxima, skipping whole runs of postings. The result is that top-k retrieval is effectively sublinear, which is exactly why BM25 over an inverted index meets a hundred-millisecond budget on billions of documents.</aside>
+        </section>
+
+        <!-- ============================================ 57 · TABLE · empirical grounding (benchmarks) ============================================ -->
+        

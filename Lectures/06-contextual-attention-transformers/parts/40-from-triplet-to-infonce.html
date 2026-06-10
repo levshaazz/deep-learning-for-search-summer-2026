@@ -1,0 +1,36 @@
+<section class="slide" data-type="derivation" data-screen-label="46 From triplet to InfoNCE">
+          <div class="slide-header">
+            <h2><span lang="ru">От triplet к InfoNCE: один кадр алгебры</span><span lang="en">From triplet to InfoNCE: one moving frame of algebra</span></h2>
+            <span class="slide-kicker"><span lang="ru">margin \(\to\) softmax по кандидатам \(\to -\log p^{+}\)</span><span lang="en">margin \(\to\) softmax over candidates \(\to -\log p^{+}\)</span></span>
+          </div>
+          <div class="deriv-stage">
+            <div class="deriv-form">triplet</div>
+          </div>
+          <div class="deriv-step-caption"></div>
+          <!-- Hidden steps — FLIP-morphed by lab.js; Unicode sub/superscripts keep the morph clean (no KaTeX re-typeset on innerHTML swap). -->
+          <div class="deriv-step" data-step="0" data-caption="Triplet: позитив должен бить негатив на margin m · triplet — the positive must beat the negative by a margin m" hidden>
+            <div class="deriv-content">
+              <span class="deriv-term" data-id="L">ℒ&nbsp;=&nbsp;</span><span class="deriv-term" data-id="max">max(0,&nbsp;</span><span class="deriv-term" data-id="neg">sim(a,x⁻)</span>&nbsp;<span class="deriv-term" data-id="minus">−</span>&nbsp;<span class="deriv-term" data-id="pos">sim(a,x⁺)</span>&nbsp;<span class="deriv-term" data-id="plusm">+&nbsp;m)</span>
+            </div>
+          </div>
+          <div class="deriv-step" data-step="1" data-caption="Один негатив — мало. Хотим позитив против МНОГИХ кандидатов сразу · one negative is weak — score the positive against MANY candidates at once" hidden>
+            <div class="deriv-content">
+              <span class="deriv-term" data-id="pos">sim(a,x⁺)</span>&nbsp;<span class="deriv-term is-new" data-id="vsall">vs&nbsp;{</span><span class="deriv-term" data-id="pos2">sim(a,x⁺)</span><span class="deriv-term is-new" data-id="comma">,&nbsp;</span><span class="deriv-term is-new" data-id="negs">sim(a,x⁻₁),&nbsp;…,&nbsp;sim(a,x⁻ₖ)</span><span class="deriv-term is-new" data-id="brace">}</span>
+            </div>
+          </div>
+          <div class="deriv-step" data-step="2" data-caption="Делим на температуру τ — это логиты — и берём softmax: вероятность, что позитив выигрывает · divide by temperature τ to get logits, then softmax: the probability the positive wins" hidden>
+            <div class="deriv-content">
+              <span class="deriv-term is-new" data-id="ppos">p⁺&nbsp;=&nbsp;</span><span class="deriv-term is-new" data-id="num">exp(sim(a,x⁺)/τ)</span>&nbsp;<span class="deriv-term is-new" data-id="over">/</span>&nbsp;<span class="deriv-term is-new" data-id="den">[&nbsp;exp(sim(a,x⁺)/τ)&nbsp;+&nbsp;Σ<sub>x⁻</sub> exp(sim(a,x⁻)/τ)&nbsp;]</span>
+            </div>
+          </div>
+          <div class="deriv-step" data-step="3" data-caption="InfoNCE = −log этой вероятности: softmax-классификация «какой кандидат настоящий?» · InfoNCE = −log that probability — softmax classification: which candidate is the true positive?" hidden>
+            <div class="deriv-content">
+              <span class="deriv-term is-highlight" data-id="LNCE">ℒ<sub>InfoNCE</sub>&nbsp;=&nbsp;−log&nbsp;</span><span class="deriv-term is-new" data-id="ppos2">p⁺</span>&nbsp;<span class="deriv-term is-new" data-id="arrow">→&nbsp;на наших числах&nbsp;0.1191</span>
+            </div>
+          </div>
+          <p class="small muted center mt-2"><span lang="ru">Triplet тянет одну пару; InfoNCE превращает «ближе негатива» в <strong>softmax-классификацию</strong> позитива против всего батча. Температура \(\tau=0.1\) делит косинусы (Сэр Косинус) и заостряет распределение; минимизировать \(-\log p^{+}\) = поднять \(p^{+}\to 1\). Реальные числа дают потерю \(\mathbf{0.1191}\) — её мы и посчитаем end-to-end дальше.</span><span lang="en">Triplet tunes one pair; InfoNCE turns &ldquo;beat the negative&rdquo; into a <strong>softmax classification</strong> of the positive against the whole batch. Temperature \(\tau=0.1\) divides the cosines (Sir Cosine) and sharpens the distribution; minimising \(-\log p^{+}\) pushes \(p^{+}\to 1\). The real numbers give a loss of \(\mathbf{0.1191}\) — which we compute end-to-end next.</span></p>
+          <aside class="slide-notes">The contrastive punchline, derived as one moving frame instead of two static cards, and it sets up the live InfoNCE climb that follows. Step zero: the triplet loss — the hinge that wants the anchor's similarity to its positive to beat its similarity to one negative by a margin m. Step one: one negative is a weak signal, so we score the positive against many candidates at once — the positive itself plus k negatives. Step two: divide every similarity by the temperature tau to get logits, then take a softmax — that gives p-plus, the probability mass the model puts on the true positive. Step three: InfoNCE is simply minus the log of that probability — read it as a softmax classification, which candidate is the true positive, and minimising it drives p-plus toward one. On our real cosines this lands at zero point one one nine one, the exact number we compute step by step on the next slide. Use the arrows to step the algebra.<aside data-notes-for-step="0">Step 0 — triplet: positive beats one negative by margin m.</aside><aside data-notes-for-step="1">Step 1 — generalise: positive vs MANY candidates at once.</aside><aside data-notes-for-step="2">Step 2 — logits = sim/τ, then softmax → p⁺.</aside><aside data-notes-for-step="3">Step 3 — InfoNCE = −log p⁺ → 0.1191 on our numbers.</aside></aside>
+        </section>
+
+        <!-- ============================================ 45 · TABLE · the cosines ============================================ -->
+        

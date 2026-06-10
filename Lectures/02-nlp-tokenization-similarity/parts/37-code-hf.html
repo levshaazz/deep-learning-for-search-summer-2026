@@ -1,0 +1,28 @@
+<section class="slide" data-type="code" data-screen-label="37 Code HF">
+          <div class="slide-header">
+            <h2>Using a tokenizer (HuggingFace)</h2>
+            <span class="slide-kicker">Python · transformers</span>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">Python · tokenize.py</span><span class="badge" data-color="accent">transformers</span></div>
+            <pre><code class="language-python">from transformers import AutoTokenizer
+
+tok = AutoTokenizer.from_pretrained("bert-base-uncased")
+
+# Split a rare word into subword pieces (## = WordPiece continuation)
+tok.tokenize("unhappiness")
+# -> ['un', '##hap', '##pi', '##ness']
+
+# Encode to integer ids (adds [CLS] ... [SEP])
+tok.encode("unhappiness is unbearable")
+# -> [101, 4895, 24395, 8197, 2791, 2003, 4895, 4783, 6906, 3468, 102]
+
+# For untrusted text, disable special tokens to avoid injection
+tok.encode(user_text, add_special_tokens=False)</code></pre>
+          </div>
+          <p class="small muted mt-3">The <span class="term">##</span> prefix marks a WordPiece <strong>continuation</strong> — a piece that attaches to the previous token rather than starting a new word.</p>
+          <aside class="slide-notes">Live this if you have a kernel. "unhappiness" is one word to a human, four tokens to BERT. .tokenize gives pieces; .encode gives ids wrapped with [CLS]/[SEP]. The last line is the security note from the brief: untrusted input should be encoded with <code>add_special_tokens=False</code> so an attacker cannot smuggle role-control tokens like <code>&lt;|im_end|&gt;</code>. Ids shown are illustrative of shape, not memorized values.</aside>
+        </section>
+
+        <!-- ============================================ 35 · DIVIDER · PART 03 ============================================ -->
+        

@@ -1,0 +1,129 @@
+<section class="slide" data-type="archflow" data-max-step="4" data-current-step="0" data-screen-label="17 Archflow · the skip-gram network">
+          <div class="slide-header">
+            <h2><span lang="ru">Сеть skip-gram, по шагам</span><span lang="en">The skip-gram network, step by step</span></h2>
+            <span class="slide-kicker">Archflow · <span lang="ru">one-hot &rarr; \(W\) &rarr; hidden &rarr; softmax · vocab из 8 слов</span><span lang="en">one-hot &rarr; \(W\) &rarr; hidden &rarr; softmax · 8-word toy vocab</span></span>
+          </div>
+          <div class="af-stage">
+            <div class="af-canvas">
+              <!-- EDGES declarative: the engine routes between node anchors. Each edge
+                   reveals with the stage it FEEDS, so the wire grows with the pipeline. -->
+              <div class="af-edge" data-from-node="af-oh" data-to-node="af-w" data-from="2" data-from-anchor="right" data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-w" data-to-node="af-h" data-from="2" data-from-anchor="right" data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-h" data-to-node="af-z" data-from="3" data-from-anchor="right" data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-z" data-to-node="af-p" data-from="4" data-from-anchor="right" data-to-anchor="left"></div>
+
+              <!-- TRANSITION LABELS as their own reveal chips, hoisted ABOVE the
+                   matrices (top:16-18%, well clear of every matrix top at ~26%).
+                   Edge data-labels were removed because the engine pins them to the
+                   wire midpoint, which lands ON the tall matrix bodies; an .af-label
+                   carries its own left/top and is NOT auto-positioned, so it reads as
+                   a column header over its transition with zero overprint. Each chip
+                   reveals with the stage it feeds (matching the old edge data-from). -->
+              <div class="af-label" data-from="2" style="left:30%;top:17%">select row</div>
+              <div class="af-label" data-from="3" style="left:78.5%;top:17%">dot each row</div>
+              <div class="af-label" data-from="4" style="left:89%;top:17%">softmax</div>
+              <!-- king is the CENTRE word: it has the largest softmax cell (.174) but is excluded from
+                   context prediction → greyed/struck in the column, named here so the top CONTEXT word
+                   reads as prince (.165), not a contradiction. Sits BELOW the softmax column (top:73%),
+                   clear of every cell and the logits column. -->
+              <div class="af-label" data-from="4" style="left:88%;top:80%;font-size:15px;color:var(--ink-3)"><span lang="ru">king = центр · исключён</span><span lang="en">king = centre · excluded</span></div>
+
+              <!-- NODES staged one-per-step: the set of SOLID nodes GROWS as → advances.
+                   step 0 = vocabulary + one-hot input only (the meaningful START);
+                   1 = W appears, 2 = looked-up row, 3 = logits, 4 = softmax. -->
+              <!-- vocabulary · real words, one per row; king (the centre word) highlighted.
+                   Cyan tint = the "dictionary" column — a house hue used by no pipeline
+                   stage, and well clear of the canvas so every word cell is legible. -->
+              <div class="af-node af-matrix" id="af-vocab" data-role="score" data-from="0" data-focus="0..1" style="left:7%;top:50%;--cols:1">
+                <span class="af-cell is-rowhi" style="min-width:118px;font-size:18px;color:var(--ink);background:var(--c-cyan-soft);border-color:var(--c-cyan)">king</span>
+                <span class="af-cell" style="min-width:118px;font-size:18px;color:var(--ink);background:var(--c-cyan-soft);border-color:var(--c-cyan)">queen</span>
+                <span class="af-cell" style="min-width:118px;font-size:18px;color:var(--ink);background:var(--c-cyan-soft);border-color:var(--c-cyan)">man</span>
+                <span class="af-cell" style="min-width:118px;font-size:18px;color:var(--ink);background:var(--c-cyan-soft);border-color:var(--c-cyan)">woman</span>
+                <span class="af-cell" style="min-width:118px;font-size:18px;color:var(--ink);background:var(--c-cyan-soft);border-color:var(--c-cyan)">prince</span>
+                <span class="af-cell" style="min-width:118px;font-size:18px;color:var(--ink);background:var(--c-cyan-soft);border-color:var(--c-cyan)">throne</span>
+                <span class="af-cell" style="min-width:118px;font-size:18px;color:var(--ink);background:var(--c-cyan-soft);border-color:var(--c-cyan)">cat</span>
+                <span class="af-cell" style="min-width:118px;font-size:18px;color:var(--ink);background:var(--c-cyan-soft);border-color:var(--c-cyan)">computer</span>
+              </div>
+              <!-- input · one-hot (king lit): 8×1 -->
+              <div class="af-node af-matrix" id="af-oh" data-role="input" data-from="0" data-focus="0..1" style="left:23%;top:50%;--cols:1">
+                <span class="af-cell" style="outline:3px solid var(--c-amber);outline-offset:1px">1</span>
+                <span class="af-cell">0</span><span class="af-cell">0</span><span class="af-cell">0</span>
+                <span class="af-cell">0</span><span class="af-cell">0</span><span class="af-cell">0</span><span class="af-cell">0</span>
+              </div>
+              <!-- W · embedding matrix = lookup table: 8×4, king's row 0 highlighted -->
+              <div class="af-node af-matrix" id="af-w" data-role="weight" data-from="1" data-focus="1..2" style="left:44%;top:50%;--cols:4">
+                <span class="af-cell is-rowhi">.485</span><span class="af-cell is-rowhi">.660</span><span class="af-cell is-rowhi">-.573</span><span class="af-cell is-rowhi">-.022</span>
+                <span class="af-cell">.168</span><span class="af-cell">.809</span><span class="af-cell">-.561</span><span class="af-cell">-.046</span>
+                <span class="af-cell">-.144</span><span class="af-cell">.655</span><span class="af-cell">-.262</span><span class="af-cell">-.694</span>
+                <span class="af-cell">-.178</span><span class="af-cell">.637</span><span class="af-cell">-.572</span><span class="af-cell">-.486</span>
+                <span class="af-cell">.537</span><span class="af-cell">.790</span><span class="af-cell">-.289</span><span class="af-cell">.057</span>
+                <span class="af-cell">.493</span><span class="af-cell">.784</span><span class="af-cell">-.174</span><span class="af-cell">-.335</span>
+                <span class="af-cell">.525</span><span class="af-cell">-.581</span><span class="af-cell">-.622</span><span class="af-cell">-.018</span>
+                <span class="af-cell">.036</span><span class="af-cell">-.375</span><span class="af-cell">.824</span><span class="af-cell">.422</span>
+              </div>
+              <!-- hidden = the looked-up row (king): 1×4 -->
+              <div class="af-node af-matrix" id="af-h" data-role="value" data-from="2" data-focus="2..3" style="left:68%;top:50%;--cols:4">
+                <span class="af-cell">.485</span><span class="af-cell">.660</span><span class="af-cell">-.573</span><span class="af-cell">-.022</span>
+              </div>
+              <!-- logits · score per vocab word: 8×1. Inline fill lifts these neutral
+                   cells clear of the canvas (the af-cell≈background WARN) on both themes. -->
+              <div class="af-node af-matrix" id="af-z" data-role="score" data-from="3" data-focus="3" style="left:83%;top:50%;--cols:1">
+                <span class="af-cell" style="background:var(--c-red-soft,#F8DAD0);border-color:var(--c-red);color:var(--ink)">1.00</span>
+                <span class="af-cell" style="background:var(--c-red-soft,#F8DAD0);border-color:var(--c-red);color:var(--ink)">.938</span>
+                <span class="af-cell" style="background:var(--c-red-soft,#F8DAD0);border-color:var(--c-red);color:var(--ink)">.528</span>
+                <span class="af-cell" style="background:var(--c-red-soft,#F8DAD0);border-color:var(--c-red);color:var(--ink)">.672</span>
+                <span class="af-cell" style="background:var(--c-red-soft,#F8DAD0);border-color:var(--c-red);color:var(--ink)">.947</span>
+                <span class="af-cell" style="background:var(--c-red-soft,#F8DAD0);border-color:var(--c-red);color:var(--ink)">.864</span>
+                <span class="af-cell" style="background:var(--c-red-soft,#F8DAD0);border-color:var(--c-red);color:var(--ink)">.228</span>
+                <span class="af-cell" style="background:var(--c-red-soft,#F8DAD0);border-color:var(--c-red);color:var(--ink)">-.712</span>
+              </div>
+              <!-- softmax · context distribution (Σ=1): 8×1, vocab order king/queen/man/woman/prince/…
+                   Row 0 = king = the CENTRE word: its .174 is the largest softmax cell, but the centre
+                   word is EXCLUDED from context prediction, so it is greyed + struck (not a candidate).
+                   The highlighted top CONTEXT word is therefore prince (.165) — matching the caption. -->
+              <div class="af-node af-matrix" id="af-p" data-role="output" data-from="4" data-focus="4" style="left:95%;top:50%;--cols:1">
+                <span class="af-cell" style="border-color:var(--rule-strong);border-style:dashed;color:var(--ink-3);text-decoration:line-through;opacity:0.55;font-weight:400" title="centre word — excluded from context">.174</span><span class="af-cell">.164</span><span class="af-cell">.109</span><span class="af-cell">.125</span>
+                <span class="af-cell is-rowhi">.165</span><span class="af-cell">.152</span><span class="af-cell">.080</span><span class="af-cell">.031</span>
+              </div>
+
+              <div class="af-focus"></div>
+            </div>
+
+            <div class="af-panel">
+              <div class="af-note is-current" data-step="0" data-label="overview">
+                <div class="af-formula">$$P(c\mid w)=\mathrm{softmax}\big(W^{\top}\,(W^{\top}\mathbf{e}_w)\big)$$</div>
+                <p><span lang="ru">Начинаем со словаря из 8 слов и one-hot центрального слова <code>king</code>. Сеть собирается по одному блоку за шаг — жмите <kbd>&rarr;</kbd>.</span><span lang="en">We start with the 8-word vocabulary and the one-hot for the centre word <code>king</code>. The network assembles one block per step — press <kbd>&rarr;</kbd>.</span></p>
+              </div>
+              <div class="af-note" data-step="1" data-label="weights">
+                <div class="af-note-head"><span lang="ru">Появляется \(W\)</span><span lang="en">The matrix \(W\) appears</span></div>
+                <div class="af-formula">$$W\in\mathbb{R}^{8\times 4}$$</div>
+                <p><span lang="ru">Каждая строка \(W\) — это вектор одного слова. one-hot <code>king</code> в позиции 0 указывает на строку <code>king</code> (подсвечена).</span><span lang="en">Each row of \(W\) is one word&rsquo;s vector. The one-hot <code>king</code> at position 0 points at the <code>king</code> row (highlighted).</span></p>
+              </div>
+              <div class="af-note" data-step="2" data-label="lookup">
+                <div class="af-note-head"><span lang="ru">\(W\) = таблица поиска</span><span lang="en">\(W\) = the lookup table</span></div>
+                <div class="af-formula">$$W^{\top}\mathbf{e}_{\texttt{king}} = W_{[\texttt{king}]}$$</div>
+                <p><span lang="ru">Умножить one-hot на \(W\) — значит просто <strong>выбрать строку</strong>. Эта строка \([.485,.660,-.573,-.022]\) <strong>и есть</strong> вектор слова.</span><span lang="en">Multiplying a one-hot by \(W\) just <strong>selects a row</strong>. That row \([.485,.660,-.573,-.022]\) <strong>is</strong> the word&rsquo;s vector.</span></p>
+              </div>
+              <div class="af-note" data-step="3" data-label="logits">
+                <div class="af-note-head"><span lang="ru">Проекция &rarr; logits</span><span lang="en">Projection &rarr; logits</span></div>
+                <div class="af-formula">$$z_j = W_{[j]}\cdot h\quad(j=1\ldots 8)$$</div>
+                <p><span lang="ru">Скалярное произведение скрытого вектора с каждой строкой \(W\) (веса связаны) даёт 8 оценок.</span><span lang="en">The hidden vector dotted with each row of \(W\) (tied weights) gives 8 scores, one per vocab word.</span></p>
+              </div>
+              <div class="af-note" data-step="4" data-label="softmax">
+                <div class="af-note-head">softmax</div>
+                <div class="af-formula">$$p_j=\frac{e^{z_j}}{\sum_k e^{z_k}},\quad \textstyle\sum p_j=1$$</div>
+                <p><span lang="ru">Распределение по контексту: центр <code>king</code> (\(.174\)) исключён, поэтому топ-<strong>контекст</strong> — <code>prince</code> (\(.165\)), затем <code>queen</code> (\(.164\)). Сумма \(=1\).</span><span lang="en">A distribution over context: the centre word <code>king</code> (\(.174\)) is excluded, so the top <strong>context</strong> word is <code>prince</code> (\(.165\)), then <code>queen</code> (\(.164\)). They sum to \(1\).</span></p>
+              </div>
+            </div>
+          </div>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">0/4</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">The skip-gram network drawn as a forward pass, the same figure as the book widget, but built up one block per step so the pipeline grows rather than appearing all at once. Step zero shows only the vocabulary — the eight real words king, queen, man, woman, prince, throne, cat, computer — beside the one-hot column, with king lit. Step one, the embedding matrix W appears with king's row highlighted — a single one at position zero selects exactly that row. Step two is the punchline: multiplying that one-hot by W just selects a row, so the embedding matrix literally is the lookup table, and king's row, point four eight five, point six six, minus point five seven three, minus point zero two two, is the word's vector. Step three, the tied output projection dots that hidden vector with every row of W to produce eight logits. Step four, softmax turns them into a context distribution summing to one. The largest cell, point one seven four, is king itself — the centre word — which is excluded from context prediction, so it is greyed and struck through; the top context word is therefore prince at point one six five, with queen just behind at point one six four. Every number comes straight from the L5 skip-gram file.</aside>
+        </section>
+
+        <!-- ============================================ BEAT 4 + 5 · turn-analogy + climb-analogy ============================================ -->
+        <!-- ============================================ 19 · DIVIDER · analogy ============================================ -->
+        

@@ -1,0 +1,39 @@
+<section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="61 Levenshtein">
+          <div class="slide-header">
+            <h2>Edit distance: HONDA × HYUNDAI</h2>
+            <span class="slide-kicker">E2E · Levenshtein DP</span>
+          </div>
+          <div class="e2e-arch">
+            <div class="e2e-arch-block" data-role="project" data-step-range="1" data-tooltip="Three operations: insert, delete, substitute."><div class="arch-name">ops</div><div class="arch-shape">ins/del/sub</div></div>
+            <div class="e2e-arch-arrow" data-step-range="1..2"></div>
+            <div class="e2e-arch-block" data-role="reduce" data-step-range="2" data-tooltip="Fill the DP matrix from corner."><div class="arch-name">DP fill</div><div class="arch-shape">min of 3</div></div>
+            <div class="e2e-arch-arrow" data-step-range="2..3"></div>
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="3" data-tooltip="Bottom-right cell = answer."><div class="arch-name">answer</div><div class="arch-shape">= 3</div></div>
+            <div class="e2e-arch-legend"><span class="leg" data-role="project">ops</span><span class="leg" data-role="reduce">fill</span><span class="leg" data-role="nonlinear">read</span></div>
+          </div>
+          <div class="e2e-twin">
+            <div class="e2e-panel e2e-math-panel">
+              <div class="panel-head">Recurrence</div>
+              <div class="e2e-step" data-step="0"><div class="step-formula">$$D[i,j]=\min\begin{cases}D[i\!-\!1,j]+1\\ D[i,j\!-\!1]+1\\ D[i\!-\!1,j\!-\!1]+\mathbb{1}[s_i\neq t_j]\end{cases}$$</div><p class="step-caption">Delete, insert, or substitute (free if the characters match).</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-formula">$$s=\texttt{HONDA},\quad t=\texttt{HYUNDAI}$$</div><p class="step-caption">Both share the leading <code>H</code> and the medial <code>N</code>, <code>D</code>, <code>A</code>.</p></div>
+              <div class="e2e-step" data-step="2"><div class="step-formula">$$\text{fill the }6\times 8\text{ grid}$$</div><p class="step-caption">Each cell is the min of its three neighbours, per the recurrence.</p></div>
+              <div class="e2e-step" data-step="3"><div class="step-formula">$$D[\,|s|,|t|\,] = 3$$</div><p class="step-caption">One alignment: insert <code>Y</code>, insert <code>U</code>, insert <code>I</code> — 3 edits.</p></div>
+            </div>
+            <div class="e2e-panel e2e-example-panel">
+              <div class="panel-head">Alignment</div>
+              <div class="e2e-step" data-step="0"><p class="step-caption">↓ Trace the cheapest path.</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label"><code>H _ _ O N D A _</code></span></div><div class="step-calc-row"><span class="matrix-label"><code>H Y U N D A &nbsp; I</code></span></div></div>
+              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label">insert <code>Y</code>, insert <code>U</code> … insert <code>I</code></span></div></div>
+              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label is-highlight">edit distance = 3</span></div><p class="step-caption tiny">Used for spell-check &amp; fuzzy matching.</p></div>
+            </div>
+          </div>
+          <div class="e2e-stepper">
+            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">←</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 3</span></div><button type="button" class="step-btn" data-step-act="next">→</button></div>
+            <span class="e2e-stage-name">overview</span>
+            <button type="button" class="e2e-toggle">Theory only</button>
+          </div>
+          <aside class="slide-notes">Ported from Lecture 1. Levenshtein is a true metric on strings via dynamic programming, O(nm). HONDA → HYUNDAI shares H...NDA; you need to insert Y, U, and I → 3 edits. (Equivalently: align HONDA to HYUNDA with two insertions, then append I.) Great for spell-check and fuzzy matching, but O(nm) makes it unsuitable for long documents — there you shingle and use MinHash instead. If a student wants the grid, the bottom-right cell of the 6×8 DP table is 3.</aside>
+        </section>
+
+        <!-- ============================================ 59 · TWO-COL · sparse vs dense ============================================ -->
+        

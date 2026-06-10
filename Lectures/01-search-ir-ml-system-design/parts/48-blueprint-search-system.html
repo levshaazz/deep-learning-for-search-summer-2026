@@ -1,0 +1,101 @@
+<section class="slide" data-type="archflow" data-max-step="5" data-current-step="0" data-screen-label="48 Blueprint · Search system">
+          <div class="slide-header">
+            <h2>A production search system: offline ↔ online</h2>
+            <span class="slide-kicker">Archflow · system blueprint</span>
+          </div>
+
+          <!-- auto-legend (engine fills role swatches + sync/async from the diagram) -->
+          <div class="af-legend af-legend-bar" data-auto></div>
+
+          <div class="af-stage">
+            <div class="af-canvas af-blueprint" data-layout="grid" data-routing="orthogonal">
+              <!-- swim-lanes (data-lane → also the grid bands for auto-layout) -->
+              <div class="af-lane" data-lane="offline" data-role="offline" data-from="1" style="left:1%;top:9%;width:98%;height:34%">
+                <div class="af-lane-label">offline · indexing &amp; training</div>
+              </div>
+              <div class="af-lane" data-lane="online" data-role="online" data-from="3" style="left:1%;top:60%;width:98%;height:36%">
+                <div class="af-lane-label">online · serving</div>
+              </div>
+              <!-- group container nested in the offline lane -->
+              <div class="af-group" data-from="1" style="left:50%;top:11%;width:47%;height:30%">
+                <div class="af-group-label">model lifecycle</div>
+              </div>
+
+              <!-- EDGES (declarative; labeled + typed) -->
+              <div class="af-edge" data-from-node="af-logs" data-to-node="af-fpipe" data-from="1" data-from-anchor="right" data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-fpipe" data-to-node="af-train" data-from="1" data-from-anchor="right" data-to-anchor="left" data-label="training data"></div>
+              <div class="af-edge" data-from-node="af-train" data-to-node="af-registry" data-from="1" data-from-anchor="right" data-to-anchor="left" data-label="ranker"></div>
+              <div class="af-edge" data-from-node="af-fpipe" data-to-node="af-fs" data-from="2" data-from-anchor="bottom" data-to-anchor="top" data-kind="async" data-label="batch write"></div>
+              <div class="af-edge" data-from-node="af-req" data-to-node="af-retr" data-from="3" data-from-anchor="right" data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-retr" data-to-node="af-rank" data-from="3" data-from-anchor="right" data-to-anchor="left" data-label="~1000"></div>
+              <div class="af-edge" data-from-node="af-rank" data-to-node="af-rerank" data-from="3" data-from-anchor="right" data-to-anchor="left" data-label="~100"></div>
+              <div class="af-edge" data-from-node="af-rerank" data-to-node="af-resp" data-from="3" data-from-anchor="right" data-to-anchor="left" data-label="~10"></div>
+              <div class="af-edge" data-from-node="af-fs" data-to-node="af-retr" data-from="3" data-label="features · low-latency read"></div>
+              <div class="af-edge" data-from-node="af-fs" data-to-node="af-rank" data-from="3"></div>
+              <div class="af-edge" data-from-node="af-registry" data-to-node="af-rank" data-from="4" data-from-anchor="bottom" data-to-anchor="top" data-label="deploy"></div>
+              <!-- feedback (back-edges): NO data-route — the engine AUTO-detects
+                   them (target far upstream) and routes around the perimeter on
+                   separate nested tracks so the two parallel loops don't overlap. -->
+              <div class="af-edge" data-from-node="af-resp"   data-to-node="af-logs" data-from="5" data-kind="async" data-label="clicks"></div>
+              <div class="af-edge" data-from-node="af-rerank" data-to-node="af-logs" data-from="5" data-kind="async" data-label="served list"></div>
+
+              <!-- OFFLINE nodes — auto-placed on the grid (data-lane + data-col) -->
+              <div class="af-node" id="af-logs"     data-role="source"   data-from="1" data-lane="offline" data-col="1">Query &amp;<br>click logs</div>
+              <div class="af-node" id="af-fpipe"    data-role="pipeline" data-from="1" data-lane="offline" data-col="2">Feature &amp;<br>index pipeline</div>
+              <div class="af-node" id="af-train"    data-role="pipeline" data-from="1" data-focus="1" data-lane="offline" data-col="4">Training<br>(ranker)</div>
+              <div class="af-node" id="af-registry" data-role="store"    data-from="1" data-focus="4" data-lane="offline" data-col="5">Model<br>registry</div>
+
+              <!-- FEATURE / INDEX STORE bridge — explicit position (no data-lane → not on the grid) -->
+              <div class="af-node" id="af-fs" data-role="store" data-from="2" data-focus="2" style="left:43%;top:50%">Feature /<br>Index Store</div>
+
+              <!-- ONLINE nodes — auto-placed on the grid -->
+              <div class="af-node" id="af-req"    data-role="external" data-from="3" data-lane="online" data-col="1">Query</div>
+              <div class="af-node" id="af-retr"   data-role="serving"  data-from="3" data-lane="online" data-col="2">Retrieval</div>
+              <div class="af-node" id="af-rank"   data-role="serving"  data-from="3" data-focus="3" data-lane="online" data-col="3">Ranking</div>
+              <div class="af-node" id="af-rerank" data-role="serving"  data-from="3" data-lane="online" data-col="4">Re-rank</div>
+              <div class="af-node" id="af-resp"   data-role="external" data-from="3" data-focus="5" data-lane="online" data-col="5">Results</div>
+
+              <div class="af-focus"></div>
+            </div>
+
+            <div class="af-panel">
+              <div class="af-note is-current" data-step="0" data-label="overview">
+                <div class="af-note-head">Two worlds</div>
+                <p>A production search system = <strong>offline</strong> (index &amp; train) + <strong>online</strong> (serve), linked by a Feature / Index Store and a feedback loop. Press <kbd>→</kbd>.</p>
+              </div>
+              <div class="af-note" data-step="1" data-label="offline">
+                <div class="af-note-head">Offline (batch)</div>
+                <p>Query &amp; click logs → feature &amp; index pipeline → train the ranker → model registry. Runs on a schedule, off the request path.</p>
+              </div>
+              <div class="af-note" data-step="2" data-label="store">
+                <div class="af-note-head">Feature / Index Store</div>
+                <p>The bridge: offline <strong>writes</strong> the index and features in batch; online <strong>reads</strong> them at low latency. One source of truth kills train/serving skew.</p>
+              </div>
+              <div class="af-note" data-step="3" data-label="online">
+                <div class="af-note-head">Online (per request)</div>
+                <p>The cascade: retrieval → ranking → re-rank, narrowing <strong>~1000 → 100 → 10</strong>; features and the index are read from the store in real time.</p>
+              </div>
+              <div class="af-note" data-step="4" data-label="deploy">
+                <div class="af-note-head">Model deploy</div>
+                <p>The trained ranker rolls out from the registry into serving: shadow → canary → full.</p>
+              </div>
+              <div class="af-note" data-step="5" data-label="flywheel">
+                <div class="af-note-head">The data flywheel</div>
+                <p>Clicks and served lists are logged <em>asynchronously</em> → flow back into the logs → next training cycle. The system improves itself.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">←</button>
+            <span class="step-counter">0/5</span>
+            <button data-step-act="next" aria-label="Next step">→</button>
+          </div>
+
+          <aside class="slide-notes">The flagship slide — the whole course on one canvas. This is the search version of the production blueprint: two swim-lanes (offline indexing/training vs online serving), the Feature/Index Store as the bridge (the fix for the train/serve skew we just defined), the retrieval→rank→re-rank cascade in the online lane, model deploy from the registry, and the async feedback loop (clicks logged back = the data flywheel from two slides ago). Step through 0→5. Every box becomes a future lecture; the back-edges are routed automatically around the perimeter.</aside>
+        </section>
+
+        <!-- ============================================
+             48 · SEQUENCE · online request path + latency budget
+             ============================================ -->
+        

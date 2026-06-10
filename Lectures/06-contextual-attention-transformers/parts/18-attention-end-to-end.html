@@ -1,0 +1,345 @@
+<section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="18 Attention end to end">
+          <div class="slide-header">
+            <h2><span lang="ru">Attention целиком, по строке «cat»</span><span lang="en">Attention end to end, the &ldquo;cat&rdquo; row</span></h2>
+            <span class="slide-kicker">E2E &middot; <span lang="ru">скоры &rarr; масштаб &rarr; softmax &rarr; \(\cdot V\)</span><span lang="en">scores &rarr; scale &rarr; softmax &rarr; \(\cdot V\)</span></span>
+          </div>
+          <div class="e2e-arch">
+            <div class="e2e-arch-block" data-role="project" data-step-range="0..1" data-tooltip="Dot the query with every key."><div class="arch-name"><span lang="ru">скоры</span><span lang="en">scores</span></div><div class="arch-shape">\(QK^{\top}\)</div></div>
+            <div class="e2e-arch-arrow" data-step-range="1..2"></div>
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="2" data-tooltip="Divide by root d_k = 2.0, then row-softmax."><div class="arch-name"><span lang="ru">веса</span><span lang="en">weights</span></div><div class="arch-shape">\(/\sqrt{d_k}\), softmax</div></div>
+            <div class="e2e-arch-arrow" data-step-range="2..3"></div>
+            <div class="e2e-arch-block" data-role="reduce" data-step-range="3" data-tooltip="Weighted sum of the value rows."><div class="arch-name"><span lang="ru">выход</span><span lang="en">output</span></div><div class="arch-shape">\(\cdot V\)</div></div>
+            <div class="e2e-arch-legend"><span class="leg" data-role="project"><span lang="ru">скоры</span><span lang="en">scores</span></span><span class="leg" data-role="nonlinear"><span lang="ru">веса</span><span lang="en">weights</span></span><span class="leg" data-role="reduce"><span lang="ru">выход</span><span lang="en">output</span></span></div>
+          </div>
+          <div class="e2e-twin">
+            <div class="e2e-panel e2e-math-panel">
+              <div class="panel-head"><span lang="ru">Правило</span><span lang="en">Rule applied</span></div>
+              <div class="e2e-step" data-step="0"><div class="step-formula">$$Q_{\texttt{cat}} = [0,\,2,\,0,\,1]$$</div><p class="step-caption"><span lang="ru">Берём строку запроса для <code>cat</code>.</span><span lang="en">Take the query row for <code>cat</code>.</span></p></div>
+              <div class="e2e-step" data-step="1"><div class="step-formula">$$Q_{\texttt{cat}}K^{\top} = [\,0,\,4,\,2\,]$$</div><p class="step-caption"><span lang="ru">Скоры с ключами <code>the</code>,<code>cat</code>,<code>sat</code>.</span><span lang="en">Scores against keys <code>the</code>,<code>cat</code>,<code>sat</code>.</span></p></div>
+              <div class="e2e-step" data-step="2"><div class="step-formula">$$\tfrac{[0,4,2]}{2.0}=[0,2,1]\ \xrightarrow{\mathrm{softmax}}\ [0.09,\,0.665,\,0.245]$$</div><p class="step-caption"><span lang="ru">Делим на \(\sqrt{d_k}=2.0\), затем softmax — веса, \(\sum=1\).</span><span lang="en">Divide by \(\sqrt{d_k}=2.0\), then softmax — weights, \(\sum=1\).</span></p></div>
+              <div class="e2e-step" data-step="3"><div class="step-formula">$$\sum_j A_{\texttt{cat},j}\,V_j = [\,0.579,\,1.996,\,0.91,\,0.425\,]$$</div><p class="step-caption"><strong><span lang="ru">Выход для <code>cat</code> — взвешенная сумма значений.</span><span lang="en">The <code>cat</code> output — a weighted sum of values.</span></strong></p></div>
+            </div>
+            <div class="e2e-panel e2e-example-panel">
+              <div class="panel-head"><span lang="ru">Числа</span><span lang="en">The numbers</span></div>
+              <div class="e2e-step" data-step="0"><div class="step-calc-row"><span class="matrix-label"><code>cat queries the / cat / sat</code></span></div></div>
+              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label"><code>scores = [0, 4, 2]</code></span></div></div>
+              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label"><code>weights = [0.09, 0.665, 0.245]</code></span></div><p class="step-caption tiny"><span lang="ru"><code>cat</code> слушает в основном себя (0.665).</span><span lang="en"><code>cat</code> mostly heeds itself (0.665).</span></p></div>
+              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label"><code>out = [0.579, 1.996, 0.91, 0.425]</code></span></div><p class="step-caption tiny"><span lang="ru">контекстный вектор <code>cat</code>.</span><span lang="en">the contextual <code>cat</code> vector.</span></p></div>
+            </div>
+          </div>
+          <div class="e2e-stepper">
+            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">&larr;</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 3</span></div><button type="button" class="step-btn" data-step-act="next">&rarr;</button></div>
+            <span class="e2e-stage-name">overview</span>
+            <button type="button" class="e2e-toggle">Theory only</button>
+          </div>
+          <aside class="slide-notes">The flagship attention climb, one row at a time, all exact. Step zero: take cat's query, zero two zero one. Step one: dot it with the three keys to get the score row zero, four, two. Step two: divide by root d k, which is two, giving zero, two, one, then apply softmax to get the weights zero point zero nine, zero point six six five, zero point two four five — note they sum to one, and cat puts most of its weight, zero point six six five, on itself. Step three: take the weighted sum of the three value rows using those weights, and you land on cat's output vector, zero point five seven nine, one point nine nine six, zero point nine one, zero point four two five. That output is cat's new, context-aware representation — every number straight from the data file.</aside>
+        </section>
+
+        <!-- ============================================ 18b · ARCHFLOW · Scaled-Dot-Product Attention, the FULL matrix computation in the #37 step-by-step style ============================================ -->
+        <section class="slide afsdpa-slide" data-type="archflow" data-max-step="6" data-current-step="0" data-screen-label="19 Archflow · scaled dot-product attention">
+          <style>
+            /* DISTINCT ROLE COLOURS — the global archflow.css *-soft palette is near-white and the
+               SDPA roles collide there (key≈value, score≈output). Saturated tints in this scoped
+               <style> only (CSS background:/border-color: in a style block is NOT a semantic SVG
+               attribute, so it is off the contract scan; the double-paint detector only flags
+               coloured strokes on SVG <text>, of which there are none here). Every pairwise ΔE > 20.
+                 Q = teal-green   Kᵀ = blue(accent)   QKᵀ scores = cyan   ÷√dₖ scaled = amber
+                 softmax weights = pink   V = violet   output = bright leaf-green (≠ Q, ΔE>20)   */
+            .afsdpa-slide .af-node { color: #14181F; font-weight: 600; }
+            .afsdpa-slide .af-node[data-role="query"]  { background: #5fae9e; border-color: var(--c-green);  }
+            .afsdpa-slide .af-node[data-role="key"]    { background: #77a3e8; border-color: var(--accent);   }
+            .afsdpa-slide .af-node[data-role="score"]  { background: #6cc7d0; border-color: var(--c-cyan);   }
+            .afsdpa-slide .af-node[data-role="input"]  { background: #ebc779; border-color: var(--c-amber);  }
+            .afsdpa-slide .af-node[data-role="weight"] { background: #dc87aa; border-color: var(--c-pink);   }
+            .afsdpa-slide .af-node[data-role="value"]  { background: #ac96c6; border-color: var(--c-violet); }
+            .afsdpa-slide .af-node[data-role="output"] { background: #9ccf6e; border-color: var(--c-green); font-weight: 700; }
+            :root[data-theme="dark"] .afsdpa-slide .af-node[data-role="query"]  { background: #4FB39A; border-color: #2E7D6A; }
+            :root[data-theme="dark"] .afsdpa-slide .af-node[data-role="key"]    { background: #6FA8FF; border-color: #2A6FDB; }
+            :root[data-theme="dark"] .afsdpa-slide .af-node[data-role="score"]  { background: #5DD3DE; border-color: #1AA7B5; }
+            :root[data-theme="dark"] .afsdpa-slide .af-node[data-role="input"]  { background: #F4C975; border-color: #C8901E; }
+            :root[data-theme="dark"] .afsdpa-slide .af-node[data-role="weight"] { background: #E879A8; border-color: #C9447A; }
+            :root[data-theme="dark"] .afsdpa-slide .af-node[data-role="value"]  { background: #B89BE0; border-color: #7D5BA6; }
+            :root[data-theme="dark"] .afsdpa-slide .af-node[data-role="output"] { background: #A6D86B; border-color: #6FA83A; }
+            /* matrix cells inherit the node tint but sit on a slightly lighter ground for legibility */
+            .afsdpa-slide .af-matrix .af-cell { background: rgba(255,255,255,0.55); color: #14181F; font-weight: 700; min-width: 30px; }
+            :root[data-theme="dark"] .afsdpa-slide .af-matrix .af-cell { background: rgba(255,255,255,0.30); color: #0E1116; }
+            .afsdpa-slide .af-mlabel { font-family: var(--font-mono); font-weight: 800; font-size: 17px; display: block; margin-bottom: 3px; color: #14181F; }
+            :root[data-theme="dark"] .afsdpa-slide .af-mlabel { color: #0E1116; }
+            .afsdpa-slide .af-edge-label { font-family: var(--font-mono); font-weight: 700; }
+          </style>
+          <div class="slide-header">
+            <h2><span lang="ru">Scaled dot-product attention, по шагам</span><span lang="en">Scaled dot-product attention, step by step</span></h2>
+            <span class="slide-kicker">Archflow · <span lang="ru">scores &rarr; scale &rarr; softmax &rarr; &middot;V, все матрицы точно</span><span lang="en">scores &rarr; scale &rarr; softmax &rarr; &middot;V, every matrix exact</span></span>
+          </div>
+          <div class="af-stage">
+            <div class="af-canvas">
+              <!-- EDGES (declarative; the engine routes them). The flow:
+                   Q + Kᵀ → scores → scaled → weights → (·V) → output. -->
+              <div class="af-edge" data-from-node="af-Q"   data-to-node="af-S"   data-from="2" data-from-anchor="right"  data-to-anchor="left"  data-label="&lt;span class='af-fwd'&gt;dot&lt;/span&gt;"></div>
+              <div class="af-edge" data-from-node="af-Kt"  data-to-node="af-S"   data-from="2" data-from-anchor="right"  data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-S"   data-to-node="af-Sc"  data-from="3" data-from-anchor="right"  data-to-anchor="left"  data-label="&lt;span class='af-fwd'&gt;&divide;2&lt;/span&gt;"></div>
+              <div class="af-edge" data-from-node="af-Sc"  data-to-node="af-W"   data-from="4" data-from-anchor="top"    data-to-anchor="left"  data-label="&lt;span class='af-fwd'&gt;softmax&lt;/span&gt;"></div>
+              <div class="af-edge" data-from-node="af-W"   data-to-node="af-O"   data-from="6" data-from-anchor="right"  data-to-anchor="top"   data-label="&lt;span class='af-fwd'&gt;&middot;V&lt;/span&gt;"></div>
+              <div class="af-edge" data-from-node="af-V"   data-to-node="af-O"   data-from="6" data-from-anchor="right"  data-to-anchor="bottom"></div>
+
+              <!-- NODES build one stage per step (data-from grows 0→6). -->
+              <!-- Q (3×4) and Kᵀ (4×3): the inputs, present from step 1. -->
+              <div class="af-node af-matrix" id="af-Q" data-role="query" data-from="1" data-focus="1" style="left:9%;top:24%;--cols:4">
+                <span class="af-mlabel">Q (3&times;4)</span>
+                <span class="af-cell">1</span><span class="af-cell">0</span><span class="af-cell">1</span><span class="af-cell">0</span>
+                <span class="af-cell">0</span><span class="af-cell">2</span><span class="af-cell">0</span><span class="af-cell">1</span>
+                <span class="af-cell">1</span><span class="af-cell">1</span><span class="af-cell">0</span><span class="af-cell">0</span>
+              </div>
+              <div class="af-node af-matrix" id="af-Kt" data-role="key" data-from="1" data-focus="1" style="left:9%;top:74%;--cols:3">
+                <span class="af-mlabel">K&#7488; (4&times;3)</span>
+                <span class="af-cell">1</span><span class="af-cell">0</span><span class="af-cell">2</span>
+                <span class="af-cell">0</span><span class="af-cell">1</span><span class="af-cell">1</span>
+                <span class="af-cell">1</span><span class="af-cell">0</span><span class="af-cell">0</span>
+                <span class="af-cell">0</span><span class="af-cell">2</span><span class="af-cell">0</span>
+              </div>
+              <!-- scores QKᵀ (3×3): step 2 -->
+              <div class="af-node af-matrix" id="af-S" data-role="score" data-from="2" data-focus="2" style="left:31%;top:50%;--cols:3">
+                <span class="af-mlabel">QK&#7488; (3&times;3)</span>
+                <span class="af-cell">2</span><span class="af-cell">0</span><span class="af-cell">2</span>
+                <span class="af-cell">0</span><span class="af-cell">4</span><span class="af-cell">2</span>
+                <span class="af-cell">1</span><span class="af-cell">1</span><span class="af-cell">3</span>
+              </div>
+              <!-- scaled ÷√dₖ (3×3): step 3 -->
+              <div class="af-node af-matrix" id="af-Sc" data-role="input" data-from="3" data-focus="3" style="left:50%;top:50%;--cols:3">
+                <span class="af-mlabel">&divide;&radic;d&#8342; = &divide;2</span>
+                <span class="af-cell">1</span><span class="af-cell">0</span><span class="af-cell">1</span>
+                <span class="af-cell">0</span><span class="af-cell">2</span><span class="af-cell">1</span>
+                <span class="af-cell">.5</span><span class="af-cell">.5</span><span class="af-cell">1.5</span>
+              </div>
+              <!-- softmax weights (3×3): step 4 -->
+              <div class="af-node af-matrix" id="af-W" data-role="weight" data-from="4" data-focus="4..5" style="left:72%;top:23%;--cols:3">
+                <span class="af-mlabel">softmax = A (rows&Sigma;=1)</span>
+                <span class="af-cell">.42</span><span class="af-cell">.16</span><span class="af-cell">.42</span>
+                <span class="af-cell">.09</span><span class="af-cell">.67</span><span class="af-cell">.25</span>
+                <span class="af-cell">.21</span><span class="af-cell">.21</span><span class="af-cell">.58</span>
+              </div>
+              <!-- V (3×4): step 5 -->
+              <div class="af-node af-matrix" id="af-V" data-role="value" data-from="5" data-focus="5" style="left:72%;top:77%;--cols:4">
+                <span class="af-mlabel">V (3&times;4)</span>
+                <span class="af-cell">1</span><span class="af-cell">0</span><span class="af-cell">0</span><span class="af-cell">2</span>
+                <span class="af-cell">0</span><span class="af-cell">3</span><span class="af-cell">1</span><span class="af-cell">0</span>
+                <span class="af-cell">2</span><span class="af-cell">0</span><span class="af-cell">1</span><span class="af-cell">1</span>
+              </div>
+              <!-- output A·V (3×4): step 6 -->
+              <div class="af-node af-matrix" id="af-O" data-role="output" data-from="6" data-focus="6" style="left:93%;top:50%;--cols:4">
+                <span class="af-mlabel">A&middot;V (3&times;4) = out</span>
+                <span class="af-cell">1.27</span><span class="af-cell">.47</span><span class="af-cell">.58</span><span class="af-cell">1.27</span>
+                <span class="af-cell">.58</span><span class="af-cell">2.0</span><span class="af-cell">.91</span><span class="af-cell">.43</span>
+                <span class="af-cell">1.36</span><span class="af-cell">.64</span><span class="af-cell">.79</span><span class="af-cell">1.0</span>
+              </div>
+
+              <div class="af-focus"></div>
+            </div>
+
+            <div class="af-panel">
+              <div class="af-note is-current" data-step="0" data-label="overview">
+                <div class="af-formula">$$\mathrm{Attn}(Q,K,V)=\mathrm{softmax}\!\Big(\tfrac{QK^{\top}}{\sqrt{d_k}}\Big)V$$</div>
+                <p><span lang="ru">Соберём SDPA по шагам, с реальными матрицами (\(d_k=4\)). Жмите <kbd>&rarr;</kbd>.</span><span lang="en">Let&rsquo;s build SDPA step by step, with the real matrices (\(d_k=4\)). Press <kbd>&rarr;</kbd>.</span></p>
+              </div>
+              <div class="af-note" data-step="1" data-label="inputs">
+                <div class="af-note-head"><span lang="ru">Входы \(Q,\;K^{\top}\)</span><span lang="en">Inputs \(Q,\;K^{\top}\)</span></div>
+                <div class="af-formula">$$Q\in\mathbb{R}^{3\times 4},\quad K^{\top}\in\mathbb{R}^{4\times 3}$$</div>
+                <p><span lang="ru">3 токена, \(d_k=4\). \(Q\) — что ищет каждый токен; \(K\) — чем он выделяется.</span><span lang="en">3 tokens, \(d_k=4\). \(Q\) is what each token asks; \(K\) is what it advertises.</span></p>
+              </div>
+              <div class="af-note" data-step="2" data-label="scores">
+                <div class="af-note-head"><span lang="ru">Скоры \(QK^{\top}\)</span><span lang="en">Scores \(QK^{\top}\)</span></div>
+                <div class="af-formula">$$S = QK^{\top}\in\mathbb{R}^{3\times 3}$$</div>
+                <p><span lang="ru">Каждая ячейка — скалярное произведение запроса с ключом. Диагональ <code>cat</code>: \(S_{22}=4\) — самый большой.</span><span lang="en">Each cell is a query&middot;key dot product. The <code>cat</code> diagonal \(S_{22}=4\) is the largest.</span></p>
+              </div>
+              <div class="af-note" data-step="3" data-label="scale">
+                <div class="af-note-head"><span lang="ru">Масштаб \(\div\sqrt{d_k}\)</span><span lang="en">Scale \(\div\sqrt{d_k}\)</span></div>
+                <div class="af-formula">$$\frac{S}{\sqrt{d_k}}=\frac{S}{2}$$</div>
+                <p><span lang="ru">\(\sqrt{d_k}=\sqrt{4}=2\). Делим, чтобы дисперсия скоров не росла с \(d_k\) — иначе softmax насыщается.</span><span lang="en">\(\sqrt{d_k}=\sqrt{4}=2\). Divide so the score variance doesn&rsquo;t grow with \(d_k\) &mdash; otherwise softmax saturates.</span></p>
+              </div>
+              <div class="af-note" data-step="4" data-label="softmax">
+                <div class="af-note-head">softmax</div>
+                <div class="af-formula">$$A=\mathrm{softmax}\big(\tfrac{S}{2}\big),\quad \textstyle\sum_j A_{ij}=1$$</div>
+                <p><span lang="ru">Row-softmax превращает скоры в веса внимания: каждая строка суммируется в 1. Строка <code>cat</code>: \([.09,.67,.25]\).</span><span lang="en">Row-softmax turns scores into attention weights: each row sums to 1. The <code>cat</code> row is \([.09,.67,.25]\).</span></p>
+              </div>
+              <div class="af-note" data-step="5" data-label="values">
+                <div class="af-note-head"><span lang="ru">Значения \(V\)</span><span lang="en">The values \(V\)</span></div>
+                <div class="af-formula">$$V\in\mathbb{R}^{3\times 4}$$</div>
+                <p><span lang="ru">\(V\) — содержимое, которое будем смешивать. Веса \(A\) скажут, сколько каждого взять.</span><span lang="en">\(V\) holds the content to mix. The weights \(A\) say how much of each to take.</span></p>
+              </div>
+              <div class="af-note" data-step="6" data-label="output">
+                <div class="af-note-head"><span lang="ru">Выход \(A\cdot V\)</span><span lang="en">Output \(A\cdot V\)</span></div>
+                <div class="af-formula">$$\mathrm{out}=A\,V\in\mathbb{R}^{3\times 4}$$</div>
+                <p><span lang="ru">Каждая строка выхода — взвешенная сумма строк \(V\). Строка <code>cat</code>: \([0.58,2.0,0.91,0.43]\) — её контекстный вектор.</span><span lang="en">Each output row is a weighted sum of \(V\) rows. The <code>cat</code> row is \([0.58,2.0,0.91,0.43]\) &mdash; its contextual vector.</span></p>
+              </div>
+            </div>
+          </div>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">0/6</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">The mechanical companion to the geometric pull — scaled dot-product attention assembled one matrix at a time, in the same archflow style as the Transformer-block slide, every number exact from the data file. Step zero, the wrapper formula: softmax of Q K-transpose over root d-k, times V. Step one, the inputs — Q is three-by-four, K-transpose is four-by-three, with d-k equal to four. Step two, multiply to get the three-by-three score matrix Q K-transpose; the cat-on-cat diagonal entry, four, is the largest. Step three, divide every score by root d-k, which is two, so the variance does not blow up with dimension. Step four, row-softmax turns each row into attention weights that sum to one — the cat row is point-zero-nine, point-six-seven, point-two-five. Step five, bring in the value matrix V, the content to be mixed. Step six, multiply the weights by V to get the three-by-four output; each row is a weighted sum of value rows, and the cat row, point-five-eight, two, point-nine-one, point-four-three, is cat's contextual vector — exactly the row the next slide draws as a geometric pull.</aside>
+        </section>
+
+        <!-- ============================================ 19 · VIZ · attention is a geometric pull (native port of attention-geometry) ============================================ -->
+        <section class="slide attg-slide" data-type="viz" data-max-step="5" data-current-step="0" data-screen-label="20 Attention is a geometric pull">
+          <style>
+            /* cumulative reveal driven by data-step (engine fades step > current via .is-step-hidden) */
+            .attg-slide .attg-frame { fill: none; stroke: var(--rule); stroke-width: 1.5; }
+            .attg-slide .attg-dot { stroke: var(--bg-card); stroke-width: 2.5; }
+            .attg-slide .attg-dot-v { fill: var(--c-violet); }
+            .attg-slide .attg-dot-q { fill: var(--accent); }
+            .attg-slide .attg-edge { stroke: var(--accent); fill: none; }
+            .attg-slide .attg-guide { stroke: var(--rule-strong); stroke-width: 1.2; stroke-dasharray: 3 4; }
+            .attg-slide .attg-arrow { stroke: var(--c-amber); stroke-width: 4.5; fill: none; }
+            .attg-slide .attg-blend { fill: var(--c-green); stroke: var(--c-green-ink); stroke-width: 1.5; }
+            /* the right-hand computation panel: each step's worked row SWAPS in (data-arch-step) */
+            .attg-slide svg .attg-calc[data-arch-step] { display: none; }
+            .attg-slide svg .attg-calc[data-arch-step].is-arch-current { display: block; }
+            /* captions SWAP (only the current step's caption shows) — driven by data-arch-step */
+            .attg-slide .attg-cap[data-arch-step] { display: none; }
+            .attg-slide .attg-cap[data-arch-step].is-arch-current { display: block; }
+            /* future SVG steps fully hidden (not the global 0.08 ghost) so the dense plane stays clean.
+               text carries its own fill + stroke:none so the global highlight rule can't double-paint it. */
+            .attg-slide svg [data-step].is-step-hidden { display: none; }
+            .attg-slide svg text { stroke: none; paint-order: fill; }
+          </style>
+          <div class="slide-header">
+            <h2><span lang="ru">Внимание — это геометрическое притяжение</span><span lang="en">Attention is a geometric pull</span></h2>
+            <span class="slide-kicker"><span lang="ru">тот же ряд «cat»: значения &rarr; запрос &rarr; веса &rarr; взвешенное среднее &rarr; выход</span><span lang="en">the same &ldquo;cat&rdquo; row: values &rarr; query &rarr; weights &rarr; weighted average &rarr; output</span></span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1600 760" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="Three value points the, cat, sat in a large 2-D plane; the query token cat draws an attention-weighted edge to each, then the weighted average is computed numerically and cat glides to that blended point — which equals cat's attention output row">
+              <defs>
+                <marker id="attgHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c-amber)"/></marker>
+              </defs>
+              <g font-family="var(--font-sans)">
+                <!-- ===== LEFT: the big value plane (fills the slide) ===== -->
+                <rect data-step="0" class="attg-frame" x="180" y="80" width="640" height="540" rx="10"/>
+                <text data-step="0" x="180" y="64" font-size="26" fill="var(--ink-3)" font-family="var(--font-mono)">value space V (2-D projection)</text>
+                <text data-step="0" x="196" y="110" font-size="22" fill="var(--ink-3)" font-family="var(--font-mono)">V &uarr;</text>
+                <text data-step="0" x="806" y="608" font-size="22" fill="var(--ink-3)" text-anchor="end" font-family="var(--font-mono)">V &rarr;</text>
+
+                <!-- STEP 2: the query's attention weights as edges (width proportional to weight) -->
+                <g data-step="2">
+                  <line class="attg-edge" x1="670.8" y1="420.7" x2="249.2" y2="139.3" stroke-width="2.13" stroke-opacity="0.36"/>
+                  <text x="460.0" y="272" font-size="24" fill="var(--accent-ink)" text-anchor="middle" font-weight="700" font-family="var(--font-mono)">.09 &rarr; the</text>
+                  <line class="attg-edge" x1="670.8" y1="420.7" x2="249.2" y2="280.0" stroke-width="3.21" stroke-opacity="0.50"/>
+                  <text x="460.0" y="362" font-size="24" fill="var(--accent-ink)" text-anchor="middle" font-weight="700" font-family="var(--font-mono)">.245 &rarr; sat</text>
+                  <text x="692" y="452" font-size="24" fill="var(--accent-ink)" font-weight="800" font-family="var(--font-mono)">.665 self</text>
+                </g>
+
+                <!-- STEP 3: numeric weighted-average lines from each value to the blend (guides) -->
+                <g data-step="3">
+                  <line class="attg-guide" x1="529.6" y1="360.9" x2="249.2" y2="139.3"/>
+                  <line class="attg-guide" x1="529.6" y1="360.9" x2="670.8" y2="420.7"/>
+                  <line class="attg-guide" x1="529.6" y1="360.9" x2="249.2" y2="280.0"/>
+                </g>
+
+                <!-- STEP 4: amber arrow gliding cat -> weighted average. The arrow STOPS short of the
+                     blend point so its amber head does not collide with the green output diamond. -->
+                <g data-step="4">
+                  <line class="attg-arrow" x1="670.8" y1="420.7" x2="552" y2="376" marker-end="url(#attgHead)"/>
+                </g>
+
+                <!-- the blended point (green diamond) arrives at step 3 with the arithmetic -->
+                <g data-step="3">
+                  <path class="attg-blend" d="M529.6,344.9 L545.6,360.9 L529.6,376.9 L513.6,360.9 Z"/>
+                  <line x1="600" y1="300" x2="540" y2="354" stroke="var(--c-green-ink)" stroke-width="1.2" stroke-dasharray="2 3"/>
+                  <text x="606" y="296" font-size="23" fill="var(--c-green-ink)" text-anchor="start" font-weight="800" font-family="var(--font-mono)">weighted avg</text>
+                </g>
+
+                <!-- STEP 0 points: the three value tokens + query (drawn last so dots sit atop edges) -->
+                <g data-step="0">
+                  <circle class="attg-dot attg-dot-v" cx="249.2" cy="139.3" r="12"/>
+                  <text x="249.2" y="118" font-size="26" fill="var(--c-violet)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">the</text>
+                  <text x="249.2" y="170" font-size="19" fill="var(--c-violet)" text-anchor="middle" font-family="var(--font-mono)">[0, 2]</text>
+                  <circle class="attg-dot attg-dot-v" cx="249.2" cy="280.0" r="12"/>
+                  <text x="174" y="286" font-size="26" fill="var(--c-violet)" font-weight="800" text-anchor="end" font-family="var(--font-mono)">sat</text>
+                  <text x="170" y="310" font-size="19" fill="var(--c-violet)" text-anchor="end" font-family="var(--font-mono)">[0, 1]</text>
+                </g>
+                <!-- query point reveals at step 1 (its own beat) -->
+                <g data-step="1">
+                  <circle class="attg-dot attg-dot-q" cx="670.8" cy="420.7" r="15"/>
+                  <text x="670.8" y="400" font-size="26" fill="var(--accent)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">cat (query)</text>
+                  <text x="670.8" y="456" font-size="19" fill="var(--accent)" text-anchor="middle" font-family="var(--font-mono)">[3, 0]</text>
+                </g>
+
+                <!-- STEP 5: confirm the blend == attention output row -->
+                <g data-step="5">
+                  <rect x="180" y="640" width="640" height="96" rx="10" fill="var(--c-green-soft)" stroke="var(--c-green)" stroke-width="1.4"/>
+                  <text x="200" y="678" font-size="23" fill="var(--ink)" font-family="var(--font-mono)">blend &middot; V (full d) = [0.58, 1.995, 0.91, 0.425]</text>
+                  <text x="200" y="714" font-size="23" fill="var(--c-green-ink)" font-weight="800" font-family="var(--font-mono)">&asymp; attention output row = [0.579, 1.996, 0.91, 0.425]</text>
+                </g>
+
+                <!-- ===== RIGHT: the worked weighted-average computation panel (SWAPS per step) ===== -->
+                <rect data-step="0" x="880" y="80" width="700" height="540" rx="10" fill="var(--bg-inset)" stroke="var(--rule)" stroke-width="1.5"/>
+                <text data-step="0" x="912" y="128" font-size="26" fill="var(--ink-2)" font-weight="800" font-family="var(--font-mono)">the computation</text>
+
+                <g class="attg-calc" data-arch-step="0">
+                  <text x="912" y="200" font-size="24" fill="var(--ink)" font-family="var(--font-mono)">3 value vectors V (projected 4&rarr;2):</text>
+                  <text x="912" y="252" font-size="24" fill="var(--c-violet)" font-weight="700" font-family="var(--font-mono)">the = [0, 2]</text>
+                  <text x="912" y="296" font-size="24" fill="var(--accent)" font-weight="700" font-family="var(--font-mono)">cat = [3, 0]</text>
+                  <text x="912" y="340" font-size="24" fill="var(--c-violet)" font-weight="700" font-family="var(--font-mono)">sat = [0, 1]</text>
+                  <text x="912" y="408" font-size="22" fill="var(--ink-3)" font-family="var(--font-mono)">these are the rows of V we built</text>
+                  <text x="912" y="438" font-size="22" fill="var(--ink-3)" font-family="var(--font-mono)">on the &ldquo;attention end to end&rdquo; slide.</text>
+                </g>
+                <g class="attg-calc" data-arch-step="1">
+                  <text x="912" y="200" font-size="24" fill="var(--ink)" font-family="var(--font-mono)">the query: which value is</text>
+                  <text x="912" y="232" font-size="24" fill="var(--ink)" font-family="var(--font-mono)">cat asking about?</text>
+                  <text x="912" y="304" font-size="26" fill="var(--accent)" font-weight="800" font-family="var(--font-mono)">cat sits at [3, 0]</text>
+                  <text x="912" y="372" font-size="22" fill="var(--ink-3)" font-family="var(--font-mono)">attention will pull this point</text>
+                  <text x="912" y="402" font-size="22" fill="var(--ink-3)" font-family="var(--font-mono)">toward the values it heeds.</text>
+                </g>
+                <g class="attg-calc" data-arch-step="2">
+                  <text x="912" y="196" font-size="24" fill="var(--ink)" font-family="var(--font-mono)">attention weights (cat row),</text>
+                  <text x="912" y="228" font-size="24" fill="var(--ink)" font-family="var(--font-mono)">from softmax &mdash; they sum to 1:</text>
+                  <text x="912" y="296" font-size="26" fill="var(--accent-ink)" font-weight="700" font-family="var(--font-mono)">w(the)=.09  w(cat)=.665</text>
+                  <text x="912" y="334" font-size="26" fill="var(--accent-ink)" font-weight="700" font-family="var(--font-mono)">w(sat)=.245</text>
+                  <text x="912" y="396" font-size="22" fill="var(--ink-3)" font-family="var(--font-mono)">.09 + .665 + .245 = 1.00</text>
+                  <text x="912" y="438" font-size="22" fill="var(--accent-ink)" font-weight="700" font-family="var(--font-mono)">cat heeds itself most (.665).</text>
+                </g>
+                <g class="attg-calc" data-arch-step="3">
+                  <text x="912" y="184" font-size="24" fill="var(--ink)" font-weight="700" font-family="var(--font-mono)">weighted average = &Sigma; w&middot;V:</text>
+                  <text x="912" y="240" font-size="23" fill="var(--ink)" font-family="var(--font-mono)">.09&middot;[0,2]  +  .665&middot;[3,0]</text>
+                  <text x="912" y="276" font-size="23" fill="var(--ink)" font-family="var(--font-mono)">          +  .245&middot;[0,1]</text>
+                  <text x="912" y="332" font-size="23" fill="var(--ink-2)" font-family="var(--font-mono)">= [0,.18] + [1.995,0] + [0,.245]</text>
+                  <text x="912" y="396" font-size="28" fill="var(--c-green-ink)" font-weight="800" font-family="var(--font-mono)">= [1.995, 0.425]</text>
+                  <text x="912" y="444" font-size="22" fill="var(--ink-3)" font-family="var(--font-mono)">the green diamond &mdash; cat&rsquo;s new home.</text>
+                </g>
+                <g class="attg-calc" data-arch-step="4">
+                  <text x="912" y="200" font-size="24" fill="var(--ink)" font-family="var(--font-mono)">cat GLIDES from [3, 0]</text>
+                  <text x="912" y="256" font-size="24" fill="var(--c-amber-ink)" font-weight="800" font-family="var(--font-mono)">&rarr; to [1.995, 0.425]</text>
+                  <text x="912" y="328" font-size="22" fill="var(--ink-2)" font-family="var(--font-mono)">THIS move is the attention</text>
+                  <text x="912" y="360" font-size="22" fill="var(--ink-2)" font-family="var(--font-mono)">operation &mdash; a point pulled to a</text>
+                  <text x="912" y="392" font-size="22" fill="var(--ink-2)" font-family="var(--font-mono)">weighted centroid, not a pile of</text>
+                  <text x="912" y="424" font-size="22" fill="var(--ink-2)" font-family="var(--font-mono)">&ldquo;QKV numbers&rdquo;.</text>
+                </g>
+                <g class="attg-calc" data-arch-step="5">
+                  <text x="912" y="200" font-size="24" fill="var(--ink)" font-family="var(--font-mono)">in full dimension (d=4) the same</text>
+                  <text x="912" y="232" font-size="24" fill="var(--ink)" font-family="var(--font-mono)">&Sigma; w&middot;V gives cat&rsquo;s output row:</text>
+                  <text x="912" y="304" font-size="25" fill="var(--c-green-ink)" font-weight="800" font-family="var(--font-mono)">[0.579, 1.996, 0.91, 0.425]</text>
+                  <text x="912" y="376" font-size="22" fill="var(--ink-3)" font-family="var(--font-mono)">the 2-D blend matches the 4-D</text>
+                  <text x="912" y="408" font-size="22" fill="var(--ink-3)" font-family="var(--font-mono)">output to rounding (&asymp;, not =).</text>
+                </g>
+              </g>
+            </svg>
+          </div>
+          <p class="viz-caption">
+            <span class="attg-cap" data-arch-step="0"><span lang="ru">Три значения <code>the</code>/<code>cat</code>/<code>sat</code> как точки в плоскости \(V\): \([0,2]\), \([3,0]\), \([0,1]\).</span><span lang="en">The three values <code>the</code>/<code>cat</code>/<code>sat</code> as points in the \(V\) plane: \([0,2]\), \([3,0]\), \([0,1]\).</span></span>
+            <span class="attg-cap" data-arch-step="1"><span lang="ru"><code>cat</code> — точка-запрос в \([3,0]\): её и будет тянуть внимание.</span><span lang="en"><code>cat</code> is the query point at \([3,0]\): this is the point attention will pull.</span></span>
+            <span class="attg-cap" data-arch-step="2"><span lang="ru">Веса внимания <code>cat</code> — рёбра, толщина \(\propto\) весу: \(.09,.665,.245\) (\(\sum=1\)). <code>cat</code> сильнее всего тянется к себе.</span><span lang="en"><code>cat</code>&rsquo;s attention weights are edges, thickness \(\propto\) weight: \(.09,.665,.245\) (\(\sum=1\)). <code>cat</code> pulls hardest on itself.</span></span>
+            <span class="attg-cap" data-arch-step="3"><span lang="ru">Взвешенное среднее \(\sum_j w_j V_j = [1.995,\,0.425]\) — зелёный ромб, новый дом <code>cat</code>.</span><span lang="en">The weighted average \(\sum_j w_j V_j = [1.995,\,0.425]\) &mdash; the green diamond, <code>cat</code>&rsquo;s new home.</span></span>
+            <span class="attg-cap" data-arch-step="4"><span lang="ru"><code>cat</code> скользит к этому центроиду — <strong>это и есть</strong> операция внимания.</span><span lang="en"><code>cat</code> glides to that centroid &mdash; <strong>that is</strong> the attention operation.</span></span>
+            <span class="attg-cap" data-arch-step="5"><span lang="ru">В полной размерности \(d=4\) то же \(\sum w V\) даёт строку выхода \([0.579,1.996,0.91,0.425]\) (с точностью округления).</span><span lang="en">In full dimension \(d=4\) the same \(\sum w V\) gives the output row \([0.579,1.996,0.91,0.425]\) (to rounding).</span></span>
+          </p>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">0/5</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">The geometric companion to the numeric end-to-end slide, now walked as a full computation. Step zero: plot the three value vectors the at zero-two, cat at three-zero, sat at zero-one as points in a big two-D value plane; the panel on the right lists them. Step one: mark cat as the query point at three-zero — this is the point attention will pull. Step two: draw cat's attention weights as edges, thickness proportional to weight — point-zero-nine to the, point-two-four-five to sat, and the heaviest, point-six-six-five, on itself; they sum to one. Step three: compute the weighted average explicitly — point-zero-nine times zero-two plus point-six-six-five times three-zero plus point-two-four-five times zero-one equals one-point-nine-nine-five, zero-point-four-two-five, the green diamond. Step four: cat glides along the amber arrow to that centroid — THIS move is the attention operation, a point pulled to a weighted centroid, not a pile of QKV numbers. Step five: in full four-dimensional space the same weighted sum gives cat's output row, zero-point-five-seven-nine, one-point-nine-nine-six, zero-point-nine-one, zero-point-four-two-five — equal to the two-D blend up to rounding, which is why we write approximately.</aside>
+        </section>
+
+        <!-- ============================================ 20 · WALKTHROUGH · the full weight matrix ============================================ -->
+        

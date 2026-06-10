@@ -1,0 +1,41 @@
+<section class="slide" data-type="formula" data-screen-label="30 Sinusoidal PE">
+          <div class="slide-header slide-header--flush">
+            <h2><span lang="ru">Синусоидальное позиционное кодирование</span><span lang="en">Sinusoidal positional encoding</span></h2>
+            <span class="slide-kicker"><span lang="ru">фиксированное, не обучаемое</span><span lang="en">fixed, not learned</span></span>
+          </div>
+          <div class="formula-stage">
+            $$ \mathrm{PE}(pos,2i)=\sin\!\left(\frac{pos}{10000^{2i/d}}\right),\qquad \mathrm{PE}(pos,2i+1)=\cos\!\left(\frac{pos}{10000^{2i/d}}\right) $$
+          </div>
+          <div class="formula-caption">
+            <div class="var-block"><div class="var-symbol">\(pos\)</div><div class="var-desc"><strong><span lang="ru">позиция</span><span lang="en">position</span></strong><br /><span lang="ru">индекс токена</span><span lang="en">token index</span></div></div>
+            <div class="var-block"><div class="var-symbol">\(i\)</div><div class="var-desc"><strong><span lang="ru">измерение</span><span lang="en">dimension</span></strong><br /><span lang="ru">пара \(2i,2i{+}1\)</span><span lang="en">pair \(2i,2i{+}1\)</span></div></div>
+            <div class="var-block"><div class="var-symbol">\(10000\)</div><div class="var-desc"><strong><span lang="ru">база</span><span lang="en">base</span></strong><br /><span lang="ru">задаёт длины волн</span><span lang="en">sets wavelengths</span></div></div>
+          </div>
+          <p class="small muted center mt-2"><span lang="ru">Каждое измерение — синусоида своей частоты: чётные индексы — \(\sin\), нечётные — \(\cos\). Низкие измерения колеблются быстро (локальный порядок), высокие — медленно (глобальная позиция). Вектор прибавляется к эмбеддингу токена: \(X' = X + \mathrm{PE}\).</span><span lang="en">Each dimension is a sinusoid of its own frequency: even indices use \(\sin\), odd use \(\cos\). Low dimensions oscillate fast (local order), high dimensions slowly (global position). The vector is added to the token embedding: \(X' = X + \mathrm{PE}\).</span></p>
+          <aside class="slide-notes">The exact positional encoding from the original Transformer. For a token at position pos, dimension number two i gets the sine, and two i plus one gets the cosine, of pos divided by ten thousand to the power two i over d. The effect is that each embedding dimension is a sinusoid with its own wavelength: the lowest dimensions cycle quickly, encoding fine local order, while the highest cycle very slowly, encoding coarse absolute position. A beautiful property falls out — because sine and cosine of a shifted angle are linear combinations of the unshifted ones, the encoding lets the model express relative offsets as linear functions, so it can generalise to relative positions. This vector is simply added to each token's embedding before the first layer.</aside>
+        </section>
+
+        <!-- ============================================ 29 · DEMO · sinusoid frequency sweep (T5: viz → live function-plot) ============================================ -->
+        <section class="slide demo-pe-sweep" data-type="demo" data-screen-label="31 The PE frequency sweep">
+          <div class="slide-header">
+            <h2><span lang="ru">Развёртка частоты: \(\sin(pos/10000^{2i/d})\)</span><span lang="en">Sweeping the frequency: \(\sin(pos/10000^{2i/d})\)</span></h2>
+            <span class="slide-kicker"><span lang="ru">двигайте позицию по быстрой синусоиде измерения \(i=0\) · живьём</span><span lang="en">drag position along dimension \(i=0\)&rsquo;s fast sinusoid · live</span></span>
+          </div>
+          <!-- Declarative live demo — engine js/demos.js (function-plot). The curve is the FASTEST dimension i=0,
+               whose wavelength is 2π ≈ 6.28 positions; the `pos` slider (x0) scrubs the read position over 0..16 and the
+               marker sits at (pos, sin pos). lr & iters pinned to 0 so no trajectory is drawn — just the moving marker.
+               The caption math carries the i-dependence (low i fast, high i slow). No JS needed. -->
+          <interactive-demo kind="function-plot" algorithm="gradient-descent">
+            <function fn="sin(x)" range="0..16"></function>
+            <param name="x0"    label="позиция pos · position" min="0" max="16" step="0.1" default="3"></param>
+            <param name="lr"    label="(fixed) · lr"     min="0" max="0" step="0" default="0"></param>
+            <param name="iters" label="(fixed) · iters"  min="0" max="0" step="0" default="0"></param>
+            <readout name="loss"        label="PE(pos, dim 0)"></readout>
+            <readout name="iters_used"  label="steps"></readout>
+          </interactive-demo>
+          <p class="small muted center mt-2"><span lang="ru">Кривая — <strong>измерение \(i=0\)</strong>, самая быстрая синусоида: длина волны \(2\pi\!\cdot\!10000^{0}=2\pi\approx 6.28\) позиции. Высокое измерение медленнее в \(10000^{2i/d}\) раз: при \(i=3,d=8\) длина волны \(\approx 6283\) — почти плоско. Низкие измерения кодируют <em>локальный порядок</em>, высокие — <em>глобальную позицию</em>; вектор прибавляется к токену \(X' = X + \mathrm{PE}\).</span><span lang="en">The curve is <strong>dimension \(i=0\)</strong>, the fastest sinusoid: wavelength \(2\pi\!\cdot\!10000^{0}=2\pi\approx 6.28\) positions. A high dimension is \(10000^{2i/d}\) times slower: at \(i=3,d=8\) the wavelength is \(\approx 6283\) — nearly flat. Low dimensions encode <em>local order</em>, high ones <em>global position</em>; the vector is added to the token, \(X' = X + \mathrm{PE}\).</span></p>
+          <aside class="slide-notes">Make the frequency sweep tactile. The plotted curve is the lowest, fastest dimension, i equals zero, which is simply sine of the position because ten thousand to the zero is one. Drag the position slider and watch the marker ride the wave: this dimension completes a full cycle every two pi, about six positions, so neighbouring tokens get clearly different values — that is how the encoding carries fine local order. Now imagine the same plot for a high dimension, say i equals three with d equals eight: the divisor is ten thousand to the three-quarters, about a thousand, so the wavelength stretches to roughly six thousand positions and the curve would look almost flat over this window — that dimension barely moves, encoding only coarse global position. The mix of fast and slow dimensions gives every position a unique fingerprint, and the whole vector is just added to the token embedding before the first layer. The real eight by eight grid of these values is on the next slide.</aside>
+        </section>
+
+        <!-- ============================================ 30 · WALKTHROUGH · reading the grid ============================================ -->
+        

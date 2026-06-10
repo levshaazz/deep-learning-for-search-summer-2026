@@ -1,0 +1,21 @@
+<section class="slide" data-type="table" data-screen-label="56 Distinct-idf query">
+          <div class="slide-header">
+            <h2>A distinct-idf query: the rare term dominates</h2>
+            <span class="slide-kicker">8 docs · \(q=\) <code>nasa shuttle</code> · the ranking</span>
+          </div>
+          <p class="small muted mt-2">\(N=8\), avgdl \(=50.625\). Substituted idf — \(df\) differs: <code>nasa</code> in 3 docs, <code>shuttle</code> in 2.<br>
+            \(\operatorname{idf}(\texttt{nasa})=\ln\!\big(1+\frac{8-3+0.5}{3+0.5}\big)=\ln(2.5714)=0.9445\); \(\operatorname{idf}(\texttt{shuttle})=\ln\!\big(1+\frac{8-2+0.5}{2+0.5}\big)=\ln(3.6000)=1.2809\). The rarer term carries the heavier weight.</p>
+          <table class="cmp-table">
+            <thead><tr><th>rank</th><th>doc</th><th>len</th><th>nasa (\(tf\))</th><th>shuttle (\(tf\))</th><th>nasa bm25</th><th>shuttle bm25</th><th>BM25</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td class="cell-good">D2</td><td>66</td><td>1</td><td>3</td><td>0.8309</td><td>1.9842</td><td class="cell-good">2.8151</td></tr>
+              <tr><td>2</td><td>D3</td><td>59</td><td>2</td><td>1</td><td>1.2811</td><td>1.1922</td><td>2.4733</td></tr>
+              <tr><td>3</td><td>D0</td><td>53</td><td>1</td><td>0</td><td>0.9249</td><td>0</td><td>0.9249</td></tr>
+            </tbody>
+          </table>
+          <p class="small muted center mt-3">D2 wins: <code>shuttle</code> appears 3&times; and is the <em>rarer</em> term, so its high-idf contribution (1.9842) dominates &mdash; <strong>rarity drives the order</strong>. D3 has more <code>nasa</code> but loses because <code>nasa</code> is the cheaper term. Next slide: every cell reproduced by hand.</p>
+          <aside class="slide-notes">Exact from the q2 JSON. This query fixes the degeneracy of the space/team example, where both terms had df four and idf was identical. With N = 8, nasa is in three documents giving idf = ln(1+(8−3+0.5)/(3+0.5)) = ln(2.5714) = 0.9445, and shuttle in only two giving idf = ln(1+(8−2+0.5)/(2+0.5)) = ln(3.6) = 1.2809 — so shuttle's idf beats nasa's. D2 takes the top rank with row sum 2.8151; D3 follows at 2.4733; D0 at 0.9249. D3 has more nasa but loses because nasa is the cheaper term. When terms differ in rarity, the rare term drives the ranking. The full per-cell derivation is on the next slide.</aside>
+        </section>
+
+        <!-- ============================================ 54b · TABLE · distinct-idf per-cell derivation ============================================ -->
+        

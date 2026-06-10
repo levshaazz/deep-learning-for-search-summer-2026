@@ -1,0 +1,33 @@
+<section class="slide" data-type="two-col" data-screen-label="36 Special tokens">
+          <div class="slide-header">
+            <h2>Special tokens &amp; chat templates</h2>
+            <span class="slide-kicker">reserved ids the framework inserts</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>The classic set</h3>
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span class="term">[CLS]</span> — sequence-summary slot (BERT classification).</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span class="term">[SEP]</span> — separates two segments, e.g. <em>query | document</em> in a BERT reranker.</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span class="term">[PAD]</span> — batch filler, masked out of the loss.</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span class="term">[MASK]</span> — hidden position the MLM must predict (~15%).</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span class="term">[UNK]</span>, BOS / EOS (<code>&lt;s&gt;</code> / <code>&lt;/s&gt;</code>).</span></li>
+              </ul>
+            </div>
+            <div class="twocol-col">
+              <h3>Chat templates &amp; a pitfall</h3>
+              <p>ChatML uses <code>&lt;|im_start|&gt;</code> / <code>&lt;|im_end|&gt;</code>; LLaMA-3 uses <code>&lt;|begin_of_text|&gt;</code>, <code>&lt;|start_header_id|&gt;</code>, <code>&lt;|eot_id|&gt;</code>. Added by <code>tokenizer.apply_chat_template()</code>.</p>
+              <div class="callout" data-kind="warn">
+                <div class="callout-icon">!</div>
+                <div class="callout-body">
+                  <strong>Duplicate-BOS bug</strong>
+                  <p>Applying a chat template <em>and</em> <code>add_special_tokens=True</code> inserts BOS twice → degraded quality. Pick one.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <aside class="slide-notes">Special tokens are not learned by BPE — they are reserved ids the framework inserts. The [SEP] case is your bridge to search: a BERT cross-encoder reranker takes "[CLS] query [SEP] document [SEP]" and scores relevance, which is exactly next week's topic. The duplicate-BOS bug is a real, common foot-gun in production fine-tuning pipelines.</aside>
+        </section>
+
+        <!-- ============================================ 34 · CODE · HuggingFace tokenizer ============================================ -->
+        

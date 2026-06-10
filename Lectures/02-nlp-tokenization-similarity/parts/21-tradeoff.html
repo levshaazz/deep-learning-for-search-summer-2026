@@ -1,0 +1,33 @@
+<section class="slide" data-type="viz" data-screen-label="21 Tradeoff">
+          <div class="slide-header">
+            <h2>The granularity trade-off triangle</h2>
+            <span class="slide-kicker">vocab size ↔ sequence length ↔ OOV</span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1600 560" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">
+              <polygon points="800,70 200,500 1400,500" fill="none" stroke="var(--rule)" stroke-width="3"/>
+              <!-- vertices -->
+              <circle cx="800" cy="70" r="14" fill="var(--accent)"/>
+              <text x="800" y="50" text-anchor="middle" font-family="var(--font-sans)" font-size="32" fill="var(--ink)">Character / byte</text>
+              <circle cx="200" cy="500" r="14" fill="var(--c-red)"/>
+              <text x="200" y="540" text-anchor="middle" font-family="var(--font-sans)" font-size="32" fill="var(--ink)">Word</text>
+              <circle cx="1400" cy="500" r="14" fill="var(--c-green)"/>
+              <text x="1400" y="540" text-anchor="middle" font-family="var(--font-sans)" font-size="32" fill="var(--ink)">Subword (sweet spot)</text>
+              <!-- edge labels — placed OUTSIDE each edge so no line crosses text -->
+              <text x="475" y="248" text-anchor="end" font-family="var(--font-mono)" font-size="23" fill="var(--ink-2)">tiny vocab,</text>
+              <text x="475" y="278" text-anchor="end" font-family="var(--font-mono)" font-size="23" fill="var(--ink-2)">very long seq</text>
+              <text x="1125" y="248" font-family="var(--font-mono)" font-size="23" fill="var(--ink-2)">no OOV,</text>
+              <text x="1125" y="278" font-family="var(--font-mono)" font-size="23" fill="var(--ink-2)">bounded vocab</text>
+              <text x="800" y="468" text-anchor="middle" font-family="var(--font-mono)" font-size="23" fill="var(--ink-2)">huge vocab · OOV/UNK · short seq</text>
+              <text x="800" y="300" text-anchor="middle" font-family="var(--font-sans)" font-size="26" fill="var(--c-green)" font-style="italic">modern default lives here</text>
+            </svg>
+          </div>
+          <figure class="art-strip">
+            <img src="assets/img/L2/L2-20-tradeoff.png?v=1" alt="A stick-figure juggler with three balls labelled vocab, seq len, OOV — only two can stay in the air at once" />
+          </figure>
+          <p class="viz-caption">Real vocab sizes: GPT-2 <strong>50,257</strong>; cl100k (GPT-3.5/4) <strong>~100k</strong>; o200k (GPT-4o) <strong>~200k</strong>; BERT <strong>30,522</strong>; LLaMA / T5 (SentencePiece) <strong>32k</strong>. English ≈ <strong>4 chars/token</strong>.</p>
+          <aside class="slide-notes">You cannot win on all three corners. Push toward characters: vocabulary shrinks to ~256 bytes and OOV vanishes, but sequences blow up ~4–5×, which is brutal under O(n²) attention. Push toward words: sequences are short, but the vocabulary is unbounded (Heaps) and OOV is severe. Subword sits in the interior — a bounded vocab of 30k–200k, moderate sequence length, near-zero OOV. Bigger vocab → fewer tokens per text → shorter sequences and lower cost, but a bigger embedding matrix and softmax.</aside>
+        </section>
+
+        <!-- ============================================ 20 · WALKTHROUGH · granularity on one sentence ============================================ -->
+        

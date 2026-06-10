@@ -1,0 +1,31 @@
+<section class="slide" data-type="two-col" data-screen-label="16 Construction">
+          <div class="slide-header">
+            <h2>Index construction at scale</h2>
+            <span class="slide-kicker">BSBI · SPIMI · sort + merge · segments</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>The problem</h3>
+              <p>The full term&ndash;doc pair list doesn't fit in RAM. Both classic algorithms <strong>build blocks in memory, then merge</strong> on disk.</p>
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>BSBI</strong> (blocked sort-based): collect <code>(termID, docID)</code> pairs, sort each block, write to disk, then external-merge.</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>SPIMI</strong> (single-pass in-memory): grow per-term postings directly, no global sort; flush a block when memory fills.</span></li>
+              </ul>
+            </div>
+            <div class="twocol-col">
+              <h3>In production</h3>
+              <div class="callout" data-kind="info">
+                <div class="callout-icon">i</div>
+                <div class="callout-body">
+                  <strong>Lucene segments</strong>
+                  <p>New documents form small immutable <em>segments</em>; background merges combine them into larger ones. Writes are append-only; deletes are tombstones.</p>
+                  <p class="small muted">This is how Elasticsearch / Solr index continuously without rebuilding the whole index.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <aside class="slide-notes">Construction must be out-of-core because the pair list dwarfs RAM. BSBI sorts blocks of termID-docID pairs and external-merges them; SPIMI skips the global sort by accumulating postings per term and flushing when memory runs out — simpler and faster in practice. Real engines layer on segments: every flush is an immutable segment, and a background merge policy keeps the segment count bounded, which is what makes near-real-time indexing possible.</aside>
+        </section>
+
+        <!-- ============================================ 15 · E2E · postings compression ============================================ -->
+        

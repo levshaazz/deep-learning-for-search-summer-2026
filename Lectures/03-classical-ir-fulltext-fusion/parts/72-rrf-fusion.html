@@ -1,0 +1,38 @@
+<section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="72 RRF fusion">
+          <div class="slide-header">
+            <h2>Reciprocal Rank Fusion</h2>
+            <span class="slide-kicker">\(\mathrm{RRF}(d)=\sum_r \frac{1}{k+\mathrm{rank}_r(d)}\), \(k=60\)</span>
+          </div>
+          <p class="small muted mt-2">BM25: <code>D6 D3 D7 D2 D5 D0 D4 D1</code>. Cosine: <code>D6 D3 D2 D7 D0 D4 D5 D1</code>. Rank-based &mdash; no scores compared.</p>
+          <div class="walk-flow">
+            <div class="walk-step" data-step="1" data-color="violet">
+              <div class="walk-num">01</div>
+              <div class="walk-content"><div class="walk-label">D6 &mdash; rank 1 in both</div><div class="walk-detail">\(\frac{1}{60+1}+\frac{1}{60+1} = 0.016393+0.016393 = \mathbf{0.032787}\) &mdash; the highest fused score here.</div></div>
+              <div class="walk-state">0.032787</div>
+            </div>
+            <div class="walk-step" data-step="2" data-color="amber">
+              <div class="walk-num">02</div>
+              <div class="walk-content"><div class="walk-label">D3 &mdash; rank 2 in both</div><div class="walk-detail">\(\frac{1}{62}+\frac{1}{62} = 0.032258\). Liked by both rankers, stays near the top.</div></div>
+              <div class="walk-state">0.032258</div>
+            </div>
+            <div class="walk-step" data-step="3" data-color="cyan">
+              <div class="walk-num">03</div>
+              <div class="walk-content"><div class="walk-label">D2 vs D7 &mdash; disagreement</div><div class="walk-detail">D2 is rank 4 (BM25) / 3 (cosine): \(\frac{1}{60+4}+\frac{1}{60+3}=0.015625+0.015873=\mathbf{0.031498}\). D7 is rank 3 / 4: \(\frac{1}{63}+\frac{1}{64}\) &mdash; the same two reciprocals, swapped &rarr; identical sum. Fusion smooths the swap.</div></div>
+              <div class="walk-state">tie 0.031498</div>
+            </div>
+            <div class="walk-step" data-step="4" data-final="true">
+              <div class="walk-num">&rarr;</div>
+              <div class="walk-content"><div class="walk-label">\(k\)-sensitivity</div><div class="walk-detail">Fused order <code>D6 D3 D2 D7 D0 D5 D4 D1</code>. Larger \(k\) flattens the discount (more democratic); smaller \(k\) sharpens the top. Weighted RRF scales each ranker's term.</div></div>
+              <div class="walk-state">fused</div>
+            </div>
+          </div>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">4/4</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">Cormack, Clarke and Buettcher 2009; numbers exact from the RRF JSON. Throw away raw scores, keep only positions. A document at rank one contributes one over sixty-one, about 0.016393. D6 is rank one in both lists, summing to 0.032787, the maximum. D3 is rank two in both, summing to 0.032258. The instructive case is D2 versus D7: the two rankers swap them at ranks three and four. D2 is rank four in BM25 and three in cosine, contributing 1/64 + 1/63 = 0.015625 + 0.015873 = 0.031498; D7 is rank three then four, contributing 1/63 + 1/64 — the same two reciprocals in the other order, so both fuse to exactly 0.031498. Fusion gracefully averages the disagreement. The constant k, conventionally sixty, tunes the discount: larger k is more democratic, smaller k rewards the very top harder. Weighted RRF scales each ranker's contribution by trust.</aside>
+        </section>
+
+        <!-- ============================================ 70 · TWO-COL · hybrid dense+sparse, when fusion fails ============================================ -->
+        

@@ -1,0 +1,27 @@
+<section class="slide" data-type="misconception" data-screen-label="67 Cosine misconception">
+          <div class="slide-header">
+            <h2>Common misconception</h2>
+            <span class="slide-kicker">Bust the myth</span>
+          </div>
+          <div class="misc-card">
+            <div class="misc-label">What students think</div>
+            <p class="misc-statement">&ldquo;Cosine and Euclidean always rank the same — and cosine is always 'about similarity'.&rdquo;</p>
+            <button class="misc-reveal-btn" type="button">Reveal truth</button>
+            <div class="misc-truth">They agree <strong>only</strong> on L2-normalized vectors. Clean counterexample: query \(q=(1,0)\); candidates \(a=(0.9,0)\) and \(c=(2,0)\). Both have \(\cos=1\) with \(q\) (cosine cannot separate them), but Euclidean gives \(0.1\) vs \(1.0\) — it strictly prefers \(a\). And Steck et&nbsp;al. (2024): for regularized matrix factorization a diagonal "gauge" leaves <em>dot-product predictions</em> unchanged while making <em>cosine</em> values arbitrary — so cosine of learned embeddings can be non-unique. Fix: train against cosine, or prefer dot, or whiten first.
+              <p class="misc-anchor">
+                <strong>Worked counter-example</strong> (grounded · <code>_research/data/cosine_examples.py</code>, <code>classic_pairs[0]</code>).
+                Vectors \( u=(1,1) \) and \( v=(10,10) \) point the <em>same direction</em>.
+                <br>Cosine: \( u\!\cdot\!v / (\lVert u\rVert\lVert v\rVert) = 20 / (\sqrt{2}\cdot\sqrt{200}) = 20/20 = \mathbf{1.0} \) — identical.
+                <br>Euclidean: \( \lVert u-v\rVert = \sqrt{(1\!-\!10)^2 + (1\!-\!10)^2} = \sqrt{162} \approx \mathbf{12.73} \) — far apart.
+                <br>Same two vectors, ranked the same under cosine, ranked very differently under Euclidean. Steck et&nbsp;al. (2024) push the point further: under regularized MF a diagonal gauge leaves dot-product predictions invariant while making cosine arbitrary — so "cosine of learned embeddings" can be ill-defined unless the gauge is fixed (L2-normalize, or train against cosine, or whiten).
+              </p>
+            </div>
+          </div>
+
+          <img src="assets/img/_char/serega-cameo-puzzled.png?v=1" alt="" aria-hidden="true" class="cameo br" />
+
+          <aside class="slide-notes">Two myths in one. First the ranking myth: q=(1,0), a=(0.9,0), c=(2,0) — same direction so cosine ties at 1.0, but Euclidean is 0.1 vs 1.0 and strictly prefers a. Magnitude, not angle, decided. Always L2-normalize first if you want them to agree. Second, the deeper Steck 2024 critique: in a regularized linear MF model you can rescale dimensions (a diagonal gauge) without changing dot-product predictions, yet cosine similarities change arbitrarily — so "cosine of learned embeddings" is not well-defined unless you control the gauge. Good class debate; the 2026 rebuttal argues normalization removes the freedom.</aside>
+        </section>
+
+        <!-- ============================================ 65 · TABLE · applications ============================================ -->
+        

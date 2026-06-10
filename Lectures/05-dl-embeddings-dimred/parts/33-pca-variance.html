@@ -1,0 +1,267 @@
+<section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="37 PCA variance">
+          <div class="slide-header">
+            <h2><span lang="ru">PCA на 44 словах: сколько дисперсии остаётся?</span><span lang="en">PCA on 44 words: how much variance survives?</span></h2>
+            <span class="slide-kicker"><span lang="ru">GloVe-50 &rarr; 2-D · реальные числа</span><span lang="en">GloVe-50 &rarr; 2-D · real numbers</span></span>
+          </div>
+          <div class="walk-flow">
+            <div class="walk-step" data-step="1" data-color="violet">
+              <div class="walk-num">01</div>
+              <div class="walk-content"><div class="walk-label"><span lang="ru">Вход: 44 слова в \(\mathbb{R}^{50}\)</span><span lang="en">Input: 44 words in \(\mathbb{R}^{50}\)</span></div><div class="walk-detail"><span lang="ru">Семь смысловых групп: royalty, family, animals, countries, capitals, tech, transport.</span><span lang="en">Seven meaning groups: royalty, family, animals, countries, capitals, tech, transport.</span></div></div>
+              <div class="walk-state">\(50\text{-D}\)</div>
+            </div>
+            <div class="walk-step" data-step="2" data-color="cyan">
+              <div class="walk-num">02</div>
+              <div class="walk-content"><div class="walk-label">PC1 <span lang="ru">— ось наибольшего разброса</span><span lang="en">— top spread axis</span></div><div class="walk-detail"><span lang="ru">Первая компонента сохраняет <strong>19.6%</strong> всей дисперсии.</span><span lang="en">The first component keeps <strong>19.6%</strong> of all variance.</span></div></div>
+              <div class="walk-state">\(19.6\%\)</div>
+            </div>
+            <div class="walk-step" data-step="3" data-color="amber">
+              <div class="walk-num">03</div>
+              <div class="walk-content"><div class="walk-label">PC2 <span lang="ru">— вторая ось</span><span lang="en">— second axis</span></div><div class="walk-detail"><span lang="ru">Ортогональна PC1, добавляет ещё <strong>18.1%</strong>.</span><span lang="en">Orthogonal to PC1, adds another <strong>18.1%</strong>.</span></div></div>
+              <div class="walk-state">\(18.1\%\)</div>
+            </div>
+            <div class="walk-step" data-step="4" data-final="true">
+              <div class="walk-num">&rarr;</div>
+              <div class="walk-content"><div class="walk-label"><span lang="ru">2-D карта сохраняет</span><span lang="en">The 2-D map keeps</span></div><div class="walk-detail"><span lang="ru">\(19.6\% + 18.1\% = \mathbf{37.7\%}\). Больше трети формы — в двух осях. Остальные \(\sim 62\%\) свёрнуты, но не потеряны.</span><span lang="en">\(19.6\% + 18.1\% = \mathbf{37.7\%}\). Over a third of the shape in two axes. The other \(\sim 62\%\) is folded away, not lost.</span></div></div>
+              <div class="walk-state">\(37.7\%\)</div>
+            </div>
+          </div>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">4/4</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">The exact PCA climb on our own data. We have forty-four words living in fifty dimensions, in seven semantic groups. The first principal component — the single direction of greatest spread — captures nineteen point six percent of the total variance. The second component, orthogonal to it, adds another eighteen point one percent. So a flat two-dimensional PCA picture retains thirty-seven point seven percent of the shape, the sum of those two, straight from the L5 dimred file. That is a lot for two axes out of fifty, but notice the flip side: nearly sixty-two percent of the structure is folded away. That residual is exactly why we will want a non-linear method next.</aside>
+        </section>
+
+        <!-- ============================================ 36 · VIZ · PCA as rotation (ported from widgets/pca-rotate) ============================================ -->
+        <section class="slide pcr-slide" data-type="viz" data-max-step="5" data-current-step="0" data-screen-label="38 PCA as rotation">
+          <style>
+            /* scoped to this slide.
+               Geometry (dots, eigen-axis arrow LINES) lives in the SVG and SWAPS per
+               step via data-arch-step (only the current frame is shown) so the cloud
+               visibly turns then flattens. Every TEXT label is an HTML overlay
+               (.pcr-lab) — never SVG <text> — because bold SVG text double-paints
+               under the deck's auto-fit transform; HTML text renders crisp. Overlays
+               reveal ADDITIVELY by data-step so the solid set GROWS:
+               0 raw cloud · 1 +axes & names · 2 rotating · 3 aligned +variance · 4 flat +97.21%. */
+            .pcr-slide svg [data-arch-step] { display: none; }
+            .pcr-slide svg [data-arch-step].is-arch-current { display: block; }
+            .pcr-slide .pcr-dot { fill: var(--accent); fill-opacity: 0.85; }
+            .pcr-slide .pcr-flatdot { fill: var(--c-violet); fill-opacity: 0.85; }
+            /* bigger figure: scale every plotted dot up via a CSS transform-box trick is fragile in SVG,
+               so the radii are set inline below; this just lifts the figure's footprint. */
+            .pcr-slide .pcr-cap[data-arch-step] { display: none; }
+            .pcr-slide .pcr-cap[data-arch-step].is-arch-current { display: block; }
+            /* aspect-locked stage so HTML overlays line up 1:1 with SVG viewBox (1160×540) */
+            .pcr-slide .pcr-stage { position: relative; width: 100%; max-width: 1180px; aspect-ratio: 1000 / 620; margin: 0 auto; }
+            .pcr-slide .pcr-stage svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+            .pcr-slide #pcr-ovl { position: absolute; inset: 0; pointer-events: none; }
+            /* Halo: the stage renders on a white card in BOTH themes, so a white text
+               outline lifts every PC label clear of the arrows AND the blue dots it may
+               cross — legible over both. paint-order keeps the stroke BEHIND the glyph. */
+            .pcr-slide .pcr-lab { position: absolute; transform: translate(-50%, -50%); font-family: var(--font-sans); font-weight: 700; font-size: 22px; line-height: 1; white-space: nowrap; pointer-events: none;
+              -webkit-text-stroke: 3px #fff; paint-order: stroke fill;
+              text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 5px #fff; }
+            .pcr-slide .pcr-lab.pc1 { color: var(--c-amber); }
+            .pcr-slide .pcr-lab.pc2 { color: var(--c-violet); }
+            .pcr-slide .pcr-lab.pc3 { color: var(--ink-3); }
+            .pcr-slide .pcr-badge { position: absolute; top: 3.5%; right: 2%; transform: none; font-size: 26px; padding: 4px 12px; border-radius: 999px; background: var(--bg-card); border: 1.5px solid var(--rule); font-family: var(--font-sans); font-weight: 600; pointer-events: none; }
+            /* SWAP overlays: only the current step's labels/badge are shown (display:none
+               otherwise) so nothing accumulates or overprints across steps. */
+            .pcr-slide .pcr-lab[data-arch-step], .pcr-slide .pcr-badge[data-arch-step] { display: none; }
+            .pcr-slide .pcr-lab[data-arch-step].is-arch-current, .pcr-slide .pcr-badge[data-arch-step].is-arch-current { display: block; }
+
+            /* ── Two-column layout: rotation viz (left) + step-synced PCA math (right) ── */
+            .pcr-slide .pcr-layout { display: grid; grid-template-columns: 1.5fr 1fr; gap: var(--sp-5); align-items: stretch; }
+            .pcr-slide .pcr-layout .viz-frame { margin: 0; }
+            .pcr-slide .pcr-math { align-self: center; border-left: 3px solid var(--rule); padding-left: var(--sp-5); }
+            .pcr-slide .pcr-math-head { font-family: var(--font-mono); font-size: 16px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent-ink); margin-bottom: var(--sp-3); }
+            /* PROGRESSIVE (cumulative) reveal: a line shows once its step is reached
+               (current OR past) and stays — so the recipe builds up, never dumped at
+               step 0. Distinct from the viz overlays above, which SWAP. */
+            .pcr-slide .pcr-mrow[data-arch-step] { display: none; margin: 0 0 var(--sp-3); }
+            .pcr-slide .pcr-mrow[data-arch-step].is-arch-current,
+            .pcr-slide .pcr-mrow[data-arch-step].is-arch-past { display: block; animation: pcrMathIn var(--dur) var(--ease) both; }
+            @keyframes pcrMathIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+            .pcr-slide .pcr-mrow .pcr-mlabel { font-family: var(--font-mono); font-size: 14px; letter-spacing: 0.10em; text-transform: uppercase; color: var(--ink-3); display: block; margin-bottom: 2px; }
+            .pcr-slide .pcr-mrow .pcr-mmath { font-size: 21px; margin: 2px 0; line-height: 1.2; }
+            .pcr-slide .pcr-mrow .pcr-mtext { font-size: 16px; line-height: 1.4; color: var(--ink-2); margin: 2px 0 0; }
+            /* the current line gets a subtle accent tick on its label */
+            .pcr-slide .pcr-mrow.is-arch-current .pcr-mlabel { color: var(--accent-ink); }
+            @media (prefers-reduced-motion: reduce) { .pcr-slide .pcr-mrow { animation: none !important; } }
+          </style>
+          <div class="slide-header">
+            <h2><span lang="ru">PCA — это поворот, а не искажение</span><span lang="en">PCA is a rotation, not a distortion</span></h2>
+            <span class="slide-kicker"><span lang="ru">сырое 3-D &rarr; центр &rarr; ковариация C &rarr; собств. оси &rarr; поворот &rarr; 2-D (97.21%)</span><span lang="en">raw 3-D &rarr; centre &rarr; covariance C &rarr; eigen-axes &rarr; rotate &rarr; 2-D (97.21%)</span></span>
+          </div>
+          <div class="pcr-layout">
+          <div class="viz-frame">
+            <div class="pcr-stage">
+            <svg viewBox="0 0 1000 620" preserveAspectRatio="none" role="img" aria-label="A correlated 3-D point cloud is centred, its covariance eigenvectors drawn as principal axes, then the whole cloud is rotated rigidly until those axes align with the screen, and finally flattened to 2-D, keeping 97.21% of the spread">
+              <defs>
+                <marker id="pcrah0" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c-amber)"/></marker>
+                <marker id="pcrah1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c-violet)"/></marker>
+                <marker id="pcrah2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink-3)"/></marker>
+              </defs>
+              <rect x="60" y="40" width="880" height="540" rx="8" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
+              <!-- SIX geometry frames (JS-filled from data/l5-pca-rotate.json, bigger cloud + screen-space
+                   eigen-axes). Only the current is shown (SWAP). 0 raw · 1 centre · 2 axes · 3 rotating ·
+                   4 aligned+variance · 5 flat 2-D. PC1 amber · PC2 violet · PC3 grey (≠ the BLUE dots). -->
+              <g data-arch-step="0" id="pcr-g0"></g>
+              <g data-arch-step="1" id="pcr-g1"></g>
+              <g data-arch-step="2" id="pcr-g2"></g>
+              <g data-arch-step="3" id="pcr-g3"></g>
+              <g data-arch-step="4" id="pcr-g4"></g>
+              <g data-arch-step="5" id="pcr-g5"></g>
+            </svg>
+            <!-- HTML overlay labels are now JS-positioned (kept crisp, never SVG text) inside #pcr-ovl,
+                 in sync with the JS geometry, so axis names + variance %s never drift from their arrows. -->
+            <div id="pcr-ovl"></div>
+            <!-- the old static SVG dot frames + % overlays were replaced by the data-driven build below -->
+            </div>
+          </div>
+          <!-- ── Step-synced PCA recipe on the REAL demo cloud (data/l5-pca-rotate.json):
+               covariance C, its eigen-decomposition, and the kept-variance arithmetic.
+               Each row reveals with its matching visual step and STAYS (cumulative),
+               so the recipe builds up rather than dumping at step 0. KaTeX matrix/eigen
+               math; \lt/\gt never literal <. Numbers match the data file exactly. -->
+          <aside class="pcr-math">
+            <div class="pcr-math-head"><span lang="ru">PCA по шагам · реальные числа</span><span lang="en">PCA recipe · real numbers</span></div>
+
+            <!-- step 0 (cloud): center, then form the covariance matrix C -->
+            <!-- step 0 (raw): the correlated cloud, axes mismatched -->
+            <div class="pcr-mrow" data-arch-step="0">
+              <span class="pcr-mlabel"><span lang="ru">1 · сырое облако (n = 30, 3-D)</span><span lang="en">1 · raw cloud (n = 30, 3-D)</span></span>
+              <div class="pcr-mmath">\(x_i\in\mathbb{R}^3,\quad i=1\ldots 30\)</div>
+              <p class="pcr-mtext"><span lang="ru">Коррелированное облако: оси экрана \(x,y,z\) не совпадают с направлениями разброса. Жмите <kbd>&rarr;</kbd>.</span><span lang="en">A correlated cloud: the screen axes \(x,y,z\) do not line up with how the data spreads. Press <kbd>&rarr;</kbd>.</span></p>
+            </div>
+
+            <!-- step 1 (centre): subtract the mean → covariance C -->
+            <div class="pcr-mrow" data-arch-step="1">
+              <span class="pcr-mlabel"><span lang="ru">2 · центрируем &rarr; ковариация C</span><span lang="en">2 · centre &rarr; covariance C</span></span>
+              <div class="pcr-mmath">\(\displaystyle C=\tfrac1n\sum_i (x_i-\bar x)(x_i-\bar x)^{\top}=\begin{bmatrix}6.1326 & 3.2196 & 1.0354\\ 3.2196 & 4.2826 & 1.2191\\ 1.0354 & 1.2191 & 0.6846\end{bmatrix}\)</div>
+              <p class="pcr-mtext"><span lang="ru">Симметричная \(3\times3\): большие недиагональные члены = оси \(x,y,z\) коррелированы.</span><span lang="en">Symmetric \(3\times3\): the large off-diagonal terms mean the \(x,y,z\) axes are correlated.</span></p>
+            </div>
+
+            <!-- step 2 (axes): eigenvectors = directions, eigenvalues = variance/axis -->
+            <div class="pcr-mrow" data-arch-step="2">
+              <span class="pcr-mlabel"><span lang="ru">3 · собственные векторы C = оси</span><span lang="en">3 · eigenvectors of C = axes</span></span>
+              <div class="pcr-mmath">\(C v_k=\lambda_k v_k,\quad \lambda_1=8.8561\gt\lambda_2=1.934\gt\lambda_3=0.3098\)</div>
+              <p class="pcr-mtext"><span lang="ru">Собственные векторы — главные направления; \(\lambda_k\) — дисперсия вдоль оси. Доли: \(\tfrac{8.8561}{11.0998}=79.79\%,\ \tfrac{1.934}{11.0998}=17.42\%,\ \tfrac{0.3098}{11.0998}=2.79\%\).</span><span lang="en">The eigenvectors are the principal directions; each \(\lambda_k\) is the variance along that axis. Shares: \(\tfrac{8.8561}{11.0998}=79.79\%,\ \tfrac{1.934}{11.0998}=17.42\%,\ \tfrac{0.3098}{11.0998}=2.79\%\).</span></p>
+            </div>
+
+            <!-- step 3 (rotate): the eigenvectors stacked form the rotation R -->
+            <div class="pcr-mrow" data-arch-step="3">
+              <span class="pcr-mlabel"><span lang="ru">4 · поворот в базис собственных векторов</span><span lang="en">4 · rotate into the eigenbasis</span></span>
+              <div class="pcr-mmath">\(y=R^{\top}(x-\bar x),\quad R=[\,v_1\ v_2\ v_3\,]\)</div>
+              <p class="pcr-mtext"><span lang="ru">\(R\) ортогональна (\(R^{\top}R=I\)) &rArr; это жёсткий поворот: длины и углы сохраняются, общая дисперсия не меняется \((\sum\lambda_k=11.0998)\).</span><span lang="en">\(R\) is orthogonal \((R^{\top}R=I)\) &rArr; a rigid rotation: lengths and angles are preserved, total variance is unchanged \((\sum\lambda_k=11.0998)\).</span></p>
+            </div>
+
+            <!-- step 4 (aligned): variance per aligned axis = the eigenvalues -->
+            <div class="pcr-mrow" data-arch-step="4">
+              <span class="pcr-mlabel"><span lang="ru">5 · дисперсия по выровненным осям</span><span lang="en">5 · variance on the aligned axes</span></span>
+              <div class="pcr-mmath">\(\mathrm{Var}(\text{PC}_k)=\lambda_k:\ \ 79.79\%\ \gt\ 17.42\%\ \gt\ 2.79\%\)</div>
+              <p class="pcr-mtext"><span lang="ru">Оси теперь лежат на экране; PC3 несёт лишь \(2.79\%\) разброса.</span><span lang="en">The axes now lie on the screen; PC3 carries only \(2.79\%\) of the spread.</span></p>
+            </div>
+
+            <!-- step 5 (flatten): project onto top-2 eigenvectors → kept variance -->
+            <div class="pcr-mrow" data-arch-step="5">
+              <span class="pcr-mlabel"><span lang="ru">6 · проекция на топ-2 &rarr; сохранено</span><span lang="en">6 · project onto top-2 &rarr; kept</span></span>
+              <div class="pcr-mmath">\(\displaystyle \frac{\lambda_1+\lambda_2}{\lambda_1+\lambda_2+\lambda_3}=\frac{8.8561+1.934}{11.0998}=\frac{10.7901}{11.0998}=\mathbf{97.21\%}\)</div>
+              <p class="pcr-mtext"><span lang="ru">Отбрасываем PC3, оставляем \((\text{PC1},\text{PC2})\): сохранено \(97.21\%\) — это 3-D демо, не 50-мерные слова \((\to 37.7\%)\).</span><span lang="en">Drop PC3, keep \((\text{PC1},\text{PC2})\): \(97.21\%\) is retained — this is the 3-D demo, not the 50-D words \((\to 37.7\%)\).</span></p>
+            </div>
+          </aside>
+          </div>
+          <p class="viz-caption">
+            <span class="pcr-cap" data-arch-step="0"><span lang="ru">Сырое коррелированное 3-D облако: оси экрана \(x,y,z\) не совпадают с направлениями разброса.</span><span lang="en">A raw, correlated 3-D cloud: the screen axes \(x,y,z\) do not line up with the directions of spread.</span></span>
+            <span class="pcr-cap" data-arch-step="1"><span lang="ru">Центрируем (вычитаем среднее) и считаем ковариацию \(C\) — большие недиагональные члены кодируют корреляцию.</span><span lang="en">Centre the cloud (subtract the mean) and form the covariance \(C\) — its large off-diagonals encode the correlation.</span></span>
+            <span class="pcr-cap" data-arch-step="2"><span lang="ru">Собственные векторы ковариации дают три оси: PC1 (главный разброс), PC2, PC3.</span><span lang="en">The covariance eigenvectors give three axes: PC1 (top spread), PC2, PC3.</span></span>
+            <span class="pcr-cap" data-arch-step="3"><span lang="ru">Жёсткий поворот: облако и его оси поворачиваются вместе — ничего не искажается, только разворот.</span><span lang="en">A rigid rotation: cloud and axes turn together — nothing is distorted, it is just a turn.</span></span>
+            <span class="pcr-cap" data-arch-step="4"><span lang="ru">Оси совмещены с экраном. Дисперсия по осям: PC1 \(79.79\%\), PC2 \(17.42\%\), PC3 — тонкая, \(2.79\%\).</span><span lang="en">Axes aligned with the screen. Variance per axis: PC1 \(79.79\%\), PC2 \(17.42\%\), PC3 thin at \(2.79\%\).</span></span>
+            <span class="pcr-cap" data-arch-step="5"><span lang="ru">Отбрасываем тонкую PC3 &rarr; 2-D. PC1+PC2 сохраняют \(\mathbf{97.21\%}\) разброса (это 3-D демо, не 50-D слова \(\to 37.7\%\)).</span><span lang="en">Drop the thin PC3 &rarr; 2-D. PC1+PC2 keep \(\mathbf{97.21\%}\) of the spread (this is the 3-D demo, not the 50-D words at \(37.7\%\)).</span></span>
+          </p>
+          <aside class="slide-notes">This is the geometry of PCA made visible, now stepped through the full pipeline on the real thirty-point demo cloud from the L5 data file. Step zero: the raw correlated three-D cloud, where the screen axes do not align with how the data spreads. Step one: we centre the cloud by subtracting the mean and form the three-by-three covariance matrix C — its large off-diagonal terms, three point two two and one point oh four, are exactly the correlation. Step two: the eigenvectors of C give three principal axes — PC1 along the greatest spread carrying seventy-nine point eight percent, PC2 seventeen point four, PC3 a thin two point eight. Step three: a rigid rotation — the whole cloud and its axes turn together, nothing stretched or sheared, total variance unchanged at eleven point one. Step four: fully aligned, the principal axes now lying on the screen, per-axis variance labelled. Step five: we drop the thin PC3 and land in two dimensions, keeping ninety-seven point two one percent of the spread. Keep this distinct from the thirty-seven point seven percent earlier — that was the fifty-dimensional GloVe words; this is the three-D demo where two axes capture almost everything. Every number is from the L5 PCA-rotate data file.</aside>
+          <script>
+          (function () {
+            // Data-driven PCA-as-rotation on data/l5-pca-rotate.json (n=30 real cloud). The 4 data frames
+            // (frac 0/.33/.66/1) are projected (x,y) into ONE coordinate frame so the turn reads as a
+            // rigid rotation; the flat step lays the final PC1/PC2 on screen axes. Eigen-axes are drawn
+            // from the RAW cloud's screen-space covariance (clean principal directions). HTML overlay
+            // labels (#pcr-ovl) are positioned in % of the 1000×620 viewBox → no SVG <text> to double-paint.
+            var RAW=[[0.676,-2.401],[1.89,0.083],[0.059,-1.719],[-1.919,-2.435],[0.228,2.019],[-2.073,-2.485],[1.556,0.752],[5.8,4.531],[-0.655,-1.401],[-0.771,-0.597],[2.865,1.657],[2.051,1.101],[1.011,-1.701],[-0.197,1.45],[3.247,2.711],[-1.658,-2.706],[2.689,1.973],[0.405,0.0],[-5.51,-0.243],[3.392,3.62],[-2.939,1.49],[-0.69,-1.97],[-1.95,0.92],[3.69,2.38],[0.46,0.0],[2.39,1.49],[-6.49,-1.49],[1.26,0.46],[3.41,3.62],[0.05,-1.13]];
+            // Precise projected screen coords (one coordinate frame; viewBox 1000×620, fit box 120,90,760,440).
+            // raw=frame0, rot1/rot2=interp toward eigenbasis (frac .33/.66→1), aligned=frame3, flat=final2d.
+            var FR={"raw":[[529.1,398.3],[566,322.8],[510.3,377.5],[450.2,399.3],[515.5,264],[445.6,400.8],[555.8,302.5],[684.8,187.6],[488.6,367.9],[485.1,343.5],[595.6,275],[570.9,291.9],[539.3,377],[462.3,344],[566.2,220.9],[594.4,366.2],[433.1,316],[504.7,320.7],[364.4,432.4],[460.4,238.5],[386.1,344.9],[509.3,390.5],[433.6,358.1],[577.8,258.9],[557.7,310.9],[532.8,276.4],[316.4,424.7],[503.6,291.3],[565,217.2],[551.7,339.9]],"rot1":[[525.7,398.5],[548.3,335.8],[513.5,374.3],[507.8,371.7],[513.3,268.6],[486.4,377.1],[513.5,321.8],[565,252],[527.6,352.4],[511.9,331.9],[536.8,305.7],[575.9,301],[541.1,378.3],[485.7,330.2],[500.6,252.1],[548.7,388.7],[469.4,295.9],[511.5,318.5],[446,384.4],[438.1,242.1],[448.9,309.5],[523,383.6],[462.8,338],[539.1,282.5],[536.8,324.2],[535.2,281.6],[413.1,366.3],[508,291.1],[501.1,248],[521.4,353.5]],"rot2":[[529.3,396.3],[499.3,354.2],[527.2,368.9],[582.8,348.9],[490.2,278.3],[563.3,350.4],[463.7,336.2],[369.7,316.7],[560.5,344.8],[539.2,324.6],[445.3,335.6],[517.2,327.7],[531.3,382.9],[531,314.4],[416.5,277.5],[485.5,408.4],[531.9,274.8],[514.1,318.6],[602.1,330.2],[449.4,233.2],[560.6,271.5],[542.6,377.4],[535.9,311],[459.9,310.5],[490.6,340.9],[502.3,296.5],[607.5,297.9],[502.9,294.1],[417.2,273.6],[486.9,363.3]],"aligned":[[536.9,393.6],[463.7,361],[538.9,366.2],[605.5,352.4],[467,284.3],[605.7,345.8],[452.9,332],[278.8,321.3],[556.4,352.5],[541.5,328.6],[405.6,336.5],[447.3,347.6],[518.6,386.7],[556.6,311.4],[392.1,273],[463.4,406.7],[563,272.5],[510,320.8],[689.3,320.2],[484.9,219.7],[618.4,266.3],[549.8,377.8],[585.9,302.3],[412.9,316.8],[461.5,345.3],[463.5,307.5],[721.2,283.2],[492.8,297.6],[391.1,269.9],[480.6,359.9]],"flat":[[536.9,393.6],[463.7,361],[538.9,366.2],[605.5,352.4],[467,284.3],[605.7,345.8],[452.9,332],[278.8,321.3],[556.4,352.5],[541.5,328.6],[405.6,336.5],[447.3,347.6],[518.6,386.7],[556.6,311.4],[392.1,273],[463.4,406.7],[563,272.5],[510,320.8],[689.3,320.2],[484.9,219.7],[618.4,266.3],[549.8,377.8],[585.9,302.3],[412.9,316.8],[461.5,345.3],[463.5,307.5],[721.2,283.2],[492.8,297.6],[391.1,269.9],[480.6,359.9]]};
+            var NS='http://www.w3.org/2000/svg';
+            function dots(gid, arr, cls){ var g=document.getElementById(gid); if(!g) return;
+              arr.forEach(function(p){ var c=document.createElementNS(NS,'circle'); c.setAttribute('cx',p[0]);c.setAttribute('cy',p[1]);c.setAttribute('r',8);c.setAttribute('class',cls); g.appendChild(c); }); }
+            function line(g,x1,y1,x2,y2,stroke,w,mk){ var l=document.createElementNS(NS,'line'); l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2);l.setAttribute('stroke',stroke);l.setAttribute('stroke-width',w); if(mk)l.setAttribute('marker-end',mk); g.appendChild(l); }
+            // cloud centre on screen (origin of the projection)
+            var C=[508.5,325.3];
+            // screen-space eigen directions (PC1 along raw cloud spread, PC2 orthogonal; from RAW 2D cov)
+            var E1=[0.799,0.602], E2=[-0.602,0.799];
+            // STEP 0: raw cloud
+            dots('pcr-g0', FR.raw, 'pcr-dot');
+            // STEP 1: centred cloud + a small centre cross (mean marker)
+            dots('pcr-g1', FR.raw, 'pcr-dot');
+            (function(){ var g=document.getElementById('pcr-g1'); if(g){ line(g,C[0]-14,C[1],C[0]+14,C[1],'var(--ink-3)',2); line(g,C[0],C[1]-14,C[0],C[1]+14,'var(--ink-3)',2); } })();
+            // STEP 2: raw cloud + eigen-axes (PC1 amber, PC2 violet, PC3 grey short)
+            dots('pcr-g2', FR.raw, 'pcr-dot');
+            (function(){ var g=document.getElementById('pcr-g2'); if(!g) return;
+              line(g,C[0],C[1],C[0]+E1[0]*150,C[1]-E1[1]*150,'var(--c-amber)',3.6,'url(#pcrah0)');
+              line(g,C[0],C[1],C[0]+E2[0]*78,C[1]-E2[1]*78,'var(--c-violet)',3.6,'url(#pcrah1)');
+              line(g,C[0],C[1],C[0]-30,C[1]+22,'var(--ink-3)',2.4,'url(#pcrah2)'); })();
+            // STEP 3: rotating (mid frame) + turning axes
+            dots('pcr-g3', FR.rot2, 'pcr-dot');
+            (function(){ var g=document.getElementById('pcr-g3'); if(!g) return;
+              line(g,C[0],C[1],C[0]+120,C[1]-58,'var(--c-amber)',3.6,'url(#pcrah0)');
+              line(g,C[0],C[1],C[0]-46,C[1]-100,'var(--c-violet)',3.6,'url(#pcrah1)');
+              line(g,C[0],C[1],C[0]-44,C[1]+18,'var(--ink-3)',2.4,'url(#pcrah2)'); })();
+            // STEP 4: aligned + screen-aligned axes
+            dots('pcr-g4', FR.aligned, 'pcr-dot');
+            (function(){ var g=document.getElementById('pcr-g4'); if(!g) return;
+              line(g,C[0],C[1],C[0]+150,C[1],'var(--c-amber)',3.6,'url(#pcrah0)');
+              line(g,C[0],C[1],C[0],C[1]-78,'var(--c-violet)',3.6,'url(#pcrah1)');
+              line(g,C[0],C[1],C[0]-40,C[1]+22,'var(--ink-3)',2.4,'url(#pcrah2)'); })();
+            // STEP 5: flat 2-D (PC1 on x, PC2 on y) with screen axes
+            (function(){ var g=document.getElementById('pcr-g5'); if(!g) return;
+              line(g,80,C[1],920,C[1],'var(--ink-3)',1.6); line(g,C[0],60,C[0],560,'var(--ink-3)',1.6); })();
+            dots('pcr-g5', FR.flat, 'pcr-flatdot');
+            // HTML overlay labels — % of the 1000×620 viewBox (left=x/10 %, top=y/6.2 %).
+            var ovl=document.getElementById('pcr-ovl');
+            function lab(step, leftPct, topPct, cls, txt, fs){ if(!ovl) return; var s=document.createElement('span');
+              s.className='pcr-lab pca-label '+cls; s.setAttribute('data-arch-step',step);
+              s.style.left=leftPct; s.style.top=topPct; if(fs)s.style.fontSize=fs; s.textContent=txt; ovl.appendChild(s); }
+            function badge(step, cls, txt, extra){ if(!ovl) return; var s=document.createElement('span');
+              s.className='pcr-badge pca-label '+cls; s.setAttribute('data-arch-step',step); if(extra)s.setAttribute('style',extra); s.textContent=txt; ovl.appendChild(s); }
+            // axis names per step (positioned just beyond each arrow tip)
+            // step2 (axes appear on raw)
+            lab(2,'67.5%','35%','pc1','PC1'); lab(2,'42%','26%','pc2','PC2'); lab(2,'45%','58%','pc3','PC3');
+            // step3 (rotating)
+            lab(3,'66%','38%','pc1','PC1'); lab(3,'44%','22%','pc2','PC2'); lab(3,'44%','57%','pc3','PC3');
+            // step4 (aligned) + per-axis variance
+            lab(4,'80%','49%','pc1','PC1'); lab(4,'52%','25%','pc2','PC2'); lab(4,'42%','61%','pc3','PC3');
+            lab(4,'78%','58%','pc1','79.79%','20px'); lab(4,'60%','33%','pc2','17.42%','20px'); lab(4,'37%','65%','pc3','2.79%','20px');
+            // step5 (flat) screen-axis names + kept variance + dropped PC3
+            lab(5,'90%','46%','pc1','PC1'); lab(5,'53%','8%','pc2','PC2');
+            lab(5,'82%','55%','pc1','79.8%','18px'); lab(5,'58%','15%','pc2','17.4%','18px');
+            lab(5,'20%','90%','pc3','PC3 dropped','18px');
+            // status badges (one per step; only current shown)
+            badge(0,'pc3','raw 3-D cloud','color:var(--ink-3)');
+            badge(1,'pc2','centred');
+            badge(2,'pc2','PC1·PC2·PC3');
+            badge(3,'pc1','rotating…');
+            badge(4,'','aligned','color:var(--c-amber)');
+            badge(5,'pc2','97.21% kept','font-weight:700');
+            // The overlay spans use data-arch-step; deck.applyStepVisibility already toggles is-arch-current
+            // on them (keyboard path). For the click/stepper path we also re-toggle on slide:step.
+            var slide=document.querySelector('.pcr-slide');
+            function syncOvl(){ if(!slide) return; var st=parseInt(slide.dataset.currentStep||'0',10);
+              slide.querySelectorAll('#pcr-ovl [data-arch-step]').forEach(function(el){ var n=parseInt(el.getAttribute('data-arch-step'),10); el.classList.toggle('is-arch-current', n===st); }); }
+            syncOvl(); if(slide){ slide.addEventListener('slide:step', syncOvl); slide.addEventListener('slide:enter', syncOvl); }
+          })();
+          </script>
+        </section>
+
+        <!-- ============================================ 34 · VIZ · scree / explained variance ============================================ -->
+        

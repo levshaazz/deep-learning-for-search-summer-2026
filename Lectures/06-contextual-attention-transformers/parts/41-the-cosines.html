@@ -1,0 +1,160 @@
+<section class="slide" data-type="table" data-screen-label="47 The cosines">
+          <div class="slide-header">
+            <h2><span lang="ru">Косинусы к якорю <code>cat</code> — реальные числа</span><span lang="en">Cosines to the anchor <code>cat</code> — real numbers</span></h2>
+            <span class="slide-kicker"><span lang="ru">позитивы близко, негативы далеко</span><span lang="en">positives near, negatives far</span></span>
+          </div>
+          <table class="cmp-table">
+            <thead><tr><th><span lang="ru">кандидат</span><span lang="en">candidate</span></th><th><span lang="ru">роль</span><span lang="en">role</span></th><th>\(\cos(\texttt{cat},\cdot)\)</th></tr></thead>
+            <tbody>
+              <tr><td class="cell-good"><code>dog</code></td><td><span lang="ru">позитив</span><span lang="en">positive</span></td><td class="cell-good">0.922</td></tr>
+              <tr><td class="cell-good"><code>kitten</code></td><td><span lang="ru">позитив</span><span lang="en">positive</span></td><td class="cell-good">0.639</td></tr>
+              <tr><td class="cell-bad"><code>airplane</code></td><td><span lang="ru">негатив (самый твёрдый)</span><span lang="en">negative (hardest)</span></td><td class="cell-bad">0.365</td></tr>
+              <tr><td class="cell-bad"><code>computer</code></td><td><span lang="ru">негатив</span><span lang="en">negative</span></td><td class="cell-bad">0.353</td></tr>
+              <tr><td class="cell-bad"><code>france</code></td><td><span lang="ru">негатив (самый дальний)</span><span lang="en">negative (farthest)</span></td><td class="cell-bad">0.091</td></tr>
+            </tbody>
+          </table>
+          <p class="small muted center mt-2"><span lang="ru">Позитивы <code>dog</code> 0.922, <code>kitten</code> 0.639 заметно выше всех негативов. Самый твёрдый негатив — <code>airplane</code> 0.365; самый дальний — <code>france</code> 0.091. Эта разница в косинусах и есть то, что усиливает контрастная цель.</span><span lang="en">Positives <code>dog</code> 0.922 and <code>kitten</code> 0.639 sit clearly above every negative. The hardest negative is <code>airplane</code> at 0.365; the farthest is <code>france</code> at 0.091. That gap in cosines is exactly what the contrastive objective amplifies.</span></p>
+          <aside class="slide-notes">The real cosines to the anchor cat, straight from the contrastive data file. The two positives stand out: dog at zero point nine two two, kitten at zero point six three nine. The negatives are all below: airplane at zero point three six five — the hardest negative because it is the nearest of the wrong answers — computer at zero point three five three, and france way out at zero point zero nine one, the farthest. The contrastive objective's whole job is to take this gap between positives and negatives and widen it, especially against the hard negative airplane, which is the one most likely to be confused for a positive. These numbers feed directly into the loss computation next.</aside>
+        </section>
+
+        <!-- ============================================ 46 · E2E · InfoNCE loss computed ============================================ -->
+        <section class="slide nce-slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="48 InfoNCE loss = 0.1191">
+          <style>
+            /* the contrastive geometry (anchor + 4 candidates) + the softmax bars + the loss
+               readout all SWAP per training checkpoint (data-arch-step 0..3 = setup, untuned, mid,
+               tuned). The loss-curve dots reveal cumulatively (data-step). text: own fill, no stroke. */
+            .nce-slide svg [data-step].is-step-hidden { display: none; }
+            .nce-slide svg .nce-stage[data-arch-step] { display: none; }
+            .nce-slide svg .nce-stage[data-arch-step].is-arch-current { display: block; }
+            .nce-slide svg text { stroke: none; paint-order: fill; }
+            .nce-slide .nce-cap[data-arch-step] { display: none; }
+            .nce-slide .nce-cap[data-arch-step].is-arch-current { display: block; }
+          </style>
+          <div class="slide-header">
+            <h2><span lang="ru">InfoNCE целиком: тянем позитив, отталкиваем негативы &rarr; потеря \(\to 0.1191\)</span><span lang="en">InfoNCE end to end: pull the positive, push the negatives &rarr; loss \(\to 0.1191\)</span></h2>
+            <span class="slide-kicker"><span lang="ru">якорь <code>cat</code>, позитив <code>kitten</code>, \(\tau=0.1\) &mdash; траектория обучения</span><span lang="en">anchor <code>cat</code>, positive <code>kitten</code>, \(\tau=0.1\) &mdash; the training trajectory</span></span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1600 600" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="The anchor cat at the centre of an embedding plane; the positive kitten and three negatives orbit it, distance encoding cosine. Across three training checkpoints the positive is pulled inside the positive zone and the negatives pushed out; the softmax over candidates concentrates on the positive and the InfoNCE loss falls from 3.31 to 0.86 to 0.1191.">
+              <defs>
+                <marker id="ncePull" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--c-green)"/></marker>
+              </defs>
+              <g font-family="var(--font-sans)">
+                <!-- ===== LEFT: the contrastive embedding geometry (anchor at centre) ===== -->
+                <text x="200" y="64" font-size="24" fill="var(--ink-2)" font-weight="700">embedding plane &middot; distance = (1 &minus; cosine)</text>
+                <!-- the positive zone: inside this ring = high cosine to the anchor -->
+                <circle cx="430" cy="330" r="156.7" fill="var(--c-green-soft)" stroke="var(--c-green)" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="430" y="200" font-size="18" fill="var(--c-green-ink)" font-weight="700" text-anchor="middle" font-family="var(--font-mono)">&ldquo;close&rdquo; zone (cos &gt; 0)</text>
+                <!-- anchor at centre -->
+                <circle cx="430" cy="330" r="14" fill="var(--accent)" stroke="var(--bg-card)" stroke-width="2.5"/>
+                <text x="430" y="364" font-size="22" fill="var(--accent)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">cat (anchor)</text>
+
+                <!-- STEP 0 · setup: candidates at untuned positions, all four labelled, no verdict yet -->
+                <g class="nce-stage" data-arch-step="0">
+                  <line x1="430" y1="330" x2="523.4" y2="373.6" stroke="var(--c-green-ink)" stroke-width="2" stroke-dasharray="3 3"/>
+                  <line x1="430" y1="330" x2="472.5" y2="300.3" stroke="var(--c-red)" stroke-width="2" stroke-dasharray="3 3"/>
+                  <line x1="430" y1="330" x2="371.7" y2="169.9" stroke="var(--c-red)" stroke-width="2" stroke-dasharray="3 3"/>
+                  <line x1="430" y1="330" x2="195.0" y2="330.0" stroke="var(--c-red)" stroke-width="2" stroke-dasharray="3 3"/>
+                  <circle cx="523.4" cy="373.6" r="11" fill="var(--c-green)"/><text x="540" y="392" font-size="20" fill="var(--c-green-ink)" font-weight="800" font-family="var(--font-mono)">kitten +</text>
+                  <circle cx="472.5" cy="300.3" r="11" fill="var(--c-red)"/><text x="488" y="294" font-size="19" fill="var(--c-red)" font-weight="700" font-family="var(--font-mono)">airplane &minus;</text>
+                  <circle cx="371.7" cy="169.9" r="11" fill="var(--c-red)"/><text x="371.7" y="156" font-size="19" fill="var(--c-red)" font-weight="700" text-anchor="middle" font-family="var(--font-mono)">computer &minus;</text>
+                  <circle cx="195.0" cy="330.0" r="11" fill="var(--c-red)"/><text x="195" y="358" font-size="19" fill="var(--c-red)" font-weight="700" text-anchor="middle" font-family="var(--font-mono)">france &minus;</text>
+                </g>
+                <!-- STEP 1 · untuned: the negative airplane is CLOSER than the positive — wrong! -->
+                <g class="nce-stage" data-arch-step="1">
+                  <line x1="430" y1="330" x2="523.4" y2="373.6" stroke="var(--c-green-ink)" stroke-width="2" stroke-dasharray="3 3"/>
+                  <circle cx="523.4" cy="373.6" r="11" fill="var(--c-green)"/><text x="540" y="392" font-size="20" fill="var(--c-green-ink)" font-weight="800" font-family="var(--font-mono)">kitten + (cos .34)</text>
+                  <circle cx="472.5" cy="300.3" r="13" fill="var(--c-red)" stroke="var(--c-red-soft)" stroke-width="3"/><text x="488" y="294" font-size="19" fill="var(--c-red)" font-weight="800" font-family="var(--font-mono)">airplane &minus; (cos .67)</text>
+                  <circle cx="371.7" cy="169.9" r="11" fill="var(--c-red)"/>
+                  <circle cx="195.0" cy="330.0" r="11" fill="var(--c-red)"/>
+                  <text x="430" y="510" font-size="22" fill="var(--c-red)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">a NEGATIVE sits closest &mdash; loss is high</text>
+                </g>
+                <!-- STEP 2 · mid: pull-in arrow on the positive, push-out on the negatives -->
+                <g class="nce-stage" data-arch-step="2">
+                  <line x1="430" y1="330" x2="501.3" y2="363.3" stroke="var(--c-green)" stroke-width="3.5" marker-end="url(#ncePull)"/>
+                  <circle cx="501.3" cy="363.3" r="12" fill="var(--c-green)"/><text x="518" y="382" font-size="20" fill="var(--c-green-ink)" font-weight="800" font-family="var(--font-mono)">kitten + (cos .50)</text>
+                  <circle cx="490.9" cy="287.4" r="11" fill="var(--c-red)"/><text x="506" y="282" font-size="19" fill="var(--c-red)" font-weight="700" font-family="var(--font-mono)">airplane &minus; (cos .53)</text>
+                  <circle cx="383.7" cy="202.8" r="11" fill="var(--c-red)"/>
+                  <circle cx="239.7" cy="330.0" r="11" fill="var(--c-red)"/>
+                  <text x="430" y="510" font-size="22" fill="var(--c-amber-ink)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">pull + in, push &minus; out &mdash; loss dropping</text>
+                </g>
+                <!-- STEP 3 · tuned: positive pulled inside the close zone, negatives out; the deck's numbers -->
+                <g class="nce-stage" data-arch-step="3">
+                  <line x1="430" y1="330" x2="481.3" y2="353.9" stroke="var(--c-green)" stroke-width="3.5" marker-end="url(#ncePull)"/>
+                  <circle cx="481.3" cy="353.9" r="13" fill="var(--c-green)" stroke="var(--c-green-soft)" stroke-width="3"/><text x="498" y="372" font-size="20" fill="var(--c-green-ink)" font-weight="800" font-family="var(--font-mono)">kitten + (cos .64)</text>
+                  <circle cx="511.4" cy="273.0" r="11" fill="var(--c-red)"/><text x="527" y="268" font-size="19" fill="var(--c-red)" font-weight="700" font-family="var(--font-mono)">airplane &minus; (.37)</text>
+                  <circle cx="395.3" cy="234.7" r="11" fill="var(--c-red)"/><text x="395" y="222" font-size="19" fill="var(--c-red)" font-weight="700" text-anchor="middle" font-family="var(--font-mono)">computer &minus; (.35)</text>
+                  <circle cx="287.6" cy="330.0" r="11" fill="var(--c-red)"/><text x="270" y="358" font-size="19" fill="var(--c-red)" font-weight="700" text-anchor="end" font-family="var(--font-mono)">france &minus; (.09)</text>
+                  <text x="430" y="510" font-size="22" fill="var(--c-green-ink)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">positive is closest &mdash; solved</text>
+                </g>
+
+                <!-- ===== RIGHT: softmax over candidates (bars) + loss curve ===== -->
+                <text x="900" y="64" font-size="24" fill="var(--ink-2)" font-weight="700">softmax over candidates,  z = cos / &#964;  (&#964; = 0.1)</text>
+                <!-- bar baseline y=300; 4 bars; height ∝ probability (×220). labels under. -->
+                <line x1="900" y1="300" x2="1540" y2="300" stroke="var(--rule)" stroke-width="1.5"/>
+                <g font-size="18" fill="var(--ink-3)" text-anchor="middle" font-family="var(--font-mono)">
+                  <text x="960" y="328">kitten+</text><text x="1110" y="328">airplane&minus;</text><text x="1260" y="328">computer&minus;</text><text x="1410" y="328">france&minus;</text>
+                </g>
+                <!-- STEP 1 · untuned bars: p = [.037,.963,.001,0] — airplane towers -->
+                <g class="nce-stage" data-arch-step="1">
+                  <rect x="925" y="291.9" width="70" height="8.1" rx="3" fill="var(--c-green)"/>
+                  <rect x="1075" y="88.1" width="70" height="211.9" rx="3" fill="var(--c-red)"/>
+                  <rect x="1225" y="299.8" width="70" height="0.2" rx="3" fill="var(--c-red)"/>
+                  <rect x="1375" y="300" width="70" height="0" rx="3" fill="var(--c-red)"/>
+                  <text x="1110" y="78" font-size="20" fill="var(--c-red)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">.963</text>
+                  <text x="960" y="284" font-size="18" fill="var(--c-green-ink)" font-weight="700" text-anchor="middle" font-family="var(--font-mono)">.037</text>
+                </g>
+                <!-- STEP 2 · mid bars: p = [.425,.563,.011,0] -->
+                <g class="nce-stage" data-arch-step="2">
+                  <rect x="925" y="206.5" width="70" height="93.5" rx="3" fill="var(--c-green)"/>
+                  <rect x="1075" y="176.1" width="70" height="123.9" rx="3" fill="var(--c-red)"/>
+                  <rect x="1225" y="297.6" width="70" height="2.4" rx="3" fill="var(--c-red)"/>
+                  <rect x="1375" y="300" width="70" height="0" rx="3" fill="var(--c-red)"/>
+                  <text x="960" y="196" font-size="20" fill="var(--c-green-ink)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">.425</text>
+                  <text x="1110" y="166" font-size="20" fill="var(--c-red)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">.563</text>
+                </g>
+                <!-- STEP 3 · tuned bars: p = [.888,.058,.051,.004] — the deck's p+ = 0.8877 -->
+                <g class="nce-stage" data-arch-step="3">
+                  <rect x="925" y="104.6" width="70" height="195.4" rx="3" fill="var(--c-green)"/>
+                  <rect x="1075" y="287.2" width="70" height="12.8" rx="3" fill="var(--c-red)"/>
+                  <rect x="1225" y="288.8" width="70" height="11.2" rx="3" fill="var(--c-red)"/>
+                  <rect x="1375" y="299.1" width="70" height="0.9" rx="3" fill="var(--c-red)"/>
+                  <text x="960" y="94" font-size="22" fill="var(--c-green-ink)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">.888 = p&#8314;</text>
+                </g>
+
+                <!-- the loss readout + a 3-point loss curve (dots reveal cumulatively) -->
+                <text x="900" y="392" font-size="24" fill="var(--ink-2)" font-weight="700" font-family="var(--font-mono)">InfoNCE loss  L = &minus;log p&#8314;</text>
+                <rect x="900" y="408" width="640" height="150" rx="10" fill="var(--bg-inset)" stroke="var(--rule)" stroke-width="1.2"/>
+                <!-- curve axes: x = checkpoint (untuned/mid/tuned at x=980/1210/1440), y = loss (0..3.5 over y 540..428) -->
+                <line x1="960" y1="540" x2="1500" y2="540" stroke="var(--rule)" stroke-width="1.2"/>
+                <line x1="960" y1="428" x2="960" y2="540" stroke="var(--rule)" stroke-width="1.2"/>
+                <text x="952" y="434" font-size="15" fill="var(--ink-3)" text-anchor="end" font-family="var(--font-mono)">3.5</text>
+                <text x="952" y="544" font-size="15" fill="var(--ink-3)" text-anchor="end" font-family="var(--font-mono)">0</text>
+                <!-- segments reveal as we advance -->
+                <g stroke="var(--c-green)" stroke-width="3" fill="none">
+                  <line data-step="2" x1="1020" y1="434" x2="1230" y2="513.3"/>
+                  <line data-step="3" x1="1230" y1="513.3" x2="1440" y2="536.2"/>
+                </g>
+                <!-- L=3.31 → y= 540-3.31/3.5*112 = 434.1 ; L=.86 → 512.5 ; L=.119 → 536.2 -->
+                <g class="nce-stage" data-arch-step="1"><circle cx="1020" cy="434.1" r="8" fill="var(--c-red)"/><text x="1020" y="420" font-size="20" fill="var(--c-red)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">L = 3.31</text><text x="1020" y="560" font-size="16" fill="var(--ink-3)" text-anchor="middle" font-family="var(--font-mono)">untuned</text></g>
+                <g class="nce-stage" data-arch-step="2"><circle cx="1020" cy="434.1" r="6" fill="var(--ink-3)"/><circle cx="1230" cy="512.5" r="8" fill="var(--c-amber)"/><text x="1230" y="500" font-size="20" fill="var(--c-amber-ink)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">L = 0.86</text><text x="1020" y="560" font-size="16" fill="var(--ink-3)" text-anchor="middle" font-family="var(--font-mono)">untuned</text><text x="1230" y="560" font-size="16" fill="var(--ink-3)" text-anchor="middle" font-family="var(--font-mono)">mid</text></g>
+                <g class="nce-stage" data-arch-step="3"><circle cx="1020" cy="434.1" r="6" fill="var(--ink-3)"/><circle cx="1230" cy="512.5" r="6" fill="var(--ink-3)"/><circle cx="1440" cy="536.2" r="9" fill="var(--c-green)" stroke="var(--c-green-soft)" stroke-width="3"/><text x="1440" y="524" font-size="22" fill="var(--c-green-ink)" font-weight="800" text-anchor="middle" font-family="var(--font-mono)">L = 0.1191</text><text x="1020" y="560" font-size="16" fill="var(--ink-3)" text-anchor="middle" font-family="var(--font-mono)">untuned</text><text x="1230" y="560" font-size="16" fill="var(--ink-3)" text-anchor="middle" font-family="var(--font-mono)">mid</text><text x="1440" y="560" font-size="16" fill="var(--ink-3)" text-anchor="middle" font-family="var(--font-mono)">tuned</text></g>
+              </g>
+            </svg>
+          </div>
+          <p class="viz-caption">
+            <span class="nce-cap" data-arch-step="0"><span lang="ru">Якорь <code>cat</code> в центре; кандидаты вокруг, расстояние \(=1-\cos\). Позитив <code>kitten</code> (зелёный), негативы <code>airplane/computer/france</code> (красные).</span><span lang="en">Anchor <code>cat</code> at the centre; candidates around it, distance \(=1-\cos\). Positive <code>kitten</code> (green), negatives <code>airplane/computer/france</code> (red).</span></span>
+            <span class="nce-cap" data-arch-step="1"><span lang="ru"><strong>До обучения</strong>: негатив <code>airplane</code> ближе позитива &rarr; softmax ставит на негатив (\(.96\)), потеря большая: \(\mathcal{L}=3.31\).</span><span lang="en"><strong>Untuned</strong>: the negative <code>airplane</code> is closer than the positive &rarr; softmax bets on the negative (\(.96\)), loss is high: \(\mathcal{L}=3.31\).</span></span>
+            <span class="nce-cap" data-arch-step="2"><span lang="ru">Обучение <strong>тянет позитив внутрь</strong> и отталкивает негативы; \(p^{+}\) растёт до \(.43\), потеря падает: \(\mathcal{L}=0.86\).</span><span lang="en">Training <strong>pulls the positive in</strong> and pushes the negatives out; \(p^{+}\) rises to \(.43\), loss falls: \(\mathcal{L}=0.86\).</span></span>
+            <span class="nce-cap" data-arch-step="3"><span lang="ru"><strong>После</strong>: позитив ближе всех (\(\cos .64\)), \(p^{+}=0.8877\), и \(\mathcal{L}=-\log 0.8877=\mathbf{0.1191}\) &mdash; точное число дека.</span><span lang="en"><strong>Tuned</strong>: the positive is closest (\(\cos .64\)), \(p^{+}=0.8877\), and \(\mathcal{L}=-\log 0.8877=\mathbf{0.1191}\) &mdash; the deck&rsquo;s exact number.</span></span>
+          </p>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">0/3</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">InfoNCE as an optimization, shown end to end, with the final state pinned to the data file's exact number. Step zero, the setup: the anchor cat sits at the centre of an embedding plane; the positive kitten and the three negatives — airplane, computer, france — orbit it, with distance equal to one minus cosine, so closer means more similar; a dashed green ring marks the close zone, cosine above zero. Step one, untuned: the catch — the negative airplane has crept closer to the anchor than the positive kitten, so the softmax over candidates bets ninety-six percent on the negative, the positive gets only three-point-seven percent, and the InfoNCE loss, minus log of that, is a large three-point-three-one. Step two, mid-training: the gradient pulls the positive inward and pushes the negatives outward; the positive's probability climbs to forty-three percent and the loss falls to zero-point-eight-six. Step three, tuned: the positive is now the closest point, cosine zero-point-six-four — exactly the deck's cosines, kitten point-six-four, airplane point-three-seven, computer point-three-five, france point-zero-nine — the softmax concentrates p-plus at zero-point-eight-eight-seven-seven, and the loss is minus log of that, zero-point-one-one-nine-one. The loss curve on the right tells the whole story: three-point-three-one, down to zero-point-eight-six, down to zero-point-one-two.</aside>
+        </section>
+
+        <!-- ============================================ 47 · DEFINITION · in-batch negatives ============================================ -->
+        

@@ -1,0 +1,53 @@
+<section class="slide" data-type="e2e" data-max-step="9" data-current-step="0" data-screen-label="55 Cat/dog BM25">
+          <div class="slide-header">
+            <h2>Worked BM25: cat / dog / mouse</h2>
+            <span class="slide-kicker">E2E · \(q=\{\)cat, dog\(\}\) · \(k_1=1.5,\,b=0.75\)</span>
+          </div>
+          <div class="e2e-arch">
+            <div class="e2e-arch-block" data-role="project" data-step-range="0" data-tooltip="Smoothed idf and avgdl: the per-term constants."><div class="arch-name">idf · avgdl</div><div class="arch-shape">.13 / .47 · 3.0</div></div>
+            <div class="e2e-arch-arrow" data-step-range="0..1"></div>
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="1..5" data-tooltip="Saturating, length-aware tf factor for every (term, doc) cell."><div class="arch-name">B factor</div><div class="arch-shape">all cells</div></div>
+            <div class="e2e-arch-arrow" data-step-range="5..6"></div>
+            <div class="e2e-arch-block" data-role="reduce" data-step-range="6..8" data-tooltip="Sum the per-term weights."><div class="arch-name">sum</div><div class="arch-shape">per doc</div></div>
+            <div class="e2e-arch-arrow" data-step-range="8..9"></div>
+            <div class="e2e-arch-block" data-role="project" data-step-range="9" data-tooltip="Rank by total score."><div class="arch-name">rank</div><div class="arch-shape">D2&gt;D1&gt;D3</div></div>
+            <div class="e2e-arch-legend"><span class="leg" data-role="project">weight / result</span><span class="leg" data-role="nonlinear">factor</span><span class="leg" data-role="reduce">sum</span></div>
+          </div>
+          <div class="e2e-twin">
+            <div class="e2e-panel e2e-math-panel">
+              <div class="panel-head">Rule applied</div>
+              <div class="e2e-step" data-step="0"><div class="step-formula">$$\begin{gathered}\operatorname{idf}(\texttt{cat})=0.1335,\ \operatorname{idf}(\texttt{dog})=0.4700\\ \text{avgdl}=\tfrac{3+4+2}{3}=3.0\end{gathered}$$</div><p class="step-caption">\(N=3\); cat in all 3 (\(df=3\)), dog in 2 (\(df=2\)). Lengths \([3,4,2]\) &rarr; avgdl \(3.0\). \(B=\frac{(k_1+1)f}{k_1[(1-b)+b\,\mathrm{len}/\text{avgdl}]+f}\).</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-formula">$$B_{\text{D1,cat}}=\tfrac{2.5\cdot 2}{1.5\cdot 1+2}=\tfrac{5}{3.5}=1.4286$$</div><p class="step-caption"><strong>D1 cat, \(f{=}2\).</strong> lenRatio \(=3/3=1\), bracket \(=(1{-}0.75)+0.75\cdot1=1\). Weight \(=1.4286\cdot 0.1335=0.1908\).</p></div>
+              <div class="e2e-step" data-step="2"><div class="step-formula">$$B_{\text{D2,dog}}=\tfrac{2.5\cdot 2}{1.5\cdot 1.25+2}=\tfrac{5}{3.875}=1.2903$$</div><p class="step-caption"><strong>D2 dog, \(f{=}2\).</strong> lenRatio \(=4/3=1.3333\), bracket \(=0.25+0.75\cdot1.3333=1.25\). Weight \(=1.2903\cdot 0.4700=0.6065\).</p></div>
+              <div class="e2e-step" data-step="3"><div class="step-formula">$$B_{\text{D2,cat}}=\tfrac{2.5\cdot 1}{1.5\cdot 1.25+1}=\tfrac{2.5}{2.875}=0.8696$$</div><p class="step-caption"><strong>D2 cat, \(f{=}1\).</strong> len 4, lenRatio \(=4/3=1.3333\), bracket \(=1.25\). Weight \(=0.8696\cdot 0.1335=0.1161\).</p></div>
+              <div class="e2e-step" data-step="4"><div class="step-formula">$$B_{\text{D3,cat}}=\tfrac{2.5\cdot 1}{1.5\cdot 0.75+1}=\tfrac{2.5}{2.125}=1.1765$$</div><p class="step-caption"><strong>D3 cat, \(f{=}1\).</strong> len 2, lenRatio \(=2/3=0.6667\), bracket \(=0.75\). Weight \(=1.1765\cdot 0.1335=0.1571\).</p></div>
+              <div class="e2e-step" data-step="5"><div class="step-formula">$$B_{\text{D1,dog}}=\tfrac{2.5\cdot 1}{1.5\cdot 1+1}=\tfrac{2.5}{2.5}=1.0$$</div><p class="step-caption"><strong>D1 dog, \(f{=}1\), len 3 = avgdl &rarr; bracket \(=1\).</strong> When \(B{=}1\) the weight is just the bare idf: \(1.0\cdot 0.4700=0.4700\).</p></div>
+              <div class="e2e-step" data-step="6"><div class="step-formula">$$\mathrm{BM25}(\text{D1})=0.1908+0.4700=0.6608$$</div><p class="step-caption"><strong>D1</strong> = "cat cat dog", len 3 = avgdl. Sum cat \(+\) dog weights.</p></div>
+              <div class="e2e-step" data-step="7"><div class="step-formula">$$\mathrm{BM25}(\text{D2})=0.1161+0.6065=0.7226$$</div><p class="step-caption"><strong>D2</strong> = "cat dog dog mouse", dog twice &rarr; top score.</p></div>
+              <div class="e2e-step" data-step="8"><div class="step-formula">$$\mathrm{BM25}(\text{D3})=0.1571+0=0.1571$$</div><p class="step-caption"><strong>D3</strong> = "mouse cat", no dog &rarr; only the cat weight.</p></div>
+              <div class="e2e-step" data-step="9"><div class="step-formula">$$\text{D2}\;0.7226 > \text{D1}\;0.6608 > \text{D3}\;0.1571$$</div><p class="step-caption"><strong>Same term, three weights.</strong> cat scores \(0.1908\) (D1, len/avgdl\(=1\)) / \(0.1161\) (D2, len/avgdl\(=1.33\), <em>damped</em>) / \(0.1571\) (D3, len/avgdl\(=0.67\), <em>boosted</em>) &mdash; only length normalization differs.</p></div>
+            </div>
+            <div class="e2e-panel e2e-example-panel">
+              <div class="panel-head">Final ranking</div>
+              <div class="e2e-step" data-step="0"><div class="step-calc-row"><span class="matrix-label"><code>D1=3 tok · D2=4 · D3=2 · avgdl=3</code></span></div></div>
+              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label is-highlight"><code>D1 cat: B=1.4286 → 0.1908</code></span></div></div>
+              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label is-highlight"><code>D2 dog: B=1.2903 → 0.6065</code></span></div></div>
+              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label is-highlight"><code>D2 cat: B=0.8696 → 0.1161</code></span></div></div>
+              <div class="e2e-step" data-step="4"><div class="step-calc-row"><span class="matrix-label is-highlight"><code>D3 cat: B=1.1765 → 0.1571</code></span></div></div>
+              <div class="e2e-step" data-step="5"><div class="step-calc-row"><span class="matrix-label is-highlight"><code>D1 dog: B=1.0 → 0.4700 = idf</code></span></div><p class="step-caption tiny">B=1 ⇒ weight = bare idf.</p></div>
+              <div class="e2e-step" data-step="6"><div class="step-calc-row"><span class="matrix-label"><code>D1 = 0.1908 + 0.4700 = 0.6608</code></span></div></div>
+              <div class="e2e-step" data-step="7"><div class="step-calc-row"><span class="matrix-label is-highlight"><code>D2 = 0.1161 + 0.6065 = 0.7226</code></span></div><p class="step-caption tiny">dog repeated wins.</p></div>
+              <div class="e2e-step" data-step="8"><div class="step-calc-row"><span class="matrix-label"><code>D3 = 0.1571 + 0 = 0.1571</code></span></div></div>
+              <div class="e2e-step" data-step="9"><div class="step-calc-row"><span class="matrix-label is-highlight"><code>D2 &gt; D1 &gt; D3</code></span></div><p class="step-caption tiny">cat: 0.1908 / 0.1161 / 0.1571 by length.</p></div>
+            </div>
+          </div>
+          <div class="e2e-stepper">
+            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">&larr;</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 9</span></div><button type="button" class="step-btn" data-step-act="next">&rarr;</button></div>
+            <span class="e2e-stage-name">overview</span>
+            <button type="button" class="e2e-toggle">Theory only</button>
+          </div>
+          <aside class="slide-notes">The flagship worked example, exact from the catdog JSON, now fully substituted — every non-zero cell is derived, so a student can reproduce the whole table by hand. Three documents, query cat and dog, defaults k1 1.5 and b 0.75. avgdl is the mean length (3+4+2)/3 = 3.0. Smoothed idf gives cat 0.1335 and dog 0.4700 — dog is rarer so it carries more weight. The B factor is (k1+1)f over k1 times [(1−b)+b·len/avgdl] plus f. The five non-zero cells: D1 cat, tf 2, lenRatio 1, bracket 1, B = 5/3.5 = 1.4286, weight 0.1908; D2 dog, tf 2, lenRatio 1.3333, bracket 1.25, B = 5/3.875 = 1.2903, weight 0.6065; D2 cat, tf 1, same bracket 1.25, B = 2.5/2.875 = 0.8696, weight 0.1161; D3 cat, tf 1, len 2, lenRatio 0.6667, bracket 0.75, B = 2.5/2.125 = 1.1765, weight 0.1571; D1 dog, tf 1, len 3 equals avgdl so bracket 1 and B = 2.5/2.5 = 1.0 — the clean lesson that when B equals one the weight is just the bare idf, 0.4700. Per doc: D1 = 0.1908 + 0.4700 = 0.6608; D2 = 0.1161 + 0.6065 = 0.7226; D3 = 0.1571 + 0 = 0.1571. Ranking D2 > D1 > D3: the document repeating the rarer, heavier term wins. The closing step ties cat's three different weights — 0.1908, 0.1161, 0.1571 — to each document's len/avgdl: same term, same idf, only length normalization differs, so short D3 is boosted and long D2 is damped.</aside>
+        </section>
+
+        <!-- ============================================ 52 · TABLE · distinct-idf query (rare term dominates) ============================================ -->
+        

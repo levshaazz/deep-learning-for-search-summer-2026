@@ -1,0 +1,70 @@
+<section class="slide" data-type="walkthrough" data-max-step="5" data-current-step="0" data-screen-label="21 Walkthrough · Inverted index">
+          <div class="slide-header">
+            <h2>Building an inverted index, by hand</h2>
+            <span class="slide-kicker">Worked example · <code>fox AND quick</code></span>
+          </div>
+
+          <p class="small muted mt-2">
+            Two documents — Doc&nbsp;1 <code>"the quick brown fox"</code>, Doc&nbsp;2 <code>"the lazy fox"</code>. Build the index, then answer <code>fox AND quick</code>.
+          </p>
+
+          <div class="walk-flow">
+            <div class="walk-step" data-step="1" data-color="violet">
+              <div class="walk-num">01</div>
+              <div class="walk-content">
+                <div class="walk-label">Tokenize each document</div>
+                <div class="walk-detail">Doc&nbsp;1 → <code>the · quick · brown · fox</code>; Doc&nbsp;2 → <code>the · lazy · fox</code>.</div>
+              </div>
+              <div class="walk-state">2 docs</div>
+            </div>
+
+            <div class="walk-step" data-step="2" data-color="cyan">
+              <div class="walk-num">02</div>
+              <div class="walk-content">
+                <div class="walk-label">Emit (term, docID) pairs</div>
+                <div class="walk-detail"><code>(the,1)(quick,1)(brown,1)(fox,1)(the,2)(lazy,2)(fox,2)</code>.</div>
+              </div>
+              <div class="walk-state">7 pairs</div>
+            </div>
+
+            <div class="walk-step" data-step="3" data-color="cyan">
+              <div class="walk-num">03</div>
+              <div class="walk-content">
+                <div class="walk-label">Sort &amp; group into postings</div>
+                <div class="walk-detail"><code>brown→[1]</code>, <code>fox→[1,2]</code>, <code>lazy→[2]</code>, <code>quick→[1]</code>, <code>the→[1,2]</code>.</div>
+              </div>
+              <div class="walk-state">5 terms</div>
+            </div>
+
+            <div class="walk-step" data-step="4" data-color="amber">
+              <div class="walk-num">04</div>
+              <div class="walk-content">
+                <div class="walk-label">Look up the query terms</div>
+                <div class="walk-detail"><code>fox → [1,2]</code> and <code>quick → [1]</code>. We only touch these two postings lists, not the corpus.</div>
+              </div>
+              <div class="walk-state">\(\mathrm{df}_{\text{fox}}=2\)</div>
+            </div>
+
+            <div class="walk-step" data-step="5" data-final="true">
+              <div class="walk-num">→</div>
+              <div class="walk-content">
+                <div class="walk-label">Intersect the postings</div>
+                <div class="walk-detail"><code>[1,2] ∩ [1] = [1]</code>. Answer: <strong>Doc&nbsp;1</strong>. A merge of two sorted lists — \(O(\text{list lengths})\), not \(O(N)\).</div>
+              </div>
+              <div class="walk-state">→ Doc 1</div>
+            </div>
+          </div>
+
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">←</button>
+            <span class="step-counter">5/5</span>
+            <button data-step-act="next" aria-label="Next step">→</button>
+          </div>
+
+          <aside class="slide-notes">Step through it slowly — this is the concrete payoff of the previous definition. Emphasise step 5: the intersection is a linear merge of two <em>sorted</em> lists, which is why postings are kept sorted. With more terms you intersect shortest-first to minimise work. This worked example is the seed of BM25 scoring next lecture: \(\mathrm{tf}\) and \(\mathrm{df}\) are already in the postings.</aside>
+        </section>
+
+        <!-- ============================================
+             21 · FUNNEL · the cascade with real numbers
+             ============================================ -->
+        
