@@ -1,0 +1,32 @@
+    {
+      id: 'problem-one-vector', kind: 'prose',
+      heading: { en: 'One word, two minds', ru: 'Одно слово, два ума', tt: 'Бер сүз, ике акыл' },
+      img: 'L6/L6-01-bank-two-meanings.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'The word "bank" pulled in two directions at once — toward a river on one side and a stack of money on the other — stuck at a smeared midpoint.',
+        ru: 'Слово «bank» тянет сразу в две стороны — к реке с одной и к стопке денег с другой — застрявшее в размазанной середине.',
+        tt: '«bank» сүзе бер үк вакытта ике якка тартыла — бер яктан елгага, икенче яктан акча өеменә — ягылган уртада ябышып калган.',
+      },
+      imgCaption: {
+        en: 'A static embedding gives "bank" one vector — the average of river-bank and money-bank, a smear that is no good for either.',
+        ru: 'Статический эмбеддинг даёт «bank» один вектор — среднее берега реки и денежного банка, размазню, не годную ни для того, ни для другого.',
+        tt: 'Статик эмбеддинг «bank»’ка бер вектор бирә — елга яры белән акча банкының уртачасы, икесенә дә ярамый торган ягылма.',
+      },
+      body: {
+        en: [
+          "Let's make the Gremlin's last move precise, because the whole chapter is built to defeat exactly this. A static embedding — word2vec, GloVe, every method from last chapter — is a fixed lookup table: one row per word *type*, learned once, frozen. \"bank\" maps to a single vector \\(v_{\\text{bank}}\\), end of story. The model trained that vector on every sentence \"bank\" ever appeared in, the riverbanks and the savings banks all averaged together, so \\(v_{\\text{bank}}\\) ends up at a blurry compromise that's a bad description of *both* senses. This is **polysemy**, and a single vector simply cannot hold two meanings at once.",
+          "Why does this wreck search specifically? Because retrieval lives or dies on matching *intent*, and intent is carried by context. A query \"river bank erosion\" and a document about \"central bank interest rates\" share the token \"bank\" — and with a static embedding their \"bank\" vectors are *identical*, nudging the two toward a false match. The thing that should disambiguate them — the surrounding words — is exactly the thing a per-type vector throws away. \"apple\" the fruit vs \"Apple\" the company; \"python\" the snake vs \"python\" the language; \"jaguar\" the cat vs the car: every one of them is a landmine in a search index built on frozen vectors.",
+          "So the fix writes itself, even if building it is the hard part. We need an embedding that is **not a property of the word, but a function of the word *in its sentence*** — a vector for \"bank\" that comes out *different* when \"river\" is nearby than when \"deposited\" is. A vector computed fresh, on the spot, from the company the word is actually keeping right now. That is a **contextual embedding**, and producing one is the job of the machine we spend this chapter building. The static map was a phone book; we're about to make it read the room.",
+        ],
+        ru: [
+          'Сделаем последний ход Гремлина точным, ведь вся глава построена, чтобы победить именно его. Статический эмбеддинг — word2vec, GloVe, каждый метод прошлой главы — это фиксированная таблица: одна строка на *тип* слова, выучена однажды, заморожена. «bank» отображается в единственный вектор \\(v_{\\text{bank}}\\), и точка. Модель учила этот вектор на всех предложениях, где когда-либо встречалось «bank», — берега рек и сберегательные банки усреднены вместе, — поэтому \\(v_{\\text{bank}}\\) оказывается размытым компромиссом, плохо описывающим *оба* смысла. Это **полисемия**, и один вектор просто не может держать два значения сразу.',
+          'Почему это калечит именно поиск? Потому что поиск держится на сопоставлении *намерения*, а намерение несёт контекст. Запрос «эрозия берега реки» и документ про «процентные ставки центрального банка» делят токен «bank» — и со статическим эмбеддингом их векторы «bank» *идентичны*, толкая эту пару к ложному совпадению. То, что должно их различать, — окружающие слова — ровно то, что вектор-на-тип выбрасывает. «apple» фрукт против «Apple» компании; «python» змея против «python» языка; «jaguar» кошка против машины: каждое — мина в поисковом индексе на замороженных векторах.',
+          'Так что лечение пишет себя само, даже если построить его — самое трудное. Нужен эмбеддинг, что **не свойство слова, а функция слова *в его предложении*** — вектор для «bank», что выходит *разным*, когда рядом «river», и когда рядом «deposited». Вектор, вычисленный заново, на месте, из компании, что слово реально водит прямо сейчас. Это **контекстный эмбеддинг**, и его производство — работа машины, что мы строим всю главу. Статическая карта была телефонной книгой; сейчас мы научим её читать обстановку.',
+        ],
+        tt: [
+          'Гремлинның соңгы йөрешен төгәл итик, чөнки бөтен бүлек нәкъ шуны җиңәр өчен корылган. Статик эмбеддинг — word2vec, GloVe, узган бүлектәге һәр метод — беркетелгән таблица: сүз *төренә* бер юл, бер тапкыр өйрәнелгән, катып калган. «bank» бердәнбер \\(v_{\\text{bank}}\\) векторына чагыла, шул гына. Модель бу векторны «bank» очраган барлык җөмләләрдә өйрәтте — елга ярлары һәм җыем банклары бергә уртачаланган, — шуңа \\(v_{\\text{bank}}\\) *ике* мәгънәне дә начар тасвирлаган томанлы килешүгә әйләнә. Бу — **полисемия**, һәм бер вектор ике мәгънәне берьюлы тота алмый.',
+          'Ни өчен бу нәкъ эзләүне имгәтә? Чөнки эзләү *ниятне* туры китерүгә таяна, ә ниятне контекст йөртә. «елга яры эрозиясе» соравы һәм «үзәк банк процент ставкалары» турындагы документ «bank» токенын уртаклаша — һәм статик эмбеддинг белән аларның «bank» векторлары *бертөрле*, бу парны ялган туры килүгә этәрә. Аларны аерырга тиешле нәрсә — тирәдәге сүзләр — нәкъ менә төргә-вектор ташлый торган нәрсә. «apple» җиләк-җимеш «Apple» компаниягә каршы; «python» елан «python» телгә каршы; «jaguar» мәче машинага каршы: һәркайсы — катып калган векторларга корылган эзләү индексындагы мина.',
+          'Шуңа дәвалау үзен үзе яза, аны төзү иң авыры булса да. Безгә **сүзнең сыйфаты түгел, ә *җөмләсендәге* сүзнең функциясе** булган эмбеддинг кирәк — «river» янәшә булганда «deposited» янәшә булганнан *башка* килеп чыга торган «bank» векторы. Сүз нәкъ хәзер чынлап йөрткән иптәшеннән, урынында, яңадан исәпләнгән вектор. Бу — **контекстлы эмбеддинг**, һәм аны җитештерү — без бөтен бүлек дәвамында корган машинаның эше. Статик карта телефон китабы иде; хәзер без аны хәлне укырга өйрәтәбез.',
+        ],
+      },
+    },
