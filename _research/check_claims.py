@@ -90,6 +90,7 @@ W2V     = load(DATA, "l5-word2vec-train.json")  # SGNS training: loss 4.85→2.6
 UMAP    = load(DATA, "l5-umap.json")            # REAL UMAP-44: n_neighbors=10, min_dist=0.1, tightness 0.147→0.061
 STACK   = load(DATA, "l6-stack-layers.json")    # DistilBERT cross-sense cos(bank,bank) fan 0.957→0.647 over 6 blocks
 CTRAJ   = load(DATA, "l6-contrastive-traj.json")# InfoNCE optimisation trajectory: loss 3.31→0.86→0.1191
+CTX     = load(DATA, "l6-contextual.json")      # standalone DistilBERT "bank" polysemy demo: cross-sense 0.6465 < within-sense 0.9466 (Book ch.6 prose)
 
 # ── [P] PROVENANCE: curated data/ must equal the generator artifact it was lifted from ──────────
 def provenance_checks(report):
@@ -372,6 +373,13 @@ def provenance_enrichment(report):
         ("umap.tight.final", round(snap[500]["tightness"], 4), round(u["snapshots"][-1]["tightness"], 4), 1e-9),
         # DistilBERT cross-sense fan: final == the last block's cosine in the by-layer series
         ("stack.final",    s["finalCrossSenseCos"], s["crossSenseCosByLayer"][-1], 1e-9),
+        # l6-contextual.json (the STANDALONE DistilBERT polysemy demo behind the Book ch.6 "bank" prose)
+        # MUST agree with the stack run: its final cross-sense cos(bank_river, bank_money) == the stack's
+        # last-block cosine — same DistilBERT, two generators, one number (both 0.6465). Ties the orphan in.
+        ("ctx.crossSense", CTX["cosines"]["crossSense"], s["finalCrossSenseCos"], 1e-9),
+        # the displayed 0.30 gap is the within−cross identity (0.9466 − 0.6465 = 0.3001); static is 1.0 by construction.
+        ("ctx.gap",        CTX["cosines"]["gap"], round(CTX["cosines"]["withinSense"] - CTX["cosines"]["crossSense"], 4), 1e-9),
+        ("ctx.staticSelf", CTX["staticBaseline"]["staticBankSelfCos"], 1.0, 1e-9),
     ]
     bad = 0
     for name, a, b, tol in checks:
@@ -388,10 +396,16 @@ def provenance_enrichment(report):
     if not all(neg["sigmoid"] > 0 and "push apart" in neg["gradSign"] for neg in w["workedStep"]["negatives"]):
         bad += 1
         report.append(("HARD", "provenance-ENR(w2v.workedStep): a negative-sample grad does not push apart"))
+    # contextual polysemy demo: the whole claim is within-sense > cross-sense (context splits the senses).
+    if not (CTX["cosines"]["withinSense"] > CTX["cosines"]["crossSense"]):
+        bad += 1
+        report.append(("HARD", "provenance-ENR(ctx.split): within-sense not > cross-sense — "
+                               f'{CTX["cosines"]["withinSense"]} vs {CTX["cosines"]["crossSense"]}'))
     if not bad:
-        report.append(("OK", f"provenance-ENR: {len(checks) + 2} enrichment cross-file/structural invariants "
+        report.append(("OK", f"provenance-ENR: {len(checks) + 3} enrichment cross-file/structural invariants "
                              f"consistent (GloVe 18.0391→0.005 · InfoNCE traj→0.1191/p⁺0.8877 · "
-                             f"w2v related tighter · UMAP 0.1469→0.0612 · DistilBERT fan→0.6465) ✓"))
+                             f"w2v related tighter · UMAP 0.1469→0.0612 · DistilBERT fan→0.6465 · "
+                             f"l6-contextual 0.6465<0.9466) ✓"))
 
 # ── [C] CLAIMS: every grounded value read from data/, asserted present+matching in the deck ─────
 def claims():
@@ -507,6 +521,11 @@ def book_claims():
         tol = entry[2] if len(entry) > 2 else base[src]["tol"]   # override where the Book rounds differently
         out.append(dict(id="book " + src, deck=base[src]["deck"], value=base[src]["value"],
                         tol=tol, anchor=anchor, must=True))
+    # Book-ONLY prose numbers with no deck twin → value sourced STRAIGHT from data/ (the deck never shows them).
+    # ch.6 within-sense cosine 0.9466 (two money-bank uses) is displayed only in the Book; it lives in
+    # data/l6-contextual.json — gating it here makes that file a real consumer (its number drives the prose).
+    out.append(dict(id="book L6 within-sense", deck="L6", value=CTX["cosines"]["withinSense"], tol=1e-4,
+                    anchor=r'cheque"\) sit at \\\(([\d.]+)\\\), nearly on top', must=True))
     return out
 
 # ── L3 'Star Catalog' [C] claims: every flagship number the deck shows == data/l3-*.json ─────────
@@ -1094,16 +1113,30 @@ def selftest():
     GLOVE["trajectory"]["frames"][-1]["loss"] = savedTrj
     okPE = any(s == "HARD" and "provenance-ENR(glove.traj.lossAfter)" in m for s, m in rep11)
     print("[selftest:prov-ENR]", next((m for s, m in rep11 if s == "HARD"), "provenance-ENR: NO FLAG"))
+    # ENR [P]: a drifted l6-contextual cross-sense (vs the DistilBERT stack final 0.6465) must flag (in-memory).
+    rep12 = []
+    savedCX = CTX["cosines"]["crossSense"]
+    CTX["cosines"]["crossSense"] = 0.999            # break ctx.crossSense == stack.final (0.6465)
+    provenance_enrichment(rep12)
+    CTX["cosines"]["crossSense"] = savedCX
+    okCX = any(s == "HARD" and "provenance-ENR(ctx." in m for s, m in rep12)
+    print("[selftest:prov-ENR-ctx]", next((m for s, m in rep12 if s == "HARD"), "provenance-ENR ctx: NO FLAG"))
     # Book [C]: a Book chapter where a flagship PROSE number drifted must flag DRIFT (anchor not blind).
     cBK = next(x for x in book_claims() if x["id"] == "book L5 PCA 2-D")
     bBK = r'these two axes keep 99.9% of the original variance'  # wrong: data/ says 37.7
     sevBK, msgBK = check_claim(cBK, bBK)
     okBK = sevBK == "HARD" and "DRIFT" in msgBK
     print("[selftest:book]", msgBK)
+    # Book [C]: a drifted ch.6 within-sense cosine (sourced from data/l6-contextual.json) must flag DRIFT.
+    cBW = next(x for x in book_claims() if x["id"] == "book L6 within-sense")
+    bBW = r'to cash a cheque") sit at \(0.999\), nearly on top of each other'  # data/ within-sense is 0.9466
+    sevBW, msgBW = check_claim(cBW, bBW)
+    okBW = sevBW == "HARD" and "DRIFT" in msgBW
+    print("[selftest:book-ctx]", msgBW)
     ok = (okD and okA and okP and okL3 and okL4 and okP2 and okL5 and okL6 and okP3 and okP4
           and okGX and okTK and okTS and okP5 and okP6 and okP7 and okP8 and okP9
-          and okW and okU and okS and okT47 and okPE and okBK)
-    print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 + L5-GloVe/t-SNE + L2-tokenizers + enrichment-trajectory + Book-prose deck & cross-file (incl. data-only pins) all fire"
+          and okW and okU and okS and okT47 and okPE and okCX and okBK and okBW)
+    print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 + L5-GloVe/t-SNE + L2-tokenizers + enrichment-trajectory + l6-contextual cross-file + Book-prose deck & cross-file (incl. data-only pins) all fire"
           if ok else "FAIL — a check is blind!")
     return 0 if ok else 1
 
