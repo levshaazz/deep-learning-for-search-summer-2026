@@ -11,10 +11,9 @@
    file:// — no server. Exit 1 on any error. Run: node sequence-audit.mjs
    ========================================================= */
 import { chromium } from 'playwright';
-import { HARDENED } from './lib/gate-harness.mjs';
-import { fileURLToPath } from 'node:url';
+import { HARDENED, TEMPLATE_DECK_URL } from './lib/gate-harness.mjs';
 
-const DECK = 'file://' + encodeURI(fileURLToPath(new URL('../Lectures Template/Lecture Template.html', import.meta.url)));
+const DECK = TEMPLATE_DECK_URL;
 const TOL = 4, MARGIN = 6;
 let errors = 0, warns = 0;
 const err = (m) => { errors++; console.log('  ✗ ERROR ' + m); };

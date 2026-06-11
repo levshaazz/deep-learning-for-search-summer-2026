@@ -12,10 +12,9 @@
    Exit 1 on any error. Run: node archflow-audit.mjs   (from _audit/)
    ========================================================= */
 import { chromium } from 'playwright';
-import { HARDENED } from './lib/gate-harness.mjs';
-import { fileURLToPath } from 'node:url';
+import { HARDENED, TEMPLATE_DECK_URL } from './lib/gate-harness.mjs';
 
-const DECK = 'file://' + encodeURI(fileURLToPath(new URL('../Lectures Template/Lecture Template.html', import.meta.url)));
+const DECK = TEMPLATE_DECK_URL;
 const OVERLAP_TOL = 6;   // px of allowed incidental overlap between boxes
 const CONNECT_TOL = 34;  // px an arrow endpoint may sit from its node's box
 const CANVAS_MARGIN = 4; // px a box may stick out of the canvas
