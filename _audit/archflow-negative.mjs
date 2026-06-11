@@ -18,6 +18,8 @@ import { fileURLToPath } from 'node:url';
 
 const BASE = 'file://' + encodeURI(fileURLToPath(new URL('../Lectures Template/Lecture Template.html', import.meta.url)));
 const browser = await chromium.launch(HARDENED);
+let code = 1;
+try {
 const page = await browser.newContext({ viewport: { width: 1920, height: 1080 } }).then(c => c.newPage());
 await page.goto(BASE, { waitUntil: 'load' });
 await page.waitForFunction(() => window.Lecture && window.__preflight);
@@ -120,5 +122,11 @@ const cases = { ...out.structural, ...out.geometry };
 const allDetected = Object.values(cases).every(Boolean);
 const cleanOk = out.cleanBefore.err === 0 && out.cleanBefore.warn === 0 && out.cleanAfter.err === 0 && out.cleanAfter.warn === 0;
 console.log(JSON.stringify({ ...out, cases, allDetected, cleanOk }, null, 2));
-await browser.close();
-process.exit(allDetected && cleanOk ? 0 : 1);
+code = allDetected && cleanOk ? 0 : 1;
+} catch (e) {
+  console.error(e);
+  code = 1;
+} finally {
+  await browser.close();
+}
+process.exit(code);

@@ -1,9 +1,10 @@
 import { chromium } from 'playwright';
+import { HARDENED } from './lib/gate-harness.mjs';   // --disable-dev-shm-usage etc. (CI OOM guard)
 const TARGETS = {
   modular: 'http://localhost:8099/Lecture%20Template.html',
   standalone: 'http://localhost:8099/Lecture%20Template%20(Standalone).html',
 };
-const browser = await chromium.launch();
+const browser = await chromium.launch(HARDENED);
 for (const [name, url] of Object.entries(TARGETS)) {
   const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
   const page = await ctx.newPage();

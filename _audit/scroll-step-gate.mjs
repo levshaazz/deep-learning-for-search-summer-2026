@@ -21,7 +21,7 @@ const LANG = 'en'; // built-HTML check uses the canonical locale
 
 function loadManifests() {
   const m = {};
-  for (const id of readdirSync(WDIR, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name)) {
+  for (const id of readdirSync(WDIR, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort()) {
     const f = join(WDIR, id, 'manifest.json');
     if (existsSync(f)) m[id] = JSON.parse(readFileSync(f, 'utf8'));
   }
@@ -29,7 +29,7 @@ function loadManifests() {
 }
 async function loadChapters() {
   const out = [];
-  for (const f of readdirSync(CDIR).filter((f) => f.endsWith('.js'))) {
+  for (const f of readdirSync(CDIR).filter((f) => f.endsWith('.js')).sort()) {
     const mod = await import(pathToFileURL(join(CDIR, f)).href);
     out.push({ file: f, ...mod.default });
   }
