@@ -126,10 +126,13 @@ jobs:
         working-directory: _audit
         run: node slide-viz-gate.mjs --selftest
 
-      # G10 — "does it RUN": every Book scroll-step widget mounts and steps WITHOUT a runtime
-      #        error (console.error / pageerror / unhandledrejection / setStep-throw / missing
-      #        export) and WITHOUT rendering an empty/degenerate figure, in both themes. Complements
-      #        G9's "does it look right" — catches a widget that mounts-but-errors before it ships.
+      # G10 — "does it RUN" + "does it render the SAME": every Book scroll-step widget mounts and
+      #        steps WITHOUT a runtime error (console.error / pageerror / unhandledrejection /
+      #        setStep-throw / missing export) and WITHOUT an empty/degenerate figure, in both themes
+      #        (complements G9's "does it look right"). It ALSO compares each (widget,theme,step) to a
+      #        committed paint-signature baseline (_audit/baselines/widget-viz.json) and HARD-fails on
+      #        DRIFT — a vanished mark, a collapsed step, a fill/stroke/HALO change (the regression a
+      #        dropped .svg-halo is). An intentional visual change is re-frozen via --update-baseline.
       - name: G10 widget-render-check
         working-directory: _audit
         run: node widget-render-check.mjs
