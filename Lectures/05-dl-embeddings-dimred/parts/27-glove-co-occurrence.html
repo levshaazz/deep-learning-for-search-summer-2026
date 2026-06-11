@@ -285,10 +285,9 @@
             if (gtraj) {
               var TBX={x:60,y:74,w:660,h:432};
               var cp=GT.conv, gxs=cp.map(function(p){return p[1];}), gys=cp.map(function(p){return p[2];});
-              var gx0=Math.min.apply(null,gxs),gx1=Math.max.apply(null,gxs),gy0=Math.min.apply(null,gys),gy1=Math.max.apply(null,gys);
-              var gpx=(gx1-gx0)*0.14, gpy=(gy1-gy0)*0.14;
-              var gsx=function(x){return TBX.x+(x-(gx0-gpx))/((gx1+gpx)-(gx0-gpx))*TBX.w;};
-              var gsy=function(y){return TBX.y+TBX.h-(y-(gy0-gpy))/((gy1+gpy)-(gy0-gpy))*TBX.h;};
+              // R8: data→pixel map via the shared DeckLayout.makeScale (was a hand-written min/max + 0.14 pad).
+              var gsx=DeckLayout.makeScale(gxs, {x:TBX.x,y:0,w:TBX.w,h:0}, {axis:'x',pad:0.14}).to;
+              var gsy=DeckLayout.makeScale(gys, {x:0,y:TBX.y,w:0,h:TBX.h}, {axis:'y',pad:0.14}).to;
               // faint ghost of the random-init cloud (mapped through the same basis) → shows the START
               GT.init.forEach(function(p){ var c=document.createElementNS(GNS,'circle'); c.setAttribute('cx',gsx(p[1]));c.setAttribute('cy',gsy(p[2]));c.setAttribute('r',4);c.setAttribute('fill','var(--ink-3)');c.setAttribute('opacity',0.28); gtraj.appendChild(c); });
               // ghost-cloud label, parked in a clear band near the top of the box (away from every dot)

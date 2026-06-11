@@ -200,11 +200,11 @@
             // legible, not a speck), while the badge/spread numbers carry the literal "spread ×6.3".
             // The DRIFT (related words pulling together) is read from the changing relative arrangement.
             function scalerFor(f){
+              // R8: data→pixel map via the shared DeckLayout.makeScale (was a hand-written min/max + 0.16
+              // pad). Bit-identical for real spans — makeScale's pad fraction == the former pxx/spanx ratio.
               var xs=f.p.map(function(p){return p[1];}), ys=f.p.map(function(p){return p[2];});
-              var xmin=Math.min.apply(null,xs),xmax=Math.max.apply(null,xs),ymin=Math.min.apply(null,ys),ymax=Math.max.apply(null,ys);
-              var spanx=(xmax-xmin)||1, spany=(ymax-ymin)||1, pxx=spanx*0.16, pyy=spany*0.16;
-              return { sx:function(x){return BX.x+(x-(xmin-pxx))/((xmax+pxx)-(xmin-pxx))*BX.w;},
-                       sy:function(y){return BX.y+BX.h-(y-(ymin-pyy))/((ymax+pyy)-(ymin-pyy))*BX.h;} };
+              return { sx: DeckLayout.makeScale(xs, {x:BX.x,y:0,w:BX.w,h:0}, {axis:'x',pad:0.16}).to,
+                       sy: DeckLayout.makeScale(ys, {x:0,y:BX.y,w:0,h:BX.h}, {axis:'y',pad:0.16}).to };
             }
             // which trajectory frame each STEP shows: 0,1,2 → random init; 3 → epoch 10; 4 → converged
             var STEP2FRAME = [0,0,0,1,2];
