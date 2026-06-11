@@ -37,8 +37,7 @@ Run:  /usr/bin/python3 _research/gen_l6_contextual.py
 from __future__ import annotations
 import json, os, pathlib, sys
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
-DATA = ROOT / "data"
+from genlib import ROOT, DATA, r      # shared helpers (genlib.py)
 # Reuse the gen_l5 cache convention: everything heavy/regenerable under the gitignored
 # _research/data/.cache/ . Point HuggingFace at a subdir there so model weights are cached
 # (and gitignored) rather than landing in ~/.cache.
@@ -62,10 +61,6 @@ SENTENCES = {
 }
 # the context word whose contextual vector each "bank" should lean toward
 CONTEXT_WORD = {"river": "river", "money": "deposited", "money2": "cash"}
-
-
-def r(x, n=4):
-    return round(float(x), n)
 
 
 def cos(a, b) -> float:

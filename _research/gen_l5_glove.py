@@ -33,8 +33,7 @@ from __future__ import annotations
 import json, math, pathlib
 import numpy as np
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
-DATA = ROOT / "data"
+from genlib import ROOT, DATA, r, rm, rv      # shared helpers (genlib.py)
 
 # ── hyper-parameters (fixed → reproducible) ───────────────────────────────────────────────────────
 WINDOW = 4          # symmetric context window (words on each side)
@@ -56,18 +55,6 @@ CORPUS = [
     "the dog chases the cat",
     "the king has a cat and the queen has a dog",
 ]
-
-
-def r(x, n=4):
-    return round(float(x), n)
-
-
-def rm(M, n=4):
-    return [[r(v, n) for v in row] for row in np.asarray(M, dtype=float)]
-
-
-def rv(v, n=4):
-    return [r(x, n) for x in np.asarray(v, dtype=float).ravel()]
 
 
 def tokenize(sentences):

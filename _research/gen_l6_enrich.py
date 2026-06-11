@@ -32,8 +32,7 @@ from __future__ import annotations
 import json, pathlib, math
 import numpy as np
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
-DATA = ROOT / "data"
+from genlib import ROOT, DATA, softmax      # shared helpers (genlib.py)
 
 
 def r(x, n=4):
@@ -116,9 +115,6 @@ def build_stack_layers():
 
 
 # ───────────────────────── #47 — the InfoNCE optimization trajectory (toy 2-D) ────────────────────
-def softmax(z):
-    z = np.asarray(z, float); z = z - z.max()
-    e = np.exp(z); return e / e.sum()
 
 
 def infonce_from_cosines(pos_cos, neg_cos, tau):

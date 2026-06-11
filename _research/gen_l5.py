@@ -18,8 +18,7 @@ from __future__ import annotations
 import json, struct, zlib, pathlib, urllib.request, sys
 import numpy as np
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
-DATA = ROOT / "data"
+from genlib import ROOT, DATA, r      # shared helpers (genlib.py)
 CACHE = ROOT / "_research" / "data" / ".cache"
 CACHE.mkdir(parents=True, exist_ok=True)
 # Stanford GloVe 6B zip. glove.6B.50d.txt is the FIRST entry (deflate, flags=0, so the
@@ -89,10 +88,6 @@ def load_vectors() -> dict[str, np.ndarray]:
 
 def cos(a: np.ndarray, b: np.ndarray) -> float:
     return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
-
-
-def r(x, n=4):
-    return round(float(x), n)
 
 
 def build_embeddings(V: dict[str, np.ndarray]) -> dict:
