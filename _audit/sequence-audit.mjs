@@ -11,13 +11,12 @@
    file:// — no server. Exit 1 on any error. Run: node sequence-audit.mjs
    ========================================================= */
 import { chromium } from 'playwright';
-import { HARDENED, TEMPLATE_DECK_URL } from './lib/gate-harness.mjs';
+import { HARDENED, TEMPLATE_DECK_URL, makeReporter } from './lib/gate-harness.mjs';
 
 const DECK = TEMPLATE_DECK_URL;
 const TOL = 4, MARGIN = 6;
-let errors = 0, warns = 0;
-const err = (m) => { errors++; console.log('  ✗ ERROR ' + m); };
-const ok = (m) => console.log('  ✓ ' + m);
+const R = makeReporter('sequence-audit');
+const { err, ok } = R;
 const overlap = (a, b) => (Math.min(a.right, b.right) - Math.max(a.left, b.left)) > TOL &&
                           (Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top)) > TOL;
 
@@ -114,8 +113,7 @@ async function main() {
 
   if (perr.length) perr.forEach(e => err('pageerror: ' + e));
   await browser.close();
-  console.log(`\n[sequence-audit] ${errors} error(s), ${warns} warning(s)`);
-  process.exit(errors === 0 ? 0 : 1);
+  R.done();
 }
 // ── --selftest: feed each clean + planted-fault case to the REAL detectors (no browser) ──────────
 function selftest() {

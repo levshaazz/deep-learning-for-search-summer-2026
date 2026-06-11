@@ -10,8 +10,9 @@ import { existsSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { serveDir, withBrowser, withPage } from './lib/gate-harness.mjs';
+import { REPO_ROOT } from './lib/paths.mjs';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const ROOT = REPO_ROOT;
 const DOCS = join(ROOT, 'docs');
 const BASE = '/deep-learning-for-search-summer-2026';
 const WIDTHS = [390, 768];

@@ -55,8 +55,9 @@ import { readFile, stat, mkdir, writeFile } from 'node:fs/promises';
 import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
 import { join, extname, normalize, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { REPO_ROOT } from './lib/paths.mjs';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const ROOT = REPO_ROOT;
 const LECT = join(ROOT, 'Lectures');
 const DOCS = join(ROOT, 'docs');
 const BASE = '/deep-learning-for-search-summer-2026';

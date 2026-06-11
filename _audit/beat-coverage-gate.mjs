@@ -14,8 +14,9 @@
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { REPO_ROOT } from './lib/paths.mjs';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const ROOT = REPO_ROOT;
 const NDIR = join(ROOT, 'narrative');
 const CDIR = join(ROOT, 'content/book');
 const LANG = 'en';

@@ -13,8 +13,9 @@ import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { REPO_ROOT } from './lib/paths.mjs';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const ROOT = REPO_ROOT;
 const WDIR = join(ROOT, 'widgets');
 const CDIR = join(ROOT, 'content/book');
 const LANG = 'en'; // built-HTML check uses the canonical locale

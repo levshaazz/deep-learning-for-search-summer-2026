@@ -32,6 +32,20 @@ export const HARDENED = Object.freeze({
 export const TEMPLATE_DECK_URL =
   'file://' + encodeURI(fileURLToPath(new URL('../../Lectures Template/Lecture Template.html', import.meta.url)));
 
+/** Shared err/ok/warn reporter for the non-harness template audits — the trio + counters + exit line
+ *  were copy-pasted ×3. `r.done()` prints the summary and exits (errors=0 ? 0 : 1). */
+export function makeReporter(name) {
+  let errors = 0, warns = 0;
+  return {
+    err: (m) => { errors++; console.log('  ✗ ERROR ' + m); },
+    warn: (m) => { warns++; console.log('  ⚠ warn  ' + m); },
+    ok: (m) => console.log('  ✓ ' + m),
+    get errors() { return errors; },
+    get warns() { return warns; },
+    done() { console.log(`\n[${name}] ${errors} error(s), ${warns} warning(s)`); process.exit(errors === 0 ? 0 : 1); },
+  };
+}
+
 const MIME = {
   '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.mjs': 'text/javascript',
   '.json': 'application/json', '.map': 'application/json', '.svg': 'image/svg+xml',
