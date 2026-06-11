@@ -21,6 +21,26 @@ const ok = (m) => console.log('  ✓ ' + m);
 const overlap = (a, b) => (Math.min(a.right, b.right) - Math.max(a.left, b.left)) > TOL &&
                           (Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top)) > TOL;
 
+// ── pure detectors (the REAL assertion logic, also exercised by --selftest so it can't go blind) ──
+function checkStruct(s) {
+  const out = [];
+  s.badRef.forEach(r => out.push({ code: 'bad-ref', msg: `message references unknown actor ${r}` }));
+  if (s.badStep.length) out.push({ code: 'bad-step', msg: `message data-step out of [0,${s.max}]: ${s.badStep.join(', ')}` });
+  if (s.badLat.length) out.push({ code: 'bad-lat', msg: `non-numeric data-lat: ${s.badLat.join(', ')}` });
+  if (s.lifelines !== s.actors) out.push({ code: 'lifelines', msg: `lifelines (${s.lifelines}) ≠ actors (${s.actors})` });
+  return out;
+}
+function checkStep(g, step) {
+  const out = [];
+  for (let a = 0; a < g.chips.length; a++) for (let b = a + 1; b < g.chips.length; b++)
+    if (overlap(g.chips[a], g.chips[b])) out.push({ code: 'chip', msg: `step ${step}: actor chips overlap` });
+  for (let a = 0; a < g.labels.length; a++) for (let b = a + 1; b < g.labels.length; b++)
+    if (overlap(g.labels[a], g.labels[b])) out.push({ code: 'label', msg: `step ${step}: message labels "${g.labels[a].txt}" ↔ "${g.labels[b].txt}" overlap` });
+  g.labels.forEach(L => { if (L.left < g.crect.left - MARGIN || L.right > g.crect.right + MARGIN) out.push({ code: 'bounds', msg: `step ${step}: message label "${L.txt}" off-canvas` }); });
+  if (Math.abs(g.total - g.sum) > 0.5) out.push({ code: 'budget', msg: `step ${step}: budget total ${g.total} ≠ sum of revealed latencies ${g.sum}` });
+  return out;
+}
+
 async function main() {
   const browser = await chromium.launch(HARDENED);
   const page = await browser.newContext({ viewport: { width: 1920, height: 1080 } }).then(c => c.newPage());
@@ -53,10 +73,11 @@ async function main() {
       });
       return out;
     });
-    struct.badRef.length ? struct.badRef.forEach(r => err(`message references unknown actor ${r}`)) : ok('messages reference valid actors');
-    struct.badStep.length ? err(`message data-step out of [0,${struct.max}]: ${struct.badStep.join(', ')}`) : ok(`message steps within [0,${struct.max}]`);
-    struct.badLat.length ? err(`non-numeric data-lat: ${struct.badLat.join(', ')}`) : null;
-    struct.lifelines === struct.actors ? ok(`lifelines drawn = ${struct.actors} actors`) : err(`lifelines (${struct.lifelines}) ≠ actors (${struct.actors})`);
+    const sf = checkStruct(struct);
+    sf.forEach(x => err(x.msg));
+    if (!sf.some(x => x.code === 'bad-ref')) ok('messages reference valid actors');
+    if (!sf.some(x => x.code === 'bad-step')) ok(`message steps within [0,${struct.max}]`);
+    if (!sf.some(x => x.code === 'lifelines')) ok(`lifelines drawn = ${struct.actors} actors`);
 
     let chipHits = 0, labelHits = 0, boundsHits = 0, budgetHits = 0;
     for (let step = 0; step <= struct.max; step++) {
@@ -79,12 +100,11 @@ async function main() {
         let sum = 0; s.querySelectorAll('.seq-msg').forEach(m => { if ((parseInt(m.dataset.step, 10) || 0) <= cur) sum += parseFloat(m.dataset.lat || '0'); });
         return { crect, chips, labels, total: parseFloat(totalTxt) || 0, sum };
       });
-      for (let a = 0; a < g.chips.length; a++) for (let b = a + 1; b < g.chips.length; b++)
-        if (overlap(g.chips[a], g.chips[b])) { chipHits++; err(`step ${step}: actor chips overlap`); }
-      for (let a = 0; a < g.labels.length; a++) for (let b = a + 1; b < g.labels.length; b++)
-        if (overlap(g.labels[a], g.labels[b])) { labelHits++; err(`step ${step}: message labels "${g.labels[a].txt}" ↔ "${g.labels[b].txt}" overlap`); }
-      g.labels.forEach(L => { if (L.left < g.crect.left - MARGIN || L.right > g.crect.right + MARGIN) { boundsHits++; err(`step ${step}: message label "${L.txt}" off-canvas`); } });
-      if (Math.abs(g.total - g.sum) > 0.5) { budgetHits++; err(`step ${step}: budget total ${g.total} ≠ sum of revealed latencies ${g.sum}`); }
+      for (const x of checkStep(g, step)) {
+        err(x.msg);
+        if (x.code === 'chip') chipHits++; else if (x.code === 'label') labelHits++;
+        else if (x.code === 'bounds') boundsHits++; else if (x.code === 'budget') budgetHits++;
+      }
     }
     chipHits === 0 && ok('actor chips never overlap');
     labelHits === 0 && ok('message labels never overlap');
@@ -97,4 +117,32 @@ async function main() {
   console.log(`\n[sequence-audit] ${errors} error(s), ${warns} warning(s)`);
   process.exit(errors === 0 ? 0 : 1);
 }
-main().catch(e => { console.error('[sequence-audit] CRASHED', e); process.exit(1); });
+// ── --selftest: feed each clean + planted-fault case to the REAL detectors (no browser) ──────────
+function selftest() {
+  const f = [];
+  const codes = (arr) => arr.map(x => x.code);
+  // checkStruct: clean silent; each fault class fires
+  const okStruct = { max: 3, badRef: [], badStep: [], badLat: [], lifelines: 3, actors: 3 };
+  if (checkStruct(okStruct).length) f.push('struct: FALSE-POSITIVE on clean');
+  if (!codes(checkStruct({ ...okStruct, badRef: ['from "ghost"'] })).includes('bad-ref')) f.push('struct: missed unknown-actor ref');
+  if (!codes(checkStruct({ ...okStruct, badStep: ['99'] })).includes('bad-step')) f.push('struct: missed step out of [0,max]');
+  if (!codes(checkStruct({ ...okStruct, badLat: ['NaN'] })).includes('bad-lat')) f.push('struct: missed non-numeric data-lat');
+  if (!codes(checkStruct({ ...okStruct, lifelines: 2 })).includes('lifelines')) f.push('struct: missed lifelines≠actors');
+  // checkStep: clean silent; each fault class fires
+  const A = { left: 0, top: 0, right: 50, bottom: 50 }, B = { left: 100, top: 0, right: 150, bottom: 50 };
+  const Bover = { left: 10, top: 10, right: 60, bottom: 60 };
+  const crect = { left: 0, top: 0, right: 1000, bottom: 800 };
+  const lab = (x, txt = 'm') => ({ txt, ...x });
+  const okG = { crect, chips: [A, B], labels: [lab(A), lab(B)], total: 5, sum: 5 };
+  if (checkStep(okG, 0).length) f.push('step: FALSE-POSITIVE on clean');
+  if (!codes(checkStep({ ...okG, chips: [A, Bover] }, 0)).includes('chip')) f.push('step: missed chip overlap');
+  if (!codes(checkStep({ ...okG, labels: [lab(A), lab(Bover)] }, 0)).includes('label')) f.push('step: missed label overlap');
+  if (!codes(checkStep({ ...okG, labels: [lab({ left: -99, top: 0, right: 20, bottom: 30 })] }, 0)).includes('bounds')) f.push('step: missed off-canvas label');
+  if (!codes(checkStep({ ...okG, total: 9 }, 0)).includes('budget')) f.push('step: missed budget≠sum');
+  console.log('[sequence-audit:selftest]', f.length ? 'FAIL — blind: ' + f.join('; ')
+    : 'PASS — structure (bad-ref/bad-step/bad-lat/lifelines) + step (chip/label/bounds/budget) each fire on the fault and stay silent on clean');
+  process.exit(f.length ? 1 : 0);
+}
+
+if (process.argv.includes('--selftest')) selftest();
+else main().catch(e => { console.error('[sequence-audit] CRASHED', e); process.exit(1); });
