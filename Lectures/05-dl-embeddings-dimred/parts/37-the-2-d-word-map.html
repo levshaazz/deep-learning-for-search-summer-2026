@@ -232,10 +232,9 @@
             var MHUE={0:'var(--c-green)',1:'var(--c-violet)',2:'var(--accent)',3:'var(--c-red)'};
             function drawMig(gid, pts, bx){ var g=document.getElementById(gid); if(!g) return;
               var xs=pts.map(function(p){return p[0];}), ys=pts.map(function(p){return p[1];});
-              var x0=Math.min.apply(null,xs),x1=Math.max.apply(null,xs),y0=Math.min.apply(null,ys),y1=Math.max.apply(null,ys);
-              var px=(x1-x0)*0.12||0.1, py=(y1-y0)*0.12||0.1;
-              var sx=function(x){return bx.x+(x-(x0-px))/((x1+px)-(x0-px))*bx.w;};
-              var sy=function(y){return bx.y+bx.h-(y-(y0-py))/((y1+py)-(y0-py))*bx.h;};
+              // R8: data→pixel map via the shared DeckLayout.makeScale (was a hand-written min/max + 0.12 pad).
+              var sx=DeckLayout.makeScale(xs, {x:bx.x,y:0,w:bx.w,h:0}, {axis:'x',pad:0.12}).to;
+              var sy=DeckLayout.makeScale(ys, {x:0,y:bx.y,w:0,h:bx.h}, {axis:'y',pad:0.12}).to;
               pts.forEach(function(p){ var c=document.createElementNS(NS,'circle'); c.setAttribute('cx',sx(p[0]).toFixed(1));c.setAttribute('cy',sy(p[1]).toFixed(1));c.setAttribute('r',6);c.setAttribute('fill',MHUE[p[2]]);c.setAttribute('stroke','var(--bg-card)');c.setAttribute('stroke-width',1.2);c.setAttribute('fill-opacity',0.9); g.appendChild(c); });
             }
             drawMig('tsa-mig-init', MINIT, {x:62,y:92,w:476,h:344});
@@ -341,11 +340,10 @@
             var NS2=NS;
             var box={x:640,y:70,w:480,h:366};
             var xs=Y.map(function(p){return p[0];}), ys=Y.map(function(p){return p[1];});
-            var xmin=Math.min.apply(null,xs),xmax=Math.max.apply(null,xs),ymin=Math.min.apply(null,ys),ymax=Math.max.apply(null,ys);
-            var pad=0.12, dx=(xmax-xmin)*pad, dy=(ymax-ymin)*pad;
             var side=Math.min(box.w,box.h), ox=box.x+(box.w-side)/2, oy=box.y+(box.h-side)/2;
-            var sx=function(x){return ox+(x-(xmin-dx))/((xmax+dx)-(xmin-dx))*side;};
-            var sy=function(y){return oy+side-(y-(ymin-dy))/((ymax+dy)-(ymin-dy))*side;};
+            // R8: square-aspect data→pixel map via DeckLayout.makeScale (was hand-written min/max + 0.12 pad).
+            var sx=DeckLayout.makeScale(xs, {x:ox,y:0,w:side,h:0}, {axis:'x',pad:0.12}).to;
+            var sy=DeckLayout.makeScale(ys, {x:0,y:oy,w:0,h:side}, {axis:'y',pad:0.12}).to;
             var sc=document.getElementById('tsb-scatter'), fl=document.getElementById('tsb-forces');
             // gradient force arrows: descent dir = -∇C, scaled for visibility (converged gradients tiny)
             var gmax=Math.max.apply(null,G.map(function(g){return Math.hypot(g[0],g[1]);}))||1e-9;
@@ -485,11 +483,10 @@
             // shared fit over ALL snapshots (one coordinate frame; Procrustes-aligned upstream)
             var allP=UMAP_SNAPS.reduce(function(acc,s){return acc.concat(s.p);},[]);
             var xs=allP.map(function(p){return p[0];}), ys=allP.map(function(p){return p[1];});
-            var x0=Math.min.apply(null,xs),x1=Math.max.apply(null,xs),y0=Math.min.apply(null,ys),y1=Math.max.apply(null,ys);
-            var pad=0.08, px=(x1-x0)*pad, py=(y1-y0)*pad;
             var BX={x:70,y:70,w:580,h:460};
-            var sx=function(x){return BX.x+(x-(x0-px))/((x1+px)-(x0-px))*BX.w;};
-            var sy=function(y){return BX.y+BX.h-(y-(y0-py))/((y1+py)-(y0-py))*BX.h;};
+            // R8: data→pixel map via DeckLayout.makeScale (was hand-written min/max + 0.08 pad).
+            var sx=DeckLayout.makeScale(xs, {x:BX.x,y:0,w:BX.w,h:0}, {axis:'x',pad:0.08}).to;
+            var sy=DeckLayout.makeScale(ys, {x:0,y:BX.y,w:0,h:BX.h}, {axis:'y',pad:0.08}).to;
             function draw(gid, snap){ var g=document.getElementById(gid); if(!g) return;
               snap.p.forEach(function(p){ var c=document.createElementNS(NS,'circle');
                 c.setAttribute('cx',sx(p[0]).toFixed(1));c.setAttribute('cy',sy(p[1]).toFixed(1));c.setAttribute('r',7);
