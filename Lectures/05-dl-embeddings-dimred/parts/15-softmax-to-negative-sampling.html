@@ -212,14 +212,12 @@
             function drawFrame(gid, fIdx, opts){
               var g=document.getElementById(gid); if(!g) return; var f=F[fIdx];
               var SC=scalerFor(f);
-              // de-collide labels with a small iterative vertical fan over screen positions
-              var L=f.p.map(function(p){ var cx=SC.sx(p[1]), cy=SC.sy(p[2]);
-                var right=cx<=BX.x+BX.w*0.6; return {w:p[0],c:p[3],cx:cx,cy:cy,lx:cx+(right?11:-11),ly:cy+4,right:right}; });
-              for(var it=0; it<160; it++){ for(var i=0;i<L.length;i++) for(var j=i+1;j<L.length;j++){
-                var a=L[i],b=L[j]; if(Math.abs((a.right?a.lx:a.lx-a.w.length*8)-(b.right?b.lx:b.lx-b.w.length*8))>Math.max(a.w.length,b.w.length)*8) continue;
-                var oy=17-Math.abs(a.ly-b.ly); if(oy>0){ var d=a.ly<=b.ly?-1:1; a.ly+=d*(oy/2+0.4); b.ly-=d*(oy/2+0.4); }
-              }}
-              L.forEach(function(p){ p.ly=Math.max(BX.y+12,Math.min(BX.y+BX.h-4,p.ly)); });
+              // de-collide labels via the shared R8 primitive (window.DeckLayout.placeLabels — esbuild of
+              // widgets/_layout.js). A faithful extraction of the former inline 160-iter fan: same width
+              // metric (len×8), same minGap=17 / dx=11 / clamp [y+12, y+h−4] → identical label positions.
+              var RECT={x:BX.x,y:BX.y,w:BX.w,h:BX.h};
+              var LP=DeckLayout.placeLabels(f.p.map(function(p){ return {x:SC.sx(p[1]),y:SC.sy(p[2]),text:p[0]}; }), RECT);
+              var L=LP.map(function(lp){ return {cx:lp.anchorX,cy:lp.anchorY,lx:lp.x,ly:lp.y,right:lp.right}; });
               f.p.forEach(function(p,i){
                 var l=L[i], hue=HUE[p[3]];
                 var isKing=p[0]==='king', isLoves=p[0]==='loves';
