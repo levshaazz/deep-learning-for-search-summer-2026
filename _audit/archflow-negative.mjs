@@ -13,10 +13,9 @@
    failed to fire or the deck wasn't clean before/after.
    ========================================================= */
 import { chromium } from 'playwright';
-import { HARDENED } from './lib/gate-harness.mjs';
-import { fileURLToPath } from 'node:url';
+import { HARDENED, TEMPLATE_DECK_URL } from './lib/gate-harness.mjs';
 
-const BASE = 'file://' + encodeURI(fileURLToPath(new URL('../Lectures Template/Lecture Template.html', import.meta.url)));
+const BASE = TEMPLATE_DECK_URL;
 const browser = await chromium.launch(HARDENED);
 let code = 1;
 try {

@@ -20,11 +20,17 @@ import { chromium } from 'playwright';
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { join, extname, normalize, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 /** Hardened Chromium launch args. The --disable-dev-shm-usage flag is the OOM/SIGKILL fix on CI. */
 export const HARDENED = Object.freeze({
   args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
 });
+
+/** file:// URL of the editable TEMPLATE deck. `../../` climbs from _audit/lib/ to the repo root, so
+ *  the resolved path is byte-identical to each template audit's prior local `const DECK/BASE = …`. */
+export const TEMPLATE_DECK_URL =
+  'file://' + encodeURI(fileURLToPath(new URL('../../Lectures Template/Lecture Template.html', import.meta.url)));
 
 const MIME = {
   '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.mjs': 'text/javascript',
