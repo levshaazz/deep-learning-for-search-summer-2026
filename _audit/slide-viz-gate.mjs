@@ -95,6 +95,10 @@ const TH = {
                               //   (the A3 fixture: two saturated blues rgb(70,130,180)/rgb(72,132,182),
                               //   sat≈.61) is far above this floor and STILL fires.
   VOID_LUM: 0.045,            // fill relative-luminance below this (and not on dark bg) → near-black void
+  VOID_MARK_DIM: 24,          // px: a near-black fill is only a "void HOLE" if it's a REGION — a shape this
+                              //     small on BOTH sides is a deliberate point-marker (a dark dot, e.g. the
+                              //     contrastive-space anchor 'cat' circle r=8 ≈ 15px), which on a light
+                              //     canvas is MAXIMALLY visible, not a hole. Below this ⇒ not a void.
   MIN_BOX: 9,                 // px: ignore boxes smaller than this on a side (tick marks, hairlines)
   // ── trust-the-gate refinements (kill the confirmed false-positive classes) ──
   MAX_FRAME_MULT: 3,          // FP#1: a box wider/taller than this × the frame viewBox is a KaTeX
@@ -836,6 +840,10 @@ function detectColor(steps, ctx) {
   const bgLum = relLum(bg);
 
   // ── (a) void / near-background fills ──
+  // isNamed: a shape carrying a data-role or a class beyond its bare tag is an intentional MARK (a data
+  // point, a labeled cell). A bare <rect>/<circle>/<path> with no class/role is a GENERIC shape — a backing
+  // panel, a connector, a faint inset — exactly as the colour-collision branch (below) already treats it.
+  const isNamed = (sh) => !!sh.role || /\.[a-z]/i.test(shortKey(sh.key));   // has a class beyond the tag
   for (const sh of filled) {
     // <line>/<polyline> paint via STROKE, not fill; their computed fill is the meaningless SVG
     // default rgb(0,0,0) — skip them here so a visible stroked rule isn't flagged as a void.
@@ -851,8 +859,12 @@ function detectColor(steps, ctx) {
     if (strokeC && strokeC.a > 0.15 && deltaE(strokeC, bg) >= ctx.TH.DELTA_E_MIN) continue;
     const lum = relLum(sh.c);
     const dE_bg = deltaE(sh.c, bg);
-    const nearBlack = lum < ctx.TH.VOID_LUM && bgLum > 0.2;   // black-on-light: a void hole
-    const nearBg = dE_bg < ctx.TH.DELTA_E_MIN;                 // shape ≈ background ⇒ invisible
+    // a void HOLE is a near-black REGION; a small near-black shape is a deliberate point-marker (the
+    // contrastive-space anchor dot ≈15px) — high-contrast on a light canvas, not a hole → size-guarded.
+    const nearBlack = lum < ctx.TH.VOID_LUM && bgLum > 0.2 && Math.max(sh.w, sh.h) >= ctx.TH.VOID_MARK_DIM;
+    // a near-bg defect is INVISIBLE CONTENT — only a NAMED mark qualifies; an anonymous bare shape ≈ bg is
+    // a generic backing (a faint inset / card backing), consistent with the colour-collision branch below.
+    const nearBg = dE_bg < ctx.TH.DELTA_E_MIN && isNamed(sh);
     if (nearBlack) out.push({ cat: 'COLOR', sev: 'WARN', step: 0,
       msg: `near-black fill on light canvas: ${sh.tag}.${shortKey(sh.key)} rgb(${sh.c.r | 0},${sh.c.g | 0},${sh.c.b | 0}) lum=${lum.toFixed(3)} (void; <${ctx.TH.VOID_LUM})` });
     else if (nearBg) out.push({ cat: 'COLOR', sev: 'WARN', step: 0,
@@ -866,7 +878,7 @@ function detectColor(steps, ctx) {
   // (a backing panel, a connector, a same-colour highlight of a data point) and reusing a
   // category colour there is NOT a defect — so we don't treat it as its own category.
   const catOf = (sh) => (sh.role || shortKey(sh.key)).replace(/[#:].*$/, '');
-  const isNamed = (sh) => !!sh.role || /\.[a-z]/i.test(shortKey(sh.key));   // has a class beyond the tag
+  // isNamed is hoisted above the void/near-bg loop (shared by both branches).
   const reps = [];                                 // one representative colour per category
   const seenCat = new Map();
   for (const sh of filled) {
@@ -1387,6 +1399,28 @@ async function selftest(browser) {
   const dInvisible = detectColor((await capStage(fxInvisible, 1, 'void 0')).map(s => ({ ...s, bg: { r: 255, g: 255, b: 255, a: 1 } })), { TH });
   pass('F2 unstroked fill≈bg circle (invisible)', dInvisible.some(d => /≈ background/i.test(d.msg)), true,
     (dInvisible.find(d => /≈ background/i.test(d.msg)) || {}).msg);
+
+  // F3 (FIRES — the void detector still catches a real HOLE): a large near-black REGION on a light canvas
+  //     (a panel that lost its fill) genuinely reads as a void. The size-guard must NOT blind this.
+  const fxVoidBig = `<svg width="400" height="200" viewBox="0 0 400 200"><rect class="bg" x="0" y="0" width="400" height="200" fill="#ffffff"/><rect x="120" y="60" width="120" height="90" fill="#0a0c10"/></svg>`;
+  const dVoidBig = detectColor((await capStage(fxVoidBig, 1, 'void 0')).map(s => ({ ...s, bg: { r: 255, g: 255, b: 255, a: 1 } })), { TH });
+  pass('F3 large near-black region (void hole)', dVoidBig.some(d => /void/i.test(d.msg)), true,
+    (dVoidBig.find(d => /void/i.test(d.msg)) || {}).msg);
+
+  // F4 (SILENT — a small near-black shape is a deliberate point-MARKER, not a hole): the contrastive-space
+  //     anchor dot (≈15px) is maximally visible on a light canvas. The VOID_MARK_DIM size-guard exempts it.
+  const fxVoidDot = `<svg width="400" height="200" viewBox="0 0 400 200"><rect class="bg" x="0" y="0" width="400" height="200" fill="#ffffff"/><circle cx="200" cy="100" r="7" fill="#14181f"/></svg>`;
+  const dVoidDot = detectColor((await capStage(fxVoidDot, 1, 'void 0')).map(s => ({ ...s, bg: { r: 255, g: 255, b: 255, a: 1 } })), { TH });
+  pass('F4 small near-black dot (marker, not void)', dVoidDot.some(d => /void/i.test(d.msg)), false,
+    `void warns=${dVoidDot.filter(d => /void/i.test(d.msg)).length}`);
+
+  // F5 (SILENT — an ANONYMOUS near-bg shape is a generic backing panel, not invisible content): a bare
+  //     <rect> with no class/role ≈ the canvas (the t-SNE bg-inset @0.5 backing). The isNamed guard exempts
+  //     it; F2 above proves a NAMED near-bg mark (.gnode) still fires — so real invisibility is preserved.
+  const fxBackingBg = `<svg width="400" height="200" viewBox="0 0 400 200"><rect class="bg" x="0" y="0" width="400" height="200" fill="#ffffff"/><rect x="100" y="60" width="200" height="100" fill="#fbfbfb"/></svg>`;
+  const dBackingBg = detectColor((await capStage(fxBackingBg, 1, 'void 0')).map(s => ({ ...s, bg: { r: 255, g: 255, b: 255, a: 1 } })), { TH });
+  pass('F5 anonymous near-bg rect (backing panel)', dBackingBg.some(d => /≈ background/i.test(d.msg)), false,
+    `near-bg warns=${dBackingBg.filter(d => /≈ background/i.test(d.msg)).length}`);
 
   console.log('\n[selftest]', ok
     ? 'PASS — all TRUE-defect fixtures fire AND all FALSE-positive fixtures stay silent'
