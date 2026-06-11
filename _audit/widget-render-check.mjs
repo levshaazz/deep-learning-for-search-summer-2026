@@ -69,22 +69,18 @@
    Offline: chromium comes from _audit/node_modules / the cached browser; no network.
    ========================================================================= */
 import { chromium } from 'playwright';
-import { HARDENED } from './lib/gate-harness.mjs';
-import { createServer } from 'node:http';
+import { HARDENED, serveDir } from './lib/gate-harness.mjs';   // serveDir = free-port static server (no port race)
 import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
 import { writeFileSync } from 'node:fs';
-import { join, extname, dirname } from 'node:path';
+import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DOCS = join(ROOT, 'docs');
 const CDIR = join(ROOT, 'content', 'book');
 const BASE = '/deep-learning-for-search-summer-2026';
-const PORT = 8153;
 const THEMES = ['light', 'dark'];
-const MIME = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.mjs': 'text/javascript',
-  '.json': 'application/json', '.woff2': 'font/woff2', '.woff': 'font/woff', '.svg': 'image/svg+xml',
-  '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.map': 'application/json' };
+let srv;   // free-port static server (serveDir), assigned in main(); bookUrl closes over it
 
 // ───────────────────────── thresholds ─────────────────────────
 const TH = {
@@ -123,19 +119,9 @@ async function discoverTargets() {
 }
 
 // ───────────────────────── static server (docs/, GH-Pages base) ─────────────────────────
-function bookServer() {
-  const s = createServer((req, res) => {
-    let p = decodeURIComponent(req.url.split('?')[0]);
-    if (p.startsWith(BASE)) p = p.slice(BASE.length);
-    let file = join(DOCS, p);
-    if (existsSync(file) && statSync(file).isDirectory()) file = join(file, 'index.html');
-    if (!existsSync(file)) { res.statusCode = 404; res.end('404'); return; }
-    res.setHeader('Content-Type', MIME[extname(file)] || 'application/octet-stream');
-    res.end(readFileSync(file));
-  });
-  return new Promise((r) => s.listen(PORT, () => r(s)));
-}
-const bookUrl = (ch, lang = 'en') => `http://localhost:${PORT}${BASE}/${lang}/book/${ch}/`;
+// serveDir (gate-harness): same base-strip + dir→index.html, MIME superset, a path-traversal
+// guard, and a FREE port (listen(0)) — no more hardcoded 8153 race / EADDRINUSE on a leaked run.
+const bookUrl = (ch, lang = 'en') => srv.href(`${lang}/book/${ch}/`);
 
 /* =========================================================================
    RENDER-PROBE — runs IN the page for one beat at the current step. Reports the
@@ -550,14 +536,15 @@ async function main() {
   // only probe chapters that are actually built (BOOK_READY may gate some).
   targets = targets.filter((t) => existsSync(join(DOCS, 'en', 'book', t.chapter, 'index.html')));
 
-  const srv = await bookServer();
+  srv = await serveDir(DOCS, { base: BASE });
+  let totalHard = 0;
+  try {
   console.log(`widget-render-check — "does it RUN" gate. Mounting ${targets.length} book scroll-step widget(s)`
     + `${onlyWidget ? ` (--widget ${onlyWidget})` : ''} in ${THEMES.join('/')} themes, stepping all steps.`);
   console.log(`detection: console.error/pageerror/unhandledrejection · mount-missing · setStep-throw · empty/degenerate render`
     + `${opt.warnAsError ? ' · (console.warn → HARD)' : ''}\n`);
 
   const results = [];
-  let totalHard = 0;
   for (const tg of targets) {
     process.stderr.write(`· ${tg.widget} (${tg.chapter}·${tg.beat})\n`);
     const r = await runWidget(browser, tg, opt);
@@ -588,7 +575,9 @@ async function main() {
   if (ji >= 0 && argv[ji + 1]) writeFileSync(argv[ji + 1], JSON.stringify(results, null, 2));
 
   await browser.close();
-  srv.close();
+  } finally {
+    await srv.close();
+  }
   console.log(`\n[widget-render-check] HARD(console-error/page-error/mount-missing/setstep-throw/empty-render)=${totalHard}`);
   process.exit(totalHard > 0 ? 1 : 0);
 }
