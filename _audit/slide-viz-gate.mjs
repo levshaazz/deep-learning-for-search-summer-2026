@@ -248,6 +248,33 @@ const CAPTURE = (rootSel, opt) => {
   const rel = (b) => ({ x: b.left - frame.x, y: b.top - frame.y, w: b.width, h: b.height,
     cx: b.left - frame.x + b.width / 2, cy: b.top - frame.y + b.height / 2 });
 
+  // ── per-element OWN frame (multi-panel OOB fix) ──────────────────────────────────────────────
+  // OOB must test each element against the panel it is DRAWN in — its nearest non-KaTeX <svg>
+  // ancestor — not against the single largest SVG on the slide. A multi-panel figure (a deck e2e
+  // walkthrough: a stage-stepper row + a content panel + a graph SVG; the LayerNorm-style two-panel
+  // viz) has SEVERAL sibling SVGs, so a label legitimately inside panel B read as "out of frame" of
+  // panel A under the old single-frame check. An HTML element (no SVG ancestor — a stage card, an
+  // absolutely-positioned label) is tested against the whole figure/slide (rootBox): it's only OOB
+  // if it leaves the SLIDE, not a sub-panel. A label genuinely cut off at ITS panel's edge (selftest
+  // A4) still fires — its own svg IS the small frame it overruns.
+  const OOB_PAD = opt.OOB_PAD != null ? opt.OOB_PAD : 1.5;
+  const ownFrameOf = (el) => {
+    let svg = el.closest && el.closest('svg');
+    while (svg && svg.closest && svg.closest('.katex')) {
+      const par = svg.parentElement; svg = par && par.closest ? par.closest('svg') : null;
+    }
+    if (svg) { const b = svg.getBoundingClientRect(); return { x: b.left, y: b.top, w: b.width, h: b.height, src: 'own-svg' }; }
+    return { x: rootBox.left, y: rootBox.top, w: rootBox.width, h: rootBox.height, src: 'figure' };
+  };
+  const oobOf = (el, b) => {
+    const f = ownFrameOf(el); const over = [];
+    if (b.left   < f.x - OOB_PAD)        over.push(`left ${(b.left - f.x).toFixed(0)}`);
+    if (b.top    < f.y - OOB_PAD)        over.push(`top ${(b.top - f.y).toFixed(0)}`);
+    if (b.right  > f.x + f.w + OOB_PAD)  over.push(`right +${(b.right - f.x - f.w).toFixed(0)}`);
+    if (b.bottom > f.y + f.h + OOB_PAD)  over.push(`bottom +${(b.bottom - f.y - f.h).toFixed(0)}`);
+    return over.length ? { over, fw: f.w, fh: f.h, src: f.src } : null;
+  };
+
   // FP#1 — KaTeX off-screen MEASURING spans are NOT real content: KaTeX lays out math by
   // painting <span>/<svg><path> elements into an absolutely-positioned, off-screen helper whose
   // boxes are thousands of px wide (e.g. path#0 [2,2 9033×23]). visual-gate skips these two ways
@@ -299,6 +326,7 @@ const CAPTURE = (rootSel, opt) => {
     }
     labels.push({ key: keyOf(el, i), text: txt.slice(0, 24), ...rel(b), hi: hiTok(el),
       isSvgText, strokePaint, strokeW, paintOrder, textStrokePaint, textStrokeW, fillPaint,
+      oob: oobOf(el, b),
       rot: (el.getAttribute && /rotate/i.test(el.getAttribute('transform') || '')) || false });
   });
 
@@ -329,7 +357,7 @@ const CAPTURE = (rootSel, opt) => {
     }
     const role = el.getAttribute && (el.getAttribute('data-role') || el.getAttribute('data-cat') || '');
     shapes.push({ key: keyOf(el, i), tag: el.tagName.toLowerCase(), role, fill, stroke,
-      ...rel(b), hi: hiTok(el) });
+      ...rel(b), hi: hiTok(el), oob: oobOf(el, b) });
   });
 
   // ── FP#2 — stepped HTML BLOCK nodes (DOM-box walkthroughs) ──
@@ -370,6 +398,16 @@ const CAPTURE = (rootSel, opt) => {
   for (const e of [...labels, ...shapes, ...domNodes]) {
     geom[e.key] = { cx: e.x + e.w / 2, cy: e.y + e.h / 2, w: e.w, h: e.h };
   }
+  // whole-figure TEXT fingerprint — catches an in-place value/caption update whose element is NOT in
+  // the captured label set (a book widget renders its rank vector / narration in its own <div>s, not
+  // in the SVG-text/named-class selector). The step detector uses this for WIDGET targets ONLY: a
+  // deck slide carries a live step-counter + stage-name in its CHROME that would tick every step and
+  // blind the dead-step/everything detector, so decks rely on the captured-element signature (which
+  // already registers their is-current toggles). For book widgets (no such counter) the figure's
+  // textContent changing IS the reveal (pagerank converging 0.3333→0.2148, course-map narration).
+  const rootText = (root.textContent || '').replace(/\s+/g, ' ').trim();
+  let _th = 0; for (let i = 0; i < rootText.length; i++) _th = (Math.imul(_th, 31) + rootText.charCodeAt(i)) | 0;
+  const textHash = _th + ':' + rootText.length;
   return {
     ok: true,
     frame: { w: frame.w, h: frame.h, src: frame.src },
@@ -381,6 +419,7 @@ const CAPTURE = (rootSel, opt) => {
     domCount: domNodes.length,
     geom,                                      // key → {cx,cy,w,h}, for step-to-step movement (FP#3)
     signature: sigParts.join('§'),
+    textHash,                                  // whole-figure text fingerprint (widget-only step signal)
   };
 };
 
@@ -641,7 +680,7 @@ function movedFraction(prev, cur, ctx) {
   return { frac: moved / shared.length, moved, shared: shared.length };
 }
 
-function detectStepProgression(steps, ctx) {
+function detectStepProgression(steps, ctx, type) {
   const out = [];
   const counts = steps.map(s => s.count);
   const finalCount = counts[counts.length - 1] || 0;
@@ -655,8 +694,11 @@ function detectStepProgression(steps, ctx) {
     const prev = steps[k - 1], cur = steps[k];
     const grew = cur.count > prev.count + 0.5;
     const sigChanged = cur.signature !== prev.signature;
+    // WIDGET-only: the whole-figure text changed (an in-place value/caption update in a non-captured
+    // element). Deck slides skip this (their chrome step-counter would always tick → false-silence).
+    const txtChanged = type === 'widget' && cur.textHash !== prev.textHash;
     const mv = movedFraction(prev, cur, ctx);
-    pair.push({ k, grew, sigChanged, mv });
+    pair.push({ k, grew, sigChanged, txtChanged, mv });
   }
   // a step "made progress" if it revealed new marks, moved/rescaled a meaningful fraction of the
   // existing ones, OR changed the salience SIGNATURE (a highlight toggling `is-current`/`is-visited`
@@ -665,7 +707,7 @@ function detectStepProgression(steps, ctx) {
   // frozen.) The sigChanged term is what makes the class-toggle/text-update walkthroughs (decks'
   // type=e2e stage steppers, book pagerank/course-map) read as real reveals; the per-step dead-step
   // branch (b) below already honoured sigChanged, so this only makes branch (a) consistent with it.
-  const stepProgressed = p => p.grew || p.mv.frac >= ctx.TH.MOVE_FRAC || p.sigChanged;
+  const stepProgressed = p => p.grew || p.mv.frac >= ctx.TH.MOVE_FRAC || p.sigChanged || p.txtChanged;
   const anyProgress = pair.some(stepProgressed);
 
   // (a) everything-at-step-0: step 0 already shows ≥ STEP0_COVER of final count.
@@ -687,7 +729,7 @@ function detectStepProgression(steps, ctx) {
   // string of dead steps (FP#2).
   for (const p of pair) {
     const moved = p.mv.frac >= ctx.TH.MOVE_FRAC;
-    if (!p.grew && !p.sigChanged && !moved) {
+    if (!p.grew && !p.sigChanged && !moved && !p.txtChanged) {
       const prev = steps[p.k - 1], cur = steps[p.k];
       out.push({ cat: 'STEP-PROG', sev: 'HARD', step: p.k,
         msg: `dead step ${p.k}: identical to step ${p.k - 1} (count ${prev.count}→${cur.count}, salience signature unchanged, ${p.mv.moved}/${p.mv.shared} marks moved — nothing revealed or moved)` });
@@ -700,19 +742,17 @@ function detectOverlapOOB(steps, ctx) {
   const out = [];
   steps.forEach((s, k) => {
     if (!s.ok) return;
-    // ── OOB: any label/shape box poking outside the frame viewBox ──
-    const pad = ctx.TH.OOB_PAD, FW = s.frame.w, FH = s.frame.h;
+    // ── OOB: any label/shape box poking outside ITS OWN frame (nearest svg ancestor / figure) ──
+    // The per-element `oob` is computed in CAPTURE against the panel the element is DRAWN in (its
+    // nearest non-KaTeX <svg>, or the whole figure/slide for HTML) — so sibling-panel content on a
+    // multi-panel slide is no longer mis-flagged, while a label genuinely cut off at its own panel's
+    // edge still fires (selftest A4).
     const all = [...s.labels.map(l => ({ ...l, kind: 'label', id: l.text || l.key })),
                  ...s.shapes.map(sh => ({ ...sh, kind: 'shape', id: sh.key }))];
     for (const e of all) {
       if (e.w < ctx.TH.MIN_BOX && e.h < ctx.TH.MIN_BOX) continue;
-      const over = [];
-      if (e.x < -pad) over.push(`left ${e.x.toFixed(0)}`);
-      if (e.y < -pad) over.push(`top ${e.y.toFixed(0)}`);
-      if (e.x + e.w > FW + pad) over.push(`right +${(e.x + e.w - FW).toFixed(0)}`);
-      if (e.y + e.h > FH + pad) over.push(`bottom +${(e.y + e.h - FH).toFixed(0)}`);
-      if (over.length) out.push({ cat: 'OOB', sev: 'HARD', step: k,
-        msg: `${e.kind} "${String(e.id).slice(0, 22)}" box [${e.x.toFixed(0)},${e.y.toFixed(0)} ${e.w.toFixed(0)}×${e.h.toFixed(0)}] exits ${s.frame.src} frame ${FW.toFixed(0)}×${FH.toFixed(0)} (${over.join(', ')})` });
+      if (e.oob) out.push({ cat: 'OOB', sev: 'HARD', step: k,
+        msg: `${e.kind} "${String(e.id).slice(0, 22)}" box [${e.w.toFixed(0)}×${e.h.toFixed(0)}] exits its ${e.oob.src} frame ${e.oob.fw.toFixed(0)}×${e.oob.fh.toFixed(0)} (${e.oob.over.join(', ')})` });
     }
     // ── OVERLAP / OVERPRINT: text-over-text across BOTH namespaces (DETECTOR B) ──
     // s.labels already folds SVG <text>/<tspan> AND HTML overlay text (foreignObject div, .*-label,
@@ -1034,7 +1074,7 @@ function analyze(steps, ctx, type) {
   for (const s of steps) if (s.bg) s.bgParsed = s.bg;
   const colorSteps = steps.map(s => ({ ...s, bg: s.bgParsed || s.bg }));
   return [
-    ...detectStepProgression(steps, ctx),
+    ...detectStepProgression(steps, ctx, type),
     ...detectOverlapOOB(steps, ctx),       // includes DETECTOR B (text overprint)
     ...detectColor(colorSteps, ctx),
     ...detectDoublePaint(steps, ctx),      // DETECTOR A (colored stroke on <text> = garble)
@@ -1178,6 +1218,21 @@ async function selftest(browser) {
   const dTxt = detectStepProgression(stepsTxt, { TH });
   pass('B5 in-place text/value update', dTxt.some(d => d.sev === 'HARD'), false,
     `coverage0=${((stepsTxt[0].count/stepsTxt[stepsTxt.length-1].count)*100).toFixed(0)}%, count/step: ${stepsTxt.map(s=>s.count).join('→')} · texts step0=[${stepsTxt[0].labels.map(l=>l.text).join(',')}] step4=[${stepsTxt[4].labels.map(l=>l.text).join(',')}]`);
+
+  // B6) FP — BOOK-WIDGET value/caption update in a NON-captured element: 2 static SVG dots (the only
+  //     captured marks) + a readout whose value lives in a generic <div>/<span> the label selector
+  //     does NOT match — so the per-element signature can't see the change. The whole-figure textHash
+  //     can. Must stay SILENT for a WIDGET target (pagerank-power converging its rank vector,
+  //     course-map advancing its narration — both verified-good widgets the gate falsely called dead).
+  //     Shown firing in DECK mode (no textHash there) to prove the asymmetry is intentional, not blind.
+  const fxWidgetText = `<svg width="600" height="160" viewBox="0 0 600 160"><circle class="dot" cx="80" cy="80" r="20" fill="#4488aa"/><circle class="dot" cx="300" cy="80" r="20" fill="#aa5555"/></svg>
+    <div class="pr-readout" style="font-size:18px">rank: <span class="v">0.3333</span></div>`;
+  const stepFnWidgetText = `document.querySelector('.v').textContent=(0.3333 - 0.02*k).toFixed(4);`;
+  const stepsWT = await capStage(fxWidgetText, 5, stepFnWidgetText);
+  const dWTwidget = detectStepProgression(stepsWT, { TH }, 'widget');   // textHash sees the readout → silent
+  const dWTdeck = detectStepProgression(stepsWT, { TH }, 'viz');        // deck mode: no textHash → would flag
+  pass('B6 widget non-captured text update', dWTwidget.some(d => d.sev === 'HARD'), false,
+    `widget-mode silent; deck-mode would fire=${dWTdeck.some(d=>d.sev==='HARD')} (intended asymmetry); count/step ${stepsWT.map(s=>s.count).join('→')}`);
 
   console.log('── C) DETECTOR A — double-paint (colored stroke on SVG <text>) ──');
 
