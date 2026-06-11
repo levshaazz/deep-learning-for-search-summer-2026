@@ -295,11 +295,13 @@
               var ghLine=document.createElementNS(GNS,'line'); ghLine.setAttribute('x1',gsx(GT.init[0][1]));ghLine.setAttribute('y1',gsy(GT.init[0][2]));ghLine.setAttribute('x2',TBX.x+TBX.w*0.5);ghLine.setAttribute('y2',TBX.y+18);ghLine.setAttribute('stroke','var(--ink-3)');ghLine.setAttribute('stroke-width',0.8);ghLine.setAttribute('opacity',0.3);ghLine.setAttribute('stroke-dasharray','3 3'); gtraj.appendChild(ghLine);
               var ghost=document.createElementNS(GNS,'text'); ghost.setAttribute('x',TBX.x+TBX.w*0.5);ghost.setAttribute('y',TBX.y+14);ghost.setAttribute('font-size',13);ghost.setAttribute('fill','var(--ink-3)');ghost.setAttribute('opacity',0.8);ghost.setAttribute('text-anchor','middle');ghost.setAttribute('font-family','var(--font-mono)');ghost.textContent='random init (loss 18.04)'; gtraj.appendChild(ghost);
               // converged map + de-collided labels
-              var GL=cp.map(function(p){ var cx=gsx(p[1]),cy=gsy(p[2]); var right=cx<=TBX.x+TBX.w*0.6; return {w:p[0],c:p[3],cx:cx,cy:cy,lx:cx+(right?10:-10),ly:cy+4,right:right}; });
-              for(var git=0; git<160; git++){ for(var i=0;i<GL.length;i++) for(var j=i+1;j<GL.length;j++){ var a=GL[i],b=GL[j];
-                if(Math.abs(a.cx-b.cx)>Math.max(a.w.length,b.w.length)*7.5) continue; var oy=16-Math.abs(a.ly-b.ly);
-                if(oy>0){ var d=a.ly<=b.ly?-1:1; a.ly+=d*(oy/2+0.4); b.ly-=d*(oy/2+0.4);} } }
-              GL.forEach(function(l){ l.ly=Math.max(TBX.y+10,Math.min(TBX.y+TBX.h-4,l.ly)); });
+              // labels via the shared R8 primitive (DeckLayout.placeLabels). This figure's former inline
+              // solver used a DOT-proximity overlap test; placeLabels uses label-box overlap (its single
+              // definition) — so positions may shift slightly, but overprint is now un-authorable. Its own
+              // constants are passed through (minGap 16, charW 7.5, dx 10, topPad 10).
+              var GRECT={x:TBX.x,y:TBX.y,w:TBX.w,h:TBX.h};
+              var GLP=DeckLayout.placeLabels(cp.map(function(p){ return {x:gsx(p[1]),y:gsy(p[2]),text:p[0]}; }), GRECT, {minGap:16,charW:7.5,dx:10,topPad:10});
+              var GL=GLP.map(function(lp){ return {cx:lp.anchorX,cy:lp.anchorY,lx:lp.x,ly:lp.y,right:lp.right}; });
               cp.forEach(function(p,i){ var l=GL[i],hue=GHUE[p[3]];
                 var c=document.createElementNS(GNS,'circle'); c.setAttribute('cx',l.cx);c.setAttribute('cy',l.cy);c.setAttribute('r',6);c.setAttribute('fill',hue);c.setAttribute('stroke','var(--bg-card)');c.setAttribute('stroke-width',1.4); gtraj.appendChild(c);
                 if(Math.abs(l.ly-(l.cy+4))>6){ var ln=document.createElementNS(GNS,'line'); ln.setAttribute('x1',l.cx);ln.setAttribute('y1',l.cy);ln.setAttribute('x2',l.lx+(l.right?2:-2));ln.setAttribute('y2',l.ly-3);ln.setAttribute('stroke',hue);ln.setAttribute('stroke-width',0.8);ln.setAttribute('opacity',0.4); gtraj.appendChild(ln);}
