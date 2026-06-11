@@ -103,7 +103,7 @@ export const mountEmbeddingSpace = defineWidget({
       // lift the label clear of its 6-px dot (15 ≥ r + glyph descent) so glyphs never sit on the
       // marker; the near-bg halo (CSS paint-order stroke) keeps it readable over the dashed
       // parallelogram edge it can graze. (defect-2 fix)
-      const t = el('text', { x: sx(p.x), y: sy(p.y) - 15, class: `es-word ${cls}`, 'text-anchor': 'middle' }, g);
+      const t = el('text', { x: sx(p.x), y: sy(p.y) - 15, class: `es-word svg-halo ${cls}`, 'text-anchor': 'middle' }, g);
       t.textContent = name;
       return add(key, g);
     }
@@ -133,7 +133,7 @@ export const mountEmbeddingSpace = defineWidget({
     // queen dot lands essentially on the moved point
     const qg = el('g', {}, svg);
     el('circle', { cx: sx(LAY.queen.x), cy: sy(LAY.queen.y), r: 7, class: 'es-dot es-c-queen' }, qg);
-    const qt = el('text', { x: sx(LAY.queen.x), y: sy(LAY.queen.y) - 16, class: 'es-word es-c-queen', 'text-anchor': 'middle' }, qg);
+    const qt = el('text', { x: sx(LAY.queen.x), y: sy(LAY.queen.y) - 16, class: 'es-word svg-halo es-c-queen', 'text-anchor': 'middle' }, qg);
     qt.textContent = answer.word;
     add('answer', qg);
     // the ranking list lives in the RESERVED right column — left-aligned, never over the dots.

@@ -347,7 +347,7 @@ export const mountGloveCooccur = defineWidget({
       const ty = a.cy + 3.2;
       // leader from the dot to the box edge nearest the dot.
       el('line', { x1: d.dx, y1: d.dy, x2: tx, y2: a.cy, class: 'gv-leader', fill: 'none' }, g);
-      el('text', { x: tx, y: ty, class: 'gv-maplabel', 'text-anchor': onLeft ? 'start' : 'end' }, g)
+      el('text', { x: tx, y: ty, class: 'gv-maplabel svg-halo', 'text-anchor': onLeft ? 'start' : 'end' }, g)
         .textContent = lblText(d.w);
       add('map', g);
     });

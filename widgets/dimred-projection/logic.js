@@ -125,7 +125,7 @@ export const mountDimredProjection = defineWidget({
           // so the label never sits ON its dot; a near-bg halo (CSS paint-order stroke) keeps it
           // legible where it grazes a neighbouring dot in the denser regions. (defect-2 fix)
           const t = add(name, el('text', { x: scaler.sx(p.x) + 9, y: scaler.sy(p.y) - 11,
-            class: 'dr-ptlbl' }, svg));
+            class: 'dr-ptlbl svg-halo' }, svg));
           t.textContent = p.w;
         }
       });
