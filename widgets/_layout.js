@@ -116,6 +116,10 @@ export function grid(rect, n, opts = {}) {
                  side: 'right' | 'left' to force which side; omit to auto-pick (right if the anchor is
                  in the left 60% of the rect, else left — exactly the L5 rule).
      opts.minGap — vertical px below which two horizontally-overlapping labels count as colliding (17).
+                   This separation is BOUND to slide-viz's text-overprint threshold by _audit/layout-gate.mjs:
+                   labels separated by minGap must bury < OVERPRINT_COVER of each other at the deck's label
+                   height, so a placeLabels-laid-out figure can never trip the gate. Lowering minGap below
+                   that floor HARD-fails layout-gate — "overlap has one definition."
      opts.iters  — relaxation iterations (160, matching the source).
      opts.charW  — px per character for the width estimate (8, matching the source).
      opts.dx     — horizontal offset of the label from its anchor (11).
