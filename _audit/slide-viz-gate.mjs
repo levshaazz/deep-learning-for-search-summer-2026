@@ -56,6 +56,7 @@ import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
 import { join, extname, normalize, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { REPO_ROOT } from './lib/paths.mjs';
+import { IOU_OVERLAP, OVERPRINT_COVER } from './lib/thresholds.mjs';   // shared with layout-gate (one def of overlap)
 
 const ROOT = REPO_ROOT;
 const LECT = join(ROOT, 'Lectures');
@@ -79,7 +80,7 @@ const TH = {
                               //   still counted as shown.
   STEP0_COVER: 0.85,          // step-0 shows ≥85% of the final element count → "everything at once"
   DEAD_STEP_DELTA: 0.001,     // a later step whose salience signature is unchanged → dead step
-  IOU_OVERLAP: 0.45,          // text-label IoU above this → significant overlap
+  IOU_OVERLAP,                // (shared from lib/thresholds.mjs) text-label IoU above this → significant overlap
   CENTER_PX: 6,               // OR label centres within this many px → stacked
   OOB_PAD: 1.5,               // px an element may poke past the viewBox before it's OOB
   DELTA_E_MIN: 9,             // CIE76 ΔE below this between DISTINGUISHABLE shapes → colour collision
@@ -118,7 +119,7 @@ const TH = {
                               //   accent-garble signature and is excluded (kept as a weaker WARN path
                               //   only if it is also dark — see below).
   // ── DETECTOR B — text-over-text OVERPRINT (covers the IoU-blind "small text inside big box") ──
-  OVERPRINT_COVER: 0.50,      // if ≥ this fraction of the SMALLER text box is covered by the other
+  OVERPRINT_COVER,            // (shared from lib/thresholds.mjs) if ≥ this fraction of the SMALLER text box is covered by the other
                               //   text box AND the strings differ ⇒ overprint (this is what IoU
                               //   MISSED: a wide title sitting on a narrow column header has low IoU
                               //   because the union is dominated by the title, but the header is
