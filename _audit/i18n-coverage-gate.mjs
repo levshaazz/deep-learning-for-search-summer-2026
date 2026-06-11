@@ -11,8 +11,9 @@
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
+import { REPO_ROOT } from './lib/paths.mjs';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const ROOT = REPO_ROOT;
 const LANGS = ['en', 'ru', 'tt'];
 
 // Count i18n nodes in a value tree. A node = object with a string `en`. Returns {total, en, ru, tt, missingEn:[]}

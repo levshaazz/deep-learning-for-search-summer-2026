@@ -12,7 +12,7 @@
    Exit 1 on any error. Run: node archflow-audit.mjs   (from _audit/)
    ========================================================= */
 import { chromium } from 'playwright';
-import { HARDENED, TEMPLATE_DECK_URL } from './lib/gate-harness.mjs';
+import { HARDENED, TEMPLATE_DECK_URL, makeReporter } from './lib/gate-harness.mjs';
 
 const DECK = TEMPLATE_DECK_URL;
 const OVERLAP_TOL = 6;   // px of allowed incidental overlap between boxes
@@ -24,10 +24,8 @@ const CANVAS_MARGIN = 4; // px a box may stick out of the canvas
    kinds: overlap | offcanvas | dangling | range | alt */
 const BREAK = (process.argv.find(a => a.startsWith('--break=')) || '').split('=')[1] || null;
 
-let errors = 0, warns = 0;
-const err = (m) => { errors++; console.log('  ✗ ERROR ' + m); };
-const warn = (m) => { warns++; console.log('  ⚠ warn  ' + m); };
-const ok = (m) => console.log('  ✓ ' + m);
+const R = makeReporter('archflow-audit');
+const { err, warn, ok } = R;
 
 function rectsOverlap(a, b, tol) {
   const ix = Math.min(a.right, b.right) - Math.max(a.left, b.left);
@@ -210,7 +208,6 @@ async function main() {
 
   if (perr.length) perr.forEach(e => err('pageerror: ' + e));
   await browser.close();
-  console.log(`\n[archflow-audit] ${errors} error(s), ${warns} warning(s)`);
-  process.exit(errors === 0 ? 0 : 1);
+  R.done();
 }
 main().catch(e => { console.error('[archflow-audit] CRASHED', e); process.exit(1); });

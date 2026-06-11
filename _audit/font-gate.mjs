@@ -29,8 +29,9 @@
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { REPO_ROOT } from './lib/paths.mjs';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const ROOT = REPO_ROOT;
 const DECK_CSS_DIR = 'Lectures/css';
 const DECK_HTML_DIR = 'Lectures';
 // The font-scale token file (where --fs-* live). Read only to PROVE the scale exists and to

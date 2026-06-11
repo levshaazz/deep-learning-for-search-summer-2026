@@ -15,8 +15,9 @@
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { join, dirname, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { REPO_ROOT } from './lib/paths.mjs';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const ROOT = REPO_ROOT;
 const SOURCE = 'tokens/design-tokens.css';
 const DECK = 'Lectures/css/template.css';
 // brand tokens design-tokens.css mirrors from the deck (must match value-for-value)

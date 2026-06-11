@@ -13,13 +13,12 @@
    file:// — no server. Exit 1 on any error. Run: node budget-audit.mjs
    ========================================================= */
 import { chromium } from 'playwright';
-import { HARDENED, TEMPLATE_DECK_URL } from './lib/gate-harness.mjs';
+import { HARDENED, TEMPLATE_DECK_URL, makeReporter } from './lib/gate-harness.mjs';
 
 const DECK = TEMPLATE_DECK_URL;
 const MARGIN = 8;
-let errors = 0, warns = 0;
-const err = (m) => { errors++; console.log('  ✗ ERROR ' + m); };
-const ok = (m) => console.log('  ✓ ' + m);
+const R = makeReporter('budget-audit');
+const { err, ok } = R;
 
 // ── pure detectors (the REAL assertion logic, also exercised by --selftest so it can't go blind) ──
 // each returns [{ code, msg }] for the faults present in the gathered DOM state.
@@ -123,8 +122,7 @@ async function main() {
 
   if (perr.length) perr.forEach(e => err('pageerror: ' + e));
   await browser.close();
-  console.log(`\n[budget-audit] ${errors} error(s), ${warns} warning(s)`);
-  process.exit(errors === 0 ? 0 : 1);
+  R.done();
 }
 // ── --selftest: feed each clean + planted-fault case to the REAL detectors (no browser) ──────────
 function selftest() {

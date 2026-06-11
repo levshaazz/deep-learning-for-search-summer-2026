@@ -74,8 +74,9 @@ import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
 import { writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { REPO_ROOT } from './lib/paths.mjs';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const ROOT = REPO_ROOT;
 const DOCS = join(ROOT, 'docs');
 const CDIR = join(ROOT, 'content', 'book');
 const BASE = '/deep-learning-for-search-summer-2026';
