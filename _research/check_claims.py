@@ -920,6 +920,65 @@ def arithmetic_checks(report, texts):
     if not bad:
         report.append(("OK", f"arithmetic(fractions): {nfrac} displayed a·b/(c·d) results all correct ✓"))
 
+# ── [G] COVERAGE GUARD — the facts-gate AUTO-EXTENDS to new content (no NEW un-gated displayed number) ──
+# A ratchet (mirrors _audit/font-gate.mjs): every "grounded" number a deck/Book DISPLAYS that is not
+# value-covered by a [C] claim is counted PER SURFACE; the count may not EXCEED the frozen baseline below.
+# Adding an un-gated number to an existing unit — or ANY un-gated number to a NEW unit (L7…, whose baseline
+# defaults to 0) — bumps the count → HARD, forcing the author to either gate it (add a [C] claim → the number
+# becomes covered and the count drops) or, if it is genuinely NOT data (a math constant, an illustration),
+# raise that surface's baseline here with a one-line why. Burn the baseline DOWN over time by gating the
+# worked intermediates. This is what makes correctness scale to new content as cheaply as publication.
+#
+# Surface = the SAME displayed-text surface the [C] anchors match: tags stripped (so SVG geometry attrs
+# x=/y=/cx=/height=… are excluded — those are not "displayed numbers") while prose + KaTeX digits are kept.
+# "Grounded" = a decimal with ≥2 fractional digits; arXiv ids (1901.04085) and leading-zero dates (03.06)
+# are excluded (not numbers in the data sense). "Covered" = within max(claim-tol, 0.001) of a gated value —
+# i.e. the displayed number IS, to display precision, a gated value (a coincidental match needs a value
+# within 1e-3; a genuinely new data-number, e.g. an L7 cosine 0.7531, is not and so HARD-fails until gated).
+COVERAGE_BASELINE = {
+    "deck:L0": 0, "deck:L1": 2, "deck:L2": 10, "deck:L3": 58, "deck:L4": 49, "deck:L5": 57, "deck:L6": 41,
+    "book:L0": 0, "book:L1": 1, "book:L2": 8,  "book:L3": 18, "book:L4": 24, "book:L5": 14, "book:L6": 13,
+}
+_COV_DEC   = re.compile(r'(?<![\d.])\d+\.\d{2,}(?!\d)')   # grounded signature: a decimal, ≥2 fractional digits
+_COV_ARXIV = re.compile(r'^\d{4}\.\d{4,}$')               # arXiv id (e.g. 1901.04085) — not data
+_COV_DATE  = re.compile(r'^0\d+\.')                       # leading-zero date (e.g. 03.06) — not data
+
+def _coverage_visible(html):
+    t = re.sub(r'<aside class="slide-notes".*?</aside>', ' ', html, flags=re.S)   # speaker notes: not shown
+    t = re.sub(r'<style.*?</style>|<script.*?</script>', ' ', t, flags=re.S)
+    return re.sub(r'<[^>]+>', ' ', t)
+
+def _coverage_uncovered(html, gated):
+    out = set()
+    for m in _COV_DEC.finditer(_coverage_visible(html)):
+        s = m.group()
+        if _COV_ARXIV.match(s) or _COV_DATE.match(s):
+            continue
+        d = float(s)
+        if not any(abs(d - v) <= max(tol, 0.001) for v, tol in gated):
+            out.add(s)
+    return out
+
+def coverage_guard(report, text, book):
+    gated = [(float(c["value"]), float(c.get("tol", 1e-3))) for c in claims()] \
+          + [(float(c["value"]), float(c.get("tol", 1e-3))) for c in book_claims()]
+    surfaces = {f"deck:{k}": v for k, v in text.items()}
+    surfaces.update({f"book:{k}": v for k, v in book.items()})   # book empty if docs/ not built → skipped
+    hard = 0
+    for surf in sorted(surfaces):
+        n = len(_coverage_uncovered(surfaces[surf], gated))
+        base = COVERAGE_BASELINE.get(surf, 0)   # a NEW unit (not in the baseline) starts at 0 → must gate
+        if n > base:
+            hard += 1
+            report.append(("HARD", f"coverage-guard({surf}): {n} un-gated displayed number(s) > baseline {base} — "
+                                   f"gate the new number (add a [C] claim) or raise this surface's baseline with a why"))
+        elif n < base and surf in COVERAGE_BASELINE:
+            report.append(("WARN", f"coverage-guard({surf}): {n} < baseline {base} — tighten COVERAGE_BASELINE to {n}"))
+    if not hard:
+        total = sum(len(_coverage_uncovered(surfaces[s], gated)) for s in surfaces)
+        report.append(("OK", f"coverage-guard: {len(surfaces)} surfaces ≤ baseline; {total} grandfathered un-gated "
+                             f"number(s) — a NEW number, or any number in a NEW unit (baseline 0), HARD-fails until gated ✓"))
+
 def main():
     text = {k: p.read_text() for k, p in DECKS.items()}
     book = load_book()                              # built Book HTML (empty if docs/ not built)
@@ -942,6 +1001,7 @@ def main():
         report.append(("WARN", "Book not built (docs/ absent) — Book [C] claims skipped; run `npm run build`"))
     # [A] recompute: deck fractions + (any) Book fractions, in one pass.
     arithmetic_checks(report, {**text, **{"book " + k: v for k, v in book.items()}})
+    coverage_guard(report, text, book)              # [G] no NEW un-gated displayed number (auto-extends to L7…)
     hard = sum(1 for s, _ in report if s == "HARD")
     warn = sum(1 for s, _ in report if s == "WARN")
     print(f"[facts-gate] {len(report)} checks — source: data/ (provenance→curated→deck)")
@@ -1133,10 +1193,16 @@ def selftest():
     sevBW, msgBW = check_claim(cBW, bBW)
     okBW = sevBW == "HARD" and "DRIFT" in msgBW
     print("[selftest:book-ctx]", msgBW)
+    # [G] coverage-guard: a NEW un-gated grounded number on a surface (here a new unit "L9", baseline 0)
+    # must HARD-fail — proving the ratchet is not blind (a forgotten data-number in L7 can't ship silently).
+    repCov = []
+    coverage_guard(repCov, {"L9": "<p>the model scores 0.7137 on this set</p>"}, {})
+    okCov = any(s == "HARD" and "coverage-guard(deck:L9)" in m for s, m in repCov)
+    print("[selftest:coverage]", next((m for s, m in repCov if s == "HARD"), "coverage-guard: NO FLAG"))
     ok = (okD and okA and okP and okL3 and okL4 and okP2 and okL5 and okL6 and okP3 and okP4
           and okGX and okTK and okTS and okP5 and okP6 and okP7 and okP8 and okP9
-          and okW and okU and okS and okT47 and okPE and okCX and okBK and okBW)
-    print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 + L5-GloVe/t-SNE + L2-tokenizers + enrichment-trajectory + l6-contextual cross-file + Book-prose deck & cross-file (incl. data-only pins) all fire"
+          and okW and okU and okS and okT47 and okPE and okCX and okBK and okBW and okCov)
+    print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 + L5-GloVe/t-SNE + L2-tokenizers + enrichment-trajectory + l6-contextual cross-file + Book-prose deck & cross-file + coverage-guard ratchet (incl. data-only pins) all fire"
           if ok else "FAIL — a check is blind!")
     return 0 if ok else 1
 
