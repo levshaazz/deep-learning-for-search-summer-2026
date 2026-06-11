@@ -95,7 +95,7 @@ export const mountBlockGeometry = defineWidget({
     for (let i = 0; i < n; i++) {
       const g = el('g', {}, svg);
       dots.push(el('circle', { r: 6, class: 'bg-dot' }, g));
-      const t = el('text', { class: 'bg-word', 'text-anchor': 'middle' }, g);
+      const t = el('text', { class: 'bg-word svg-halo', 'text-anchor': 'middle' }, g);
       t.textContent = tokens[i] || '';
       dlbls.push(t);
     }

@@ -123,7 +123,7 @@ export const mountContrastiveSpace = defineWidget({
     const lblText = (w) => String(w);
     // build label seeds: anchor first, then each neighbour.
     const seeds = [];
-    seeds.push({ word: anchor, ref: { dx: cx0, dy: cy0 }, ux: 0, uy: 1, off: 24, cls: 'cs-anchor-lbl',
+    seeds.push({ word: anchor, ref: { dx: cx0, dy: cy0 }, ux: 0, uy: 1, off: 24, cls: 'cs-anchor-lbl svg-halo',
       isAnchor: true });
     placed.forEach((p) => {
       let sux = p.ux, suy = p.uy, off;
@@ -144,7 +144,7 @@ export const mountContrastiveSpace = defineWidget({
         off = 30;
       }
       seeds.push({ word: p.word, ref: { dx: p.px, dy: p.py }, ux: sux, uy: suy, off,
-        cls: `cs-pt-lbl ${p.cls}`, isAnchor: false });
+        cls: `cs-pt-lbl svg-halo ${p.cls}`, isAnchor: false });
     });
     const lab = seeds.map((s) => ({
       w: Math.max(18, lblText(s.word).length * CHARW + 6), h: LBL_H,
