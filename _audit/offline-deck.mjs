@@ -6,6 +6,7 @@
    Usage: node _audit/offline-deck.mjs 00-introduction.html
    Exit 0 iff the deck is fully self-contained offline.                          */
 import { chromium } from 'playwright';
+import { HARDENED } from './lib/gate-harness.mjs';   // --disable-dev-shm-usage etc. (CI OOM guard)
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { join } from 'node:path';
 
@@ -15,7 +16,7 @@ const deckPath = join(fileURLToPath(new URL('../Lectures/', import.meta.url)), f
 const url = pathToFileURL(deckPath).href;
 
 const nonLocal = [], errs = [];
-const browser = await chromium.launch();
+const browser = await chromium.launch(HARDENED);
 const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
 await ctx.route('**/*', (route) => {
   const u = route.request().url();

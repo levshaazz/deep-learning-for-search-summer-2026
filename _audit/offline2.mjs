@@ -1,10 +1,11 @@
 import { chromium } from 'playwright';
+import { HARDENED } from './lib/gate-harness.mjs';   // --disable-dev-shm-usage etc. (CI OOM guard)
 const EDIT = 'http://localhost:8099/Lecture%20Template.html';
 const STANDALONE = 'http://localhost:8099/Lecture%20Template%20(Standalone).html';
 
 async function offlineTest(label, url, { blockVendor = false } = {}) {
   const blocked = [], local = [], errs = [];
-  const browser = await chromium.launch();
+  const browser = await chromium.launch(HARDENED);
   const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
   await ctx.route('**/*', route => {
     const u = route.request().url();

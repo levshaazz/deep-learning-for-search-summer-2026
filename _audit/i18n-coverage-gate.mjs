@@ -43,11 +43,11 @@ async function gatherSurfaces() {
   // course data
   S.push(['course.json', JSON.parse(readFileSync(join(ROOT, 'data/course.json'), 'utf8'))]);
   // Book chapters
-  for (const f of readdirSync(join(ROOT, 'content/book')).filter((f) => f.endsWith('.js')))
+  for (const f of readdirSync(join(ROOT, 'content/book')).filter((f) => f.endsWith('.js')).sort())
     S.push([`book/${f}`, (await import(pathToFileURL(join(ROOT, 'content/book', f)).href)).default]);
   // widget captions
   const wdir = join(ROOT, 'widgets');
-  for (const d of readdirSync(wdir, { withFileTypes: true }).filter((d) => d.isDirectory())) {
+  for (const d of readdirSync(wdir, { withFileTypes: true }).filter((d) => d.isDirectory()).sort((a, b) => a.name.localeCompare(b.name))) {
     const f = join(wdir, d.name, 'i18n.json');
     if (existsSync(f)) S.push([`widget/${d.name}`, JSON.parse(readFileSync(f, 'utf8'))]);
   }
