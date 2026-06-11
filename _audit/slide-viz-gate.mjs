@@ -840,6 +840,15 @@ function detectColor(steps, ctx) {
     // <line>/<polyline> paint via STROKE, not fill; their computed fill is the meaningless SVG
     // default rgb(0,0,0) — skip them here so a visible stroked rule isn't flagged as a void.
     if (sh.tag === 'line' || sh.tag === 'polyline') continue;
+    // A shape read via a VISIBLE OUTLINE (a graph-node `circle`, an `.af-node`/`.pr-node` /
+    // archflow request·response box, a card-backing `rect`/`div`) is NOT invisible even when its
+    // FILL ≈ background — a hollow mark shows through its stroke/border, and a dark dot with a
+    // contrasting rim is a mark, not a void hole. Only a shape with no contrasting outline truly
+    // vanishes into the canvas. The stroke/borderColor is captured per element (`sh.stroke`); if it
+    // is opaque and contrasts the bg, the shape is visible → skip both the void and near-bg checks.
+    // (Silences the near-bg WARN false-positive class on bare graph circles + chrome backings.)
+    const strokeC = parseRGB(sh.stroke);
+    if (strokeC && strokeC.a > 0.15 && deltaE(strokeC, bg) >= ctx.TH.DELTA_E_MIN) continue;
     const lum = relLum(sh.c);
     const dE_bg = deltaE(sh.c, bg);
     const nearBlack = lum < ctx.TH.VOID_LUM && bgLum > 0.2;   // black-on-light: a void hole
@@ -1361,6 +1370,24 @@ async function selftest(browser) {
   pass('E4 shadow rgba() is decoration (not semantic paint)', dDecor.length > 0, false,
     `defects=${dDecor.length}`);
 
+  console.log('── F) COLOR void/near-bg — outlined-shape exemption ──');
+
+  // D1 (SILENT — the near-bg WARN FP class): a HOLLOW graph-node circle whose FILL ≈ canvas
+  //     (near-white) but with a contrasting dark STROKE — visible via its rim, NOT invisible. This is
+  //     the bare-graph-circle / .af-node / card-backing shape the project-wide scan WARNed on. Must
+  //     stay silent now that an outlined shape is exempt from the void/near-bg check.
+  const fxHollow = `<svg width="400" height="200" viewBox="0 0 400 200"><rect class="bg" x="0" y="0" width="400" height="200" fill="#ffffff"/><circle class="gnode" cx="120" cy="100" r="28" fill="#fbfbfb" stroke="#333333" stroke-width="2.5"/></svg>`;
+  const dHollow = detectColor((await capStage(fxHollow, 1, 'void 0')).map(s => ({ ...s, bg: { r: 255, g: 255, b: 255, a: 1 } })), { TH });
+  pass('F1 hollow stroked circle (fill≈bg, dark rim)', dHollow.some(d => /≈ background|void/i.test(d.msg)), false,
+    `near-bg/void warns=${dHollow.filter(d => /≈ background|void/i.test(d.msg)).length}`);
+
+  // D2 (FIRES — real invisibility preserved): the SAME near-canvas fill but with NO contrasting
+  //     outline — genuinely vanishes into the page. The exemption must NOT blind this.
+  const fxInvisible = `<svg width="400" height="200" viewBox="0 0 400 200"><rect class="bg" x="0" y="0" width="400" height="200" fill="#ffffff"/><circle class="gnode" cx="120" cy="100" r="28" fill="#fbfbfb" stroke="none"/></svg>`;
+  const dInvisible = detectColor((await capStage(fxInvisible, 1, 'void 0')).map(s => ({ ...s, bg: { r: 255, g: 255, b: 255, a: 1 } })), { TH });
+  pass('F2 unstroked fill≈bg circle (invisible)', dInvisible.some(d => /≈ background/i.test(d.msg)), true,
+    (dInvisible.find(d => /≈ background/i.test(d.msg)) || {}).msg);
+
   console.log('\n[selftest]', ok
     ? 'PASS — all TRUE-defect fixtures fire AND all FALSE-positive fixtures stay silent'
     : 'FAIL — a detector is BLIND to a real defect or fires on a false positive');
@@ -1419,17 +1446,20 @@ async function main() {
   const bookBuilt = existsSync(join(DOCS, 'en', 'book', '05', 'index.html'));
   if (bookBuilt) bsrv = await serveDir(DOCS, { base: BASE });
 
-  console.log('slide-viz-gate — scanning L5/L6 stepped targets (deck slides + book widgets), both themes.');
+  console.log('slide-viz-gate — scanning ALL stepped deck slides + scrolly book widgets (auto-glob, decks 00–06 + book 00–06), both themes.');
   console.log(`thresholds: step0-cover≥${TH.STEP0_COVER}, IoU≥${TH.IOU_OVERLAP}, ΔE<${TH.DELTA_E_MIN}, void-lum<${TH.VOID_LUM}\n`);
 
+  // `--scan-all` = report mode (discover + run but never fail, for triage). The DEFAULT/`--strict`
+  // run now ALSO auto-discovers every figure — the gate covers the WHOLE project, not just the
+  // curated L5/L6 DECK_TARGETS/BOOK_TARGETS (kept below as a documented reference + discovery
+  // fallback). Adding a unit (L7…) needs ZERO target edits — discovery globs it in. A new figure
+  // either passes HARD=0 or fails the gate; there is no longer an un-gated figure on the project.
   const scanAll = argv.includes('--scan-all');
-  let deckTargets = DECK_TARGETS, bookTargets = BOOK_TARGETS;
-  if (scanAll) {
-    console.log('[scan-all] report mode — auto-discovering ALL stepped deck slides + scrolly book widgets (non-gating)…');
-    deckTargets = await discoverDeckTargets(browser);
-    bookTargets = bookBuilt ? await discoverBookTargets(browser) : [];
-    console.log(`[scan-all] discovered ${deckTargets.length} stepped deck slides + ${bookTargets.length} book widgets\n`);
-  }
+  console.log('[slide-viz] discovering all stepped deck slides + scrolly book widgets…');
+  let deckTargets = await discoverDeckTargets(browser);
+  let bookTargets = bookBuilt ? await discoverBookTargets(browser) : [];
+  if (!deckTargets.length) { console.log('[slide-viz] discovery returned 0 deck slides — falling back to curated DECK_TARGETS'); deckTargets = DECK_TARGETS; bookTargets = bookBuilt ? BOOK_TARGETS : []; }
+  console.log(`[slide-viz] targets: ${deckTargets.length} deck slides + ${bookTargets.length} book widgets (HARD-gated under --strict)\n`);
 
   const results = [];
   let totalHard = 0, totalWarn = 0;
@@ -1506,7 +1536,7 @@ async function main() {
   await mkdir(mdDir, { recursive: true });
   const mdName = scanAll ? 'SCAN-ALL.md' : 'AUTODETECT.md';
   const md = buildMarkdown(results, ranked, { totalHard, totalWarn },
-    scanAll ? `Project-wide dynamic-illustration scan (ALL stepped slides + scrolly widgets) — REPORT MODE` : undefined);
+    `Project-wide dynamic-illustration scan — ALL stepped deck slides + scrolly book widgets${scanAll ? ' (REPORT MODE)' : ' (--strict gate)'}`);
   await writeFile(join(mdDir, mdName), md);
   console.log(`\n[slide-viz-gate] wrote inventory → _internal/l56_viz_defects/${mdName}`);
 
