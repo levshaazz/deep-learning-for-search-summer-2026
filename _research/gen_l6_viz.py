@@ -32,21 +32,8 @@ from __future__ import annotations
 import json, pathlib, sys
 import numpy as np
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
-DATA = ROOT / "data"
+from genlib import ROOT, DATA, r, rm, rv      # shared helpers (genlib.py)
 ATTN_FILE = DATA / "l6-attention.json"
-
-
-def r(x, n=4):
-    return round(float(x), n)
-
-
-def rv(v, n=3):
-    return [r(x, n) for x in np.asarray(v, dtype=float).ravel()]
-
-
-def rm(M, n=3):
-    return [[r(v, n) for v in row] for row in np.asarray(M, dtype=float)]
 
 
 # ── E: layernorm-viz ─────────────────────────────────────────────────────────────────────────────

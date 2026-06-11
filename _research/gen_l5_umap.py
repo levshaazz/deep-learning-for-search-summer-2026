@@ -31,8 +31,7 @@ from __future__ import annotations
 import json, pathlib, subprocess, sys
 import numpy as np
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
-DATA = ROOT / "data"
+from genlib import ROOT, DATA, r      # shared helpers (genlib.py)
 VEC_CACHE = ROOT / "_research" / "data" / ".cache" / "glove50-demo-vectors.json"
 DIMRED = DATA / "l5-dimred.json"
 # local, gitignored install target (matches the /_research/data/.cache/ .gitignore rule)
@@ -53,10 +52,6 @@ UMAP_VS_TSNE = ("UMAP builds a fuzzy simplicial set (a weighted k-NN graph of fu
                 "vs t-SNE's KL divergence on Gaussian-vs-Student-t affinities, UMAP preserves more "
                 "GLOBAL structure, scales to large n, and is markedly faster (and supports transform of "
                 "new points). Like t-SNE, absolute UMAP distances/cluster sizes are not literal.")
-
-
-def r(x, n=4):
-    return round(float(x), n)
 
 
 def load_words():

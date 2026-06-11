@@ -36,8 +36,7 @@ from __future__ import annotations
 import json, pathlib, sys
 import numpy as np
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
-DATA = ROOT / "data"
+from genlib import ROOT, DATA, r, rm, rv      # shared helpers (extracted verbatim; n=4 defaults match)
 VEC_CACHE = ROOT / "_research" / "data" / ".cache" / "glove50-demo-vectors.json"
 
 # anchor + the 9-word set. Two semantic groups so the anchor has near (animals) + far (royalty)
@@ -50,18 +49,6 @@ GROUP = {  # for the widget legend / colouring (not used in the math)
     "lion": "animal", "tiger": "animal", "king": "royalty", "queen": "royalty",
     "throne": "royalty",
 }
-
-
-def r(x, n=4):
-    return round(float(x), n)
-
-
-def rm(M, n=4):
-    return [[r(v, n) for v in row] for row in np.asarray(M, dtype=float)]
-
-
-def rv(v, n=4):
-    return [r(x, n) for x in np.asarray(v, dtype=float).ravel()]
 
 
 def load_glove() -> dict[str, np.ndarray]:

@@ -18,13 +18,8 @@ from __future__ import annotations
 import json, math, pathlib
 import numpy as np
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
-DATA = ROOT / "data"
+from genlib import ROOT, DATA, r      # shared helpers (genlib.py)
 VEC_CACHE = ROOT / "_research" / "data" / ".cache" / "glove50-demo-vectors.json"
-
-
-def r(x, n=4):
-    return round(float(x), n)
 
 
 def rm(M, n=3):
