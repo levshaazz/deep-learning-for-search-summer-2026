@@ -1330,11 +1330,20 @@ async function main() {
   console.log('slide-viz-gate — scanning L5/L6 stepped targets (deck slides + book widgets), both themes.');
   console.log(`thresholds: step0-cover≥${TH.STEP0_COVER}, IoU≥${TH.IOU_OVERLAP}, ΔE<${TH.DELTA_E_MIN}, void-lum<${TH.VOID_LUM}\n`);
 
+  const scanAll = argv.includes('--scan-all');
+  let deckTargets = DECK_TARGETS, bookTargets = BOOK_TARGETS;
+  if (scanAll) {
+    console.log('[scan-all] report mode — auto-discovering ALL stepped deck slides + scrolly book widgets (non-gating)…');
+    deckTargets = await discoverDeckTargets(browser);
+    bookTargets = bookBuilt ? await discoverBookTargets(browser) : [];
+    console.log(`[scan-all] discovered ${deckTargets.length} stepped deck slides + ${bookTargets.length} book widgets\n`);
+  }
+
   const results = [];
   let totalHard = 0, totalWarn = 0;
   const out = [];
 
-  for (const tg of DECK_TARGETS) {
+  for (const tg of deckTargets) {
     process.stderr.write(`· deck ${tg.name}\n`);
     const r = await runDeck(browser, tg, TH);
     results.push(r);
@@ -1342,7 +1351,7 @@ async function main() {
     console.log(p.text);
   }
   if (bookBuilt) {
-    for (const tg of BOOK_TARGETS) {
+    for (const tg of bookTargets) {
       process.stderr.write(`· book ${tg.widget}\n`);
       const r = await runBook(browser, tg, TH);
       results.push(r);
@@ -1403,9 +1412,11 @@ async function main() {
   // write the inventory markdown
   const mdDir = join(ROOT, '_internal', 'l56_viz_defects');
   await mkdir(mdDir, { recursive: true });
-  const md = buildMarkdown(results, ranked, { totalHard, totalWarn });
-  await writeFile(join(mdDir, 'AUTODETECT.md'), md);
-  console.log(`\n[slide-viz-gate] wrote inventory → _internal/l56_viz_defects/AUTODETECT.md`);
+  const mdName = scanAll ? 'SCAN-ALL.md' : 'AUTODETECT.md';
+  const md = buildMarkdown(results, ranked, { totalHard, totalWarn },
+    scanAll ? `Project-wide dynamic-illustration scan (ALL stepped slides + scrolly widgets) — REPORT MODE` : undefined);
+  await writeFile(join(mdDir, mdName), md);
+  console.log(`\n[slide-viz-gate] wrote inventory → _internal/l56_viz_defects/${mdName}`);
 
   const jsonIdx = argv.indexOf('--json');
   if (jsonIdx >= 0 && argv[jsonIdx + 1]) await writeFile(argv[jsonIdx + 1], JSON.stringify(results, null, 2));
@@ -1417,13 +1428,72 @@ async function main() {
   // literal) ALWAYS fails the process — independent of --strict — so a future colour drift breaks the
   // build instead of warning. The rendered detectors (step-prog / overlap / colour / double-paint)
   // keep their --strict leniency, exactly as before.
+  if (scanAll) { console.log('\n[scan-all] REPORT MODE — exit 0 (non-gating; triage the inventory above + SCAN-ALL.md)'); process.exit(0); }
   const strict = argv.includes('--strict');
   process.exit((cHard > 0 || (strict && totalHard > 0)) ? 1 : 0);
 }
 
-function buildMarkdown(results, ranked, tot) {
+/* =========================================================================
+   AUTO-DISCOVERY (report mode, `--scan-all`): enumerate EVERY stepped deck
+   slide (data-max-step ≥ 1, all decks 00–06) and EVERY mounted scrolly book
+   widget (window.__figs, all chapters), so the detectors run over the whole
+   project — not just the curated L5/L6 DECK_TARGETS/BOOK_TARGETS. This drives
+   the T1 triage: real defects vs detector false-positives on the un-tuned
+   00–04 reveal mechanisms. It is ADDITIVE — the default/`--strict` run still
+   uses the curated lists (HARD=0 WARN=26 baseline), unchanged.
+   Index parity with runDeck is guaranteed: discovery navigates `#/i` (the same
+   addressing runDeck uses) and reads the active slide's data-max-step.
+   ========================================================================= */
+async function discoverDeckTargets(browser) {
+  const targets = [];
+  const decks = readdirSync(LECT).filter(f => /^[0-9][0-9]-[a-z0-9-]+\.html$/.test(f)).sort();
+  for (const deck of decks) {
+    const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
+    const page = await ctx.newPage();
+    try {
+      await page.goto(deckUrl(deck), { waitUntil: 'networkidle' });
+      await page.waitForFunction(() => window.Lecture && window.Lecture.total > 0, { timeout: 20000 });
+      const total = await page.evaluate(() => window.Lecture.total);
+      for (let i = 1; i <= total; i++) {
+        await page.evaluate(n => { location.hash = '#/' + n; }, i);
+        await page.waitForTimeout(40);
+        const meta = await page.evaluate(() => {
+          const c = document.querySelector('.slide.is-active');
+          return { max: parseInt(c && c.dataset.maxStep || '0', 10) || 0,
+                   label: c && c.dataset.screenLabel, type: c && c.dataset.type };
+        });
+        if (meta.max >= 1)
+          targets.push({ deck, slide: i, max: meta.max,
+            name: `${deck.slice(0, 2)} s${i}/${meta.label || '?'} max${meta.max}${meta.type ? ' ' + meta.type : ''}` });
+      }
+    } catch (e) { process.stderr.write(`  discover ${deck} FAILED: ${String(e).slice(0, 120)}\n`); }
+    finally { await ctx.close(); }
+  }
+  return targets;
+}
+async function discoverBookTargets(browser) {
+  const targets = [];
+  const bookDir = join(DOCS, 'en', 'book');
+  if (!existsSync(bookDir)) return targets;
+  const chapters = readdirSync(bookDir).filter(d => /^[0-9][0-9]$/.test(d)).sort();
+  for (const ch of chapters) {
+    const ctx = await browser.newContext({ viewport: { width: 1280, height: 1600 }, deviceScaleFactor: 1 });
+    const page = await ctx.newPage();
+    try {
+      await page.goto(bookUrl(ch), { waitUntil: 'networkidle' });
+      await page.waitForFunction(() => window.__figs && Object.keys(window.__figs).length > 0, { timeout: 15000 }).catch(() => {});
+      const beats = await page.evaluate(() => Object.keys(window.__figs || {})
+        .filter(b => window.__figs[b] && typeof window.__figs[b].setStep === 'function'));
+      for (const beat of beats) targets.push({ chapter: ch, beat, widget: beat });
+    } catch (e) { process.stderr.write(`  discover book ${ch} FAILED: ${String(e).slice(0, 120)}\n`); }
+    finally { await ctx.close(); }
+  }
+  return targets;
+}
+
+function buildMarkdown(results, ranked, tot, heading) {
   const L = [];
-  L.push('# Auto-detected L5/L6 visual-semantics defect inventory');
+  L.push('# ' + (heading || 'Auto-detected L5/L6 visual-semantics defect inventory'));
   L.push('');
   L.push('_Generated by `_audit/slide-viz-gate.mjs` — the gate that catches the defect classes the existing gates (visual-gate / responsive-gate / scroll-step-gate) pass HARD=0 on._');
   L.push('');
