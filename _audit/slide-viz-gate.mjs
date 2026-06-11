@@ -356,9 +356,13 @@ const CAPTURE = (rootSel, opt) => {
     domNodes.push({ key: keyOf(el, i), ...rel(b), hi: hiTok(el) });
   });
 
-  // visible meaningful count + a salience signature (sorted visible keys + hi-state + coarse box).
+  // visible meaningful count + a salience signature (sorted visible keys + hi-state + TEXT + coarse box).
+  // TEXT is folded in so an IN-PLACE value/caption update (a label whose geometry holds but whose
+  // glyphs change — pagerank-power converging "0.3333"→"0.2148", a course-map narration advancing,
+  // an e2e stage-name ticking) registers as a signature CHANGE = progress. Without it, a figure that
+  // animates only by rewriting numbers/text read as a string of dead steps (the book FP class).
   const sigParts = [...labels, ...shapes, ...domNodes]
-    .map(e => `${e.key}|${e.hi}|${Math.round(e.x / 6)},${Math.round(e.y / 6)},${Math.round(e.w / 6)},${Math.round(e.h / 6)}`)
+    .map(e => `${e.key}|${e.hi}|${e.text || ''}|${Math.round(e.x / 6)},${Math.round(e.y / 6)},${Math.round(e.w / 6)},${Math.round(e.h / 6)}`)
     .sort();
   // geometry index: per-element key → centre+size, so the step detector can tell whether an
   // element that PERSISTS across two steps MOVED / RESCALED in place (FP#3 — positional progress).
@@ -654,9 +658,14 @@ function detectStepProgression(steps, ctx) {
     const mv = movedFraction(prev, cur, ctx);
     pair.push({ k, grew, sigChanged, mv });
   }
-  // a step "made progress" if it revealed new marks OR moved/rescaled a meaningful fraction of the
-  // existing ones. ("everything at once" is only a defect when NO step ever does either.)
-  const stepProgressed = p => p.grew || p.mv.frac >= ctx.TH.MOVE_FRAC;
+  // a step "made progress" if it revealed new marks, moved/rescaled a meaningful fraction of the
+  // existing ones, OR changed the salience SIGNATURE (a highlight toggling `is-current`/`is-visited`
+  // across an e2e walkthrough, a value/caption rewriting in place). ("everything at once" is only a
+  // defect when NO step ever does ANY of these — i.e. the figure is dumped at step 0 and truly
+  // frozen.) The sigChanged term is what makes the class-toggle/text-update walkthroughs (decks'
+  // type=e2e stage steppers, book pagerank/course-map) read as real reveals; the per-step dead-step
+  // branch (b) below already honoured sigChanged, so this only makes branch (a) consistent with it.
+  const stepProgressed = p => p.grew || p.mv.frac >= ctx.TH.MOVE_FRAC || p.sigChanged;
   const anyProgress = pair.some(stepProgressed);
 
   // (a) everything-at-step-0: step 0 already shows ≥ STEP0_COVER of final count.
@@ -1141,6 +1150,34 @@ async function selftest(browser) {
   const dTr = detectStepProgression(stepsTr, { TH });
   pass('B3 in-place transform (move/rescale)', dTr.some(d => d.sev === 'HARD'), false,
     `coverage0=${((stepsTr[0].count/stepsTr[stepsTr.length-1].count)*100).toFixed(0)}%, count/step: ${stepsTr.map(s=>s.count).join('→')}`);
+
+  // B4) FP — CLASS-TOGGLE WALKTHROUGH (the e2e mechanism): 6 stage blocks all present from step 0
+  //     (coverage 100%), NOTHING moves, but each step toggles `is-current` onto the next block (the
+  //     deck e2e paint() loop: is-current/is-visited). The salience SIGNATURE changes every step →
+  //     a real progressive reveal that must stay SILENT. Before the sigChanged guard this fired
+  //     "everything at step 0" on EVERY type=e2e walkthrough across decks 00–06 (19 slides).
+  const fxToggle = `<svg width="600" height="200" viewBox="0 0 600 200">
+    ${[0,1,2,3,4,5].map(i => `<rect class="dot stage" data-i="${i}" x="${20+i*90}" y="80" width="60" height="40" fill="#88a"/>`).join('')}
+  </svg>`;
+  const stepFnToggle = `document.querySelectorAll('.stage').forEach((r,i)=>r.classList.toggle('is-current', i===k));`;
+  const stepsTog = await capStage(fxToggle, 6, stepFnToggle);
+  const dTog = detectStepProgression(stepsTog, { TH });
+  pass('B4 class-toggle walkthrough (is-current)', dTog.some(d => d.sev === 'HARD'), false,
+    `coverage0=${((stepsTog[0].count/stepsTog[stepsTog.length-1].count)*100).toFixed(0)}%, count/step: ${stepsTog.map(s=>s.count).join('→')}`);
+
+  // B5) FP — IN-PLACE TEXT/VALUE UPDATE: 5 value labels present from step 0 (coverage 100%), FIXED
+  //     positions (geometry static → 0 movement), but each step rewrites their glyphs (a converging
+  //     PageRank vector, an advancing caption). Same length each step so the box never moves — the
+  //     ONLY change is the text, now folded into the signature → must stay SILENT. Before text
+  //     entered the signature these read as a string of dead steps (the book widget FP class).
+  const fxText = `<svg width="600" height="200" viewBox="0 0 600 200">
+    ${[0,1,2,3,4].map(i => `<text class="val" data-i="${i}" x="${40+i*110}" y="100" font-size="20" fill="#222">v${i}</text>`).join('')}
+  </svg>`;
+  const stepFnText = `document.querySelectorAll('.val').forEach((t,i)=>{t.textContent=(0.9 - 0.01*(k+1)*(i+1)).toFixed(3);});`;
+  const stepsTxt = await capStage(fxText, 5, stepFnText);
+  const dTxt = detectStepProgression(stepsTxt, { TH });
+  pass('B5 in-place text/value update', dTxt.some(d => d.sev === 'HARD'), false,
+    `coverage0=${((stepsTxt[0].count/stepsTxt[stepsTxt.length-1].count)*100).toFixed(0)}%, count/step: ${stepsTxt.map(s=>s.count).join('→')} · texts step0=[${stepsTxt[0].labels.map(l=>l.text).join(',')}] step4=[${stepsTxt[4].labels.map(l=>l.text).join(',')}]`);
 
   console.log('── C) DETECTOR A — double-paint (colored stroke on SVG <text>) ──');
 
