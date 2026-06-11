@@ -119,7 +119,8 @@ export function grid(rect, n, opts = {}) {
      opts.iters  — relaxation iterations (160, matching the source).
      opts.charW  — px per character for the width estimate (8, matching the source).
      opts.dx     — horizontal offset of the label from its anchor (11).
-     opts.pad    — keep labels this many px inside the rect bottom (4); top clamp is rect.y+12.
+     opts.pad    — keep labels this many px inside the rect bottom (4).
+     opts.topPad — keep labels this many px below the rect top (12; some figures used 10).
    → [{ x, y, anchorX, anchorY, right, text, w, textAnchor }] where (x,y) is where to draw the label,
      textAnchor is 'start' (right side) or 'end' (left side). Two returned labels never overlap in the
      sense the solver checks, so an overprint cannot be expressed by the author. */
@@ -129,6 +130,7 @@ export function placeLabels(anchors, rect, opts = {}) {
   const charW = typeof opts.charW === 'number' ? opts.charW : 8;
   const dx = typeof opts.dx === 'number' ? opts.dx : 11;
   const pad = typeof opts.pad === 'number' ? opts.pad : 4;
+  const topPad = typeof opts.topPad === 'number' ? opts.topPad : 12;
 
   const L = (anchors || []).map((a) => {
     const right = (a.side === 'right') || (a.side == null && a.x <= rect.x + rect.w * 0.6);
@@ -153,7 +155,7 @@ export function placeLabels(anchors, rect, opts = {}) {
       }
     }
   }
-  for (const p of L) p.ly = Math.max(rect.y + 12, Math.min(rect.y + rect.h - pad, p.ly));
+  for (const p of L) p.ly = Math.max(rect.y + topPad, Math.min(rect.y + rect.h - pad, p.ly));
 
   return L.map((p) => ({
     x: p.lx, y: p.ly, anchorX: p.x, anchorY: p.y, right: p.right,
