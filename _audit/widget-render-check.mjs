@@ -70,7 +70,7 @@
    ========================================================================= */
 import { chromium } from 'playwright';
 import { HARDENED, serveDir } from './lib/gate-harness.mjs';   // serveDir = free-port static server (no port race)
-import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
+import { readFileSync, existsSync, statSync, readdirSync, mkdirSync } from 'node:fs';
 import { writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -178,12 +178,28 @@ const PROBE = (beatId, opt) => {
   let visible = 0;
   const seen = new Set();
 
+  // VISUAL-REGRESSION signature: alongside the COUNT, record a per-mark token — tag + coarse
+  // FRAME-RELATIVE box + paint (fill / stroke / stroke-width / paint-order). Coords are coarsened
+  // Math.round(/6) — the same anti sub-pixel-jitter bucketing slide-viz's signature uses — so layout
+  // noise between runs doesn't drift the baseline. STROKE + paint-order are captured DELIBERATELY: a
+  // dropped `.svg-halo` (paint-order:stroke; stroke:#fff; stroke-width:2.5 on a text label) changes the
+  // token even though count + geometry don't — exactly the regression class T3 needed a human EYE for.
+  const marks = [];
+  const coarse = (v) => Math.round(v / 6);
+  const relBox = (b) => `${coarse(b.left - figBox.left)},${coarse(b.top - figBox.top)},${coarse(b.width)},${coarse(b.height)}`;
+
   // (1) SVG geometry primitives.
   host.querySelectorAll([...SVG_GEOM].join(',')).forEach((el) => {
     if (seen.has(el) || (el.closest && el.closest('.katex')) || chrome(el)) return;
     if (!effVisible(el)) return;
-    if (!hasArea(el.getBoundingClientRect(), el)) return;
+    const b = el.getBoundingClientRect();
+    if (!hasArea(b, el)) return;
     seen.add(el); visible++;
+    const cs = getComputedStyle(el);
+    const sw = Math.round((parseFloat(cs.strokeWidth) || 0) * 2) / 2;          // 0.5px buckets
+    const po = cs.paintOrder && cs.paintOrder !== 'normal' ? cs.paintOrder : '';
+    const tag = el.tagName ? el.tagName.toLowerCase() : '?';
+    marks.push(`${tag}|${relBox(b)}|${cs.fill}|${cs.stroke}|${sw}|${po}`);
   });
 
   // (2) painted HTML leaves (covers HTML-table / chip / card widgets generically).
@@ -205,8 +221,17 @@ const PROBE = (beatId, opt) => {
       (parseFloat(cs.borderLeftWidth) || 0) + (parseFloat(cs.borderRightWidth) || 0);
     const borderVisible = bw > 0 && cs.borderStyle !== 'none';
     const isImg = tag === 'img' || tag === 'canvas';
-    if (directText || paintedBg || borderVisible || isImg) { seen.add(el); visible++; }
+    if (directText || paintedBg || borderVisible || isImg) {
+      seen.add(el); visible++;
+      marks.push(`h:${tag}|${relBox(b)}|${bg}|${cs.borderTopColor}|${Math.round(bw)}`);
+    }
   });
+
+  // hash the SORTED mark tokens → a compact, order-independent, stable per-step paint signature.
+  marks.sort();
+  let _hs = 0; const _ms = marks.join('§');
+  for (let i = 0; i < _ms.length; i++) _hs = (Math.imul(_hs, 31) + _ms.charCodeAt(i)) | 0;
+  const sig = (_hs >>> 0).toString(16);
 
   return {
     ok: true,
@@ -214,6 +239,7 @@ const PROBE = (beatId, opt) => {
     figW: Math.round(figBox.width), figH: Math.round(figBox.height),
     figArea: Math.round(figArea),
     visible,
+    sig,
     hostHTMLlen: host.innerHTML.length,
   };
 };
@@ -231,6 +257,58 @@ function emptyVerdict(probe) {
 }
 
 /* =========================================================================
+   VISUAL-REGRESSION — paint-signature drift vs a FROZEN, committable baseline.
+
+   "Does it RUN" (above) proves a widget mounts/steps/paints SOMETHING. This proves
+   it paints the SAME thing it did when last frozen. Per (widget·beat, theme) we
+   store one {v: visible-count, sig: paint-hash} per step in _audit/baselines/
+   widget-viz.json; a normal run recomputes them live and HARD-fails on DRIFT:
+     • a mark added / removed            (count + hash change)
+     • a step collapsed / added         (step-count change)
+     • a fill / stroke / HALO change    (hash change, count unchanged ← the .svg-halo case)
+   BOTH themes are stored (light/dark resolve different fills, so the sig differs).
+
+   Ratchet semantics mirror font-gate / coverage-guard: a NEW widget (L7…) not yet
+   in the baseline is a soft NOTE (freeze it with --update-baseline), never a silent
+   pass-through; an INTENTIONAL visual change is re-frozen the same way, after a diff
+   review. The comparison is pure (diffEntry) so --selftest can plant drift offline.
+   ========================================================================= */
+const BDIR = join(ROOT, '_audit', 'baselines');
+const BFILE = join(BDIR, 'widget-viz.json');
+const BREL = '_audit/baselines/widget-viz.json';
+
+function loadBaseline() {
+  if (!existsSync(BFILE)) return null;
+  try { return JSON.parse(readFileSync(BFILE, 'utf8')); } catch { return null; }
+}
+// extract { light:[{v,sig}…], dark:[…] } from a runWidget result (only MOUNTED themes contribute;
+// a theme whose mount failed has no steps[] and is already a RUN HARD, so we don't double-count it).
+function liveSigs(r) {
+  const out = {};
+  for (const theme of THEMES) {
+    const t = r.themes[theme];
+    if (!t || !t.steps) continue;
+    out[theme] = t.steps.map((s) => ({
+      v: s.probe && s.probe.ok ? s.probe.visible : -1,
+      sig: s.probe && s.probe.ok ? s.probe.sig : 'x',
+    }));
+  }
+  return out;
+}
+// compare one theme's live step-sigs to the baseline's; return human-readable DRIFT lines (empty = clean).
+function diffEntry(theme, live, base) {
+  const out = [];
+  if (live.length !== base.length)
+    out.push(`[${theme}] step-count ${base.length}→${live.length} (a step collapsed, was added, or maxStep changed)`);
+  const n = Math.min(live.length, base.length);
+  for (let k = 0; k < n; k++) {
+    if (live[k].sig !== base[k].sig || live[k].v !== base[k].v)
+      out.push(`[${theme}] step ${k}: visible ${base[k].v}→${live[k].v}, sig ${base[k].sig}→${live[k].sig}`);
+  }
+  return out;
+}
+
+/* =========================================================================
    BOOK driver: load chapter, attach console/page error listeners BEFORE any
    widget code runs, confirm mount, walk every step under setStep, probe each.
    Returns per-theme: { mountOK, maxStep, steps[], failures[] }.
@@ -238,7 +316,13 @@ function emptyVerdict(probe) {
 async function runWidget(browser, target, opt) {
   const result = { name: `${target.widget}`, beat: target.beat, chapter: target.chapter, themes: {} };
   for (const theme of THEMES) {
-    const ctx = await browser.newContext({ viewport: { width: 1280, height: 1600 }, deviceScaleFactor: 1 });
+    // reducedMotion: 'reduce' makes the widgets' JS camera tweens (_plot-util cameraTo/cameraHome,
+    // which check matchMedia('(prefers-reduced-motion: reduce)')) JUMP to their target viewBox instead
+    // of rAF-animating — so a step's figure is captured at its unique REST state, not mid-tween. Without
+    // it, a 620ms camera push (pca-rotate s4) is caught at a timing-dependent frame and the coarse-box
+    // signature flips run-to-run (a false DRIFT). Paired with the transition-freeze stylesheet below,
+    // every captured frame is deterministic. (RUN/EMPTY checks are unaffected — same final paint.)
+    const ctx = await browser.newContext({ viewport: { width: 1280, height: 1600 }, deviceScaleFactor: 1, reducedMotion: 'reduce' });
     const page = await ctx.newPage();
     const failures = [];          // {cls, step, msg, stack}
     const consoleErrs = [];       // raw, attributed to the current phase
@@ -280,6 +364,10 @@ async function runWidget(browser, target, opt) {
       }, theme);
 
       await page.goto(bookUrl(target.chapter), { waitUntil: 'networkidle' });
+      // Freeze CSS transitions/animations to 0s: a mid-flight opacity/transform/colour transition (the
+      // wgt-fade 220ms, a 600ms widget transition) would otherwise be sampled between states and drift
+      // the signature. Forcing duration 0 changes only the animation PATH, never the rest state we freeze.
+      await page.addStyleTag({ content: '*,*::before,*::after{transition-duration:0s!important;transition-delay:0s!important;animation-duration:0s!important;animation-delay:0s!important;}' }).catch(() => {});
 
       // MOUNT-MISSING — wait for the page to mount this beat's widget onto window.__figs. The mount
       // is a module script (Astro auto-glob); under load it can land just AFTER networkidle, so a
@@ -415,6 +503,7 @@ async function selftest(browser) {
     page.on('console', (m) => { if (m.type() === 'error' && !isBenign(m.text())) consoleErrs.push({ cls: 'CONSOLE-ERROR', phase, msg: `[console.error] ${m.text()}` }); });
     page.on('pageerror', (e) => consoleErrs.push({ cls: 'PAGE-ERROR', phase, msg: String(e && e.message || e) }));
     const failures = [];
+    const sigs = [];   // per-step {v, sig} — the visual signature the VR drift check compares.
     await page.setContent('<div id="stage" style="position:relative;width:600px;height:400px;background:#fff"></div>');
     // run the fixture's setup (it may throw / log / build a broken figure).
     await page.evaluate(({ body, b }) => { (new Function('beat', body))(b); }, { body: setupJs, b: beat });
@@ -428,7 +517,7 @@ async function selftest(browser) {
     if (!mounted.ok) {
       failures.push({ cls: 'MOUNT-MISSING', step: 'mount', msg: mounted.reason });
       for (const c of consoleErrs) failures.push(c);
-      await ctx.close(); return failures;
+      await ctx.close(); return { failures, sigs };
     }
     for (let k = 0; k <= mounted.maxStep; k++) {
       phase = 'step:' + k;
@@ -438,10 +527,11 @@ async function selftest(browser) {
       const probe = await page.evaluate(({ b, o }) => window.__RENDERPROBE(b, o), { b: beat, o: opt });
       const empty = emptyVerdict(probe);
       if (empty) failures.push({ cls: 'EMPTY-RENDER', step: k, msg: empty });
+      sigs.push({ v: probe && probe.ok ? probe.visible : -1, sig: probe && probe.ok ? probe.sig : 'x' });
     }
     for (const c of consoleErrs) failures.push(c);
     await ctx.close();
-    return failures;
+    return { failures, sigs };
   }
 
   console.log('── BROKEN fixtures (each must FIRE) ──');
@@ -450,7 +540,7 @@ async function selftest(browser) {
   const fS1 = await probeFixture('broken-missing', 0, `
     const h=document.createElement('div'); h.id='fig-'+beat; document.getElementById('stage').appendChild(h);
     window.__figs = window.__figs || {}; /* deliberately do NOT set __figs[beat] */`);
-  pass('S1 mount-missing (export not found)', fS1.some((f) => f.cls === 'MOUNT-MISSING'), true, (fS1.find((f) => f.cls === 'MOUNT-MISSING') || {}).msg);
+  pass('S1 mount-missing (export not found)', fS1.failures.some((f) => f.cls === 'MOUNT-MISSING'), true, (fS1.failures.find((f) => f.cls === 'MOUNT-MISSING') || {}).msg);
 
   // S2 — CONSOLE-ERROR: a widget that mounts + paints, but logs console.error during a step.
   const fS2 = await probeFixture('broken-console', 1, `
@@ -458,7 +548,7 @@ async function selftest(browser) {
     h.innerHTML='<svg width="300" height="200" viewBox="0 0 300 200"><rect class="x-box" x="10" y="10" width="120" height="80" fill="#3a7"/></svg>';
     window.__figs = window.__figs || {};
     window.__figs[beat] = { maxStep:1, setStep(k){ if(k===1) console.error('widget bug: cannot read x of undefined'); } };`);
-  pass('S2 console.error during step', fS2.some((f) => f.cls === 'CONSOLE-ERROR'), true, (fS2.find((f) => f.cls === 'CONSOLE-ERROR') || {}).msg);
+  pass('S2 console.error during step', fS2.failures.some((f) => f.cls === 'CONSOLE-ERROR'), true, (fS2.failures.find((f) => f.cls === 'CONSOLE-ERROR') || {}).msg);
 
   // S3 — SETSTEP-THROW: setStep raises on a later step.
   const fS3 = await probeFixture('broken-throw', 2, `
@@ -466,7 +556,7 @@ async function selftest(browser) {
     h.innerHTML='<svg width="300" height="200" viewBox="0 0 300 200"><circle class="x-dot" cx="50" cy="50" r="20" fill="#27e"/></svg>';
     window.__figs = window.__figs || {};
     window.__figs[beat] = { maxStep:2, setStep(k){ if(k===2){ const z=null; return z.nope.deep; } } };`);
-  pass('S3 setStep throws (null deref)', fS3.some((f) => f.cls === 'SETSTEP-THROW'), true, (fS3.find((f) => f.cls === 'SETSTEP-THROW') || {}).msg);
+  pass('S3 setStep throws (null deref)', fS3.failures.some((f) => f.cls === 'SETSTEP-THROW'), true, (fS3.failures.find((f) => f.cls === 'SETSTEP-THROW') || {}).msg);
 
   // S4 — EMPTY-RENDER: mounts fine, setStep never errors, but paints an EMPTY figure (no marks).
   const fS4 = await probeFixture('broken-empty', 1, `
@@ -474,7 +564,7 @@ async function selftest(browser) {
     h.innerHTML='<svg width="300" height="200" viewBox="0 0 300 200"><!-- nothing painted --></svg>';
     window.__figs = window.__figs || {};
     window.__figs[beat] = { maxStep:1, setStep(k){ /* renders nothing, ever */ } };`);
-  pass('S4 empty render (zero visible marks)', fS4.some((f) => f.cls === 'EMPTY-RENDER'), true, (fS4.find((f) => f.cls === 'EMPTY-RENDER') || {}).msg);
+  pass('S4 empty render (zero visible marks)', fS4.failures.some((f) => f.cls === 'EMPTY-RENDER'), true, (fS4.failures.find((f) => f.cls === 'EMPTY-RENDER') || {}).msg);
 
   console.log('── HEALTHY fixture (must stay SILENT) ──');
 
@@ -487,11 +577,46 @@ async function selftest(browser) {
     window.__figs = window.__figs || {};
     window.__figs[beat] = { maxStep:2, setStep(k){ draw(k); } };
     draw(0);`);
-  pass('H1 healthy widget (mounts, paints, steps clean)', fH1.length > 0, false, `failures=${fH1.length}${fH1.length ? ' (' + fH1.map((f) => f.cls).join(',') + ')' : ''}`);
+  pass('H1 healthy widget (mounts, paints, steps clean)', fH1.failures.length > 0, false, `failures=${fH1.failures.length}${fH1.failures.length ? ' (' + fH1.failures.map((f) => f.cls).join(',') + ')' : ''}`);
+
+  // ── VISUAL-REGRESSION fixtures: the paint-signature must DRIFT on a planted change, stay SILENT on a
+  //    match. Each fixture is frozen against `baseVR` (a healthy 3-step widget whose bars shift per step),
+  //    then re-probed with one deliberate mutation. This is the half that proves the gate now sees a
+  //    SILENTLY-WRONG render (a vanished element, a dropped halo, a frozen step) — not just a crash. ──
+  console.log('── VISUAL-REGRESSION (paint-signature drift — must FIRE on a planted change, SILENT on a match) ──');
+
+  // healthy: 3 stroked bars whose y SHIFTS each step → the three steps are visually distinct.
+  const healthyVR = `
+    const h=document.createElement('div'); h.id='fig-'+beat; document.getElementById('stage').appendChild(h);
+    const draw=(n)=>{ h.innerHTML='<svg width="320" height="240" viewBox="0 0 320 240">'+
+      Array.from({length:3},(_,i)=>'<rect class="vr-bar" x="'+(20+i*90)+'" y="'+(40+n*30)+'" width="60" height="120" fill="#48c" stroke="#123" stroke-width="2"/>').join('')+
+      '</svg>'; };
+    window.__figs = window.__figs || {};
+    window.__figs[beat] = { maxStep:2, setStep(k){ draw(k); } };
+    draw(0);`;
+  const baseVR = (await probeFixture('vr-base', 2, healthyVR)).sigs;
+  const drift = (live) => diffEntry('t', live, baseVR);
+
+  // (i) IDENTICAL re-render → NO drift (proves the baseline is stable run-to-run).
+  const sameVR = (await probeFixture('vr-same', 2, healthyVR)).sigs;
+  pass('VR identical re-render (stable baseline)', drift(sameVR).length > 0, false, `drift-lines=${drift(sameVR).length}`);
+
+  // (ii) MISSING ELEMENT — drop one bar (3→2 marks) → drift MUST fire (count + hash change).
+  const missVR = (await probeFixture('vr-miss', 2, healthyVR.replace('{length:3}', '{length:2}'))).sigs;
+  pass('VR missing element (planted 3→2 marks)', drift(missVR).length > 0, true, `drift-lines=${drift(missVR).length}`);
+
+  // (iii) DROPPED HALO/STROKE — remove the stroke (the `.svg-halo` regression class) → paint-hash drifts
+  //       even though count + geometry are UNCHANGED. This is the case T3 needed a human eye to catch.
+  const haloVR = (await probeFixture('vr-halo', 2, healthyVR.replace(/ stroke="#123" stroke-width="2"/g, ''))).sigs;
+  pass('VR dropped halo/stroke (count unchanged)', drift(haloVR).length > 0, true, `drift-lines=${drift(haloVR).length}`);
+
+  // (iv) COLLAPSED STEP — setStep becomes a no-op (always renders step 0) → later steps drift from baseline.
+  const collVR = (await probeFixture('vr-coll', 2, healthyVR.replace('setStep(k){ draw(k); }', 'setStep(k){ draw(0); }'))).sigs;
+  pass('VR collapsed step (setStep no-op)', drift(collVR).length > 0, true, `drift-lines=${drift(collVR).length}`);
 
   console.log('\n[selftest]', ok
-    ? 'PASS — every broken fixture fires its class AND the healthy fixture stays silent'
-    : 'FAIL — the gate is BLIND to a broken widget or fires on a healthy one');
+    ? 'PASS — every broken fixture fires its class, the healthy fixture stays silent, AND visual drift is caught'
+    : 'FAIL — the gate is BLIND to a broken/drifted widget or fires on a healthy one');
   return ok ? 0 : 1;
 }
 
@@ -499,6 +624,7 @@ async function selftest(browser) {
 async function main() {
   const argv = process.argv.slice(2);
   const opt = { ...TH, warnAsError: argv.includes('--warn-as-error') };
+  const updateBaseline = argv.includes('--update-baseline');   // re-freeze the visual baseline (deliberate)
   const browser = await chromium.launch(HARDENED);
   // inject the render-probe into EVERY future page context as window.__RENDERPROBE.
   const injectProbe = `window.__RENDERPROBE = ${PROBE.toString()};`;
@@ -572,6 +698,49 @@ async function main() {
   if (offenders.length) { console.log('offenders (fix these — details above):'); for (const o of offenders) console.log('   ' + o); }
   else console.log('all widgets mount, step, and render cleanly in both themes.');
 
+  // ───────────────────────── VISUAL REGRESSION: paint-signature drift vs frozen baseline ─────────────────────────
+  const entries = {};
+  for (const r of results) entries[`${r.name}·${r.beat}`] = liveSigs(r);
+
+  if (updateBaseline) {
+    if (!existsSync(BDIR)) mkdirSync(BDIR, { recursive: true });
+    const payload = {
+      _meta: {
+        gate: 'widget-render-check (G10) — visual regression',
+        note: 'Per (widget·beat, theme): {v:visible-count, sig:paint-hash} per step — the frozen healthy render. '
+          + 'The gate HARD-fails on DRIFT (mark added/removed, step collapsed, fill/stroke/halo change). After an '
+          + 'INTENTIONAL visual change run `node _audit/widget-render-check.mjs --update-baseline`, then REVIEW the '
+          + 'git diff before committing. A new widget (L7…) auto-adds its row on the first --update-baseline.',
+        themes: THEMES,
+        coarsen: 'Math.round(box/6) px buckets (anti sub-pixel jitter — matches slide-viz signature)',
+        widgets: Object.keys(entries).length,
+      },
+      entries,
+    };
+    writeFileSync(BFILE, JSON.stringify(payload, null, 2) + '\n');
+    console.log(`\n[visual-baseline] wrote ${Object.keys(entries).length} widget entr(ies) → ${BREL}. REVIEW the diff before committing.`);
+  } else {
+    const base = loadBaseline();
+    let driftN = 0, newN = 0;
+    if (!base || !base.entries) {
+      console.log(`\n[visual-regression] NO BASELINE (${BREL} missing) — run \`--update-baseline\` to freeze. Visual drift NOT checked this run.`);
+    } else {
+      console.log('\n──────── VISUAL REGRESSION (paint-signature drift vs baseline) ────────');
+      for (const key of Object.keys(entries)) {
+        const liveE = entries[key], baseE = base.entries[key];
+        if (!baseE) { newN++; console.log(`  • NEW (not baselined): ${key} — freeze with --update-baseline`); continue; }
+        for (const theme of THEMES) {
+          const live = liveE[theme], b = baseE[theme];
+          if (!live || !b) continue;   // theme not mounted → the RUN gate already HARD-failed it
+          for (const m of diffEntry(theme, live, b)) { driftN++; console.log(`  ✗ DRIFT ${key} ${m}`); }
+        }
+      }
+      for (const key of Object.keys(base.entries)) if (!entries[key]) console.log(`  • STALE baseline entry (widget no longer discovered): ${key} — prune via --update-baseline`);
+      console.log(driftN || newN ? `  → drift=${driftN}  new=${newN}` : '  all widget signatures match baseline (no visual drift).');
+    }
+    totalHard += driftN;   // DRIFT is HARD — rolls into the gate's exit code
+  }
+
   const ji = argv.indexOf('--json');
   if (ji >= 0 && argv[ji + 1]) writeFileSync(argv[ji + 1], JSON.stringify(results, null, 2));
 
@@ -579,7 +748,7 @@ async function main() {
   } finally {
     await srv.close();
   }
-  console.log(`\n[widget-render-check] HARD(console-error/page-error/mount-missing/setstep-throw/empty-render)=${totalHard}`);
+  console.log(`\n[widget-render-check] HARD(console-error/page-error/mount-missing/setstep-throw/empty-render/visual-drift)=${totalHard}`);
   process.exit(totalHard > 0 ? 1 : 0);
 }
 
