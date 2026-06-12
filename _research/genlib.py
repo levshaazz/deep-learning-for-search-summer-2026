@@ -17,6 +17,7 @@ helpers. Run the generators on /usr/bin/python3 (3.9.6) with PYTHONPATH pointing
 pylibs cache (_research/data/.cache/pylibs).
 """
 from __future__ import annotations
+import json
 import pathlib
 import numpy as np
 
@@ -43,3 +44,13 @@ def softmax(z):
     z = z - z.max()
     e = np.exp(z)
     return e / e.sum()
+
+
+def write_json(path, obj):
+    """Serialise obj → pretty JSON, BYTE-IDENTICAL to the inline
+    `path.write_text(json.dumps(obj, indent=2, ensure_ascii=False) + "\\n")` it replaces
+    (the gen_l3 / gen_l4 serialisation: 2-space indent, raw UTF-8, one trailing newline).
+    Other generators use a DIFFERENT format (no trailing newline / `encoding="utf-8"` /
+    3-place vector rounding) and keep their inline call — per this lib's "only the
+    provably-identical helpers" rule."""
+    path.write_text(json.dumps(obj, indent=2, ensure_ascii=False) + "\n")
