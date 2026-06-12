@@ -984,14 +984,22 @@ function dedupeFirstStep(arr) {
 }
 
 /* =========================================================================
-   DECK driver: navigate to slide N, both themes, step 0..maxStep, capture.
+   DECK driver — PER DECK (not per slide). Load the deck ONCE, then for each theme
+   navigate to every stepped slide via `#/N` and capture — cutting deck page-loads
+   from 55 (one per stepped slide) to ~7 (one per deck). The `#/N` hashnav RESETS
+   the slide to step 0 on re-entry (deck.js render(): keepStep is false unless the
+   hash carries an explicit `#/N/M`, M>0) — the SAME mechanism the per-slide driver
+   already used to capture both themes on one load — so slides never leak step state
+   into one another or across theme passes. The per-slide capture (theme-ensure ·
+   `#/N` · meta · ArrowRight steps · __VIZCAP · bg-sample) is byte-for-byte the old
+   runDeck; only the deck page is shared. One result PER stepped slide.
    ========================================================================= */
-async function runDeck(browser, target, TH) {
+async function runDeckGroup(browser, deck, slideTargets, TH) {
+  const results = slideTargets.map((t) => ({ name: t.name, kind: 'deck', slide: t.slide, themes: {} }));
   const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
   const page = await ctx.newPage();
-  const result = { name: target.name, kind: 'deck', themes: {} };
   try {
-    await page.goto(deckUrl(target.deck), { waitUntil: 'networkidle' });
+    await page.goto(deckUrl(deck), { waitUntil: 'networkidle' });
     await page.waitForFunction(() => window.Lecture && window.Lecture.total > 0, { timeout: 20000 });
     await page.addStyleTag({ content: '.toolbar{visibility:hidden!important}' });
     await page.waitForTimeout(700);
@@ -1002,42 +1010,50 @@ async function runDeck(browser, target, TH) {
     for (const theme of ['light', 'dark']) {
       await page.evaluate(() => document.activeElement && document.activeElement.blur());
       if ((theme === 'dark') !== await isDark()) { await page.keyboard.press('d'); await page.waitForTimeout(300); }
-      await page.evaluate(i => { location.hash = '#/' + i; }, target.slide);
-      await page.waitForTimeout(500);
-      const meta = await page.evaluate(() => {
-        const c = document.querySelector('.slide.is-active');
-        return { label: c && c.dataset.screenLabel, max: parseInt(c && c.dataset.maxStep || '0', 10) || 0,
-          type: c && c.dataset.type };
-      });
-      const maxStep = meta.max;
-      const steps = [];
-      for (let k = 0; k <= maxStep; k++) {
-        if (k > 0) { await page.keyboard.press('ArrowRight'); await page.waitForTimeout(360); }
-        const cap = await page.evaluate(({ opt }) => {
-          const fn = window.__VIZCAP;  // injected below
-          return fn('.slide.is-active', opt);
-        }, { opt: TH });
-        // sample background colour for void/near-bg checks
-        cap.bg = await page.evaluate(() => {
-          const c = getComputedStyle(document.querySelector('.slide.is-active')).backgroundColor.match(/[\d.]+/g) || [255, 255, 255];
-          return { r: +c[0], g: +c[1], b: +c[2], a: c[3] === undefined ? 1 : +c[3] };
+      for (const r of results) {
+        await page.evaluate(i => { location.hash = '#/' + i; }, r.slide);   // resets the slide to step 0
+        await page.waitForTimeout(500);
+        const meta = await page.evaluate(() => {
+          const c = document.querySelector('.slide.is-active');
+          return { label: c && c.dataset.screenLabel, max: parseInt(c && c.dataset.maxStep || '0', 10) || 0,
+            type: c && c.dataset.type };
         });
-        steps.push(cap);
+        const maxStep = meta.max;
+        const steps = [];
+        for (let k = 0; k <= maxStep; k++) {
+          if (k > 0) { await page.keyboard.press('ArrowRight'); await page.waitForTimeout(360); }
+          const cap = await page.evaluate(({ opt }) => {
+            const fn = window.__VIZCAP;  // injected below
+            return fn('.slide.is-active', opt);
+          }, { opt: TH });
+          // sample background colour for void/near-bg checks
+          cap.bg = await page.evaluate(() => {
+            const c = getComputedStyle(document.querySelector('.slide.is-active')).backgroundColor.match(/[\d.]+/g) || [255, 255, 255];
+            return { r: +c[0], g: +c[1], b: +c[2], a: c[3] === undefined ? 1 : +c[3] };
+          });
+          steps.push(cap);
+        }
+        r.themes[theme] = { meta, maxStep, steps, defects: analyze(steps, { TH }, meta.type) };
       }
-      result.themes[theme] = { meta, maxStep, steps,
-        defects: analyze(steps, { TH }, meta.type) };
     }
   } catch (e) {
-    result.error = String(e).slice(0, 200);
+    for (const r of results) if (!Object.keys(r.themes).length) r.error = String(e).slice(0, 200);
   } finally { await ctx.close(); }
-  return result;
+  return results;
 }
 
 /* =========================================================================
-   BOOK driver: load built chapter, drive widget via window.__figs[beat].setStep.
+   BOOK driver — PER CHAPTER (not per beat). All scrolly beats of a chapter mount
+   EAGERLY on the one page load, so we load each chapter ONCE per theme and drive
+   every beat on that shared page — cutting book page-loads from 74 (37 beats × 2
+   themes) to ~14 (≈7 chapters × 2). Each beat owns its own window.__figs[beat] +
+   #fig-<beat> host and is reset to step 0 before capture, so beats don't leak step
+   state into one another (verified parity: identical defects vs the per-beat load).
+   The per-beat capture (mount-check · scroll · setStep · __VIZCAP · bg-sample) is
+   byte-for-byte the old runBook; only the page is shared. One result PER beat.
    ========================================================================= */
-async function runBook(browser, target, TH) {
-  const result = { name: `${target.widget} (book ${target.chapter}·${target.beat})`, kind: 'book', themes: {} };
+async function runBookChapter(browser, chapter, beats, TH) {
+  const results = beats.map((b) => ({ name: `${b.widget} (book ${chapter}·${b.beat})`, kind: 'book', beat: b.beat, themes: {} }));
   for (const theme of ['light', 'dark']) {
     const ctx = await browser.newContext({ viewport: { width: 1280, height: 1600 }, deviceScaleFactor: 1 });
     const page = await ctx.newPage();
@@ -1046,46 +1062,50 @@ async function runBook(browser, target, TH) {
         try { localStorage.setItem('lecture.template.prefs.v1', JSON.stringify({ theme: t, lang: 'en' })); } catch {}
         document.documentElement.setAttribute('data-theme', t);
       }, theme);
-      await page.goto(bookUrl(target.chapter), { waitUntil: 'networkidle' });
-      // wait for the page script to mount widgets onto window.__figs
-      await page.waitForFunction((beat) => window.__figs && window.__figs[beat] &&
-        typeof window.__figs[beat].setStep === 'function', target.beat, { timeout: 15000 })
-        .catch(() => {});
-      const has = await page.evaluate((beat) => !!(window.__figs && window.__figs[beat]), target.beat);
-      if (!has) { result.themes[theme] = { error: `widget beat "${target.beat}" not mounted (window.__figs miss)` }; await ctx.close(); continue; }
-      const maxStep = await page.evaluate((beat) => window.__figs[beat].maxStep, target.beat);
-      // scroll the figure into view so it has a real laid-out box
-      await page.evaluate((beat) => {
-        const host = document.getElementById('fig-' + beat);
-        if (host) host.scrollIntoView({ block: 'center', behavior: 'instant' });
-      }, target.beat);
-      await page.waitForTimeout(250);
-      const steps = [];
-      for (let k = 0; k <= maxStep; k++) {
-        await page.evaluate(({ beat, kk }) => window.__figs[beat].setStep(kk), { beat: target.beat, kk: k });
-        await page.waitForTimeout(220);
-        const cap = await page.evaluate(({ beat, opt }) => {
-          const host = document.getElementById('fig-' + beat);
-          return window.__VIZCAP(host, opt);
-        }, { beat: target.beat, opt: TH });
-        cap.bg = await page.evaluate((beat) => {
-          const host = document.getElementById('fig-' + beat);
-          let n = host, c = null;
-          while (n) { const bgc = getComputedStyle(n).backgroundColor.match(/[\d.]+/g);
-            if (bgc && (+bgc[3] === undefined || +bgc[3] > 0.1) && !(+bgc[0] === 0 && +bgc[1] === 0 && +bgc[2] === 0 && bgc[3] === '0')) {
-              if (!(bgc[3] !== undefined && +bgc[3] < 0.05)) { c = { r: +bgc[0], g: +bgc[1], b: +bgc[2], a: bgc[3] === undefined ? 1 : +bgc[3] }; if (c.a > 0.1) break; }
-            }
-            n = n.parentElement; }
-          return c || { r: 255, g: 255, b: 255, a: 1 };
-        }, target.beat);
-        steps.push(cap);
+      await page.goto(bookUrl(chapter), { waitUntil: 'networkidle' });
+      for (const r of results) {
+        const beat = r.beat;
+        // wait for THIS beat to mount onto window.__figs (all mount eagerly on load; resolves immediately).
+        await page.waitForFunction((b) => window.__figs && window.__figs[b] &&
+          typeof window.__figs[b].setStep === 'function', beat, { timeout: 15000 })
+          .catch(() => {});
+        const has = await page.evaluate((b) => !!(window.__figs && window.__figs[b]), beat);
+        if (!has) { r.themes[theme] = { error: `widget beat "${beat}" not mounted (window.__figs miss)` }; continue; }
+        const maxStep = await page.evaluate((b) => window.__figs[b].maxStep, beat);
+        // scroll the figure into view so it has a real laid-out box
+        await page.evaluate((b) => {
+          const host = document.getElementById('fig-' + b);
+          if (host) host.scrollIntoView({ block: 'center', behavior: 'instant' });
+        }, beat);
+        await page.waitForTimeout(250);
+        const steps = [];
+        for (let k = 0; k <= maxStep; k++) {
+          await page.evaluate(({ b, kk }) => window.__figs[b].setStep(kk), { b: beat, kk: k });
+          await page.waitForTimeout(220);
+          const cap = await page.evaluate(({ b, opt }) => {
+            const host = document.getElementById('fig-' + b);
+            return window.__VIZCAP(host, opt);
+          }, { b: beat, opt: TH });
+          cap.bg = await page.evaluate((b) => {
+            const host = document.getElementById('fig-' + b);
+            let n = host, c = null;
+            while (n) { const bgc = getComputedStyle(n).backgroundColor.match(/[\d.]+/g);
+              if (bgc && (+bgc[3] === undefined || +bgc[3] > 0.1) && !(+bgc[0] === 0 && +bgc[1] === 0 && +bgc[2] === 0 && bgc[3] === '0')) {
+                if (!(bgc[3] !== undefined && +bgc[3] < 0.05)) { c = { r: +bgc[0], g: +bgc[1], b: +bgc[2], a: bgc[3] === undefined ? 1 : +bgc[3] }; if (c.a > 0.1) break; }
+              }
+              n = n.parentElement; }
+            return c || { r: 255, g: 255, b: 255, a: 1 };
+          }, beat);
+          steps.push(cap);
+        }
+        r.themes[theme] = { maxStep, steps, defects: analyze(steps, { TH }, 'widget') };
       }
-      result.themes[theme] = { maxStep, steps, defects: analyze(steps, { TH }, 'widget') };
     } catch (e) {
-      result.themes[theme] = { error: String(e).slice(0, 200) };
+      // chapter load / harness failure → every not-yet-captured beat errors for this theme.
+      for (const r of results) if (!r.themes[theme]) r.themes[theme] = { error: String(e).slice(0, 200) };
     } finally { await ctx.close(); }
   }
-  return result;
+  return results;
 }
 
 // run all detectors over a step array.
@@ -1499,20 +1519,33 @@ async function main() {
   let totalHard = 0, totalWarn = 0;
   const out = [];
 
-  for (const tg of deckTargets) {
-    process.stderr.write(`· deck ${tg.name}\n`);
-    const r = await runDeck(browser, tg, TH);
-    results.push(r);
-    const p = printResult(r); totalHard += p.hard; totalWarn += p.warn; out.push(p.text);
-    console.log(p.text);
-  }
-  if (bookBuilt) {
-    for (const tg of bookTargets) {
-      process.stderr.write(`· book ${tg.widget}\n`);
-      const r = await runBook(browser, tg, TH);
+  // GROUP BY DECK — load each deck once, navigate to every stepped slide via `#/N` on the shared page.
+  // deckTargets is already deck-ordered (discovery globs decks in order), so grouping preserves report order.
+  const byDeck = new Map();
+  for (const tg of deckTargets) { if (!byDeck.has(tg.deck)) byDeck.set(tg.deck, []); byDeck.get(tg.deck).push(tg); }
+  for (const [deck, slides] of byDeck) {
+    process.stderr.write(`· deck ${deck} — ${slides.length} stepped slide(s)\n`);
+    const dResults = await runDeckGroup(browser, deck, slides, TH);
+    for (const r of dResults) {
       results.push(r);
       const p = printResult(r); totalHard += p.hard; totalWarn += p.warn; out.push(p.text);
       console.log(p.text);
+    }
+  }
+  if (bookBuilt) {
+    // GROUP BY CHAPTER — load each chapter once per theme, drive all its beats on the shared page.
+    // bookTargets is already chapter-ordered (discovery globs chapters 00..06 in order), so grouping
+    // preserves the per-beat report order (clean diff vs the per-beat driver).
+    const byChapter = new Map();
+    for (const tg of bookTargets) { if (!byChapter.has(tg.chapter)) byChapter.set(tg.chapter, []); byChapter.get(tg.chapter).push(tg); }
+    for (const [chapter, beats] of byChapter) {
+      process.stderr.write(`· book chapter ${chapter} — ${beats.length} beat(s): ${beats.map((b) => b.widget).join(', ')}\n`);
+      const chResults = await runBookChapter(browser, chapter, beats, TH);
+      for (const r of chResults) {
+        results.push(r);
+        const p = printResult(r); totalHard += p.hard; totalWarn += p.warn; out.push(p.text);
+        console.log(p.text);
+      }
     }
   } else {
     console.log('\n(!) docs/ not built — BOOK widget targets SKIPPED. Run `npm run build` then re-run.');
@@ -1597,8 +1630,8 @@ async function main() {
    the T1 triage: real defects vs detector false-positives on the un-tuned
    00–04 reveal mechanisms. It is ADDITIVE — the default/`--strict` run still
    uses the curated lists (HARD=0 WARN=26 baseline), unchanged.
-   Index parity with runDeck is guaranteed: discovery navigates `#/i` (the same
-   addressing runDeck uses) and reads the active slide's data-max-step.
+   Index parity with runDeckGroup is guaranteed: discovery navigates `#/i` (the same
+   addressing runDeckGroup uses) and reads the active slide's data-max-step.
    ========================================================================= */
 async function discoverDeckTargets(browser) {
   const targets = [];
