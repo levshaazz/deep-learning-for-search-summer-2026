@@ -12,6 +12,7 @@ import json, math, pathlib, random
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
+from genlib import write_json
 INTENT_CAT = "sci.space"   # query intent: 'space' → relevant = sci.space docs
 KS = [1, 3, 5, 8]
 
@@ -109,7 +110,7 @@ def main():
         "gamed": {"order": gamed_order, "ndcg": gamed_ndcg,
                   "note": "popularity-first ranking — looks active, tanks nDCG (Goodhart)"},
     }
-    (DATA / "l4-metrics.json").write_text(json.dumps(out, indent=2, ensure_ascii=False) + "\n")
+    write_json(DATA / "l4-metrics.json", out)
 
     # ══ NEW (deepening): graded relevance with exponential vs linear gain ════════════════════════════
     # Assign graded gains 0/1/3 to the running BM25 ranking: sci.space docs split into highly-relevant
@@ -196,7 +197,7 @@ def main():
             "note": "rank-1 discount 1/log2(2)=1; ideal front-loads grades 3,3,1,1.",
         },
     }
-    (DATA / "l4-graded.json").write_text(json.dumps(graded_out, indent=2, ensure_ascii=False) + "\n")
+    write_json(DATA / "l4-graded.json", graded_out)
 
     # ══ NEW: a SECOND query so MRR≠RR and MAP≠AP are demonstrated ════════════════════════════════════
     # Query 1 = the existing running BM25 ranking (rel pattern below). Query 2 = a different pattern
@@ -364,7 +365,7 @@ def main():
                             f"[{mean_diff - ci_half:.4f}, {mean_diff + ci_half:.4f}]",
         },
     }
-    (DATA / "l4-systems.json").write_text(json.dumps(systems_out, indent=2, ensure_ascii=False) + "\n")
+    write_json(DATA / "l4-systems.json", systems_out)
 
     # ══ NEW: online evaluation — A/B z-test, team-draft interleaving, position-bias curve ════════════
     # A/B test: control vs treatment CTR with sample sizes → two-proportion z-test.
@@ -480,10 +481,10 @@ def main():
             "ranks": exam_ranks, "examProb": exam_prob,
         },
     }
-    (DATA / "l4-online.json").write_text(json.dumps(online_out, indent=2, ensure_ascii=False) + "\n")
+    write_json(DATA / "l4-online.json", online_out)
 
     # also fold the 2nd-query MRR/MAP block into a small companion file (keeps l4-metrics.json intact)
-    (DATA / "l4-multiquery.json").write_text(json.dumps(multi_out, indent=2, ensure_ascii=False) + "\n")
+    write_json(DATA / "l4-multiquery.json", multi_out)
 
     # ══ NEW (от-и-до): Goodhart gamed vs honest BINARY DCG terms, fully reproducible ═════════════════
     # Both rankings scored with BINARY relevance (sci.space = relevant). The gamed (popularity-first)
@@ -533,7 +534,7 @@ def main():
         "note": "Both are BINARY-gain nDCG. The graded-gain nDCG of the honest order (0.6622, "
                 "l4-graded.json) differs because it uses 0/1/3 grades, not 0/1.",
     }
-    (DATA / "l4-goodhart-steps.json").write_text(json.dumps(goodhart_out, indent=2, ensure_ascii=False) + "\n")
+    write_json(DATA / "l4-goodhart-steps.json", goodhart_out)
 
     print(f"[gen_l4] R={R}/{n} ranked-rel={rels_ranked}")
     print(f"[gen_l4] Recall@5={recall[5]} P@5={precision[5]} MRR={rr} MAP={ap} nDCG={ndcg} (gamed nDCG={gamed_ndcg})")

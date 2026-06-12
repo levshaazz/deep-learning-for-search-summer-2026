@@ -15,6 +15,7 @@ from sklearn.datasets import fetch_20newsgroups
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
+from genlib import write_json
 CATS = ["sci.space", "rec.sport.hockey"]
 QUERY = ["space", "team"]   # fixed, discriminative: space→sci.space, team→hockey
 PER_CAT = 4                 # 4 docs per category → 8 total
@@ -414,39 +415,39 @@ def main():
     kw_terms = [{"term": t, "tf": kw_tokens.count(t), "df": df[t],
                  "idf": round(idf_all[t], 4), "tfidf": round(s, 4)} for t, s in kw_top]
 
-    (DATA / "l3-index.json").write_text(json.dumps({
+    write_json(DATA / "l3-index.json", {
         "_doc": "Inverted index for L3 climb-index (term → docIDs + df) + a 2-term AND-merge trace.",
         "_source": prov, "N": N, "query": query,
         "docs": [{"id": d["id"], "cat": d["cat"], "snippet": d["snippet"], "len": d["len"]} for d in docs],
         "terms": {t: {"df": df[t], "postings": postings[t]} for t in query},
         "andMerge": {"lists": {t: postings[t] for t in query},
                      "intersection": sorted(set(postings[query[0]]) & set(postings[query[1]]))},
-    }, indent=2, ensure_ascii=False) + "\n")
+    })
 
-    (DATA / "l3-bm25.json").write_text(json.dumps({
+    write_json(DATA / "l3-bm25.json", {
         "_doc": "TF-IDF and BM25 (k1=1.5, b=0.75) per query term per doc for L3 climb-tfidf/climb-bm25.",
         "_source": prov, "N": N, "avgdl": round(avgdl, 3), "k1": K1, "b": B, "query": query,
         "docs": scored, "bm25Ranking": bm25_rank, "tfidfRanking": tfidf_rank,
-    }, indent=2, ensure_ascii=False) + "\n")
+    })
 
-    (DATA / "l3-rrf.json").write_text(json.dumps({
+    write_json(DATA / "l3-rrf.json", {
         "_doc": "Rank fusion for L3 climb-rrf: two rankers (BM25 vs TF-IDF cosine) fused with RRF (k=60).",
         "_source": prov, "k": RRF_K,
         "lists": {"bm25": bm25_rank, "cosine": cosine_rank},
         "fused": fused, "order": [f["id"] for f in fused],
-    }, indent=2, ensure_ascii=False) + "\n")
+    })
 
     # ── NEW FILES ───────────────────────────────────────────────────────────────────────────────────
-    (DATA / "l3-bm25-q2.json").write_text(json.dumps({
+    write_json(DATA / "l3-bm25-q2.json", {
         "_doc": "Second BM25 query on the 8-doc 20NG corpus with DISTINCT-df terms (nasa df=3, shuttle "
                 "df=2) so the rarer term 'shuttle' carries the heavier idf — 'rare term dominates' fires. "
                 "Same k1=1.5, b=0.75, avgdl as l3-bm25.json.",
         "_source": prov, "N": N, "avgdl": round(avgdl, 3), "k1": K1, "b": B, "query": QUERY2,
         "idf": {t: round(idf2[t], 4) for t in QUERY2},
         "docs": scored2, "bm25Ranking": bm25_rank2, "tfidfRanking": tfidf_rank2,
-    }, indent=2, ensure_ascii=False) + "\n")
+    })
 
-    (DATA / "l3-bm25-catdog.json").write_text(json.dumps({
+    write_json(DATA / "l3-bm25-catdog.json", {
         "_doc": "Flagship BM25 mini-collection (computed in Python, NOT hardcoded). "
                 "D1='cat cat dog', D2='cat dog dog mouse', D3='mouse cat'; query={cat,dog}; k1=1.5, b=0.75. "
                 "BM25 smoothed idf = ln((N-df+0.5)/(df+0.5)+1). Expected ranking D2 > D1 > D3.",
@@ -456,9 +457,9 @@ def main():
         "df": {t: cd_df.get(t, 0) for t in cd_query},
         "idf": {t: round(cd_idf[t], 4) for t in cd_query},
         "docs": cd_scored, "ranking": cd_rank,
-    }, indent=2, ensure_ascii=False) + "\n")
+    })
 
-    (DATA / "l3-compression.json").write_text(json.dumps({
+    write_json(DATA / "l3-compression.json", {
         "_doc": "Postings-compression worked example: a sorted docID list, its gaps (delta), and "
                 "variable-byte (7 data bits/byte) byte counts vs naive 32-bit ints.",
         "_source": prov + " · self-contained worked example",
@@ -470,9 +471,9 @@ def main():
         "byteLayout": {"bitsPerByte": 7, "continuationBit": 1, "maxGapPerByte": 127,
                        "note": "1 byte = 1 continuation bit + 7 data bits ⇒ encodes 0–127; "
                                "every gap here ≤18 < 128 → fits in one byte."},
-    }, indent=2, ensure_ascii=False) + "\n")
+    })
 
-    (DATA / "l3-pagerank.json").write_text(json.dumps({
+    write_json(DATA / "l3-pagerank.json", {
         "_doc": "PageRank toy graph, power iteration to convergence (tol 1e-6). Links A→B, B→C, C→A, "
                 "C→B; damping d=0.85. M is column-stochastic (M[i][j]=P(j→i)). For THIS edge set B is "
                 "the authority (2 in-links: A,C) → computed final ≈ {A:0.215, B:0.397, C:0.388}. "
@@ -486,12 +487,12 @@ def main():
         "iterations": iters, "numIterations": len(iters) - 1, "final": pr_final,
         "finalVector": [pr_final[n] for n in pr_nodes],
         "workedUpdate": pr_worked_update,
-    }, indent=2, ensure_ascii=False) + "\n")
+    })
 
-    (DATA / "l3-benchmarks.json").write_text(json.dumps(benchmarks, indent=2, ensure_ascii=False) + "\n")
+    write_json(DATA / "l3-benchmarks.json", benchmarks)
 
     # ── NEW FILES (от-и-до intermediate steps) ──────────────────────────────────────────────────────
-    (DATA / "l3-bm25-catdog-steps.json").write_text(json.dumps({
+    write_json(DATA / "l3-bm25-catdog-steps.json", {
         "_doc": "Fully-substituted INTERMEDIATE steps for the cat/dog BM25 flagship (companion to "
                 "l3-bm25-catdog.json; same collection, k1=1.5, b=0.75). Surfaces every middle value the "
                 "step-by-step slides display: (a) avgdl derivation; (b) substituted idf pieces; (c) per "
@@ -502,9 +503,9 @@ def main():
         "avgdlSteps": cd_avgdl_steps,
         "idfSteps": cd_idf_steps,
         "docs": cd_steps_docs,
-    }, indent=2, ensure_ascii=False) + "\n")
+    })
 
-    (DATA / "l3-bm25-q2-steps.json").write_text(json.dumps({
+    write_json(DATA / "l3-bm25-q2-steps.json", {
         "_doc": "Fully-substituted INTERMEDIATE steps for the nasa/shuttle 8-doc query (companion to "
                 "l3-bm25-q2.json; same corpus, k1=1.5, b=0.75, avgdl as l3-bm25.json). (a) substituted idf "
                 "pieces for both terms (N=8); (b) len of the top docs + corpus avgdl; (c) the full "
@@ -524,7 +525,7 @@ def main():
             "rowSumExpr": " + ".join(f"{ts['weight']:.4f}" for ts in q2_d2_terms) + f" = {q2_d2_sum:.4f}",
         },
         "cells": q2_cells,
-    }, indent=2, ensure_ascii=False) + "\n")
+    })
 
     print(f"[gen_l3] N={N} avgdl={avgdl:.2f} query={query}")
     print(f"[gen_l3] BM25 ranking: {bm25_rank}")
