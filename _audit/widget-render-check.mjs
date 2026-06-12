@@ -281,7 +281,7 @@ function loadBaseline() {
   if (!existsSync(BFILE)) return null;
   try { return JSON.parse(readFileSync(BFILE, 'utf8')); } catch { return null; }
 }
-// extract { light:[{v,sig}…], dark:[…] } from a runWidget result (only MOUNTED themes contribute;
+// extract { light:[{v,sig}…], dark:[…] } from a runChapter beat-result (only MOUNTED themes contribute;
 // a theme whose mount failed has no steps[] and is already a RUN HARD, so we don't double-count it).
 function liveSigs(r) {
   const out = {};
@@ -309,37 +309,42 @@ function diffEntry(theme, live, base) {
 }
 
 /* =========================================================================
-   BOOK driver: load chapter, attach console/page error listeners BEFORE any
-   widget code runs, confirm mount, walk every step under setStep, probe each.
-   Returns per-theme: { mountOK, maxStep, steps[], failures[] }.
+   BOOK driver — PER CHAPTER (not per beat). All scrolly beats of a chapter mount
+   EAGERLY on the one page load (window.__figs holds every beat — the mount check
+   never pre-scrolls, yet works for all 37 beats), so we load each chapter ONCE per
+   theme and walk every beat on that shared page. This cuts the page-load count from
+   74 (37 beats × 2 themes) to ~14 (≈7 chapters × 2 themes) — the dominant cost was
+   goto(networkidle)+grace. Per-beat ERROR ATTRIBUTION is preserved: `curBeat` tags
+   each console/page error with the beat being stepped at the time; load-time errors
+   bucket under '(mount)' and are surfaced ONCE on the chapter (its first beat), so a
+   real defect still HARD-fails and the message+stack stay actionable.
+   Returns one result per beat: { name, beat, chapter, themes:{[theme]:{mountOK, maxStep, steps[], failures[]}} }.
    ========================================================================= */
-async function runWidget(browser, target, opt) {
-  const result = { name: `${target.widget}`, beat: target.beat, chapter: target.chapter, themes: {} };
+async function runChapter(browser, chapter, beats, opt) {
+  const results = beats.map((b) => ({ name: `${b.widget}`, beat: b.beat, chapter, themes: {} }));
   for (const theme of THEMES) {
     // reducedMotion: 'reduce' makes the widgets' JS camera tweens (_plot-util cameraTo/cameraHome,
     // which check matchMedia('(prefers-reduced-motion: reduce)')) JUMP to their target viewBox instead
-    // of rAF-animating — so a step's figure is captured at its unique REST state, not mid-tween. Without
-    // it, a 620ms camera push (pca-rotate s4) is caught at a timing-dependent frame and the coarse-box
-    // signature flips run-to-run (a false DRIFT). Paired with the transition-freeze stylesheet below,
-    // every captured frame is deterministic. (RUN/EMPTY checks are unaffected — same final paint.)
+    // of rAF-animating — so a step's figure is captured at its unique REST state, not mid-tween. Paired
+    // with the transition-freeze stylesheet below, every captured frame is deterministic.
     const ctx = await browser.newContext({ viewport: { width: 1280, height: 1600 }, deviceScaleFactor: 1, reducedMotion: 'reduce' });
     const page = await ctx.newPage();
-    const failures = [];          // {cls, step, msg, stack}
-    const consoleErrs = [];       // raw, attributed to the current phase
-    let phase = 'mount';          // 'mount' | 'step:k' — tags errors with where they happened
+    let curBeat = '(mount)';      // the listeners attribute each error to whatever beat is being stepped now
+    const errBy = new Map();      // beat (or '(mount)') → [{cls, phase, msg, stack}]
+    const pushErr = (e) => { const k = curBeat; if (!errBy.has(k)) errBy.set(k, []); errBy.get(k).push(e); };
 
-    // CONSOLE — capture error (and warn) lines as they happen, tagging the current phase.
+    // CONSOLE — capture error (and warn) lines as they happen, tagging the current beat.
     page.on('console', (m) => {
       const type = m.type();
       const wantWarn = opt.warnAsError && type === 'warning';
       if (type !== 'error' && !wantWarn) return;
       const txt = m.text();
       if (isBenign(txt)) return;
-      consoleErrs.push({ cls: 'CONSOLE-ERROR', phase, msg: `[console.${type}] ${txt}` });
+      pushErr({ cls: 'CONSOLE-ERROR', phase: curBeat, msg: `[console.${type}] ${txt}` });
     });
     // PAGE ERROR — uncaught exception on the page (window.onerror).
     page.on('pageerror', (e) => {
-      consoleErrs.push({ cls: 'PAGE-ERROR', phase, msg: String(e && e.message || e), stack: e && e.stack ? String(e.stack).split('\n').slice(0, 4).join(' | ') : '' });
+      pushErr({ cls: 'PAGE-ERROR', phase: curBeat, msg: String(e && e.message || e), stack: e && e.stack ? String(e.stack).split('\n').slice(0, 4).join(' | ') : '' });
     });
 
     try {
@@ -347,8 +352,7 @@ async function runWidget(browser, target, opt) {
       // CRITICAL: addInitScript runs on EVERY document, including the initial about:blank where
       // document.documentElement is still null — touching it there throws, and OUR pageerror
       // listener would then mis-attribute that harness throw to the widget. So everything here is
-      // null-guarded and the theme is (re)applied once the real <html> exists. (This is the gate
-      // eating its own dog food: an injected helper that throws would itself trip the detector.)
+      // null-guarded and the theme is (re)applied once the real <html> exists.
       await page.addInitScript((t) => {
         try { localStorage.setItem('lecture.template.prefs.v1', JSON.stringify({ theme: t, lang: 'en' })); } catch {}
         const applyTheme = () => { try { if (document.documentElement) document.documentElement.setAttribute('data-theme', t); } catch {} };
@@ -363,88 +367,101 @@ async function runWidget(browser, target, opt) {
         } catch {}
       }, theme);
 
-      await page.goto(bookUrl(target.chapter), { waitUntil: 'networkidle' });
+      await page.goto(bookUrl(chapter), { waitUntil: 'networkidle' });
       // Freeze CSS transitions/animations to 0s: a mid-flight opacity/transform/colour transition (the
       // wgt-fade 220ms, a 600ms widget transition) would otherwise be sampled between states and drift
       // the signature. Forcing duration 0 changes only the animation PATH, never the rest state we freeze.
       await page.addStyleTag({ content: '*,*::before,*::after{transition-duration:0s!important;transition-delay:0s!important;animation-duration:0s!important;animation-delay:0s!important;}' }).catch(() => {});
 
-      // MOUNT-MISSING — wait for the page to mount this beat's widget onto window.__figs. The mount
-      // is a module script (Astro auto-glob); under load it can land just AFTER networkidle, so a
-      // single waitForFunction occasionally races (a flaky MOUNT-MISSING). We wait robustly: first
-      // for the __figs map itself, then for this beat — and if that races, settle + recheck once
-      // before declaring it missing, so MOUNT-MISSING fires ONLY when the widget genuinely never
-      // mounts (a real export-not-found / mount-threw), never on a timing flake.
-      const waitForBeat = () => page.waitForFunction((beat) => window.__figs && window.__figs[beat] &&
-        typeof window.__figs[beat].setStep === 'function', target.beat, { timeout: opt.MOUNT_TIMEOUT })
-        .then(() => true).catch(() => false);
-      let landed = await waitForBeat();
-      if (!landed) {
-        // grace: the scrolly module may still be evaluating — give it one more settle + recheck.
-        await page.waitForTimeout(1500);
-        landed = await page.evaluate((beat) => !!(window.__figs && window.__figs[beat] &&
-          typeof window.__figs[beat].setStep === 'function'), target.beat);
-      }
-      const mounted = await page.evaluate((beat) => {
-        const figs = window.__figs;
-        if (!figs) return { ok: false, reason: 'window.__figs is undefined — the chapter scrolly script never ran (page load failure)' };
-        const f = figs[beat];
-        if (!f) return { ok: false, reason: 'window.__figs["' + beat + '"] is undefined — mount export not found or mount threw (other beats mounted: ' + Object.keys(figs).join(', ') + ')' };
-        if (typeof f.setStep !== 'function') return { ok: false, reason: 'window.__figs["' + beat + '"].setStep is not a function' };
-        return { ok: true, maxStep: typeof f.maxStep === 'number' ? f.maxStep : 0 };
-      }, target.beat);
+      for (const r of results) {
+        const beat = r.beat;
+        curBeat = beat;                     // attribute this beat's console/page errors to it
+        const failures = [];
 
-      if (!mounted.ok) {
-        failures.push({ cls: 'MOUNT-MISSING', step: 'mount', msg: mounted.reason });
-        // fold in any console/page errors that fired during mount (these usually explain WHY).
-        for (const c of consoleErrs) failures.push({ cls: c.cls, step: c.phase, msg: c.msg, stack: c.stack });
-        result.themes[theme] = { mountOK: false, failures };
-        await ctx.close();
-        continue;
-      }
-      const maxStep = mounted.maxStep;
-
-      // bring the figure into view so it has a real laid-out box (off-screen → 0×0).
-      await page.evaluate((beat) => {
-        const h = document.getElementById('fig-' + beat);
-        if (h) h.scrollIntoView({ block: 'center', behavior: 'instant' });
-      }, target.beat);
-      await page.waitForTimeout(200);
-
-      const steps = [];
-      for (let k = 0; k <= maxStep; k++) {
-        phase = 'step:' + k;
-        // SETSTEP-THROW — call setStep inside a try in the page so a throw is reported, not swallowed.
-        const stepRes = await page.evaluate(({ beat, kk }) => {
-          try { window.__figs[beat].setStep(kk); return { ok: true }; }
-          catch (e) { return { ok: false, msg: String(e && e.message || e), stack: e && e.stack ? String(e.stack).split('\n').slice(0, 4).join(' | ') : '' }; }
-        }, { beat: target.beat, kk: k });
-        if (!stepRes.ok) {
-          failures.push({ cls: 'SETSTEP-THROW', step: k, msg: stepRes.msg, stack: stepRes.stack });
+        // MOUNT-MISSING — wait for THIS beat's widget on window.__figs. The mount is a module script
+        // (Astro auto-glob); under load it can land just AFTER networkidle, so a single waitForFunction
+        // occasionally races. We wait robustly: first for the beat, and if that races, settle + recheck
+        // once before declaring it missing — so MOUNT-MISSING fires ONLY on a genuine never-mount.
+        const waitForBeat = () => page.waitForFunction((b) => window.__figs && window.__figs[b] &&
+          typeof window.__figs[b].setStep === 'function', beat, { timeout: opt.MOUNT_TIMEOUT })
+          .then(() => true).catch(() => false);
+        let landed = await waitForBeat();
+        if (!landed) {
+          await page.waitForTimeout(1500);
+          landed = await page.evaluate((b) => !!(window.__figs && window.__figs[b] &&
+            typeof window.__figs[b].setStep === 'function'), beat);
         }
-        await page.waitForTimeout(opt.STEP_SETTLE);
-        // EMPTY-RENDER — probe the figure health at this step.
-        const probe = await page.evaluate(({ beat, o }) => window.__RENDERPROBE(beat, o), { beat: target.beat, o: opt });
-        const empty = emptyVerdict(probe);
-        if (empty) failures.push({ cls: 'EMPTY-RENDER', step: k, msg: empty });
-        steps.push({ k, probe, setStepOk: stepRes.ok });
+        const mounted = await page.evaluate((b) => {
+          const figs = window.__figs;
+          if (!figs) return { ok: false, reason: 'window.__figs is undefined — the chapter scrolly script never ran (page load failure)' };
+          const f = figs[b];
+          if (!f) return { ok: false, reason: 'window.__figs["' + b + '"] is undefined — mount export not found or mount threw (other beats mounted: ' + Object.keys(figs).join(', ') + ')' };
+          if (typeof f.setStep !== 'function') return { ok: false, reason: 'window.__figs["' + b + '"].setStep is not a function' };
+          return { ok: true, maxStep: typeof f.maxStep === 'number' ? f.maxStep : 0 };
+        }, beat);
+
+        if (!mounted.ok) {
+          failures.push({ cls: 'MOUNT-MISSING', step: 'mount', msg: mounted.reason });
+          for (const c of (errBy.get(beat) || [])) failures.push({ cls: c.cls, step: c.phase, msg: c.msg, stack: c.stack });
+          r.themes[theme] = { mountOK: false, failures };
+          continue;
+        }
+        const maxStep = mounted.maxStep;
+
+        // bring the figure into view so it has a real laid-out box (off-screen → 0×0).
+        await page.evaluate((b) => {
+          const h = document.getElementById('fig-' + b);
+          if (h) h.scrollIntoView({ block: 'center', behavior: 'instant' });
+        }, beat);
+        await page.waitForTimeout(200);
+
+        const steps = [];
+        for (let k = 0; k <= maxStep; k++) {
+          // SETSTEP-THROW — call setStep inside a try in the page so a throw is reported, not swallowed.
+          const stepRes = await page.evaluate(({ b, kk }) => {
+            try { window.__figs[b].setStep(kk); return { ok: true }; }
+            catch (e) { return { ok: false, msg: String(e && e.message || e), stack: e && e.stack ? String(e.stack).split('\n').slice(0, 4).join(' | ') : '' }; }
+          }, { b: beat, kk: k });
+          if (!stepRes.ok) {
+            failures.push({ cls: 'SETSTEP-THROW', step: k, msg: stepRes.msg, stack: stepRes.stack });
+          }
+          await page.waitForTimeout(opt.STEP_SETTLE);
+          // EMPTY-RENDER — probe the figure health at this step.
+          const probe = await page.evaluate(({ b, o }) => window.__RENDERPROBE(b, o), { b: beat, o: opt });
+          const empty = emptyVerdict(probe);
+          if (empty) failures.push({ cls: 'EMPTY-RENDER', step: k, msg: empty });
+          steps.push({ k, probe, setStepOk: stepRes.ok });
+        }
+
+        // attribute this beat's console/page errors (collected while curBeat === beat).
+        for (const c of (errBy.get(beat) || [])) failures.push({ cls: c.cls, step: c.phase, msg: c.msg, stack: c.stack });
+        r.themes[theme] = { mountOK: true, maxStep, steps, failures };
       }
 
-      // attribute any console/page errors collected over the whole run.
-      for (const c of consoleErrs) {
-        failures.push({ cls: c.cls, step: c.phase, msg: c.msg, stack: c.stack });
+      // LOAD-TIME errors (fired during the initial chapter load, before any beat was stepped) are a
+      // chapter-level defect — surface them ONCE on the first beat so the gate still HARD-fails and the
+      // report stays actionable (message + stack point to the offending mount code).
+      const mountErrs = errBy.get('(mount)') || [];
+      if (mountErrs.length && results.length) {
+        const first = results[0];
+        if (!first.themes[theme]) first.themes[theme] = { mountOK: true, maxStep: 0, steps: [], failures: [] };
+        for (const c of mountErrs) first.themes[theme].failures.push({ cls: c.cls, step: 'chapter-mount', msg: c.msg, stack: c.stack });
       }
-      result.themes[theme] = { mountOK: true, maxStep, steps, failures };
     } catch (e) {
-      // an unexpected harness/navigation error → treat as a render failure for this widget+theme.
-      for (const c of consoleErrs) failures.push({ cls: c.cls, step: c.phase, msg: c.msg, stack: c.stack });
-      failures.push({ cls: 'HARNESS', step: 'load', msg: String(e).slice(0, 240) });
-      result.themes[theme] = { mountOK: false, failures };
+      // an unexpected harness/navigation error makes the whole shared page unusable → fail every beat
+      // of this chapter+theme (mirrors the old per-beat HARNESS failure, now chapter-wide).
+      const mountErrs = errBy.get('(mount)') || [];
+      for (const r of results) {
+        if (r.themes[theme]) continue;
+        const failures = mountErrs.map((c) => ({ cls: c.cls, step: c.phase, msg: c.msg, stack: c.stack }));
+        failures.push({ cls: 'HARNESS', step: 'load', msg: String(e).slice(0, 240) });
+        r.themes[theme] = { mountOK: false, failures };
+      }
     } finally {
       await ctx.close();
     }
   }
-  return result;
+  return results;
 }
 
 // ───────────────────────── report rendering ─────────────────────────
@@ -667,18 +684,28 @@ async function main() {
   let totalHard = 0;
   try {
   console.log(`widget-render-check — "does it RUN" gate. Mounting ${targets.length} book scroll-step widget(s)`
-    + `${onlyWidget ? ` (--widget ${onlyWidget})` : ''} in ${THEMES.join('/')} themes, stepping all steps.`);
+    + `${onlyWidget ? ` (--widget ${onlyWidget})` : ''} in ${THEMES.join('/')} themes, stepping all steps`
+    + ` (one shared page load per chapter).`);
   console.log(`detection: console.error/pageerror/unhandledrejection · mount-missing · setStep-throw · empty/degenerate render`
     + `${opt.warnAsError ? ' · (console.warn → HARD)' : ''}\n`);
 
-  const results = [];
+  // GROUP BY CHAPTER — load each chapter's page ONCE per theme and probe all its beats on the shared
+  // page (all scrolly beats mount eagerly on load). Preserves discovery order of both chapters and beats.
+  const byChapter = new Map();
   for (const tg of targets) {
-    process.stderr.write(`· ${tg.widget} (${tg.chapter}·${tg.beat})\n`);
-    const r = await runWidget(browser, tg, opt);
-    results.push(r);
-    const p = printResult(r);
-    totalHard += p.hard;
-    console.log(p.text);
+    if (!byChapter.has(tg.chapter)) byChapter.set(tg.chapter, []);
+    byChapter.get(tg.chapter).push(tg);
+  }
+  const results = [];
+  for (const [chapter, beats] of byChapter) {
+    process.stderr.write(`· chapter ${chapter} — ${beats.length} beat(s): ${beats.map((b) => b.widget).join(', ')}\n`);
+    const chResults = await runChapter(browser, chapter, beats, opt);
+    for (const r of chResults) {
+      results.push(r);
+      const p = printResult(r);
+      totalHard += p.hard;
+      console.log(p.text);
+    }
   }
 
   // summary — list every widget+theme with a HARD failure, with its classes, so the report is
