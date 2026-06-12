@@ -407,6 +407,48 @@ def provenance_enrichment(report):
                              f"w2v related tighter · UMAP 0.1469→0.0612 · DistilBERT fan→0.6465 · "
                              f"l6-contextual 0.6465<0.9466) ✓"))
 
+def _nce_softmax(logits):
+    m = max(logits); e = [math.exp(x - m) for x in logits]; s = sum(e)
+    return [v / s for v in e]
+
+# ── [P] L6 slide-48 InfoNCE softmax BARS are DATA-BOUND (R8: not hand-tuned magic coords) ──────────
+# The 12 softmax bars (4 candidates × 3 checkpoints) on the "InfoNCE loss = 0.1191" slide are
+# softmax(checkpoints[k].logits)·H per checkpoint, straight from data/l6-contrastive-traj.json. Before
+# this they were 12 hardcoded <rect height> values with NO gate tying them to the data — editing a bar,
+# or drifting the trajectory logits, could silently diverge. This binds them: (a) data self-consistency
+# — softmax(logits)[kitten] == pPositive and loss == −ln(p⁺) per checkpoint (pins logits↔p⁺↔loss); and
+# (b) deck binding — each bar <rect height> == softmax(logits)·H (H=220, declared in the slide as "×220"),
+# scoped to the .nce-slide and matched by x-coord (925 kitten / 1075 airplane / 1225 computer / 1375
+# france), 3 per x in checkpoint order (untuned/mid/tuned = steps 1/2/3). The deck CANNOT be makeScale'd
+# at runtime (L6 has no DeckLayout) — this provenance check is the data-traceability the render would need.
+def provenance_l6_nce(report, l6_html):
+    H = 220.0
+    cks = CTRAJ["checkpoints"]                 # [untuned, mid, tuned] in order == deck steps 1/2/3
+    probs = [_nce_softmax(c["logits"]) for c in cks]
+    bad = 0
+    # (a) data self-consistency: the logits PRODUCE the stored pPositive and loss.
+    for c, p in zip(cks, probs):
+        if abs(p[0] - c["pPositive"]) > 5e-4:
+            bad += 1; report.append(("HARD", f"provenance-L6NCE({c['name']}.pPos): softmax(logits)[kitten] {p[0]:.5f} != pPositive {c['pPositive']}"))
+        if abs(-math.log(p[0]) - c["loss"]) > 1e-3:
+            bad += 1; report.append(("HARD", f"provenance-L6NCE({c['name']}.loss): −ln(p⁺) {-math.log(p[0]):.4f} != loss {c['loss']}"))
+    # (b) deck binding: each bar height == softmax·H (scoped to the nce-slide, matched by x in step order).
+    sec = re.search(r'<section class="slide nce-slide".*?</section>', l6_html or "", re.S)
+    nbar = 0
+    if sec:
+        html = sec.group()
+        for x, name, idx in [("925", "kitten", 0), ("1075", "airplane", 1), ("1225", "computer", 2), ("1375", "france", 3)]:
+            hs = [float(h) for h in re.findall(r'<rect x="%s"[^>]*height="([\d.]+)"' % x, html)]
+            if len(hs) != 3:
+                bad += 1; report.append(("HARD", f"provenance-L6NCE(bars.{name}): expected 3 <rect x={x}> bar heights, found {len(hs)}")); continue
+            for k in range(3):
+                want = probs[k][idx] * H; nbar += 1
+                if abs(hs[k] - want) > 0.6:
+                    bad += 1; report.append(("HARD", f"provenance-L6NCE(bar.{name}.{cks[k]['name']}): height {hs[k]} != softmax·{H:.0f} {want:.1f} (logits {cks[k]['logits']})"))
+    if not bad:
+        tail = f"{nbar} bars == softmax(traj.logits)·{H:.0f}; " if sec else "(deck not built — bar binding skipped) "
+        report.append(("OK", f"provenance-L6NCE: {tail}logits↔p⁺↔loss consistent across untuned/mid/tuned ✓"))
+
 # ── [C] CLAIMS: every grounded value read from data/, asserted present+matching in the deck ─────
 def claims():
     pp = primary_pair()
@@ -989,6 +1031,7 @@ def main():
     provenance_l5_glove_tsne(report)                # [P] L5 GloVe + t-SNE-math cross-file + data-only pins
     provenance_l2_tokenizers(report)                # [P] L2 tokenizer-compare counts/ranking/segmentation
     provenance_enrichment(report)                   # [P] L5/L6 enrichment trajectory cross-file + data-only pins
+    provenance_l6_nce(report, text.get("L6", ""))   # [P] L6 InfoNCE softmax BARS == softmax(traj.logits)·H (R8 data-bind)
     for c in claims():                              # [C] deck == data/
         report.append(check_claim(c, text[c["deck"]]))
     if book:                                        # [C] Book == data/ (the Book restates the flagship numbers)
@@ -1193,6 +1236,29 @@ def selftest():
     sevBW, msgBW = check_claim(cBW, bBW)
     okBW = sevBW == "HARD" and "DRIFT" in msgBW
     print("[selftest:book-ctx]", msgBW)
+    # [P] L6 InfoNCE bars: BOTH halves must be drift-catchers, not blind.
+    #   (a) a drifted checkpoint logit breaks softmax(logits)[kitten] == pPositive (data self-consistency).
+    repNCEa = []
+    saved = CTRAJ["checkpoints"][0]["logits"][1]
+    CTRAJ["checkpoints"][0]["logits"][1] = 0.0      # airplane logit drift → softmax(kitten) no longer == pPositive
+    provenance_l6_nce(repNCEa, "")
+    CTRAJ["checkpoints"][0]["logits"][1] = saved
+    okNCEa = any(s == "HARD" and "provenance-L6NCE" in m for s, m in repNCEa)
+    print("[selftest:prov-L6NCE-data]", next((m for s, m in repNCEa if s == "HARD"), "provenance-L6NCE data: NO FLAG"))
+    #   (b) a tampered bar <rect height> (unmutated data) breaks the deck binding (height != softmax·H).
+    realH = lambda i, p: f'{p*220:.1f}'
+    p0 = _nce_softmax(CTRAJ["checkpoints"][0]["logits"]); p1 = _nce_softmax(CTRAJ["checkpoints"][1]["logits"]); p2 = _nce_softmax(CTRAJ["checkpoints"][2]["logits"])
+    fixBars = ('<section class="slide nce-slide"><svg>'
+        + f'<rect x="925" height="999"/><rect x="925" height="{realH(0,p1[0])}"/><rect x="925" height="{realH(0,p2[0])}"/>'   # untuned kitten TAMPERED → must fire
+        + f'<rect x="1075" height="{realH(1,p0[1])}"/><rect x="1075" height="{realH(1,p1[1])}"/><rect x="1075" height="{realH(1,p2[1])}"/>'
+        + f'<rect x="1225" height="{realH(2,p0[2])}"/><rect x="1225" height="{realH(2,p1[2])}"/><rect x="1225" height="{realH(2,p2[2])}"/>'
+        + f'<rect x="1375" height="{realH(3,p0[3])}"/><rect x="1375" height="{realH(3,p1[3])}"/><rect x="1375" height="{realH(3,p2[3])}"/>'
+        + '</svg></section>')
+    repNCEb = []
+    provenance_l6_nce(repNCEb, fixBars)
+    okNCEb = any(s == "HARD" and "bar.kitten" in m for s, m in repNCEb)
+    print("[selftest:prov-L6NCE-bar]", next((m for s, m in repNCEb if s == "HARD"), "provenance-L6NCE bar: NO FLAG"))
+    okNCE = okNCEa and okNCEb
     # [G] coverage-guard: a NEW un-gated grounded number on a surface (here a new unit "L9", baseline 0)
     # must HARD-fail — proving the ratchet is not blind (a forgotten data-number in L7 can't ship silently).
     repCov = []
@@ -1201,8 +1267,8 @@ def selftest():
     print("[selftest:coverage]", next((m for s, m in repCov if s == "HARD"), "coverage-guard: NO FLAG"))
     ok = (okD and okA and okP and okL3 and okL4 and okP2 and okL5 and okL6 and okP3 and okP4
           and okGX and okTK and okTS and okP5 and okP6 and okP7 and okP8 and okP9
-          and okW and okU and okS and okT47 and okPE and okCX and okBK and okBW and okCov)
-    print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 + L5-GloVe/t-SNE + L2-tokenizers + enrichment-trajectory + l6-contextual cross-file + Book-prose deck & cross-file + coverage-guard ratchet (incl. data-only pins) all fire"
+          and okW and okU and okS and okT47 and okPE and okCX and okBK and okBW and okNCE and okCov)
+    print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 + L5-GloVe/t-SNE + L2-tokenizers + enrichment-trajectory + l6-contextual cross-file + L6-InfoNCE-bars (data + deck) + Book-prose deck & cross-file + coverage-guard ratchet (incl. data-only pins) all fire"
           if ok else "FAIL — a check is blind!")
     return 0 if ok else 1
 
