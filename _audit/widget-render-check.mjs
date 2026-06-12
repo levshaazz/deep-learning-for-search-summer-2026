@@ -740,6 +740,7 @@ async function main() {
           + 'git diff before committing. A new widget (L7…) auto-adds its row on the first --update-baseline.',
         themes: THEMES,
         coarsen: 'Math.round(box/6) px buckets (anti sub-pixel jitter — matches slide-viz signature)',
+        platform: process.platform,   // a paint signature is PER-PLATFORM (font/sub-pixel render differs)
         widgets: Object.keys(entries).length,
       },
       entries,
@@ -749,6 +750,13 @@ async function main() {
   } else {
     const base = loadBaseline();
     let driftN = 0, newN = 0;
+    // A paint signature is PER-PLATFORM: font metrics + sub-pixel rendering differ across OSes (like a
+    // golden screenshot), so the baseline HARD-gates drift only on the platform it was frozen on (local
+    // dev, or a same-OS runner). On a different OS (e.g. a macOS-frozen baseline under GitHub's ubuntu
+    // runner) the drift is reported but NOT gated — the RUN checks (mount/console/setStep/empty) still
+    // gate every platform. WIDGET_VIZ_FORCE=1 forces the comparison anywhere.
+    const basePlat = base && base._meta && base._meta.platform;
+    const crossPlatform = basePlat && basePlat !== process.platform && !process.env.WIDGET_VIZ_FORCE;
     if (!base || !base.entries) {
       console.log(`\n[visual-regression] NO BASELINE (${BREL} missing) — run \`--update-baseline\` to freeze. Visual drift NOT checked this run.`);
     } else {
@@ -759,13 +767,16 @@ async function main() {
         for (const theme of THEMES) {
           const live = liveE[theme], b = baseE[theme];
           if (!live || !b) continue;   // theme not mounted → the RUN gate already HARD-failed it
-          for (const m of diffEntry(theme, live, b)) { driftN++; console.log(`  ✗ DRIFT ${key} ${m}`); }
+          for (const m of diffEntry(theme, live, b)) { driftN++; console.log(`  ${crossPlatform ? '·' : '✗'} DRIFT ${key} ${m}`); }
         }
       }
       for (const key of Object.keys(base.entries)) if (!entries[key]) console.log(`  • STALE baseline entry (widget no longer discovered): ${key} — prune via --update-baseline`);
       console.log(driftN || newN ? `  → drift=${driftN}  new=${newN}` : '  all widget signatures match baseline (no visual drift).');
+      if (crossPlatform && driftN) {
+        console.log(`  ⚠ CROSS-PLATFORM: baseline frozen on '${basePlat}', running on '${process.platform}' — the ${driftN} drift(s) above are INFORMATIONAL (a paint signature is per-platform), NOT gated. RUN checks still gate; freeze a '${process.platform}' baseline (\`--update-baseline\`) or set WIDGET_VIZ_FORCE=1 to gate here.`);
+      }
     }
-    totalHard += driftN;   // DRIFT is HARD — rolls into the gate's exit code
+    if (!crossPlatform) totalHard += driftN;   // DRIFT is HARD only on the baseline's own platform
   }
 
   const ji = argv.indexOf('--json');
