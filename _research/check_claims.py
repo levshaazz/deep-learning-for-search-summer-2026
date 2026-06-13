@@ -92,6 +92,13 @@ STACK   = load(DATA, "l6-stack-layers.json")    # DistilBERT cross-sense cos(ban
 CTRAJ   = load(DATA, "l6-contrastive-traj.json")# InfoNCE optimisation trajectory: loss 3.31→0.86→0.1191
 CTX     = load(DATA, "l6-contextual.json")      # standalone DistilBERT "bank" polysemy demo: cross-sense 0.6465 < within-sense 0.9466 (Book ch.6 prose)
 
+# ── L7 (Scouts and Judges: bi-/cross-encoders + the neural cascade). toy = stdlib-reproducible; real =
+#    frozen SBERT / cross-encoder (gen_l7_real.py, fail-soft). Callbacks reuse BENCH (l3) + METRICS (l4). ──
+BIENC    = load(DATA, "l7-biencoder.json")      # toy dot/cos (0.8165/0) + real SBERT cosRel 0.6838 > cosIrr 0.4082
+CROSSENC = load(DATA, "l7-crossencoder.json")   # toy logit→σ (0.9168/0.2497) + real distractor (Judge 0.9998 vs 0.1159, Scout 0.8434 vs 0.6875)
+CASCADE  = load(DATA, "l7-cascade.json")         # stages 10⁶→10³→10; BM25 nDCG 0.6766 → reranked 0.9558 (real cross-encoder on the L4 8-doc set)
+MSMARCO  = load(DATA, "l7-msmarco.json")         # frozen MS MARCO subset: retrieve MRR@10 0.5482 → rerank 0.6732 (rerank helps)
+
 # ── [P] PROVENANCE: curated data/ must equal the generator artifact it was lifted from ──────────
 def provenance_checks(report):
     raw_heaps, raw_zipf, raw_pos, raw_cos = (load(RAW, "heaps_summary.json"), load(RAW, "zipf_summary.json"),
@@ -568,7 +575,41 @@ def book_claims():
     # data/l6-contextual.json — gating it here makes that file a real consumer (its number drives the prose).
     out.append(dict(id="book L6 within-sense", deck="L6", value=CTX["cosines"]["withinSense"], tol=1e-4,
                     anchor=r'cheque"\) sit at \\\(([\d.]+)\\\), nearly on top', must=True))
+    out += l7_book_claims()
     return out
+
+# ── [C] L7 BOOK claims: the L7 chapter prose states every flagship number; gate each against data/.
+#    Book-only (the deck restates them on its own slides, gated separately as those slides are authored).
+#    value sourced STRAIGHT from data/l7-*.json + the reused l3/l4 callback files. Generic ([\d.]+)
+#    capture pinned by stable surrounding literals → a drifted number is captured + flagged, not missed. ──
+def l7_book_claims():
+    C = lambda id, value, anchor, tol=1e-4: dict(id="book " + id, deck="L7", value=value, tol=tol, anchor=anchor, must=True)
+    return [
+        # bi-encoder: toy cos 0.8165, real SBERT cosRel 0.6838 > cosIrr 0.4082
+        C("L7 toy cosRel",  BIENC["toy"]["cosRel"],  r"\\sqrt6 \\approx \\mathbf\{([\d.]+)\}"),
+        C("L7 real cosRel", BIENC["real"]["cosRel"], r"\\approx \\mathbf\{([\d.]+)\}\\\) versus"),
+        C("L7 real cosIrr", BIENC["real"]["cosIrr"], r"\\approx \\mathbf\{([\d.]+)\}\\\): the"),
+        # cross-encoder: toy σ 0.9168 / 0.2497
+        C("L7 toy scoreRel", CROSSENC["toy"]["scoreRel"], r"\\sigma\(2\.4\)\\approx\\mathbf\{([\d.]+)\}"),
+        C("L7 toy scoreNeg", CROSSENC["toy"]["scoreNeg"], r"\\sigma\(-1\.1\)\\approx\\mathbf\{([\d.]+)\}"),
+        # cross-encoder real distractor: Scout 0.8434 vs 0.6875 (narrow), Judge 0.9998 vs 0.1159 (huge)
+        C("L7 biCosRel", CROSSENC["contrast"]["biCosRel"], r"cosine \\\(\\mathbf\{([\d.]+)\}\\\) vs"),
+        C("L7 biCosBad", CROSSENC["contrast"]["biCosBad"], r"vs \\\(\\mathbf\{([\d.]+)\}\\\), a"),
+        C("L7 crossRel", CROSSENC["real"]["pairRel"]["score"], r"rates them \\\(\\mathbf\{([\d.]+)\}\\\) vs"),
+        C("L7 crossBad", CROSSENC["real"]["pairBad"]["score"], r"\\mathbf\{0\.9998\}\\\) vs \\\(\\mathbf\{([\d.]+)\}"),
+        # cascade: BM25 nDCG 0.6766 → reranked 0.9558
+        C("L7 bm25Ndcg",   CASCADE["quality"]["bm25Ndcg"],     r"documents to <strong>nDCG@10 = ([\d.]+)</strong>"),
+        C("L7 rerankNdcg", CASCADE["quality"]["rerankedNdcg"], r"improves to <strong>nDCG@10 = ([\d.]+)</strong>"),
+        # MS MARCO subset: retrieve MRR 0.5482 → rerank MRR 0.6732
+        C("L7 mm retrMrr",   MSMARCO["retrieve"]["mrrAt10"], r"retrieval <strong>MRR@10 = ([\d.]+)</strong>"),
+        C("L7 mm rerankMrr", MSMARCO["rerank"]["mrrAt10"],   r"rises to <strong>([\d.]+)</strong>"),
+        # callbacks (reused data files): L4 recall@3 0.25; BEIR 0.43/0.38; MS MARCO 0.187/0.33
+        C("L7 cb recall@3", METRICS["recallAtK"]["3"],  r"recall@3 = ([\d.]+), recall"),
+        C("L7 cb BEIR bm25", BENCH["beir"]["BM25"],     r"BM25 reaches nDCG@10 = ([\d.]+) and"),
+        C("L7 cb BEIR dpr",  BENCH["beir"]["denseDPR"], r"denseDPR only ([\d.]+)</strong>"),
+        C("L7 cb MM bm25",   BENCH["msmarco"]["BM25"],     r"BM25&amp;rsquo;s ([\d.]+)\."),
+        C("L7 cb MM dpr",    BENCH["msmarco"]["denseDPR"], r"MRR@10 of ([\d.]+) beats"),
+    ]
 
 # ── L3 'Star Catalog' [C] claims: every flagship number the deck shows == data/l3-*.json ─────────
 # Anchors match the RENDERED numeric text (KaTeX \(…\)/$$…$$, <code> matrix-labels, captions) — the
@@ -978,8 +1019,12 @@ def arithmetic_checks(report, texts):
 # i.e. the displayed number IS, to display precision, a gated value (a coincidental match needs a value
 # within 1e-3; a genuinely new data-number, e.g. an L7 cosine 0.7531, is not and so HARD-fails until gated).
 COVERAGE_BASELINE = {
-    "deck:L0": 0, "deck:L1": 2, "deck:L2": 10, "deck:L3": 58, "deck:L4": 49, "deck:L5": 57, "deck:L6": 41,
-    "book:L0": 0, "book:L1": 1, "book:L2": 8,  "book:L3": 18, "book:L4": 24, "book:L5": 14, "book:L6": 13,
+    # L3–L6 deck/book baselines TIGHTENED after L7: the L7 callback claims (BEIR 0.43/0.38, MS MARCO
+    # 0.187/0.33, L4 recall@k, etc.) are value-gated globally, so they now ALSO cover some numbers those
+    # earlier units displayed but had not gated — the un-gated count dropped, so the ratchet is lowered to
+    # match (strictly stronger; never raised). New units (L7) stay at 0 via .get(surf, 0).
+    "deck:L0": 0, "deck:L1": 2, "deck:L2": 10, "deck:L3": 54, "deck:L4": 45, "deck:L5": 55, "deck:L6": 37,
+    "book:L0": 0, "book:L1": 1, "book:L2": 8,  "book:L3": 17, "book:L4": 23, "book:L5": 13, "book:L6": 11,
 }
 _COV_DEC   = re.compile(r'(?<![\d.])\d+\.\d{2,}(?!\d)')   # grounded signature: a decimal, ≥2 fractional digits
 _COV_ARXIV = re.compile(r'^\d{4}\.\d{4,}$')               # arXiv id (e.g. 1901.04085) — not data
@@ -1021,6 +1066,44 @@ def coverage_guard(report, text, book):
         report.append(("OK", f"coverage-guard: {len(surfaces)} surfaces ≤ baseline; {total} grandfathered un-gated "
                              f"number(s) — a NEW number, or any number in a NEW unit (baseline 0), HARD-fails until gated ✓"))
 
+# ── [P] PROVENANCE (L7 self-consistency): gen_l7 emits data/ directly (no RAW twin), so — like L3–L6 —
+#    we recompute the stdlib-reproducible toy numbers and pin cross-file + structural invariants. ──
+def provenance_l7(report):
+    bt, br = BIENC["toy"], BIENC["real"]
+    ct, cc, cr = CROSSENC["toy"], CROSSENC["contrast"], CROSSENC["real"]
+    q, m = CASCADE["quality"], MSMARCO
+    checks = [
+        # toy stdlib-reproducible: cos = dot/(|q||d|) = 2/√6 ; score = sigmoid(logit)
+        ("toy.cosRel",   bt["cosRel"],   round(2 / math.sqrt(6), 4), 1e-4),
+        ("toy.scoreNeg", ct["scoreNeg"], round(1 / (1 + math.exp(-ct["logitNeg"])), 4), 1e-4),
+        # cross-path: the cascade BM25 nDCG re-uses the L4 honest nDCG (same number, two files)
+        ("cascade.bm25==l4", q["bm25Ndcg"], METRICS["ndcg"], 1e-9),
+    ]
+    bad = 0
+    for name, a, b, tol in checks:
+        if abs(a - b) > tol:
+            bad += 1
+            report.append(("HARD", f"provenance-L7({name}): data/ disagree/invariant broken — {a} vs {b}"))
+    flags = []
+    def need(cond, name):
+        if not cond:
+            flags.append(name)
+            report.append(("HARD", f"provenance-L7({name}): structural invariant broken"))
+    need(bt["cosRel"] > bt["cosIrr"], "toy cosRel>cosIrr")
+    need(br["cosRel"] > br["cosIrr"], "real cosRel>cosIrr")
+    need(ct["scoreRel"] > ct["scoreNeg"], "toy scoreRel>scoreNeg")
+    need(cr["pairRel"]["score"] > cr["pairBad"]["score"], "real Judge separates pairRel>pairBad")
+    need(cc["biCosBad"] > cr["pairBad"]["score"], "Scout over-rates: biCosBad>crossScoreBad")
+    need((cc["crossScoreRel"] - cc["crossScoreBad"]) > (cc["biCosRel"] - cc["biCosBad"]), "Judge gap>Scout gap")
+    need(q["bm25Ndcg"] < q["rerankedNdcg"] <= q["idealNdcg"], "bm25<reranked<=ideal")
+    need(CASCADE["stages"][0]["w"] > CASCADE["stages"][1]["w"] > CASCADE["stages"][2]["w"], "cascade narrowing")
+    need(m["retrieve"]["recallAt"]["100"] >= m["retrieve"]["recallAt"]["10"], "recall monotone")
+    need(m["rerank"]["mrrAt10"] > m["retrieve"]["mrrAt10"], "rerank improves MRR")
+    need((bt["cosRel"] - bt["cosIrr"]) * (br["cosRel"] - br["cosIrr"]) > 0, "toy<->real sign agree")
+    if not bad and not flags:
+        report.append(("OK", f"provenance-L7: {len(checks)} recompute + 11 structural invariants consistent ✓"))
+
+
 def main():
     text = {k: p.read_text() for k, p in DECKS.items()}
     book = load_book()                              # built Book HTML (empty if docs/ not built)
@@ -1032,6 +1115,7 @@ def main():
     provenance_l2_tokenizers(report)                # [P] L2 tokenizer-compare counts/ranking/segmentation
     provenance_enrichment(report)                   # [P] L5/L6 enrichment trajectory cross-file + data-only pins
     provenance_l6_nce(report, text.get("L6", ""))   # [P] L6 InfoNCE softmax BARS == softmax(traj.logits)·H (R8 data-bind)
+    provenance_l7(report)                            # [P] L7 toy-recompute + cross-file + structural pins
     for c in claims():                              # [C] deck == data/
         report.append(check_claim(c, text[c["deck"]]))
     if book:                                        # [C] Book == data/ (the Book restates the flagship numbers)
@@ -1265,9 +1349,23 @@ def selftest():
     coverage_guard(repCov, {"L9": "<p>the model scores 0.7137 on this set</p>"}, {})
     okCov = any(s == "HARD" and "coverage-guard(deck:L9)" in m for s, m in repCov)
     print("[selftest:coverage]", next((m for s, m in repCov if s == "HARD"), "coverage-guard: NO FLAG"))
+    # L7 [C] Book: a drifted reranked nDCG must flag DRIFT (the L7 anchors are not blind).
+    cL7 = next(c for c in book_claims() if c["id"] == "book L7 rerankNdcg")
+    sevL7, msgL7 = check_claim(cL7, r"improves to <strong>nDCG@10 = 0.1234</strong>")
+    okL7c = sevL7 == "HARD" and "DRIFT" in msgL7
+    print("[selftest:L7-book]", msgL7)
+    # L7 [P]: break the BAM invariant (real Judge no longer separates pairRel>pairBad) → must flag.
+    repL7 = []
+    savedL7 = CROSSENC["real"]["pairBad"]["score"]
+    CROSSENC["real"]["pairBad"]["score"] = 0.9999
+    provenance_l7(repL7)
+    CROSSENC["real"]["pairBad"]["score"] = savedL7
+    okL7p = any(s == "HARD" and "provenance-L7" in m for s, m in repL7)
+    print("[selftest:prov-L7]", next((m for s, m in repL7 if s == "HARD"), "provenance-L7: NO FLAG"))
     ok = (okD and okA and okP and okL3 and okL4 and okP2 and okL5 and okL6 and okP3 and okP4
           and okGX and okTK and okTS and okP5 and okP6 and okP7 and okP8 and okP9
-          and okW and okU and okS and okT47 and okPE and okCX and okBK and okBW and okNCE and okCov)
+          and okW and okU and okS and okT47 and okPE and okCX and okBK and okBW and okNCE and okCov
+          and okL7c and okL7p)
     print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 + L5-GloVe/t-SNE + L2-tokenizers + enrichment-trajectory + l6-contextual cross-file + L6-InfoNCE-bars (data + deck) + Book-prose deck & cross-file + coverage-guard ratchet (incl. data-only pins) all fire"
           if ok else "FAIL — a check is blind!")
     return 0 if ok else 1
