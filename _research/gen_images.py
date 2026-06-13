@@ -713,6 +713,71 @@ JOBS = [
      "no title; the book names the modalities later. Make 'many different inputs, all tokenized "
      "into one shared space' the single dominant idea."),
 
+    # ---- L7 · Scouts and Judges (Bi-encoders · Cross-encoders & Reranking · Multi-stage Pipelines) ----
+    # Wordless idea/analogy plates (NOT data figures — the deck/Book widgets carry every number).
+    # Palette: black ink + course-blue #2A6FDB + warm-orange #E8743B on off-white #FBFAF6. NO green
+    # (has_serega=False → no green anywhere). ABSOLUTELY NO words/letters/numbers (overlays do all labels).
+    ("L7", "L7/L7-00-scouts-and-judges.png", "16:9", False,
+     "HERO ESTABLISHING SHOT — two-stage retrieval as Scouts and Judges, a wide frontier split in two. "
+     "LEFT HALF: a loose band of fast SCOUT figures (light, simple, mid-stride, fanned out) sweeping "
+     "across a vast field strewn with hundreds of tiny document-dots, motion-blur sense of speed, each "
+     "scout quickly brushing past many dots — many-and-fast. RIGHT HALF: a few heavy, seated JUDGE "
+     "figures on a raised bench, leaning in over a SINGLE object on the bench, slow and deliberate — "
+     "few-and-careful. Between the two halves a thin warm-orange flow carries just a HANDFUL of dots "
+     "from the scouts' wide net to the judges' bench (the shortlist hand-off). The whole image reads "
+     "'many-fast sweep on the left, few-careful judging on the right'. Fills ≥85% of canvas width. NO "
+     "Serega, so NO green anywhere; warm-orange ONLY on the thin hand-off flow and the one judged "
+     "object; everything else black ink + course-blue on off-white. ABSOLUTELY NO words, letters, "
+     "numbers, or labels anywhere — figures and dots unlabelled, no caption, no title."),
+    ("L7", "L7/L7-01-cant-judge-everyone.png", "16:9", False,
+     "WHY YOU CAN'T JUDGE EVERYONE — a single overwhelmed JUDGE figure seated at a small bench, dwarfed "
+     "by an IMPOSSIBLY TALL, receding stack of identical cases/scrolls/folders that climbs up out of "
+     "frame and recedes to a vanishing point — the O(N) wall. The lone judge looks UP at a stack that "
+     "never ends, tiny against the toppling mountain of cases. One warm-orange accent on the single "
+     "topmost case the judge is holding; the endless stack itself is black ink + faint course-blue on "
+     "off-white. The towering stack dominates and dwarfs the judge. Fills ≥85% of canvas width. NO "
+     "Serega, so NO green anywhere. ABSOLUTELY NO words, letters, numbers, or labels anywhere — the "
+     "cases are blank, no caption, no title."),
+    ("L7", "L7/L7-04-interview-room.png", "4:3", False,
+     "THE INTERVIEW ROOM — the cross-encoder as a face-to-face interview. A small table where a QUERY "
+     "figure and a single DOCUMENT figure sit ACROSS from each other, leaning in, really attending to "
+     "one another. A beam of thin ink ATTENTION-LINES criss-crosses BETWEEN them, connecting points on "
+     "the question to points on the page (both read TOGETHER, jointly). One or two of the strongest "
+     "cross-lines are traced in warm-orange to mark the matched point. Intimate, single-pair, the exact "
+     "opposite of the sweeping scouts. Blue attention-lines, warm-orange ONLY on the one or two "
+     "strongest matched lines; figures and table black ink on off-white. Fills ≥85% of canvas width. NO "
+     "Serega, so NO green anywhere. ABSOLUTELY NO words, letters, numbers, or labels anywhere — figures "
+     "unlabelled, no caption, no title."),
+    ("L7", "L7/L7-06-hiring-funnel.png", "16:9", False,
+     "THE HIRING FUNNEL — the retrieval cascade as a literal narrowing funnel, left to right. A WIDE "
+     "mouth on the left is crowded with MANY tiny applicant-dots (the corpus); they pour through a "
+     "MIDDLE band that is narrower (the scouts' shortlist) and out a THIN spout on the right where just "
+     "a FEW dots face a judge's bench. The widths shrink left→right (cheap-and-wide at the mouth, "
+     "dear-and-narrow at the spout); the pool visibly thins from a crowd to a handful, shown by dot "
+     "COUNT, never digits. A thin warm-orange flow-arrow runs through the funnel's throat. Echoes a "
+     "classic recruitment funnel. Fills ≥85% of canvas width. NO Serega, so NO green anywhere; "
+     "warm-orange ONLY on the central flow-arrow; funnel + dots black ink + course-blue on off-white. "
+     "ABSOLUTELY NO words, letters, numbers (counts are DOTS, not digits), or labels anywhere — no "
+     "caption, no title."),
+    ("L7", "L7/L7-07-depth-dial.png", "4:3", False,
+     "THE DEPTH DIAL — the rerank-depth / quality-vs-cost tradeoff as a single control. A clean "
+     "hand-drawn round DIAL with a pointer, with a small balance/scale beside it trading an HOURGLASS "
+     "(latency) against a MAGNIFYING GLASS (thoroughness). Turning the dial deeper tips the balance "
+     "toward the magnifying glass (more care) but visibly drags the hourglass DOWN (more time) — so it "
+     "reads 'turn it deeper: better but slower'. One warm-orange needle/pointer on the dial; the "
+     "hourglass, magnifier and balance are black ink + course-blue on off-white. Levels shown by "
+     "tick-marks and tilt, never digits. Fills ≥85% of canvas width. NO Serega, so NO green anywhere. "
+     "ABSOLUTELY NO words, letters, numbers, or labels anywhere — no caption, no title."),
+    ("L7", "L7/L7-08-team-wins.png", "16:9", False,
+     "THE PAYOFF — Scouts and Judges WIN together. The fast SCOUTS hand a small SHORTLIST (a few "
+     "warm-orange dots) to the JUDGES at the bench — the hand-off moment, the team working as one. The "
+     "scouts (blue, light) on the left pass to the seated judges (black ink) on the right; behind them "
+     "a faint horizon/road leads off-frame toward distant JUMP-GATE arches on the horizon (the bridge "
+     "to the next quest). Warm-orange ONLY on the handed shortlist; crew + bench + road black ink + "
+     "course-blue on off-white. The hand-off is the dominant action. Fills ≥85% of canvas width. NO "
+     "Serega, so NO green anywhere. ABSOLUTELY NO words, letters, numbers, or labels anywhere — no "
+     "caption, no title."),
+
     # ---- course cover (banner + GitHub social card) ----
     ("char", "_char/cover.png", "16:9", True,
      "the course cover banner for a graduate course called 'Deep Learning for Search'. Wide "
