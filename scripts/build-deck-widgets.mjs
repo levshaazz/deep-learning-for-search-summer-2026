@@ -23,7 +23,7 @@ const JS = join(ROOT, 'Lectures', 'js');
 const CSS = join(ROOT, 'Lectures', 'css');
 
 // the widgets L7 mounts in its deck slides (id → Lectures/js/<id>.classic.js, IIFE → window.mount<Pascal>)
-const DECK_WIDGETS = ['biencoder', 'crossencoder', 'neural-cascade'];
+const DECK_WIDGETS = ['biencoder', 'crossencoder', 'neural-cascade', 'in-batch-negatives', 'rag-pipeline'];
 
 for (const id of DECK_WIDGETS) {
   await build({
@@ -47,7 +47,26 @@ copyFileSync(join(ROOT, 'widgets', 'deck-adapter.js'), join(JS, 'deck-adapter.js
 // stylesheet the deck head links. BUILD OUTPUT (gitignored). Single source: widgets/.
 // constrain the mount width so the 480-unit-wide widget SVG scales to a height that fits a 1080-tall
 // slide (full slide-width would scale it ~3.5× → taller than the slide → OOB). Mirrors deck-adapter-proof.
-const mountRule = '.slide .widget-mount { max-width: 820px; margin: 0 auto; }\n' +
+// Mount sizing — BIG-on-1920 (owner: the 820px cap rendered the figures too small). Each widget SVG is
+// ~480–560 user-units wide; we cap the rendered width so its height still fits the ~830px figure band
+// under the slide header, and let autofit handle the rest. `min(px, cqw)` keeps it scale-robust against
+// the 1920×1080 .slides size-container (autofit.css). Per-widget overrides because aspect ratios differ:
+// the bi/cross figures are ~1.5:1 (tall-ish), the cascade is content-tall, the RAG pipeline is wide-short.
+const mountRule =
+  '.slide .widget-mount { max-width: min(1180px, 64cqw); margin: 0 auto; }\n' +
+  '.slide .widget-mount[data-widget="biencoder"]          { max-width: min(1180px, 64cqw); }\n' +
+  '.slide .widget-mount[data-widget="crossencoder"]       { max-width: min(1220px, 66cqw); }\n' +
+  '.slide .widget-mount[data-widget="neural-cascade"]     { max-width: min(1200px, 64cqw); }\n' +
+  '.slide .widget-mount[data-widget="in-batch-negatives"] { max-width: min(1040px, 58cqw); }\n' +
+  '.slide .widget-mount[data-widget="rag-pipeline"]       { max-width: min(1480px, 80cqw); }\n' +
+  // the cascade is HTML (not an autoscaling SVG): bump its type + bar height DECK-ONLY so it reads big on
+  // 1920 without enlarging it in the narrower Book column.
+  // size via calc(var(--fz-…)*k) so the font-gate sees an on-scale token (raw px/rem literals would HARD-fail it)
+  '.slide .widget-mount[data-widget="neural-cascade"] .nc-panel { gap: 2rem; padding: 1rem 0; }\n' +
+  '.slide .widget-mount[data-widget="neural-cascade"] .nc-bar  { min-height: 116px; }\n' +
+  '.slide .widget-mount[data-widget="neural-cascade"] .nc-name { font-size: calc(var(--fz-small, .9rem) * 1.7); }\n' +
+  '.slide .widget-mount[data-widget="neural-cascade"] .nc-count{ font-size: calc(var(--fz-body, 1rem) * 1.7); }\n' +
+  '.slide .widget-mount[data-widget="neural-cascade"] .nc-desc { font-size: calc(var(--fz-body, 1rem) * 1.05); max-width: 64ch; }\n' +
   '.slide .widget-mount .wgt-caption, .slide .widget-mount .wgt-counter { display: none; }\n';
 const cssParts = [mountRule, readFileSync(join(ROOT, 'widgets', '_base.css'), 'utf8')];
 for (const id of DECK_WIDGETS) cssParts.push(readFileSync(join(ROOT, 'widgets', id, 'style.css'), 'utf8'));

@@ -1,0 +1,32 @@
+        <section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="51 The full pipeline">
+          <div class="slide-header">
+            <h2><span lang="ru">Полный пайплайн</span><span lang="en">The full pipeline</span></h2>
+            <span class="slide-kicker"><span lang="ru">offline сборка → online запрос → каскад → grounded-ответ</span><span lang="en">offline build → online query → cascade → grounded answer</span></span>
+          </div>
+          <div class="widget-mount" data-widget="rag-pipeline"></div>
+          <script class="widget-data" type="application/json">
+          {
+            "data": {
+              "offline": [{ "id": "ingest" }, { "id": "chunk" }, { "id": "embed" }, { "id": "index" }],
+              "online": [{ "id": "qembed" }, { "id": "retrieve" }, { "id": "rerank" }, { "id": "assemble" }, { "id": "generate" }]
+            },
+            "labels": {
+              "role": "img",
+              "alt": "A left-to-right pipeline split into an offline build half and an online query half; the cascade is retrieve plus rerank, and the LLM produces a grounded answer with citations.",
+              "bandOffline": "OFFLINE · build-time (once)",
+              "bandOnline": "ONLINE · query-time (per request)",
+              "query": "query",
+              "ingest": "ingest", "chunk": "chunk", "embed": "embed", "index": "index",
+              "qembed": "embed q", "retrieve": "retrieve", "rerank": "rerank", "assemble": "assemble", "generate": "generate",
+              "cascadeTag": "the neural cascade",
+              "answerTag": "→ grounded + cited", "citeTag": "+ citations",
+              "s0": "Offline, once: ingest → chunk → embed the corpus → build the ANN index. Amortized over every query.",
+              "s1": "At query time: embed the query, retrieve top-k, rerank the shortlist, assemble the context.",
+              "s2": "The retrieve→rerank pair is exactly the neural cascade: Scouts sweep wide, Judges deliberate on the few.",
+              "s3": "For RAG the LLM reads the reranked context and answers grounded in it — with citations to the sources."
+            }
+          }
+          </script>
+          <p class="viz-caption"><span lang="ru">Один поток слева направо с границей <strong>offline / online</strong>. Тяжёлая сборка индекса&nbsp;&mdash; один раз; на запросе&nbsp;&mdash; каскад (retrieve → rerank), затем LLM пишет ответ, <strong>обоснованный</strong> найденными отрывками, со ссылками. Качество поиска ограничивает качество ответа.</span><span lang="en">One left-to-right flow with an <strong>offline / online</strong> divide. The heavy index build runs once; per query the cascade (retrieve → rerank) feeds an LLM that writes an answer <strong>grounded</strong> in the retrieved passages, with citations. Retrieval quality caps answer quality.</span></p>
+          <aside class="slide-notes">The whole lecture, in one stepped figure. Step zero is the offline build — ingest, chunk, embed the corpus, build the index — paid once. Step one is the online query path — embed the query, retrieve the top-k, rerank the shortlist, assemble the context — the per-request budget. Step two rings the retrieve-and-rerank pair, because that is exactly the neural cascade we built: Scouts sweep wide and cheap, Judges deliberate on the few. Step three is RAG: the language model reads the reranked context and writes an answer grounded in those passages, with citations back to the sources. And the governing law is the recall floor again — the generator can only ground in what retrieval brought back.</aside>
+        </section>
