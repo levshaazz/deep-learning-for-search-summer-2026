@@ -1,0 +1,18 @@
+        <section class="slide" data-type="definition" data-screen-label="42 Data prep — chunk &amp; expand">
+          <div class="slide-header">
+            <h2><span lang="ru">Подготовка данных</span><span lang="en">Data preparation</span></h2>
+            <span class="slide-kicker"><span lang="ru">чистка · дедуп · чанкинг · doc2query</span><span lang="en">clean · dedup · chunk · doc2query</span></span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag"><span lang="ru">Офлайн, шаг 1</span><span lang="en">Offline, step 1</span></span>
+            <div class="def-term"><span lang="ru">Мусор на входе&nbsp;&mdash; мусор в индексе</span><span lang="en">Garbage in, garbage in the index</span></div>
+            <div class="def-body">
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong><span lang="ru">Чистка и дедуп.</span><span lang="en">Clean &amp; dedup.</span></strong> <span lang="ru">Убрать близкие дубли&nbsp;&mdash; иначе они забьют топ выдачи.</span><span lang="en">Drop near-duplicates &mdash; or they crowd out the top results.</span></span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong><span lang="ru">Чанкинг.</span><span lang="en">Chunking.</span></strong> <span lang="ru">Резать длинные документы под лимит токенов: типично \(512\)&ndash;\(1024\) токена с перекрытием \(10\)&ndash;\(20\%\), чтобы факт не разорвало на границе.</span><span lang="en">Split long docs under the token limit: typically \(512\)&ndash;\(1024\) tokens with \(10\)&ndash;\(20\%\) overlap so a fact is not cut at a boundary.</span></span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>doc2query.</strong> <span lang="ru">Дописать к документу <em>запросы, на которые он отвечает</em> (docTTTTTquery) &rarr; лексический поиск растёт: MS MARCO MRR@10 \(18.6\!\to\!27.2\).</span><span lang="en">Append the <em>queries a document answers</em> (docTTTTTquery) &rarr; lexical recall jumps: MS MARCO MRR@10 \(18.6\!\to\!27.2\).</span></span></li>
+              </ul>
+            </div>
+          </div>
+          <aside class="slide-notes">The unglamorous step that decides everything downstream. First clean and deduplicate — near-duplicate documents waste the shortlist and crowd the top of the ranking. Then chunk: documents longer than the encoder's token limit must be split, typically into five-hundred-to-thousand-token pieces with ten-to-twenty-percent overlap so a key sentence is never severed at a boundary. Finally, document expansion: docTTTTTquery uses a T5 to generate the queries a passage would answer and appends them before indexing, which lifts MS MARCO MRR from eighteen-six to twenty-seven-two by pushing the neural work to index time. Retrieval quality is capped here — garbage in, garbage in the index.</aside>
+        </section>

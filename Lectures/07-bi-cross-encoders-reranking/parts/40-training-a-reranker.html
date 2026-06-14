@@ -1,0 +1,19 @@
+        <section class="slide" data-type="definition" data-screen-label="40 Training the Judge">
+          <div class="slide-header">
+            <h2><span lang="ru">Как обучают Судью</span><span lang="en">Training the Judge</span></h2>
+            <span class="slide-kicker"><span lang="ru">pointwise BCE + добытые трудные негативы</span><span lang="en">pointwise BCE + mined hard negatives</span></span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag"><span lang="ru">Рецепт</span><span lang="en">Recipe</span></span>
+            <div class="def-term"><span lang="ru">Кросс-энкодер: классификация пары</span><span lang="en">A cross-encoder is pair classification</span></div>
+            <div class="def-body">
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Pointwise.</strong> <span lang="ru">Размеченные \((q,d,\text{label})\), бинарная кросс-энтропия на \([\text{CLS}]\)&nbsp;&mdash; рецепт monoBERT. Просто и сильно.</span><span lang="en">Labeled \((q,d,\text{label})\), binary cross-entropy on \([\text{CLS}]\) &mdash; the monoBERT recipe. Simple and strong.</span></span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong><span lang="ru">Сначала добудь негативы.</span><span lang="en">Mine negatives first.</span></strong> <span lang="ru">Быстрый би-энкодер достаёт трудные кандидаты&nbsp;&mdash; на них Судья и учится отделять близкое от релевантного.</span><span lang="en">A fast bi-encoder fetches hard candidates &mdash; that is what teaches the Judge to separate near from relevant.</span></span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Pairwise / listwise.</strong> <span lang="ru">RankNet по парам или KL к учителю&nbsp;&mdash; когда есть более богатый сигнал (см. S32).</span><span lang="en">RankNet pairs or KL to a teacher &mdash; when richer signal is available (see S32).</span></span></li>
+              </ul>
+              <p class="small muted"><span lang="ru">sentence-transformers v4 (<code>CrossEncoderTrainer</code>) делает это рутиной: дообучи реранкер под свой домен за вечер.</span><span lang="en">sentence-transformers v4 (<code>CrossEncoderTrainer</code>) makes this routine: fine-tune a reranker for your domain in an evening.</span></p>
+            </div>
+          </div>
+          <aside class="slide-notes">Training the reranker is simpler than training the retriever, because a cross-encoder is just a pair classifier. The monoBERT recipe is pointwise binary cross-entropy on the CLS token over labeled query-document pairs, and it remains a very strong baseline. The one subtlety that matters: mine hard negatives with a fast bi-encoder first, because a reranker only learns to discriminate if it is trained on candidates that are genuinely confusable, not random easy ones. When you have richer signal you can move to pairwise RankNet or listwise KL distillation from a stronger teacher, as on slide thirty-two. And in practice the sentence-transformers version-four trainer makes fine-tuning a domain reranker an evening's work.</aside>
+        </section>

@@ -1,0 +1,36 @@
+        <section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="36 In-batch negatives">
+          <div class="slide-header">
+            <h2><span lang="ru">Негативы из батча</span><span lang="en">In-batch negatives</span></h2>
+            <span class="slide-kicker"><span lang="ru">диагональ&nbsp;&mdash; позитив; остальное в строке&nbsp;&mdash; бесплатные негативы</span><span lang="en">diagonal = positive; the rest of the row = free negatives</span></span>
+          </div>
+          <div class="widget-mount" data-widget="in-batch-negatives"></div>
+          <script class="widget-data" type="application/json">
+          {
+            "data": {
+              "toy": {
+                "tau": 0.2,
+                "queries": ["river bank", "stock market", "moon landing", "jazz piano"],
+                "docs": ["a beaver by the river", "shares rose on the exchange", "Apollo reached the moon", "a smoky jazz club"],
+                "sims": [[0.82,0.21,0.08,0.12],[0.18,0.78,0.1,0.15],[0.07,0.12,0.85,0.09],[0.14,0.16,0.11,0.74]],
+                "softmax": [[0.9072,0.043,0.0224,0.0274],[0.0442,0.8881,0.0296,0.0381],[0.0189,0.0243,0.9358,0.0209],[0.0434,0.0479,0.0373,0.8713]],
+                "diag": [0.82,0.78,0.85,0.74]
+              }
+            },
+            "labels": {
+              "role": "img",
+              "alt": "A batch of matched query-document pairs scored against each other: the diagonal is the positive, the rest of each row are in-batch negatives, and a row softmax is the InfoNCE target.",
+              "gridHead": "one batch: query × document similarities",
+              "softHead": "softmax(sim / τ)",
+              "posLabel": "diagonal = the positive (q_i, d_i)",
+              "negLabel": "off-diagonal = in-batch negatives (free)",
+              "lossLine": "L = −Σ log P⁺",
+              "s0": "A training batch is B matched (query, document) pairs — the diagonal positives.",
+              "s1": "Score every query against every document: a B×B grid; the off-diagonal docs are free negatives.",
+              "s2": "Diagonal = positives; the rest of each row = in-batch negatives. Bigger batch = more (harder) negatives.",
+              "s3": "A row softmax at temperature τ is the InfoNCE target: push each row's mass onto the diagonal."
+            }
+          }
+          </script>
+          <p class="viz-caption"><span lang="ru">Один батч из \(B\) пар: <strong>диагональ</strong>&nbsp;&mdash; истинные соответствия (позитивы), вся остальная строка&nbsp;&mdash; <strong>негативы из батча</strong> (бесплатно). Софтмакс по строке&nbsp;&mdash; цель InfoNCE; больше батч &rarr; больше негативов &rarr; лучше Разведчик (callback L6).</span><span lang="en">One batch of \(B\) pairs: the <strong>diagonal</strong> is the true matches (positives), the rest of each row are <strong>in-batch negatives</strong> (free). The row softmax is the InfoNCE target; bigger batch &rarr; more negatives &rarr; a better Scout (callback L6).</span></p>
+          <aside class="slide-notes">The in-batch trick, made live. Step zero: a batch is B matched query-document pairs, the diagonal. Step one: score every query against every document in the batch, a B-by-B grid — and the off-diagonal cells are negatives you got for free, with no extra forward pass. Step two: the diagonal is the positives, the rest of each row are in-batch negatives, which is exactly why a bigger batch gives more and harder negatives. Step three: a row softmax at temperature tau is the InfoNCE target, and training pushes each row's probability mass onto the diagonal positive. This is the picture behind the batch-size lever from the contrastive-objective slide.</aside>
+        </section>

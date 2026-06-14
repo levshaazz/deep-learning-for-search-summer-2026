@@ -1,0 +1,40 @@
+        <section class="slide" data-type="viz" data-screen-label="22 Matryoshka — one vector, many lengths">
+          <div class="slide-header">
+            <h2><span lang="ru">Matryoshka: один вектор&nbsp;&mdash; много длин</span><span lang="en">Matryoshka: one vector, many lengths</span></h2>
+            <span class="slide-kicker"><span lang="ru">первые \(k\) измерений&nbsp;&mdash; уже полноценный эмбеддинг</span><span lang="en">the first \(k\) dimensions are already a usable embedding</span></span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1280 470" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="A 768-dimension embedding shown as a bar; truncating to the first 512 or 256 dimensions keeps almost all of the MTEB quality, so the index can be 3 times smaller for about one point of quality">
+              <g font-family="var(--font-sans)">
+                <text x="90" y="150" font-size="24" fill="var(--ink-2)"><tspan font-weight="700">768-dim</tspan> vector — train it nested</text>
+                <!-- nested prefix bar -->
+                <rect x="90"  y="186" width="65"  height="74" fill="var(--accent, #2A6FDB)"/>
+                <rect x="155" y="186" width="65"  height="74" fill="var(--accent, #2A6FDB)" opacity="0.82"/>
+                <rect x="220" y="186" width="130" height="74" fill="var(--accent, #2A6FDB)" opacity="0.62"/>
+                <rect x="350" y="186" width="260" height="74" fill="var(--accent, #2A6FDB)" opacity="0.42"/>
+                <rect x="610" y="186" width="260" height="74" fill="var(--accent, #2A6FDB)" opacity="0.26"/>
+                <rect x="90"  y="186" width="780" height="74" fill="none" stroke="var(--accent-ink, #1B4FA0)" stroke-width="2"/>
+                <!-- dim ticks BELOW the bar (never on it) -->
+                <g font-family="var(--font-mono)" font-size="19" fill="var(--ink-3)" text-anchor="middle">
+                  <text x="155" y="290">64</text>
+                  <text x="220" y="290">128</text>
+                  <text x="350" y="290">256</text>
+                  <text x="610" y="290">512</text>
+                  <text x="870" y="290">768</text>
+                </g>
+                <text x="90" y="330" font-size="19" fill="var(--ink-3)"><tspan font-style="italic">truncate &amp; re-normalize — no retraining</tspan></text>
+                <!-- readout panel (right) -->
+                <rect x="930" y="150" width="300" height="200" rx="14" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+                <text x="950" y="186" font-size="20" font-weight="700" fill="var(--accent-ink)">nomic-embed-v1.5</text>
+                <g font-family="var(--font-mono)" font-size="22" fill="var(--accent-ink)">
+                  <text x="950" y="224">768 dims → 62.3</text>
+                  <text x="950" y="258">512 dims → 62.0</text>
+                  <text x="950" y="292">256 dims → 61.0</text>
+                </g>
+                <text x="950" y="330" font-size="16" fill="var(--ink-2)">MTEB-en · −1 pt, 3× smaller</text>
+              </g>
+            </svg>
+          </div>
+          <p class="viz-caption"><span lang="ru">Matryoshka-обучение (Kusupati 2022) кладёт грубую информацию в <strong>первые</strong> измерения. Усечёшь \(768\!\to\!256\)&nbsp;&mdash; индекс втрое меньше, качество падает на ~1 пункт. OpenAI text-embedding-3-large на 256 измерениях обходит ada-002 на 1536.</span><span lang="en">Matryoshka training (Kusupati 2022) packs coarse information into the <strong>first</strong> dimensions. Truncate \(768\!\to\!256\) and the index is 3× smaller for about one point of quality. OpenAI text-embedding-3-large at 256 dims beats ada-002 at 1536.</span></p>
+          <aside class="slide-notes">Matryoshka representation learning, the trick that decouples dimension from quality. You train so that the first k coordinates are themselves a valid embedding — coarse-to-fine, like nested dolls. Then at deploy time you truncate to the budget you can afford and re-normalize, with no retraining. nomic at 512 dims loses a quarter of a point versus 768, and at 256 about one point — for a three-times-smaller index. OpenAI exposes this as the dimensions parameter, and their large model truncated to 256 still beats the old ada-002 at 1536. This is the dimension-versus-cost dial from the previous slide, made real.</aside>
+        </section>
