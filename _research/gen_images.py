@@ -777,6 +777,41 @@ JOBS = [
      "course-blue on off-white. The hand-off is the dominant action. Fills ≥85% of canvas width. NO "
      "Serega, so NO green anywhere. ABSOLUTELY NO words, letters, numbers, or labels anywhere — no "
      "caption, no title."),
+    ("L7", "L7/L7-09-embedder-zoo.png", "16:9", False,
+     "THE EMBEDDER ZOO — choosing a Scout from a whole family. A ROSTER / line-up of many SCOUT "
+     "figures of visibly DIFFERENT builds and sizes (tall, short, broad, lean — a varied species of "
+     "scouts) standing shoulder to shoulder in a row, as if being reviewed for selection. ONE scout "
+     "near the centre is picked out, lit in warm-orange and stepped half a pace forward (the chosen "
+     "model). The rest are black ink + course-blue on off-white. Reads 'a family of scouts to choose "
+     "from, pick the right one'. Fills ≥85% of canvas width. NO Serega, so NO green anywhere; "
+     "warm-orange ONLY on the single chosen scout. ABSOLUTELY NO words, letters, numbers, or labels "
+     "anywhere — figures unlabelled, no caption, no title."),
+    ("L7", "L7/L7-10-the-forge.png", "16:9", False,
+     "THE FORGE — how Scouts and Judges are made (training). A blacksmith's FORGE / training ground "
+     "where a smith-figure hammers a half-formed SCOUT figure into shape on an ANVIL, sparks flying; "
+     "beside it a JUDGE figure is being drilled. A sense of practice, shaping, repetition. Tongs, "
+     "anvil, a glowing billet. The sparks and the glow of the hot metal are the ONLY warm-orange "
+     "accents; the smith, anvil, scout and judge are black ink + course-blue on off-white. Reads "
+     "'these figures are forged and trained, not found'. Fills ≥85% of canvas width. NO Serega, so NO "
+     "green anywhere. ABSOLUTELY NO words, letters, numbers, or labels anywhere — no caption, no title."),
+    ("L7", "L7/L7-11-the-archive.png", "16:9", False,
+     "THE ARCHIVE — building the index offline. A VAST pre-built ARCHIVE: towering rows of shelves and "
+     "a giant card-catalog being filled and organised by a few librarian-figures who file long rows of "
+     "identical cards into the index. NO reader, NO query present — this is build-time, done in advance. "
+     "Receding shelves to a vanishing point convey scale. One warm-orange accent on the single card "
+     "currently being filed; shelves, cards and librarians are black ink + course-blue on off-white. "
+     "Reads 'the whole corpus filed away in advance, before any question'. Fills ≥85% of canvas width. "
+     "NO Serega, so NO green anywhere. ABSOLUTELY NO words, letters, numbers, or labels anywhere — the "
+     "cards are blank, no caption, no title."),
+    ("L7", "L7/L7-12-the-product.png", "16:9", False,
+     "THE PRODUCT — the cascade inside a real search / RAG assistant. LEFT: the SCOUT→JUDGE hand-off (a "
+     "few warm-orange shortlist dots passing from blue scouts to a judge's bench). RIGHT: that feeds a "
+     "single ANSWER DESK where an assistant-figure hands a finished ANSWER SHEET to a waiting USER "
+     "figure; a small warm-orange CITATION TAG is clipped to the sheet (the grounding). The flow reads "
+     "left→right: sweep → judge → deliver a sourced answer. Warm-orange ONLY on the shortlist dots and "
+     "the citation tag; everyone and everything else black ink + course-blue on off-white. Fills ≥85% "
+     "of canvas width. NO Serega, so NO green anywhere. ABSOLUTELY NO words, letters, numbers, or "
+     "labels anywhere — the answer sheet is blank, no caption, no title."),
 
     # ---- course cover (banner + GitHub social card) ----
     ("char", "_char/cover.png", "16:9", True,

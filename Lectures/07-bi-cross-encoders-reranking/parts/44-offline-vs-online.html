@@ -1,0 +1,28 @@
+        <section class="slide" data-type="two-col" data-screen-label="44 Offline vs online">
+          <div class="slide-header">
+            <h2><span lang="ru">Офлайн vs онлайн</span><span lang="en">Offline vs online</span></h2>
+            <span class="slide-kicker"><span lang="ru">что и на каких часах считается&nbsp;&mdash; build-time против query-time</span><span lang="en">which costs run on which clock &mdash; build-time vs query-time</span></span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3><span lang="ru">Офлайн · build-time</span><span lang="en">Offline · build-time</span></h3>
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">приём &rarr; чистка/дедуп &rarr; чанкинг &rarr; эмбеддинг корпуса &rarr; ANN-индекс</span><span lang="en">ingest &rarr; clean/dedup &rarr; chunk &rarr; embed corpus &rarr; ANN index</span></span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">обучение/дообучение моделей; переиндексация при дрейфе</span><span lang="en">train/fine-tune models; re-index on drift</span></span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">оценка офлайн: <strong>BEIR / MTEB</strong></span><span lang="en">offline eval: <strong>BEIR / MTEB</strong></span></span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">дорого, но <em>один раз</em> &rarr; амортизируется</span><span lang="en">expensive, but paid <em>once</em> &rarr; amortized</span></span></li>
+              </ul>
+            </div>
+            <div class="twocol-col">
+              <h3><span lang="ru">Онлайн · query-time</span><span lang="en">Online · query-time</span></h3>
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">эмбед запроса &rarr; retrieve (Разведчики) &rarr; rerank (Судьи) &rarr; сборка</span><span lang="en">embed query &rarr; retrieve (Scouts) &rarr; rerank (Judges) &rarr; assemble</span></span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">это <strong>каскад</strong>; здесь живёт бюджет латентности</span><span lang="en">this is the <strong>cascade</strong>; the latency budget lives here</span></span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">оценка онлайн: <strong>A/B</strong> по кликам/конверсии (callback L4)</span><span lang="en">online eval: <strong>A/B</strong> on clicks/conversion (callback L4)</span></span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">дёшево на запрос&nbsp;&mdash; потому что индекс готов</span><span lang="en">cheap per query &mdash; because the index is ready</span></span></li>
+              </ul>
+            </div>
+          </div>
+          <p class="viz-caption"><span lang="ru">Знай, на каких часах считается каждая стоимость. Тяжёлое (эмбеддинг корпуса, обучение, ANN) &mdash; офлайн, один раз. Лёгкое (один эмбед запроса + поиск + реранк коротыша) &mdash; онлайн, на запрос. Офлайн меряем BEIR/MTEB, онлайн&nbsp;&mdash; A/B.</span><span lang="en">Know which clock each cost runs on. The heavy work (embedding the corpus, training, ANN) is offline, once. The light work (one query encode + search + rerank a shortlist) is online, per query. Offline you measure on BEIR/MTEB; online you A/B test.</span></p>
+          <aside class="slide-notes">The single most clarifying distinction in production retrieval: which clock a cost runs on. Build-time, offline, you ingest, clean, chunk, embed the whole corpus, build the ANN index, and train or fine-tune the models — expensive, but paid once and amortized over every query, and evaluated offline on BEIR and MTEB. Query-time, online, you embed the single query, retrieve with the Scouts, rerank with the Judges, and assemble — that is the cascade, and the latency budget lives entirely here, evaluated online by A/B testing clicks and conversions, the callback to Lecture 4. Confuse the two and you will either blow your latency budget or rebuild your index on every request.</aside>
+        </section>

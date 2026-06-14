@@ -98,6 +98,7 @@ BIENC    = load(DATA, "l7-biencoder.json")      # toy dot/cos (0.8165/0) + real 
 CROSSENC = load(DATA, "l7-crossencoder.json")   # toy logit→σ (0.9168/0.2497) + real distractor (Judge 0.9998 vs 0.1159, Scout 0.8434 vs 0.6875)
 CASCADE  = load(DATA, "l7-cascade.json")         # stages 10⁶→10³→10; BM25 nDCG 0.6766 → reranked 0.9558 (real cross-encoder on the L4 8-doc set)
 MSMARCO  = load(DATA, "l7-msmarco.json")         # frozen MS MARCO subset: retrieve MRR@10 0.5482 → rerank 0.6732 (rerank helps)
+BENCH7   = load(DATA, "l7-bench.json")           # CITED reranker benchmarks: small cross-encoder MRR@10 (L6 39.01 vs L12 39.02); LLM-reranker nDCG@10 (gpt-4 75.59, RankZephyr 78.16)
 
 # ── [P] PROVENANCE: curated data/ must equal the generator artifact it was lifted from ──────────
 def provenance_checks(report):
@@ -476,7 +477,7 @@ def claims():
              anchor=r"\b(32\.3)\s*%", must=True),
         dict(id="top-3 %",   deck="L1", value=CLICK["top3Pct"], tol=0.2,
              anchor=r"\b(60\.6)\b", must=True),
-    ] + l3_claims() + l4_claims() + l5_claims() + l6_claims()
+    ] + l3_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims()
 
 # ── [C] BOOK CLAIMS: the built Book PROSE must show the same flagship numbers as data/ ───────────
 # The Book restates the decks' worked examples in its own prose/KaTeX, so the deck anchors do NOT
@@ -577,6 +578,24 @@ def book_claims():
                     anchor=r'cheque"\) sit at \\\(([\d.]+)\\\), nearly on top', must=True))
     out += l7_book_claims()
     return out
+
+# ── [C] L7 DECK claims: the cited reranker benchmarks the deck DISPLAYS (≥2-decimal → coverage-gated).
+#    value sourced from data/l7-bench.json; anchored to the rendered deck tables (slides 31 & 33). These
+#    values also COVER any Book restatement (coverage-guard's gated set is claims()+book_claims()). ──
+def l7_deck_claims():
+    R, L = BENCH7["rerankers"], BENCH7["llmRerankers"]
+    C = lambda id, value, anchor: dict(id=id, deck="L7", value=value, tol=1e-4, anchor=anchor, must=True)
+    return [
+        # slide 31 — small cross-encoder MRR@10 (the L6≈L12, ~2× cost punchline)
+        C("L7 rr L6 MRR",  R["miniLM6"]["mrrDev"],  r"<strong>([\d.]+)</strong> · 1800"),
+        C("L7 rr L12 MRR", R["miniLM12"]["mrrDev"], r"<strong>([\d.]+)</strong> · 960"),
+        # slide 33 — LLM-reranker nDCG@10 on TREC DL19
+        C("L7 llm bm25",    L["bm25"],       r"<td>BM25</td><td>([\d.]+)</td>"),
+        C("L7 llm monoT5",  L["monoT5_3b"],  r"<td>monoT5-3B</td><td>([\d.]+)</td>"),
+        C("L7 llm gpt35",   L["gpt35"],      r"<td>GPT-3\.5 \(RankGPT\)</td><td>([\d.]+)</td>"),
+        C("L7 llm gpt4",    L["gpt4"],       r"<td>GPT-4 \(RankGPT\)</td><td>([\d.]+)</td>"),
+        C("L7 llm zephyr",  L["rankZephyr"], r"RankZephyr-7B</td><td>([\d.]+)</td>"),
+    ]
 
 # ── [C] L7 BOOK claims: the L7 chapter prose states every flagship number; gate each against data/.
 #    Book-only (the deck restates them on its own slides, gated separately as those slides are authored).
