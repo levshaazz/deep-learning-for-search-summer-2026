@@ -1,0 +1,28 @@
+        <section class="slide" data-type="viz" data-screen-label="23 Quantization — int8 &amp; binary">
+          <div class="slide-header">
+            <h2><span lang="ru">Квантование: int8 и бинарные эмбеддинги</span><span lang="en">Quantization: int8 &amp; binary embeddings</span></h2>
+            <span class="slide-kicker"><span lang="ru">меньше байт на вектор &rarr; дешевле индекс, быстрее поиск</span><span lang="en">fewer bytes per vector &rarr; cheaper index, faster search</span></span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1280 470" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="Per-vector storage at 1024 dimensions: float32 is 4096 bytes, int8 is 1024 bytes (4 times smaller, over 99% quality), binary is 128 bytes (32 times smaller, about 96% quality after rescoring and around 25 times faster search)">
+              <g font-family="var(--font-sans)">
+                <text x="60" y="120" font-size="22" fill="var(--ink-3)"><tspan font-family="var(--font-mono)">per vector @ 1024-dim</tspan></text>
+                <!-- bars; lengths ∝ sqrt(bytes) so binary stays visible; exact bytes labelled to the right -->
+                <!-- float32 -->
+                <text x="290" y="172" font-size="22" font-weight="700" fill="var(--ink)" text-anchor="end" font-family="var(--font-mono)">float32</text>
+                <rect x="305" y="150" width="760" height="34" rx="6" fill="var(--ink-3, #6B7280)"/>
+                <text x="1080" y="173" font-size="20" fill="var(--ink-2)" font-family="var(--font-mono)">4096 B · 1×</text>
+                <!-- int8 -->
+                <text x="290" y="252" font-size="22" font-weight="700" fill="var(--ink)" text-anchor="end" font-family="var(--font-mono)">int8</text>
+                <rect x="305" y="230" width="380" height="34" rx="6" fill="var(--accent, #2A6FDB)"/>
+                <text x="700" y="253" font-size="20" fill="var(--accent-ink)" font-family="var(--font-mono)">1024 B · 4× · &gt;99%</text>
+                <!-- binary -->
+                <text x="290" y="332" font-size="22" font-weight="700" fill="var(--ink)" text-anchor="end" font-family="var(--font-mono)">binary</text>
+                <rect x="305" y="310" width="134" height="34" rx="6" fill="var(--warm, #E8743B)"/>
+                <text x="454" y="333" font-size="20" fill="var(--warm-ink, #B4521F)" font-family="var(--font-mono)">128 B · 32× · ~96%</text>
+              </g>
+            </svg>
+          </div>
+          <p class="viz-caption"><span lang="ru">Бинарные эмбеддинги&nbsp;&mdash; <strong>32×</strong> меньше памяти и <strong>~25×</strong> быстрее поиск (расстояние Хэмминга), теряя ~4% качества; int8&nbsp;&mdash; 4× меньше, &gt;99%. Приём: ищем по квантованным, затем <em>пере-оцениваем</em> топ-\(k\) в полной точности. Так Вики из 41M текстов ищется за ~1 c на CPU.</span><span lang="en">Binary embeddings are <strong>32×</strong> smaller and search <strong>~25×</strong> faster (Hamming distance) for ~4% quality; int8 is 4× smaller at &gt;99%. The trick: search the quantized vectors, then <em>rescore</em> the top-\(k\) at full precision. That searches Wikipedia&rsquo;s 41M texts in ~1 s on CPU.</span></p>
+          <aside class="slide-notes">Quantization is the other lever on index cost. A thousand-and-twenty-four-dimension float32 vector is four kilobytes; cast it to int8 and it is one kilobyte, four times smaller, with over ninety-nine percent of retrieval quality. Cast it all the way to one bit per dimension — binary — and it is one hundred twenty-eight bytes, thirty-two times smaller, with search about twenty-five times faster because comparisons become Hamming distance, for roughly a four percent quality cost. The standard recipe recovers most of that: retrieve on the quantized vectors, then rescore the top-k at full precision. Hugging Face showed this searches all forty-one million Wikipedia texts in about a second on a CPU.</aside>
+        </section>

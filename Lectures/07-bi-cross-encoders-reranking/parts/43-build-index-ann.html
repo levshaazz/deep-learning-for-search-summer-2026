@@ -1,0 +1,19 @@
+        <section class="slide" data-type="definition" data-screen-label="43 Build the index (ANN)">
+          <div class="slide-header">
+            <h2><span lang="ru">Собрать индекс: ANN</span><span lang="en">Build the index: ANN</span></h2>
+            <span class="slide-kicker"><span lang="ru">заэмбедить корпус &rarr; приближённый поиск соседей &rarr; мост в L9</span><span lang="en">embed the corpus &rarr; approximate nearest neighbours &rarr; bridge to L9</span></span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag"><span lang="ru">Офлайн, шаг 2</span><span lang="en">Offline, step 2</span></span>
+            <div class="def-term"><span lang="ru">Разведчик линеен&nbsp;&mdash; ANN делает его сублинейным</span><span lang="en">The Scout is linear &mdash; ANN makes it sub-linear</span></div>
+            <div class="def-body">
+              <p><span lang="ru">Прогоняем би-энкодер по <em>всему</em> корпусу и складываем векторы в индекс приближённого поиска. Перебор \(N\) скалярных произведений на запрос&nbsp;&mdash; линеен; ANN снижает это до \(\sim\!\log N\).</span><span lang="en">Run the bi-encoder over the <em>entire</em> corpus and store the vectors in an approximate-nearest-neighbour index. Scanning \(N\) dot-products per query is linear; ANN cuts it toward \(\sim\!\log N\).</span></p>
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>HNSW</strong>&nbsp;&mdash; <span lang="ru">граф «маленького мира»; ручка \(M\) (связей, \(\approx\!16\)&ndash;\(48\)) и \(efSearch\) крутит полноту против латентности.</span><span lang="en">a small-world graph; \(M\) (links, \(\approx\!16\)&ndash;\(48\)) and \(efSearch\) trade recall against latency.</span></span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>IVF-PQ</strong>&nbsp;&mdash; <span lang="ru">ячейки (probe немногие) + сжатие до \(\sim\!8\) байт/вектор для миллиардного масштаба.</span><span lang="en">cells (probe a few) + compression to \(\sim\!8\) bytes/vector for billion-scale.</span></span></li>
+              </ul>
+              <p class="small muted"><span lang="ru">Полнота против латентности&nbsp;&mdash; ручка: на Sift1M полнота растёт от \(\sim\!80\%\) к \(\sim\!100\%\) с ростом \(efSearch\). Подробно&nbsp;&mdash; <strong>L9</strong>.</span><span lang="en">Recall vs latency is a dial: on Sift1M, recall climbs from \(\sim\!80\%\) toward \(\sim\!100\%\) as \(efSearch\) rises. The full story is <strong>L9</strong>.</span></p>
+            </div>
+          </div>
+          <aside class="slide-notes">The index build, and the bridge to the ANN lecture. Once the corpus is prepared, the bi-encoder embeds every document and the vectors go into an approximate-nearest-neighbour index. This is what fixes the Scout's one remaining weakness — the linear sweep. A brute-force scan is order N dot products per query; ANN brings it toward log N. The two families: HNSW builds a navigable small-world graph, with M controlling links and memory and efSearch tuning recall against latency at query time; IVF-PQ partitions space into cells you probe a few of, and product-quantizes vectors down to about eight bytes each for billion-scale corpora. Recall versus latency is a dial — on the standard Sift benchmark, eighty percent recall costs about a millisecond and full recall about fifty. Lecture 9 is the whole story.</aside>
+        </section>

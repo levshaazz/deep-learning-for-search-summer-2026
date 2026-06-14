@@ -1,0 +1,38 @@
+        <section class="slide" data-type="viz" data-screen-label="37 Hard negatives">
+          <div class="slide-header">
+            <h2><span lang="ru">Трудные негативы&nbsp;&mdash; и ловушка «твинов»</span><span lang="en">Hard negatives &mdash; and the &ldquo;twin&rdquo; trap</span></h2>
+            <span class="slide-kicker"><span lang="ru">случайные → BM25 → ANCE → денойзинг (RocketQA), MRR@10</span><span lang="en">random → BM25 → ANCE → denoised (RocketQA), MRR@10</span></span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1180 470" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="RocketQA ablation MRR@10: in-batch negatives 32.4, cross-batch 33.3, un-denoised hard negatives drop to 26.0, denoised hard negatives rise to 36.4">
+              <g font-family="var(--font-sans)">
+                <!-- baseline -->
+                <line x1="120" y1="372" x2="1100" y2="372" stroke="var(--rule-strong)" stroke-width="2"/>
+                <text x="92" y="378" font-size="18" fill="var(--ink-3)" text-anchor="end" font-family="var(--font-mono)">MRR@10</text>
+                <!-- bars: barH = (v-22)*16 ; baseline 372 -->
+                <!-- in-batch 32.4 -->
+                <rect x="170" y="206" width="170" height="166" rx="5" fill="var(--accent, #2A6FDB)"/>
+                <text x="255" y="196" font-size="24" font-weight="700" fill="var(--accent-ink)" text-anchor="middle" font-family="var(--font-mono)">32.4</text>
+                <!-- cross-batch 33.3 -->
+                <rect x="410" y="190" width="170" height="182" rx="5" fill="var(--accent, #2A6FDB)"/>
+                <text x="495" y="180" font-size="24" font-weight="700" fill="var(--accent-ink)" text-anchor="middle" font-family="var(--font-mono)">33.3</text>
+                <!-- un-denoised hard 26.0 (regression) -->
+                <rect x="650" y="308" width="170" height="64" rx="5" fill="var(--warm, #E8743B)"/>
+                <text x="735" y="298" font-size="24" font-weight="700" fill="var(--warm-ink, #B4521F)" text-anchor="middle" font-family="var(--font-mono)">26.0</text>
+                <text x="735" y="276" font-size="17" fill="var(--warm-ink, #B4521F)" text-anchor="middle">&#9888; &minus;6 regression</text>
+                <!-- denoised hard 36.4 -->
+                <rect x="890" y="138" width="170" height="234" rx="5" fill="var(--accent, #2A6FDB)"/>
+                <text x="975" y="128" font-size="24" font-weight="700" fill="var(--accent-ink)" text-anchor="middle" font-family="var(--font-mono)">36.4</text>
+                <!-- category labels below baseline -->
+                <g font-size="18" fill="var(--ink-2)" text-anchor="middle">
+                  <text x="255" y="400">in-batch</text>
+                  <text x="495" y="400">cross-batch</text>
+                  <text x="735" y="400">hard neg</text><text x="735" y="422" font-size="15" fill="var(--ink-3)">(un-denoised)</text>
+                  <text x="975" y="400">hard neg</text><text x="975" y="422" font-size="15" fill="var(--ink-3)">(denoised)</text>
+                </g>
+              </g>
+            </svg>
+          </div>
+          <p class="viz-caption"><span lang="ru">Лучше негативы&nbsp;&mdash; лучше Разведчик: случайные → BM25-негативы (DPR) → глобальные из ANN-индекса (ANCE) → кросс-батч + <strong>денойзинг</strong> (RocketQA). Но «сырые» трудные негативы прячут <em>ложные</em> (на деле релевантные) и <strong>роняют</strong> MRR с \(32.4\) до \(26.0\); кросс-энкодер их отсеивает &rarr; \(36.4\).</span><span lang="en">Better negatives, better Scout: random → BM25 negatives (DPR) → global ANN-index negatives (ANCE) → cross-batch + <strong>denoising</strong> (RocketQA). But raw hard negatives hide <em>false</em> ones (actually relevant) and <strong>drop</strong> MRR from \(32.4\) to \(26.0\); a cross-encoder filters them &rarr; \(36.4\).</span></p>
+          <aside class="slide-notes">The whole history of dense retrieval is a history of better negatives. Random and in-batch negatives are easy; DPR added one BM25 hard negative; ANCE mined global hard negatives from an asynchronously refreshed index of the entire corpus; RocketQA pushed cross-batch negatives and, crucially, denoised them. The bar chart is RocketQA's own ablation. Cross-batch lifts MRR slightly over in-batch. But naive hard negatives — the top retrieved documents — secretly contain false negatives that are actually relevant, and training on them regresses MRR by six points, from thirty-two four down to twenty-six. Using a cross-encoder to filter those out turns the same hard negatives into a gain, up to thirty-six four. The lesson: a hard negative that is really a twin of the answer poisons training.</aside>
+        </section>
