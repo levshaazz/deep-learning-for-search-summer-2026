@@ -1,0 +1,150 @@
+{
+  "_doc": "Learned sparse / SPLADE. Toy = hand-computable weights w = log(1+ReLU(logit)) over a 6-word vocabulary + the sparse dot (stdlib). The query 'river flood' grows EXPANSION terms bank/water (positive weight, not literal). dot = 3.0494 is round-then-sum (each displayed product rounded to 4 dp, then summed; sum-then-round would give 3.0493). Real = frozen SPLADE top terms, spliced by _research/gen_l8_real.py.",
+  "_source": "_research/gen_l8.py (toy, stdlib) + gen_l8_real.py (SPLADE checkpoint, /usr/bin/python3)",
+  "toy": {
+    "vocab": [
+      "river",
+      "bank",
+      "flood",
+      "water",
+      "loan",
+      "money"
+    ],
+    "query": {
+      "text": "river flood",
+      "logits": [
+        2.0,
+        0.5,
+        2.5,
+        1.2,
+        -1.0,
+        -2.0
+      ],
+      "relu": [
+        2.0,
+        0.5,
+        2.5,
+        1.2,
+        0.0,
+        0.0
+      ],
+      "weights": [
+        1.0986,
+        0.4055,
+        1.2528,
+        0.7885,
+        0.0,
+        0.0
+      ],
+      "expansion": [
+        "bank",
+        "water"
+      ]
+    },
+    "doc": {
+      "text": "the riverbank overflowed with water",
+      "weights": [
+        0.9,
+        0.7,
+        0.6,
+        1.3,
+        0.0,
+        0.0
+      ]
+    },
+    "terms": [
+      {
+        "t": "river",
+        "q": 1.0986,
+        "d": 0.9,
+        "prod": 0.9887
+      },
+      {
+        "t": "bank",
+        "q": 0.4055,
+        "d": 0.7,
+        "prod": 0.2839
+      },
+      {
+        "t": "flood",
+        "q": 1.2528,
+        "d": 0.6,
+        "prod": 0.7517
+      },
+      {
+        "t": "water",
+        "q": 0.7885,
+        "d": 1.3,
+        "prod": 1.0251
+      }
+    ],
+    "dot": 3.0494
+  },
+  "real": {
+    "model": "naver/splade-cocondenser-ensembledistil",
+    "query": "river flood",
+    "queryTopTerms": [
+      {
+        "term": "river",
+        "weight": 2.8773,
+        "expansion": false
+      },
+      {
+        "term": "flood",
+        "weight": 2.8367,
+        "expansion": false
+      },
+      {
+        "term": "rivers",
+        "weight": 2.5002,
+        "expansion": true
+      },
+      {
+        "term": "flooding",
+        "weight": 2.2237,
+        "expansion": true
+      },
+      {
+        "term": "floods",
+        "weight": 1.3533,
+        "expansion": true
+      },
+      {
+        "term": "storm",
+        "weight": 0.7114,
+        "expansion": true
+      },
+      {
+        "term": "reservoir",
+        "weight": 0.5897,
+        "expansion": true
+      },
+      {
+        "term": "barry",
+        "weight": 0.5559,
+        "expansion": true
+      },
+      {
+        "term": "erosion",
+        "weight": 0.5093,
+        "expansion": true
+      },
+      {
+        "term": "water",
+        "weight": 0.4851,
+        "expansion": true
+      },
+      {
+        "term": "lake",
+        "weight": 0.4667,
+        "expansion": true
+      },
+      {
+        "term": "waterfall",
+        "weight": 0.4232,
+        "expansion": true
+      }
+    ],
+    "note": "MLM-head logits → log(1+ReLU), max-pooled over positions; top-k by weight; eval()+no_grad()+manual_seed(0); committed frozen. 'expansion'=true for non-literal terms."
+  }
+}

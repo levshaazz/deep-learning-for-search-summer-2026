@@ -22,8 +22,9 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const JS = join(ROOT, 'Lectures', 'js');
 const CSS = join(ROOT, 'Lectures', 'css');
 
-// the widgets L7 mounts in its deck slides (id → Lectures/js/<id>.classic.js, IIFE → window.mount<Pascal>)
-const DECK_WIDGETS = ['biencoder', 'crossencoder', 'neural-cascade', 'in-batch-negatives', 'rag-pipeline'];
+// the widgets L7/L8 mount in their deck slides (id → Lectures/js/<id>.classic.js, IIFE → window.mount<Pascal>)
+const DECK_WIDGETS = ['biencoder', 'crossencoder', 'neural-cascade', 'in-batch-negatives', 'rag-pipeline',
+  'colbert-maxsim', 'splade-expansion', 'hybrid-fusion', 'ltr-lambda'];
 
 for (const id of DECK_WIDGETS) {
   await build({

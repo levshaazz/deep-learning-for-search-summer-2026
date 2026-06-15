@@ -1,0 +1,31 @@
+<section class="slide" data-type="viz" data-screen-label="09 ColBERT">
+  <div class="slide-header">
+    <h2>ColBERT</h2>
+    <span class="slide-kicker"><span lang="ru">эмбеддинг на токен; документы — заранее; взаимодействие на запросе</span><span lang="en">an embedding per token; docs precomputed; interact at query time</span></span>
+  </div>
+  <div class="viz-frame">
+    <svg viewBox="0 0 1500 540" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="ColBERT encodes the query and document separately into one embedding per token. Document token vectors are precomputed offline. At query time the query token vectors interact with the cached document token vectors through MaxSim.">
+      <defs><marker id="cb09" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-3)"/></marker></defs>
+      <g font-family="var(--font-sans)">
+        <rect x="600" y="40" width="300" height="74" rx="12" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="3"/>
+        <text x="750" y="84" text-anchor="middle" font-size="26" fill="var(--accent-ink)" font-family="var(--font-mono)">MaxSim(q, d)</text>
+        <line x1="750" y1="210" x2="750" y2="118" stroke="var(--ink-3)" stroke-width="3" marker-end="url(#cb09)"/>
+        <rect x="470" y="212" width="560" height="92" rx="14" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="2.5" stroke-dasharray="8 5"/>
+        <text x="750" y="248" text-anchor="middle" font-size="22" fill="var(--ink-2)" font-weight="700">late interaction — token × token</text>
+        <text x="750" y="282" text-anchor="middle" font-size="18" fill="var(--ink-3)" font-family="var(--font-mono)">Eq ∈ ℝ^(|q|×128) · Ed ∈ ℝ^(|d|×128)</text>
+        <rect x="120" y="392" width="300" height="92" rx="14" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="3"/>
+        <text x="270" y="432" text-anchor="middle" font-size="24" fill="#fff" font-weight="700">query encoder</text>
+        <text x="270" y="462" text-anchor="middle" font-size="18" fill="#fff">one vector per query token</text>
+        <rect x="1080" y="392" width="300" height="92" rx="14" fill="var(--warm, #E8743B)" stroke="var(--warm-ink, #B4521F)" stroke-width="3"/>
+        <text x="1230" y="426" text-anchor="middle" font-size="24" fill="#fff" font-weight="700">doc encoder</text>
+        <text x="1230" y="452" text-anchor="middle" font-size="17" fill="#fff">offline · once · cached</text>
+        <text x="1230" y="474" text-anchor="middle" font-size="17" fill="#fff">one vector per doc token</text>
+        <path d="M 320 392 Q 470 340 540 306" fill="none" stroke="var(--ink-3)" stroke-width="3" marker-end="url(#cb09)"/>
+        <path d="M 1230 392 Q 1060 340 960 306" fill="none" stroke="var(--ink-3)" stroke-width="3" marker-end="url(#cb09)"/>
+      </g>
+    </svg>
+  </div>
+  <p class="viz-caption"><span lang="ru">Каждый токен запроса и документа получает свой 128-мерный вектор (\(E_q \in \mathbb{R}^{|q|\times128}\)). Векторы документа считаются <strong>офлайн</strong> и кэшируются — взаимодействие происходит дёшево, на запросе (отсылка L2: всё — последовательность токенов).</span><span lang="en">Each query and document token gets its own 128-dim vector (\(E_q \in \mathbb{R}^{|q|\times128}\)). The document vectors are computed <strong>offline</strong> and cached — interaction happens cheaply, at query time (callback L2: everything is a sequence of tokens).</span></p>
+  <aside class="slide-notes">Architecture: per-token embeddings, doc precomputed, MaxSim at query time. Shapes E_q ∈ ℝ^(|q|×128).</aside>
+</section>
+
