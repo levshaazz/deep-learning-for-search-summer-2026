@@ -1073,9 +1073,10 @@ JOBS = [
      "small determined smile, toward a HORIZON where faint JUMP-GATE ARCHES and a road lead off-frame "
      "(the bridge to the next quests). The marching host is black ink + course-blue on off-white; "
      "Serega's one raised banner is warm-orange; a faint hint of warm-orange marks the distant jump-gate "
-     "on the horizon; Serega's green tübetey is the ONLY green. One short hand-lettered label on the road "
-     "ahead reads 'ONWARD'. Reads 'one ordered host under Serega's banner, marching toward the road "
-     "ahead'. Fills ≥85% of canvas width."),
+     "on the horizon; Serega's green tübetey is the ONLY green — do NOT add a green alien or any green "
+     "creatures, every marching figure except Serega is bare of green (any cameo creature is course-blue "
+     "or black ink). One short hand-lettered label on the road ahead reads 'ONWARD'. Reads 'one ordered "
+     "host under Serega's banner, marching toward the road ahead'. Fills ≥85% of canvas width."),
 ]
 
 H = {"Authorization": f"Bearer {API_KEY}"}
