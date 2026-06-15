@@ -62,8 +62,34 @@ def splice(path, **blocks):
 
 
 # ═══════════════════════ PART 1 · real ColBERT-style MaxSim ═══════════════════════
-def per_token_embeddings(model_name, texts):
-    """Per-token, L2-normalized last_hidden_state (drop [CLS]/[SEP] padding via attention mask)."""
+def _colbert_projection(torch, model_name):
+    """Load ColBERT's per-token linear projection (768→128, no bias) straight from the checkpoint's
+    state_dict. This is the layer that makes ColBERT 128-dim — the BASE BERT last_hidden_state is 768,
+    and ColBERT applies `h @ linear.weight.T` to every token before MaxSim. Key is `linear.weight`
+    (shape [128, 768]). Returns None if the checkpoint exposes no such layer (→ caller falls back)."""
+    from transformers.utils import cached_file
+    for fname in ("model.safetensors", "pytorch_model.bin"):
+        try:
+            path = cached_file(model_name, fname)
+        except Exception:
+            path = None
+        if not path:
+            continue
+        if fname.endswith(".safetensors"):
+            from safetensors.torch import load_file
+            sd = load_file(path)
+        else:
+            sd = torch.load(path, map_location="cpu", weights_only=False)
+        for key in ("linear.weight", "model.linear.weight", "colbert.linear.weight"):
+            if key in sd:
+                return sd[key].float()                         # (128, 768)
+    return None
+
+
+def per_token_embeddings(model_name, texts, projection=None):
+    """Per-token L2-normalized token embeddings (drop [CLS]/[SEP] padding via attention mask).
+    If `projection` (a [d_out, 768] matrix) is given, apply it to last_hidden_state BEFORE normalizing —
+    this is ColBERT's real 768→128 linear layer, so MaxSim runs on the genuine 128-dim ColBERT vectors."""
     torch = _torch()
     from transformers import AutoTokenizer, AutoModel
     tok = AutoTokenizer.from_pretrained(model_name)
@@ -76,9 +102,11 @@ def per_token_embeddings(model_name, texts):
     for t in texts:
         enc = tok(t, return_tensors="pt", truncation=True, max_length=64)
         with torch.no_grad():
-            h = model(**enc).last_hidden_state[0]              # (T, D)
+            h = model(**enc).last_hidden_state[0]              # (T, 768)
         mask = enc["attention_mask"][0].bool()
         h = h[mask]                                            # keep real tokens
+        if projection is not None:
+            h = h @ projection.T                               # (T, 768) → (T, 128): ColBERT projection
         h = torch.nn.functional.normalize(h, p=2, dim=1)      # L2-normalize per token
         out.append(h)
     return out
@@ -96,21 +124,29 @@ def part1_colbert():
     docRel = "the riverside plain flooded"
     docIrr = "the bank approved a loan"
     used = COLBERT_MODEL
+    projected = False
     try:
-        Eq, Er, Ei = per_token_embeddings(COLBERT_MODEL, [query, docRel, docIrr])
+        torch = _torch()
+        proj = _colbert_projection(torch, COLBERT_MODEL)       # real ColBERT 768→128 linear, or None
+        Eq, Er, Ei = per_token_embeddings(COLBERT_MODEL, [query, docRel, docIrr], projection=proj)
+        projected = proj is not None
     except Exception:
         used = TOKEN_FALLBACK
         Eq, Er, Ei = per_token_embeddings(TOKEN_FALLBACK, [query, docRel, docIrr])
     msr, msi = max_sim(Eq, Er), max_sim(Eq, Ei)
+    dim = int(Eq.shape[1])
     real = {
-        "model": used, "dim": int(Eq.shape[1]), "normalized": True,
+        "model": used, "dim": dim, "projected": projected, "normalized": True,
         "pair": {"query": query, "docRel": docRel, "docIrr": docIrr},
         "maxSimRel": r(msr), "maxSimIrr": r(msi),
-        "note": "per-token L2-normalized embeddings; MaxSim = sum_i max_j cos; eval()+no_grad()+manual_seed(0); "
-                "committed frozen. Toy and real agree on ORDERING (maxSimRel > maxSimIrr), not magnitude.",
+        "note": ("real ColBERT per-token embeddings: BERT last_hidden_state projected 768→128 by the "
+                 "checkpoint's `linear.weight`, then L2-normalized; MaxSim = sum_i max_j cos; "
+                 "eval()+no_grad()+manual_seed(0); committed frozen. Toy and real agree on ORDERING "
+                 "(maxSimRel > maxSimIrr), not magnitude."),
     }
     splice(DATA / "l8-colbert.json", real=real)
-    print(f"[l8-real] colbert  model={used}  maxSimRel={real['maxSimRel']} > maxSimIrr={real['maxSimIrr']}")
+    print(f"[l8-real] colbert  model={used}  dim={dim}  projected={projected}  "
+          f"maxSimRel={real['maxSimRel']} > maxSimIrr={real['maxSimIrr']}")
     return real
 
 

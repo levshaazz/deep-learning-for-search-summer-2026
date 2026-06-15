@@ -673,7 +673,7 @@ def l8_book_claims():
         # the per-pillar flagship worked numbers, restated in the L8 chapter :::calc blocks (EN book).
         C("L8 cb relMaxSim", cb["docRel"]["maxSim"], r"0\.90 \+ 0\.50 \+ 0\.95 = \\mathbf\{([\d.]+)\}"),
         C("L8 cb irrMaxSim", cb["docIrr"]["maxSim"], r"0\.20 \+ 0\.98 \+ 0\.12 = \\mathbf\{([\d.]+)\}"),
-        # real ColBERTv2 authenticity (depth-maxsim-math): same query/docs, MaxSim 3.5462 (rel) > 2.5407 (irr).
+        # real ColBERTv2 authenticity (depth-maxsim-math): same query/docs, 128-dim projected MaxSim 3.0635 (rel) > 1.7809 (irr).
         C("L8 cb realMaxSimRel", cbr["maxSimRel"], r"= \\mathbf\{([\d.]+)\}\\\) for the relevant"),
         C("L8 cb realMaxSimIrr", cbr["maxSimIrr"], r"versus \\\(\\mathbf\{([\d.]+)\}\\\) for the irrelevant"),
         C("L8 sp dot", sp["dot"], r"0\.9887 \+ 0\.2839 \+ 0\.7517 \+ 1\.0251 = \\mathbf\{([\d.]+)\}"),
