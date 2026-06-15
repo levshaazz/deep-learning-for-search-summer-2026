@@ -429,14 +429,13 @@ JOBS = [
      "stack and the tiny two-dot result the single dominant idea."),
 
     # ---- L6 · The Council of Attention (Contextual embeddings · Transformers/Attention · Contrastive) ----
-    # NOTE on the gate (same as L5): image-gate.mjs only tags char/L0/L1/L2 jobs as has_serega for
-    # the green-leak check, so L6 images are treated as NON-Serega by the palette gate. That is FINE
-    # as long as Serega's / Sir-Cosine's green tübetey stays a small element (<2% of canvas, like
-    # every existing Serega plate measures 0.6–1.2%) and NO other green appears anywhere. Every L6
-    # plate therefore: (a) uses ONLY black ink + course-blue + warm-orange on off-white (no
-    # reds/purples/greens except the small cap on Serega/Sir-Cosine when present); (b) bakes in ZERO
-    # hand-lettered text/labels/numbers — the deck overlays its own labels, so these plates are
-    # wordless. CRUCIAL: the payoff plate's caged Lexical Gremlin must match the L1/L3 Gremlin —
+    # BRAND RESTORATION (2026-06-15): the recent units had let Serega fade out. The narrative / analogy /
+    # payoff plates now bring Serega back as the recurring hero (has_serega=True) with Wait-But-Why
+    # hand-lettered humor (a short English label, the odd googly-eyed figure). The pure technical-diagram
+    # plates (attention beams, masks grid, heads arcs, residual highway, hard-negative dots, positional
+    # row) stay clean and wordless — the deck overlays their labels. Palette throughout: black ink +
+    # course-blue #2A6FDB + warm-orange #E8743B on off-white #FBFAF6; GREEN appears ONLY on Serega's
+    # small tübetey. CRUCIAL: the payoff plate's caged Lexical Gremlin must match the L1/L3 Gremlin —
     # small mischievous gremlin, pointy bat-like ears, wild spiky BLUE hair, blue body, big toothy
     # grin, thin noodle limbs (verbatim spec repeated in that scene).
     ("L6", "L6/L6-00-council-of-attention.png", "16:9", True,
@@ -455,20 +454,19 @@ JOBS = [
      "ABSOLUTELY NO words, letters, numbers, or hand-lettered labels anywhere — the seats are "
      "wordless, no caption, no title; the deck adds labels later. This is the lecture centerpiece — "
      "make it evocative, like a round-table council of listeners."),
-    ("L6", "L6/L6-01-bank-two-meanings.png", "16:9", False,
-     "ONE WORD, TWO WORLDS — the polysemy problem, drawn as a single word-card split down the "
-     "middle. CENTER: one blank word-card / placard (NO text on it, just a plain ink-outlined "
-     "rectangle) sitting on a vertical dividing seam that splits the whole frame into two contrasting "
-     "little scenes. LEFT WORLD: a peaceful RIVER-BANK — a curving river with a grassy sloping shore, "
-     "reeds, a little fish, drawn in black ink with course-blue water. RIGHT WORLD: a MONEY-BANK — a "
-     "small classical bank building with columns, a coin stack and a dollar-bag with a warm-orange "
-     "coin accent. A thin ink crack / lightning-bolt seam runs down between the two worlds straight "
-     "through the single shared word-card, so it reads 'the SAME one word is torn between two "
-     "unrelated meanings — one static vector can't be in two minds'. The split scene fills ≥85% of "
-     "canvas width. NO Serega in this scene, so NO green anywhere at all (the riverbank grass is "
-     "drawn in plain black ink hatching or course-blue, NOT green). ABSOLUTELY NO words, letters, "
-     "numbers, or labels anywhere — the central card is BLANK, no caption, no title; the deck adds "
-     "the word 'bank' later. Keep the two worlds clearly different so the polysemy reads instantly."),
+    ("L6", "L6/L6-01-bank-two-meanings.png", "16:9", True,
+     "ONE WORD, TWO WORLDS — the polysemy problem, with Serega caught in the middle. CENTER: one blank "
+     "word-card / placard (NO text on it, a plain ink-outlined rectangle) on a vertical dividing seam "
+     "that splits the frame into two contrasting scenes; SEREGA stands right at the seam, scratching his "
+     "head, looking from one side to the other, puzzled. LEFT WORLD: a peaceful RIVER-BANK — a curving "
+     "river with a grassy sloping shore, reeds, a little fish, black ink with course-blue water. RIGHT "
+     "WORLD: a MONEY-BANK — a small classical bank building with columns, a coin stack and a dollar-bag "
+     "with a warm-orange coin accent. A thin ink crack / lightning-bolt seam runs down between the two "
+     "worlds through the shared card, so it reads 'the SAME one word is torn between two unrelated "
+     "meanings — one static vector can't be in two minds'. One short hand-lettered label above Serega "
+     "reads 'WHICH BANK?'. The split scene fills ≥85% of canvas width. Serega's green tübetey is the ONLY "
+     "green (the riverbank grass is black ink hatching or course-blue, NOT green); warm-orange ONLY on "
+     "the coin. The central word-card stays BLANK — the deck adds the word 'bank' later."),
     ("L6", "L6/L6-04-attention-weights.png", "16:9", False,
      "ATTENTION WEIGHTS as beams of different thickness — purely visual, no math. ONE central token "
      "(a bold ink dot / small circle, the 'query' token) sits left-of-centre, and from it a fan of "
@@ -497,57 +495,49 @@ JOBS = [
      "crest of one wave. The wave + tokens fill ≥85% of canvas width. NO Serega, so NO green "
      "anywhere. ABSOLUTELY NO words, letters, numbers (the position-stamps are DOTS not digits), or "
      "labels anywhere — the tiles are blank, no caption, no title; the deck adds words later."),
-    ("L6", "L6/L6-09-transformer-block.png", "16:9", False,
-     "THE TRANSFORMER BLOCK as an engine — a machine/engine block assembled from stacked stages, "
-     "wordless. Draw a tall mechanical ENGINE built as a vertical stack of clean rectangular "
-     "machine-stages bolted on top of one another (like the cross-section of a layered engine or a "
-     "stacked factory machine): from bottom to top, a few distinct stacked boxes connected by pipes "
-     "and a couple of curving RETURN PIPES looping around the outside of the stack (suggesting "
-     "residual/skip connections) and small gear / bolt details, so it reads as one repeating "
-     "powerful engine-unit. A thin warm-orange flow-arrow runs UP through the centre of the stack "
-     "showing tokens flowing through the engine. To suggest depth, show the same block faintly "
-     "REPEATED / echoed behind it (×N stacking), receding slightly. Keep it crisp, mechanical, and "
-     "diagrammatic — an engine, not a creature. The engine fills ≥85% of canvas width/height. "
-     "NO Serega in this scene, so NO green anywhere. Warm-orange appears ONLY as the thin central "
-     "flow-arrow and one or two accent pipes; the machine body is black ink on off-white with light "
-     "course-blue accents. ABSOLUTELY NO words, letters, numbers, gauge-readings, or labels anywhere "
-     "— the stages are wordless, no caption, no title; the deck labels the stages later."),
-    ("L6", "L6/L6-12-contrastive-pull-push.png", "16:9", False,
-     "CONTRASTIVE LEARNING as magnets — pull synonyms together, push impostors apart, drawn on a "
-     "faint dotted embedding-grid. LEFT/CENTER: TWO small word-dots that are SYNONYMS are drawn as "
-     "two magnets snapping TOGETHER — a short fat warm-orange ATTRACTION arrow pulls them into one "
-     "tight pair, almost touching, with little motion-lines showing them rushing together. "
-     "RIGHT/AROUND: one or two IMPOSTOR word-dots (false matches) are drawn as like-poles being "
-     "SHOVED APART — black ink REPULSION arrows push them outward away from the pair, with "
-     "spread-apart motion-lines, so the whole plate reads 'pull positives together, push negatives "
-     "apart'. Draw the dots as simple horseshoe-magnet or bar-magnet doodles to make the "
-     "attract/repel idea unmistakable. The magnets + arrows fill ≥85% of canvas width. NO Serega in "
-     "this scene, so NO green anywhere. Warm-orange appears ONLY as the single ATTRACTION pull-arrow "
-     "between the synonyms; the repulsion arrows and magnets are black ink on off-white with light "
-     "course-blue magnet bodies. ABSOLUTELY NO words, letters, numbers, or labels anywhere — the "
-     "dots/magnets are unlabelled, no caption, no title; the deck names positives/negatives later."),
-    ("L6", "L6/L6-15-gremlin-caged.png", "16:9", False,
-     "THE PAYOFF — the Lexical Gremlin finally CAGED, the emotional climax. CRITICAL CHARACTER "
-     "CONTINUITY — the caged creature MUST be the SAME recurring Lexical Gremlin from earlier "
-     "lectures: a SMALL mischievous gremlin with a round head, large POINTY bat-like ears sticking "
-     "out sideways, wild SPIKY upward course-blue (#2A6FDB) hair/tuft, a course-blue body, a big "
-     "wide toothy mischievous GRIN, two beady dot eyes, and thin noodle arms and legs — identical "
-     "design to before, just now defeated. Draw this exact Gremlin shut INSIDE a sturdy CAGE: a "
-     "clear box of vertical ink prison BARS with a little barred door, the Gremlin gripping two bars "
-     "from the inside with a sulky / grumpy / pouting face (no longer smug — clearly beaten), small "
-     "annoyed motion-marks around its head. OUTSIDE the cage, to the RIGHT, the satisfying reward: "
-     "TWO word-tokens that used to be kept apart now sit happily TOGETHER, side by side and touching "
-     "— two little couch/sofa pictographs (a simple sofa-shape and a couch-shape, drawn in course-"
-     "blue, clearly the SAME furniture twice) nestled cosily next to each other, with a small "
-     "warm-orange heart or a short warm-orange join-line between them showing 'couch' and 'sofa' "
-     "finally collapsed together. The cage + the reunited couches fill ≥85% of canvas width. "
-     "IMPORTANT PALETTE: the Gremlin's hair and body are course-BLUE (never green); the cage bars "
-     "are black ink; NO Serega in this scene, so there is NO green ANYWHERE in the image at all. "
-     "Warm-orange appears ONLY as the small heart / join-line between the two reunited couches. "
-     "ABSOLUTELY NO words, letters, numbers, or labels anywhere — the couches are wordless "
-     "pictographs, no caption, no title; the deck adds 'couch'/'sofa' later. Make the Gremlin "
-     "RECOGNISABLE (same ears, same spiky blue hair, same grin-now-pout) and CLEARLY caged — this "
-     "is the satisfying defeat, the emotional climax of the whole arc."),
+    ("L6", "L6/L6-09-transformer-block.png", "16:9", True,
+     "THE TRANSFORMER BLOCK as an engine Serega tends — a tall mechanical ENGINE built as a vertical "
+     "stack of clean rectangular machine-stages bolted on top of one another, connected by pipes, with a "
+     "couple of curving RETURN PIPES looping around the outside (residual / skip connections) and small "
+     "gear / bolt details — one repeating powerful engine-unit. SEREGA stands beside it as the mechanic, "
+     "an oil-can in hand, giving the engine an approving pat. A thin warm-orange flow-arrow runs UP "
+     "through the centre showing tokens flowing through. To suggest depth, the same block is faintly "
+     "REPEATED behind it (×N), receding slightly. One short hand-lettered label reads 'STACK IT DEEP'. "
+     "Crisp, mechanical, diagrammatic — an engine, not a creature. The engine fills ≥85% of canvas "
+     "width/height. Serega's green tübetey is the ONLY green; warm-orange ONLY as the central flow-arrow "
+     "and one or two accent pipes; the machine body is black ink on off-white with light course-blue "
+     "accents. No gauge-readings or digits on the stages — the deck labels the stages later."),
+    ("L6", "L6/L6-12-contrastive-pull-push.png", "16:9", True,
+     "CONTRASTIVE LEARNING as magnets Serega works — pull synonyms together, push impostors apart, on a "
+     "faint dotted embedding-grid. LEFT/CENTER: TWO small word-dots that are SYNONYMS snap TOGETHER like "
+     "magnets — a short fat warm-orange ATTRACTION arrow pulls them into one tight pair, almost touching, "
+     "with motion-lines rushing them together. RIGHT/AROUND: one or two IMPOSTOR word-dots (false "
+     "matches) are SHOVED APART like like-poles — black ink REPULSION arrows push them outward, with "
+     "spread-apart motion-lines. SEREGA stands in the middle like a referee, one hand pulling the "
+     "synonyms together, the other shoving an impostor away, a focused look. Draw the dots as simple "
+     "horseshoe-magnet or bar-magnet doodles to make attract/repel unmistakable. One short hand-lettered "
+     "label reads 'PULL & PUSH'. The magnets + arrows fill ≥85% of canvas width. Serega's green tübetey "
+     "is the ONLY green; warm-orange ONLY as the single ATTRACTION arrow between the synonyms; the "
+     "repulsion arrows and magnets are black ink on off-white with light course-blue magnet bodies."),
+    ("L6", "L6/L6-15-gremlin-caged.png", "16:9", True,
+     "THE PAYOFF — Serega finally CAGES the Lexical Gremlin, the emotional climax. CRITICAL CHARACTER "
+     "CONTINUITY — the caged creature MUST be the SAME recurring Lexical Gremlin from earlier lectures: "
+     "a SMALL mischievous gremlin with a round head, large POINTY bat-like ears sticking out sideways, "
+     "wild SPIKY upward course-blue (#2A6FDB) hair/tuft, a course-blue body, a big wide toothy GRIN, two "
+     "beady dot eyes, and thin noodle arms and legs — identical design to before, just now defeated. "
+     "Draw this exact Gremlin shut INSIDE a sturdy CAGE: a clear box of vertical ink prison BARS with a "
+     "little barred door, the Gremlin gripping two bars from the inside with a sulky / pouting face (no "
+     "longer smug — clearly beaten), small annoyed motion-marks. SEREGA stands beside the cage, "
+     "triumphant — one hand resting on the cage, the other raised in victory, a big proud grin (he "
+     "caught it at last). OUTSIDE the cage, to the RIGHT, the reward: TWO word-tokens that used to be "
+     "kept apart now sit happily TOGETHER, touching — two little couch/sofa pictographs (a sofa-shape "
+     "and a couch-shape, course-blue, clearly the SAME furniture twice) nestled cosily, with a small "
+     "warm-orange heart between them ('couch' and 'sofa' finally collapsed together). One short "
+     "hand-lettered label reads 'GOTCHA!'. The cage + reunited couches fill ≥85% of canvas width. "
+     "PALETTE: the Gremlin's hair and body are course-BLUE (never green); the cage bars are black ink; "
+     "Serega's green tübetey is the ONLY green in the image. Warm-orange appears ONLY as the small heart "
+     "between the two couches. Make the Gremlin RECOGNISABLE (same ears, same spiky blue hair, "
+     "same grin-now-pout) and CLEARLY caged — this is the satisfying defeat, the climax of the arc."),
 
     # ---- L6 · The Council of Attention · DEEPENING (A+ visual remediation, L6-2N range) ----
     # Same gate posture as the L6 block above: image-gate treats L6 as NON-Serega, so each plate
@@ -644,22 +634,20 @@ JOBS = [
      "'impostor', or any other word beside any dot) — the ONLY hand-drawn mark that is not part "
      "of the dots/arrows is the single floating '?' glyph above the disguised dot. The book "
      "overlays every label later."),
-    ("L6", "L6/L6-25-matryoshka.png", "16:9", False,
-     "MATRYOSHKA EMBEDDINGS — nested, truncatable dimensions, wordless. Draw a set of classic "
-     "Russian NESTING DOLLS in a row, opened and lined up from LARGEST on the LEFT down to "
-     "SMALLEST on the RIGHT (4 or 5 dolls, clearly the same doll at shrinking sizes), each doll "
-     "drawn as a simple ink-outline ovoid with a tiny painted face, bodies a light course-blue. "
-     "The single clear TELL of 'one vector you can chop': BESIDE the dolls, draw a single tall "
-     "bracketed COLUMN VECTOR of stacked ink cells with a warm-orange SCISSORS / cut-line crossing "
-     "it partway down, and thin guide-lines matching each doll to a truncation depth on the column "
-     "— the biggest doll to the full column, the smallest doll to just the top few cells — so the "
-     "eye reads 'keep the first few coordinates for a small fast vector, or the whole thing for "
-     "the accurate one; same vector, nested sizes'. NO Serega in this scene, so NO green anywhere "
-     "(the dolls are light course-BLUE, never green). Warm-orange appears ONLY as the scissors / "
-     "cut-line on the column; the dolls, column and guide-lines are black ink + light course-blue "
-     "on off-white. The dolls + column fill ≥85% of canvas width. ABSOLUTELY NO words, letters, "
-     "numbers, or labels anywhere — the column cells are blank, no caption, no title; the book "
-     "adds 64 / 768 later. Make the shrinking-dolls-equals-truncatable-vector idea unmistakable."),
+    ("L6", "L6/L6-25-matryoshka.png", "16:9", True,
+     "MATRYOSHKA EMBEDDINGS — nested, truncatable dimensions, with Serega demonstrating. A set of "
+     "classic Russian NESTING DOLLS in a row, opened and lined up from LARGEST on the LEFT down to "
+     "SMALLEST on the RIGHT (4 or 5 dolls, clearly the same doll at shrinking sizes), each a simple "
+     "ink-outline ovoid with a tiny painted face, bodies light course-blue. BESIDE the dolls, a single "
+     "tall bracketed COLUMN VECTOR of stacked ink cells with a warm-orange SCISSORS / cut-line crossing "
+     "it partway down, and thin guide-lines matching each doll to a truncation depth — the biggest doll "
+     "to the full column, the smallest to just the top few cells — so the eye reads 'keep the first few "
+     "coordinates for a small fast vector, or the whole thing for the accurate one; same vector, nested "
+     "sizes'. SEREGA stands by the column holding the scissors, about to snip, a clever little smile. One "
+     "short hand-lettered label reads 'CHOP TO SIZE'. Serega's green tübetey is the ONLY green (the dolls "
+     "are light course-BLUE, never green); warm-orange ONLY as the scissors / cut-line; the dolls, column "
+     "and guide-lines are black ink + light course-blue on off-white. The dolls + column fill ≥85% of "
+     "canvas width. The column cells stay blank — the book adds 64 / 768 later."),
     ("L6", "L6/L6-26-anisotropy-cone.png", "16:9", False,
      "ANISOTROPY — the crowded cone vs the open sphere, wordless. A clear LEFT-vs-RIGHT contrast "
      "with a warm-orange transformation arrow between the halves. LEFT (anisotropic, the disease): "
@@ -693,125 +681,122 @@ JOBS = [
      "words, letters, numbers (the position-stamps are DOTS not digits), or labels anywhere — no "
      "caption, no title; the book names ViT / patches later. Make 'cut the image into a row of "
      "tokens' the dominant idea."),
-    ("L6", "L6/L6-28-everything-tokens.png", "16:9", False,
-     "EVERYTHING IS A SEQUENCE OF TOKENS — the all-modalities montage, wordless. CENTER: one "
-     "shared SPACE drawn as a faint dotted sphere/disc with a few bold ink dots inside it (the "
-     "common embedding space). Arranged AROUND the edges, several different SOURCE modalities each "
-     "feed INTO that centre via a thin warm-orange arrow, and each source is shown being chopped "
-     "into a little ROW of identical token-tiles before it enters — so the unifying idea 'any "
-     "modality becomes a row of tokens in one space' reads at a glance. Draw 5 wordless source "
-     "pictographs around the centre: (1) a strip of text-tiles (words); (2) a small image cut into "
-     "a patch-row (vision); (3) a sound WAVEFORM sliced into time-window tiles (audio); (4) a "
-     "twisting DNA double-helix / protein chain chopped into bead-tiles (biology); (5) a little "
-     "GRAPH of connected nodes (graph data). Each modality's row of tiles flows along its "
-     "warm-orange arrow into the shared central space and lands as dots among the others, mingling "
-     "— different senses, one map. NO Serega in this scene, so NO green anywhere (the helix, "
-     "waveform and graph are black ink + light course-blue, never green). Warm-orange appears ONLY "
-     "as the five feed-in arrows; all the source pictographs, tiles and the central space are "
-     "black ink + light course-blue on off-white. The montage fills ≥85% of canvas width. "
-     "ABSOLUTELY NO words, letters, numbers, or labels anywhere — every tile is blank, no caption, "
-     "no title; the book names the modalities later. Make 'many different inputs, all tokenized "
-     "into one shared space' the single dominant idea."),
+    ("L6", "L6/L6-28-everything-tokens.png", "16:9", True,
+     "EVERYTHING IS A SEQUENCE OF TOKENS — the all-modalities montage, Serega conducting. CENTER: one "
+     "shared SPACE drawn as a faint dotted sphere/disc with a few bold ink dots inside it (the common "
+     "embedding space); SEREGA stands at the centre like a conductor, arms out, welcoming every modality "
+     "in. Arranged AROUND the edges, several SOURCE modalities each feed INTO that centre via a thin "
+     "warm-orange arrow, each shown chopped into a little ROW of identical token-tiles before it enters. "
+     "Draw 5 wordless source pictographs around the centre: (1) a strip of text-tiles (words); (2) a "
+     "small image cut into a patch-row (vision); (3) a sound WAVEFORM sliced into time-window tiles "
+     "(audio); (4) a twisting DNA double-helix chopped into bead-tiles (biology); (5) a little GRAPH of "
+     "connected nodes (graph data). Each row of tiles flows along its warm-orange arrow into the shared "
+     "central space and lands as dots among the others, mingling — different senses, one map. One short "
+     "hand-lettered label reads 'ALL TOKENS'. Serega's green tübetey is the ONLY green (the helix, "
+     "waveform and graph are black ink + light course-blue, never green); warm-orange ONLY as the five "
+     "feed-in arrows; all source pictographs, tiles and the central space are black ink + light "
+     "course-blue on off-white. The montage fills ≥85% of canvas width. Every tile stays blank — the "
+     "book names the modalities later."),
 
     # ---- L7 · Scouts and Judges (Bi-encoders · Cross-encoders & Reranking · Multi-stage Pipelines) ----
-    # Wordless idea/analogy plates (NOT data figures — the deck/Book widgets carry every number).
-    # Palette: black ink + course-blue #2A6FDB + warm-orange #E8743B on off-white #FBFAF6. NO green
-    # (has_serega=False → no green anywhere). ABSOLUTELY NO words/letters/numbers (overlays do all labels).
-    ("L7", "L7/L7-00-scouts-and-judges.png", "16:9", False,
-     "HERO ESTABLISHING SHOT — two-stage retrieval as Scouts and Judges, a wide frontier split in two. "
-     "LEFT HALF: a loose band of fast SCOUT figures (light, simple, mid-stride, fanned out) sweeping "
-     "across a vast field strewn with hundreds of tiny document-dots, motion-blur sense of speed, each "
-     "scout quickly brushing past many dots — many-and-fast. RIGHT HALF: a few heavy, seated JUDGE "
-     "figures on a raised bench, leaning in over a SINGLE object on the bench, slow and deliberate — "
-     "few-and-careful. Between the two halves a thin warm-orange flow carries just a HANDFUL of dots "
-     "from the scouts' wide net to the judges' bench (the shortlist hand-off). The whole image reads "
-     "'many-fast sweep on the left, few-careful judging on the right'. Fills ≥85% of canvas width. NO "
-     "Serega, so NO green anywhere; warm-orange ONLY on the thin hand-off flow and the one judged "
-     "object; everything else black ink + course-blue on off-white. ABSOLUTELY NO words, letters, "
-     "numbers, or labels anywhere — figures and dots unlabelled, no caption, no title."),
-    ("L7", "L7/L7-01-cant-judge-everyone.png", "16:9", False,
-     "WHY YOU CAN'T JUDGE EVERYONE — a single overwhelmed JUDGE figure seated at a small bench, dwarfed "
-     "by an IMPOSSIBLY TALL, receding stack of identical cases/scrolls/folders that climbs up out of "
-     "frame and recedes to a vanishing point — the O(N) wall. The lone judge looks UP at a stack that "
-     "never ends, tiny against the toppling mountain of cases. One warm-orange accent on the single "
-     "topmost case the judge is holding; the endless stack itself is black ink + faint course-blue on "
-     "off-white. The towering stack dominates and dwarfs the judge. Fills ≥85% of canvas width. NO "
-     "Serega, so NO green anywhere. ABSOLUTELY NO words, letters, numbers, or labels anywhere — the "
-     "cases are blank, no caption, no title."),
-    ("L7", "L7/L7-04-interview-room.png", "4:3", False,
-     "THE INTERVIEW ROOM — the cross-encoder as a face-to-face interview. A small table where a QUERY "
-     "figure and a single DOCUMENT figure sit ACROSS from each other, leaning in, really attending to "
-     "one another. A beam of thin ink ATTENTION-LINES criss-crosses BETWEEN them, connecting points on "
-     "the question to points on the page (both read TOGETHER, jointly). One or two of the strongest "
-     "cross-lines are traced in warm-orange to mark the matched point. Intimate, single-pair, the exact "
-     "opposite of the sweeping scouts. Blue attention-lines, warm-orange ONLY on the one or two "
-     "strongest matched lines; figures and table black ink on off-white. Fills ≥85% of canvas width. NO "
-     "Serega, so NO green anywhere. ABSOLUTELY NO words, letters, numbers, or labels anywhere — figures "
-     "unlabelled, no caption, no title."),
-    ("L7", "L7/L7-06-hiring-funnel.png", "16:9", False,
-     "THE HIRING FUNNEL — the retrieval cascade as a literal narrowing funnel, left to right. A WIDE "
-     "mouth on the left is crowded with MANY tiny applicant-dots (the corpus); they pour through a "
-     "MIDDLE band that is narrower (the scouts' shortlist) and out a THIN spout on the right where just "
-     "a FEW dots face a judge's bench. The widths shrink left→right (cheap-and-wide at the mouth, "
-     "dear-and-narrow at the spout); the pool visibly thins from a crowd to a handful, shown by dot "
-     "COUNT, never digits. A thin warm-orange flow-arrow runs through the funnel's throat. Echoes a "
-     "classic recruitment funnel. Fills ≥85% of canvas width. NO Serega, so NO green anywhere; "
-     "warm-orange ONLY on the central flow-arrow; funnel + dots black ink + course-blue on off-white. "
-     "ABSOLUTELY NO words, letters, numbers (counts are DOTS, not digits), or labels anywhere — no "
-     "caption, no title."),
-    ("L7", "L7/L7-07-depth-dial.png", "4:3", False,
-     "THE DEPTH DIAL — the rerank-depth / quality-vs-cost tradeoff as a single control. A clean "
-     "hand-drawn round DIAL with a pointer, with a small balance/scale beside it trading an HOURGLASS "
-     "(latency) against a MAGNIFYING GLASS (thoroughness). Turning the dial deeper tips the balance "
-     "toward the magnifying glass (more care) but visibly drags the hourglass DOWN (more time) — so it "
-     "reads 'turn it deeper: better but slower'. One warm-orange needle/pointer on the dial; the "
-     "hourglass, magnifier and balance are black ink + course-blue on off-white. Levels shown by "
-     "tick-marks and tilt, never digits. Fills ≥85% of canvas width. NO Serega, so NO green anywhere. "
-     "ABSOLUTELY NO words, letters, numbers, or labels anywhere — no caption, no title."),
-    ("L7", "L7/L7-08-team-wins.png", "16:9", False,
-     "THE PAYOFF — Scouts and Judges WIN together. The fast SCOUTS hand a small SHORTLIST (a few "
-     "warm-orange dots) to the JUDGES at the bench — the hand-off moment, the team working as one. The "
-     "scouts (blue, light) on the left pass to the seated judges (black ink) on the right; behind them "
-     "a faint horizon/road leads off-frame toward distant JUMP-GATE arches on the horizon (the bridge "
-     "to the next quest). Warm-orange ONLY on the handed shortlist; crew + bench + road black ink + "
-     "course-blue on off-white. The hand-off is the dominant action. Fills ≥85% of canvas width. NO "
-     "Serega, so NO green anywhere. ABSOLUTELY NO words, letters, numbers, or labels anywhere — no "
-     "caption, no title."),
-    ("L7", "L7/L7-09-embedder-zoo.png", "16:9", False,
-     "THE EMBEDDER ZOO — choosing a Scout from a whole family. A ROSTER / line-up of many SCOUT "
+    # Idea/analogy plates (NOT data figures — the deck/Book widgets carry every number). Serega is the
+    # recurring hero living each analogy (scout-master, interviewer, smith, librarian, assistant), with
+    # Wait-But-Why hand-lettered humor (a short English label + the odd googly-eyed figure) back in.
+    # Palette: black ink + course-blue #2A6FDB + warm-orange #E8743B on off-white #FBFAF6; GREEN appears
+    # ONLY on Serega's tübetey (has_serega=True).
+    ("L7", "L7/L7-00-scouts-and-judges.png", "16:9", True,
+     "HERO ESTABLISHING SHOT — Serega runs the two-stage hunt, Scouts and Judges, on a wide frontier "
+     "split in two. LEFT HALF: a loose band of fast SCOUT figures (light, simple, mid-stride, fanned "
+     "out) sweeping across a vast field strewn with hundreds of tiny document-dots, motion-blur speed, "
+     "brushing past many dots — many-and-fast. RIGHT HALF: a few heavy, seated JUDGE figures on a "
+     "raised bench leaning over a SINGLE object — few-and-careful. SEREGA stands at the seam between the "
+     "halves, one hand waving the scouts out, the other presenting the shortlist to the judges, a "
+     "confident grin. A thin warm-orange flow carries a HANDFUL of dots from the scouts' net to the "
+     "judges' bench (the shortlist hand-off). Two short hand-lettered labels: 'SCOUTS' over the left, "
+     "'JUDGES' over the right. Serega's green tübetey is the ONLY green; warm-orange ONLY on the hand-off "
+     "flow and the one judged object; everything else black ink + course-blue on off-white. Fills ≥85% "
+     "of canvas width."),
+    ("L7", "L7/L7-01-cant-judge-everyone.png", "16:9", True,
+     "WHY YOU CAN'T JUDGE EVERYONE — SEREGA as a single overwhelmed JUDGE seated at a small bench, "
+     "dwarfed by an IMPOSSIBLY TALL receding stack of identical blank cases/scrolls/folders that climbs "
+     "out of frame to a vanishing point — the O(N) wall. Serega looks UP, tiny and googly-eyed, a bead "
+     "of sweat, at a stack that never ends. One warm-orange accent on the single topmost case he is "
+     "holding; the endless stack is black ink + faint course-blue on off-white. One short hand-lettered "
+     "label reads 'TOO MANY'. Serega's green tübetey is the ONLY green; the towering stack dominates and "
+     "dwarfs him. Fills ≥85% of canvas width."),
+    ("L7", "L7/L7-04-interview-room.png", "4:3", True,
+     "THE INTERVIEW ROOM — the cross-encoder as a face-to-face interview that Serega conducts. At a "
+     "small table a QUERY figure and a single DOCUMENT figure sit ACROSS from each other, leaning in, "
+     "really attending to one another; SEREGA sits at the head of the table as the interviewer, jotting "
+     "on a tiny clipboard. A beam of thin ink ATTENTION-LINES criss-crosses BETWEEN the pair, connecting "
+     "points on the question to points on the page (both read TOGETHER, jointly). One or two strongest "
+     "cross-lines are traced in warm-orange. One short hand-lettered label reads 'READ TOGETHER'. "
+     "Serega's green tübetey is the ONLY green; blue attention-lines, warm-orange ONLY on the strongest "
+     "matched line(s); figures and table black ink on off-white. Intimate, single-pair — the opposite of "
+     "the sweeping scouts. Fills ≥85% of canvas width."),
+    ("L7", "L7/L7-06-hiring-funnel.png", "16:9", True,
+     "THE HIRING FUNNEL — Serega runs the retrieval cascade as a literal narrowing funnel, left to "
+     "right. A WIDE mouth on the left is crowded with MANY tiny applicant-dots (the corpus); they pour "
+     "through a NARROWER middle band (the scouts' shortlist) and out a THIN spout on the right where "
+     "just a FEW dots face a judge's bench. SEREGA stands beside the funnel working a little crank/valve "
+     "at the throat, watching the crowd thin to a handful. The widths shrink left→right (cheap-and-wide "
+     "at the mouth, dear-and-narrow at the spout); the pool thins by dot COUNT, never digits. A thin "
+     "warm-orange flow-arrow runs through the throat. One short hand-lettered label reads 'NARROW IT "
+     "DOWN'. Serega's green tübetey is the ONLY green; warm-orange ONLY on the central flow-arrow; "
+     "funnel + dots black ink + course-blue on off-white. No digits (counts are DOTS). Fills ≥85% of "
+     "canvas width."),
+    ("L7", "L7/L7-07-depth-dial.png", "4:3", True,
+     "THE DEPTH DIAL — Serega works the rerank-depth / quality-vs-cost tradeoff as a single control. "
+     "SEREGA turns a clean hand-drawn round DIAL with a pointer; beside it a small balance/scale trades "
+     "an HOURGLASS (latency) against a MAGNIFYING GLASS (thoroughness). As Serega turns the dial deeper "
+     "the balance tips toward the magnifying glass (more care) but visibly drags the hourglass DOWN "
+     "(more time); Serega wears a knowing 'hmm' look. One warm-orange needle/pointer on the dial; the "
+     "hourglass, magnifier and balance are black ink + course-blue on off-white. One short hand-lettered "
+     "label reads 'DEEPER = SLOWER'. Serega's green tübetey is the ONLY green. Levels by tick-marks and "
+     "tilt, never digits. Fills ≥85% of canvas width."),
+    ("L7", "L7/L7-08-team-wins.png", "16:9", True,
+     "THE PAYOFF — Serega's Scouts and Judges WIN together. The fast SCOUTS hand a small SHORTLIST (a "
+     "few warm-orange dots) to the JUDGES at the bench — the hand-off moment, the team as one. SEREGA "
+     "stands between them, arms raised in triumph, cheering the hand-off. The scouts (blue, light) on "
+     "the left pass to the seated judges (black ink) on the right; behind them a faint horizon/road "
+     "leads off-frame toward distant JUMP-GATE arches (the bridge to the next quest). One short "
+     "hand-lettered label reads 'TEAM WINS'. Serega's green tübetey is the ONLY green; warm-orange ONLY "
+     "on the handed shortlist; crew + bench + road black ink + course-blue on off-white. Fills ≥85% of "
+     "canvas width."),
+    ("L7", "L7/L7-09-embedder-zoo.png", "16:9", True,
+     "THE EMBEDDER ZOO — Serega chooses a Scout from a whole family. A ROSTER / line-up of many SCOUT "
      "figures of visibly DIFFERENT builds and sizes (tall, short, broad, lean — a varied species of "
-     "scouts) standing shoulder to shoulder in a row, as if being reviewed for selection. ONE scout "
-     "near the centre is picked out, lit in warm-orange and stepped half a pace forward (the chosen "
-     "model). The rest are black ink + course-blue on off-white. Reads 'a family of scouts to choose "
-     "from, pick the right one'. Fills ≥85% of canvas width. NO Serega, so NO green anywhere; "
-     "warm-orange ONLY on the single chosen scout. ABSOLUTELY NO words, letters, numbers, or labels "
-     "anywhere — figures unlabelled, no caption, no title."),
-    ("L7", "L7/L7-10-the-forge.png", "16:9", False,
-     "THE FORGE — how Scouts and Judges are made (training). A blacksmith's FORGE / training ground "
-     "where a smith-figure hammers a half-formed SCOUT figure into shape on an ANVIL, sparks flying; "
-     "beside it a JUDGE figure is being drilled. A sense of practice, shaping, repetition. Tongs, "
+     "scouts) standing shoulder to shoulder in a row, as if reviewed for selection. SEREGA walks the "
+     "line like a coach, pointing at ONE scout near the centre who is lit in warm-orange and stepped "
+     "half a pace forward (the chosen model). The rest are black ink + course-blue on off-white. One "
+     "short hand-lettered label reads 'PICK ONE'. Serega's green tübetey is the ONLY green; warm-orange "
+     "ONLY on the single chosen scout. Reads 'a family of scouts, pick the right one'. Fills ≥85% of "
+     "canvas width."),
+    ("L7", "L7/L7-10-the-forge.png", "16:9", True,
+     "THE FORGE — Serega forges his Scouts and Judges (training). At a blacksmith's FORGE / training "
+     "ground, SEREGA the smith hammers a half-formed SCOUT figure into shape on an ANVIL, sparks flying; "
+     "beside it a JUDGE figure is being drilled. A sense of practice, shaping, repetition — tongs, "
      "anvil, a glowing billet. The sparks and the glow of the hot metal are the ONLY warm-orange "
-     "accents; the smith, anvil, scout and judge are black ink + course-blue on off-white. Reads "
-     "'these figures are forged and trained, not found'. Fills ≥85% of canvas width. NO Serega, so NO "
-     "green anywhere. ABSOLUTELY NO words, letters, numbers, or labels anywhere — no caption, no title."),
-    ("L7", "L7/L7-11-the-archive.png", "16:9", False,
-     "THE ARCHIVE — building the index offline. A VAST pre-built ARCHIVE: towering rows of shelves and "
-     "a giant card-catalog being filled and organised by a few librarian-figures who file long rows of "
-     "identical cards into the index. NO reader, NO query present — this is build-time, done in advance. "
-     "Receding shelves to a vanishing point convey scale. One warm-orange accent on the single card "
-     "currently being filed; shelves, cards and librarians are black ink + course-blue on off-white. "
-     "Reads 'the whole corpus filed away in advance, before any question'. Fills ≥85% of canvas width. "
-     "NO Serega, so NO green anywhere. ABSOLUTELY NO words, letters, numbers, or labels anywhere — the "
-     "cards are blank, no caption, no title."),
-    ("L7", "L7/L7-12-the-product.png", "16:9", False,
-     "THE PRODUCT — the cascade inside a real search / RAG assistant. LEFT: the SCOUT→JUDGE hand-off (a "
-     "few warm-orange shortlist dots passing from blue scouts to a judge's bench). RIGHT: that feeds a "
-     "single ANSWER DESK where an assistant-figure hands a finished ANSWER SHEET to a waiting USER "
-     "figure; a small warm-orange CITATION TAG is clipped to the sheet (the grounding). The flow reads "
-     "left→right: sweep → judge → deliver a sourced answer. Warm-orange ONLY on the shortlist dots and "
-     "the citation tag; everyone and everything else black ink + course-blue on off-white. Fills ≥85% "
-     "of canvas width. NO Serega, so NO green anywhere. ABSOLUTELY NO words, letters, numbers, or "
-     "labels anywhere — the answer sheet is blank, no caption, no title."),
+     "accents; the anvil, scout and judge are black ink + course-blue on off-white. One short "
+     "hand-lettered label reads 'FORGED, NOT FOUND'. Serega's green tübetey is the ONLY green. Fills "
+     "≥85% of canvas width."),
+    ("L7", "L7/L7-11-the-archive.png", "16:9", True,
+     "THE ARCHIVE — Serega builds the index offline. A VAST pre-built ARCHIVE: towering rows of shelves "
+     "and a giant card-catalog being filled and organised. SEREGA, up a small library ladder, files one "
+     "long row of identical cards into the index. NO reader, NO query present — this is build-time, done "
+     "in advance. Receding shelves to a vanishing point convey scale. One warm-orange accent on the "
+     "single card Serega is filing; shelves and cards black ink + course-blue on off-white. One short "
+     "hand-lettered label reads 'BUILT AHEAD'. Serega's green tübetey is the ONLY green. Reads 'the whole "
+     "corpus filed away before any question'. Fills ≥85% of canvas width."),
+    ("L7", "L7/L7-12-the-product.png", "16:9", True,
+     "THE PRODUCT — Serega ships the cascade inside a real search / RAG assistant. LEFT: the SCOUT→JUDGE "
+     "hand-off (a few warm-orange shortlist dots passing from blue scouts to a judge's bench). RIGHT: "
+     "that feeds a single ANSWER DESK where SEREGA, as the assistant, hands a finished ANSWER SHEET to a "
+     "waiting USER figure; a small warm-orange CITATION TAG is clipped to the sheet (the grounding). The "
+     "flow reads left→right: sweep → judge → deliver a sourced answer. One short hand-lettered label "
+     "reads 'SOURCED ANSWER'. Serega's green tübetey is the ONLY green; warm-orange ONLY on the shortlist "
+     "dots and the citation tag; everyone and everything else black ink + course-blue on off-white. "
+     "Fills ≥85% of canvas width."),
 
     # ---- course cover (banner + GitHub social card) ----
     ("char", "_char/cover.png", "16:9", True,
@@ -1037,63 +1022,71 @@ JOBS = [
      "a small Serega cameo scratching his head, looking puzzled. Plain off-white background."),
 
     # ---- L8 · The Alliance (Late Interaction / ColBERT · SPLADE · Hybrid · Learning to Rank) ----
-    # Wordless idea/analogy plates (NOT data figures — the deck/Book widgets carry every number).
-    # Palette: black ink + course-blue #2A6FDB + warm-orange #E8743B on off-white #FBFAF6. NO green
-    # (has_serega=False → no green anywhere). ABSOLUTELY NO words/letters/numbers (overlays do all labels).
-    ("L8", "L8/L8-00-the-alliance.png", "16:9", False,
-     "HERO ESTABLISHING SHOT — two hosts converge into one. LEFT: an ANGULAR, GEOMETRIC column of "
-     "figures (the lexical / sparse army, course-blue) marching in from the left, all sharp facets and "
-     "straight edges. RIGHT: a FLOWING, ROUNDED column (the semantic / dense army, course-blue) sweeping "
-     "in from the right, all soft curves. AT CENTRE, on a low rise where the two columns meet and merge, "
-     "a lone STANDARD-BEARER figure holds ONE TALL BANNER bearing an abstract geometric emblem (the only "
-     "warm-orange in the frame). The whole image reads 'many-from-two-into-one under a single banner'. "
-     "Fills ≥85% of canvas width. NO Serega, so NO green anywhere; warm-orange ONLY on the one banner; "
-     "the two armies and the rise are black ink + course-blue on off-white. ABSOLUTELY NO words, letters, "
-     "numbers, or labels anywhere — figures and banner emblem unlabelled, no caption, no title."),
-    ("L8", "L8/L8-01-token-muster.png", "16:9", False,
-     "LATE INTERACTION as a muster of tokens — a FRONT ROW of small identical figures (the query tokens) "
-     "faces an OPPOSITE ROW of small figures (the document tokens) across a gap. From each FRONT figure, "
-     "a SINGLE bright beam shoots to the ONE opposite figure it matches best (its MaxSim partner); all "
-     "other faint beams fade. The pattern 'each front figure picks exactly one strongest partner' is the "
-     "whole image — a clean lattice of mostly-faint lines with a few bright ones. The bright matched "
-     "beams are the ONLY warm-orange; the rows of figures and faint beams are black ink + course-blue on "
-     "off-white. Fills ≥85% of canvas width. NO Serega, so NO green anywhere. ABSOLUTELY NO words, "
-     "letters, numbers, or labels anywhere — figures unlabelled, no caption, no title."),
-    ("L8", "L8/L8-02-expanded-banner.png", "4:3", False,
-     "SPLADE term expansion as a kindling constellation — a SPARSE banner / constellation where, beyond "
-     "a few LITERAL lit points (the words you typed), several FAINT RELATED points kindle and light up "
-     "AROUND them (the expansion terms) — the emblem grows richer WITHOUT becoming a dense field (it "
-     "stays clearly sparse, lots of empty dark space remains). The newly-kindled expansion points glow; "
-     "ONE of them carries the single warm-orange accent; the literal points and connecting filaments are "
-     "black ink + course-blue on off-white. Reads 'a few given points, a few more lighting up nearby, "
-     "still sparse'. Fills ≥85% of canvas width. NO Serega, so NO green anywhere. ABSOLUTELY NO words, "
-     "letters, numbers, or labels anywhere — points unlabelled, no caption, no title."),
-    ("L8", "L8/L8-03-two-rivers.png", "16:9", False,
-     "HYBRID as two rivers merging — TWO rivers flow toward each other and JOIN into one. The LEFT river "
-     "is ANGULAR / FACETED (lexical / sparse), drawn with hard geometric bends; the RIGHT river is "
-     "SMOOTH / CURVING (semantic / dense), drawn with soft meanders. They merge mid-frame into ONE "
-     "BROADER, STRONGER river that flows on beneath a single RAISED BANNER on the bank. Blue water for "
-     "both rivers and the merged flow; the one raised banner is the ONLY warm-orange; banks and "
-     "surroundings are black ink on off-white. Reads 'two different waters become one stronger current "
-     "under one banner'. Fills ≥85% of canvas width. NO Serega, so NO green anywhere. ABSOLUTELY NO "
-     "words, letters, numbers, or labels anywhere — no caption, no title."),
-    ("L8", "L8/L8-04-the-captain-orders.png", "4:3", False,
-     "LEARNING TO RANK as a marshal ordering a formation — the STANDARD-BEARER, now as a MARSHAL, "
+    # Idea/analogy plates (NOT data figures — the deck/Book widgets carry every number). Serega IS the
+    # Standard-Bearer: he is the recurring hero across all six plates, raising the one banner and
+    # marshalling the host. Wait-But-Why hand-lettered humor (a few SHORT English labels + googly-eyed
+    # bystanders) is back. Palette: black ink + course-blue #2A6FDB + warm-orange #E8743B on off-white
+    # #FBFAF6; GREEN appears ONLY on Serega's tübetey (has_serega=True).
+    ("L8", "L8/L8-00-the-alliance.png", "16:9", True,
+     "HERO ESTABLISHING SHOT — two armies unite under Serega's banner. LEFT: an ANGULAR, GEOMETRIC "
+     "column of small figures (the lexical / sparse army, course-blue) marching in from the left, all "
+     "sharp facets and straight edges. RIGHT: a FLOWING, ROUNDED column (the semantic / dense army, "
+     "course-blue) sweeping in from the right, all soft curves. AT CENTRE, on a low rise where the two "
+     "columns meet and merge, SEREGA stands as the STANDARD-BEARER, both hands raising ONE TALL BANNER "
+     "bearing an abstract geometric emblem (the only warm-orange in the frame), a proud little smile on "
+     "his face; the two armies look up and rally to his banner. One small hand-lettered banner-doodle "
+     "reads 'ONE BANNER'. The whole image reads 'two-into-one under Serega's single banner'. Fills ≥85% "
+     "of canvas width. Serega's green tübetey is the ONLY green; warm-orange ONLY on the one banner; the "
+     "two armies and the rise are black ink + course-blue on off-white."),
+    ("L8", "L8/L8-01-token-muster.png", "16:9", True,
+     "LATE INTERACTION as a muster Serega conducts — a FRONT ROW of small identical figures (the query "
+     "tokens) faces an OPPOSITE ROW of small figures (the document tokens) across a gap. SEREGA stands "
+     "to one side like a drill-sergeant, pointing, as from each FRONT figure a SINGLE bright beam shoots "
+     "to the ONE opposite figure it matches best (its MaxSim partner); all other faint beams fade. One "
+     "front figure is googly-eyed and delighted it found its match. A short hand-lettered label by the "
+     "brightest beam reads 'BEST MATCH'. The pattern 'each token salutes its one strongest partner' is "
+     "the whole image — a clean lattice of mostly-faint lines with a few bright ones. The bright matched "
+     "beams are the ONLY warm-orange; Serega's green tübetey is the ONLY green; the rows of figures and "
+     "faint beams are black ink + course-blue on off-white. Fills ≥85% of canvas width."),
+    ("L8", "L8/L8-02-expanded-banner.png", "4:3", True,
+     "SPLADE term expansion as Serega kindling extra lanterns — SEREGA holds up a SPARSE banner / small "
+     "constellation where a few LITERAL points are already lit (the words you typed); with a little "
+     "torch he KINDLES several FAINT RELATED points nearby (the expansion terms) that flicker to life "
+     "AROUND them — the emblem grows richer WITHOUT becoming a dense field (it stays clearly sparse, "
+     "lots of empty dark space remains). Serega wears a pleased 'aha' expression. ONE newly-kindled "
+     "point carries the single warm-orange accent; a short hand-lettered label by a new point reads "
+     "'FOUND THESE TOO'. Serega's green tübetey is the ONLY green; the literal points and connecting "
+     "filaments are black ink + course-blue on off-white. Reads 'a few given points, a few more lighting "
+     "up nearby, still sparse'. Fills ≥85% of canvas width."),
+    ("L8", "L8/L8-03-two-rivers.png", "16:9", True,
+     "HYBRID as two rivers merging under Serega's banner — TWO rivers flow toward each other and JOIN "
+     "into one. The LEFT river is ANGULAR / FACETED (lexical / sparse), drawn with hard geometric bends; "
+     "the RIGHT river is SMOOTH / CURVING (semantic / dense), drawn with soft meanders. They merge "
+     "mid-frame into ONE BROADER, STRONGER river. SEREGA stands on the bank at the confluence, planting "
+     "his ONE RAISED BANNER over the merged current and nodding in approval. Blue water for both rivers "
+     "and the merged flow; Serega's one raised banner is the ONLY warm-orange; Serega's green tübetey is "
+     "the ONLY green; banks and surroundings are black ink on off-white. One short hand-lettered label "
+     "on the merged river reads 'STRONGER TOGETHER'. Reads 'two different waters become one stronger "
+     "current under Serega's banner'. Fills ≥85% of canvas width."),
+    ("L8", "L8/L8-04-the-captain-orders.png", "4:3", True,
+     "LEARNING TO RANK as Serega marshalling a formation — SEREGA, as the MARSHAL and STANDARD-BEARER, "
      "arranges a SCATTERED CROWD of small figures into a CLEAN RANKED COLUMN (a single file, in order), "
-     "gesturing the line into place with one outstretched arm. On the left a disordered cluster; on the "
-     "right the same figures resolved into a tidy ranked column. ONE figure at the HEAD of the ordered "
-     "column carries the single warm-orange accent; the marshal, the crowd and the column are black ink "
-     "+ course-blue on off-white. Reads 'chaos on the left becomes an ordered ranked line on the right'. "
-     "Fills ≥85% of canvas width. NO Serega, so NO green anywhere. ABSOLUTELY NO words, letters, numbers, "
-     "or labels anywhere — figures unlabelled, no caption, no title."),
-    ("L8", "L8/L8-05-the-host-marches.png", "16:9", False,
-     "PAYOFF — the united, ordered host marches out. The whole HOST (the merged army, now in clean "
-     "ranked order) marches under the ONE raised banner toward a HORIZON where faint JUMP-GATE ARCHES "
-     "and a road lead off-frame (the bridge to the next quests). The marching host is black ink + "
-     "course-blue on off-white; the one raised banner is warm-orange; a faint hint of warm-orange marks "
-     "the distant jump-gate on the horizon. Reads 'one ordered host under one banner, marching toward "
-     "the road ahead'. Fills ≥85% of canvas width. NO Serega, so NO green anywhere. ABSOLUTELY NO words, "
-     "letters, numbers, or labels anywhere — no caption, no title."),
+     "gesturing the line into place with one outstretched arm, his banner tucked under the other. On the "
+     "LEFT a disordered cluster (one figure upside-down and googly-eyed, hopelessly confused); on the "
+     "RIGHT the same figures resolved into a tidy ranked column. ONE figure at the HEAD of the ordered "
+     "column carries the single warm-orange accent. A short hand-lettered label over the column reads "
+     "'FALL IN LINE'. Serega's green tübetey is the ONLY green; Serega, the crowd and the column are "
+     "black ink + course-blue on off-white. Reads 'Serega turns chaos on the left into an ordered ranked "
+     "line on the right'. Fills ≥85% of canvas width."),
+    ("L8", "L8/L8-05-the-host-marches.png", "16:9", True,
+     "PAYOFF — Serega leads the united host out. The whole HOST (the merged army, now in clean ranked "
+     "order) marches behind SEREGA, who walks at the front holding the ONE RAISED BANNER high with a "
+     "small determined smile, toward a HORIZON where faint JUMP-GATE ARCHES and a road lead off-frame "
+     "(the bridge to the next quests). The marching host is black ink + course-blue on off-white; "
+     "Serega's one raised banner is warm-orange; a faint hint of warm-orange marks the distant jump-gate "
+     "on the horizon; Serega's green tübetey is the ONLY green. One short hand-lettered label on the road "
+     "ahead reads 'ONWARD'. Reads 'one ordered host under Serega's banner, marching toward the road "
+     "ahead'. Fills ≥85% of canvas width."),
 ]
 
 H = {"Authorization": f"Bearer {API_KEY}"}
