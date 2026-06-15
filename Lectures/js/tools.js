@@ -68,6 +68,7 @@
       <span class="toolbar-sep"></span>
       <button data-act="pen" title="Pen (P)" aria-label="Pen">${icon('pen')}</button>
       <button data-act="notes" title="Presenter notes (N)" aria-label="Notes">${icon('note')}</button>
+      <button data-act="pdf" title="Download PDF (one slide per page)" aria-label="Download PDF">${icon('download')}</button>
       <button data-act="fullscreen" title="Fullscreen (F)" aria-label="Fullscreen">${icon('expand')}</button>
     `;
     document.body.appendChild(tb);
@@ -84,6 +85,7 @@
         case 'theme': applyTheme(prefs.theme === 'light' ? 'dark' : 'light'); break;
         case 'pen': window.Pen && window.Pen.toggle(); break;
         case 'notes': window.PresenterNotes && window.PresenterNotes.toggle(); break;
+        case 'pdf': downloadPdf(); break;
         case 'fullscreen': toggleFullscreen(); break;
       }
     });
@@ -135,8 +137,57 @@
       'pen':         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>',
       'note':        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>',
       'expand':      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v4a2 2 0 0 0 2 2h4"/><path d="M20 10V6a2 2 0 0 0-2-2h-4"/><path d="M14 20h4a2 2 0 0 0 2-2v-4"/><path d="M10 4H6a2 2 0 0 0-2 2v4"/></svg>',
+      'download':    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
     };
     return o[name] || '';
+  }
+
+  /* Download the deck as a PDF — one slide per 1920×1080 landscape page, every step
+     revealed. Leans entirely on the deck's @media print stylesheet (expands stepped
+     slides, stacks all steps, un-hides answers, re-asserts divider/pause colours) +
+     the browser's "Save as PDF" target. Zero runtime deps, works over file://. Steps
+     are forced to their final state for the print and restored on afterprint, so the
+     on-screen deck is left exactly as it was. */
+  function downloadPdf() {
+    const stepped = Array.prototype.slice.call(document.querySelectorAll('.slide[data-max-step]'));
+    const saved = stepped.map((s) => s.dataset.currentStep || '0');
+    // 1) reveal every stepped slide's FINAL state (the print CSS + step CSS read data-current-step).
+    stepped.forEach((s) => { s.dataset.currentStep = s.dataset.maxStep; });
+    // 2) mount + sync every widget figure. The deck-adapter mounts widgets lazily on 'slide:enter',
+    //    so a slide the viewer never visited would print BLANK. Dispatch the event ONLY on
+    //    widget-bearing slides — on those only the adapter reacts (other slide:enter listeners are
+    //    type-specific: lab resets the step, e2e/budget/sequence relayout — none attach to a plain
+    //    widget slide), so this mounts the figure at the max step we just set without side effects.
+    //    Inactive slides are display:none, so a measure-on-mount widget (e.g. pca-rotate) would draw
+    //    EMPTY — give each off-screen slide a real 1920×1080 box just for the mount, then revert it
+    //    (the widget keeps its drawn SVG; the print stylesheet re-lays-out every slide on its own).
+    const widgetSlides = [];
+    document.querySelectorAll('.slide .widget-mount[data-widget]').forEach((m) => {
+      const s = m.closest('.slide'); if (s && widgetSlides.indexOf(s) < 0) widgetSlides.push(s);
+    });
+    const temp = [];
+    widgetSlides.forEach((s) => {
+      if (!s.classList.contains('is-active')) {
+        temp.push([s, s.getAttribute('style')]);
+        s.style.cssText += ';display:block;position:fixed;left:-99999px;top:0;width:1920px;height:1080px;overflow:visible;';
+      }
+      s.dispatchEvent(new CustomEvent('slide:enter'));
+    });
+    let restored = false;
+    const restore = () => {
+      if (restored) return; restored = true;
+      stepped.forEach((s, i) => { s.dataset.currentStep = saved[i]; });
+      const active = document.querySelector('.slide.is-active');
+      if (active) active.dispatchEvent(new CustomEvent('slide:enter')); // resync the on-screen slide
+      window.removeEventListener('afterprint', restore);
+    };
+    window.addEventListener('afterprint', restore);
+    // Let the off-screen widgets paint, revert the temporary sizing (so print uses only the clean
+    // @media print rules), then open the dialog. Restore step state on afterprint (or a fallback).
+    setTimeout(() => {
+      temp.forEach(([s, st]) => { if (st == null) s.removeAttribute('style'); else s.setAttribute('style', st); });
+      setTimeout(() => { try { window.print(); } finally { setTimeout(restore, 1500); } }, 120);
+    }, 350);
   }
 
   function toggleFullscreen() {
