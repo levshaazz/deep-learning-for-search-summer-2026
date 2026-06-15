@@ -51,23 +51,11 @@ PREAMBLE = (
     "exactly as named in the scene description below. Line weight is uniform across the image "
     "(no thin spidery passages mixed with thick brush passages). "
 )
-# Locked appearance so Serega never drifts between images. Repeat the cap colour
-# 3× to dominate cross-attention; spell it three ways (deep-green, forest-green,
-# #2F7D4F) to anchor whichever token the model latches onto.
-SEREGA = (
-    "The recurring character Serega is a round-headed stick figure with LONG BLACK wavy hair "
-    "flowing to the shoulders, two simple dot eyes and a tiny smile, thin noodle arms and legs, "
-    "and a plain COURSE-BLUE (#2A6FDB) tunic. CRITICAL HEADWEAR — read carefully: "
-    "Serega wears a DEEP FOREST-GREEN (#2F7D4F) Tatar skullcap (called a 'tubeteika' or "
-    "'tübetey'), shaped like a short flat-topped pillbox cap, sitting flat directly on top of "
-    "the head (NEVER stacked on top of another hat/helmet/cap, NEVER perched over a second cap, "
-    "NEVER worn alongside any other headwear — there is EXACTLY ONE skullcap on Serega and it is "
-    "the green one), with a thin ochre/yellow geometric embroidered trim around the rim. The cap "
-    "colour is GREEN — repeat: forest GREEN, not blue, not purple, not red, not patterned with "
-    "blue. The cap is GREEN in EVERY single image, without exception, every time the character "
-    "appears, in every pose, in every scene. Same character, same green cap, same hair, same "
-    "tunic — identical across all illustrations in the course. "
-)
+# Serega's locked appearance + the whole recurring cast now live in the character bible
+# (_research/mascots.py) — ONE source of truth so the mascots stay consistent across lectures
+# and Claude Code sessions. The image-gate (_research/check_images.py) enforces Serega's
+# presence per lecture and the green-only-on-the-tübetey palette rule.
+from mascots import SEREGA  # noqa: E402
 # Appended to every prompt: kills baked-in text/titles and 3D/photoreal failure modes.
 # Stricter than session 0: explicit cap-colour ban list, no header bars, no English style names.
 ANTIPATTERN = (
@@ -891,9 +879,10 @@ JOBS = [
      "filled with small boxes labelled 'config', 'data collection', 'serving', 'monitoring', "
      "'feature extraction'; a tiny boat with Serega on top peering down."),
     ("L1", "L1/L1-40-goodhart.png", "16:9", False,
-     "two diverging line graphs: a rising green line 'CTR' and a falling dotted red line "
-     "'real satisfaction', with a grinning trickster (Goodhart the Trickster) yanking the CTR line "
-     "up with a clickbait fishing-hook; hand-lettered 'when a measure becomes a target'."),
+     "two diverging line graphs: a rising WARM-ORANGE line 'CTR' (the gamed metric) and a falling "
+     "dotted BLACK-INK line 'real satisfaction', with a grinning trickster (Goodhart the Trickster) "
+     "yanking the CTR line up with a clickbait fishing-hook; hand-lettered 'when a measure becomes a "
+     "target'. Palette is black ink + course-blue + warm-orange only — NO green, NO red anywhere."),
     ("L1", "L1/L1-43-flywheel.png", "16:9", False,
      "two side-by-side flywheels: a smooth wheel labelled 'virtuous: users -> logs -> model -> "
      "results', and a red wheel whose bias arrow thickens each lap, labelled 'rich get richer'."),
