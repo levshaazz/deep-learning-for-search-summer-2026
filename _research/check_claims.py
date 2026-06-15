@@ -100,6 +100,15 @@ CASCADE  = load(DATA, "l7-cascade.json")         # stages 10⁶→10³→10; BM2
 MSMARCO  = load(DATA, "l7-msmarco.json")         # frozen MS MARCO subset: retrieve MRR@10 0.5482 → rerank 0.6732 (rerank helps)
 BENCH7   = load(DATA, "l7-bench.json")           # CITED reranker benchmarks: small cross-encoder MRR@10 (L6 39.01 vs L12 39.02); LLM-reranker nDCG@10 (gpt-4 75.59, RankZephyr 78.16)
 
+# ── L8 (The Alliance: late interaction / ColBERT · learned sparse / SPLADE · hybrid · Learning to Rank).
+#    toy = stdlib-reproducible (gen_l8.py); real = frozen ColBERT/SPLADE (gen_l8_real.py, fail-soft);
+#    cited = l8-bench.json (primary-source verified). Callbacks reuse BENCH (l3) + METRICS (l4). ──
+COLBERT8 = load(DATA, "l8-colbert.json")    # toy MaxSim 2.35 (rel) > 1.30 (irr); the lexical-trap BAM
+SPLADE8  = load(DATA, "l8-splade.json")     # toy w=log(1+ReLU): river 1.0986/flood 1.2528; expansion bank 0.4055/water 0.7885; dot 3.0494
+HYBRID8  = load(DATA, "l8-hybrid.json")     # toy RRF k=60: consensus D2 0.0325 > sparse-#1 D1 0.0318 (falls to 3rd)
+LTR8     = load(DATA, "l8-ltr.json")        # toy RankNet σ(1.2)=0.7685, cost 0.2633, grad 0.2315, ΔnDCG 0.3691, λ 0.0854
+BENCH8   = load(DATA, "l8-bench.json")      # CITED: ColBERT 286→27 GiB, ColBERTv2 MRR@10 39.7, SPLADE++ 38.0/BEIR 50.7, PLAID 6.8×/45×, MSLR 136 feats
+
 # ── [P] PROVENANCE: curated data/ must equal the generator artifact it was lifted from ──────────
 def provenance_checks(report):
     raw_heaps, raw_zipf, raw_pos, raw_cos = (load(RAW, "heaps_summary.json"), load(RAW, "zipf_summary.json"),
@@ -477,7 +486,7 @@ def claims():
              anchor=r"\b(32\.3)\s*%", must=True),
         dict(id="top-3 %",   deck="L1", value=CLICK["top3Pct"], tol=0.2,
              anchor=r"\b(60\.6)\b", must=True),
-    ] + l3_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims()
+    ] + l3_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims()
 
 # ── [C] BOOK CLAIMS: the built Book PROSE must show the same flagship numbers as data/ ───────────
 # The Book restates the decks' worked examples in its own prose/KaTeX, so the deck anchors do NOT
@@ -577,6 +586,7 @@ def book_claims():
     out.append(dict(id="book L6 within-sense", deck="L6", value=CTX["cosines"]["withinSense"], tol=1e-4,
                     anchor=r'cheque"\) sit at \\\(([\d.]+)\\\), nearly on top', must=True))
     out += l7_book_claims()
+    out += l8_book_claims()
     return out
 
 # ── [C] L7 DECK claims: the cited reranker benchmarks the deck DISPLAYS (≥2-decimal → coverage-gated).
@@ -595,6 +605,79 @@ def l7_deck_claims():
         C("L7 llm gpt35",   L["gpt35"],      r"<td>GPT-3\.5 \(RankGPT\)</td><td>([\d.]+)</td>"),
         C("L7 llm gpt4",    L["gpt4"],       r"<td>GPT-4 \(RankGPT\)</td><td>([\d.]+)</td>"),
         C("L7 llm zephyr",  L["rankZephyr"], r"RankZephyr-7B</td><td>([\d.]+)</td>"),
+    ]
+
+# ── [C] L8 DECK claims: every visible ≥2-dp worked value the deck DISPLAYS == data/l8-*.json. The deck is
+#    authored in Phase 3; until Lectures/08-*.html exists there is nothing to anchor against (the guard
+#    returns []). Once built, the coverage-guard (baseline 0 for the NEW deck:L8 surface) HARD-fails on any
+#    un-gated ≥2-dp number, forcing each anchor to be added alongside its slide markup. ──
+def l8_deck_claims():
+    if "L8" not in DECKS:
+        return []
+    cb, sp, lt = COLBERT8["toy"], SPLADE8["toy"], LTR8["toy"]
+    rel, irr = cb["docRel"], cb["docIrr"]
+    qw, dw, tm = sp["query"]["weights"], sp["doc"]["weights"], sp["terms"]
+    hs = {f["id"]: f["score"] for f in HYBRID8["fused"]}
+    C = lambda id, value, anchor, tol=1e-4: dict(id=id, deck="L8", value=value, tol=tol, anchor=anchor, must=True)
+    return [
+        # ── ColBERT worked (slide 12 relevant / 13 lexical-trap): row-maxes + MaxSim ──
+        C("L8 cb relMax0", rel["rowMax"][0], r"row maxes\} = \(([\d.]+), 0\.50, 0\.95\)"),
+        C("L8 cb relMax1", rel["rowMax"][1], r"row maxes\} = \(0\.90, ([\d.]+), 0\.95\)"),
+        C("L8 cb relMax2", rel["rowMax"][2], r"row maxes\} = \(0\.90, 0\.50, ([\d.]+)\)"),
+        C("L8 cb relMaxSim", rel["maxSim"], r"0\.90 \+ 0\.50 \+ 0\.95 = \\mathbf\{([\d.]+)\}"),
+        C("L8 cb irrMax0", irr["rowMax"][0], r"row maxes\} = \(([\d.]+), 0\.98, 0\.12\)"),
+        C("L8 cb irrMax1", irr["rowMax"][1], r"row maxes\} = \(0\.20, ([\d.]+), 0\.12\)"),
+        C("L8 cb irrMax2", irr["rowMax"][2], r"row maxes\} = \(0\.20, 0\.98, ([\d.]+)\)"),
+        C("L8 cb irrMaxSim", irr["maxSim"], r"0\.20 \+ 0\.98 \+ 0\.12 = \\mathbf\{([\d.]+)\}"),
+        # ── SPLADE worked (slide 24 weights / 25 dot): query weights, doc weights, products, dot ──
+        C("L8 sp wRiver", qw[0], r"\\log\(3\.0\) = \\mathbf\{([\d.]+)\}"),
+        C("L8 sp wBank",  qw[1], r"\\log\(1\.5\) = \\mathbf\{([\d.]+)\}"),
+        C("L8 sp wFlood", qw[2], r"\\log\(3\.5\) = \\mathbf\{([\d.]+)\}"),
+        C("L8 sp wWater", qw[3], r"\\log\(2\.2\) = \\mathbf\{([\d.]+)\}"),
+        C("L8 sp dRiver", dw[0], r"w_d = \(([\d.]+),\\, 0\.70"),
+        C("L8 sp dBank",  dw[1], r"w_d = \(0\.90,\\, ([\d.]+),\\, 0\.60"),
+        C("L8 sp dFlood", dw[2], r"0\.70,\\, ([\d.]+),\\, 1\.30"),
+        C("L8 sp dWater", dw[3], r"0\.60,\\, ([\d.]+)\)"),
+        C("L8 sp prodRiver", tm[0]["prod"], r"= ([\d.]+) \+ 0\.2839 \+ 0\.7517"),
+        C("L8 sp prodBank",  tm[1]["prod"], r"0\.9887 \+ ([\d.]+) \+ 0\.7517"),
+        C("L8 sp prodFlood", tm[2]["prod"], r"0\.2839 \+ ([\d.]+) \+ 1\.0251"),
+        C("L8 sp prodWater", tm[3]["prod"], r"0\.7517 \+ ([\d.]+) = \\mathbf"),
+        C("L8 sp dot", sp["dot"], r"0\.7517 \+ 1\.0251 = \\mathbf\{([\d.]+)\}"),
+        # ── Hybrid worked (slide 35): the five fused RRF scores ──
+        C("L8 hy D2", hs["D2"], r"\\tfrac\{1\}\{62\}\+\\tfrac\{1\}\{61\} = \\mathbf\{([\d.]+)\}"),
+        C("L8 hy D3", hs["D3"], r"\\tfrac\{1\}\{63\}\+\\tfrac\{1\}\{62\} = \\mathbf\{([\d.]+)\}"),
+        C("L8 hy D1", hs["D1"], r"\\tfrac\{1\}\{61\}\+\\tfrac\{1\}\{65\} = \\mathbf\{([\d.]+)\}"),
+        C("L8 hy D4", hs["D4"], r"D_4 = \\mathbf\{([\d.]+)\}"),
+        C("L8 hy D5", hs["D5"], r"D_5 = \\mathbf\{([\d.]+)\}"),
+        # ── LTR worked (slide 46 RankNet / 47 LambdaRank) ──
+        C("L8 ltr prob", lt["rankNetProb"], r"\\frac\{1\}\{1\+e\^\{-1\.2\}\} = \\mathbf\{([\d.]+)\}"),
+        C("L8 ltr cost", lt["rankNetCost"], r"e\^\{-1\.2\}\\big\) = \\mathbf\{([\d.]+)\}"),
+        C("L8 ltr grad", lt["gradient"], r"1 - \\sigma\(1\.2\) = \\mathbf\{([\d.]+)\}"),
+        C("L8 ltr ndcg", lt["ndcg"]["current"], r"\\mathbf\{([\d.]+)\} \\;\\longrightarrow"),
+        C("L8 ltr delta", lt["ndcg"]["deltaNdcg"], r"1\.0 - 0\.6309 = \\mathbf\{([\d.]+)\}"),
+        C("L8 ltr lambda", lt["lambda"], r"0\.2315 \\cdot 0\.3691 = \\mathbf\{([\d.]+)\}"),
+        # ── callbacks displayed on L8 slides (anchored to existing data files, not duplicated) ──
+        C("L8 cb BEIR bm25", BENCH["beir"]["BM25"], r"reaches nDCG@10 \\\(= ([\d.]+)\\\)"),
+        C("L8 cb BEIR dpr", BENCH["beir"]["denseDPR"], r"DPR</strong> trails at \\\(([\d.]+)\\\)"),
+    ]
+
+# ── [C] L8 BOOK claims: the L8 chapter prose restates every worked number; gate each against data/. Book
+#    claims are filtered by `c["deck"] in book` in main(), so an empty list is safe until content/book/l8
+#    is built (Phase 4); anchors are added alongside the beat prose. ──
+def l8_book_claims():
+    C = lambda id, value, anchor, tol=1e-4: dict(id="book " + id, deck="L8", value=value, tol=tol, anchor=anchor, must=True)
+    cb, sp, lt = COLBERT8["toy"], SPLADE8["toy"], LTR8["toy"]
+    hs = {f["id"]: f["score"] for f in HYBRID8["fused"]}
+    return [
+        # the per-pillar flagship worked numbers, restated in the L8 chapter :::calc blocks (EN book).
+        C("L8 cb relMaxSim", cb["docRel"]["maxSim"], r"0\.90 \+ 0\.50 \+ 0\.95 = \\mathbf\{([\d.]+)\}"),
+        C("L8 cb irrMaxSim", cb["docIrr"]["maxSim"], r"0\.20 \+ 0\.98 \+ 0\.12 = \\mathbf\{([\d.]+)\}"),
+        C("L8 sp dot", sp["dot"], r"0\.9887 \+ 0\.2839 \+ 0\.7517 \+ 1\.0251 = \\mathbf\{([\d.]+)\}"),
+        C("L8 hy D2", hs["D2"], r"1/62 \+ 1/61 = \\mathbf\{([\d.]+)\}"),
+        C("L8 hy D1", hs["D1"], r"1/61 \+ 1/65 = \\mathbf\{([\d.]+)\}"),
+        C("L8 ltr prob", lt["rankNetProb"], r"1/\(1\+e\^\{-1\.2\}\) = \\mathbf\{([\d.]+)\}"),
+        C("L8 ltr cost", lt["rankNetCost"], r"\\log\(1\+e\^\{-1\.2\}\) = \\mathbf\{([\d.]+)\}"),
+        C("L8 ltr lambda", lt["lambda"], r"0\.2315 \\cdot 0\.3691 = \\mathbf\{([\d.]+)\}"),
     ]
 
 # ── [C] L7 BOOK claims: the L7 chapter prose states every flagship number; gate each against data/.
@@ -1038,12 +1121,13 @@ def arithmetic_checks(report, texts):
 # i.e. the displayed number IS, to display precision, a gated value (a coincidental match needs a value
 # within 1e-3; a genuinely new data-number, e.g. an L7 cosine 0.7531, is not and so HARD-fails until gated).
 COVERAGE_BASELINE = {
-    # L3–L6 deck/book baselines TIGHTENED after L7: the L7 callback claims (BEIR 0.43/0.38, MS MARCO
-    # 0.187/0.33, L4 recall@k, etc.) are value-gated globally, so they now ALSO cover some numbers those
-    # earlier units displayed but had not gated — the un-gated count dropped, so the ratchet is lowered to
-    # match (strictly stronger; never raised). New units (L7) stay at 0 via .get(surf, 0).
-    "deck:L0": 0, "deck:L1": 2, "deck:L2": 10, "deck:L3": 54, "deck:L4": 45, "deck:L5": 55, "deck:L6": 37,
-    "book:L0": 0, "book:L1": 1, "book:L2": 8,  "book:L3": 17, "book:L4": 23, "book:L5": 13, "book:L6": 11,
+    # L3–L6 deck/book baselines TIGHTENED after L7 and again after L8: each new unit's value-gated worked
+    # numbers (L8: the ColBERT/SPLADE/RRF/LambdaRank intermediates 0.0325, 0.7685, 2.35, …) are matched
+    # GLOBALLY, so they now ALSO cover some numbers earlier units displayed but had not gated — the un-gated
+    # count dropped, so the ratchet is lowered to match (strictly stronger; never raised). New units (L7/L8)
+    # stay at 0 via .get(surf, 0), forcing every ≥2-dp number they display to be gated.
+    "deck:L0": 0, "deck:L1": 1, "deck:L2": 8, "deck:L3": 50, "deck:L4": 41, "deck:L5": 51, "deck:L6": 33,
+    "book:L0": 0, "book:L1": 1, "book:L2": 8,  "book:L3": 15, "book:L4": 22, "book:L5": 13, "book:L6": 9,
 }
 _COV_DEC   = re.compile(r'(?<![\d.])\d+\.\d{2,}(?!\d)')   # grounded signature: a decimal, ≥2 fractional digits
 _COV_ARXIV = re.compile(r'^\d{4}\.\d{4,}$')               # arXiv id (e.g. 1901.04085) — not data
@@ -1123,6 +1207,70 @@ def provenance_l7(report):
         report.append(("OK", f"provenance-L7: {len(checks)} recompute + 11 structural invariants consistent ✓"))
 
 
+# ── [P] PROVENANCE (L8 "The Alliance"): gen_l8 emits data/ directly (stdlib, no RAW twin) — recompute the
+#    toy worked numbers and pin the cross-pillar structural invariants (the four BAMs). Real blocks (frozen
+#    ColBERT/SPLADE) are optional; only an ORDERING agreement is pinned, and only when the heavy step ran. ──
+def provenance_l8(report):
+    cb, sp = COLBERT8["toy"], SPLADE8["toy"]
+    hy, lt = HYBRID8, LTR8["toy"]
+    checks = []
+    # ColBERT: maxSim = sum of per-query-token row-maxes
+    for tag, doc in (("rel", cb["docRel"]), ("irr", cb["docIrr"])):
+        checks.append((f"colbert.{tag}.maxSim==ΣrowMax", doc["maxSim"], round(sum(doc["rowMax"]), 2), 1e-9))
+    # SPLADE: w = log(1+ReLU(logit)); dot = Σ round(q·d, 4) (round-then-sum: products sum to the displayed dot)
+    relu = [max(0.0, x) for x in sp["query"]["logits"]]
+    for i, w in enumerate(sp["query"]["weights"]):
+        checks.append((f"splade.w[{i}]==log(1+ReLU)", w, round(math.log(1 + relu[i]), 4), 1e-4))
+    checks.append(("splade.dot==Σprod", sp["dot"], round(sum(t["prod"] for t in sp["terms"]), 4), 1e-4))
+    # Hybrid: score = 1/(k+rSparse) + 1/(k+rDense)
+    k = hy["k"]
+    for f in hy["fused"]:
+        checks.append((f"hybrid.{f['id']}.score", f["score"], round(1 / (k + f["rSparse"]) + 1 / (k + f["rDense"]), 4), 1e-4))
+    # LTR: RankNet σ / cost / gradient, the mis-ordered nDCG, ΔnDCG and λ
+    d = lt["scoreDiff"]
+    checks.append(("ltr.rankNetProb==σ(Δ)", lt["rankNetProb"], round(1 / (1 + math.exp(-d)), 4), 1e-4))
+    checks.append(("ltr.rankNetCost==log(1+e^-Δ)", lt["rankNetCost"], round(math.log(1 + math.exp(-d)), 4), 1e-4))
+    checks.append(("ltr.gradient==1-σ(Δ)", lt["gradient"], round(1 - 1 / (1 + math.exp(-d)), 4), 1e-4))
+    checks.append(("ltr.ndcg.current", lt["ndcg"]["current"], round((1 / math.log2(3)) / (1 / math.log2(2)), 4), 1e-4))
+    checks.append(("ltr.deltaNdcg==after-current", lt["ndcg"]["deltaNdcg"], round(lt["ndcg"]["afterSwap"] - lt["ndcg"]["current"], 4), 1e-9))
+    checks.append(("ltr.lambda==grad·ΔnDCG", lt["lambda"], round(lt["gradient"] * lt["ndcg"]["deltaNdcg"], 4), 1e-3))
+    bad = 0
+    for name, a, b, tol in checks:
+        if abs(a - b) > tol:
+            bad += 1
+            report.append(("HARD", f"provenance-L8({name}): data/ disagree/invariant broken — {a} vs {b}"))
+    flags = []
+    def need(cond, name):
+        if not cond:
+            flags.append(name)
+            report.append(("HARD", f"provenance-L8({name}): structural invariant broken"))
+    # ColBERT: each rowMax IS the row max; the BAM — the relevant doc beats the lexical-trap finance doc
+    for tag, doc in (("rel", cb["docRel"]), ("irr", cb["docIrr"])):
+        need(all(abs(doc["rowMax"][i] - max(doc["sim"][i])) < 1e-9 for i in range(len(doc["rowMax"]))), f"colbert.{tag} rowMax==max(sim)")
+    need(cb["docRel"]["maxSim"] > cb["docIrr"]["maxSim"], "colbert maxSimRel>maxSimIrr (BAM)")
+    # SPLADE: products reconcile to the dot; the two expansion terms are positive-weight yet non-literal
+    need(all(abs(t["prod"] - t["q"] * t["d"]) <= 1e-3 for t in sp["terms"]), "splade prod==round(q·d)")
+    literal = set(sp["query"]["text"].split())
+    vocab, w = SPLADE8["toy"]["vocab"], sp["query"]["weights"]
+    need(all(w[vocab.index(e)] > 0 and e not in literal for e in sp["query"]["expansion"]), "splade expansion positive & non-literal")
+    need(set(sp["query"]["expansion"]) == {"bank", "water"}, "splade expansion=={bank,water}")
+    # Hybrid: fused sorted by score desc; the consensus doc D2 beats the sparse favourite D1
+    sc = [f["score"] for f in hy["fused"]]
+    need(sc == sorted(sc, reverse=True), "hybrid fused sorted desc")
+    byid = {f["id"]: f for f in hy["fused"]}
+    need(byid["D2"]["score"] > byid["D1"]["score"], "hybrid D2(consensus)>D1(sparse#1)")
+    need(hy["sparse"]["order"][0] == "D1", "hybrid D1 is the sparse #1")
+    # LTR: a confident pairwise preference (>0.5) and a positive force
+    need(lt["rankNetProb"] > 0.5, "ltr rankNetProb>0.5")
+    need(lt["lambda"] > 0, "ltr lambda>0")
+    # toy↔real ORDERING agreement (only when the heavy ColBERT step has run and spliced a real block)
+    real = COLBERT8.get("real")
+    if real and isinstance(real.get("maxSimRel"), (int, float)) and isinstance(real.get("maxSimIrr"), (int, float)):
+        need((cb["docRel"]["maxSim"] - cb["docIrr"]["maxSim"]) * (real["maxSimRel"] - real["maxSimIrr"]) > 0, "colbert toy<->real sign agree")
+    if not bad and not flags:
+        report.append(("OK", f"provenance-L8: {len(checks)} recompute + structural invariants consistent ✓"))
+
+
 def main():
     text = {k: p.read_text() for k, p in DECKS.items()}
     book = load_book()                              # built Book HTML (empty if docs/ not built)
@@ -1135,6 +1283,7 @@ def main():
     provenance_enrichment(report)                   # [P] L5/L6 enrichment trajectory cross-file + data-only pins
     provenance_l6_nce(report, text.get("L6", ""))   # [P] L6 InfoNCE softmax BARS == softmax(traj.logits)·H (R8 data-bind)
     provenance_l7(report)                            # [P] L7 toy-recompute + cross-file + structural pins
+    provenance_l8(report)                            # [P] L8 toy-recompute + the four cross-pillar BAMs
     for c in claims():                              # [C] deck == data/
         report.append(check_claim(c, text[c["deck"]]))
     if book:                                        # [C] Book == data/ (the Book restates the flagship numbers)
@@ -1381,11 +1530,33 @@ def selftest():
     CROSSENC["real"]["pairBad"]["score"] = savedL7
     okL7p = any(s == "HARD" and "provenance-L7" in m for s, m in repL7)
     print("[selftest:prov-L7]", next((m for s, m in repL7 if s == "HARD"), "provenance-L7: NO FLAG"))
+    # L8 [P]: break each of the four cross-pillar BAMs (must flag) — the L8 pins are not blind.
+    #   (a) ColBERT: the lexical-trap doc must NOT outscore the relevant doc (maxSimRel>maxSimIrr).
+    rep8a = []; sv = COLBERT8["toy"]["docIrr"]["maxSim"]; COLBERT8["toy"]["docIrr"]["maxSim"] = 9.99
+    provenance_l8(rep8a); COLBERT8["toy"]["docIrr"]["maxSim"] = sv
+    okL8a = any(s == "HARD" and "provenance-L8(colbert" in m for s, m in rep8a)
+    print("[selftest:prov-L8-colbert]", next((m for s, m in rep8a if s == "HARD"), "provenance-L8 colbert: NO FLAG"))
+    #   (b) SPLADE: a drifted dot must break the round-then-sum reconciliation (dot==Σprod).
+    rep8b = []; sv = SPLADE8["toy"]["dot"]; SPLADE8["toy"]["dot"] = 9.999
+    provenance_l8(rep8b); SPLADE8["toy"]["dot"] = sv
+    okL8b = any(s == "HARD" and "splade.dot" in m for s, m in rep8b)
+    print("[selftest:prov-L8-splade]", next((m for s, m in rep8b if s == "HARD"), "provenance-L8 splade: NO FLAG"))
+    #   (c) Hybrid: a fused list not sorted by score desc must flag.
+    rep8c = []; sv = HYBRID8["fused"][0]["score"]; HYBRID8["fused"][0]["score"] = 0.0001
+    provenance_l8(rep8c); HYBRID8["fused"][0]["score"] = sv
+    okL8c = any(s == "HARD" and "provenance-L8(hybrid" in m for s, m in rep8c)
+    print("[selftest:prov-L8-hybrid]", next((m for s, m in rep8c if s == "HARD"), "provenance-L8 hybrid: NO FLAG"))
+    #   (d) LTR: λ ≠ gradient·ΔnDCG must flag.
+    rep8d = []; sv = LTR8["toy"]["lambda"]; LTR8["toy"]["lambda"] = 0.9999
+    provenance_l8(rep8d); LTR8["toy"]["lambda"] = sv
+    okL8d = any(s == "HARD" and "ltr.lambda" in m for s, m in rep8d)
+    print("[selftest:prov-L8-ltr]", next((m for s, m in rep8d if s == "HARD"), "provenance-L8 ltr: NO FLAG"))
+    okL8 = okL8a and okL8b and okL8c and okL8d
     ok = (okD and okA and okP and okL3 and okL4 and okP2 and okL5 and okL6 and okP3 and okP4
           and okGX and okTK and okTS and okP5 and okP6 and okP7 and okP8 and okP9
           and okW and okU and okS and okT47 and okPE and okCX and okBK and okBW and okNCE and okCov
-          and okL7c and okL7p)
-    print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 + L5-GloVe/t-SNE + L2-tokenizers + enrichment-trajectory + l6-contextual cross-file + L6-InfoNCE-bars (data + deck) + Book-prose deck & cross-file + coverage-guard ratchet (incl. data-only pins) all fire"
+          and okL7c and okL7p and okL8)
+    print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 + L5-GloVe/t-SNE + L2-tokenizers + enrichment-trajectory + l6-contextual cross-file + L6-InfoNCE-bars (data + deck) + Book-prose deck & cross-file + coverage-guard ratchet (incl. data-only pins) + L7 BAM + L8 four cross-pillar BAMs all fire"
           if ok else "FAIL — a check is blind!")
     return 0 if ok else 1
 

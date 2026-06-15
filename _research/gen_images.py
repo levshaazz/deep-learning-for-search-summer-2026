@@ -1035,6 +1035,65 @@ JOBS = [
      "a small Serega cameo pointing to the right with a neutral smile. Plain off-white background."),
     ("char", "_char/serega-cameo-puzzled.png", "1:1", True,
      "a small Serega cameo scratching his head, looking puzzled. Plain off-white background."),
+
+    # ---- L8 · The Alliance (Late Interaction / ColBERT · SPLADE · Hybrid · Learning to Rank) ----
+    # Wordless idea/analogy plates (NOT data figures — the deck/Book widgets carry every number).
+    # Palette: black ink + course-blue #2A6FDB + warm-orange #E8743B on off-white #FBFAF6. NO green
+    # (has_serega=False → no green anywhere). ABSOLUTELY NO words/letters/numbers (overlays do all labels).
+    ("L8", "L8/L8-00-the-alliance.png", "16:9", False,
+     "HERO ESTABLISHING SHOT — two hosts converge into one. LEFT: an ANGULAR, GEOMETRIC column of "
+     "figures (the lexical / sparse army, course-blue) marching in from the left, all sharp facets and "
+     "straight edges. RIGHT: a FLOWING, ROUNDED column (the semantic / dense army, course-blue) sweeping "
+     "in from the right, all soft curves. AT CENTRE, on a low rise where the two columns meet and merge, "
+     "a lone STANDARD-BEARER figure holds ONE TALL BANNER bearing an abstract geometric emblem (the only "
+     "warm-orange in the frame). The whole image reads 'many-from-two-into-one under a single banner'. "
+     "Fills ≥85% of canvas width. NO Serega, so NO green anywhere; warm-orange ONLY on the one banner; "
+     "the two armies and the rise are black ink + course-blue on off-white. ABSOLUTELY NO words, letters, "
+     "numbers, or labels anywhere — figures and banner emblem unlabelled, no caption, no title."),
+    ("L8", "L8/L8-01-token-muster.png", "16:9", False,
+     "LATE INTERACTION as a muster of tokens — a FRONT ROW of small identical figures (the query tokens) "
+     "faces an OPPOSITE ROW of small figures (the document tokens) across a gap. From each FRONT figure, "
+     "a SINGLE bright beam shoots to the ONE opposite figure it matches best (its MaxSim partner); all "
+     "other faint beams fade. The pattern 'each front figure picks exactly one strongest partner' is the "
+     "whole image — a clean lattice of mostly-faint lines with a few bright ones. The bright matched "
+     "beams are the ONLY warm-orange; the rows of figures and faint beams are black ink + course-blue on "
+     "off-white. Fills ≥85% of canvas width. NO Serega, so NO green anywhere. ABSOLUTELY NO words, "
+     "letters, numbers, or labels anywhere — figures unlabelled, no caption, no title."),
+    ("L8", "L8/L8-02-expanded-banner.png", "4:3", False,
+     "SPLADE term expansion as a kindling constellation — a SPARSE banner / constellation where, beyond "
+     "a few LITERAL lit points (the words you typed), several FAINT RELATED points kindle and light up "
+     "AROUND them (the expansion terms) — the emblem grows richer WITHOUT becoming a dense field (it "
+     "stays clearly sparse, lots of empty dark space remains). The newly-kindled expansion points glow; "
+     "ONE of them carries the single warm-orange accent; the literal points and connecting filaments are "
+     "black ink + course-blue on off-white. Reads 'a few given points, a few more lighting up nearby, "
+     "still sparse'. Fills ≥85% of canvas width. NO Serega, so NO green anywhere. ABSOLUTELY NO words, "
+     "letters, numbers, or labels anywhere — points unlabelled, no caption, no title."),
+    ("L8", "L8/L8-03-two-rivers.png", "16:9", False,
+     "HYBRID as two rivers merging — TWO rivers flow toward each other and JOIN into one. The LEFT river "
+     "is ANGULAR / FACETED (lexical / sparse), drawn with hard geometric bends; the RIGHT river is "
+     "SMOOTH / CURVING (semantic / dense), drawn with soft meanders. They merge mid-frame into ONE "
+     "BROADER, STRONGER river that flows on beneath a single RAISED BANNER on the bank. Blue water for "
+     "both rivers and the merged flow; the one raised banner is the ONLY warm-orange; banks and "
+     "surroundings are black ink on off-white. Reads 'two different waters become one stronger current "
+     "under one banner'. Fills ≥85% of canvas width. NO Serega, so NO green anywhere. ABSOLUTELY NO "
+     "words, letters, numbers, or labels anywhere — no caption, no title."),
+    ("L8", "L8/L8-04-the-captain-orders.png", "4:3", False,
+     "LEARNING TO RANK as a marshal ordering a formation — the STANDARD-BEARER, now as a MARSHAL, "
+     "arranges a SCATTERED CROWD of small figures into a CLEAN RANKED COLUMN (a single file, in order), "
+     "gesturing the line into place with one outstretched arm. On the left a disordered cluster; on the "
+     "right the same figures resolved into a tidy ranked column. ONE figure at the HEAD of the ordered "
+     "column carries the single warm-orange accent; the marshal, the crowd and the column are black ink "
+     "+ course-blue on off-white. Reads 'chaos on the left becomes an ordered ranked line on the right'. "
+     "Fills ≥85% of canvas width. NO Serega, so NO green anywhere. ABSOLUTELY NO words, letters, numbers, "
+     "or labels anywhere — figures unlabelled, no caption, no title."),
+    ("L8", "L8/L8-05-the-host-marches.png", "16:9", False,
+     "PAYOFF — the united, ordered host marches out. The whole HOST (the merged army, now in clean "
+     "ranked order) marches under the ONE raised banner toward a HORIZON where faint JUMP-GATE ARCHES "
+     "and a road lead off-frame (the bridge to the next quests). The marching host is black ink + "
+     "course-blue on off-white; the one raised banner is warm-orange; a faint hint of warm-orange marks "
+     "the distant jump-gate on the horizon. Reads 'one ordered host under one banner, marching toward "
+     "the road ahead'. Fills ≥85% of canvas width. NO Serega, so NO green anywhere. ABSOLUTELY NO words, "
+     "letters, numbers, or labels anywhere — no caption, no title."),
 ]
 
 H = {"Authorization": f"Bearer {API_KEY}"}
