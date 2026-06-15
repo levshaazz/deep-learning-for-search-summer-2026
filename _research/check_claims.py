@@ -667,11 +667,15 @@ def l8_deck_claims():
 def l8_book_claims():
     C = lambda id, value, anchor, tol=1e-4: dict(id="book " + id, deck="L8", value=value, tol=tol, anchor=anchor, must=True)
     cb, sp, lt = COLBERT8["toy"], SPLADE8["toy"], LTR8["toy"]
+    cbr = COLBERT8["real"]   # frozen real ColBERTv2 MaxSim (gen_l8_real.py, heavy step) — surfaced in depth-maxsim-math
     hs = {f["id"]: f["score"] for f in HYBRID8["fused"]}
     return [
         # the per-pillar flagship worked numbers, restated in the L8 chapter :::calc blocks (EN book).
         C("L8 cb relMaxSim", cb["docRel"]["maxSim"], r"0\.90 \+ 0\.50 \+ 0\.95 = \\mathbf\{([\d.]+)\}"),
         C("L8 cb irrMaxSim", cb["docIrr"]["maxSim"], r"0\.20 \+ 0\.98 \+ 0\.12 = \\mathbf\{([\d.]+)\}"),
+        # real ColBERTv2 authenticity (depth-maxsim-math): same query/docs, MaxSim 3.5462 (rel) > 2.5407 (irr).
+        C("L8 cb realMaxSimRel", cbr["maxSimRel"], r"= \\mathbf\{([\d.]+)\}\\\) for the relevant"),
+        C("L8 cb realMaxSimIrr", cbr["maxSimIrr"], r"versus \\\(\\mathbf\{([\d.]+)\}\\\) for the irrelevant"),
         C("L8 sp dot", sp["dot"], r"0\.9887 \+ 0\.2839 \+ 0\.7517 \+ 1\.0251 = \\mathbf\{([\d.]+)\}"),
         C("L8 hy D2", hs["D2"], r"1/62 \+ 1/61 = \\mathbf\{([\d.]+)\}"),
         C("L8 hy D1", hs["D1"], r"1/61 \+ 1/65 = \\mathbf\{([\d.]+)\}"),

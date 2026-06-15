@@ -741,6 +741,11 @@ async function main() {
         themes: THEMES,
         coarsen: 'Math.round(box/6) px buckets (anti sub-pixel jitter — matches slide-viz signature)',
         platform: process.platform,   // a paint signature is PER-PLATFORM (font/sub-pixel render differs)
+        crossPlatform: "Per-platform: when _meta.platform != runner OS (e.g. this darwin baseline under GitHub's "
+          + 'ubuntu CI) the paint-signature DRIFT check is INFORMATIONAL, not gated — RUN checks '
+          + '(mount/console/setStep/empty-render) still gate everywhere. The box/6 coarsening tolerates sub-pixel '
+          + 'jitter on-platform; cross-platform drift is skipped by the crossPlatform guard above (commit ba29e89). '
+          + 'Set WIDGET_VIZ_FORCE=1 to gate drift off-platform.',
         widgets: Object.keys(entries).length,
       },
       entries,
