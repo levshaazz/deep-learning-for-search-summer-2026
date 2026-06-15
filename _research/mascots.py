@@ -134,6 +134,114 @@ MASCOTS = {
         "carries_green": False,
         "lectures": ["L2"],
     },
+
+    # ── NEW pun-cast (owner-approved 2026-06-15) — locked ahead of the RAG arc (L10–L12),
+    #    multimodal, and the embeddings callback (L5/L6). Names are wordplay; the DRAWINGS are
+    #    original (no likeness of any real person or branded mascot). All bare-headed, no green. ──
+    "ragdoll": {
+        "name": "RAGdoll (the Oracle)",
+        "role": "the RAG system / the answering Oracle — retrieve-then-generate (anchors L10–L12)",
+        "appearance": (
+            "RAGdoll is the Oracle drawn as a patchwork rag-doll STITCHED TOGETHER from retrieved scraps "
+            "of paper and document-snippets: a friendly stuffed figure whose body is a quilt of little "
+            "text-patches with loose threads at the seams, two simple button eyes and a stitched smile, "
+            "course-blue cloth with warm-orange patches and stitching. Freshly fed with retrieved context "
+            "it stands tall and confident; with stale or missing context it visibly comes apart at the "
+            "seams (a patch dangling, a thread unravelling). BARE-HEADED, no green anywhere — course-blue "
+            "+ warm-orange cloth on black ink only."
+        ),
+        "keywords": ["ragdoll", "rag-doll"],
+        "carries_green": False,
+        "lectures": ["L10", "L11", "L12"],
+    },
+    "chunk_norris": {
+        "name": "Chunk Norris",
+        "role": "chunking — splits long documents into well-sized, overlapping passages (L10)",
+        "appearance": (
+            "Chunk Norris is a confident karate-master stick figure (an ORIGINAL character, NOT a likeness "
+            "of any real person): course-blue gi and belt, a determined squint and a tidy ink moustache, "
+            "mid roundhouse-kick chopping a long scroll/document into equal passage-chunks that fly apart "
+            "along clean cut-lines, a faint warm-orange motion-arc tracing the kick. He fusses over a small "
+            "OVERLAP between chunks so nothing falls between slices. BARE-HEADED, no green — black ink + "
+            "course-blue with a single warm-orange accent on the kick."
+        ),
+        "keywords": ["chunk norris"],
+        "carries_green": False,
+        "lectures": ["L10"],
+    },
+    "confabulous": {
+        "name": "Confabulous",
+        "role": "the hallucination phantom — confident fabricated answers/citations; the villain of RAG eval (L11)",
+        "appearance": (
+            "Confabulous is a wispy translucent PHANTOM drawn as a thin black-ink outline with the "
+            "off-white paper showing through (a friendly-ghost silhouette), wearing a too-wide showman's "
+            "grin and presenting a bogus citation-scroll with a theatrical flourish and a little sparkle. "
+            "One warm-orange accent on the fake citation tag (a hand-lettered 'trust me'). BARE-HEADED, no "
+            "cap, no green — black-ink outline + faint course-blue wisps + one warm-orange accent."
+        ),
+        "keywords": ["confabulous"],
+        "carries_green": False,
+        "lectures": ["L11"],
+    },
+    "re_actor": {
+        "name": "the Re-Actor",
+        "role": "agentic RAG — the Thought→Action→Observation self-critique loop (ReAct / Self-RAG / CRAG, L11)",
+        "appearance": (
+            "the Re-Actor is an earnest little theatrical actor (course-blue, simple stick figure) caught "
+            "mid-performance on a tiny stage, one hand raised mid-declamation; a circular loop-arrow of "
+            "three beats — Thought, Action, Observation — drawn as small masks/placards around it, and a "
+            "scatter of stick-on self-critique notes ('take two!'). One warm-orange accent on the loop-arrow. "
+            "BARE-HEADED, no green — black ink + course-blue + a warm-orange loop."
+        ),
+        "keywords": ["re-actor"],
+        "carries_green": False,
+        "lectures": ["L11"],
+    },
+    "clippy": {
+        "name": "Clippy",
+        "role": "multimodal alignment — image↔text in one shared space (CLIP, L12)",
+        "appearance": (
+            "Clippy is a friendly bent-wire PAPERCLIP assistant character (an affectionate nod to the "
+            "classic late-90s office help-assistant trope — an ORIGINAL drawing, not a copy of any branded "
+            "mascot): a single course-blue paperclip bent into a body with two big googly eyes and "
+            "expressive ink eyebrows, gesturing helpfully. It holds a small picture in one loop and a line "
+            "of text in the other and snaps them together into one shared slot. One warm-orange accent "
+            "where image and text align. BARE-HEADED (it is a paperclip — no cap), no green — course-blue "
+            "wire + black ink + a warm-orange accent."
+        ),
+        "keywords": ["clippy", "paperclip"],
+        "carries_green": False,
+        "lectures": ["L12"],
+    },
+    "joey_multihop": {
+        "name": "Joey Multi-Hop",
+        "role": "multi-hop reasoning — hops node→node→node to assemble an answer (multi-hop / GraphRAG, L12)",
+        "appearance": (
+            "Joey Multi-Hop is a cheerful cartoon KANGAROO (course-blue, rounded, big springy feet, a "
+            "little pouch holding gathered clue-cards) captured mid-bound leaping from one document-node to "
+            "the next across a dotted graph of stepping-stone nodes, a dashed warm-orange arc tracing the "
+            "chain of hops; each landing tucks one clue into the pouch. BARE-HEADED, no green — black ink + "
+            "course-blue + a warm-orange hop-arc."
+        ),
+        "keywords": ["joey multi-hop", "kangaroo"],
+        "carries_green": False,
+        "lectures": ["L12"],
+    },
+    "victor_vector": {
+        "name": "Victor the Vector",
+        "role": "embeddings — a word/point becomes a vector with magnitude AND direction (L5, L6)",
+        "appearance": (
+            "Victor the Vector is a sleek, confident character built around a bold ARROW (an ORIGINAL "
+            "character, NOT a likeness of any film character): a stick figure whose pose forms a clear "
+            "directional arrow, striking a proud 'magnitude AND direction' stance with one arm extended "
+            "like an arrow-shaft and a small grin of mathematical pride; he plots words as little arrows "
+            "from an origin on a faint coordinate grid. Course-blue body with a warm-orange arrowhead "
+            "accent. BARE-HEADED, no green — black ink + course-blue + a warm-orange arrowhead."
+        ),
+        "keywords": ["victor the vector"],
+        "carries_green": False,
+        "lectures": ["L5", "L6"],
+    },
 }
 
 # Every lecture must feature Serega in at least this share of its plates (tightest current
