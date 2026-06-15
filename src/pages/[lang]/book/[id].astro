@@ -70,6 +70,14 @@ const escMath = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>
 function inlineMd(s) {
   if (s == null) return '';
   if (typeof s !== 'string') s = String(s);
+  // A `:::calc … :::` body paragraph is a "worked calculation" callout: strip the
+  // fence, process the inner as normal inline markdown/math, and wrap the result in a
+  // <span class="calc-callout"> (a span, not a div, so it stays valid inside the <p>;
+  // the CSS makes it display:block). No raw HTML reaches the author text (escAll would
+  // eat it), so this fence is the only way to lift a calc into its own card.
+  let calcWrap = false;
+  const cm = s.match(/^\s*:::calc\s+([\s\S]+?)\s*:::\s*$/);
+  if (cm) { s = cm[1]; calcWrap = true; }
   const stash = [];
   const hold = (html) => { stash.push(html); return SENT_L + (stash.length - 1) + SENT_R; };
 
@@ -98,7 +106,7 @@ function inlineMd(s) {
 
   // (d) restore protected spans.
   h = h.replace(new RegExp(SENT_L + '(\\d+)' + SENT_R, 'g'), (_, i) => stash[Number(i)]);
-  return h;
+  return calcWrap ? '<span class="calc-callout">' + h + '</span>' : h;
 }
 // vendored KaTeX (same copy the decks ship) — copy-static publishes Lectures/ → docs/Lectures/,
 // so these resolve on the live site with zero CDN.
@@ -240,17 +248,37 @@ const katexAuto = withBase('/Lectures/vendor/katex/auto-render.min.js');
       border: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
       border-radius: 5px; padding: .08em .36em; }
 
-    /* KaTeX display math: centered, breathing room; scroll instead of overflow on long rows. */
-    .beat-prose .katex-display { margin: var(--ws-2) 0; padding: 2px 0;
+    /* KaTeX display math: lift the key formula out of the prose as a warm "formula card"
+       (paper tint + accent left-rule + air) so it stops drowning in the running text.
+       Pure styling — no markup change, so the facts-gate's number anchors are untouched.
+       Long rows scroll instead of overflowing. KaTeX builds these nodes at RUNTIME, so they
+       carry no astro-scoped attribute — wrap the KaTeX parts in :global() (parent stays scoped),
+       else the rule compiles to .katex-display[data-astro-cid] and never matches. */
+    .beat-prose :global(.katex-display) { margin: var(--ws-3) 0; padding: var(--ws-2) var(--ws-3);
+      background: color-mix(in srgb, var(--warm-soft) 38%, var(--bg-card));
+      border: 1px solid color-mix(in srgb, var(--ink) 9%, transparent);
+      border-left: var(--line-thick) solid var(--warm); border-radius: 10px;
       max-width: 100%; overflow-x: auto; overflow-y: hidden; }
     .beat-prose .katex { font-size: 1.05em; max-width: 100%; }
     /* Long inline formulas can't wrap (KaTeX is nowrap) — let them scroll, never push the page. */
     .beat-prose p .katex { display: inline-block; max-width: 100%; overflow-x: auto;
       overflow-y: hidden; vertical-align: middle; }
     @media (max-width: 640px) {
-      .beat-prose .katex-display { font-size: .8em; }
+      .beat-prose :global(.katex-display) { font-size: .85em; }
       .beat-prose p .katex { font-size: .95em; }
     }
+
+    /* calc-callout: a worked NUMERIC calculation lifted out of the prose into a soft
+       inset card. Authored as a `:::calc … :::` body paragraph (see inlineMd); rendered
+       as a <span class="calc-callout"> so it's :global() like the KaTeX nodes. Blue accent
+       rule (vs the warm rule of the .katex-display formula card) encodes the distinction:
+       warm = the master formula, blue = a step-by-step calculation. */
+    .beat-prose :global(.calc-callout) { display: block; margin: var(--ws-3) 0;
+      padding: var(--ws-2) var(--ws-3);
+      background: color-mix(in srgb, var(--accent-soft) 30%, var(--bg-card));
+      border: 1px solid color-mix(in srgb, var(--ink) 9%, transparent);
+      border-left: var(--line-thick) solid var(--accent); border-radius: 10px;
+      font-size: var(--fz-body); line-height: 1.85; color: var(--ink-2); }
 
     /* In-prose illustrations (mascot / scene art). White canvas so off-white art
        reads in dark mode; responsive; never overflows. */
