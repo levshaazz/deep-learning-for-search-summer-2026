@@ -1,6 +1,6 @@
     {
       id: 'depth-embedder-families', kind: 'prose',
-      heading: { en: 'The embedder zoo', ru: 'Зоопарк энкодеров', tt: 'Энкодерлар бакчасы' },
+      heading: { en: 'The embedder zoo', ru: 'Зоопарк эмбеддеров', tt: 'Энкодерлар бакчасы' },
       body: {
         en: [
           "The bi-encoder is a **family**, not a model. After DPR and SBERT came a wave of stronger encoders — **E5**, **BGE**, **GTE**, **Nomic**, **Jina**, **mxbai**, **Arctic**, and the API models from **OpenAI**, **Cohere** and **Voyage** — ranked on the **MTEB** leaderboard. They differ on embedding dimension (from all-MiniLM's 384 up to 1024–4096), input length (512 to 8000+ tokens) and training recipe.",

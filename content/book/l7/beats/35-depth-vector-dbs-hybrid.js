@@ -7,7 +7,7 @@
           "**Hybrid search** is the robustness trick: a dense vector catches *meaning*, BM25 catches *exact* and rare terms, and **Reciprocal Rank Fusion** combines them by rank — \\(\\mathrm{RRF}(d)=\\sum_i \\frac{1}{k+\\mathrm{rank}_i(d)}\\), \\(k=60\\) — because their scores are incompatible (callback L3). Anthropic reports a contextual hybrid cut retrieval failures by about half, and adding a reranker pushed that to about two-thirds.",
         ],
         ru: [
-          'Индекс живёт в **векторной БД**. FAISS — библиотека для полного контроля на миллиардном масштабе; Qdrant, Weaviate, Milvus, Vespa и Elasticsearch — серверы, большинство с родным гибридом; pgvector держит векторы в Postgres. Выбирай по масштабу, фильтрам и нужен ли гибрид «из коробки».',
+          'Индекс живёт в **векторной БД**. FAISS — библиотека для полного контроля на миллиардном масштабе; Qdrant, Weaviate, Milvus, Vespa и Elasticsearch — серверы, большинство со встроенным гибридом; pgvector держит векторы прямо в Postgres. Выбирай по масштабу, фильтрам и по тому, нужен ли гибрид «из коробки».',
           '**Гибридный поиск** — приём устойчивости: плотный вектор ловит *смысл*, BM25 ловит *точные* и редкие термины, а **Reciprocal Rank Fusion** сливает их по рангу — \\(\\mathrm{RRF}(d)=\\sum_i \\frac{1}{k+\\mathrm{rank}_i(d)}\\), \\(k=60\\) — ведь их баллы несовместимы (callback L3). Anthropic сообщает: контекстный гибрид срезал промахи поиска примерно вдвое, а реранкер довёл это до ~двух третей.',
         ],
         tt: [
