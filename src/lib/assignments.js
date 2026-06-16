@@ -8,14 +8,14 @@
 // Shared front-matter + common setup, rendered once on the index page.
 export const assignmentsMeta = {
   intro: {
-    en: 'Two activities turn Lectures 03–04 into working code. The Lab is a small, hands-on build; the Homework is a deeper experimental study plus a paper-reading essay. In both, you implement the core IR algorithms by hand — that is the point. Pick an activity below.',
-    ru: 'Две активности превращают лекции 03–04 в работающий код. Лаба — небольшая практическая сборка; домашка — более глубокое экспериментальное исследование плюс эссе по статье. В обоих случаях ключевые алгоритмы IR вы реализуете руками — в этом и смысл. Выберите активность ниже.',
-    tt: 'Ике бирем 03–04 лекцияләрне эшләүче кодка әйләндерә. Лаборатор эш — кечкенә, кулдан башкарыла торган җыелма; өй эше — тирәнрәк эксперименталь тикшеренү һәм мәкалә уку буенча эссе. Икесендә дә төп IR алгоритмнарын кулдан язасың — мәгънә шунда. Түбәндә бер бирем сайла.',
+    en: 'These activities turn the lectures into working code. Each Lab is a small, hands-on build; each Homework is a deeper experimental study plus a paper-reading essay. In all of them, you implement the core retrieval and ranking algorithms by hand — that is the point. Pick an activity below.',
+    ru: 'Эти активности превращают лекции в работающий код. Каждая лаба — небольшая практическая сборка; каждая домашка — более глубокое экспериментальное исследование плюс эссе по статье. Во всех ключевые алгоритмы поиска и ранжирования вы реализуете руками — в этом и смысл. Выберите активность ниже.',
+    tt: 'Бу биремнәр лекцияләрне эшләүче кодка әйләндерә. Һәр лаборатор эш — кечкенә, кулдан башкарыла торган җыелма; һәр өй эше — тирәнрәк эксперименталь тикшеренү һәм мәкалә уку буенча эссе. Барысында да эзләү һәм ранжлауның төп алгоритмнарын кулдан язасың — мәгънә шунда. Түбәндә бер бирем сайла.',
   },
   topic: {
-    en: 'Classical IR & Ranking Metrics — implementing BM25 on a corpus; computing nDCG, MAP, MRR; and analysing how tokenization choices change ranking quality.',
-    ru: 'Классический IR и метрики ранжирования — реализация BM25 на корпусе; подсчёт nDCG, MAP, MRR; анализ влияния выбора токенизации на качество ранжирования.',
-    tt: 'Классик IR һәм ранжлау метрикалары — корпуста BM25 язу; nDCG, MAP, MRR исәпләү; токенлаштыру сайлавының ранжлау сыйфатына тәэсирен анализлау.',
+    en: 'From classical IR (BM25, rank fusion, ranking metrics) to neural retrieval — bi-/cross-encoders and the reranking cascade, ColBERT late interaction, SPLADE learned sparse, hybrid fusion, and Learning to Rank.',
+    ru: 'От классического IR (BM25, слияние рангов, метрики ранжирования) к нейропоиску — bi-/cross-энкодеры и каскад реранкинга, позднее взаимодействие ColBERT, выученная разрежённость SPLADE, гибридное слияние и Learning to Rank.',
+    tt: 'Классик IR’дан (BM25, ранг берләштерү, ранжлау метрикалары) нейроэзләүгә — bi-/cross-энкодерлар һәм реранкинг каскады, ColBERT соңгы тәэсир итешүе, SPLADE өйрәнелгән сирәклеге, гибрид берләштерү һәм Learning to Rank.',
   },
   groups: {
     lab: { en: 'Labs', ru: 'Лабораторные', tt: 'Лаборатор эшләр' },
@@ -25,16 +25,16 @@ export const assignmentsMeta = {
     heading: { en: 'Common setup (applies to every activity)', ru: 'Общий setup (для всех активностей)', tt: 'Гомуми setup (һәр бирем өчен)' },
     rulesH: { en: 'Ground rules', ru: 'Общие правила', tt: 'Гомуми кагыйдәләр' },
     rules: [
-      { en: 'Implement the core IR algorithms by hand: the inverted index, TF-IDF, BM25, RRF, and every metric (nDCG, MAP, MRR). No rank_bm25, no pytrec_eval, no library scorers for the graded parts.', ru: 'Ключевые алгоритмы IR реализуйте руками: инвертированный индекс, TF-IDF, BM25, RRF и все метрики (nDCG, MAP, MRR). Без rank_bm25, pytrec_eval и библиотечных скореров в оцениваемых частях.', tt: 'Төп IR алгоритмнарын кулдан яз: инверт индексы, TF-IDF, BM25, RRF һәм һәр метрика (nDCG, MAP, MRR). Бәяләнә торган өлешләрдә rank_bm25, pytrec_eval һәм китапханә скорерларыннан башка.' },
-      { en: 'Allowed helpers: dataset loading (ir_datasets / beir / HuggingFace), numpy, plotting libraries, and a tokenizer/stemmer library — but only for the tokenization study, not the core scorer.', ru: 'Разрешено: загрузка датасета (ir_datasets / beir / HuggingFace), numpy, библиотеки графиков и токенизатор/стеммер — но только для исследования токенизации, не для ядра скорера.', tt: 'Рөхсәт ителгән ярдәмчеләр: мәгълүмат җыелмасын йөкләү (ir_datasets / beir / HuggingFace), numpy, график китапханәләре һәм токенизатор/стеммер — әмма бары тик токенлаштыруны өйрәнү өчен, скорер ядросы өчен түгел.' },
+      { en: 'Implement the core scoring, fusion, reranking and ranking logic by hand: the inverted index, TF-IDF, BM25, RRF, ColBERT MaxSim, the SPLADE sparse dot, RankNet/LambdaRank, and every metric (nDCG, MAP, MRR). No rank_bm25, no pytrec_eval, no library rank-fusion or learning-to-rank scorers for the graded parts.', ru: 'Ключевую логику скоринга, слияния, реранкинга и ранжирования реализуйте руками: инвертированный индекс, TF-IDF, BM25, RRF, ColBERT MaxSim, sparse-dot SPLADE, RankNet/LambdaRank и все метрики (nDCG, MAP, MRR). Без rank_bm25, pytrec_eval и библиотечных слияний/LTR-скореров в оцениваемых частях.', tt: 'Скорлау, берләштерү, реранкинг һәм ранжлауның төп логикасын кулдан яз: инверт индексы, TF-IDF, BM25, RRF, ColBERT MaxSim, SPLADE sparse-dot, RankNet/LambdaRank һәм һәр метрика (nDCG, MAP, MRR). Бәяләнә торган өлешләрдә rank_bm25, pytrec_eval һәм китапханә берләштерү/LTR скорерларыннан башка.' },
+      { en: 'Allowed helpers: dataset loading (ir_datasets / beir / HuggingFace), numpy, plotting, a tokenizer/stemmer (for the tokenization study), and pretrained encoders (sentence-transformers, cross-encoders, SPLADE, ColBERT) — but the encoders only supply embeddings or logits; you do not train them, and the scoring, fusion, reranking and metric logic stays yours.', ru: 'Разрешено: загрузка датасета (ir_datasets / beir / HuggingFace), numpy, графики, токенизатор/стеммер (для исследования токенизации) и претренированные энкодеры (sentence-transformers, cross-encoders, SPLADE, ColBERT) — но энкодеры лишь дают эмбеддинги или логиты; вы их не обучаете, а логику скоринга, слияния, реранкинга и метрик пишете сами.', tt: 'Рөхсәт ителгән ярдәмчеләр: мәгълүмат җыелмасын йөкләү (ir_datasets / beir / HuggingFace), numpy, графиклар, токенизатор/стеммер (токенлаштыруны өйрәнү өчен) һәм өйрәтелгән энкодерлар (sentence-transformers, cross-encoders, SPLADE, ColBERT) — әмма энкодерлар бары тик эмбеддинглар яки логитлар бирә; син аларны өйрәтмисең, ә скорлау, берләштерү, реранкинг һәм метрика логикасын үзең язасың.' },
       { en: 'Be reproducible: fixed random seed (20260605), the fixed query subsets stated per activity, deterministic output. A grader must reproduce your numbers by re-running.', ru: 'Воспроизводимость: фиксированный seed (20260605), фиксированные поднаборы запросов (указаны в задании), детерминированный вывод. Проверяющий воспроизводит ваши числа повторным запуском.', tt: 'Кабатлап була торган бул: ныгытылган seed (20260605), биремдә күрсәтелгән ныгытылган сорау поднаборлары, детерминистик нәтиҗә. Тикшерүче синең саннарны яңадан җибәреп кабатлый алырга тиеш.' },
       { en: 'Submit code that runs end-to-end plus a short report (PDF). State every formula variant you chose (tf scheme, idf form, gain function).', ru: 'Сдавайте код, работающий от начала до конца, плюс краткий отчёт (PDF). Укажите все выбранные варианты формул (схема tf, форма idf, gain-функция).', tt: 'Башыннан ахырына кадәр эшләүче код һәм кыска отчёт (PDF) тапшыр. Сайлаган һәр формула вариантын күрсәт (tf схемасы, idf формасы, gain функциясе).' },
     ],
     dataH: { en: 'Dataset & access', ru: 'Датасет и доступ', tt: 'Мәгълүмат җыелмасы һәм керү' },
     dataLead: {
-      en: 'Both activities use BEIR. The Lab uses nfcorpus (≈3.6K docs, 323 test queries, graded qrels); the Homework may additionally repeat the headline run on scifact. Load via ir_datasets:',
-      ru: 'Обе активности используют BEIR. Лаба — nfcorpus (≈ 3,6 тыс. документов, 323 test-запроса, градуированные qrels); в домашке можно дополнительно повторить основной прогон на scifact. Загрузка через ir_datasets:',
-      tt: 'Ике бирем дә BEIR куллана. Лаборатор эш — nfcorpus (≈3,6 мең документ, 323 test-сорау, градуацияле qrels); өй эшендә төп прогонны өстәмә рәвештә scifact өстендә кабатларга мөмкин. ir_datasets аша йөклә:',
+      en: 'All activities use BEIR. The Labs use nfcorpus (≈3.6K docs, 323 test queries, graded qrels); the Homeworks may additionally repeat the headline run on scifact. The neural activities also load small pretrained encoders (named per activity, all CPU-runnable on nfcorpus). Load the corpus via ir_datasets:',
+      ru: 'Все активности используют BEIR. Лабы — nfcorpus (≈ 3,6 тыс. документов, 323 test-запроса, градуированные qrels); в домашках можно дополнительно повторить основной прогон на scifact. Нейро-активности также загружают небольшие претренированные энкодеры (указаны в задании, все CPU-runnable на nfcorpus). Загрузка корпуса через ir_datasets:',
+      tt: 'Барлык биремнәр дә BEIR куллана. Лаборатор эшләр — nfcorpus (≈3,6 мең документ, 323 test-сорау, градуацияле qrels); өй эшләрендә төп прогонны өстәмә рәвештә scifact өстендә кабатларга мөмкин. Нейро-биремнәр шулай ук кечкенә өйрәтелгән энкодерлар йөкли (биремдә күрсәтелгән, барысы да nfcorpus’та CPU-да эшләрлек). Корпусны ir_datasets аша йөклә:',
     },
     dataCode: `import ir_datasets
 ds = ir_datasets.load("beir/nfcorpus/test")     # graded relevance (0..2)
@@ -152,6 +152,100 @@ export const assignments = [
         { label: { en: 'Interpretation depth & correctness', ru: 'Глубина и корректность интерпретации', tt: 'Интерпретация тирәнлеге һәм дөреслеге' }, w: '20' },
         { label: { en: 'Hero-figure redesign (insight added)', ru: 'Перерисовка hero-фигуры (добавленный инсайт)', tt: 'Төп рәсемне яңадан эшләү (өстәлгән инсайт)' }, w: '15' },
         { label: { en: 'Clarity, structure, handwriting', ru: 'Ясность, структура, почерк', tt: 'Ачыклык, структура, кулъязма' }, w: '5' },
+      ] },
+    ],
+  },
+
+  {
+    slug: 'lab-cascade',
+    kind: 'lab',
+    code: 'Lab 2',
+    status: 'soon',
+    title: { en: 'Build the neural cascade: Scouts → Judges', ru: 'Собери нейронный каскад: Разведчики → Судьи', tt: 'Нейрон каскадны төз: Разведчиклар → Хөкемчеләр' },
+    blurb: {
+      en: 'A dense bi-encoder Scout and a cross-encoder Judge on top of your Lab-1 BM25 — wire the retrieve→rerank cascade and measure the lift and the rerank-depth tradeoff.',
+      ru: 'Плотный bi-encoder-Разведчик и cross-encoder-Судья поверх твоего BM25 из Лабы 1 — собери каскад «найти→пересудить» и измерь прирост и компромисс глубины реранка.',
+      tt: 'Лаб-1 BM25 өстендә тыгыз bi-encoder-Разведчик һәм cross-encoder-Хөкемче — «табу→яңадан хөкем итү» каскадын җый, прирост һәм реранк тирәнлеге компромиссын үлчә.',
+    },
+    due: { en: 'Small · 1 dataset · ~1 evening', ru: 'Небольшая · 1 датасет · ~вечер', tt: 'Кечкенә · 1 мәгълүмат җыелмасы · ~бер кич' },
+    blocks: [
+      { t: 'h4', v: { en: 'Goal', ru: 'Цель', tt: 'Максат' } },
+      { t: 'p', v: { en: 'Put a fast dense Scout and a careful cross-encoder Judge on top of the BM25 you built in Lab 1, wire them into a retrieve→rerank cascade, and measure — with your own numbers — exactly how much the rerank buys and what it costs.', ru: 'Поставь быстрый плотный Разведчик и вдумчивый cross-encoder-Судью поверх BM25 из Лабы 1, собери их в каскад «найти→пересудить» и измерь — на своих числах — сколько именно даёт реранк и чего он стоит.' } },
+      { t: 'h4', v: { en: 'Tasks', ru: 'Задачи', tt: 'Биремнәр' } },
+      { t: 'ol', v: [
+        { en: 'Load BEIR nfcorpus/test and the fixed query set (first 30 by query_id). Reuse your Lab-1 BM25 and nDCG@10 implementations as the first stage and the metric.', ru: 'Загрузи BEIR nfcorpus/test и фиксированный набор запросов (первые 30 по query_id). Переиспользуй свои реализации BM25 и nDCG@10 из Лабы 1 как первый этап и метрику.' },
+        { en: 'Dense Scout (bi-encoder): encode queries and documents with a pretrained SBERT (sentence-transformers/all-MiniLM-L6-v2), L2-normalize, and retrieve the top-100 by cosine. The embeddings come from the model; the cosine search is yours.', ru: 'Плотный Разведчик (bi-encoder): закодируй запросы и документы претренированным SBERT (sentence-transformers/all-MiniLM-L6-v2), L2-нормируй и выдай top-100 по косинусу. Эмбеддинги — от модели; косинусный поиск пишешь сам.' },
+        { en: 'Cross-encoder Judge: score (query, document) pairs jointly with a pretrained cross-encoder (cross-encoder/ms-marco-MiniLM-L-6-v2) — read each pair together, nothing precomputed.', ru: 'Cross-encoder-Судья: оцени пары (запрос, документ) совместно претренированным cross-encoder (cross-encoder/ms-marco-MiniLM-L-6-v2) — читай каждую пару вместе, без предпросчёта.' },
+        { en: 'The cascade: for each query take the first-stage top-k and rerank it with the Judge, emitting a reranked top-10. Build it for both first stages — BM25→rerank and dense→rerank.', ru: 'Каскад: для каждого запроса возьми top-k первого этапа и пересортируй Судьёй, выдав пересортированный top-10. Сделай это для обоих первых этапов — BM25→реранк и dense→реранк.' },
+        { en: 'The lift ladder: report nDCG@10 at three stages — BM25 alone, dense alone, and +cross-encoder rerank — in one table. Which Scout feeds the Judge a better shortlist?', ru: 'Лестница прироста: дай nDCG@10 на трёх стадиях — BM25, dense и +cross-реранк — одной таблицей. Какой Разведчик приносит Судье лучший short-list?' },
+        { en: 'Rerank-depth sweep: vary the rerank depth k ∈ {5, 10, 20, 50, 100}; plot nDCG@10 vs k and the cost (cross-encoder passes per query = k). Where does going deeper stop paying off?', ru: 'Свип глубины реранка: меняй глубину k ∈ {5, 10, 20, 50, 100}; построй nDCG@10 от k и стоимость (прогонов cross-encoder на запрос = k). Где углубление перестаёт окупаться?' },
+        { en: 'Show one query where the rerank pulled a buried relevant document up into the top-10 — give the before and after ranks.', ru: 'Покажи запрос, где реранк поднял зарытый релевантный документ в top-10 — дай ранги до и после.' },
+      ] },
+      { t: 'h4', v: { en: 'Deliverables', ru: 'Что сдавать', tt: 'Нәрсә тапшырырга' } },
+      { t: 'p', v: { en: 'lab.py (or a notebook) that runs end-to-end and prints the lift-ladder table, plus a 1-page report: the three-stage nDCG@10 table, the depth-vs-nDCG plot, the one before/after query, and a short analysis paragraph (why the cross-encoder helps; why deeper reranking saturates).', ru: 'lab.py (или notebook), работающий от начала до конца и печатающий таблицу-лестницу, плюс отчёт на 1 страницу: таблица nDCG@10 по трём стадиям, график глубина-vs-nDCG, один запрос до/после и абзац анализа (почему cross-encoder помогает; почему глубокий реранк насыщается).' } },
+      { t: 'h4', v: { en: 'Grading (100)', ru: 'Оценка (100)', tt: 'Бәяләү (100)' } },
+      { t: 'grade', rows: [
+        { label: { en: 'Dense bi-encoder retrieval', ru: 'Плотный bi-encoder-ретрив' }, w: '20' },
+        { label: { en: 'Cross-encoder rerank + cascade', ru: 'Cross-encoder реранк + каскад' }, w: '30' },
+        { label: { en: 'Lift ladder (3 stages)', ru: 'Лестница прироста (3 стадии)' }, w: '15' },
+        { label: { en: 'Rerank-depth sweep + cost', ru: 'Свип глубины + стоимость' }, w: '20' },
+        { label: { en: 'Analysis (before/after + why)', ru: 'Анализ (до/после + почему)' }, w: '15' },
+      ] },
+    ],
+  },
+
+  {
+    slug: 'hw-alliance',
+    kind: 'homework',
+    code: 'A2',
+    status: 'soon',
+    title: { en: 'The Alliance: hybrid fusion + Learning to Rank', ru: 'Альянс: гибридное слияние + Learning to Rank', tt: 'Альянс: гибрид берләштерү + Learning to Rank' },
+    blurb: {
+      en: 'Run BM25, dense, SPLADE and ColBERT as four retrievers; fuse them (RRF vs convex); then learn a combiner by hand (RankNet → LambdaRank) — and read one paper, redrawing its hero figure.',
+      ru: 'Запусти BM25, dense, SPLADE и ColBERT как четыре ретривера; слей их (RRF vs convex); затем обучи комбинатор руками (RankNet → LambdaRank) — и прочитай статью, перерисовав её hero-фигуру.',
+      tt: 'BM25, dense, SPLADE һәм ColBERT’ны дүрт ретрив итеп җибәр; аларны берләштер (RRF vs convex); аннары комбинаторны кулдан өйрәт (RankNet → LambdaRank) — һәм бер мәкаләне укып, аның төп рәсемен яңадан сыз.',
+    },
+    due: { en: 'Extended · coding + handwritten essay', ru: 'Расширенная · код + рукописное эссе', tt: 'Киңәйтелгән · код + кулдан язылган эссе' },
+    blocks: [
+      { t: 'lead', v: { en: 'Build on Lab 2. Part 1 unites four retrievers under one banner (hybrid) and trains a captain to order them (Learning to Rank); Part 2 is a close reading of one paper with a hand-drawn re-interpretation of its hero figure.', ru: 'На основе Лабы 2. Часть 1 объединяет четыре ретривера под одним знаменем (гибрид) и обучает капитана упорядочивать их (Learning to Rank); часть 2 — внимательное чтение одной статьи с рукописной переинтерпретацией её hero-фигуры.' } },
+
+      { t: 'h3', v: { en: 'Part 1 — Coding & experiments (60%)', ru: 'Часть 1 — Код и эксперименты (60%)' } },
+      { t: 'p', v: { en: 'Use BEIR nfcorpus/test over the full test query set (optionally repeat the headline run on scifact/test). Reuse your Lab-1 BM25 and your Lab-2 dense retriever and cascade.', ru: 'BEIR nfcorpus/test на полном test-наборе запросов (опционально повтори основной прогон на scifact/test). Переиспользуй BM25 из Лабы 1 и dense-ретривер с каскадом из Лабы 2.' } },
+      { t: 'ol', v: [
+        { en: 'Four retrievers (each reranking the top-100 of a cheap first stage): BM25 (yours); the dense bi-encoder (SBERT, from Lab 2); SPLADE learned-sparse — run naver/splade-cocondenser-ensembledistil, take its log(1+ReLU) term weights, and compute the sparse dot by hand; and ColBERT late interaction — per-token embeddings from colbert-ir/colbertv2.0, MaxSim = Σ_i max_j E_qi·E_dj by hand. (If compute is tight, use ≥3 retrievers but include SPLADE or ColBERT.)', ru: 'Четыре ретривера (каждый пересортирует top-100 дешёвого первого этапа): BM25 (твой); плотный bi-encoder (SBERT, из Лабы 2); SPLADE — запусти naver/splade-cocondenser-ensembledistil, возьми его веса термов log(1+ReLU) и посчитай sparse-dot руками; и ColBERT late interaction — потокенные эмбеддинги из colbert-ir/colbertv2.0, MaxSim = Σ_i max_j E_qi·E_dj руками. (Если мало ресурсов — возьми ≥3 ретривера, но включи SPLADE или ColBERT.)' },
+        { en: 'Hybrid fusion (by hand): fuse the rankings three ways — RRF (k=60), a convex combination α·dense+(1−α)·sparse (sweep α ∈ {0, 0.25, 0.5, 0.75, 1}), and a normalized score combination (min-max or z-score). Which fusion wins, and does it need score calibration across rankers?', ru: 'Гибридное слияние (руками): слей ранжирования тремя способами — RRF (k=60), выпуклая комбинация α·dense+(1−α)·sparse (свип α ∈ {0, 0.25, 0.5, 0.75, 1}) и нормализованная комбинация оценок (min-max или z-score). Что побеждает и нужна ли калибровка шкал между ранжировщиками?' },
+        { en: 'Learning to Rank (by hand): build a per-(query, doc) feature vector [BM25, dense cosine, SPLADE score, ColBERT MaxSim, document length, …]; implement RankNet (pairwise P = σ(s_i − s_j), cross-entropy) and LambdaRank (gradients weighted by |ΔnDCG|); train a combiner and compare it to the best single feature and to the best fusion. (LambdaMART via a gradient-boosting library is allowed as a clearly-marked optional extra.)', ru: 'Learning to Rank (руками): построй вектор признаков на (запрос, документ) [BM25, dense-косинус, SPLADE, ColBERT MaxSim, длина документа, …]; реализуй RankNet (попарно P = σ(s_i − s_j), кросс-энтропия) и LambdaRank (градиенты, взвешенные на |ΔnDCG|); обучи комбинатор и сравни с лучшей одиночной фичей и лучшим слиянием. (LambdaMART через библиотеку градиентного бустинга — опциональный экстра, явно помеченный.)' },
+        { en: 'Feature ablation: drop each feature in turn and report the nDCG@10 change; show concretely that the neural scores are "just features for the captain."', ru: 'Абляция признаков: выкидывай по одной фиче и фиксируй изменение nDCG@10; покажи конкретно, что нейронные оценки — «просто признаки для капитана».' },
+        { en: 'Metrics & significance: nDCG@10, MAP, MRR (by hand) with the per-query distribution; run a paired test (t-test and/or Wilcoxon signed-rank) of your best system vs the BM25 baseline — mean difference, 95% CI, p-value, and an honest interpretation.', ru: 'Метрики и значимость: nDCG@10, MAP, MRR (руками) с распределением по запросам; парный тест (t-test и/или Wilcoxon) лучшей системы против BM25-базлайна — средняя разница, 95% CI, p-value и честная интерпретация.' },
+        { en: 'Report: plots + tables + a discussion tying the fusion study and the Learning-to-Rank result into one story about what actually unites the armies.', ru: 'Отчёт: графики + таблицы + обсуждение, связывающее исследование слияния и результат Learning to Rank в одну историю о том, что реально объединяет армии.' },
+      ] },
+      { t: 'h4', v: { en: 'Part 1 grading (60)', ru: 'Оценка части 1 (60)' } },
+      { t: 'grade', rows: [
+        { label: { en: 'Retrievers correct (≥3, incl. SPLADE/ColBERT by hand)', ru: 'Ретриверы (≥3, вкл. SPLADE/ColBERT руками)' }, w: '15' },
+        { label: { en: 'Hybrid fusion (RRF + convex + α-sweep)', ru: 'Гибридное слияние (RRF + convex + α-свип)' }, w: '12' },
+        { label: { en: 'Learning to Rank by hand (RankNet→LambdaRank)', ru: 'Learning to Rank руками (RankNet→LambdaRank)' }, w: '18' },
+        { label: { en: 'Feature ablation', ru: 'Абляция признаков' }, w: '8' },
+        { label: { en: 'Metrics + significance', ru: 'Метрики + значимость' }, w: '7' },
+      ] },
+
+      { t: 'h3', v: { en: 'Part 2 — Paper reading & hand-written essay (40%)', ru: 'Часть 2 — Чтение статьи и рукописное эссе (40%)' } },
+      { t: 'p', v: { en: 'Pick one of the five papers below, read it closely, and write a two-page A4 hand-written essay in your own words — your interpretation, not a summary. Then complete the hero-figure sub-task.', ru: 'Выбери одну из пяти статей ниже, внимательно прочитай и напиши рукописное эссе на две страницы A4 своими словами — твоя интерпретация, не пересказ. Затем выполни подзадачу с hero-фигурой.' } },
+      { t: 'callout', title: { en: 'Hero-figure sub-task', ru: 'Подзадача: hero-фигура' }, v: { en: 'Identify the paper’s hero figure — the one diagram that carries its central idea. Redesign it your own way (hand-drawn is fine) to expose the concept more deeply than the original: change the encoding, add the missing axis or annotation, show the failure case, or re-draw it using your own Lab/Homework numbers. Add a short caption stating what your version makes visible that the original did not.', ru: 'Определи hero-фигуру статьи — диаграмму, несущую её центральную идею. Перерисуй её по-своему (можно от руки), чтобы раскрыть концепт глубже оригинала: смени кодировку, добавь недостающую ось/подпись, покажи случай отказа или перерисуй на своих числах из Лабы/домашки. Добавь короткую подпись — что твой вариант делает видимым, чего не было в оригинале.' } },
+      { t: 'h4', v: { en: 'Submission', ru: 'Что сдавать' } },
+      { t: 'p', v: { en: 'A photo/scan of the two-page hand-written essay, the redesigned hero figure (hand-drawn or digital), and one paragraph naming the figure you chose and why it is the hero figure.', ru: 'Фото/скан рукописного эссе на две страницы A4, перерисованная hero-фигура (от руки или цифровая) и один абзац — какую фигуру выбрал и почему она hero.' } },
+      { t: 'h4', v: { en: 'Choose one paper', ru: 'Выбери одну статью' } },
+      { t: 'papers', items: [
+        { cite: 'Khattab, O. & Zaharia, M. (2020). ColBERT: Efficient and Effective Passage Search via Contextualized Late Interaction over BERT. SIGIR.', hero: { en: 'Late interaction. Hero figure: the MaxSim token×token interaction — per-token vectors, the max over doc tokens, the sum over query tokens.', ru: 'Позднее взаимодействие. Hero-фигура: взаимодействие MaxSim токен×токен — потокенные векторы, max по токенам документа, сумма по токенам запроса.' } },
+        { cite: 'Formal, T., Piwowarski, B. & Clinchant, S. (2021). SPLADE: Sparse Lexical and Expansion Model for First Stage Ranking. SIGIR.', hero: { en: 'Learned sparse. Hero figure: the MLM-head → log(1+ReLU) sparsification and the term-expansion it produces over the vocabulary.', ru: 'Выученная разрежённость. Hero-фигура: MLM-голова → log(1+ReLU) и порождаемое расширение терминов по словарю.' } },
+        { cite: 'Santhanam, K., Khattab, O., Saad-Falcon, J., Potts, C. & Zaharia, M. (2022). ColBERTv2: Effective and Efficient Retrieval via Lightweight Late Interaction. NAACL.', hero: { en: 'Making late interaction shippable. Hero figure: residual compression (centroid + quantized residual) and the denoised-supervision pipeline.', ru: 'Делаем позднее взаимодействие пригодным к проду. Hero-фигура: остаточное сжатие (центроид + квантованный остаток) и пайплайн обесшумленного надзора.' } },
+        { cite: 'Burges, C. J. C. (2010). From RankNet to LambdaRank to LambdaMART: An Overview. Microsoft Research, MSR-TR-2010-82.', hero: { en: 'The Learning-to-Rank line. Hero element: the λ-gradient — a pairwise σ on score differences weighted by ΔnDCG — redesign it as one figure.', ru: 'Линия Learning to Rank. Hero-элемент: λ-градиент — попарная σ на разностях оценок, взвешенная на ΔnDCG — перерисуй как одну фигуру.' } },
+        { cite: 'Cormack, G. V., Clarke, C. L. A. & Büttcher, S. (2009). Reciprocal Rank Fusion Outperforms Condorcet and Individual Rank Learning Methods. SIGIR.', hero: { en: 'Hybrid fusion. Hero element: the RRF formula and its results table — redesign it as a figure that shows why consensus beats a lopsided #1.', ru: 'Гибридное слияние. Hero-элемент: формула RRF и таблица результатов — перерисуй как фигуру, показывающую, почему консенсус бьёт однобокого лидера.' } },
+      ] },
+      { t: 'h4', v: { en: 'Part 2 grading (40)', ru: 'Оценка части 2 (40)' } },
+      { t: 'grade', rows: [
+        { label: { en: 'Interpretation depth & correctness', ru: 'Глубина и корректность интерпретации' }, w: '20' },
+        { label: { en: 'Hero-figure redesign (insight added)', ru: 'Перерисовка hero-фигуры (добавленный инсайт)' }, w: '15' },
+        { label: { en: 'Clarity, structure, handwriting', ru: 'Ясность, структура, почерк' }, w: '5' },
       ] },
     ],
   },
