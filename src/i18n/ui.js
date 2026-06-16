@@ -16,6 +16,7 @@ export const ui = {
     gallery: { en: 'Gallery', ru: 'Галерея', tt: 'Галерея' },
     playground: { en: 'Playground', ru: 'Площадка', tt: 'Мәйдан' },
     papers: { en: 'Papers', ru: 'Статьи', tt: 'Мәкаләләр' },
+    midterm: { en: 'Midterm', ru: 'Мидтерм', tt: 'Аралык имтиханы' },
   },
 
   sections: {
