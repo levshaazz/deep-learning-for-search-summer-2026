@@ -1,0 +1,143 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { LOCALES, t, localizedPath } from '../../i18n/locales.js';
+import { ui } from '../../i18n/ui.js';
+import { course } from '../../lib/course.js';
+import { midtermMeta as M, questions } from '../../lib/midterm.js';
+
+export function getStaticPaths() {
+  return LOCALES.map((l) => ({ params: { lang: l } }));
+}
+const { lang } = Astro.params;
+const showFallbackNotice = lang === 'tt';
+
+// id ('01'..) → lecture record from the catalog (label + catchphrase + book link)
+const lecById = Object.fromEntries(course.lectures.map((l) => [l.id, l]));
+const lecLabel = (id) => 'L' + (lecById[id]?.number ?? id);
+// lecture chips = the lecture ids actually used by questions, in order
+const lecIds = [...new Set(questions.flatMap((q) => q.lectures))].sort();
+const typeGlyph = (ty) => (ty === 'compute' ? '🖊' : '💡');
+---
+<BaseLayout lang={lang} page="midterm" title={t(M.title, lang)}>
+  <div class="wrap mt">
+    <section class="block">
+      <h2>{t(M.title, lang)}</h2>
+      {showFallbackNotice && <p class="notice">{t(ui.translationInProgress, lang)}</p>}
+      <p class="lead">{t(M.intro, lang)}</p>
+    </section>
+
+    <section class="block filters" aria-label={t(M.page.filterLec, lang)}>
+      <div class="filt-row">
+        <span class="filt-label">{t(M.page.filterLec, lang)}</span>
+        <button class="chip" data-lecf="all" aria-pressed="true">{t(M.page.all, lang)}</button>
+        {lecIds.map((id) => (
+          <button class="chip" data-lecf={id} aria-pressed="false" title={lecById[id] ? t(lecById[id].title, lang) : ''}>{lecLabel(id)}</button>
+        ))}
+      </div>
+      <div class="filt-row">
+        <span class="filt-label">{t(M.page.filterType, lang)}</span>
+        <button class="chip" data-typef="all" aria-pressed="true">{t(M.page.all, lang)}</button>
+        <button class="chip" data-typef="compute" aria-pressed="false">🖊 {t(M.legend.compute, lang)}</button>
+        <button class="chip" data-typef="concept" aria-pressed="false">💡 {t(M.legend.concept, lang)}</button>
+      </div>
+      <p class="muted"><span class="mt-count">{questions.length}</span> {t(M.page.counter, lang)}</p>
+    </section>
+
+    <section class="block qlist">
+      {questions.map((q) => (
+        <div class="mt-q" data-lec={q.lectures.join(' ')} data-type={q.type}>
+          <div class="mt-head">
+            <span class={`mt-type mt-type--${q.type}`} title={t(M.legend[q.type], lang)}>{typeGlyph(q.type)}</span>
+            <span class="mt-badges">{q.lectures.map((id) => <span class="mt-lec">{lecLabel(id)}</span>)}</span>
+            <span class="mt-qtext">{t(q.q, lang)}</span>
+          </div>
+          <button class="mt-show" type="button" aria-expanded="false">{t(M.page.show, lang)} ▸</button>
+          <div class="mt-a" hidden>
+            <p>{t(q.a, lang)}</p>
+            <div class="mt-where">
+              <span class="mt-where-label">{t(M.page.revise, lang)}:</span>
+              {q.lectures.map((id) => (
+                <a href={localizedPath(lang, 'book/' + id)}>{lecLabel(id)}{lecById[id] ? ' · ' + lecById[id].catchphrase : ''}</a>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+      <p class="mt-none" hidden>{t(M.page.none, lang)}</p>
+    </section>
+  </div>
+
+  <style>
+    .lead { font-size: var(--fz-lead); color: var(--ink-2); max-width: var(--ws-measure); }
+    .filters { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); position: sticky; top: 0; background: var(--bg); z-index: 5; padding-top: var(--ws-2); padding-bottom: var(--ws-2); }
+    .filt-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ws-1); margin: var(--ws-1) 0; }
+    .filt-label { font-size: var(--fz-small); color: var(--ink-3); min-width: 9.5rem; }
+    .chip { font: inherit; font-size: var(--fz-small); padding: .25rem .6rem; border: 1px solid var(--rule); border-radius: 999px; background: var(--bg-alt); color: var(--ink-2); cursor: pointer; transition: background .12s, border-color .12s, color .12s; }
+    .chip:hover { border-color: var(--accent); }
+    .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .muted { color: var(--ink-3); font-size: var(--fz-small); margin-top: var(--ws-1); }
+
+    .qlist { display: flex; flex-direction: column; gap: var(--ws-2); }
+    .mt-q { border: 1px solid var(--rule); border-radius: var(--r-md); padding: var(--ws-2) var(--ws-3); }
+    .mt-q[hidden] { display: none; }
+    .mt-head { display: flex; align-items: baseline; gap: .55rem; flex-wrap: wrap; }
+    .mt-type { font-size: 1.05em; line-height: 1; }
+    .mt-badges { display: inline-flex; gap: .3rem; flex-wrap: wrap; }
+    .mt-lec { font-size: var(--fz-small); font-weight: 700; color: var(--accent-ink, var(--accent)); background: var(--accent-soft); border-radius: var(--r-sm, 6px); padding: .05rem .4rem; }
+    .mt-qtext { flex: 1 1 16rem; max-width: var(--ws-measure); }
+    .mt-show { margin-top: var(--ws-1); font: inherit; font-size: var(--fz-small); font-weight: 600; color: var(--accent); background: none; border: none; padding: 0; cursor: pointer; }
+    .mt-a { margin-top: var(--ws-1); padding-top: var(--ws-1); border-top: 1px dashed var(--rule); }
+    .mt-a[hidden] { display: none; }
+    .mt-a p { max-width: var(--ws-measure); color: var(--ink-2); margin: 0 0 var(--ws-1); }
+    .mt-where { font-size: var(--fz-small); display: flex; flex-wrap: wrap; gap: .25rem .6rem; align-items: baseline; }
+    .mt-where-label { color: var(--ink-3); }
+    .mt-where a { color: var(--accent); text-decoration: none; }
+    .mt-where a:hover { text-decoration: underline; }
+    .mt-none { color: var(--ink-3); }
+  </style>
+
+  <script is:inline>
+    (function () {
+      const root = document.querySelector('.mt');
+      if (!root) return;
+      const qs = Array.from(root.querySelectorAll('.mt-q'));
+      const countEl = root.querySelector('.mt-count');
+      const noneEl = root.querySelector('.mt-none');
+      let lecF = 'all', typeF = 'all';
+
+      function apply() {
+        let shown = 0;
+        for (const q of qs) {
+          const lecs = (q.dataset.lec || '').split(' ');
+          const okLec = lecF === 'all' || lecs.indexOf(lecF) !== -1;
+          const okType = typeF === 'all' || q.dataset.type === typeF;
+          const vis = okLec && okType;
+          q.hidden = !vis;
+          if (vis) shown++;
+        }
+        if (countEl) countEl.textContent = String(shown);
+        if (noneEl) noneEl.hidden = shown > 0;
+      }
+      function setPressed(group, btn) {
+        root.querySelectorAll('[data-' + group + ']').forEach((b) =>
+          b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'));
+      }
+      root.querySelectorAll('[data-lecf]').forEach((b) =>
+        b.addEventListener('click', () => { lecF = b.dataset.lecf; setPressed('lecf', b); apply(); }));
+      root.querySelectorAll('[data-typef]').forEach((b) =>
+        b.addEventListener('click', () => { typeF = b.dataset.typef; setPressed('typef', b); apply(); }));
+      root.querySelectorAll('.mt-show').forEach((btn) => {
+        const base = btn.textContent.replace(/\s*▸\s*$/, '').trim();
+        btn.textContent = base + ' ▸';
+        btn.addEventListener('click', () => {
+          const a = btn.parentElement.querySelector('.mt-a');
+          const open = a.hidden;          // currently hidden → click opens it
+          a.hidden = !open;
+          btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+          btn.textContent = base + (open ? ' ▾' : ' ▸');
+        });
+      });
+      apply();
+    })();
+  </script>
+</BaseLayout>
