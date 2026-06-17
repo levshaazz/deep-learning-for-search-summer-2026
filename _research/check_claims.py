@@ -132,6 +132,27 @@ DECOMP10  = load(DATA, "l10-decomp.json")    # query decomposition: recallSub [1
 RAPTOR10  = load(DATA, "l10-raptor.json")    # RAPTOR tree (descriptive): 8 leaf chunks → 3 mid summaries → 1 root, depth 3
 BENCH10   = load(DATA, "l10-bench.json")     # CITED: RAG (Lewis), HyDE (Gao et al., ACL 2023, arXiv:2212.10496), Late Chunking (Günther et al.)
 
+# ── L11 (Judging the Oracle: RAG eval — RAGAS, LLM-as-judge — + agentic RAG). toy = stdlib (gen_l11.py);
+#    real = frozen llama3.1:8b judge/ReAct (exp_l11_ollama.py, run-once); cited = l11-bench.json. ──
+RAGAS11   = load(DATA, "l11-ragas.json")     # toy RAGAS: faithfulness 0.75, answerRelevance 0.7033, contextPrecision 0.8333, contextRecall 0.6667
+JUDGE11   = load(DATA, "l11-judge.json")     # toy rubric A 4.0 > B 2.6667; Goodhart flip (honest A vs length-biased C 4.25); REAL verbosity 1.0 / tie 0.6667 / clear 1.0
+AGENTIC11 = load(DATA, "l11-agentic.json")   # toy 2-hop ReAct recall 0→0→1; REAL ReAct solved in 3 steps (Pragmatic Bookshelf)
+BENCH11   = load(DATA, "l11-bench.json")     # CITED: RAGAS (2309.15217), LLM-judge/MT-Bench (2306.05685), ReAct (2210.03629), CRAG (2401.15884)
+
+# ── L12 (The Deep Field: advanced RAG — multi-hop/GraphRAG — multimodal CLIP/ColPali, ethics). toy =
+#    stdlib (gen_l12.py); real = frozen llava:7b/llama3.1:8b (exp_l12_ollama.py, run-once); cited = l12-bench.json. ──
+GRAPHRAG12 = load(DATA, "l12-graphrag.json") # toy 2-hop: recallSingleHop 0 → recallMultiHop 1, hops 2; REAL 7 triples → "computer science"
+CLIP12     = load(DATA, "l12-clip.json")     # toy CLIP cosine matrix diagonal 3/3; matched 0.9944 vs mismatched 0.3791 (gap 0.6153); REAL llava 5/5
+ETHICS12   = load(DATA, "l12-ethics.json")   # framework + REAL hallucination demo (closed-book confabulates, grounded abstains)
+BENCH12    = load(DATA, "l12-bench.json")    # CITED: GraphRAG (2404.16130), CLIP (2103.00020), ColPali (2407.01449), HotpotQA (1809.09600)
+
+# frozen run-once Ollama artifacts (REAL measured numbers; provenance recomputes the data/ "real" blocks from these)
+def load_research(name):
+    try:
+        return json.load(open(ROOT / "_research" / "data" / name))
+    except Exception:
+        return None
+
 # ── [P] PROVENANCE: curated data/ must equal the generator artifact it was lifted from ──────────
 def provenance_checks(report):
     raw_heaps, raw_zipf, raw_pos, raw_cos = (load(RAW, "heaps_summary.json"), load(RAW, "zipf_summary.json"),
@@ -1687,6 +1708,121 @@ def provenance_l10(report):
         report.append(("OK", f"provenance-L10: {len(checks)} recompute + structural invariants consistent ✓"))
 
 
+def provenance_l11(report):
+    """[P] L11 toy-recompute: RAGAS four metrics (fraction/mean), LLM-judge rubric means + the Goodhart
+    flip, agentic recall; plus the REAL llama3.1:8b judge rates recomputed from the frozen artifact."""
+    RG, J, AG = RAGAS11, JUDGE11, AGENTIC11
+    checks, flags = [], []
+    def need(cond, name):
+        if not cond:
+            flags.append(name)
+            report.append(("HARD", f"provenance-L11({name}): structural invariant broken"))
+
+    # ── RAGAS four metrics, recomputed from the toy q/contexts/answer/ground-truth ──
+    sup = sum(1 for c in RG["answerClaims"] if c["supported"])
+    checks.append(("ragas.faithfulness == supported/claims", RG["faithfulness"], round(sup / len(RG["answerClaims"]), 4), 1e-4))
+    rqc = RG["reverseQuestionCos"]
+    checks.append(("ragas.answerRelevance == mean(reverseQ cos)", RG["answerRelevance"], round(sum(rqc) / len(rqc), 4), 1e-4))
+    rel = [c["relevant"] for c in RG["contexts"]]
+    totrel = sum(rel)
+    csum = sum((sum(rel[:k]) / k) for k in range(1, len(rel) + 1) if rel[k - 1])
+    checks.append(("ragas.contextPrecision == Σ prec@k·rel / #rel", RG["contextPrecision"], round(csum / totrel, 4), 1e-4))
+    gin = sum(1 for c in RG["groundTruthClaims"] if c["inContext"])
+    checks.append(("ragas.contextRecall == gtInContext/gt", RG["contextRecall"], round(gin / len(RG["groundTruthClaims"]), 4), 1e-4))
+    need(0 <= RG["faithfulness"] < 1, "ragas faithfulness < 1 (one hallucinated claim drags it down; BAM)")
+    need(not RG["answerClaims"][-1]["supported"], "ragas the last answer-claim is the unsupported (hallucinated) one")
+
+    # ── LLM-judge rubric means + pairwise argmax + the Goodhart winner-flip ──
+    for a in J["answers"]:
+        checks.append((f"judge.{a['id']}.mean == sum/len", a["mean"], round(sum(a["scores"]) / len(a["scores"]), 4), 1e-4))
+    need(J["pairwiseWinner"] == max(J["answers"], key=lambda a: a["mean"])["id"], "judge pairwise winner == argmax rubric mean")
+    G = J["goodhart"]
+    gs, cs2 = G["goodScores"], G["gamedScores"]
+    checks.append(("goodhart.good.honest == mean", G["honest"]["good"], round(sum(gs) / 3, 4), 1e-4))
+    checks.append(("goodhart.gamed.lengthBiased == (rel+grnd+2·comp)/4", G["lengthBiased"]["gamed"], round((cs2[0] + cs2[1] + 2 * cs2[2]) / 4, 4), 1e-4))
+    need(G["honest"]["winner"] != G["lengthBiased"]["winner"], "goodhart: over-weighting completeness FLIPS the winner (BAM)")
+    need(G["honest"]["winner"] == "A" and G["lengthBiased"]["winner"] == "C", "goodhart honest→A but length-biased→C")
+
+    # ── REAL llama3.1:8b judge rates == recomputed from the frozen artifact trials ──
+    real = J["real"]
+    art = load_research("l11_ollama_judge.json")
+    if art:
+        pt, vb, pc = art["positionBiasTie"], art["verbosityBias"], art["positionBiasClear"]
+        tie_anchor = sum(1 for t in pt["trials"] if t["positionAnchored"])
+        checks.append(("judge.real.positionFollowRateTie == anchored/n", real["positionFollowRateTie"], round(tie_anchor / pt["n"], 4), 1e-4))
+        vlong = sum(int(t["longerWonOrder1"]) + int(t["longerWonOrder2"]) for t in vb["trials"])
+        checks.append(("judge.real.verbosityPreferenceRate == longerWins/2n", real["verbosityPreferenceRate"], round(vlong / (2 * vb["n"]), 4), 1e-4))
+        checks.append(("judge.real.accuracyClear == correct/2n", real["accuracyClear"], round(pc["correctPicks"] / (2 * pc["n"]), 4), 1e-4))
+        need(real["faithfulnessCaughtPlanted"] == bool(art["faithfulness"]["caughtPlanted"]), "judge.real faithfulness caught matches artifact")
+    need(real["verbosityPreferenceRate"] >= 0.5, "judge.real verbosity bias ≥ 0.5 (the judge rewards length — Goodhart, measured)")
+
+    # ── Agentic: toy ReAct recall climbs 0→0→1; the REAL trace solved the 2-hop ──
+    need(AG["react"]["recallByStep"] == [0, 0, 1], "agentic toy ReAct recall climbs 0→0→1 across 2 hops (BAM)")
+    art2 = load_research("l11_ollama_react.json")
+    if art2:
+        need(AG["real"]["solved"] == bool(art2.get("solved")), "agentic.real solved matches artifact")
+        need(AG["real"]["steps"] == art2["steps"], "agentic.real steps matches artifact")
+
+    bad = 0
+    for name, a, b, tol in checks:
+        if abs(a - b) > tol:
+            bad += 1
+            report.append(("HARD", f"provenance-L11({name}): data/ disagree/invariant broken — {a} vs {b}"))
+    if not bad and not flags:
+        report.append(("OK", f"provenance-L11: {len(checks)} recompute + structural invariants consistent ✓"))
+
+
+def provenance_l12(report):
+    """[P] L12 toy-recompute: GraphRAG multi-hop containment, the CLIP shared-space cosine matrix
+    (recomputed; diagonal must win), and the REAL hallucination/grounding demo from the frozen artifact."""
+    GR, CL, ET = GRAPHRAG12, CLIP12, ETHICS12
+    checks, flags = [], []
+    def need(cond, name):
+        if not cond:
+            flags.append(name)
+            report.append(("HARD", f"provenance-L12({name}): structural invariant broken"))
+
+    # ── GraphRAG: single-hop misses, multi-hop reaches the answer across ≥2 docs ──
+    need(GR["recallSingleHop"] == 0, "graphrag single-hop recall 0 (field lives in d2, not the top doc)")
+    need(GR["recallMultiHop"] == 1, "graphrag multi-hop recall 1 (traversal reaches the answer node; BAM)")
+    need(GR["hops"] == len(GR["path"]), "graphrag hops == path length")
+    need(GR["path"][-1][2] == GR["answerNode"], "graphrag path ends at the answer node")
+    need(len({e[3] for e in GR["path"]}) >= 2, "graphrag path crosses ≥2 docs (a true multi-hop chain)")
+
+    # ── CLIP: recompute the shared-space cosine matrix; the diagonal (matching pair) must be row-argmax ──
+    def cos(a, b):
+        return sum(x * y for x, y in zip(a, b)) / (math.sqrt(sum(x * x for x in a)) * math.sqrt(sum(x * x for x in b)))
+    cs, img, txt, M = CL["concepts"], CL["imageVectors"], CL["textVectors"], CL["cosineMatrix"]
+    for i, ci in enumerate(cs):
+        for j, cj in enumerate(cs):
+            checks.append((f"clip.cos({ci},{cj})", M[i][j], round(cos(img[ci], txt[cj]), 4), 1e-4))
+    diag = sum(1 for i in range(len(cs)) if max(range(len(cs)), key=lambda j: M[i][j]) == i)
+    need(CL["diagonalCorrect"] == diag, "clip diagonalCorrect == #rows whose matching caption is the argmax")
+    need(diag == len(cs), "clip every image retrieves its OWN caption (diagonal wins; BAM)")
+    matched = [M[i][i] for i in range(len(cs))]
+    mismatched = [M[i][j] for i in range(len(cs)) for j in range(len(cs)) if i != j]
+    checks.append(("clip.matchedMeanCos", CL["matchedMeanCos"], round(sum(matched) / len(matched), 4), 1e-4))
+    checks.append(("clip.mismatchedMeanCos", CL["mismatchedMeanCos"], round(sum(mismatched) / len(mismatched), 4), 1e-4))
+    need(CL["matchedMeanCos"] > CL["mismatchedMeanCos"], "clip matched-pair cosine > mismatched (contrastive separation; BAM)")
+
+    # ── Ethics: REAL hallucination demo — closed-book confabulates, grounding enables abstention ──
+    real = ET["real"]
+    art = load_research("l12_ollama_safety.json")
+    if art:
+        need(real["closedBookAbstained"] == bool(art["closedBookAbstained"]), "ethics.real closed-book abstention matches artifact")
+        need(real["groundedAbstained"] == bool(art["groundedAbstained"]), "ethics.real grounded abstention matches artifact")
+    need(real["closedBookAbstained"] is False and real["groundedAbstained"] is True,
+         "ethics: closed-book confabulates, grounding enables abstention (the safety lesson; BAM)")
+
+    bad = 0
+    for name, a, b, tol in checks:
+        if abs(a - b) > tol:
+            bad += 1
+            report.append(("HARD", f"provenance-L12({name}): data/ disagree/invariant broken — {a} vs {b}"))
+    if not bad and not flags:
+        report.append(("OK", f"provenance-L12: {len(checks)} recompute + structural invariants consistent ✓"))
+
+
 # ── [C] L9 BOOK CLAIMS: the built Book PROSE (worked :::calc + widget captions) must show the same
 #    distances/recall as data/l9-*.json. One claim per DISTINCT displayed value covers all its occurrences
 #    for the coverage-guard; each anchor also verifies a real display site. The deck claims (l9_deck_claims)
@@ -1904,6 +2040,8 @@ def main():
     provenance_l8(report)                            # [P] L8 toy-recompute + the four cross-pillar BAMs
     provenance_l9(report)                            # [P] L9 toy-recompute (HNSW greedy/IVF recall+geometry/PQ bytes/latency sum)
     provenance_l10(report)                           # [P] L10 toy-recompute (RAG kMax/chunking containment/rewrite RR+recall)
+    provenance_l11(report)                           # [P] L11 toy-recompute (RAGAS metrics/judge rubric+Goodhart flip/agentic) + REAL judge rates
+    provenance_l12(report)                           # [P] L12 toy-recompute (GraphRAG multi-hop/CLIP cosine matrix) + REAL hallucination demo
     for c in claims():                              # [C] deck == data/
         report.append(check_claim(c, text[c["deck"]]))
     if book:                                        # [C] Book == data/ (the Book restates the flagship numbers)
@@ -2284,11 +2422,41 @@ def selftest():
     print("[selftest:prov-L10-raptor]", next((m for s, m in repL10f if s == "HARD"), "provenance-L10 raptor: NO FLAG"))
     okL10X = okC4 and okRF and okRt and okBd and okL10c and okL10d and okL10e and okL10f
 
+    # New L11 [P]: RAGAS faithfulness<1, the Goodhart winner-flip, the measured verbosity bias.
+    repL11a = []; sv = RAGAS11["faithfulness"]; RAGAS11["faithfulness"] = 1.0  # no hallucination → must flag (<1)
+    provenance_l11(repL11a); RAGAS11["faithfulness"] = sv
+    okL11a = any(s == "HARD" and "provenance-L11(ragas" in m for s, m in repL11a)
+    print("[selftest:prov-L11-ragas]", next((m for s, m in repL11a if s == "HARD"), "provenance-L11 ragas: NO FLAG"))
+    repL11b = []; sv = JUDGE11["goodhart"]["lengthBiased"]["winner"]; JUDGE11["goodhart"]["lengthBiased"]["winner"] = "A"  # no flip
+    provenance_l11(repL11b); JUDGE11["goodhart"]["lengthBiased"]["winner"] = sv
+    okL11b = any(s == "HARD" and "provenance-L11(goodhart" in m for s, m in repL11b)
+    print("[selftest:prov-L11-goodhart]", next((m for s, m in repL11b if s == "HARD"), "provenance-L11 goodhart: NO FLAG"))
+    repL11c = []; sv = JUDGE11["real"]["verbosityPreferenceRate"]; JUDGE11["real"]["verbosityPreferenceRate"] = 0.0  # below 0.5 & ≠ artifact
+    provenance_l11(repL11c); JUDGE11["real"]["verbosityPreferenceRate"] = sv
+    okL11c = any(s == "HARD" and "verbosity" in m.lower() for s, m in repL11c)
+    print("[selftest:prov-L11-verbosity]", next((m for s, m in repL11c if s == "HARD"), "provenance-L11 verbosity: NO FLAG"))
+    okL11 = okL11a and okL11b and okL11c
+
+    # New L12 [P]: GraphRAG multi-hop reach, CLIP diagonal-wins, the hallucination/grounding demo.
+    repL12a = []; sv = GRAPHRAG12["recallMultiHop"]; GRAPHRAG12["recallMultiHop"] = 0  # traversal must reach the answer
+    provenance_l12(repL12a); GRAPHRAG12["recallMultiHop"] = sv
+    okL12a = any(s == "HARD" and "provenance-L12(graphrag" in m for s, m in repL12a)
+    print("[selftest:prov-L12-graphrag]", next((m for s, m in repL12a if s == "HARD"), "provenance-L12 graphrag: NO FLAG"))
+    repL12b = []; sv = CLIP12["cosineMatrix"][0][0]; CLIP12["cosineMatrix"][0][0] = 0.0  # break the matching diagonal
+    provenance_l12(repL12b); CLIP12["cosineMatrix"][0][0] = sv
+    okL12b = any(s == "HARD" and "provenance-L12(clip" in m for s, m in repL12b)
+    print("[selftest:prov-L12-clip]", next((m for s, m in repL12b if s == "HARD"), "provenance-L12 clip: NO FLAG"))
+    repL12c = []; sv = ETHICS12["real"]["closedBookAbstained"]; ETHICS12["real"]["closedBookAbstained"] = True  # would mean no hallucination
+    provenance_l12(repL12c); ETHICS12["real"]["closedBookAbstained"] = sv
+    okL12c = any(s == "HARD" and "provenance-L12(ethics" in m for s, m in repL12c)
+    print("[selftest:prov-L12-ethics]", next((m for s, m in repL12c if s == "HARD"), "provenance-L12 ethics: NO FLAG"))
+    okL12 = okL12a and okL12b and okL12c
+
     ok = (okD and okA and okP and okL3 and okL4 and okP2 and okL5 and okL6 and okP3 and okP4
           and okGX and okTK and okTS and okP5 and okP6 and okP7 and okP8 and okP9
           and okW and okU and okS and okT47 and okPE and okCX and okBK and okBW and okNCE and okCov
-          and okL7c and okL7p and okL8 and okL9 and okL10 and okL9X and okL10X)
-    print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 + L5-GloVe/t-SNE + L2-tokenizers + enrichment-trajectory + l6-contextual cross-file + L6-InfoNCE-bars (data + deck) + Book-prose deck & cross-file + coverage-guard ratchet (incl. data-only pins) + L7 BAM + L8 four cross-pillar BAMs + L9 (HNSW/IVF + metrics/ADC/codebook/highd/HNSW-toy2/IVF-toy2) + L10 (chunk/rewrite + budget/cos4/RRF/rerank/routing/RAPTOR) BAMs all fire"
+          and okL7c and okL7p and okL8 and okL9 and okL10 and okL9X and okL10X and okL11 and okL12)
+    print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 + L5-GloVe/t-SNE + L2-tokenizers + enrichment-trajectory + l6-contextual cross-file + L6-InfoNCE-bars (data + deck) + Book-prose deck & cross-file + coverage-guard ratchet (incl. data-only pins) + L7 BAM + L8 four cross-pillar BAMs + L9 (HNSW/IVF + metrics/ADC/codebook/highd/HNSW-toy2/IVF-toy2) + L10 (chunk/rewrite + budget/cos4/RRF/rerank/routing/RAPTOR) + L11 (RAGAS/Goodhart-flip/verbosity) + L12 (GraphRAG/CLIP/hallucination) BAMs all fire"
           if ok else "FAIL — a check is blind!")
     return 0 if ok else 1
 
