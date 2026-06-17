@@ -65,8 +65,11 @@ export const mountRecallCurve = defineWidget({
     const sx = (vx) => box.x + (vx - dx.min) / dx.span * box.w;
     const sy = (vy) => box.y + box.h - (vy - dy.min) / dy.span * box.h;
 
-    const captionTop = PAD_T + plotH + 40;       // room for the x tick labels + axis label
-    const H = frameHeightFor(captionTop + 18, 10);
+    // the cost-legend gets its OWN line, well below the x-axis title (which lives at box.h+36) —
+    // both are wide and would otherwise collide on a single baseline (axis title right-anchored,
+    // legend left-anchored, each spanning most of the width).
+    const captionTop = PAD_T + plotH + 58;       // room for the x ticks + axis title, THEN the legend
+    const H = frameHeightFor(captionTop + 14, 10);
     const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'wgt-svg rc-svg', role: 'img', 'aria-label': labels.alt || '' }, host);
 
     // ── axes ──
