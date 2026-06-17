@@ -1,0 +1,37 @@
+{
+  "_doc": "Self-correcting RAG (descriptive + toy thresholds). CRAG (Yan et al. 2024) runs a lightweight retrieval evaluator that grades each retrieval Correct / Ambiguous / Wrong (toy score thresholds below) and acts: keep, augment with web search, or discard+rewrite. Self-RAG (Asai et al. ICLR 2024) trains the LM to emit REFLECTION TOKENS — Retrieve, IsRel, IsSup, IsUse — that gate whether to retrieve, and to critique relevance / support / usefulness. Thresholds are illustrative, not measured.",
+  "_source": "_research/gen_l10.py (static, descriptive): toy thresholds; cites CRAG arXiv:2401.15884, Self-RAG arXiv:2310.11511.",
+  "crag": {
+    "grades": [
+      "correct",
+      "ambiguous",
+      "wrong"
+    ],
+    "thresholds": {
+      "correct": ">= 0.7",
+      "ambiguous": "0.3 .. 0.7",
+      "wrong": "< 0.3"
+    },
+    "actions": {
+      "correct": "use retrieved context as-is",
+      "ambiguous": "combine retrieved + corrective web search",
+      "wrong": "discard, fall back to web search / query rewrite"
+    },
+    "source": "Yan, Gu, Zhu, Ling, Cao & Zhang, 'Corrective Retrieval Augmented Generation', arXiv:2401.15884 (2024)"
+  },
+  "selfRag": {
+    "reflectionTokens": [
+      "Retrieve",
+      "IsRel",
+      "IsSup",
+      "IsUse"
+    ],
+    "gates": {
+      "Retrieve": "decide whether retrieval is needed for this segment",
+      "IsRel": "is the retrieved passage relevant?",
+      "IsSup": "is the generated claim supported by the passage?",
+      "IsUse": "is the overall response useful (1..5)?"
+    },
+    "source": "Asai, Wu, Wang, Sil & Hajishirzi, 'Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection', ICLR 2024 (arXiv:2310.11511)"
+  }
+}
