@@ -1,0 +1,63 @@
+/* graphrag — a small entity graph for the L12 multi-hop / GraphRAG beat (3 doc cards + 5 linked
+   entity nodes + the 2-hop path). Themed via role tokens (light + dark). Scales to 100% width.
+   GREEN marks ONLY the answer node + the winning multi-hop path; RED marks the failed single-hop
+   document. The edge-relation labels carry a white halo (paint-order:stroke) so they stay readable
+   where they sit on a line. No global .is-hidden is defined here — the factory owns it. */
+.gr-svg { width: 100%; height: auto; display: block; }
+
+/* arrow heads (base + the green traversed variant) */
+.gr-arhead { fill: var(--rule-strong, #B8B19E); }
+.gr-arhead-win { fill: var(--c-green, #3A8A5C); }
+
+/* the question */
+.gr-qhead { font: 700 11px var(--font-sans, sans-serif); fill: var(--ink-3, #6B7280); text-transform: uppercase; letter-spacing: 0.04em; }
+.gr-qtext { font: 700 14px var(--font-sans, sans-serif); fill: var(--ink, #14181F); }
+.gr-hopstag { font: 700 11px var(--font-mono, monospace); fill: var(--accent, #2A6FDB); }
+.gr-sectlbl { font: 700 10px var(--font-sans, sans-serif); fill: var(--ink-3, #6B7280); text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* ── source documents (small cards) ── */
+.gr-doc-box { fill: var(--bg-card, #fff); stroke: var(--rule, #D6D0C0); stroke-width: 1; }
+.gr-doc-id { font: 700 11px var(--font-mono, monospace); fill: var(--ink-2, #3D434E); }
+.gr-doc-txt { font: 10px var(--font-sans, sans-serif); fill: var(--ink-3, #6B7280); }
+.gr-doc-tag { font: 700 10px var(--font-sans, sans-serif); fill: var(--c-red, #D7522C); }
+/* the single-hop pick: the chosen doc goes red (named the founder, no field); the rest dim */
+.gr-doc.is-picked-bad .gr-doc-box { fill: var(--c-red-soft, #F6DAD0); stroke: var(--c-red, #D7522C); stroke-width: 1.5; }
+.gr-doc.is-picked-bad .gr-doc-id { fill: var(--c-red, #D7522C); }
+.gr-doc.is-dim { opacity: 0.42; }
+
+/* ── entity graph: edges ── */
+.gr-edge-line { stroke: var(--rule, #D6D0C0); stroke-width: 1.5; fill: none; }
+.gr-edge-lbl {
+  font: 10px var(--font-mono, monospace); fill: var(--ink-3, #6B7280);
+  paint-order: stroke; stroke: var(--bg-card, #fff); stroke-width: 3px; stroke-linejoin: round;
+}
+/* the graph stays faint until step 2 forms it, then edges read at full weight */
+.gr-edge { opacity: 0.25; }
+.gr-graph-on .gr-edge { opacity: 1; }
+.gr-graph-on .gr-edge-line { stroke: var(--rule-strong, #B8B19E); }
+/* the traversed 2-hop path goes green (the only green on edges) */
+.gr-edge.is-win .gr-edge-line { stroke: var(--c-green, #3A8A5C); stroke-width: 2.5; marker-end: url(#gr-ar-win); }
+.gr-edge.is-win .gr-edge-lbl { fill: var(--c-green, #3A8A5C); font-weight: 700; }
+
+/* ── entity graph: nodes ── */
+.gr-node-box { fill: var(--bg-card, #fff); stroke: var(--rule-strong, #B8B19E); stroke-width: 1.5; }
+.gr-node-txt { font: 600 12px var(--font-sans, sans-serif); fill: var(--ink, #14181F); }
+.gr-node { opacity: 0.45; }
+.gr-graph-on .gr-node { opacity: 1; }
+/* the answer node is outlined (still neutral) until the traversal lights it green */
+.gr-node.is-answer .gr-node-box { stroke-dasharray: 4 3; }
+.gr-node.is-on-path .gr-node-box { stroke: var(--c-green, #3A8A5C); stroke-width: 2; }
+.gr-node.is-answer-lit .gr-node-box { fill: var(--c-green-soft, #DDEDDF); stroke: var(--c-green, #3A8A5C); stroke-width: 2.5; stroke-dasharray: none; }
+.gr-node.is-answer-lit .gr-node-txt { fill: var(--c-green, #3A8A5C); font-weight: 700; }
+
+/* ── recall readouts ── */
+.gr-rec-bad { font: 700 14px var(--font-sans, sans-serif); fill: var(--c-red, #D7522C); }
+.gr-rec-bad-txt { font: 700 12px var(--font-mono, monospace); fill: var(--c-red, #D7522C); }
+.gr-rec-ok { font: 700 14px var(--font-sans, sans-serif); fill: var(--c-green, #3A8A5C); }
+.gr-rec-ok-txt { font: 700 12px var(--font-mono, monospace); fill: var(--c-green, #3A8A5C); }
+
+/* ── the 'real run' badge ── */
+.gr-badge-box { fill: var(--accent-soft, #DCE8F8); stroke: var(--accent, #2A6FDB); stroke-width: 1; }
+.gr-badge-ttl { font: 700 11px var(--font-sans, sans-serif); fill: var(--accent, #2A6FDB); text-transform: uppercase; letter-spacing: 0.03em; }
+.gr-badge-txt { font: 11px var(--font-mono, monospace); fill: var(--ink-2, #3D434E); }
+.gr-badge-note { font: 10px var(--font-sans, sans-serif); fill: var(--ink-3, #6B7280); }
