@@ -1115,10 +1115,11 @@ JOBS = [
      "machines. Two short hand-lettered labels read 'FAISS' on a rack and 'vector DB' on the tank. "
      "Black ink machines + course-blue tank + warm-orange wrench; Serega's green tübetey is the ONLY green."),
     ("L9", "L9/L9-07-latency-budget.png", "16:9", True,
-     "Serega watching a round SLA dial while a request runs a little pipeline of stages; a budget meter "
-     "fills part-way and stays comfortably below a marked limit line (a fast serving budget under the "
-     "SLA). Black ink pipeline + course-blue meter fill + a warm-orange limit line; Serega's green "
-     "tübetey is the ONLY green."),
+     "Serega watching a round SLA dial with a plain black-ink face and a single needle (NO green 'good' "
+     "zone, NO colored arc on the dial face) while a request runs a little pipeline of stages; a budget "
+     "meter fills part-way and stays comfortably below a marked limit line (a fast serving budget under "
+     "the SLA). Black ink dial + pipeline + course-blue meter fill + a warm-orange limit line; Serega's "
+     "green tübetey is the ONLY green — nothing else is green, especially not the dial face."),
     ("L9", "L9/L9-08-iceberg-returns.png", "16:9", True,
      "a big iceberg: the small tip above the waterline is the 'demo', and the huge mass below water is "
      "the 90% — serving, monitoring, index rebuilds, drift — drawn as little gear/log icons in the "
@@ -1155,11 +1156,13 @@ JOBS = [
      "warm-orange overlap band; Serega's green tübetey is the ONLY green; Chunk Norris and Tokenosaurus "
      "wear no green."),
     ("L10", "L10/L10-04-overlap-saves.png", "4:3", True,
-     "two stacked passes over the same line of text: the TOP pass has a hard boundary line slicing an "
-     "answer-phrase in half (size=200, no overlap); the BOTTOM pass has an overlapping window that "
-     "catches the whole answer-phrase intact; Serega points at the rescued whole phrase with a small "
-     "grin. Black ink + course-blue windows + a warm-orange rescued span; Serega's green tübetey is the "
-     "ONLY green."),
+     "two stacked passes over the SAME row of text, where the text is drawn as a row of small uniform "
+     "word-blocks (NOT readable prose — just little rectangles) and the answer-phrase is a highlighted "
+     "run of adjacent blocks. TOP pass: a hard boundary line slices through the highlighted run "
+     "(size=200, no overlap); BOTTOM pass: an overlapping window encloses the whole highlighted run "
+     "intact; Serega points at the rescued run with a small grin. Only three short hand-lettered labels — "
+     "'size=200', 'overlap', 'rescued'. Black ink blocks + course-blue windows + a warm-orange "
+     "highlighted run; Serega's green tübetey is the ONLY green."),
     ("L10", "L10/L10-05-hear-the-real-question.png", "16:9", True,
      "Serega cups a hand to his ear; two speech-bubbles float toward a single query-slot — one is the "
      "captain's LITERAL short words, the other the fuller TRUE intent behind them — and they converge "
@@ -1173,9 +1176,11 @@ JOBS = [
     ("L10", "L10/L10-07-garbage-in.png", "16:9", True,
      "Confabulous — the same wispy translucent phantom drawn as a thin black-ink outline with a "
      "too-wide showman's grin as locked earlier — hands RAGdoll the Oracle a forged 'trust me' "
-     "citation-scroll; RAGdoll, fed the garbage, recites it confidently in a speech-bubble while Serega "
-     "frowns and folds his arms. Black ink phantom + course-blue + a warm-orange forged scroll; Serega's "
-     "green tübetey is the ONLY green; Confabulous and RAGdoll wear no green."),
+     "citation-scroll; RAGdoll, fed the garbage, recites it confidently. Its speech-bubble contains the "
+     "single clearly-lettered word 'GARBAGE' above two struck-through wavy scribble-lines (obvious "
+     "nonsense, NOT real words or letters); Serega frowns and folds his arms. Black ink phantom + "
+     "course-blue + a warm-orange forged scroll; Serega's green tübetey is the ONLY green; Confabulous "
+     "and RAGdoll wear no green."),
     ("L10", "L10/L10-08-it-speaks.png", "16:9", True,
      "FINAL. RAGdoll the Oracle stands tall and speaks a grounded, cited answer (a tidy speech-bubble "
      "with little source-tags); Serega nods approvingly — then glances up at a question-mark just "

@@ -1,6 +1,6 @@
     {
       id: 'depth-masks-families', kind: 'prose',
-      heading: { en: 'Who is allowed to look at whom', ru: 'Кому позволено смотреть на кого', tt: 'Кемгә кемгә карарга рөхсәт' },
+      heading: { en: 'Who is allowed to look at whom', ru: 'Кому позволено смотреть на кого', tt: 'Кем кемгә карый ала' },
       img: 'L6/L6-21-masks.png', imgPos: 'scene',
       imgAlt: {
         en: 'Two attention-mask grids side by side: a fully-filled bidirectional square on the left and a lower-triangular causal grid with the future curtained off on the right.',
