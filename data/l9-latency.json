@@ -49,5 +49,38 @@
   ],
   "total": 89,
   "exactScanMs": 520,
-  "cacheHitMs": 5
+  "cacheHitMs": 5,
+  "cacheHitBudget": {
+    "_doc": "Warm path (cache hit): the per-hop ms are representative, but cacheHitMs is the gated exact SUM 3+1+1 = 5 ms — no ANN search, no rerank.",
+    "budget": [
+      {
+        "step": 1,
+        "from": "client",
+        "to": "API",
+        "label": "request",
+        "lat": 3
+      },
+      {
+        "step": 2,
+        "from": "API",
+        "to": "cache",
+        "label": "cache lookup (hit)",
+        "lat": 1
+      },
+      {
+        "step": 3,
+        "from": "API",
+        "to": "client",
+        "label": "response",
+        "lat": 1
+      }
+    ],
+    "cacheHitMs": 5
+  },
+  "tailNote": {
+    "_doc": "Representative serving-latency tier: p50/p99 of a warm ANN+rerank tier. Flagged representative (illustrative, not measured in this repo) — the tail (p99) is what an SLA is written against.",
+    "p50": 45,
+    "p99": 180,
+    "representative": true
+  }
 }
