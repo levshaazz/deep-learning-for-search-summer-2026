@@ -1,6 +1,12 @@
     {
       id: 'turn-hnsw-roots', kind: 'prose',
       heading: { en: 'Where HNSW comes from', ru: 'Откуда взялся HNSW', tt: 'HNSW кайдан килгән' },
+      img: 'L9/L9-11-skiplist-to-hnsw.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'Séréga climbs a tower of sparse express balconies (the skip-list lanes) that descend onto a dense web of walkways below (the small-world base layer) — the skip-list → NSW → HNSW lineage as one structure.',
+        ru: 'Серёга карабкается по башне из редких скоростных балконов (полосы skip-списка), что спускаются на плотную сеть мостков внизу (базовый слой тесного мира) — родословная skip-список → NSW → HNSW как одна структура.',
+        tt: 'Серёга сирәк тизлек балконнары манарасына (skip-исемлек юллары) менә, алар аста тыгыз сукмаклар челтәренә төшә (тыгыз дөнья база катламы) — skip-исемлек → NSW → HNSW нәселе бер структура буларак.',
+      },
       body: {
         en: [
           "HNSW did not appear from nowhere; it is the third step of a clean lineage, and seeing the lineage makes the structure inevitable rather than magical. The chain is **skip list → navigable small world (NSW) → hierarchical NSW (HNSW)**. Each step fixes a concrete failure of the one before it.",

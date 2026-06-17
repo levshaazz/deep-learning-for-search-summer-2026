@@ -1,6 +1,12 @@
     {
       id: 'climb-hnsw-ef', kind: 'prose',
       heading: { en: 'The ef sweep, by hand', ru: 'Развёртка ef, вручную', tt: 'ef сыпырынуы, кул белән' },
+      img: 'L9/L9-12-ef-knob.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'Séréga turns a dial labelled "ef"; a widening fan of candidate-beams sweeps past a local-minimum pit and reaches the true star, while a small recall gauge climbs.',
+        ru: 'Серёга крутит ручку с меткой «ef»; расширяющийся веер лучей-кандидатов проходит мимо ямы локального минимума и достигает истинной звезды, а маленький датчик recall растёт.',
+        tt: 'Серёга «ef» дип билгеләнгән дискны бора; кандидат-нурларның киңәя торган җилпәзәсе локаль минимум чокырын узып чын йолдызга җитә, ә кечкенә recall үлчәгече күтәрелә.',
+      },
       body: {
         en: [
           "Layers fix *where the search starts*; the **ef** knob fixes *how forgiving the search is once it is walking*. A pure greedy walk keeps exactly one current node and always steps to its single closest neighbour. That is fast but brittle: one wrong turn into a local minimum and it stops, having missed the true neighbour. The fix is to keep not one candidate but a **frontier** of the \\(ef\\) best-so-far candidates, expanding all of them, so the search can back out of a dead end. \\(ef\\) (the search-time \"size of the dynamic candidate list\") is the width of that frontier.",

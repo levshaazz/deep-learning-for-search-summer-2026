@@ -1,6 +1,12 @@
     {
       id: 'turn-compare', kind: 'prose',
       heading: { en: 'Three lanes, two axes', ru: 'Три коридора, две оси', tt: 'Өч коридор, ике күчәр' },
+      img: 'L9/L9-15-choose-a-lane.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'Séréga at a galactic junction signpost with five lane-arrows — Flat, HNSW, IVF, IVF-PQ, HNSW-PQ — choosing by reading dials for N, recall and RAM, while Victor the Vector waits to launch down the chosen lane.',
+        ru: 'Серёга у галактического указателя с пятью стрелками-коридорами — Flat, HNSW, IVF, IVF-PQ, HNSW-PQ — выбирает, читая датчики N, recall и RAM, а Виктор Вектор ждёт, чтобы рвануть по выбранному коридору.',
+        tt: 'Серёга галактик чат күрсәткече янында биш коридор-укы — Flat, HNSW, IVF, IVF-PQ, HNSW-PQ — N, recall һәм RAM үлчәгечләрен укып сайлый, ә Виктор Вектор сайланган коридор буйлап ыргылырга көтә.',
+      },
       body: {
         en: [
           "We have now built three lanes and it is tempting to ask \"which one is best?\" — but that is the wrong question, and asking it correctly is the point of this turn. HNSW, IVF, and PQ are not three competitors on one axis; they answer **two different questions**, and the production indexes you actually deploy are *combinations* of answers, not winners of a contest.",

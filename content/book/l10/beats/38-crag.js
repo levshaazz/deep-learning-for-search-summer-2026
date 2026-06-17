@@ -1,6 +1,12 @@
     {
       id: 'crag', kind: 'prose',
       heading: { en: 'CRAG: grade the retrieval', ru: 'CRAG: оцени извлечение', tt: 'CRAG: алуны бәялә' },
+      img: 'L10/L10-14-crag-inspect.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'RAGdoll the Oracle holds each retrieved scrap up to a magnifying glass and stamps it ✓ / ✗ / ? before stitching, tossing a rejected scrap toward a "web" basket (CRAG grade-then-correct).',
+        ru: 'Оракул RAGdoll подносит каждый извлечённый обрывок к лупе и ставит ✓ / ✗ / ? перед сшиванием, отбрасывая отвергнутый обрывок в корзину «web» (CRAG: оцени, затем исправь).',
+        tt: 'RAGdoll Оракулы һәр алынган кисәкне зурайткычка тота һәм тегкәнче ✓ / ✗ / ? сугып билгели, кире кагылган кисәкне «web» кәрзиненә ыргыта (CRAG: бәялә, аннары төзәт).',
+      },
       body: {
         en: [
           "Re-ranking reorders the shortlist but still trusts it. What if the retrieval is *bad* — the corpus simply does not contain the answer, or what it returned is off-topic? Stuffing it anyway invites the catch this lecture ends on: garbage in, fluent garbage out. **Corrective RAG** (CRAG; Yan, Gu, Zhu, Ling, Cao & Zhang, arXiv:2401.15884, 2024) adds a checkpoint *between retrieve and generate* — a lightweight evaluator that grades the retrieval before the generator ever sees it.",

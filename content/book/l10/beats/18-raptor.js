@@ -1,6 +1,12 @@
     {
       id: 'raptor', kind: 'prose',
       heading: { en: 'RAPTOR: a tree of summaries', ru: 'RAPTOR: дерево резюме', tt: 'RAPTOR: резюмеләр агачы' },
+      img: 'L10/L10-10-raptor-tree.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'RAGdoll the Oracle stacks scraps into a pyramid — many leaf-scraps summarise up into fewer summary-scraps, then into one root — while Séréga points at the level his question lands on.',
+        ru: 'Оракул RAGdoll складывает обрывки в пирамиду — много листовых обрывков обобщаются вверх в меньшее число резюме-обрывков, затем в один корень — а Серёга указывает на уровень, куда попадает его вопрос.',
+        tt: 'RAGdoll Оракулы кисәкләрне пирамидага өя — күп яфрак-кисәк азрак резюме-кисәккә, аннары бер тамырга гомумиләшә — ә Серёга соравы төшкән дәрәҗәгә күрсәтә.',
+      },
       body: {
         en: [
           "Summary indexing kept one summary per document. But questions arrive at different *altitudes*: \"what is the systolic phase?\" is a leaf-level detail, while \"summarise how the cardiovascular system works\" is a whole-corpus overview. A flat index of chunks answers the first well and the second badly — no single chunk *is* the overview. **RAPTOR** (Sarthi, Abdullah, Tuli, Khanna, Goldie & Manning, ICLR 2024, arXiv:2401.18059) builds an index that answers both.",

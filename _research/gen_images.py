@@ -1131,6 +1131,68 @@ JOBS = [
      "next lecture). Black ink + course-blue lanes + a warm-orange distant Oracle glow; Serega's green "
      "tübetey is the ONLY green. Fills ≥85% width."),
 
+    # ---- L9 · Hyperspace Lanes · DEEPENING (A+ expansion, L9-1N range) — Serega in all 6 ----
+    # The image-gate treats L9 as a Serega lecture (hero L9-00 + final L9-09 stay the existing
+    # Serega plates); these six keep the ratio healthy and stay on-palette: black ink + course-blue
+    # + warm-orange on off-white, GREEN ONLY on Serega's tübetey, the recurring cast bare-headed.
+    ("L9", "L9/L9-10-three-metrics.png", "16:9", True,
+     "THREE RULERS FOR 'NEAR'. Serega at a navigation table holding three different measuring "
+     "instruments at once and measuring the SAME two stars with each: a straight L2 ruler (a plain "
+     "ink straightedge laid between the two stars), a protractor opened to read the COSINE angle "
+     "between them, and a projection-shadow gauge for the inner product (a little gnomon casting one "
+     "star's shadow along the other's direction). The two stars he measures are course-blue; the one "
+     "query-star he measures FROM is warm-orange. The three instruments are black ink. Conveys 'three "
+     "rulers weigh direction and length differently, on one pair of points'. Serega's green tübetey is "
+     "the ONLY green in the image — the instruments and stars carry no green. Fills ≥85% width."),
+    ("L9", "L9/L9-11-skiplist-to-hnsw.png", "4:3", True,
+     "THE HNSW LINEAGE — skip-list to NSW to HNSW. Serega climbs a tall tower of stacked EXPRESS "
+     "BALCONIES (skip-list lanes: a sparse top balcony with few rails, each balcony below it denser) "
+     "and the bottom balconies descend onto a dense WEB of walkways (the small-world base layer of "
+     "linked nodes). The express rails up the tower are warm-orange; the dense base web of walkways "
+     "and nodes is black ink + light course-blue. Serega is partway up, one hand on a rail, reading "
+     "the descent from sparse express lanes down into the dense graph below. Conveys the "
+     "skip-list → NSW → HNSW lineage as one climbable structure. Serega's green tübetey is the ONLY "
+     "green; the tower and web carry no green. Fills ≥85% width."),
+    ("L9", "L9/L9-12-ef-knob.png", "16:9", True,
+     "THE ef KNOB widens the search frontier. Serega turns a large labelled dial — one short "
+     "hand-lettered label reads 'ef' on the dial face — and as he turns it a widening FAN of "
+     "candidate-beams sweeps outward from the start, past a little LOCAL-MINIMUM PIT (a small ink "
+     "crater the narrow beam would fall into) and reaches the true target star beyond it. A small "
+     "recall GAUGE beside the dial climbs as the fan widens (a needle rising toward full). The "
+     "candidate-beams are course-blue; the true target star is warm-orange; the dial, pit and gauge "
+     "are black ink. Conveys 'a wider ef frontier escapes the local-minimum trap and lifts recall'. "
+     "Serega's green tübetey is the ONLY green; the dial face has NO green zone and nothing else is "
+     "green. Fills ≥85% width."),
+    ("L9", "L9/L9-13-codebook-training.png", "4:3", True,
+     "TRAINING A CODEBOOK — k-means Lloyd iterations as stamping. Serega stamps a sheet of tiles: a "
+     "scatter of small black-ink points is herded over TWO passes toward two CENTROID-STAMPS, the "
+     "points clustering tighter around the two stamps on the second pass than the first (show the "
+     "before/after as two small panels or a left-to-right progression). The two centroid-stamps are "
+     "course-blue; the moving assignment-arrows that reassign points to their nearer centroid are "
+     "warm-orange; the scattered points are black ink. Serega holds the stamp, mid-press, a satisfied "
+     "look as the clusters tighten. Conveys 'Lloyd's k-means: assign, recompute, the inertia falls'. "
+     "Serega's green tübetey is the ONLY green; the tiles, points and centroids carry no green. "
+     "Fills ≥85% width."),
+    ("L9", "L9/L9-14-adc-table.png", "16:9", True,
+     "ADC — distance from a table lookup. Serega reads a 4×4 DISTANCE-TABLE GRID pinned to the wall "
+     "(a clean checkerboard of small ink cells, rows = subspaces, columns = centroids) and traces "
+     "FOUR code-arrows — one per subspace — each dropping from a stored code down to one cell of the "
+     "grid; he tallies the four looked-up cells on a small running SUM tally beside the grid. The "
+     "grid and cells are black ink; the four code-arrows pointing into the grid are course-blue; the "
+     "running sum tally is warm-orange. Conveys 'sum four table lookups, one per subspace, to score a "
+     "PQ-coded vector — no full-vector math'. Serega's green tübetey is the ONLY green; the grid, "
+     "arrows and tally carry no green. Fills ≥85% width."),
+    ("L9", "L9/L9-15-choose-a-lane.png", "16:9", True,
+     "CHOOSE A LANE — the index decision. Serega stands at a galactic junction SIGNPOST with five "
+     "lane-arrows fanning off it, each a short hand-lettered label: 'Flat', 'HNSW', 'IVF', 'IVF-PQ', "
+     "'HNSW-PQ' (five labels total, horizontal). He chooses by reading three little dials on a panel "
+     "in his hand — one short hand-lettered label each: 'N', 'recall', 'RAM'. Victor the Vector (the "
+     "bold proud arrow character) is poised at the mouth of the chosen lane, ready to launch down it. "
+     "The chosen lane-arrow is warm-orange; the other four arrows and the signpost and dials are "
+     "black ink + light course-blue. Conveys 'pick the index family by reading scale, recall and "
+     "memory'. Serega's green tübetey is the ONLY green; Victor is bare-headed and wears no green; "
+     "there is no green anywhere else. Fills ≥85% width."),
+
     # ---- L10 · The Oracle (RAG · chunking · query understanding) — 9 plates, Serega in 8 ----
     ("L10", "L10/L10-00-the-oracle.png", "16:9", True,
      "HERO. Serega consults RAGdoll the Oracle — the same patchwork rag-doll STITCHED from retrieved "
@@ -1186,6 +1248,80 @@ JOBS = [
      "with little source-tags); Serega nods approvingly — then glances up at a question-mark just "
      "forming over his head (the hook: but is it true?). Black ink + course-blue + warm-orange "
      "source-tags; Serega's green tübetey is the ONLY green; RAGdoll wears no green. Fills ≥85% width."),
+
+    # ---- L10 · The Oracle · DEEPENING (A+ expansion, L10-1N range) — Serega in 5; two abstract ----
+    # Same gate posture as the L10 block above (hero L10-00 + final L10-08 stay Serega plates).
+    # Five plates feature Serega; the two pure-metaphor plates (late-chunking, self-RAG mirror) have
+    # NO narrator and therefore NO green anywhere. Palette throughout: black ink + course-blue +
+    # warm-orange on off-white; GREEN ONLY on Serega's tübetey; the recurring cast bare-headed.
+    ("L10", "L10/L10-09-late-chunking.png", "4:3", False,
+     "LATE CHUNKING — embed first, cut after. Two embedding diagrams side by side, pure metaphor, NO "
+     "narrator figure. LEFT (naïve chunk-then-embed): a stack of separate isolated BUBBLES, each one "
+     "a single chunk embedded ALONE, the bubbles drawn far apart and unconnected so each clearly "
+     "forgets its neighbours. RIGHT (late chunking): one long continuous RIBBON embedded WHOLE in a "
+     "single pass, and only THEN sliced by clean cut-lines into chunks — the slices stay part of the "
+     "one ribbon. A small contrast between 'isolated bubbles' and 'one ribbon, then sliced' is the "
+     "whole point. Black ink + course-blue only; warm-orange ONLY as the thin slice/cut-lines on the "
+     "ribbon. There is NO narrator in this scene, so there is NO green anywhere in the image. "
+     "Fills ≥85% width."),
+    ("L10", "L10/L10-10-raptor-tree.png", "16:9", True,
+     "RAPTOR — a tree of recursive summaries. RAGdoll the Oracle (the patchwork rag-doll stitched "
+     "from text-scrap patches with loose threads, two button eyes and a stitched smile, as locked) "
+     "stacks scraps into a PYRAMID: many leaf-scraps at the wide bottom are summarised UP into fewer "
+     "summary-scraps in the middle, which summarise UP into ONE root-scrap at the apex (a clear "
+     "many → fewer → one tree). Serega stands beside the pyramid and POINTS at the level his question "
+     "lands on (one mid-level node). The scraps and tree are course-blue cloth + black ink; "
+     "warm-orange ONLY on RAGdoll's patches and the thread that ties the levels. Conveys 'leaves → "
+     "summaries → root; retrieve at the altitude the question needs'. Serega's green tübetey is the "
+     "ONLY green; RAGdoll is bare-headed and wears no green. Fills ≥85% width."),
+    ("L10", "L10/L10-11-rag-fusion.png", "4:3", True,
+     "RAG-FUSION — consensus over paraphrase rankings (RRF). THREE Serega speech-bubbles (the same "
+     "question paraphrased three ways) each cast a FISHING LINE into the SAME pond of "
+     "document-dots — three lines from three bubbles into one shared pond. The lines' pulls act as "
+     "votes that together haul ONE consensus document-dot up to the surface (the doc the paraphrases "
+     "agree on). Only ONE Serega in the scene (the three bubbles are his paraphrases, drawn as plain "
+     "speech-clouds, not three clones). The pond and dots are course-blue + black ink; the three "
+     "fishing lines are black ink; warm-orange ONLY on the one consensus dot rising to the surface. "
+     "Conveys 'reciprocal rank fusion: the doc several phrasings agree on wins'. Serega's green "
+     "tübetey is the ONLY green; there is no green anywhere else. Fills ≥85% width."),
+    ("L10", "L10/L10-12-decompose.png", "16:9", True,
+     "DECOMPOSITION — split the compound question. Chunk Norris (the confident karate-master stick "
+     "figure, an original character, same as earlier) CHOPS one big question-SCROLL into TWO "
+     "sub-question scrolls with a clean karate strike; Serega stands to the side and COLLECTS both "
+     "sub-answers (a small slip from each sub-scroll) to stitch into one. The scrolls are black ink "
+     "+ light course-blue; warm-orange ONLY as the thin motion-arc of Chunk Norris's chopping strike. "
+     "Conveys 'a two-part question fans into two atomic retrievals, then recombine'. Serega's green "
+     "tübetey is the ONLY green; Chunk Norris is bare-headed and wears no green; there is no green "
+     "anywhere else. Fills ≥85% width."),
+    ("L10", "L10/L10-13-switchboard.png", "16:9", True,
+     "LOGICAL / SEMANTIC ROUTING — pick the destination. Serega stands at a telephone SWITCHBOARD, "
+     "plugging a single query-CABLE into the RIGHT source-pipe among THREE labelled sockets (a "
+     "dispatcher choosing where the query goes). The three source-pipes lead off to three different "
+     "destinations (drawn as three distinct little back-end icons — e.g. a doc-stack, a database "
+     "drum, a globe). The switchboard and three pipes are black ink + light course-blue; warm-orange "
+     "ONLY on the one query-cable Serega is plugging into the chosen socket. Conveys 'route the query "
+     "to the right corpus/tool before retrieving'. Serega's green tübetey is the ONLY green; there is "
+     "no green anywhere else. Fills ≥85% width."),
+    ("L10", "L10/L10-14-crag-inspect.png", "4:3", True,
+     "CRAG — grade the retrieval, then correct. RAGdoll the Oracle (the patchwork rag-doll as locked) "
+     "holds each retrieved SCRAP up to a MAGNIFYING GLASS and stamps it with one of three marks — a "
+     "check ✓, a cross ✗, or a question-mark ? — before stitching the good ones in; one rejected "
+     "scrap (stamped ✗) is being tossed toward a labelled 'web' BASKET (the fall-back to web search). "
+     "Serega watches at the side, arms folded, approving the inspection. The scraps, magnifier and "
+     "basket are black ink + course-blue cloth; warm-orange ONLY on RAGdoll's patches and the stamp "
+     "marks. Conveys 'evaluate each retrieval correct / ambiguous / wrong, then keep, augment, or "
+     "discard'. Serega's green tübetey is the ONLY green; RAGdoll is bare-headed and wears no green; "
+     "the 'web' basket and marks carry no green. Fills ≥85% width."),
+    ("L10", "L10/L10-15-self-rag-mirror.png", "4:3", True,
+     "SELF-RAG — the model critiques itself. RAGdoll the Oracle (the patchwork rag-doll as locked) "
+     "glances into a MIRROR mid-stitch — needle and thread in hand, half-stitched — and in the "
+     "reflection asks ITSELF whether it even needs to retrieve (a small thought-bubble over the "
+     "mirror-image holds a plain question-mark glyph '?', the only glyph in the image). Serega stands "
+     "quietly at the edge of the frame, a small approving observer of RAGdoll's self-reflection, not "
+     "the focus. RAGdoll and the mirror are course-blue cloth + black ink; warm-orange ONLY on "
+     "RAGdoll's patches and the loose thread. Conveys 'reflection tokens: decide whether to retrieve, "
+     "then self-critique'. RAGdoll is bare-headed and wears no green, and neither does its "
+     "reflection; Serega's green tübetey is the ONLY green in the image. Fills ≥85% width."),
 ]
 
 H = {"Authorization": f"Bearer {API_KEY}"}

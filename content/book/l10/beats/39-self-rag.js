@@ -1,6 +1,12 @@
     {
       id: 'self-rag', kind: 'prose',
       heading: { en: 'Self-RAG: the model critiques itself', ru: 'Self-RAG: модель критикует себя', tt: 'Self-RAG: модель үзен тәнкыйтьли' },
+      img: 'L10/L10-15-self-rag-mirror.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'RAGdoll the Oracle glances in a mirror mid-stitch, asking itself whether it even needs to retrieve (self-RAG reflection), with Séréga a quiet approving observer at the edge.',
+        ru: 'Оракул RAGdoll смотрится в зеркало посреди шитья, спрашивая себя, нужно ли вообще извлекать (рефлексия self-RAG), а Серёга — тихий одобряющий наблюдатель с краю.',
+        tt: 'RAGdoll Оракулы тегү уртасында көзгегә карый, гомумән алырга кирәкме дип үзеннән сорый (self-RAG рефлексиясе), ә Серёга — читтә тыныч хуплаучы күзәтүче.',
+      },
       body: {
         en: [
           "CRAG bolted a separate evaluator onto the loop. **Self-RAG** (Asai, Wu, Wang, Sil & Hajishirzi, ICLR 2024, arXiv:2310.11511) moves the judgement *inside* the model: it trains the language model to emit special **reflection tokens** as it generates, so the same model that writes the answer also decides when to retrieve and critiques what it retrieved. The control logic is no longer an external wrapper — it is woven into the generation itself.",
