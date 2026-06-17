@@ -109,6 +109,21 @@ HYBRID8  = load(DATA, "l8-hybrid.json")     # toy RRF k=60: consensus D2 0.0325 
 LTR8     = load(DATA, "l8-ltr.json")        # toy RankNet σ(1.2)=0.7685, cost 0.2633, grad 0.2315, ΔnDCG 0.3691, λ 0.0854
 BENCH8   = load(DATA, "l8-bench.json")      # CITED: ColBERT 286→27 GiB, ColBERTv2 MRR@10 39.7, SPLADE++ 38.0/BEIR 50.7, PLAID 6.8×/45×, MSLR 136 feats
 
+# ── L9 (Hyperspace Lanes: ANN — HNSW/IVF/PQ + production latency). toy = stdlib-reproducible
+#    (gen_l9.py); real = frozen FAISS (gen_l9_real.py, fail-soft); cited = l9-bench.json. ──
+HNSW9  = load(DATA, "l9-hnsw.json")     # toy greedy path n0→n1→n2 (dists 4.5277/2.5495/0.7071), 2 hops, recall@1 1.0
+IVF9   = load(DATA, "l9-ivf.json")      # toy 9pts/3 cells; nprobe 1→2 recall@3 0.6667→1.0; committed geometry (2-in-c0/1-in-c1/c1 2nd-nearest)
+PQ9    = load(DATA, "l9-pq.json")       # toy 32→4 B (8×); scale 768→96 (32×), 128→8 (64×)
+LAT9   = load(DATA, "l9-latency.json")  # toy serving budget Σ = 89 ms < 200 SLA
+BENCH9 = load(DATA, "l9-bench.json")    # CITED: HNSW (Malkov&Yashunin), PQ (Jégou), IVF/FAISS (Johnson), TurboQuant (arXiv:2504.19874)
+
+# ── L10 (The Oracle: RAG + chunking + query rewriting). toy = stdlib (gen_l10.py); real = frozen
+#    retrieve→generate (gen_l10_real.py, fail-soft); cited = l10-bench.json. ──
+RAG10     = load(DATA, "l10-rag.json")       # toy token budget: ctx 4096, k=4 stuffed 1024/prompt 1254/headroom 2842, kMax 13
+CHUNK10   = load(DATA, "l10-chunking.json")  # toy 5→7 chunks; binary answer-containment recall@3 0→1.0 (overlap rescues the straddle)
+REWRITE10 = load(DATA, "l10-rewrite.json")   # toy rank 8→2; RR 0.125→0.5; multi-query recall@5 0.4→0.8 (separate 5-relevant gold-set)
+BENCH10   = load(DATA, "l10-bench.json")     # CITED: RAG (Lewis), HyDE (Gao et al., ACL 2023, arXiv:2212.10496), Late Chunking (Günther et al.)
+
 # ── [P] PROVENANCE: curated data/ must equal the generator artifact it was lifted from ──────────
 def provenance_checks(report):
     raw_heaps, raw_zipf, raw_pos, raw_cos = (load(RAW, "heaps_summary.json"), load(RAW, "zipf_summary.json"),
@@ -486,7 +501,7 @@ def claims():
              anchor=r"\b(32\.3)\s*%", must=True),
         dict(id="top-3 %",   deck="L1", value=CLICK["top3Pct"], tol=0.2,
              anchor=r"\b(60\.6)\b", must=True),
-    ] + l3_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims()
+    ] + l3_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims()
 
 # ── [C] BOOK CLAIMS: the built Book PROSE must show the same flagship numbers as data/ ───────────
 # The Book restates the decks' worked examples in its own prose/KaTeX, so the deck anchors do NOT
@@ -587,6 +602,8 @@ def book_claims():
                     anchor=r'cheque"\) sit at \\\(([\d.]+)\\\), nearly on top', must=True))
     out += l7_book_claims()
     out += l8_book_claims()
+    out += l9_book_claims()
+    out += l10_book_claims()
     return out
 
 # ── [C] L7 DECK claims: the cited reranker benchmarks the deck DISPLAYS (≥2-decimal → coverage-gated).
@@ -1130,8 +1147,8 @@ COVERAGE_BASELINE = {
     # GLOBALLY, so they now ALSO cover some numbers earlier units displayed but had not gated — the un-gated
     # count dropped, so the ratchet is lowered to match (strictly stronger; never raised). New units (L7/L8)
     # stay at 0 via .get(surf, 0), forcing every ≥2-dp number they display to be gated.
-    "deck:L0": 0, "deck:L1": 1, "deck:L2": 8, "deck:L3": 50, "deck:L4": 41, "deck:L5": 51, "deck:L6": 33,
-    "book:L0": 0, "book:L1": 1, "book:L2": 8,  "book:L3": 15, "book:L4": 22, "book:L5": 13, "book:L6": 9,
+    "deck:L0": 0, "deck:L1": 1, "deck:L2": 7, "deck:L3": 49, "deck:L4": 41, "deck:L5": 51, "deck:L6": 32,
+    "book:L0": 0, "book:L1": 1, "book:L2": 8,  "book:L3": 14, "book:L4": 22, "book:L5": 13, "book:L6": 9,
 }
 _COV_DEC   = re.compile(r'(?<![\d.])\d+\.\d{2,}(?!\d)')   # grounded signature: a decimal, ≥2 fractional digits
 _COV_ARXIV = re.compile(r'^\d{4}\.\d{4,}$')               # arXiv id (e.g. 1901.04085) — not data
@@ -1275,6 +1292,222 @@ def provenance_l8(report):
         report.append(("OK", f"provenance-L8: {len(checks)} recompute + structural invariants consistent ✓"))
 
 
+# ── [P] PROVENANCE (L9 "Hyperspace Lanes"): gen_l9 emits data/ directly (stdlib, no RAW twin) — recompute
+#    the four climbs from the frozen toy geometry and pin the cross-pillar invariants. The IVF committed
+#    geometry (2-in-c0 / 3rd-in-c1 / c1 = 2nd-nearest cell) is pinned here too — without it nprobe=2 would
+#    not reach the 3rd NN and recall would not climb 0.6667→1.0 (L9.md E12). Real blocks (frozen FAISS) are
+#    optional and not recomputed. ──
+def provenance_l9(report):
+    H, IV, PQ, LT = HNSW9["toy"], IVF9["toy"], PQ9, LAT9
+    def dist(a, b):
+        return math.hypot(a[0] - b[0], a[1] - b[1])
+    checks, flags = [], []
+    def need(cond, name):
+        if not cond:
+            flags.append(name)
+            report.append(("HARD", f"provenance-L9({name}): structural invariant broken"))
+
+    # ── HNSW: recompute greedy descent from coords+edges, brute-force NN, recall ──
+    nodes, q, labels = H["coords"]["nodes"], H["query"], H["labels"]
+    adj = {i: set() for i in range(len(nodes))}
+    for i, j in H["edges"]:
+        adj[i].add(j); adj[j].add(i)
+    cur, path = H["entry"], [H["entry"]]
+    while True:
+        cur_d = dist(nodes[cur], q); best, best_d = None, cur_d
+        for nb in sorted(adj[cur]):
+            if dist(nodes[nb], q) < best_d:
+                best_d, best = dist(nodes[nb], q), nb
+        if best is None:
+            break
+        cur = best; path.append(cur)
+    bf = min(range(len(nodes)), key=lambda i: dist(nodes[i], q))
+    g = H["greedy"]
+    need([labels[i] for i in path] == g["path"], "hnsw greedy path == recomputed descent")
+    need(g["hops"] == len(path) - 1, "hnsw hops == len(path)-1")
+    need(g["nodesVisited"] == len(path), "hnsw nodesVisited == len(path)")
+    need(H["bruteForce"]["nnIdx"] == bf, "hnsw bruteForce NN == argmin dist")
+    checks.append(("hnsw.bruteForce.dist", H["bruteForce"]["dist"], round(dist(nodes[bf], q), 4), 1e-4))
+    need(g["recall"] == (1.0 if path[-1] == bf else 0.0), "hnsw recall == (greedyNN==bruteNN) (BAM)")
+    for h in H["hopTable"]:
+        checks.append((f"hnsw.atDist[{h['at']}]", h["atDist"], round(dist(nodes[h["atIdx"]], q), 4), 1e-4))
+        for nb in h["neighbors"]:
+            checks.append((f"hnsw.dist[{h['at']}->{nb['id']}]", nb["dist"], round(dist(nodes[nb["idx"]], q), 4), 1e-4))
+
+    # ── IVF: recompute assignment, recall, AND the committed-geometry lesson conditions ──
+    pts, cents, qi, K = IV["points"], IV["centroids"], IV["query"], IV["k"]
+    assign = [min(range(len(cents)), key=lambda c: dist(p, cents[c])) for p in pts]
+    need(assign == IV["assign"], "ivf assign == nearest centroid")
+    need(min(range(len(cents)), key=lambda c: dist(qi, cents[c])) == IV["queryCell"], "ivf queryCell == nearest centroid to q")
+    true_nn = sorted(range(len(pts)), key=lambda i: dist(pts[i], qi))[:K]
+    need(true_nn == IV["trueNN"], "ivf trueNN == K nearest points")
+    cell_rank = sorted(range(len(cents)), key=lambda c: dist(qi, cents[c]))
+    need(cell_rank == IV["cellRankByDist"], "ivf cellRankByDist == cells by dist to q")
+    in_c0 = [i for i in true_nn if assign[i] == 0]
+    in_c1 = [i for i in true_nn if assign[i] == 1]
+    need(len(in_c0) == 2, "ivf committed-geometry: exactly 2 of 3 trueNN in c0")
+    need(len(in_c1) == 1, "ivf committed-geometry: the 3rd trueNN in c1")
+    need(cell_rank[1] == 1, "ivf committed-geometry: c1 is the 2nd-nearest cell to q")
+    for npb in ("1", "2"):
+        cells = cell_rank[:int(npb)]
+        probed = [i for i in range(len(pts)) if assign[i] in cells]
+        found = [i for i in true_nn if i in probed]
+        checks.append((f"ivf.recall@nprobe={npb}", IV["probe"][npb]["recall"], round(len(found) / K, 4), 1e-4))
+    need(IV["probe"]["1"]["recall"] < IV["probe"]["2"]["recall"], "ivf recall climbs nprobe 1→2 (BAM)")
+
+    # ── PQ: bytesPQ == m (1 byte/subvector, k=256), bytesFloat32 == dim·4, compression == F32/PQ ──
+    t = PQ["toy"]
+    need(t["bytesPQ"] == t["m"], "pq toy bytesPQ == m")
+    need(t["bytesFloat32"] == t["D"] * 4, "pq toy bytesFloat32 == D·4")
+    need(t["compression"] == t["bytesFloat32"] // t["bytesPQ"], "pq toy compression == F32/PQ")
+    for s in PQ["scale"]:
+        need(s["bytesPQ"] == s["m"], f"pq scale d{s['dim']} bytesPQ == m")
+        need(s["bytesFloat32"] == s["dim"] * 4, f"pq scale d{s['dim']} bytesFloat32 == dim·4")
+        need(s["compression"] == s["bytesFloat32"] // s["bytesPQ"], f"pq scale d{s['dim']} compression == F32/PQ")
+
+    # ── Latency: total == Σ lat AND total < SLA ──
+    checks.append(("latency.total == Σ lat", LT["total"], sum(h["lat"] for h in LT["budget"]), 0))
+    need(LT["total"] < LT["sla"], "latency total < SLA (BAM)")
+
+    bad = 0
+    for name, a, b, tol in checks:
+        if abs(a - b) > tol:
+            bad += 1
+            report.append(("HARD", f"provenance-L9({name}): data/ disagree/invariant broken — {a} vs {b}"))
+    if not bad and not flags:
+        report.append(("OK", f"provenance-L9: {len(checks)} recompute + structural invariants consistent ✓"))
+
+
+# ── [P] PROVENANCE (L10 "The Oracle"): gen_l10 emits data/ directly (stdlib, no RAW twin) — recompute the
+#    three climbs (RAG token budget, chunking binary answer-containment, query-rewrite RR/recall) and pin
+#    the cross-pillar invariants. The two recall SENSES (single-true-doc binary vs multi-query 5-relevant)
+#    are checked against their OWN committed gold-sets, never blended (L10.md E2). ──
+def provenance_l10(report):
+    R, C, W = RAG10, CHUNK10, REWRITE10
+    checks, flags = [], []
+    def need(cond, name):
+        if not cond:
+            flags.append(name)
+            report.append(("HARD", f"provenance-L10({name}): structural invariant broken"))
+
+    # ── RAG token budget ──
+    kmax = (R["contextWindow"] - R["systemTokens"] - R["queryTokens"] - R["answerReserve"]) // R["chunkTokens"]
+    checks.append(("rag.kMax == floor((ctx-sys-q-reserve)/chunk)", R["kMax"], kmax, 0))
+    wk = R["worked"]
+    checks.append(("rag.stuffed == k·chunk", wk["stuffed"], wk["k"] * R["chunkTokens"], 0))
+    checks.append(("rag.promptTotal == sys+q+stuffed", wk["promptTotal"], R["systemTokens"] + R["queryTokens"] + wk["stuffed"], 0))
+    checks.append(("rag.headroom == ctx-promptTotal", wk["headroom"], R["contextWindow"] - wk["promptTotal"], 0))
+    need(wk["k"] <= R["kMax"], "rag worked k <= kMax")
+
+    # ── Chunking: nChunks == ceil((L-o)/(size-o)); binary answer-containment recomputed from windows+span ──
+    L, span = C["docLen"], C["answerSpan"]
+    for sc in C["scenarios"]:
+        n = math.ceil((L - sc["overlap"]) / (sc["size"] - sc["overlap"]))
+        checks.append((f"chunk.nChunks(size{sc['size']},ov{sc['overlap']})", sc["nChunks"], n, 0))
+        idx = next((i for i, w in enumerate(sc["windows"]) if w[0] <= span[0] and span[1] <= w[1]), None)
+        need(sc["answerChunk"] == idx, f"chunk answerChunk idx(size{sc['size']},ov{sc['overlap']})")
+        need((sc["recallAt3"] == 1.0) == (idx is not None), f"chunk recall == binary containment(size{sc['size']},ov{sc['overlap']})")
+    need(C["scenarios"][0]["recallAt3"] == 0 and C["scenarios"][1]["recallAt3"] == 1.0, "chunk recall 0→1.0 as overlap rescues the straddle (BAM)")
+
+    # ── Query rewrite: RR == 1/rank; single-doc binary recall; multi-query recall over its OWN gold-set ──
+    for key in ("original", "hyde"):
+        b = W[key]
+        checks.append((f"rewrite.{key}.rr == 1/rank", b["rr"], round(1.0 / b["trueRank"], 4), 1e-4))
+        need(b["recallAt5"] == (1 if b["trueRank"] <= 5 else 0), f"rewrite {key} recall@5 == (trueRank<=5)")
+        need(b["rankedList"][b["trueRank"] - 1] == W["trueDocId"], f"rewrite {key} trueDoc sits at trueRank")
+    mq = W["multiQuery"]; g = len(mq["goldRelevant"])
+    checks.append(("rewrite.mq.single == |found|/|gold|", mq["recallAt5Single"], round(len(mq["foundSingle"]) / g, 4), 1e-4))
+    checks.append(("rewrite.mq.union  == |found|/|gold|", mq["recallAt5Union"], round(len(mq["foundUnion"]) / g, 4), 1e-4))
+    need(set(mq["foundSingle"]) <= set(mq["goldRelevant"]) and set(mq["foundUnion"]) <= set(mq["goldRelevant"]), "rewrite multi-query found ⊆ gold")
+    need(mq["recallAt5Union"] > mq["recallAt5Single"], "rewrite multi-query union > single (BAM)")
+    need(W["hyde"]["trueRank"] < W["original"]["trueRank"], "rewrite HyDE lifts the true doc's rank (BAM)")
+
+    bad = 0
+    for name, a, b, tol in checks:
+        if abs(a - b) > tol:
+            bad += 1
+            report.append(("HARD", f"provenance-L10({name}): data/ disagree/invariant broken — {a} vs {b}"))
+    if not bad and not flags:
+        report.append(("OK", f"provenance-L10: {len(checks)} recompute + structural invariants consistent ✓"))
+
+
+# ── [C] L9 BOOK CLAIMS: the built Book PROSE (worked :::calc + widget captions) must show the same
+#    distances/recall as data/l9-*.json. One claim per DISTINCT displayed value covers all its occurrences
+#    for the coverage-guard; each anchor also verifies a real display site. The deck claims (l9_deck_claims)
+#    are added once the L9 deck exists. Values come straight from the data globals (never re-typed). ──
+# ── [C] L9 DECK CLAIMS: the deck `formula` slides must show the same distances/recall as data/l9-*.json.
+#    Anchored against the raw KaTeX in the by-hand slides (deck renders KaTeX client-side → LaTeX is in the
+#    HTML). Mirrors l9_book_claims values (from the data globals); deck-side anchors. ──
+def l9_deck_claims():
+    H = HNSW9["toy"]
+    nd = {}
+    for h in H["hopTable"]:
+        nd[h["at"]] = h["atDist"]
+        for nb in h["neighbors"]:
+            nd.setdefault(nb["id"], nb["dist"])
+    d2 = lambda name: round(nd[name], 2)
+    return [
+        dict(id="L9 deck hnsw n0", deck="L9", value=d2("n0"), tol=0.006, anchor=r"d\(n_0,q\)=([\d.]+)", must=True),
+        dict(id="L9 deck hnsw n1", deck="L9", value=d2("n1"), tol=0.006, anchor=r"d\(n_1,q\)=([\d.]+)", must=True),
+        dict(id="L9 deck hnsw n3", deck="L9", value=d2("n3"), tol=0.006, anchor=r"d\(n_3,q\)=([\d.]+)", must=True),
+        dict(id="L9 deck hnsw nn", deck="L9", value=H["bruteForce"]["dist"], tol=1e-4, anchor=r"d\(n_2,q\)=\\mathbf\{([\d.]+)\}", must=True),
+        dict(id="L9 deck hnsw n4", deck="L9", value=d2("n4"), tol=0.006, anchor=r"d\(n_4,q\)=([\d.]+)", must=True),
+        dict(id="L9 deck hnsw n5", deck="L9", value=d2("n5"), tol=0.006, anchor=r"d\(n_5,q\)=([\d.]+)", must=True),
+        dict(id="L9 deck ivf recall1", deck="L9", value=IVF9["toy"]["probe"]["1"]["recall"], tol=1e-4, anchor=r"2/3.{0,70}?\\mathbf\{([\d.]+)\}", must=True),
+        dict(id="L9 deck pq recall", deck="L9", value=PQ9["recallRepresentative"]["m4"], tol=1e-4, anchor=r"PQ-m4\)\} \\approx \\mathbf\{([\d.]+)\}", must=True),
+    ]
+
+
+# ── [C] L10 DECK CLAIMS: the deck `formula` slides must show the same kMax / RR / recall as data/l10-*.json.
+#    Anchored against the raw KaTeX in the by-hand slides. Mirrors l10_book_claims values (data globals). ──
+def l10_deck_claims():
+    R, W = RAG10, REWRITE10
+    return [
+        dict(id="L10 deck kMax", deck="L10", value=R["kMax"], tol=1e-9, anchor=r"3354.{0,40}?\\mathbf\{(\d+)\}", must=True),
+        dict(id="L10 deck rr orig", deck="L10", value=W["original"]["rr"], tol=1e-4, anchor=r"1/8 = \\mathbf\{([\d.]+)\}", must=True),
+        dict(id="L10 deck rr hyde", deck="L10", value=W["hyde"]["rr"], tol=1e-4, anchor=r"1/2 = \\mathbf\{([\d.]+)\}", must=True),
+        dict(id="L10 deck mq single", deck="L10", value=W["multiQuery"]["recallAt5Single"], tol=1e-4, anchor=r"2/5 \\Rightarrow \\mathbf\{([\d.]+)\}", must=True),
+        dict(id="L10 deck mq union", deck="L10", value=W["multiQuery"]["recallAt5Union"], tol=1e-4, anchor=r"4/5 \\Rightarrow \\mathbf\{([\d.]+)\}", must=True),
+    ]
+
+
+def l9_book_claims():
+    H = HNSW9["toy"]
+    nd = {}                                   # node label → distance-to-q (from the hop table)
+    for h in H["hopTable"]:
+        nd[h["at"]] = h["atDist"]
+        for nb in h["neighbors"]:
+            nd.setdefault(nb["id"], nb["dist"])
+    d2 = lambda name: round(nd[name], 2)      # non-NN distances are displayed at 2 dp (the NN at 4 dp)
+    nn = H["bruteForce"]["dist"]
+    ivf1 = IVF9["toy"]["probe"]["1"]["recall"]
+    pqr = PQ9["recallRepresentative"]["m4"]
+    return [
+        dict(id="book L9 hnsw n0", deck="L9", value=d2("n0"), tol=0.006, anchor=r"distance \\\(([\d.]+)\\\) to", must=True),
+        dict(id="book L9 hnsw n1", deck="L9", value=d2("n1"), tol=0.006, anchor=r"\\\(n_1\\\) at \\\(([\d.]+)\\\)", must=True),
+        dict(id="book L9 hnsw n3", deck="L9", value=d2("n3"), tol=0.006, anchor=r"\\\(n_3\\\) at \\\(([\d.]+)\\\)", must=True),
+        dict(id="book L9 hnsw nn", deck="L9", value=nn, tol=1e-4, anchor=r"neighbour \\\(n_2\\\) is at \\\(([\d.]+)\\\)", must=True),
+        dict(id="book L9 hnsw n4", deck="L9", value=d2("n4"), tol=0.006, anchor=r"\\\(n_4\\\) at \\\(([\d.]+)\\\)", must=True),
+        dict(id="book L9 hnsw n5", deck="L9", value=d2("n5"), tol=0.006, anchor=r"\\\(n_5\\\) at \\\(([\d.]+)\\\)", must=True),
+        dict(id="book L9 ivf recall1", deck="L9", value=ivf1, tol=1e-4, anchor=r"recall@3 = ([\d.]+)</strong>\. With", must=True),
+        dict(id="book L9 pq recall", deck="L9", value=pqr, tol=1e-4, anchor=r"exact search is <strong>≈ ([\d.]+)", must=True),
+    ]
+
+
+# ── [C] L10 BOOK CLAIMS: the built Book PROSE (worked :::calc + widget captions) must show the same
+#    kMax / RR / recall as data/l10-*.json. Only RR 0.125 is coverage-caught (≥2-dp); the single-decimal
+#    lifts (0.5 / 0.4 / 0.8) and the integer kMax are gated too for drift safety. Values from data globals. ──
+def l10_book_claims():
+    R, W = RAG10, REWRITE10
+    return [
+        dict(id="book L10 kMax", deck="L10", value=R["kMax"], tol=1e-9, anchor=r"3354/256 \\rfloor = \\mathbf\{(\d+)\}", must=True),
+        dict(id="book L10 rr orig", deck="L10", value=W["original"]["rr"], tol=1e-4, anchor=r"1/8 = \\mathbf\{([\d.]+)\}", must=True),
+        dict(id="book L10 rr hyde", deck="L10", value=W["hyde"]["rr"], tol=1e-4, anchor=r"1/2 = \\mathbf\{([\d.]+)\}", must=True),
+        dict(id="book L10 mq single", deck="L10", value=W["multiQuery"]["recallAt5Single"], tol=1e-4, anchor=r"2/5.{0,45}?\\mathbf\{([\d.]+)\}", must=True),
+        dict(id="book L10 mq union", deck="L10", value=W["multiQuery"]["recallAt5Union"], tol=1e-4, anchor=r"4/5.{0,45}?\\mathbf\{([\d.]+)\}", must=True),
+    ]
+
+
 def main():
     text = {k: p.read_text() for k, p in DECKS.items()}
     book = load_book()                              # built Book HTML (empty if docs/ not built)
@@ -1288,6 +1521,8 @@ def main():
     provenance_l6_nce(report, text.get("L6", ""))   # [P] L6 InfoNCE softmax BARS == softmax(traj.logits)·H (R8 data-bind)
     provenance_l7(report)                            # [P] L7 toy-recompute + cross-file + structural pins
     provenance_l8(report)                            # [P] L8 toy-recompute + the four cross-pillar BAMs
+    provenance_l9(report)                            # [P] L9 toy-recompute (HNSW greedy/IVF recall+geometry/PQ bytes/latency sum)
+    provenance_l10(report)                           # [P] L10 toy-recompute (RAG kMax/chunking containment/rewrite RR+recall)
     for c in claims():                              # [C] deck == data/
         report.append(check_claim(c, text[c["deck"]]))
     if book:                                        # [C] Book == data/ (the Book restates the flagship numbers)
@@ -1556,11 +1791,35 @@ def selftest():
     okL8d = any(s == "HARD" and "ltr.lambda" in m for s, m in rep8d)
     print("[selftest:prov-L8-ltr]", next((m for s, m in rep8d if s == "HARD"), "provenance-L8 ltr: NO FLAG"))
     okL8 = okL8a and okL8b and okL8c and okL8d
+    # L9 [P]: break two cross-pillar BAMs (must flag) — the L9 pins are not blind.
+    #   (a) HNSW: greedy must reach the brute-force NN (recall 1.0); a drifted recall must flag.
+    repL9a = []; sv = HNSW9["toy"]["greedy"]["recall"]; HNSW9["toy"]["greedy"]["recall"] = 0.0
+    provenance_l9(repL9a); HNSW9["toy"]["greedy"]["recall"] = sv
+    okL9a = any(s == "HARD" and "provenance-L9(hnsw recall" in m for s, m in repL9a)
+    print("[selftest:prov-L9-hnsw]", next((m for s, m in repL9a if s == "HARD"), "provenance-L9 hnsw: NO FLAG"))
+    #   (b) IVF: recall must CLIMB nprobe 1→2 (0.6667→1.0); a non-climbing recall must flag (the nprobe lesson).
+    repL9b = []; sv = IVF9["toy"]["probe"]["1"]["recall"]; IVF9["toy"]["probe"]["1"]["recall"] = 1.0
+    provenance_l9(repL9b); IVF9["toy"]["probe"]["1"]["recall"] = sv
+    okL9b = any(s == "HARD" and "provenance-L9(ivf" in m for s, m in repL9b)
+    print("[selftest:prov-L9-ivf]", next((m for s, m in repL9b if s == "HARD"), "provenance-L9 ivf: NO FLAG"))
+    okL9 = okL9a and okL9b
+    # L10 [P]: break two cross-pillar BAMs (must flag).
+    #   (a) chunking: overlap must rescue the boundary-straddle (recall 0→1.0); breaking the rescue must flag.
+    repL10a = []; sv = CHUNK10["scenarios"][1]["recallAt3"]; CHUNK10["scenarios"][1]["recallAt3"] = 0
+    provenance_l10(repL10a); CHUNK10["scenarios"][1]["recallAt3"] = sv
+    okL10a = any(s == "HARD" and "provenance-L10(chunk" in m for s, m in repL10a)
+    print("[selftest:prov-L10-chunk]", next((m for s, m in repL10a if s == "HARD"), "provenance-L10 chunk: NO FLAG"))
+    #   (b) rewrite: HyDE must lift the true doc's rank (8→2); no lift must flag.
+    repL10b = []; sv = REWRITE10["hyde"]["trueRank"]; REWRITE10["hyde"]["trueRank"] = 9
+    provenance_l10(repL10b); REWRITE10["hyde"]["trueRank"] = sv
+    okL10b = any(s == "HARD" and "provenance-L10(rewrite" in m for s, m in repL10b)
+    print("[selftest:prov-L10-rewrite]", next((m for s, m in repL10b if s == "HARD"), "provenance-L10 rewrite: NO FLAG"))
+    okL10 = okL10a and okL10b
     ok = (okD and okA and okP and okL3 and okL4 and okP2 and okL5 and okL6 and okP3 and okP4
           and okGX and okTK and okTS and okP5 and okP6 and okP7 and okP8 and okP9
           and okW and okU and okS and okT47 and okPE and okCX and okBK and okBW and okNCE and okCov
-          and okL7c and okL7p and okL8)
-    print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 + L5-GloVe/t-SNE + L2-tokenizers + enrichment-trajectory + l6-contextual cross-file + L6-InfoNCE-bars (data + deck) + Book-prose deck & cross-file + coverage-guard ratchet (incl. data-only pins) + L7 BAM + L8 four cross-pillar BAMs all fire"
+          and okL7c and okL7p and okL8 and okL9 and okL10)
+    print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 + L5-GloVe/t-SNE + L2-tokenizers + enrichment-trajectory + l6-contextual cross-file + L6-InfoNCE-bars (data + deck) + Book-prose deck & cross-file + coverage-guard ratchet (incl. data-only pins) + L7 BAM + L8 four cross-pillar BAMs + L9 (HNSW/IVF) + L10 (chunk/rewrite) BAMs all fire"
           if ok else "FAIL — a check is blind!")
     return 0 if ok else 1
 

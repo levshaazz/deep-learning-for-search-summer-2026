@@ -181,7 +181,7 @@ MASCOTS = {
         ),
         "keywords": ["confabulous"],
         "carries_green": False,
-        "lectures": ["L11"],
+        "lectures": ["L10", "L11"],
     },
     "re_actor": {
         "name": "the Re-Actor",
@@ -240,7 +240,7 @@ MASCOTS = {
         ),
         "keywords": ["victor the vector"],
         "carries_green": False,
-        "lectures": ["L5", "L6"],
+        "lectures": ["L5", "L6", "L9"],
     },
 }
 

@@ -3,7 +3,7 @@
 > **Status: CANON.** The single through-line that connects every lecture/Book chapter. It sits above
 > the per-lecture catchphrases in [voice_wbw.md](../_research/voice_wbw.md) §4 and the per-lecture beat
 > sheets (`narrative/L<n>.md`), and it pins every lecture to the course spine **Get Data → Measure →
-> Rank**. Built per [NARRATIVE_METHOD.md](../_research/iterations/NARRATIVE_METHOD.md) (esp. P3 spatial
+> Rank → Generate**. Built per [NARRATIVE_METHOD.md](../_research/iterations/NARRATIVE_METHOD.md) (esp. P3 spatial
 > metaphor, P11 spine question, P12 callbacks). Serega rules from [voice_wbw.md](../_research/voice_wbw.md) §2.
 
 ---
@@ -14,24 +14,29 @@ You (the student) have signed onto an **expedition across the Galaxy of Informat
 ocean of documents, queries, signals, and noise. **Serega** is your guide and co-pilot (not the
 captain — *you* become the captain by the end). The mission is to build **the Ship**: a machine that
 can find the **one true record** in a galaxy of billions, and *keep finding it forever*. The Ship is
-built one part per lecture. The galaxy has three territories — and they are the course spine. By
+built one part per lecture. The galaxy has four territories — and they are the course spine. By
 Project Defense, Serega hands you the helm: **you take the Ship out alone.**
 
-## 2. The Galaxy map *is* the spine: **Get Data → Measure → Rank**
+## 2. The Galaxy map *is* the spine: **Get Data → Measure → Rank → Generate**
 
-The spine is not a slogan — it's the **map of the galaxy** and the **loop every search system runs**.
-Three territories; each builds one subsystem of the Ship. Every lecture lives in a territory (some
-straddle a border — that border crossing *is* the lecture's hook).
+The spine is not a slogan — it's the **map of the galaxy** and the **loop every search-and-answer
+system runs**. Four territories; each builds one subsystem of the Ship. Every lecture lives in a
+territory (some straddle a border — that border crossing *is* the lecture's hook). The fourth leg —
+**Generate** — was added for good at **L10 "The Oracle"** (owner-locked): the spine's first new leg in
+ten lectures, when the Ship stops merely *finding* and starts *answering* (RAG, on top of Rank).
 
 | Territory | Spine leg | What it asks | What of the Ship it builds | Governing metaphor (P3) |
 |-----------|-----------|--------------|----------------------------|--------------------------|
 | **I. The Archives** | **Get Data** | *How do we capture & represent the stuff?* | Sensors & Archives: tokenizer, embeddings, the index | raw matter → coordinates on a map |
 | **II. The Instruments** | **Measure** | *How do we tell what's close / what's good?* | Instruments: similarity, relevance, metrics, evaluation | rulers, angles, the unit sphere |
-| **III. The Bridge** | **Rank** | *How do we order & deliver the answer, at scale, forever?* | Navigation & Bridge: the cascade, ANN, serving, RAG | the funnel; hyperspace lanes |
+| **III. The Bridge** | **Rank** | *How do we order & deliver the answer, at scale, forever?* | Navigation & Bridge: the cascade, ANN, serving | the funnel; hyperspace lanes |
+| **IV. The Oracle** | **Generate** | *How do we turn the ranked evidence into a grounded answer?* | The Oracle: retrieve → augment → generate (RAG) | the seer who reads the scrolls, then speaks |
 
-**The spine slide** (the shared anchor, every lecture): a three-stop map *Get Data → Measure → Rank*
-with the current lecture's stop lit. It opens the agenda and is the recurring "you are here." This is
-NARRATIVE_METHOD **P11** made physical — the same question threads the whole course.
+**The spine slide** (the shared anchor, every lecture): a four-stop map *Get Data → Measure → Rank →
+Generate* with the current lecture's stop(s) lit. It opens the agenda and is the recurring "you are
+here." Mechanically it is the **shared `widgets/course-map/` widget** (4 legs since L10), mounted in
+every deck and lit per-lecture from the lecture's `course.json` `spine` array (its `labels.active`).
+This is NARRATIVE_METHOD **P11** made physical — the same question threads the whole course.
 
 ## 3. Arc rules (how the catchphrases chain into one journey)
 
@@ -82,6 +87,10 @@ NARRATIVE_METHOD **P11** made physical — the same question threads the whole c
 | **Sir Cosine & the Knights** | cosine similarity / angle on the sphere | L2 (hero) | **L5–L8** — the Knights ride wherever similarity is scored |
 | **Curse-of-Dimensionality Wraith** | distance concentration in high-d | L2 (catch) | **L9** — why exact NN dies and ANN/PQ are needed |
 | **The Iceberg** | hidden technical debt (Sculley) | L1 | **L9/L10** — production/serving is the 90% below the water |
+| **Victor the Vector** | embeddings (a word/point → a vector: magnitude + direction) | L5/L6 (hero) | **L9** — reused as the hero flying the hyperspace lanes (vectors riding the ANN jump-gates) |
+| **RAGdoll (the Oracle)** | RAG: retrieve-then-generate (the answering Ship) | L10 (hero) | **L10–L12** — anchors the whole RAG arc |
+| **Chunk Norris** | chunking (splitting docs into overlapping passages) | L10 | L10 — the chunking turn (single home) |
+| **Confabulous** | confident fabrication (hallucinated answers/citations) | L10 (catch) | **L11** — pays off as the villain of RAG evaluation |
 
 Rule: a creature has **one tell, one job**, and is **reused, never duplicated** (NARRATIVE_METHOD P2).
 Creatures appear only on hooks/metaphor/viz beats — **never on precision (Climb) beats** (P9).

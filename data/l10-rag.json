@@ -1,0 +1,50 @@
+{
+  "_doc": "RAG anchor trace + token budget. Toy (exact, stdlib): context 4096; system 200 + query 30 + k·256-token chunks, reserving 512 for the answer. At k=4 → stuffed 1024, prompt 1254, headroom 2842. kMax = floor((4096−200−30−512)/256) = floor(3354/256) = 13 — the window caps how much you can retrieve (why ranking matters). ONE canonical end-to-end trace is the lecture's recurring anchor figure (the rag-pipeline widget recurs with one stage in focus on 5 beats). climb-chunking and climb-queryrewrite reference this same running example. Real = frozen retrieve→generate trace, spliced by _research/gen_l10_real.py.",
+  "_source": "_research/gen_l10.py (toy, stdlib) + gen_l10_real.py (real retrieve→generate, /usr/bin/python3)",
+  "contextWindow": 4096,
+  "systemTokens": 200,
+  "queryTokens": 30,
+  "answerReserve": 512,
+  "chunkTokens": 256,
+  "stages": [
+    "chunk",
+    "embed",
+    "retrieve",
+    "stuff",
+    "generate"
+  ],
+  "worked": {
+    "k": 4,
+    "stuffed": 1024,
+    "promptTotal": 1254,
+    "headroom": 2842
+  },
+  "kMax": 13,
+  "trace": {
+    "query": "How does the heart pump blood?",
+    "retrieved": [
+      {
+        "id": "doc_cardiac_cycle",
+        "score": 0.82,
+        "chunk": "The cardiac cycle alternates systole and diastole; ventricular contraction ejects blood."
+      },
+      {
+        "id": "doc_circulatory",
+        "score": 0.79,
+        "chunk": "The circulatory system moves blood through arteries and veins to the body's tissues."
+      },
+      {
+        "id": "doc_valves",
+        "score": 0.71,
+        "chunk": "Heart valves keep blood flowing one way between the atria and ventricles."
+      },
+      {
+        "id": "doc_anatomy",
+        "score": 0.65,
+        "chunk": "The heart has four chambers: two atria and two ventricles."
+      }
+    ],
+    "prompt": "System: Answer using ONLY the context. Context: [4 chunks]. Question: How does the heart pump blood?",
+    "answer": "The heart pumps blood through the cardiac cycle: during systole the ventricles contract and eject blood, while valves keep it flowing one way [doc_cardiac_cycle, doc_valves]."
+  }
+}
