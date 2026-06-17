@@ -47,26 +47,39 @@ export const mountRagPipeline = defineWidget({
       const defs = el('defs', {}, svg);
       const mk = el('marker', { id: mid, viewBox: '0 0 10 10', refX: '8', refY: '5', markerWidth: '7', markerHeight: '7', orient: 'auto-start-reverse' }, defs);
       el('path', { d: 'M0,0 L10,5 L0,10 z', class: 'rag-arhead' }, mk);
-      el('text', { x: W / 2, y: 38, class: 'rag-band rag-band-on', 'text-anchor': 'middle' }, svg)
-        .textContent = labels.flowLabel || 'retrieve → augment → generate';
+      const bandEl = el('text', { x: W / 2, y: 38, class: 'rag-band rag-band-on', 'text-anchor': 'middle' }, svg);
+      bandEl.textContent = labels.flowLabel || 'retrieve → augment → generate';
+      const stageEls = [], arrowEls = [];
       for (let i = 0; i < N; i++) {
         const id = seq[i];
         let bcls = 'rag-box rag-stage';
         if (mode === 'all-green') bcls += ' rag-ok';
         else if (mode === 'poisoned' && poison.has(id)) bcls += ' rag-bad';
         if (focus) bcls += (id === focus ? ' rag-focus' : ' rag-faint');
-        el('rect', { x: boxX(i), y: ROWY, width: boxW, height: BOXH, rx: 9, class: bcls }, svg);
+        const cell = el('g', { class: 'rag-stagecell' }, svg);   // box + its label grouped, so a step reveal hides both together
+        el('rect', { x: boxX(i), y: ROWY, width: boxW, height: BOXH, rx: 9, class: bcls }, cell);
         el('text', { x: cxF(i), y: ROWY + BOXH / 2 + 5, 'text-anchor': 'middle',
-          class: 'rag-boxtxt rag-boxtxt-stage' + (focus && id !== focus ? ' rag-faint' : '') }, svg).textContent = labels[id] || id;
+          class: 'rag-boxtxt rag-boxtxt-stage' + (focus && id !== focus ? ' rag-faint' : '') }, cell).textContent = labels[id] || id;
+        stageEls.push(cell);
         if (i > 0) {
           const pa = (mode === 'poisoned' && poison.has(id) && poison.has(seq[i - 1])) ? ' rag-bad-arrow' : '';
-          el('line', { x1: boxX(i) - GAP + 1, y1: ROWY + BOXH / 2, x2: boxX(i) - 2, y2: ROWY + BOXH / 2,
-            class: 'rag-arrow' + pa, 'marker-end': `url(#${mid})` }, svg);
+          arrowEls.push(el('line', { x1: boxX(i) - GAP + 1, y1: ROWY + BOXH / 2, x2: boxX(i) - 2, y2: ROWY + BOXH / 2,
+            class: 'rag-arrow' + pa, 'marker-end': `url(#${mid})` }, svg));
         }
       }
       svg.setAttribute('viewBox', `0 0 ${W} ${frameHeightFor(ROWY + BOXH + 28, 8)}`);
-      // static anchor figure: focus/mode are applied at render; the scaffold steps the caption text.
-      return function update() {};
+      // A focus/mode mount (book focus-chunk / focus-query / catch / payoff beats) shows the whole pipe
+      // at once, statically. The plain "build the pipeline" mount (the deck climb-rag slide, maxStep 3)
+      // reveals the stages left→right so the step gate sees a REAL progressive reveal, not "all at step 0".
+      if (focus || mode !== 'normal') return function update() {};
+      const MAXK = 3;
+      return function update(k) {
+        const kk = k | 0;
+        const shown = Math.min(N, Math.max(1, Math.ceil((kk + 1) / (MAXK + 1) * N)));
+        stageEls.forEach((g, i) => g.classList.toggle('is-hidden', i >= shown));
+        arrowEls.forEach((a, i) => a.classList.toggle('is-hidden', (i + 1) >= shown));
+        bandEl.classList.toggle('is-hidden', kk < MAXK);
+      };
     }
 
     const offline = (data.offline || []).map((s) => s.id);
