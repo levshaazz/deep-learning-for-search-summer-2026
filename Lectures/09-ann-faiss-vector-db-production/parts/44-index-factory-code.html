@@ -1,0 +1,28 @@
+<section class="slide" data-type="code" data-screen-label="44 Code · index_factory">
+  <div class="slide-header">
+    <h2>The FAISS index-factory grammar</h2>
+    <span class="slide-kicker">Python · faiss · one string builds the whole index</span>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Python · build_index.py</span><span class="badge" data-color="accent">faiss</span></div>
+    <pre><code class="language-python">import faiss
+
+# A comma-separated recipe: [transform,] coarse-quantizer , encoding
+d = 768
+
+# IVF with 4096 cells, each vector PQ-encoded to 96 bytes
+idx = faiss.index_factory(d, "IVF4096,PQ96")
+
+# A pure HNSW graph, M = 32 edges per node (no compression)
+idx = faiss.index_factory(d, "HNSW32")
+
+# OPQ rotation → IVF (16384 cells, HNSW coarse quantizer) → PQ 64 bytes
+idx = faiss.index_factory(d, "OPQ64,IVF16384_HNSW32,PQ64")
+
+idx.train(xb)          # learn centroids + codebooks (offline)
+idx.add(xb)            # file every vector under its cell / code
+idx.nprobe = 16        # the recall<->work dial, set at query time</code></pre>
+  </div>
+  <p class="small muted mt-3">Read it left to right: an optional <span class="term">transform</span> (<code>OPQ64</code>), then the <span class="term">coarse quantizer</span> (<code>IVF4096</code>, or <code>IVF16384_HNSW32</code> = an HNSW-indexed quantizer), then the <span class="term">encoding</span> (<code>PQ96</code>, <code>Flat</code>, …). The whole index from one string.</p>
+  <aside class="slide-notes">Index-factory code slide. The grammar: [transform,] quantizer, encoding. "IVF4096,PQ96" = 4096 cells, 96-byte PQ codes. "HNSW32" = HNSW graph, M=32, uncompressed. "OPQ64,IVF16384_HNSW32,PQ64" = OPQ rotation → IVF with an HNSW coarse quantizer (16384 cells) → PQ 64 bytes. train/add/nprobe are the lifecycle. nprobe set at query time is the recall↔work dial. Code is illustrative API shape, not gated numbers.</aside>
+</section>

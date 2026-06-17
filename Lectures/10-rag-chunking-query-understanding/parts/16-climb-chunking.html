@@ -1,0 +1,68 @@
+<section class="slide" data-type="walkthrough" data-max-step="3" data-current-step="0" data-screen-label="16 Climb · Chunking">
+  <div class="slide-header">
+    <h2>Chunking — size, overlap, answer-containment</h2>
+    <span class="slide-kicker">scrub size/overlap (←/→)</span>
+  </div>
+  <div class="widget-mount" data-widget="chunking-demo"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "_doc": "Chunking, exact (stdlib). A 1000-token doc with the answer span at [380,470] (binary answer-containment). size=200/overlap=0 → 5 chunks; the answer STRADDLES boundary 400 → recall@3 = 0. overlap=50 → 7 chunks; window [300,500] holds [380,470] whole → recall@3 = 1.0.",
+    "_source": "_research/gen_l10.py (toy, stdlib): nChunks=ceil((L−o)/(size−o)); recallAt3 = 1 iff a window contains answerSpan.",
+    "docLen": 1000,
+    "answerSpan": [
+      380,
+      470
+    ],
+    "scenarios": [
+      {
+        "size": 200,
+        "overlap": 0,
+        "nChunks": 5,
+        "windows": [
+          [0, 200],
+          [200, 400],
+          [400, 600],
+          [600, 800],
+          [800, 1000]
+        ],
+        "answerChunk": null,
+        "recallAt3": 0
+      },
+      {
+        "size": 200,
+        "overlap": 50,
+        "nChunks": 7,
+        "windows": [
+          [0, 200],
+          [150, 350],
+          [300, 500],
+          [450, 650],
+          [600, 800],
+          [750, 950],
+          [900, 1000]
+        ],
+        "answerChunk": 2,
+        "recallAt3": 1.0
+      }
+    ],
+    "formula": "ceil((L-o)/(size-o))"
+  },
+  "labels": {
+    "alt": "A 1000-token document ruler with the answer span [380,470]; size=200/overlap=0 gives 5 windows that straddle the answer (recall 0), overlap=50 gives 7 windows where one holds the whole answer (recall 1.0).",
+    "docLabel": "document",
+    "tokens": "tokens",
+    "answer": "answer",
+    "chunks": "chunks",
+    "intact": "answer intact?",
+    "formulaLbl": "chunks",
+    "s0": "A 1000-token document, and the answer to our question lives in tokens [380, 470] — a 90-token span. Retrieval works on chunks, not whole documents, so the question becomes: will any chunk contain this answer whole?",
+    "s1": "size=200, overlap=0 cuts the document into 5 back-to-back windows. The answer span crosses the boundary at token 400: 20 tokens fall in chunk [200,400], 70 in chunk [400,600]. No single chunk holds it whole — so retrieving any one chunk gives a fragment. Binary answer-containment: recall@3 = 0.",
+    "s2": "Add overlap=50 and the windows step by 150 instead of 200, giving 7 windows. Now the window [300,500] contains the whole answer span [380,470]. Retrieve that chunk and the answer arrives intact: recall@3 = 1.0.",
+    "s3": "The count is ⌈(L − overlap) / (size − overlap)⌉: 5 chunks at overlap 0, 7 at overlap 50. Overlap costs storage (more, fatter chunks) and buys recall (no answer falls between the cracks). That tension is exactly what the frontier — Late Chunking — attacks."
+  }
+}
+  </script>
+  <p class="viz-caption">A 1000-token doc with the answer at [380,470]. size=200/overlap=0 → 5 windows, the answer straddles a boundary (recall@3 = 0); overlap=50 → 7 windows, one holds the whole answer (recall@3 = 1.0).</p>
+  <aside class="slide-notes">climb-chunking widget (chunking-demo). Binary answer-containment; overlap rescues the straddle.</aside>
+</section>

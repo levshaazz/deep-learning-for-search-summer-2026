@@ -182,7 +182,11 @@ function renderAdc({ host, data, labels }) {
     const cellEls = [];
     table.forEach((rowVals, j) => {
       const tr = document.createElement('tr');
-      tr.className = 'pq-adc-row';
+      tr.className = 'pq-adc-row is-hidden';   // start hidden; update(k) reveals one row per step
+      // data-step makes the slide-viz gate count this row as a stepped DOM-box (its selector includes
+      // [data-step]); the [data-step] deck CSS is opacity-only so the <tr> table layout is preserved,
+      // and update(k) toggles .is-hidden (the real reveal in book + deck) so the visible count grows.
+      tr.setAttribute('data-step', String(j));
       const rh = document.createElement('td');
       rh.className = 'pq-adc-rh';
       const sq = subq[j] ? `[${subq[j].join(', ')}]` : '';
@@ -229,10 +233,16 @@ function renderAdc({ host, data, labels }) {
 
     return function update(k2) {
       // maxStep 3, m=4 subspaces → trace upto = k2+1 rows (step 0 → row 0; step 3 → all 4 rows + the
-      // final sum). One MORE chosen cell lights up each step (left→right reveal the step gate reads as
-      // real progress), and the ADC↔exact contrast lands once every subspace is traced.
+      // final sum). Each subspace ROW is REVEALED (not just styled) one per step: rows j>=upto stay
+      // .is-hidden, so the visible HTML-overlay element count GROWS 1→2→3→4 across steps. The
+      // slide-viz step detector counts .is-hidden as invisible, so this reads as a real progressive
+      // reveal (the 4×4 <table> is no longer one static element). One MORE chosen cell also lights up
+      // each step, and the ADC↔exact contrast lands once every subspace is traced.
       const upto = Math.min(k2 + 1, m);
-      rowEls.forEach((tr, j) => tr.classList.toggle('is-active', j < upto));
+      rowEls.forEach((tr, j) => {
+        tr.classList.toggle('is-hidden', j >= upto);   // progressive row reveal — grows the visible count
+        tr.classList.toggle('is-active', j < upto);
+      });
       cellEls.forEach((cells, j) => cells.forEach((td) => {
         const chosen = (codes[j] === [...cells].indexOf(td)) && j < upto;
         td.classList.toggle('is-traced', chosen);

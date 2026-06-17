@@ -1,0 +1,13 @@
+<section class="slide" data-type="formula" data-screen-label="48 Exact vs ANN, the budget proof">
+  <div class="slide-header">
+    <h2>Why ANN is the difference between shipping and not</h2>
+    <span class="slide-kicker">the search hop, exact vs approximate</span>
+  </div>
+  <div class="formula-stage">
+    $$ \text{exact scan of } 10^{6}\times 768\text{-d}:\ \text{search hop} \approx \mathbf{520}\text{ ms} \;\Longrightarrow\; \text{already} > 200\text{ ms SLA, alone} $$
+    $$ \text{ANN over quantized vectors}:\ \text{search hop} = \mathbf{12}\text{ ms} \;\Longrightarrow\; \text{the full path totals } 89\text{ ms} < 200 $$
+    $$ \frac{520}{12} \approx 43\times \text{ faster on the hop that matters} $$
+  </div>
+  <p class="small muted center mt-2">An exact brute-force search of a million 768-d vectors costs \(\approx 520\)ms for the <em>search hop alone</em> — it blows the \(200\)ms budget before the encoder or reranker even runs. ANN turns that \(520\) into \(\mathbf{12}\), quantization keeps the index in RAM, and caching makes repeats nearly free. That is the whole bargain.</p>
+  <aside class="slide-notes">Exact-vs-ANN budget proof. exactScanMs ≈ 520 (search hop of 10⁶×768-d brute force) vs ANN search hop = 12ms — both verbatim from data/l9-latency.json (exactScanMs=520, budget step 3 lat=12). 520 alone exceeds the 200ms SLA; the full ANN path is 89ms < 200. 520/12 ≈ 43×. These are representative serving figures (the SUM 89 is the gated exact computation in the cold sequence). The point: ANN is not an optimization, it is the difference between shipping and not.</aside>
+</section>

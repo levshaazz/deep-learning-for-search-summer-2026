@@ -1,0 +1,35 @@
+<section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="11 Walkthrough · Ranking disagreement">
+  <div class="slide-header">
+    <h2>Same vectors, different top-1</h2>
+    <span class="slide-kicker">why the metric is a modelling choice, not a detail</span>
+  </div>
+  <p class="small muted mt-2">Query \(q=[2,2,0,0]\) against \(d_1=[2,1,0,0]\), \(d_2=[3,3,0,0]\), \(d_3=[7,4,0,0]\). Watch each metric crown a <em>different</em> winner.</p>
+  <div class="walk-flow">
+    <div class="walk-step" data-step="1" data-color="cyan">
+      <div class="walk-num">01</div>
+      <div class="walk-content"><div class="walk-label">L2 → \(d_1\)</div><div class="walk-detail">\(\lVert q-d_1\rVert=1.0\), \(\lVert q-d_2\rVert=1.4142\), \(\lVert q-d_3\rVert=5.3852\). The smallest displacement wins — \(d_1\), the <em>nearest point</em>, even though it is not perfectly aligned.</div></div>
+      <div class="walk-state">d1 · 1.0</div>
+    </div>
+    <div class="walk-step" data-step="2" data-color="violet">
+      <div class="walk-num">02</div>
+      <div class="walk-content"><div class="walk-label">cosine → \(d_2\)</div><div class="walk-detail">\(\cos(q,d_1)=0.9487\), \(\cos(q,d_2)=\mathbf{1.0}\), \(\cos(q,d_3)=0.9648\). \(d_2=[3,3,0,0]\) points <em>exactly</em> along \(q\) — perfect alignment scores 1.0 regardless of length. cosine crowns \(d_2\).</div></div>
+      <div class="walk-state">d2 · 1.0</div>
+    </div>
+    <div class="walk-step" data-step="3" data-color="amber">
+      <div class="walk-num">03</div>
+      <div class="walk-content"><div class="walk-label">inner product → \(d_3\)</div><div class="walk-detail">\(q\cdot d_1=6\), \(q\cdot d_2=12\), \(q\cdot d_3=\mathbf{22}\). The raw dot rewards magnitude: long \(d_3=[7,4,0,0]\) wins on sheer size, despite worse alignment than \(d_2\).</div></div>
+      <div class="walk-state">d3 · 22</div>
+    </div>
+    <div class="walk-step" data-step="4" data-final="true">
+      <div class="walk-num">&rarr;</div>
+      <div class="walk-content"><div class="walk-label">cosine = inner product on normalized vectors</div><div class="walk-detail">FAISS ships only <code>METRIC_L2</code> and <code>METRIC_INNER_PRODUCT</code>. Cosine is the identity \(\cos(a,b)=\frac{a\cdot b}{\lVert a\rVert\lVert b\rVert}\) — so <strong>\(L_2\)-normalize once, then use inner product</strong>. Choose the metric your task needs <em>before</em> you build the index.</div></div>
+      <div class="walk-state">L2-norm → IP</div>
+    </div>
+  </div>
+  <div class="step-controls">
+    <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+    <span class="step-counter">4/4</span>
+    <button data-step-act="next" aria-label="Next step">&rarr;</button>
+  </div>
+  <aside class="slide-notes">Ranking-disagreement walkthrough. Numbers verbatim from data/l9-metrics.json ranking block: L2 [1.0, 1.4142, 5.3852] → d1; cosine [0.9487, 1.0, 0.9648] → d2; dot [6, 12, 22] → d3. The lesson: the same three candidates produce three different top-1 under the three metrics. Production tie-in: FAISS only has METRIC_L2 / METRIC_INNER_PRODUCT; cosine = normalize then inner product. The metric is chosen before index construction because the index is built around it.</aside>
+</section>

@@ -111,17 +111,25 @@ BENCH8   = load(DATA, "l8-bench.json")      # CITED: ColBERT 286→27 GiB, ColBE
 
 # ── L9 (Hyperspace Lanes: ANN — HNSW/IVF/PQ + production latency). toy = stdlib-reproducible
 #    (gen_l9.py); real = frozen FAISS (gen_l9_real.py, fail-soft); cited = l9-bench.json. ──
-HNSW9  = load(DATA, "l9-hnsw.json")     # toy greedy path n0→n1→n2 (dists 4.5277/2.5495/0.7071), 2 hops, recall@1 1.0
-IVF9   = load(DATA, "l9-ivf.json")      # toy 9pts/3 cells; nprobe 1→2 recall@3 0.6667→1.0; committed geometry (2-in-c0/1-in-c1/c1 2nd-nearest)
-PQ9    = load(DATA, "l9-pq.json")       # toy 32→4 B (8×); scale 768→96 (32×), 128→8 (64×)
-LAT9   = load(DATA, "l9-latency.json")  # toy serving budget Σ = 89 ms < 200 SLA
+METRICS9 = load(DATA, "l9-metrics.json")# by-hand L2/dot/cosine pair (2.6458/4/0.5443, norms 3.0/2.4495) + ranking-disagreement (d1/d2/d3 cosines 0.9487/1.0/0.9648, L2 1.0/1.4142/5.3852)
+HNSW9  = load(DATA, "l9-hnsw.json")     # toy greedy path n0→n1→n2 (dists 4.5277/2.5495/0.7071), 2 hops, recall@1 1.0; toy2 two-layer climb (b2→b7→b9 NN 1.4142, baseOnly trap b0 17.088→b1 14.3178); efSweep (30-node, NN 5.831, ef recall 0.0→1.0, candidates 5/15/26)
+IVF9   = load(DATA, "l9-ivf.json")      # toy 9pts/3 cells; nprobe 1→2 recall@3 0.6667→1.0; toy2 20pts/5 cells nprobe sweep recall 0.6/0.8/1.0, pointsScanned 4/8/13/17/20; committed geometry (2-in-c0/1-in-c1/c1 2nd-nearest)
+PQ9    = load(DATA, "l9-pq.json")       # toy 32→4 B (8×); scale 768→96 (32×), 128→8 (64×); adcWorked (adcDistance 35 vs exactDistance 37); memoryConfigs compression 32×/16×/64×/64×; codebookTrain Lloyd inertia 284.0→20.6875→2.6667, centroids 6.75/1.3333/8.3333
+LAT9   = load(DATA, "l9-latency.json")  # toy serving budget Σ = 89 ms < 200 SLA; cacheHitMs 5; exactScanMs 520; tailNote p50 45 / p99 180
 BENCH9 = load(DATA, "l9-bench.json")    # CITED: HNSW (Malkov&Yashunin), PQ (Jégou), IVF/FAISS (Johnson), TurboQuant (arXiv:2504.19874)
+HIGHD  = load(DATA, "l2-highd.json")    # curse-of-dimensionality (displayed on L9 exact-dies slide): cv=std/mean collapses 0.4784→0.1932→0.0602→0.0187 as d 2→10→100→1000 (means 0.5171/1.2688/4.0620/12.9023, stds 0.2474/0.2451/0.2445/0.2410)
 
 # ── L10 (The Oracle: RAG + chunking + query rewriting). toy = stdlib (gen_l10.py); real = frozen
 #    retrieve→generate (gen_l10_real.py, fail-soft); cited = l10-bench.json. ──
-RAG10     = load(DATA, "l10-rag.json")       # toy token budget: ctx 4096, k=4 stuffed 1024/prompt 1254/headroom 2842, kMax 13
-CHUNK10   = load(DATA, "l10-chunking.json")  # toy 5→7 chunks; binary answer-containment recall@3 0→1.0 (overlap rescues the straddle)
+RAG10     = load(DATA, "l10-rag.json")       # toy token budget: ctx 4096, k=4 stuffed 1024/prompt 1254/headroom 2842, kMax 13; retrievalMath cos4 0.8165/0.7877/0.7071 (2-dp 0.82/0.79/0.71)
+CHUNK10   = load(DATA, "l10-chunking.json")  # toy 5→7 chunks; binary answer-containment recall@3 0→1.0 (overlap rescues the straddle); sweep overlap 0/50/100/150 → nChunks 5/7/9/17, recall 0→1→1→1
 REWRITE10 = load(DATA, "l10-rewrite.json")   # toy rank 8→2; RR 0.125→0.5; multi-query recall@5 0.4→0.8 (separate 5-relevant gold-set)
+BUDGET10  = load(DATA, "l10-budget.json")    # token-budget sweep: kMax = (ctx−sys−q−reserve)//chunk → 13 / 29 / 125 / 497 across windows 4096 / 8192 / 32768 / 128000
+FUSION10  = load(DATA, "l10-fusion.json")    # RRF k=60: consensus doc_cardiac_cycle 0.0325 > sparse-#1 doc_circulatory 0.0323 (agreement across paraphrases wins)
+RERANK10  = load(DATA, "l10-rerank.json")    # cross-encoder reorder: nDCG@5 0.4935→1.0, MRR 0.3333→1.0 (true doc d2 rank 4→1)
+ROUTING10 = load(DATA, "l10-routing.json")   # query routing: cos(q, {factQA/howTo/compare}) = 0.8058/0.9670/0.6447 → route argmax = howTo
+DECOMP10  = load(DATA, "l10-decomp.json")    # query decomposition: recallSub [1,1] vs recallJoint 0 (each sub-answer in its own chunk, no chunk holds both)
+RAPTOR10  = load(DATA, "l10-raptor.json")    # RAPTOR tree (descriptive): 8 leaf chunks → 3 mid summaries → 1 root, depth 3
 BENCH10   = load(DATA, "l10-bench.json")     # CITED: RAG (Lewis), HyDE (Gao et al., ACL 2023, arXiv:2212.10496), Late Chunking (Günther et al.)
 
 # ── [P] PROVENANCE: curated data/ must equal the generator artifact it was lifted from ──────────
@@ -1147,8 +1155,13 @@ COVERAGE_BASELINE = {
     # GLOBALLY, so they now ALSO cover some numbers earlier units displayed but had not gated — the un-gated
     # count dropped, so the ratchet is lowered to match (strictly stronger; never raised). New units (L7/L8)
     # stay at 0 via .get(surf, 0), forcing every ≥2-dp number they display to be gated.
-    "deck:L0": 0, "deck:L1": 1, "deck:L2": 7, "deck:L3": 49, "deck:L4": 41, "deck:L5": 51, "deck:L6": 32,
-    "book:L0": 0, "book:L1": 1, "book:L2": 8,  "book:L3": 14, "book:L4": 22, "book:L5": 13, "book:L6": 9,
+    # TIGHTENED again after the L9/L10 A+ expansion: the new L9 (metrics/HNSW-toy2/efSweep/IVF-toy2/PQ-ADC/
+    # memory/codebook/highd-cv) and L10 (retrieval-math/budget-sweep/RRF/rerank/routing/decomp/RAPTOR) [C]
+    # claims are matched GLOBALLY, so they ALSO cover numbers some earlier units displayed-but-shared
+    # (cosines, fractions, √-norms reused across lectures) → those un-gated counts dropped, ratchet lowered
+    # to match (strictly stronger; never raised). New units L9/L10 stay at 0 via .get(surf, 0).
+    "deck:L0": 0, "deck:L1": 1, "deck:L2": 6, "deck:L3": 47, "deck:L4": 36, "deck:L5": 48, "deck:L6": 29,
+    "book:L0": 0, "book:L1": 1, "book:L2": 7,  "book:L3": 12, "book:L4": 19, "book:L5": 12, "book:L6": 7,
 }
 _COV_DEC   = re.compile(r'(?<![\d.])\d+\.\d{2,}(?!\d)')   # grounded signature: a decimal, ≥2 fractional digits
 _COV_ARXIV = re.compile(r'^\d{4}\.\d{4,}$')               # arXiv id (e.g. 1901.04085) — not data
@@ -1365,9 +1378,147 @@ def provenance_l9(report):
         need(s["bytesFloat32"] == s["dim"] * 4, f"pq scale d{s['dim']} bytesFloat32 == dim·4")
         need(s["compression"] == s["bytesFloat32"] // s["bytesPQ"], f"pq scale d{s['dim']} compression == F32/PQ")
 
-    # ── Latency: total == Σ lat AND total < SLA ──
+    # ── Latency: total == Σ lat AND total < SLA; warm cache-hit path total == cacheHitMs; tail p50<p99<sla ──
     checks.append(("latency.total == Σ lat", LT["total"], sum(h["lat"] for h in LT["budget"]), 0))
     need(LT["total"] < LT["sla"], "latency total < SLA (BAM)")
+    checks.append(("latency.cacheHit == Σ warm lat", LT["cacheHitMs"], sum(h["lat"] for h in LT["cacheHitBudget"]["budget"]), 0))
+    need(LT["cacheHitMs"] < LT["total"], "latency cache-hit < cold path")
+    need(LT["exactScanMs"] > LT["budget"][2]["lat"], "latency exact scan ≫ ANN search hop (the point of ANN)")
+    need(LT["tailNote"]["p50"] < LT["tailNote"]["p99"] < LT["sla"], "latency p50 < p99 < SLA (tail)")
+
+    # ── Metrics: cosine == dot/(‖a‖·‖b‖); the by-hand norms; the ranking-disagreement (3 metrics, 3 winners) ──
+    mp = METRICS9["pair"]
+    aN, bN = math.hypot(*mp["a"]), math.hypot(*mp["b"])
+    checks.append(("metrics.l2 == ‖a−b‖", mp["l2"], round(math.dist(mp["a"], mp["b"]), 4), 1e-4))
+    checks.append(("metrics.dot == a·b", mp["dot"], sum(x * y for x, y in zip(mp["a"], mp["b"])), 0))
+    checks.append(("metrics.aNorm == ‖a‖", mp["aNorm"], round(aN, 4), 1e-4))
+    checks.append(("metrics.bNorm == ‖b‖", mp["bNorm"], round(bN, 4), 1e-4))
+    checks.append(("metrics.cosine == dot/(‖a‖‖b‖)", mp["cosine"], round(mp["dot"] / (aN * bN), 4), 1e-4))
+    checks.append(("metrics.normalizedDot == cosine", mp["normalizedDot"], mp["cosine"], 1e-9))
+    rk = METRICS9["ranking"]
+    rq, cand = rk["query"], rk["candidates"]
+    for cid, c in cand.items():
+        checks.append((f"metrics.{cid}.l2",  c["l2"],  round(math.dist(rq, c["vector"]), 4), 1e-4))
+        checks.append((f"metrics.{cid}.dot", c["dot"], sum(x * y for x, y in zip(rq, c["vector"])), 0))
+        dotc = sum(x * y for x, y in zip(rq, c["vector"]))
+        checks.append((f"metrics.{cid}.cos", c["cosine"], round(dotc / (math.hypot(*rq) * math.hypot(*c["vector"])), 4), 1e-4))
+    # the BAM: the three metrics pick three DIFFERENT top-1 candidates (metric choice changes the answer)
+    by_l2  = min(cand, key=lambda i: cand[i]["l2"])
+    by_cos = max(cand, key=lambda i: cand[i]["cosine"])
+    by_ip  = max(cand, key=lambda i: cand[i]["dot"])
+    need(by_l2 == rk["top1"]["l2"], "metrics top1 L2 == argmin L2")
+    need(by_cos == rk["top1"]["cosine"], "metrics top1 cosine == argmax cosine")
+    need(by_ip == rk["top1"]["innerProduct"], "metrics top1 IP == argmax dot")
+    need(len({by_l2, by_cos, by_ip}) == 3, "metrics: L2/cosine/IP pick 3 DIFFERENT top-1 (BAM)")
+
+    # ── HNSW toy2 (two-layer): recompute the greedy hub→base descent path & recall, and the base-only trap ──
+    t2 = HNSW9["toy2"]
+    n2, q2, lab2 = t2["coords"]["nodes"], t2["query"], t2["labels"]
+    lidx = {l: i for i, l in enumerate(lab2)}
+    adj2 = {lay["layer"]: {i: set() for i in lay["members"]} for lay in t2["layers"]}
+    for lay in t2["layers"]:
+        for i, j in lay["edges"]:
+            adj2[lay["layer"]][i].add(j); adj2[lay["layer"]][j].add(i)
+    def greedy_layer(start, layer):
+        cur, path = start, [start]
+        while True:
+            best, best_d = None, math.dist(n2[cur], q2)
+            for nb in sorted(adj2[layer][cur]):
+                if math.dist(n2[nb], q2) < best_d:
+                    best_d, best = math.dist(n2[nb], q2), nb
+            if best is None:
+                break
+            cur = best; path.append(cur)
+        return path
+    pL1 = greedy_layer(lidx[t2["entryHub"]], 1)
+    pL0 = greedy_layer(pL1[-1], 0)
+    bf2 = min(range(len(n2)), key=lambda i: math.dist(n2[i], q2))
+    need([lab2[i] for i in pL1] == t2["greedy"]["pathL1"], "hnsw2 layer-1 hub path == recomputed")
+    need([lab2[i] for i in pL0] == t2["greedy"]["pathL0"], "hnsw2 layer-0 descent path == recomputed")
+    need(lab2[bf2] == t2["bruteForce"]["nn"], "hnsw2 bruteForce NN == argmin dist")
+    checks.append(("hnsw2.bruteForce.dist", t2["bruteForce"]["dist"], round(math.dist(n2[bf2], q2), 4), 1e-4))
+    need(t2["greedy"]["recall"] == (1.0 if pL0[-1] == bf2 else 0.0), "hnsw2 layered recall == (greedyNN==bruteNN) (BAM)")
+    pBase = greedy_layer(lidx[t2["baseEntry"]], 0)
+    need(lab2[pBase[-1]] == t2["baseOnly"]["trappedAt"], "hnsw2 base-only greedy traps at local min")
+    need(t2["baseOnly"]["recall"] == 0.0 and pBase[-1] != bf2, "hnsw2 base-only recall 0.0 (no upper layer ⇒ trap; BAM)")
+    for row in t2["hopTable"]["baseOnly"]:
+        checks.append((f"hnsw2.baseOnly.atDist[{row['at']}]", row["atDist"], round(math.dist(n2[lidx[row["at"]]], q2), 4), 1e-4))
+
+    # ── efSweep (30-node worst-case start): recall climbs 0.0→1.0 as ef grows, candidates non-decreasing ──
+    ev = HNSW9["efSweep"]
+    ec, eq = ev["coords"], ev["query"]
+    bfe = min(range(len(ec)), key=lambda i: math.dist(ec[i], eq))
+    need(bfe == ev["bruteForce"]["nn"], "efSweep bruteForce NN == argmin dist")
+    checks.append(("efSweep.bruteForce.dist", ev["bruteForce"]["dist"], round(math.dist(ec[bfe], eq), 4), 1e-4))
+    recs = [s["recallAt1"] for s in ev["sweep"]]
+    cand_ev = [s["candidatesEvaluated"] for s in ev["sweep"]]
+    need(recs[0] == 0.0 and recs[-1] == 1.0, "efSweep recall ef=1 traps (0.0) → large ef escapes (1.0) (BAM)")
+    need(all(recs[i] <= recs[i + 1] for i in range(len(recs) - 1)), "efSweep recall non-decreasing in ef")
+    need(all(cand_ev[i] <= cand_ev[i + 1] for i in range(len(cand_ev) - 1)), "efSweep candidatesEvaluated non-decreasing in ef")
+
+    # ── IVF toy2 (20 pts / 5 cells): recompute assignment, the per-nprobe recall & pointsScanned sweep ──
+    iv2 = IVF9["toy2"]
+    p2, c2, q2i, K2 = iv2["points"], iv2["centroids"], iv2["query"], iv2["k"]
+    asg2 = [min(range(len(c2)), key=lambda c: math.dist(p, c2[c])) for p in p2]
+    need(asg2 == iv2["assign"], "ivf2 assign == nearest centroid")
+    rank2 = sorted(range(len(c2)), key=lambda c: math.dist(q2i, c2[c]))
+    need(rank2 == iv2["cellRankByDist"], "ivf2 cellRankByDist == cells by dist to q")
+    tnn2 = sorted(range(len(p2)), key=lambda i: math.dist(p2[i], q2i))[:K2]
+    need(tnn2 == iv2["trueNN"], "ivf2 trueNN == K nearest points")
+    for s in iv2["sweep"]:
+        cells = rank2[:s["nprobe"]]
+        probed = [i for i in range(len(p2)) if asg2[i] in cells]
+        found = [i for i in tnn2 if i in probed]
+        checks.append((f"ivf2.recall@nprobe={s['nprobe']}", s["recall"], round(len(found) / K2, 4), 1e-4))
+        checks.append((f"ivf2.pointsScanned@nprobe={s['nprobe']}", s["pointsScanned"], len(probed), 0))
+    sweep_recs = [s["recall"] for s in iv2["sweep"]]
+    need(sweep_recs[0] == 0.6 and max(sweep_recs) == 1.0, "ivf2 recall climbs 0.6 → 1.0 with nprobe (BAM)")
+    need(all(sweep_recs[i] <= sweep_recs[i + 1] for i in range(len(sweep_recs) - 1)), "ivf2 recall non-decreasing in nprobe")
+
+    # ── PQ ADC: adcDistance == Σ_j adcTable[j][codes[j]]; codes are the per-subspace nearest centroids;
+    #    exactDistance == ‖query − dbVector‖²; the ADC approximates exact (gap = quantization error) ──
+    aw = PQ["adcWorked"]
+    adc_sum = sum(aw["adcTable"][j][aw["codes"][j]] for j in range(aw["m"]))
+    checks.append(("pq.adcDistance == Σ adcTable[j][codes[j]]", aw["adcDistance"], adc_sum, 0))
+    exact_sq = sum((a - b) ** 2 for a, b in zip(aw["query"], aw["dbVector"]))
+    checks.append(("pq.exactDistance == ‖q−db‖²", aw["exactDistance"], exact_sq, 0))
+    for j in range(aw["m"]):
+        nearest = min(range(aw["k"]), key=lambda c: sum((a - b) ** 2 for a, b in zip(aw["dbSubvectors"][j], aw["codebooks"][j][c])))
+        need(aw["codes"][j] == nearest, f"pq.codes[{j}] == nearest codebook centroid")
+    need(aw["adcDistance"] != aw["exactDistance"], "pq ADC ≠ exact (lossy: the quantization gap)")
+
+    # ── PQ memoryConfigs: bytesPQ == m·bitsPerCode/8; bytesFloat32 == dim·4; compression == F32/PQ ──
+    for cfg in PQ["memoryConfigs"]["configs"]:
+        checks.append((f"pq.mem.bytesPQ d{cfg['dim']} m{cfg['m']} k{cfg['k']}", cfg["bytesPQ"], cfg["m"] * cfg["bitsPerCode"] // 8, 0))
+        checks.append((f"pq.mem.bytesFloat32 d{cfg['dim']}", cfg["bytesFloat32"], cfg["dim"] * 4, 0))
+        checks.append((f"pq.mem.compression d{cfg['dim']} k{cfg['k']}", cfg["compression"], cfg["bytesFloat32"] // cfg["bytesPQ"], 0))
+        need(cfg["bitsPerCode"] == round(math.log2(cfg["k"])), f"pq.mem bitsPerCode == log2(k) d{cfg['dim']} k{cfg['k']}")
+
+    # ── PQ codebook training (Lloyd's k-means, by hand): each iter's inertia == Σ‖x−assignedCentroid‖²;
+    #    the centroids are the means of their assignment; the inertia sequence is monotone non-increasing ──
+    ck = PQ["codebookTrain"]
+    sv = ck["subvectors"]
+    def inertia(cents, assign):
+        return sum(sum((a - b) ** 2 for a, b in zip(sv[i], cents[assign[i]])) for i in range(len(sv)))
+    for it in ck["iterations"]:
+        checks.append((f"pq.codebook.inertia[iter{it['iter']}]", it["inertia"], round(inertia(it["centroids"], it["assign"]), 4), 1e-3))
+    checks.append(("pq.codebook.inertia[final]", ck["final"]["inertia"], round(inertia(ck["final"]["centroids"], ck["final"]["assign"]), 4), 1e-3))
+    # final centroids are the means of their assignment (the Lloyd recompute step)
+    for c in range(ck["k"]):
+        members = [sv[i] for i in range(len(sv)) if ck["final"]["assign"][i] == c]
+        mean = [round(sum(col) / len(members), 4) for col in zip(*members)]
+        need(all(abs(mean[d] - ck["final"]["centroids"][c][d]) < 1e-3 for d in range(len(mean))), f"pq.codebook final centroid {c} == mean of its members")
+    seq = ck["inertiaSequence"]
+    need(seq == [ck["iterations"][0]["inertia"], ck["iterations"][1]["inertia"], ck["final"]["inertia"]], "pq.codebook inertiaSequence == per-step inertias")
+    need(all(seq[i] >= seq[i + 1] for i in range(len(seq) - 1)), "pq.codebook inertia monotone non-increasing (BAM)")
+
+    # ── Curse of dimensionality (l2-highd, displayed on L9 exact-dies): cv == std/mean, and cv collapses
+    #    monotonically as d grows (near ≈ far) — the WHY exact search dies and ANN is needed ──
+    cvs = []
+    for dd in HIGHD["dims"]:
+        checks.append((f"highd.cv[d={dd['d']}] == std/mean", dd["cv"], round(dd["std"] / dd["mean"], 4), 1e-4))
+        cvs.append(dd["cv"])
+    need(all(cvs[i] > cvs[i + 1] for i in range(len(cvs) - 1)), "highd cv collapses monotonically as d grows (BAM)")
 
     bad = 0
     for name, a, b, tol in checks:
@@ -1422,6 +1573,111 @@ def provenance_l10(report):
     need(mq["recallAt5Union"] > mq["recallAt5Single"], "rewrite multi-query union > single (BAM)")
     need(W["hyde"]["trueRank"] < W["original"]["trueRank"], "rewrite HyDE lifts the true doc's rank (BAM)")
 
+    # ── Budget sweep: kMax == (ctx − sys − q − reserve) // chunk across real context windows; grows in ctx ──
+    B = BUDGET10
+    kmaxs = []
+    for w in B["windows"]:
+        km = (w["ctx"] - B["systemTokens"] - B["queryTokens"] - B["answerReserve"]) // B["chunkTokens"]
+        checks.append((f"budget.kMax(ctx={w['ctx']})", w["kMax"], km, 0))
+        kmaxs.append(w["kMax"])
+    need(all(kmaxs[i] < kmaxs[i + 1] for i in range(len(kmaxs) - 1)), "budget kMax grows with context window (BAM)")
+    need(B["windows"][0]["kMax"] == R["kMax"], "budget 4096 window == the anchor-trace kMax (13)")
+
+    # ── Retrieval-math: cos4 == dot/(‖q‖·‖d‖); 2-dp cos reproduces the trace.retrieved scores ──
+    rmath = R["retrievalMath"]
+    rq = rmath["query"]
+    nq = math.hypot(*rq)
+    checks.append(("retrievalMath.normQuery == ‖q‖", rmath["normQuery"], round(nq, 4), 1e-4))
+    trace = {t["id"]: t["score"] for t in R["trace"]["retrieved"]}
+    for dd in rmath["docs"]:
+        dot = sum(x * y for x, y in zip(rq, dd["vec"]))
+        nd = math.hypot(*dd["vec"])
+        checks.append((f"retrievalMath.{dd['id']}.dot", dd["dot"], dot, 0))
+        checks.append((f"retrievalMath.{dd['id']}.normDoc", dd["normDoc"], round(nd, 4), 1e-4))
+        checks.append((f"retrievalMath.{dd['id']}.cos4 == dot/(‖q‖‖d‖)", dd["cos4"], round(dot / (nq * nd), 4), 1e-4))
+        checks.append((f"retrievalMath.{dd['id']}.cos == round(cos4,2)", dd["cos"], round(dd["cos4"], 2), 1e-9))
+        need(abs(dd["cos"] - trace[dd["id"]]) < 1e-9, f"retrievalMath {dd['id']} 2-dp cos reproduces the trace score")
+
+    # ── RRF fusion: rrf(d) == Σ_lists 1/(k + rank_d); the consensus doc wins despite topping neither list ──
+    F = FUSION10
+    k = F["k"]
+    sc = {s["id"]: s for s in F["scores"]}
+    for s in F["scores"]:
+        recomputed = round(sum(1.0 / (k + ap["rank"]) for ap in s["appearsIn"]), 4)
+        checks.append((f"fusion.rrf({s['id']})", s["rrf"], recomputed, 1e-4))
+    order = sorted(F["scores"], key=lambda s: s["rrf"], reverse=True)
+    need([s["id"] for s in order] == F["fusedOrder"], "fusion fusedOrder == sort by rrf desc")
+    need(F["winner"] == F["fusedOrder"][0], "fusion winner == top of fused order")
+    cons = sc[F["winner"]]
+    need(all(ap["rank"] != 1 for ap in cons["appearsIn"]) or len(cons["appearsIn"]) > 1, "fusion consensus appears in multiple lists")
+    need(sc["doc_cardiac_cycle"]["rrf"] > sc["doc_circulatory"]["rrf"], "fusion consensus 0.0325 > sparse-#1 0.0323 (BAM)")
+    # the consensus doc tops NEITHER... it is rank 2 in A but wins on agreement across both paraphrase lists
+    need(sc["doc_circulatory"]["appearsIn"][0]["rank"] == 1, "fusion sparse-#1 doc_circulatory tops list A (yet loses)")
+
+    # ── Re-ranking: nDCG == DCG/IDCG and MRR == 1/rank, recomputed from graded gains + the two orders ──
+    RR = RERANK10
+    gains = RR["gains"]
+    def dcg(order):
+        return sum(gains[d] / math.log2(r + 2) for r, d in enumerate(order))
+    def ndcg(order):
+        ideal = sorted(gains.values(), reverse=True)
+        idcg = sum(g / math.log2(r + 2) for r, g in enumerate(ideal))
+        return round(dcg(order) / idcg, 4)
+    def mrr(order):
+        for r, d in enumerate(order):
+            if gains[d] > 0:
+                return round(1.0 / (r + 1), 4)
+        return 0.0
+    checks.append(("rerank.ndcgBefore == nDCG(biEncoder)", RR["ndcgBefore"], ndcg(RR["biEncoderOrder"]), 1e-4))
+    checks.append(("rerank.ndcgAfter == nDCG(crossEncoder)", RR["ndcgAfter"], ndcg(RR["crossEncoderOrder"]), 1e-4))
+    checks.append(("rerank.mrrBefore == MRR(biEncoder)", RR["mrrBefore"], mrr(RR["biEncoderOrder"]), 1e-4))
+    checks.append(("rerank.mrrAfter == MRR(crossEncoder)", RR["mrrAfter"], mrr(RR["crossEncoderOrder"]), 1e-4))
+    checks.append(("rerank.rankBefore == biEncoder rank of trueDoc", RR["rankBefore"], RR["biEncoderOrder"].index(RR["trueDocId"]) + 1, 0))
+    checks.append(("rerank.rankAfter == crossEncoder rank of trueDoc", RR["rankAfter"], RR["crossEncoderOrder"].index(RR["trueDocId"]) + 1, 0))
+    need(RR["ndcgAfter"] > RR["ndcgBefore"] and RR["mrrAfter"] > RR["mrrBefore"], "rerank lifts nDCG & MRR (cross-encoder reorders the shortlist; BAM)")
+    need(RR["rankAfter"] < RR["rankBefore"], "rerank lifts the true doc's rank (4 → 1)")
+
+    # ── Routing: route == argmax_t cos(query, centroid_t); the sims are the recomputed cosines ──
+    RT = ROUTING10
+    rqv = RT["query"]
+    nq2 = math.hypot(*rqv)
+    sims = []
+    for c in RT["centroids"]:
+        cv = c["centroid"]
+        cos = round(sum(x * y for x, y in zip(rqv, cv)) / (nq2 * math.hypot(*cv)), 4)
+        checks.append((f"routing.cos({c['template']})", c["cos"], cos, 1e-4))
+        sims.append((c["template"], c["cos"]))
+    need(RT["sims"] == [c["cos"] for c in RT["centroids"]], "routing sims == centroid cosines")
+    need(RT["route"] == max(sims, key=lambda x: x[1])[0], "routing route == argmax cosine (BAM)")
+
+    # ── Decomposition: each sub-question is individually answerable (recallSub==1) yet the JOINT fails (0) ──
+    D = DECOMP10
+    need(all(r == 1 for r in D["recallSub"]), "decomp each sub-answer found (recallSub all 1)")
+    need(D["recallJoint"] == 0, "decomp joint retrieval fails (recallJoint 0) ⇒ decomposition recovers both (BAM)")
+    need(len(D["subQuestions"]) == len(D["recallSub"]), "decomp one recall per sub-question")
+
+    # ── RAPTOR tree: level sizes fan in 8 → 3 → 1; depth == number of levels; monotone decreasing ──
+    levels = [lv["n"] for lv in RAPTOR10["tree"]["levels"]]
+    checks.append(("raptor.depth == #levels", RAPTOR10["tree"]["depth"], len(levels), 0))
+    need(levels == [8, 3, 1], "raptor levels 8 → 3 → 1 (leaf → mid → root)")
+    need(all(levels[i] > levels[i + 1] for i in range(len(levels) - 1)), "raptor level sizes monotone decreasing (fan-in; BAM)")
+    need(levels[-1] == 1, "raptor recurses to a single root")
+
+    # ── Chunking sweep: nChunks == ceil((L-o)/(size-o)); recall climbs 0→1 monotone as overlap rises ──
+    sw = C["sweep"]
+    sw_recs = []
+    for s in sw:
+        n = math.ceil((L - s["overlap"]) / (s["size"] - s["overlap"]))
+        checks.append((f"chunk.sweep.nChunks(ov{s['overlap']})", s["nChunks"], n, 0))
+        idx = next((i for i, w in enumerate(s["windows"]) if w[0] <= span[0] and span[1] <= w[1]), None)
+        need(s["answerChunk"] == idx, f"chunk.sweep answerChunk idx(ov{s['overlap']})")
+        need((s["recallAt3"] == 1) == (idx is not None), f"chunk.sweep recall == containment(ov{s['overlap']})")
+        sw_recs.append(s["recallAt3"])
+    nchunks_sweep = [s["nChunks"] for s in sw]
+    need(sw_recs[0] == 0 and all(r == 1 for r in sw_recs[1:]), "chunk sweep recall 0 → 1 as overlap rescues the straddle (BAM)")
+    need(all(sw_recs[i] <= sw_recs[i + 1] for i in range(len(sw_recs) - 1)), "chunk sweep recall non-decreasing in overlap")
+    need(all(nchunks_sweep[i] < nchunks_sweep[i + 1] for i in range(len(nchunks_sweep) - 1)), "chunk sweep nChunks grows with overlap (storage cost)")
+
     bad = 0
     for name, a, b, tol in checks:
         if abs(a - b) > tol:
@@ -1446,15 +1702,65 @@ def l9_deck_claims():
         for nb in h["neighbors"]:
             nd.setdefault(nb["id"], nb["dist"])
     d2 = lambda name: round(nd[name], 2)
+    m, rk = METRICS9["pair"], METRICS9["ranking"]["candidates"]   # by-hand metric pair + ranking-disagreement
+    t2, ev = HNSW9["toy2"], HNSW9["efSweep"]                       # two-layer climb + ef sweep
+    iv2 = IVF9["toy2"]                                             # nprobe sweep (20 pts / 5 cells)
+    pq, aw, mc, ck = PQ9["scale"], PQ9["adcWorked"], PQ9["memoryConfigs"]["configs"], PQ9["codebookTrain"]
+    dim = {h["d"]: h for h in HIGHD["dims"]}                       # curse-of-dimensionality cv collapse
+    C = lambda id, value, anchor, tol=1e-4: dict(id=id, deck="L9", value=value, tol=tol, anchor=anchor, must=True)
     return [
+        # ── exact-dies: curse of dimensionality cv = σ/μ collapse over d = 2 / 10 / 100 / 1000 ──
+        C("L9 deck hd mu2",  dim[2]["mean"],  r"d=2:\\ \\mu=([\d.]+),"),
+        C("L9 deck hd sd2",  dim[2]["std"],   r"\\sigma=([\d.]+) \\;\\Longrightarrow"),
+        C("L9 deck hd cv2",  dim[2]["cv"],    r"\\tfrac\{0\.2474\}\{0\.5171\}=\\mathbf\{([\d.]+)\}"),
+        C("L9 deck hd mu10", dim[10]["mean"], r"\\tfrac\{0\.2451\}\{([\d.]+)\}=\\mathbf\{0\.1932\}"),
+        C("L9 deck hd sd10", dim[10]["std"],  r"d=10:\\ \\mathrm\{cv\}=\\tfrac\{([\d.]+)\}\{1\.2688\}"),
+        C("L9 deck hd cv10", dim[10]["cv"],   r"\{1\.2688\}=\\mathbf\{([\d.]+)\}"),
+        C("L9 deck hd mu100",dim[100]["mean"],r"\\tfrac\{0\.2445\}\{([\d.]+)\}=\\mathbf\{0\.0602\}"),
+        C("L9 deck hd sd100",dim[100]["std"], r"d=100:\\ \\mathrm\{cv\}=\\tfrac\{([\d.]+)\}\{4\.0620\}"),
+        C("L9 deck hd cv100",dim[100]["cv"],  r"\{4\.0620\}=\\mathbf\{([\d.]+)\}"),
+        C("L9 deck hd mu1k", dim[1000]["mean"],r"\\tfrac\{0\.2410\}\{([\d.]+)\}=\\mathbf\{0\.0187\}"),
+        C("L9 deck hd sd1k", dim[1000]["std"], r"d=1000:\\ \\mathrm\{cv\}=\\tfrac\{([\d.]+)\}\{12\.9023\}"),
+        C("L9 deck hd cv1k", dim[1000]["cv"],  r"\{12\.9023\}=\\mathbf\{([\d.]+)\}"),
+        # ── metrics: the by-hand L2/cosine pair + the ranking-disagreement candidate distances ──
+        C("L9 deck m l2",      m["l2"],          r"L2 \\\(=([\d.]+)\\\) \(displacement\)"),
+        C("L9 deck m cosine",  m["cosine"],      r"cosine \\\(=([\d.]+)\\\) — the unit-vector"),
+        C("L9 deck m d1 cos",  rk["d1"]["cosine"], r"\\cos\(q,d_1\)=([\d.]+)\\\), \\\(\\cos\(q,d_2\)"),
+        C("L9 deck m d3 cos",  rk["d3"]["cosine"], r"\\cos\(q,d_3\)=([\d.]+)\\\)\. \\\(d_2"),
+        C("L9 deck m d2 l2",   rk["d2"]["l2"],     r"\\lVert q-d_2\\rVert=([\d.]+)\\\), \\\(\\lVert q-d_3"),
+        C("L9 deck m d3 l2",   rk["d3"]["l2"],     r"\\lVert q-d_3\\rVert=([\d.]+)\\\)\. The smallest"),
+        # ── HNSW toy: greedy n0→n2 (kept, still rendered) ──
         dict(id="L9 deck hnsw n0", deck="L9", value=d2("n0"), tol=0.006, anchor=r"d\(n_0,q\)=([\d.]+)", must=True),
         dict(id="L9 deck hnsw n1", deck="L9", value=d2("n1"), tol=0.006, anchor=r"d\(n_1,q\)=([\d.]+)", must=True),
         dict(id="L9 deck hnsw n3", deck="L9", value=d2("n3"), tol=0.006, anchor=r"d\(n_3,q\)=([\d.]+)", must=True),
         dict(id="L9 deck hnsw nn", deck="L9", value=H["bruteForce"]["dist"], tol=1e-4, anchor=r"d\(n_2,q\)=\\mathbf\{([\d.]+)\}", must=True),
         dict(id="L9 deck hnsw n4", deck="L9", value=d2("n4"), tol=0.006, anchor=r"d\(n_4,q\)=([\d.]+)", must=True),
         dict(id="L9 deck hnsw n5", deck="L9", value=d2("n5"), tol=0.006, anchor=r"d\(n_5,q\)=([\d.]+)", must=True),
+        # ── HNSW toy2: the two-layer climb's descent lands on b9 = brute-force NN (1.4142) ──
+        C("L9 deck hnsw2 b9", t2["bruteForce"]["dist"], r"d\(b_9,q\)=\\mathbf\{([\d.]+)\}=\\text\{brute-force NN\}"),
+        # ── IVF toy: nprobe=1 finds 2/3 → recall 0.6667 (kept) ──
         dict(id="L9 deck ivf recall1", deck="L9", value=IVF9["toy"]["probe"]["1"]["recall"], tol=1e-4, anchor=r"2/3.{0,70}?\\mathbf\{([\d.]+)\}", must=True),
+        # ── IVF toy2: nprobe sweep recall 0.6 → 0.8 → 1.0 across the 3 nearest cells ──
+        C("L9 deck ivf2 r1", iv2["sweep"][0]["recall"], r"recall@5\}=\\mathbf\{([\d.]+)\} \$\$"),
+        C("L9 deck ivf2 r2", iv2["sweep"][1]["recall"], r"4/5 \\;\\Longrightarrow\\; \\mathbf\{([\d.]+)\};"),
+        # ── PQ: representative recall@1 (kept) + the ADC worked lookup (35 vs exact 37) ──
         dict(id="L9 deck pq recall", deck="L9", value=PQ9["recallRepresentative"]["m4"], tol=1e-4, anchor=r"PQ-m4\)\} \\approx \\mathbf\{([\d.]+)\}", must=True),
+        C("L9 deck pq adc", aw["adcDistance"], r"\\textrm\{code\}_j\]=2\+0\+20\+13=\\mathbf\{(\d+)\}", tol=1e-9),
+        C("L9 deck pq exact", aw["exactDistance"], r"The exact distance is \\\((\d+)\\\)", tol=1e-9),
+        # ── PQ memory ledger: compression 32× / 16× / 64× (768-d) + 64× (128-d) ──
+        C("L9 deck pq comp768", mc[0]["compression"], r"96 B/vec \(\\\(\\mathbf\{(\d+)\\times\}", tol=1e-9),
+        C("L9 deck pq comp192", mc[1]["compression"], r"192 B \(\\\(\\mathbf\{(\d+)\\times\}", tol=1e-9),
+        C("L9 deck pq compK16", mc[2]["compression"], r"48 B \(\\\(\\mathbf\{(\d+)\\times\}", tol=1e-9),
+        # ── PQ codebook training: Lloyd inertia 284.0 → 20.6875 → 2.6667 + the moving centroids ──
+        C("L9 deck pq inertia0", ck["iterations"][0]["inertia"], r"\\rVert\^2=\\mathbf\{([\d.]+)\} \$\$", tol=1e-2),
+        C("L9 deck pq c1iter1",  ck["iterations"][1]["centroids"][1][0], r"c_1=\(([\d.]+),6\.5\)"),
+        C("L9 deck pq inertia1", ck["iterations"][1]["inertia"], r"reassign \}\[0,0,0,1,1,1\],\\quad \\text\{inertia\}=\\mathbf\{([\d.]+)\}"),
+        C("L9 deck pq c0final",  ck["final"]["centroids"][0][0], r"c_0=\(([\d.]+),1\.3333\)"),
+        C("L9 deck pq c1final",  ck["final"]["centroids"][1][0], r"c_1=\(([\d.]+),8\.3333\)"),
+        C("L9 deck pq inertia2", ck["final"]["inertia"], r"8\.3333\):\\quad \\text\{inertia\}=\\mathbf\{([\d.]+)\}"),
+        # ── production latency: exact scan ~520 ms, tail p99 180 ms (representative serving figures) ──
+        C("L9 deck lat exact", LAT9["exactScanMs"], r"search hop\} \\approx \\mathbf\{(\d+)\}\\text\{ ms\}", tol=1e-9),
+        C("L9 deck lat p99",   LAT9["tailNote"]["p99"], r"p_\{99\}=(\d+)\\\)ms \(representative\)", tol=1e-9),
     ]
 
 
@@ -1462,8 +1768,42 @@ def l9_deck_claims():
 #    Anchored against the raw KaTeX in the by-hand slides. Mirrors l10_book_claims values (data globals). ──
 def l10_deck_claims():
     R, W = RAG10, REWRITE10
+    rm  = {d["id"]: d for d in R["retrievalMath"]["docs"]}        # cos4 = dot/(‖q‖·‖d‖)
+    win = {w["ctx"]: w["kMax"] for w in BUDGET10["windows"]}       # token-budget sweep across context windows
+    fz  = {s["id"]: s for s in FUSION10["scores"]}                 # RRF fused scores
+    rr  = RERANK10                                                 # cross-encoder reorder nDCG/MRR
+    rt  = ROUTING10                                                # query-routing cosines
+    dc  = DECOMP10                                                 # query decomposition recalls
+    lv  = RAPTOR10["tree"]["levels"]                               # RAPTOR tree level sizes
+    C = lambda id, value, anchor, tol=1e-4: dict(id=id, deck="L10", value=value, tol=tol, anchor=anchor, must=True)
     return [
+        # ── RAG token budget: kMax = ⌊3354/256⌋ = 13 (the anchor trace) ──
         dict(id="L10 deck kMax", deck="L10", value=R["kMax"], tol=1e-9, anchor=r"3354.{0,40}?\\mathbf\{(\d+)\}", must=True),
+        # ── budget sweep across real context windows: kMax 13 / 29 / 125 / 497 (windows table) ──
+        C("L10 deck budget 8k",   win[8192],   r"<tr><td>8192</td><td>(\d+)</td>", tol=1e-9),
+        C("L10 deck budget 32k",  win[32768],  r"<tr><td>32768</td><td>(\d+)</td>", tol=1e-9),
+        C("L10 deck budget 128k", win[128000], r"<tr><td>128000</td><td class=\"cell-good\">(\d+)</td>", tol=1e-9),
+        # ── retrieval-math: cos4 = dot/(‖q‖·‖d‖) reproduces the trace scores (numerators 10/11/15 pin each) ──
+        C("L10 deck cos cardiac", rm["doc_cardiac_cycle"]["cos4"], r"\\frac\{10\}\{[^}]*\}[^=]*= \\mathbf\{([\d.]+)\}"),
+        C("L10 deck cos circ",    rm["doc_circulatory"]["cos4"],   r"\\frac\{11\}\{[^}]*\}[^=]*= \\mathbf\{([\d.]+)\}"),
+        C("L10 deck cos valves",  rm["doc_valves"]["cos4"],        r"\\frac\{15\}\{[^}]*\}[^=]*= \\mathbf\{([\d.]+)\}"),
+        # ── RRF fusion: consensus doc 0.0325 > sparse-#1 doc 0.0323 (agreement across paraphrases wins) ──
+        C("L10 deck rrf consensus", fz["doc_cardiac_cycle"]["rrf"], r"\\tfrac\{1\}\{60\+2\}\+\\tfrac\{1\}\{60\+1\} = \\mathbf\{([\d.]+)\}"),
+        C("L10 deck rrf sparse1",   fz["doc_circulatory"]["rrf"],   r"\\tfrac\{1\}\{60\+1\}\+\\tfrac\{1\}\{60\+3\} = \\mathbf\{([\d.]+)\}"),
+        # ── cross-encoder rerank: nDCG@5 0.4935 → 1.0, MRR 0.3333 → 1.0 (the before-values, in the notes) ──
+        C("L10 deck rerank ndcg", rr["ndcgBefore"], r"nDCG@5 ([\d.]+) (?:&rarr;|→) 1\.0, MRR"),
+        C("L10 deck rerank mrr",  rr["mrrBefore"],  r"MRR ([\d.]+) (?:&rarr;|→) 1\.0"),
+        # ── query routing: cos(q, {factQA/howTo/compare}) = 0.8058 / 0.9670 / 0.6447 → route argmax ──
+        C("L10 deck route factQA", rt["sims"][0], r"cos ([\d.]+) / 0\.9670 / 0\.6447"),
+        C("L10 deck route howTo",  rt["sims"][1], r"cos 0\.8058 / ([\d.]+) / 0\.6447"),
+        C("L10 deck route compare",rt["sims"][2], r"cos 0\.8058 / 0\.9670 / ([\d.]+) (?:&rarr;|→) route"),
+        # ── query decomposition: each sub-answer found (recall per sub [1,1]) but joint retrieval recall 0 ──
+        C("L10 deck decomp joint", dc["recallJoint"], r"recall on one joint retrieval = (\d+)", tol=1e-9),
+        # ── RAPTOR tree: 8 leaf chunks → 3 cluster summaries → 1 root (viz-caption) ──
+        C("L10 deck raptor leaf", lv[0]["n"], r"viz-caption\">(\d+) leaf chunks (?:&rarr;|→) 3 cluster", tol=1e-9),
+        C("L10 deck raptor mid",  lv[1]["n"], r"leaf chunks (?:&rarr;|→) (\d+) cluster summaries", tol=1e-9),
+        C("L10 deck raptor root", lv[2]["n"], r"cluster summaries (?:&rarr;|→) (\d+) root", tol=1e-9),
+        # ── query rewrite: RR 0.125 → 0.5, multi-query recall@5 0.4 → 0.8 (the by-hand slides, kept) ──
         dict(id="L10 deck rr orig", deck="L10", value=W["original"]["rr"], tol=1e-4, anchor=r"1/8 = \\mathbf\{([\d.]+)\}", must=True),
         dict(id="L10 deck rr hyde", deck="L10", value=W["hyde"]["rr"], tol=1e-4, anchor=r"1/2 = \\mathbf\{([\d.]+)\}", must=True),
         dict(id="L10 deck mq single", deck="L10", value=W["multiQuery"]["recallAt5Single"], tol=1e-4, anchor=r"2/5 \\Rightarrow \\mathbf\{([\d.]+)\}", must=True),
@@ -1482,15 +1822,41 @@ def l9_book_claims():
     nn = H["bruteForce"]["dist"]
     ivf1 = IVF9["toy"]["probe"]["1"]["recall"]
     pqr = PQ9["recallRepresentative"]["m4"]
+    m, rk = METRICS9["pair"], METRICS9["ranking"]["candidates"]
+    t2, ev = HNSW9["toy2"], HNSW9["efSweep"]
+    bo = {h["at"]: h["atDist"] for h in t2["hopTable"]["baseOnly"]}   # base-only trap path distances
+    ck = PQ9["codebookTrain"]
+    C = lambda id, value, anchor, tol=1e-4: dict(id="book "+id, deck="L9", value=value, tol=tol, anchor=anchor, must=True)
     return [
-        dict(id="book L9 hnsw n0", deck="L9", value=d2("n0"), tol=0.006, anchor=r"distance \\\(([\d.]+)\\\) to", must=True),
+        # ── metrics beat: the by-hand √7 L2, √6 norm, and the ranking-disagreement candidate distances ──
+        C("L9 m sqrt7",   m["l2"],          r"\\sqrt\{7\} = ([\d.]+)\\\)\. <strong>Cosine"),
+        C("L9 m bNorm",   m["bNorm"],       r"\\sqrt\{6\} = ([\d.]+)\\\)\. <strong>L2 distance"),
+        C("L9 m d1 cos",  rk["d1"]["cosine"], r"L2 \\\(= 1\.0\\\), dot \\\(= 6\\\), cosine \\\(= ([\d.]+)\\\)"),
+        C("L9 m d2 l2",   rk["d2"]["l2"],     r"\(3,3,0,0\)\\\): L2 \\\(= ([\d.]+)\\\), dot \\\(= 12"),
+        C("L9 m d3 l2",   rk["d3"]["l2"],     r"\(7,4,0,0\)\\\): L2 \\\(= ([\d.]+)\\\), dot \\\(= 22"),
+        C("L9 m d3 cos",  rk["d3"]["cosine"], r"dot \\\(= 22\\\), cosine \\\(= ([\d.]+)\\\)"),
+        # ── HNSW toy: greedy n0→n2 (n0 anchor TIGHTENED to the entry-node site, not the toy2 baseOnly b0) ──
+        dict(id="book L9 hnsw n0", deck="L9", value=d2("n0"), tol=0.006, anchor=r"entry \\\(n_0\\\) \(distance \\\(([\d.]+)\\\) to", must=True),
         dict(id="book L9 hnsw n1", deck="L9", value=d2("n1"), tol=0.006, anchor=r"\\\(n_1\\\) at \\\(([\d.]+)\\\)", must=True),
         dict(id="book L9 hnsw n3", deck="L9", value=d2("n3"), tol=0.006, anchor=r"\\\(n_3\\\) at \\\(([\d.]+)\\\)", must=True),
         dict(id="book L9 hnsw nn", deck="L9", value=nn, tol=1e-4, anchor=r"neighbour \\\(n_2\\\) is at \\\(([\d.]+)\\\)", must=True),
         dict(id="book L9 hnsw n4", deck="L9", value=d2("n4"), tol=0.006, anchor=r"\\\(n_4\\\) at \\\(([\d.]+)\\\)", must=True),
         dict(id="book L9 hnsw n5", deck="L9", value=d2("n5"), tol=0.006, anchor=r"\\\(n_5\\\) at \\\(([\d.]+)\\\)", must=True),
+        # ── HNSW toy2: the true NN b9 (1.4142) + the base-only trap path b0(17.088)→b1(14.3178) ──
+        C("L9 hnsw2 nn",  t2["bruteForce"]["dist"], r"true nearest neighbour is \\\(b_9\\\) at distance \\\(([\d.]+)\\\)"),
+        C("L9 hnsw2 b0",  bo["b0"], r"walk at \\\(b_0 = \(0,0\)\\\), distance \\\(([\d.]+)\\\) to", tol=0.006),
+        C("L9 hnsw2 b1",  bo["b1"], r"\\\(b_0 \\to b_1\\\) \(\\\(([\d.]+)\\\)\)", tol=0.006),
+        # ── efSweep: the worst-case brute-force NN distance (node 5 at 5.831) ──
+        C("L9 efsweep nn", ev["bruteForce"]["dist"], r"nearest neighbour is node 5, at distance \\\(([\d.]+)\\\)", tol=0.006),
+        # ── IVF toy: nprobe=1 → recall@3 0.6667; PQ representative recall@1 0.70 ──
         dict(id="book L9 ivf recall1", deck="L9", value=ivf1, tol=1e-4, anchor=r"recall@3 = ([\d.]+)</strong>\. With", must=True),
         dict(id="book L9 pq recall", deck="L9", value=pqr, tol=1e-4, anchor=r"exact search is <strong>≈ ([\d.]+)", must=True),
+        # ── PQ codebook training: Lloyd centroids 6.75 → (1.3333, 8.3333), inertia 20.6875 → 2.6667 ──
+        C("L9 cb c1x",      ck["iterations"][1]["centroids"][1][0], r"\\\(c_1=\(([\d.]+),6\.5\)\\\)"),
+        C("L9 cb inertia1", ck["iterations"][1]["inertia"], r"Inertia drops to \\\(\\mathbf\{([\d.]+)\}\\\)"),
+        C("L9 cb c0final",  ck["final"]["centroids"][0][0], r"\\\(c_0=\(([\d.]+),1\.3333\)\\\)"),
+        C("L9 cb c1final",  ck["final"]["centroids"][1][0], r"\\\(c_1=\(([\d.]+),8\.3333\)\\\)"),
+        C("L9 cb inertia2", ck["final"]["inertia"], r"Inertia settles at \\\(\\mathbf\{([\d.]+)\}\\\)"),
     ]
 
 
@@ -1499,8 +1865,23 @@ def l9_book_claims():
 #    lifts (0.5 / 0.4 / 0.8) and the integer kMax are gated too for drift safety. Values from data globals. ──
 def l10_book_claims():
     R, W = RAG10, REWRITE10
+    rm  = {d["id"]: d for d in R["retrievalMath"]["docs"]}
+    win = {w["ctx"]: w["kMax"] for w in BUDGET10["windows"]}
+    fz  = {s["id"]: s for s in FUSION10["scores"]}
     return [
+        # ── RAG token budget: kMax = ⌊3354/256⌋ = 13 + the budget sweep across windows (29 / 125 / 497) ──
         dict(id="book L10 kMax", deck="L10", value=R["kMax"], tol=1e-9, anchor=r"3354/256 \\rfloor = \\mathbf\{(\d+)\}", must=True),
+        dict(id="book L10 budget 8k",   deck="L10", value=win[8192],   tol=1e-9, anchor=r"\\lfloor 7450/256 \\rfloor = \\mathbf\{(\d+)\}", must=True),
+        dict(id="book L10 budget 32k",  deck="L10", value=win[32768],  tol=1e-9, anchor=r"\\lfloor 32026/256 \\rfloor = \\mathbf\{(\d+)\}", must=True),
+        dict(id="book L10 budget 128k", deck="L10", value=win[128000], tol=1e-9, anchor=r"\\lfloor 127258/256 \\rfloor = \\mathbf\{(\d+)\}", must=True),
+        # ── retrieval-math: cos4 = dot/(‖q‖·‖d‖) reproduces the trace scores (√-denominators pin each) ──
+        dict(id="book L10 cos cardiac", deck="L10", value=rm["doc_cardiac_cycle"]["cos4"], tol=1e-4, anchor=r"\\dfrac\{10\}\{\\sqrt\{15\}\\,\\sqrt\{10\}\} = \\mathbf\{([\d.]+)\}", must=True),
+        dict(id="book L10 cos circ",    deck="L10", value=rm["doc_circulatory"]["cos4"],   tol=1e-4, anchor=r"\\dfrac\{11\}\{\\sqrt\{15\}\\,\\sqrt\{13\}\} = \\mathbf\{([\d.]+)\}", must=True),
+        dict(id="book L10 cos valves",  deck="L10", value=rm["doc_valves"]["cos4"],        tol=1e-4, anchor=r"\\dfrac\{15\}\{\\sqrt\{15\}\\,\\sqrt\{30\}\} = \\mathbf\{([\d.]+)\}", must=True),
+        # ── RRF fusion: consensus doc 0.0325 > sparse-#1 doc 0.0323 ──
+        dict(id="book L10 rrf consensus", deck="L10", value=fz["doc_cardiac_cycle"]["rrf"], tol=1e-4, anchor=r"\\frac\{1\}\{62\} \+ \\frac\{1\}\{61\} = \\mathbf\{([\d.]+)\}", must=True),
+        dict(id="book L10 rrf sparse1",   deck="L10", value=fz["doc_circulatory"]["rrf"],   tol=1e-4, anchor=r"\\frac\{1\}\{61\} \+ \\frac\{1\}\{63\} = \\mathbf\{([\d.]+)\}", must=True),
+        # ── query rewrite: RR 0.125 → 0.5, multi-query recall@5 0.4 → 0.8 (kept) ──
         dict(id="book L10 rr orig", deck="L10", value=W["original"]["rr"], tol=1e-4, anchor=r"1/8 = \\mathbf\{([\d.]+)\}", must=True),
         dict(id="book L10 rr hyde", deck="L10", value=W["hyde"]["rr"], tol=1e-4, anchor=r"1/2 = \\mathbf\{([\d.]+)\}", must=True),
         dict(id="book L10 mq single", deck="L10", value=W["multiQuery"]["recallAt5Single"], tol=1e-4, anchor=r"2/5.{0,45}?\\mathbf\{([\d.]+)\}", must=True),
@@ -1815,11 +2196,99 @@ def selftest():
     okL10b = any(s == "HARD" and "provenance-L10(rewrite" in m for s, m in repL10b)
     print("[selftest:prov-L10-rewrite]", next((m for s, m in repL10b if s == "HARD"), "provenance-L10 rewrite: NO FLAG"))
     okL10 = okL10a and okL10b
+
+    # ── A+ EXPANSION fixtures: every NEW L9/L10 [C] anchor + provenance block must be a drift-catcher. ──
+    # New L9 [C]: the by-hand metric cosine (deck), the PQ codebook inertia (deck), and a NEW book number
+    # (the √7 L2) must all flag DRIFT — proving the new metrics/PQ/HNSW-toy2 anchors are not blind.
+    cM = next(x for x in claims() if x["id"] == "L9 deck m cosine")
+    sevM, msgM = check_claim(cM, r"cosine \(=0.999\) — the unit-vector")  # data/ cosine is 0.5443
+    okM = sevM == "HARD" and "DRIFT" in msgM
+    print("[selftest:L9-metrics]", msgM)
+    cI = next(x for x in claims() if x["id"] == "L9 deck pq inertia2")
+    sevI, msgI = check_claim(cI, r"8.3333):\quad \text{inertia}=\mathbf{9.9999}")  # data/ final inertia is 2.6667
+    okI = sevI == "HARD" and "DRIFT" in msgI
+    print("[selftest:L9-codebook]", msgI)
+    cH = next(x for x in book_claims() if x["id"] == "book L9 hnsw2 nn")
+    sevH, msgH = check_claim(cH, r"true nearest neighbour is \(b_9\) at distance \(9.9999\)")  # data/ b9 NN is 1.4142
+    okH = sevH == "HARD" and "DRIFT" in msgH
+    print("[selftest:L9-hnsw2]", msgH)
+    # New L9 [C]: the curse-of-dimensionality cv (deck) must flag DRIFT (the highd anchor is not blind).
+    cV = next(x for x in claims() if x["id"] == "L9 deck hd cv1k")
+    sevV, msgV = check_claim(cV, r"\tfrac{0.2410}{12.9023}=\mathbf{0.9999}")  # data/ cv@d=1000 is 0.0187
+    okV = sevV == "HARD" and "DRIFT" in msgV
+    print("[selftest:L9-highd]", msgV)
+    # New L9 [P]: break three new provenance BAMs (must flag) — metrics 3-way disagreement, PQ ADC sum,
+    # codebook inertia monotonicity, highd cv collapse, and the HNSW toy2 layered-vs-base recall.
+    repL9c = []; sv = METRICS9["ranking"]["candidates"]["d2"]["cosine"]; METRICS9["ranking"]["candidates"]["d2"]["cosine"] = 0.0
+    provenance_l9(repL9c); METRICS9["ranking"]["candidates"]["d2"]["cosine"] = sv
+    okL9c = any(s == "HARD" and "provenance-L9(metrics" in m for s, m in repL9c)
+    print("[selftest:prov-L9-metrics]", next((m for s, m in repL9c if s == "HARD"), "provenance-L9 metrics: NO FLAG"))
+    repL9d = []; sv = PQ9["adcWorked"]["adcDistance"]; PQ9["adcWorked"]["adcDistance"] = 999  # break Σ adcTable lookups
+    provenance_l9(repL9d); PQ9["adcWorked"]["adcDistance"] = sv
+    okL9d = any(s == "HARD" and "provenance-L9(pq.adcDistance" in m for s, m in repL9d)
+    print("[selftest:prov-L9-adc]", next((m for s, m in repL9d if s == "HARD"), "provenance-L9 adc: NO FLAG"))
+    repL9e = []; sv = PQ9["codebookTrain"]["final"]["inertia"]; PQ9["codebookTrain"]["final"]["inertia"] = 999.0  # not monotone
+    PQ9["codebookTrain"]["inertiaSequence"][-1] = 999.0
+    provenance_l9(repL9e); PQ9["codebookTrain"]["final"]["inertia"] = sv; PQ9["codebookTrain"]["inertiaSequence"][-1] = sv
+    okL9e = any(s == "HARD" and "provenance-L9(pq.codebook" in m for s, m in repL9e)
+    print("[selftest:prov-L9-codebook]", next((m for s, m in repL9e if s == "HARD"), "provenance-L9 codebook: NO FLAG"))
+    repL9f = []; sv = HIGHD["dims"][2]["cv"]; HIGHD["dims"][2]["cv"] = 9.99  # break the monotone cv collapse
+    provenance_l9(repL9f); HIGHD["dims"][2]["cv"] = sv
+    okL9f = any(s == "HARD" and "provenance-L9(highd" in m for s, m in repL9f)
+    print("[selftest:prov-L9-highd]", next((m for s, m in repL9f if s == "HARD"), "provenance-L9 highd: NO FLAG"))
+    repL9g = []; sv = HNSW9["toy2"]["greedy"]["recall"]; HNSW9["toy2"]["greedy"]["recall"] = 0.0  # layered must reach NN
+    provenance_l9(repL9g); HNSW9["toy2"]["greedy"]["recall"] = sv
+    okL9g = any(s == "HARD" and "provenance-L9(hnsw2" in m for s, m in repL9g)
+    print("[selftest:prov-L9-hnsw2]", next((m for s, m in repL9g if s == "HARD"), "provenance-L9 hnsw2: NO FLAG"))
+    repL9h = []; sv = IVF9["toy2"]["sweep"][0]["recall"]; IVF9["toy2"]["sweep"][0]["recall"] = 1.0  # break the climb
+    provenance_l9(repL9h); IVF9["toy2"]["sweep"][0]["recall"] = sv
+    okL9h = any(s == "HARD" and "provenance-L9(ivf2" in m for s, m in repL9h)
+    print("[selftest:prov-L9-ivf2]", next((m for s, m in repL9h if s == "HARD"), "provenance-L9 ivf2: NO FLAG"))
+    okL9X = okM and okI and okH and okV and okL9c and okL9d and okL9e and okL9f and okL9g and okL9h
+
+    # New L10 [C]: the retrieval-math cos4 (deck), the RRF fusion score (book), and the routing cosine
+    # (deck notes) must all flag DRIFT — proving the new budget/cos4/RRF/rerank/routing anchors are not blind.
+    cC4 = next(x for x in claims() if x["id"] == "L10 deck cos cardiac")
+    sevC4, msgC4 = check_claim(cC4, r"\frac{10}{\lVert\rVert} = \mathbf{0.9999}")  # data/ cos4 is 0.8165
+    okC4 = sevC4 == "HARD" and "DRIFT" in msgC4
+    print("[selftest:L10-cos4]", msgC4)
+    cRF = next(x for x in book_claims() if x["id"] == "book L10 rrf consensus")
+    sevRF, msgRF = check_claim(cRF, r"\frac{1}{62} + \frac{1}{61} = \mathbf{0.9999}")  # data/ RRF is 0.0325
+    okRF = sevRF == "HARD" and "DRIFT" in msgRF
+    print("[selftest:L10-rrf]", msgRF)
+    cRt = next(x for x in claims() if x["id"] == "L10 deck route howTo")
+    sevRt, msgRt = check_claim(cRt, r"cos 0.8058 / 0.1234 / 0.6447 &rarr; route")  # data/ howTo cos is 0.967
+    okRt = sevRt == "HARD" and "DRIFT" in msgRt
+    print("[selftest:L10-routing]", msgRt)
+    cBd = next(x for x in claims() if x["id"] == "L10 deck budget 128k")
+    sevBd, msgBd = check_claim(cBd, r'<tr><td>128000</td><td class="cell-good">999</td>')  # data/ kMax is 497
+    okBd = sevBd == "HARD" and "DRIFT" in msgBd
+    print("[selftest:L10-budget]", msgBd)
+    # New L10 [P]: break four new provenance BAMs (must flag) — RRF consensus>sparse, rerank lift,
+    # routing argmax, RAPTOR fan-in.
+    repL10c = []; sv = FUSION10["scores"][0]["rrf"]; FUSION10["scores"][0]["rrf"] = 0.0  # consensus no longer top
+    provenance_l10(repL10c); FUSION10["scores"][0]["rrf"] = sv
+    okL10c = any(s == "HARD" and "provenance-L10(fusion" in m for s, m in repL10c)
+    print("[selftest:prov-L10-fusion]", next((m for s, m in repL10c if s == "HARD"), "provenance-L10 fusion: NO FLAG"))
+    repL10d = []; sv = RERANK10["ndcgAfter"]; RERANK10["ndcgAfter"] = 0.1  # rerank must lift nDCG
+    provenance_l10(repL10d); RERANK10["ndcgAfter"] = sv
+    okL10d = any(s == "HARD" and "provenance-L10(rerank" in m for s, m in repL10d)
+    print("[selftest:prov-L10-rerank]", next((m for s, m in repL10d if s == "HARD"), "provenance-L10 rerank: NO FLAG"))
+    repL10e = []; sv = ROUTING10["route"]; ROUTING10["route"] = "factQA"  # not argmax
+    provenance_l10(repL10e); ROUTING10["route"] = sv
+    okL10e = any(s == "HARD" and "provenance-L10(routing" in m for s, m in repL10e)
+    print("[selftest:prov-L10-routing]", next((m for s, m in repL10e if s == "HARD"), "provenance-L10 routing: NO FLAG"))
+    repL10f = []; sv = RAPTOR10["tree"]["levels"][1]["n"]; RAPTOR10["tree"]["levels"][1]["n"] = 99  # break fan-in
+    provenance_l10(repL10f); RAPTOR10["tree"]["levels"][1]["n"] = sv
+    okL10f = any(s == "HARD" and "provenance-L10(raptor" in m for s, m in repL10f)
+    print("[selftest:prov-L10-raptor]", next((m for s, m in repL10f if s == "HARD"), "provenance-L10 raptor: NO FLAG"))
+    okL10X = okC4 and okRF and okRt and okBd and okL10c and okL10d and okL10e and okL10f
+
     ok = (okD and okA and okP and okL3 and okL4 and okP2 and okL5 and okL6 and okP3 and okP4
           and okGX and okTK and okTS and okP5 and okP6 and okP7 and okP8 and okP9
           and okW and okU and okS and okT47 and okPE and okCX and okBK and okBW and okNCE and okCov
-          and okL7c and okL7p and okL8 and okL9 and okL10)
-    print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 + L5-GloVe/t-SNE + L2-tokenizers + enrichment-trajectory + l6-contextual cross-file + L6-InfoNCE-bars (data + deck) + Book-prose deck & cross-file + coverage-guard ratchet (incl. data-only pins) + L7 BAM + L8 four cross-pillar BAMs + L9 (HNSW/IVF) + L10 (chunk/rewrite) BAMs all fire"
+          and okL7c and okL7p and okL8 and okL9 and okL10 and okL9X and okL10X)
+    print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 + L5-GloVe/t-SNE + L2-tokenizers + enrichment-trajectory + l6-contextual cross-file + L6-InfoNCE-bars (data + deck) + Book-prose deck & cross-file + coverage-guard ratchet (incl. data-only pins) + L7 BAM + L8 four cross-pillar BAMs + L9 (HNSW/IVF + metrics/ADC/codebook/highd/HNSW-toy2/IVF-toy2) + L10 (chunk/rewrite + budget/cos4/RRF/rerank/routing/RAPTOR) BAMs all fire"
           if ok else "FAIL — a check is blind!")
     return 0 if ok else 1
 

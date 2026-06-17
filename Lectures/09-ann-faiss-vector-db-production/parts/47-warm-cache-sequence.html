@@ -1,0 +1,45 @@
+<section class="slide" data-type="sequence" data-max-step="3" data-current-step="0" data-budget="200" data-screen-label="47 Sequence · Warm cache">
+  <div class="slide-header">
+    <h2>The warm path — a cache hit</h2>
+    <span class="slide-kicker">repeat queries skip ANN + rerank entirely</span>
+  </div>
+
+  <div class="seq-stage">
+    <div class="seq-canvas">
+      <div class="seq-actors">
+        <div class="seq-actor" data-actor="client"><span class="seq-actor-chip">Client</span></div>
+        <div class="seq-actor" data-actor="api"><span class="seq-actor-chip">API</span></div>
+        <div class="seq-actor" data-actor="cache"><span class="seq-actor-chip">Cache</span></div>
+      </div>
+      <svg class="seq-lines"></svg>
+      <div class="seq-msgs">
+        <div class="seq-msg" data-step="1" data-from="client" data-to="api" data-lat="3">
+          <span class="seq-msg-label">GET /search?q=… (seen before)</span><span class="seq-lat">+3ms</span>
+        </div>
+        <div class="seq-msg" data-step="2" data-from="api" data-to="cache" data-lat="1">
+          <span class="seq-msg-label">cache lookup (hit)</span><span class="seq-lat">+1ms</span>
+        </div>
+        <div class="seq-msg" data-step="3" data-from="api" data-to="client" data-lat="1">
+          <span class="seq-msg-label">cached top-K results</span><span class="seq-lat">+1ms</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="seq-budget">
+      <div class="seq-budget-head">latency budget</div>
+      <div class="seq-budget-row" data-step="1"><span>request</span><span class="seq-b-lat">3ms</span></div>
+      <div class="seq-budget-row" data-step="2"><span>cache lookup (hit)</span><span class="seq-b-lat">1ms</span></div>
+      <div class="seq-budget-row" data-step="3"><span>response</span><span class="seq-b-lat">1ms</span></div>
+      <div class="seq-budget-total"><span>total</span><span class="seq-b-lat" data-seq-total>0</span></div>
+      <p class="small muted mt-3">Total <strong>5ms</strong> — no ANN search, no rerank. The cold path was 89ms; a warm hit is \(\approx 18\times\) cheaper. But you size the SLA against the <em>tail</em>: this tier's \(p_{50}=45\)ms, \(p_{99}=180\)ms (representative). Alert on \(p_{99}\), not \(p_{50}\).</p>
+    </div>
+  </div>
+
+  <div class="step-controls">
+    <button data-step-act="prev" aria-label="Previous step">←</button>
+    <span class="step-counter">0/3</span>
+    <button data-step-act="next" aria-label="Next step">→</button>
+  </div>
+
+  <aside class="slide-notes">Warm-cache sequence. cacheHitBudget from data/l9-latency.json: per-hop 3+1+1, the gated exact sum = cacheHitMs = 5ms (the JS computes the running total). No ANN, no rerank — the repeat query is served from cache. Contrast: cold path 89ms (prev sequence) vs warm 5ms (~18×). tailNote p50=45, p99=180 (representative). The SLA is written against p99.</aside>
+</section>

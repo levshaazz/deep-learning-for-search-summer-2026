@@ -1,0 +1,100 @@
+<section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="27 Climb · Query rewriting">
+  <div class="slide-header">
+    <h2>Query rewriting — HyDE &amp; multi-query</h2>
+    <span class="slide-kicker">toggle original/HyDE/multi-query (←/→)</span>
+  </div>
+  <div class="widget-mount" data-widget="query-rewrite"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "_doc": "Query rewriting, exact (stdlib). A short, vocabulary-poor query finds the true doc at rank 8 → recall@5 = 0, RR = 1/8 = 0.125. HyDE writes a hypothetical answer, embeds THAT → true doc rises to rank 2 → recall@5 = 1, RR = 1/2 = 0.5. Multi-query is a SEPARATE 5-relevant gold-set: single query 2/5 → recall@5 = 0.4; union of 3 paraphrases 4/5 → recall@5 = 0.8.",
+    "_source": "_research/gen_l10.py (toy, stdlib): RR=1/rank; single recall@5=(trueRank≤5); multi recall@5=|gold∩found|/5.",
+    "query": "How does the heart pump blood?",
+    "trueDocId": "doc_cardiac_cycle",
+    "original": {
+      "rankedList": [
+        "doc_blood_types",
+        "doc_anatomy",
+        "doc_exercise",
+        "doc_diet",
+        "doc_circulatory",
+        "doc_valves",
+        "doc_pressure",
+        "doc_cardiac_cycle",
+        "doc_history",
+        "doc_aneurysm"
+      ],
+      "trueRank": 8,
+      "recallAt5": 0,
+      "rr": 0.125
+    },
+    "hyde": {
+      "hypotheticalDoc": "The cardiac cycle drives blood flow: during ventricular systole the ventricles contract, ejecting blood; during diastole they refill. Pressure gradients and one-way valves keep circulation moving.",
+      "rankedList": [
+        "doc_circulatory",
+        "doc_cardiac_cycle",
+        "doc_valves",
+        "doc_anatomy",
+        "doc_pressure",
+        "doc_exercise",
+        "doc_diet",
+        "doc_blood_types",
+        "doc_history",
+        "doc_aneurysm"
+      ],
+      "trueRank": 2,
+      "recallAt5": 1,
+      "rr": 0.5
+    },
+    "multiQuery": {
+      "paraphrases": [
+        "How does the heart pump blood?",
+        "What happens during the cardiac cycle?",
+        "Explain ventricular systole and diastole."
+      ],
+      "goldRelevant": [
+        "gold_cycle",
+        "gold_systole",
+        "gold_ventricle",
+        "gold_diastole",
+        "gold_output"
+      ],
+      "foundSingle": [
+        "gold_cycle",
+        "gold_systole"
+      ],
+      "foundUnion": [
+        "gold_cycle",
+        "gold_systole",
+        "gold_ventricle",
+        "gold_diastole"
+      ],
+      "recallAt5Single": 0.4,
+      "recallAt5Union": 0.8
+    }
+  },
+  "labels": {
+    "alt": "A ranked list where the true doc sits at rank 8 (below the top-5 cut) under the original query; HyDE lifts it to rank 2; a separate multi-query gold-set raises recall@5 from 0.4 to 0.8.",
+    "ranked": "retrieved, ranked",
+    "cut": "top-5 cut",
+    "trueDoc": "true doc",
+    "rank": "rank",
+    "origLbl": "original query",
+    "hydeLbl": "HyDE query",
+    "hydeTitle": "HyDE",
+    "hydeL1": "write a hypothetical",
+    "hydeL2": "answer, then embed",
+    "hydeL3": "THAT vector",
+    "mqHead": "multi-query · a separate 5-relevant gold-set",
+    "mqSingle": "single query",
+    "mqUnion": "union of 3 paraphrases",
+    "s0": "The query “How does the heart pump blood?” is short and vocabulary-poor. The true doc speaks of “cardiac cycle, ventricular systole” — a lexical and semantic mismatch. So the retriever ranks the true doc only 8th: below the top-5 cut, it is never read. recall@5 = 0, RR = 1/8 = 0.125.",
+    "s1": "HyDE's trick: don't search with the bare question. First ask an LLM to write a hypothetical answer paragraph — full of the words a real answer would use (cardiac cycle, ventricles, systole) — and embed THAT paragraph instead of the question.",
+    "s2": "The hypothetical answer's vector lands right next to the true doc — they speak the same vocabulary. Re-retrieve, and the true doc jumps from rank 8 to rank 2: now inside the top-5. recall@5 = 1, RR = 1/2 = 0.5. Same retriever, a better query.",
+    "s3": "Multi-query attacks recall differently — on a SEPARATE query with 5 relevant docs (never blended with HyDE's single-doc count). The bare query retrieves 2 of 5 → recall@5 = 0.4. Issue 3 paraphrases and take the UNION of their top-5: it covers 4 of 5 → recall@5 = 0.8. More phrasings, more of the relevant set found."
+  }
+}
+  </script>
+  <p class="viz-caption">The true doc sits at rank 8 (recall@5=0, RR=0.125). HyDE embeds a hypothetical answer → rank 2 (recall@5=1, RR=0.5). Multi-query, on a separate 5-relevant gold-set, lifts recall@5 0.4→0.8.</p>
+  <aside class="slide-notes">climb-queryrewrite widget (query-rewrite). Two recall senses on two gold-sets, never blended.</aside>
+</section>

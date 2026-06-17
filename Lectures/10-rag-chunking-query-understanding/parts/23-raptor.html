@@ -1,0 +1,43 @@
+<section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="23 RAPTOR">
+  <div class="slide-header">
+    <h2>RAPTOR — a tree of recursive summaries</h2>
+    <span class="slide-kicker">build bottom-up, retrieve at any level (←/→)</span>
+  </div>
+  <div class="widget-mount" data-widget="raptor-tree"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "_doc": "RAPTOR — recursive abstractive tree. Cluster + summarize leaf chunks into higher nodes, recurse to a root: 8 leaf chunks → 3 mid summaries → 1 root, depth 3. Retrieval can pull from ANY level (a high node answers a broad question; a leaf answers a detail). Sarthi et al. 2024 (arXiv:2401.18059).",
+    "_source": "_research/gen_l10.py (static, descriptive): tree shape is a toy illustration; cites arXiv:2401.18059.",
+    "tree": {
+      "levels": [
+        { "n": 8 },
+        { "n": 3 },
+        { "n": 1 }
+      ],
+      "depth": 3
+    },
+    "idea": "cluster + summarize chunks recursively; retrieve from any tree level (leaf=detail, root=overview)",
+    "source": "Sarthi, Abdullah, Tuli, Khanna, Goldie & Manning, 'RAPTOR: Recursive Abstractive Processing for Tree-Organized Retrieval', ICLR 2024 (arXiv:2401.18059)"
+  },
+  "labels": {
+    "alt": "A recursive summary tree built bottom-up: 8 leaf chunks cluster into 3 summary nodes (fan-in 8 to 3), which summarize into 1 root (3 to 1), depth 3. A broad query is routed to the root overview; a detail query is routed to a leaf — any level is retrievable.",
+    "title": "Recursive summary tree",
+    "depth": "depth",
+    "leaf": "leaves",
+    "summary": "summaries",
+    "root": "root",
+    "fanin": "fan-in",
+    "broadQuery": "broad query → overview",
+    "detailQuery": "detail query → leaf",
+    "s0": "Start at the bottom: 8 leaf chunks — the raw passages, exactly the units a flat index would store. Standard retrieval stops here, so it can only ever answer at the granularity of a single chunk.",
+    "s1": "Cluster the leaves and summarize each cluster: the 8 chunks fan in to 3 summary nodes (8 → 3). Each summary node is a short abstraction over several leaves — a level of context no single chunk holds.",
+    "s2": "Recurse: summarize the 3 summaries into 1 root node (3 → 1). The tree now has depth 3 — leaf, summary, root — a single index that holds the document at three zoom levels at once.",
+    "s3": "Now route by question. A broad, zoomed-out question ('what is this document about?') lands at the ROOT: one summary node answers it directly — no need to read all 8 leaves.",
+    "s4": "A zoomed-in, specific question ('what exact number is in passage 4?') lands at a LEAF: the detail lives in a raw chunk, so retrieval pulls the leaf. One tree, queried at the abstraction level the question needs — that is RAPTOR's payoff (Sarthi et al. 2024)."
+  }
+}
+  </script>
+  <p class="viz-caption">8 leaf chunks → 3 cluster summaries → 1 root, depth 3. Retrieval can pull from any level — the root answers a broad question, a leaf answers a detail. One index serves both zoom levels (Sarthi et al., ICLR 2024).</p>
+  <aside class="slide-notes">RAPTOR walkthrough (raptor-tree, l10-raptor). 8→3→1, depth 3 (integers → coverage-safe). Cite arXiv:2401.18059. Built bottom-up; retrieve at any level. Closes Act 1's indexing arc.</aside>
+</section>

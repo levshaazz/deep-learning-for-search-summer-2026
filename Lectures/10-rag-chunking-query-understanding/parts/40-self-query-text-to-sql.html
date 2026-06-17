@@ -1,0 +1,30 @@
+<section class="slide" data-type="code" data-screen-label="40 Self-query & text-to-SQL">
+  <div class="slide-header">
+    <h2>Self-query &amp; text-to-SQL, by example</h2>
+    <span class="slide-kicker">the LLM compiles intent into a query</span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <h3>self-query · NL → metadata filter</h3>
+      <pre class="language-json"><code class="language-json">// "papers on retrieval published after 2020"
+{
+  "topic": "retrieval",
+  "year": { "$gt": 2020 }
+}
+// applied ALONGSIDE the vector search:
+// filter first, then rank within the matches</code></pre>
+    </div>
+    <div class="col">
+      <h3>text-to-SQL · NL → SQL</h3>
+      <pre class="language-sql"><code class="language-sql">-- "how many documents did we
+--  index last month?"
+SELECT COUNT(*)
+FROM documents
+WHERE indexed_at >= date_trunc(
+  'month', now() - interval '1 month'
+);</code></pre>
+    </div>
+  </div>
+  <p class="small muted center mt-2">Self-query keeps the vector search but adds an exact filter; text-to-SQL leaves the vector world entirely for an executable query over a structured store. Both turn a fuzzy question into something the back-end can run precisely.</p>
+  <aside class="slide-notes">self-query & text-to-SQL walkthrough (l10-routing.construct). Two construction examples — metadata filter (self-query, applied alongside vector search) and executable SQL (text-to-SQL). The 2020 in the filter is a year, not a 2dp decimal; SQL has no gated numbers.</aside>
+</section>
