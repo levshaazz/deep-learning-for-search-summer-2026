@@ -1,6 +1,12 @@
     {
       id: 'climb-chunking-worked', kind: 'prose',
       heading: { en: 'Size, overlap, by hand', ru: 'Размер и перекрытие вручную', tt: 'Зурлык һәм кисешү кул белән' },
+      img: 'L10/L10-04-overlap-saves.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'Two stacked passes over the same line: the top pass (size 200, no overlap) slices the answer-phrase in half at a hard boundary; the bottom pass uses an overlapping window that catches the whole phrase, and Séréga points at the rescued span.',
+        ru: 'Два наложенных прохода по одной строке: верхний (size 200, без перекрытия) рассекает фразу-ответ пополам жёсткой границей; нижний берёт перекрывающее окно, ловящее фразу целиком, и Серёга указывает на спасённый отрезок.',
+        tt: 'Бер үк юлдан ике өстәмә үтү: өстәге (size 200, кисешүсез) җавап-фразаны каты чик буенча урталай кисә; астагысы кисешүле тәрәзә ала, ул фразаны бөтен тота, һәм Серёга коткарылган кисәккә күрсәтә.',
+      },
       body: {
         en: [
           "Take a \\(1000\\)-token document whose answer lives in tokens \\([380, 470]\\). The chunk count is \\(\\lceil (L - \\text{overlap})/(\\text{size} - \\text{overlap}) \\rceil\\), and \"found\" is **binary answer-containment**: does any one chunk contain the whole span?",

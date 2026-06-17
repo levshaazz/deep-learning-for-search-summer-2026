@@ -1,6 +1,12 @@
     {
       id: 'climb-queryrewrite-worked', kind: 'prose',
       heading: { en: 'HyDE & multi-query, by hand', ru: 'HyDE и multi-query вручную', tt: 'HyDE һәм multi-query кул белән' },
+      img: 'L10/L10-06-hyde-hypothetical.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'A ghostly dashed-outline hypothetical document is cast like a lure on a line into an embedding-space pond of dots, pulling the one true document to the surface — the HyDE trick.',
+        ru: 'Призрачный пунктирный гипотетический документ заброшен, как блесна на леске, в пруд-эмбеддинг-пространство из точек и вытягивает на поверхность один истинный документ — приём HyDE.',
+        tt: 'Өрфия пунктир гипотетик документ блесна кебек эмбеддинг-киңлек буасына — нокталар арасына — ташлана һәм бер чын документны өскә тарта — HyDE алымы.',
+      },
       body: {
         en: [
           "Two rewrites, two different lifts — measured on two different gold-sets, never blended.",
