@@ -1,6 +1,12 @@
     {
       id: 'turn-metrics', kind: 'prose',
       heading: { en: 'Which ruler measures "near"?', ru: 'Какой линейкой мерить «близко»?', tt: '«Якын»ны кайсы линейка белән үлчәргә?' },
+      img: 'L9/L9-10-three-metrics.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'Séréga at a navigation table measures the same two stars three ways at once — a straight L2 ruler, a protractor for the cosine angle, and a projection-shadow gauge for the inner product.',
+        ru: 'Серёга за навигационным столом мерит одни и те же две звезды сразу тремя способами — прямой линейкой L2, транспортиром для косинусного угла и теневым проекционным прибором для скалярного произведения.',
+        tt: 'Серёга навигация өстәле янында шул ук ике йолдызны бер юлы өч төрле үлчи — туры L2 линейкасы, косинус почмагы өчен транспортир һәм скаляр тапкырчыгыш өчен күләгә-проекция үлчәгече белән.',
+      },
       body: {
         en: [
           "Before we open any lane we have to settle a question the brute-force scan quietly assumed away: **what does \"nearest\" even mean?** Victor the Vector has both a *direction* and a *length*, and three different rulers each weigh those two properties differently. Choose the wrong ruler and the lane will faithfully fly you to the wrong star.",

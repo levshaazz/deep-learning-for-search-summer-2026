@@ -1,6 +1,12 @@
     {
       id: 'decomposition', kind: 'prose',
       heading: { en: 'Decomposition: split the question', ru: 'Декомпозиция: раздели вопрос', tt: 'Декомпозиция: сорауны бүл' },
+      img: 'L10/L10-12-decompose.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'Chunk Norris chops one big question-scroll into two sub-question scrolls with a karate strike, while Séréga collects both answers.',
+        ru: 'Чанк Норрис рубит один большой свиток-вопрос на два свитка-подвопроса карате-ударом, а Серёга собирает оба ответа.',
+        tt: 'Чанк Норрис бер зур сорау-төргәген каратэ сугышы белән ике асорау төргәгенә чаба, ә Серёга ике җавапны да җыя.',
+      },
       body: {
         en: [
           "Some questions ask two things at once. *\"Does the heart pump faster during exercise, and what controls that rate?\"* bundles a fact (*does the rate rise?*) and a mechanism (*what controls it?*). A single retrieval must find one chunk that satisfies *both* — and often no such chunk exists, because the two facts live in different passages. **Decomposition** breaks the compound query into sub-questions, retrieves for each, and assembles the answer from the parts.",

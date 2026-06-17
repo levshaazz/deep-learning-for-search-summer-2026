@@ -1,6 +1,12 @@
     {
       id: 'late-chunking-frontier', kind: 'prose',
       heading: { en: 'Late chunking: embed first, cut after', ru: 'Позднее чанкование: сначала эмбеддить, резать потом', tt: 'Соңгы чанклау: башта эмбеддлә, аннары кис' },
+      img: 'L10/L10-09-late-chunking.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'Two embedding diagrams side by side: naïve chunking embeds each chunk alone as isolated bubbles, while late chunking embeds one long ribbon whole and only then slices it.',
+        ru: 'Две схемы эмбеддинга рядом: наивное чанкование эмбеддит каждый чанк по отдельности как изолированные пузыри, а позднее чанкование эмбеддит одну длинную ленту целиком и лишь потом нарезает её.',
+        tt: 'Янәшә ике эмбеддинг схемасы: беркатлы чанклау һәр чанкны аерым изоляцияле куыклар итеп эмбеддли, ә соңгы чанклау бер озын тасманы тулысынча эмбеддли һәм бары аннары аны кисә.',
+      },
       body: {
         en: [
           "Every chunking strategy so far shares one hidden flaw, and it is not the boundary cut that overlap rescues. It is **isolation**: each chunk is fed to the encoder alone, so its embedding never sees the sentences around it. A chunk that says *\"it then contracts to eject the blood\"* has no idea what *\"it\"* is — the antecedent lived two chunks back. The embedding is contextually blind, and no amount of overlap restores the full document's context to every chunk.",

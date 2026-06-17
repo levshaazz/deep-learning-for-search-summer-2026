@@ -1,6 +1,12 @@
     {
       id: 'climb-pq-codebook', kind: 'prose',
       heading: { en: 'Training one codebook, by hand', ru: 'Обучение одного кодбука, вручную', tt: 'Бер кодбукны өйрәтү, кул белән' },
+      img: 'L9/L9-13-codebook-training.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'Séréga stamps a sheet of tiles: scattered points are herded toward two centroid-stamps over two passes, the clusters tightening — Lloyd\'s k-means iterations.',
+        ru: 'Серёга штампует лист плиток: разбросанные точки сгоняются к двум центроидам-штампам за два прохода, кластеры стягиваются — итерации k-средних Ллойда.',
+        tt: 'Серёга плиткалар битен штамплый: таралган нокталар ике үтүдә ике центроид-штампка таба җыела, кластерлар тыгызлана — Ллойдның k-урталар итерацияләре.',
+      },
       body: {
         en: [
           "Before PQ can encode anything it must *learn its codebooks*, and a codebook is just the output of k-means run on one subspace. The widget shows the bytes; this beat opens the box and runs Lloyd's algorithm by hand on a single subspace, so you can see the inertia fall — the concrete meaning of \"the codebook converged\".",

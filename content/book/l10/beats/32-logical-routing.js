@@ -1,6 +1,12 @@
     {
       id: 'logical-routing', kind: 'prose',
       heading: { en: 'Routing: pick the destination', ru: 'Маршрутизация: выбери назначение', tt: 'Маршрутлау: барачак урынны сайла' },
+      img: 'L10/L10-13-switchboard.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'Séréga at a switchboard plugs a query-cable into the right source-pipe among three (logical / semantic routing).',
+        ru: 'Серёга у коммутатора вставляет кабель-запрос в правильную трубу-источник из трёх (логическая / семантическая маршрутизация).',
+        tt: 'Серёга коммутатор янында сорау-кабелен өч чыганак-торбаның дөресенә тыга (логик / семантик маршрутлау).',
+      },
       body: {
         en: [
           "Everything so far reshaped *one* query against *one* index. Real systems have many destinations — a code index and a prose index, a SQL database and a vector store, a fact-lookup prompt and a how-to prompt. **Routing** is the move that, before retrieving, decides *where the query should go*. It is the dispatcher standing in front of the retrieve loop, picking which corpus, which retriever, or which prompt template gets the query.",

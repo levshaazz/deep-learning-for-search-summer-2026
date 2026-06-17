@@ -1,6 +1,12 @@
     {
       id: 'rag-fusion', kind: 'prose',
       heading: { en: 'RAG-Fusion: consensus over lists', ru: 'RAG-Fusion: консенсус над списками', tt: 'RAG-Fusion: исемлекләр өстендә консенсус' },
+      img: 'L10/L10-11-rag-fusion.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'Three Séréga speech-bubbles — the same question paraphrased three ways — each cast a fishing line into the same pond; their votes pull one consensus document to the surface (RRF).',
+        ru: 'Три речевых пузыря Серёги — один вопрос, перефразированный тремя способами — забрасывают удочки в один пруд; их голоса вытягивают на поверхность один консенсусный документ (RRF).',
+        tt: 'Серёганың өч сөйләм куыгы — бер сорау өч төрле парафразланган — һәркайсы шул ук буага кармак сала; аларның тавышлары бер консенсус документын өскә тарта (RRF).',
+      },
       body: {
         en: [
           "Multi-query left us with several ranked lists and a crude way to merge them — a naive set-union that throws away all the rank information. **RAG-Fusion** fixes the merge: keep multi-query's several paraphrase retrievals, but combine their ranked lists with **Reciprocal Rank Fusion** instead of a flat union. You already built RRF in Lecture 3 for fusing lexical and dense rankers; here it does the same job across paraphrase queries.",

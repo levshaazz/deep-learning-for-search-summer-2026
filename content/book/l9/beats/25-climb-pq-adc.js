@@ -1,6 +1,12 @@
     {
       id: 'climb-pq-adc', kind: 'prose',
       heading: { en: 'Distance through the codes — ADC, by hand', ru: 'Расстояние через коды — ADC, вручную', tt: 'Кодлар аша ара — ADC, кул белән' },
+      img: 'L9/L9-14-adc-table.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'Séréga reads a 4×4 distance-table grid on the wall, tracing four code-arrows — one per subspace — down to four cells and summing them on a running tally (the ADC lookup).',
+        ru: 'Серёга читает настенную таблицу расстояний 4×4, прослеживая четыре стрелки-кода — по одной на подпространство — к четырём ячейкам и суммируя их на бегущем счётчике (поиск ADC).',
+        tt: 'Серёга стенадагы 4×4 ара-таблицасын укый, дүрт код-укны — асиңлеккә берәр — дүрт күзәнәккә кадәр сызып, аларны агымдагы исәптә кушып (ADC эзләве).',
+      },
       body: {
         en: [
           "Compression is only useful if you can search the compressed vectors *without decompressing them*. The trick that makes PQ a search index and not merely a storage format is **ADC — asymmetric distance computation** — and \"asymmetric\" is the whole idea: the *query* stays a full, exact vector, while the *database* vectors are their PQ codes. You never reconstruct a database vector; you compute distance to its code through a precomputed table.",
