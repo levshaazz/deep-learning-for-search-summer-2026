@@ -1,0 +1,86 @@
+{
+  "_src": "toy ReAct/Self-RAG/CRAG trace (gen_l11.py) + REAL frozen llama3.1:8b ReAct trace",
+  "react": {
+    "question": "What did the founder of Acme Corp study?",
+    "steps": [
+      {
+        "step": 0,
+        "thought": "I need the founder of Acme Corp.",
+        "action": "lookup[Acme Corp]",
+        "observation": "Acme Corp was founded by Dana Reyes.",
+        "recallAt1": 0
+      },
+      {
+        "step": 1,
+        "thought": "Now find what Dana Reyes studied.",
+        "action": "lookup[Dana Reyes]",
+        "observation": "Dana Reyes studied computer science at MIT.",
+        "recallAt1": 1
+      },
+      {
+        "step": 2,
+        "thought": "I can answer now.",
+        "action": "finish[computer science at MIT]",
+        "observation": null,
+        "recallAt1": 1
+      }
+    ],
+    "recallByStep": [
+      0,
+      0,
+      1
+    ],
+    "hops": 2,
+    "solved": true
+  },
+  "selfRag": {
+    "reflectionTokens": [
+      "Retrieve",
+      "IsRel",
+      "IsSup",
+      "IsUse"
+    ],
+    "note": "The model emits reflection tokens to gate retrieval and critique its own output (L10 callback)."
+  },
+  "crag": {
+    "grades": [
+      "correct",
+      "ambiguous",
+      "wrong"
+    ],
+    "actions": {
+      "correct": "use as-is",
+      "ambiguous": "combine + web search",
+      "wrong": "discard, rewrite"
+    },
+    "note": "A retrieval evaluator grades each doc and branches — the L10 self-correcting loop (callback)."
+  },
+  "real": {
+    "_model": "llama3.1:8b",
+    "question": "What publishing company did an author of the book 'The Pragmatic Programmer' co-found?",
+    "steps": 3,
+    "solved": true,
+    "finalAnswer": "Pragmatic Bookshelf",
+    "trace": [
+      {
+        "step": 0,
+        "type": "lookup",
+        "query": "the pragmatic programmer",
+        "observation": "The book 'The Pragmatic Programmer' was written by Andrew Hunt and David Thomas."
+      },
+      {
+        "step": 1,
+        "type": "lookup",
+        "query": "andrew hunt",
+        "observation": "Andrew Hunt is a software author who co-founded the publisher Pragmatic Bookshelf."
+      },
+      {
+        "step": 2,
+        "type": "finish",
+        "query": null,
+        "observation": null
+      }
+    ],
+    "note": "Real llama3.1:8b ReAct loop (temp 0, seed 42): a 2-hop question solved in 3 steps (book → author → publisher → finish). Structure (an entity list) made the small model a capable agent."
+  }
+}
