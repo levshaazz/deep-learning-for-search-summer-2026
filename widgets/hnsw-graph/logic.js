@@ -11,7 +11,17 @@
      0  → the graph (6 nodes + edges) + the query; entry node lit.                         s0
      1  → hop 1: from the entry, move to its closest neighbour (n0→n1, dist 2.55).          s1
      2  → hop 2: move again (n1→n2, dist 0.7071) — neighbours all farther → local min.      s2
-     3  → n2 IS the brute-force NN (0.7071) → recall@1 = 1.0; the ef-knob trap note.         s3 */
+     3  → n2 IS the brute-force NN (0.7071) → recall@1 = 1.0; the ef-knob trap note.         s3
+
+   VARIANT (backward-compatible): the original `toy` path is the DEFAULT. A new slide may pass
+   `labels.variant === 'toy2'` to select the 12-node, 2-LAYER climb on `data.toy2` (maxStep = 5):
+     0  → both layers drawn (upper hub band L1 + base band L0) + the query; baseEntry b0 lit.   t0
+     1  → base-ONLY greedy from b0 walks b0→b1→b2→b4 and TRAPS at the local min b4 (recall 0.0). t1
+     2  → restart: enter at the upper hub b2 (the L1 entry).                                     t2
+     3  → L1 hub hop b2→b7 (the long-range upper edge crosses the gap).                          t3
+     4  → descend to base at b7, then the L0 hop b7→b9 (the true NN, 1.4142).                    t4
+     5  → b9 is the brute-force NN → recall@1 = 1.0; the recall contrast (base-only 0.0 vs hub 1.0). t5
+   When `variant !== 'toy2'` NOTHING below changes — the 6-node path renders byte-identically. */
 import { defineWidget } from '../_widget-base.js';
 import { padDomain, frameHeightFor, makeProtagonist } from '../_plot-util.js';
 
@@ -19,8 +29,15 @@ export const mountHnswGraph = defineWidget({
   id: 'hnsw-graph',
   rootClass: 'hg-root',
   exportName: 'mountHnswGraph',
-  maxStep: 3,
-  render({ host, data, labels, el }) {
+  maxStep: 5,                       // toy2 walks 0..5; the toy path clamps itself to 0..3 (back-compat)
+  render(ctx) {
+    if ((ctx.labels && ctx.labels.variant) === 'toy2') return renderToy2(ctx);
+    return renderToy(ctx);
+  },
+});
+
+// ── ORIGINAL 6-node single-layer greedy path (DEFAULT — unchanged; byte-identical render) ──
+function renderToy({ host, data, labels, el }) {
     const toy = data.toy || data;
     const nodes = (toy.coords && toy.coords.nodes) || [];
     const names = toy.labels || nodes.map((_, i) => 'n' + i);
@@ -104,7 +121,8 @@ export const mountHnswGraph = defineWidget({
       if (cur != null) proto.focus(nodeEl[cur], [], { cx: sx(nodes[cur][0]), cy: sy(nodes[cur][1]), r: 18 });
     }
 
-    return function update(k) {
+    return function update(k0) {
+      const k = Math.min(k0, 3);               // toy path has only 4 steps; clamp the shared maxStep=5
       litTo(Math.min(k, path.length - 1));
       if (k <= 0) {
         litTo(0);
@@ -128,5 +146,198 @@ export const mountHnswGraph = defineWidget({
            ef]);
       }
     };
-  },
-});
+}
+
+/* ── NEW: 12-node, 2-LAYER climb (toy2). Two visually distinct bands — an upper hub layer (L1) and the
+   base layer (L0). The base-only greedy from baseEntry b0 TRAPS at a local minimum (no base edge crosses
+   the gap to the right-hand cluster); restarting from the upper hub b2 lets one long-range L1 hop cross
+   the gap, then a base-layer descent lands on the true NN b9. Recall contrast: base-only 0.0 vs hub 1.0.
+   All geometry/distances/recall come from data.toy2 (l9-hnsw.json); all human text from labels.        */
+function renderToy2({ host, data, labels, el }) {
+  const toy = data.toy2 || {};
+  const nodes = (toy.coords && toy.coords.nodes) || [];
+  const names = toy.labels || nodes.map((_, i) => 'b' + i);
+  const layersDef = toy.layers || [];
+  const q = toy.query || [0, 0];
+  const greedy = toy.greedy || {};
+  const baseOnly = toy.baseOnly || {};
+  const hopTable = toy.hopTable || {};
+  const bf = toy.bruteForce || {};
+  const idxOf = (name) => names.indexOf(name);
+
+  // L1 = the upper hub layer (drawn as a higher band); L0 = the base layer (lower band). Each layer
+  // gets its own member set + its own edge set from data; we render nodes TWICE (once per band) so the
+  // two-layer structure is literal — an upper hub node is a ghost copy of its base node, joined by a
+  // dashed "descend" connector. This makes "enter the hub, hop, then descend to base" visible.
+  const L1 = layersDef.find((l) => l.layer === 1) || { members: [], edges: [] };
+  const L0 = layersDef.find((l) => l.layer === 0) || { members: nodes.map((_, i) => i), edges: [] };
+
+  // ── frame geometry: two horizontal bands. The data x-range is shared (so hub nodes sit above their
+  //    base twins); each band gets its own y sub-range. ──
+  const W = 480, PAD_L = 22, PAD_T = 26;
+  const plotW = W - 2 * PAD_L;
+  const bandH = 120, bandGap = 30;             // L1 band on top, L0 band below
+  const l1Top = PAD_T, l0Top = PAD_T + bandH + bandGap;
+  const xs = nodes.map((n) => n[0]).concat(q[0]);
+  const dx = padDomain(Math.min(...xs), Math.max(...xs), 0.08);
+  const sx = (vx) => PAD_L + (vx - dx.min) / dx.span * plotW;
+  // y within a band: spread base nodes by their data-y; hubs sit mid-band (few of them).
+  const ysBase = nodes.map((n) => n[1]);
+  const dyB = padDomain(Math.min(...ysBase), Math.max(...ysBase), 0.16);
+  const syBase = (vy) => l0Top + bandH - (vy - dyB.min) / dyB.span * bandH;
+  const syHub = () => l1Top + bandH * 0.5;     // hubs centred in the upper band
+
+  const panelTop = l0Top + bandH + 26, panelRow = 20;
+  const H = frameHeightFor(panelTop + 4 * panelRow, 12);
+  const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'wgt-svg hg-svg', role: 'img', 'aria-label': labels.alt || '' }, host);
+
+  // ── band backdrops + labels (so the two layers read as distinct levels) ──
+  el('rect', { x: PAD_L - 12, y: l1Top - 8, width: plotW + 24, height: bandH + 16, rx: 8, class: 'hg-band hg-band-l1' }, svg);
+  el('rect', { x: PAD_L - 12, y: l0Top - 8, width: plotW + 24, height: bandH + 16, rx: 8, class: 'hg-band hg-band-l0' }, svg);
+  el('text', { x: PAD_L - 8, y: l1Top + 6, class: 'hg-bandlbl' }, svg).textContent = labels.layerHub || 'layer 1 — hubs';
+  el('text', { x: PAD_L - 8, y: l0Top + 6, class: 'hg-bandlbl' }, svg).textContent = labels.layerBase || 'layer 0 — base';
+
+  // ── query diamond (in the base band, at its data position) ──
+  const qx = sx(q[0]), qy = syBase(q[1]);
+  el('path', { d: `M${qx} ${qy - 9} L${qx + 9} ${qy} L${qx} ${qy + 9} L${qx - 9} ${qy} Z`, class: 'hg-query' }, svg);
+  el('text', { x: qx + 12, y: qy + 4, class: 'hg-qlbl' }, svg).textContent = labels.query || 'query';
+
+  // ── base-layer edges ──
+  const baseEdgeEl = {};
+  (L0.edges || []).forEach(([i, j]) => {
+    const ln = el('line', { x1: sx(nodes[i][0]), y1: syBase(nodes[i][1]), x2: sx(nodes[j][0]), y2: syBase(nodes[j][1]), class: 'hg-edge' }, svg);
+    baseEdgeEl[i + '-' + j] = ln; baseEdgeEl[j + '-' + i] = ln;
+  });
+  // ── hub-layer (L1) edges (long-range) ──
+  const hubEdgeEl = {};
+  (L1.edges || []).forEach(([i, j]) => {
+    const ln = el('line', { x1: sx(nodes[i][0]), y1: syHub(), x2: sx(nodes[j][0]), y2: syHub(), class: 'hg-edge hg-edge-hub' }, svg);
+    hubEdgeEl[i + '-' + j] = ln; hubEdgeEl[j + '-' + i] = ln;
+  });
+  // ── descend connectors: dashed line from each hub node down to its base twin ──
+  (L1.members || []).forEach((i) => {
+    el('line', { x1: sx(nodes[i][0]), y1: syHub(), x2: sx(nodes[i][0]), y2: syBase(nodes[i][1]), class: 'hg-descend' }, svg);
+  });
+
+  // ── base nodes (every node) ──
+  const baseNodeEl = nodes.map((n, i) => {
+    const g = el('g', { class: 'hg-node', 'data-i': i }, svg);
+    el('circle', { cx: sx(n[0]), cy: syBase(n[1]), r: 12, class: 'hg-dot' }, g);
+    el('text', { x: sx(n[0]), y: syBase(n[1]) + 4, class: 'hg-nlbl', 'text-anchor': 'middle' }, g).textContent = names[i];
+    return g;
+  });
+  // ── hub nodes (only L1 members; ghost copies in the upper band) ──
+  const hubNodeEl = {};
+  (L1.members || []).forEach((i) => {
+    const g = el('g', { class: 'hg-node hg-hub', 'data-i': i }, svg);
+    el('circle', { cx: sx(nodes[i][0]), cy: syHub(), r: 12, class: 'hg-dot' }, g);
+    el('text', { x: sx(nodes[i][0]), y: syHub() + 4, class: 'hg-nlbl', 'text-anchor': 'middle' }, g).textContent = names[i];
+    hubNodeEl[i] = g;
+  });
+
+  const protoBase = makeProtagonist(svg, { haloClass: 'hg-halo', haloR: 17 });
+  const protoHub = makeProtagonist(svg, { haloClass: 'hg-halo', haloR: 17 });
+
+  // read-out panel
+  const readHead = el('text', { x: PAD_L, y: panelTop, class: 'hg-readhead' }, svg);
+  const readLines = [0, 1, 2].map((r) => el('text', { x: PAD_L, y: panelTop + (r + 1) * panelRow, class: 'hg-readline' }, svg));
+  const setRead = (head, lines) => {
+    readHead.textContent = head || '';
+    readLines.forEach((ln, i) => { ln.textContent = (lines && lines[i]) || ''; });
+  };
+
+  const dShow = (d) => Number(d).toFixed(d === Math.round(d) ? 1 : 4);
+
+  // visual reset helpers ──────────────────────────────────────────────
+  function clearAll() {
+    baseNodeEl.forEach((g) => g.classList.remove('is-visited', 'is-nn', 'is-trapped', 'is-entry'));
+    Object.values(hubNodeEl).forEach((g) => g.classList.remove('is-visited', 'is-nn', 'is-entry'));
+    Object.values(baseEdgeEl).forEach((ln) => ln.classList.remove('is-path', 'is-trap'));
+    Object.values(hubEdgeEl).forEach((ln) => ln.classList.remove('is-path'));
+    protoBase.clear(); protoHub.clear();
+  }
+  // light a path of node-NAMES across base edges (cls: 'is-path' | 'is-trap')
+  function litBasePath(pathNames, edgeCls) {
+    const idxs = pathNames.map(idxOf);
+    idxs.forEach((i) => { if (baseNodeEl[i]) baseNodeEl[i].classList.add('is-visited'); });
+    for (let s = 0; s < idxs.length - 1; s++) {
+      const key = idxs[s] + '-' + idxs[s + 1];
+      if (baseEdgeEl[key]) baseEdgeEl[key].classList.add(edgeCls);
+    }
+  }
+  function litHubPath(pathNames) {
+    const idxs = pathNames.map(idxOf);
+    idxs.forEach((i) => { if (hubNodeEl[i]) hubNodeEl[i].classList.add('is-visited'); });
+    for (let s = 0; s < idxs.length - 1; s++) {
+      const key = idxs[s] + '-' + idxs[s + 1];
+      if (hubEdgeEl[key]) hubEdgeEl[key].classList.add('is-path');
+    }
+  }
+  const focusBase = (name) => { const i = idxOf(name); if (i >= 0) protoBase.focus(baseNodeEl[i], [], { cx: sx(nodes[i][0]), cy: syBase(nodes[i][1]), r: 17 }); };
+  const focusHub = (name) => { const i = idxOf(name); if (hubNodeEl[i]) protoHub.focus(hubNodeEl[i], [], { cx: sx(nodes[i][0]), cy: syHub(), r: 17 }); };
+
+  // format a hop's neighbour list, marking the chosen move
+  const hopLines = (hop) => (hop && hop.neighbors ? hop.neighbors.map((nb) =>
+    `${hop.at}→${nb.id}: ${dShow(nb.dist)}${nb.id === hop.moveTo ? '  ◀ ' + (labels.move || 'move') : ''}`) : []);
+
+  return function update(k) {
+    clearAll();
+    if (k <= 0) {
+      // both layers + the base entry lit
+      const e = idxOf(toy.baseEntry || 'b0');
+      if (baseNodeEl[e]) baseNodeEl[e].classList.add('is-entry');
+      focusBase(toy.baseEntry || 'b0');
+      setRead(labels.readStartBase || 'two layers: an upper hub band + the base band. Base-only greedy starts at the base entry.',
+        [`${labels.baseEntry || 'base entry'}: ${toy.baseEntry || 'b0'}`,
+         `${labels.entryHubLbl || 'hub entry'}: ${toy.entryHub || 'b2'}`]);
+    } else if (k === 1) {
+      // base-only greedy traps at a local min
+      litBasePath(baseOnly.path || [], 'is-trap');
+      const tr = idxOf(baseOnly.trappedAt || (baseOnly.path || []).slice(-1)[0]);
+      if (baseNodeEl[tr]) baseNodeEl[tr].classList.add('is-trapped');
+      focusBase(baseOnly.trappedAt || 'b4');
+      const last = (hopTable.baseOnly || []).slice(-1)[0];
+      setRead(`${labels.baseOnly || 'base-only greedy'}: ${(baseOnly.path || []).join('→')}`,
+        [labels.trapped || 'no base edge crosses the gap → trapped at a local minimum',
+         `${labels.trappedAt || 'trapped at'} ${baseOnly.trappedAt || 'b4'} · ${labels.recall || 'recall@1'} = ${baseOnly.recall}`,
+         ...hopLines(last).slice(0, 1)]);
+    } else if (k === 2) {
+      // restart from the upper hub
+      const he = idxOf(toy.entryHub || 'b2');
+      if (hubNodeEl[he]) hubNodeEl[he].classList.add('is-entry');
+      focusHub(toy.entryHub || 'b2');
+      const h0 = (hopTable.L1 || [])[0];
+      setRead(`${labels.restart || 'restart at the upper hub'}: ${toy.entryHub || 'b2'}`,
+        [labels.hubWhy || 'the hub layer has long-range edges the base layer lacks',
+         h0 ? `${h0.at}: ${labels.dist || 'dist'} ${dShow(h0.atDist)}` : '']);
+    } else if (k === 3) {
+      // L1 hub hop
+      litHubPath(greedy.pathL1 || []);
+      const dest = (greedy.pathL1 || []).slice(-1)[0];
+      focusHub(dest);
+      const h0 = (hopTable.L1 || [])[0];
+      setRead(`${labels.hubHop || 'layer-1 hub hop'} — ${(greedy.pathL1 || []).join('→')}`,
+        hopLines(h0).concat([labels.crossGap || 'the long-range edge crosses the gap to the right cluster']));
+    } else if (k === 4) {
+      // descend to base + the L0 hop to the NN
+      litHubPath(greedy.pathL1 || []);
+      litBasePath(greedy.pathL0 || [], 'is-path');
+      const dest = (greedy.pathL0 || []).slice(-1)[0];
+      focusBase(dest);
+      const h0 = (hopTable.L0 || [])[0];
+      setRead(`${labels.descend || 'descend to base, then the layer-0 hop'} — ${(greedy.pathL0 || []).join('→')}`,
+        hopLines(h0));
+    } else {
+      // land on the true NN; recall contrast
+      litHubPath(greedy.pathL1 || []);
+      litBasePath(greedy.pathL0 || [], 'is-path');
+      const nnIdx = idxOf(bf.nn);
+      if (baseNodeEl[nnIdx]) { baseNodeEl[nnIdx].classList.add('is-nn'); }
+      focusBase(bf.nn);
+      setRead(`${(greedy.pathL1 || []).concat((greedy.pathL0 || []).slice(1)).join('→')} · ${labels.hops || 'hops'} ${greedy.hopsTotal} · recall@1 = ${greedy.recall}`,
+        [`${bf.nn} ${labels.isNN || 'is the true nearest neighbour'} (${labels.dist || 'dist'} ${Number(bf.dist).toFixed(4)})`,
+         labels.contrast || 'recall contrast:',
+         `${labels.baseOnly || 'base-only'} recall@1 = ${baseOnly.recall}  vs  ${labels.hubEntry || 'hub-entry'} recall@1 = ${greedy.recall}`]);
+    }
+  };
+}
