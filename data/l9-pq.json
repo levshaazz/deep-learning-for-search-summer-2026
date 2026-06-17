@@ -1,0 +1,42 @@
+{
+  "_doc": "Product Quantization, memory math. Toy (by-hand, exact, stdlib): a D=8 float32 vector → m=4 subvectors of d*=2 dims → each → nearest of k=256 centroids → index fits in 1 byte → 4 bytes/vector vs 8×4=32 → compression 8×. Scale-up (representative): 768-d→m=96→96 B vs 3072 (32×); 128-d→m=8→8 B vs 512 (64×). ADC = split the query into m subvectors, precompute an m×k distance table, sum lookups. The PQ-m4 recall@1 is REPRESENTATIVE (cited in l9-bench, not hand-derived). Real = frozen FAISS PQ recall@1, spliced by _research/gen_l9_real.py.",
+  "_source": "_research/gen_l9.py (toy, stdlib) + gen_l9_real.py (FAISS PQ, /usr/bin/python3)",
+  "toy": {
+    "D": 8,
+    "m": 4,
+    "dStar": 2,
+    "k": 256,
+    "bytesFloat32": 32,
+    "bytesPQ": 4,
+    "compression": 8
+  },
+  "scale": [
+    {
+      "dim": 768,
+      "m": 96,
+      "k": 256,
+      "bytesFloat32": 3072,
+      "bytesPQ": 96,
+      "compression": 32
+    },
+    {
+      "dim": 128,
+      "m": 8,
+      "k": 256,
+      "bytesFloat32": 512,
+      "bytesPQ": 8,
+      "compression": 64
+    }
+  ],
+  "adc": {
+    "tableShape": [
+      4,
+      256
+    ]
+  },
+  "recallRepresentative": {
+    "m4": 0.7,
+    "representative": true,
+    "source": "Representative recall@1 for 4-subvector PQ vs exact (PQ is lossy; Jégou, Douze & Schmid, TPAMI 2011). Measured value: gen_l9_real.py / l9-bench."
+  }
+}

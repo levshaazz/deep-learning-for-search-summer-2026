@@ -22,9 +22,15 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const JS = join(ROOT, 'Lectures', 'js');
 const CSS = join(ROOT, 'Lectures', 'css');
 
-// the widgets L7/L8 mount in their deck slides (id → Lectures/js/<id>.classic.js, IIFE → window.mount<Pascal>)
-const DECK_WIDGETS = ['biencoder', 'crossencoder', 'neural-cascade', 'in-batch-negatives', 'rag-pipeline',
-  'colbert-maxsim', 'splade-expansion', 'hybrid-fusion', 'ltr-lambda'];
+// the widgets mounted inside deck slides (id → Lectures/js/<id>.classic.js, IIFE → window.mount<Pascal>).
+// course-map is the recurring spine "you are here" slide, now mounted in EVERY deck (E10 migrate-all):
+// the bespoke per-lecture spine SVGs were replaced by this one shared 4-leg widget driven by per-lecture
+// `active` (mirrors each lecture's course.json `spine`). L7/L8 mount the neural figures.
+const DECK_WIDGETS = ['course-map',
+  'biencoder', 'crossencoder', 'neural-cascade', 'in-batch-negatives', 'rag-pipeline',
+  'colbert-maxsim', 'splade-expansion', 'hybrid-fusion', 'ltr-lambda',
+  'hnsw-graph', 'ivf-cells', 'pq-quantize',    // L9 "Hyperspace Lanes" deck-mounted figures
+  'chunking-demo', 'query-rewrite'];           // L10 "The Oracle" deck-mounted figures (rag-pipeline already listed)
 
 for (const id of DECK_WIDGETS) {
   await build({
@@ -55,6 +61,8 @@ copyFileSync(join(ROOT, 'widgets', 'deck-adapter.js'), join(JS, 'deck-adapter.js
 // the bi/cross figures are ~1.5:1 (tall-ish), the cascade is content-tall, the RAG pipeline is wide-short.
 const mountRule =
   '.slide .widget-mount { max-width: min(1180px, 64cqw); margin: 0 auto; }\n' +
+  // the spine map is wide-short (700×250 ≈ 2.8:1): let it run wide so the four stops read big.
+  '.slide .widget-mount[data-widget="course-map"]         { max-width: min(1320px, 72cqw); }\n' +
   '.slide .widget-mount[data-widget="biencoder"]          { max-width: min(1180px, 64cqw); }\n' +
   '.slide .widget-mount[data-widget="crossencoder"]       { max-width: min(1220px, 66cqw); }\n' +
   '.slide .widget-mount[data-widget="neural-cascade"]     { max-width: min(1200px, 64cqw); }\n' +

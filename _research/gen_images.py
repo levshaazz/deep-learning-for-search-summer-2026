@@ -55,7 +55,7 @@ PREAMBLE = (
 # (_research/mascots.py) — ONE source of truth so the mascots stay consistent across lectures
 # and Claude Code sessions. The image-gate (_research/check_images.py) enforces Serega's
 # presence per lecture and the green-only-on-the-tübetey palette rule.
-from mascots import SEREGA  # noqa: E402
+from mascots import SEREGA, MASCOTS  # noqa: E402
 # Appended to every prompt: kills baked-in text/titles and 3D/photoreal failure modes.
 # Stricter than session 0: explicit cap-colour ban list, no header bars, no English style names.
 ANTIPATTERN = (
@@ -1077,12 +1077,124 @@ JOBS = [
      "creatures, every marching figure except Serega is bare of green (any cameo creature is course-blue "
      "or black ink). One short hand-lettered label on the road ahead reads 'ONWARD'. Reads 'one ordered "
      "host under Serega's banner, marching toward the road ahead'. Fills ≥85% of canvas width."),
+
+    # ---- L9 · Hyperspace Lanes (ANN: HNSW / IVF / PQ · production) — 10 plates, Serega in 9 ----
+    ("L9", "L9/L9-00-hyperspace-lanes.png", "16:9", True,
+     "HERO. Serega stands at a spaceship console pulling a big lever that opens glowing hyperspace "
+     "lanes streaking across a star-field of tiny document-dots; one bold ARROW-shaped vector (Victor "
+     "the Vector, the same proud arrow character as earlier lectures) streaks along a lane. Black ink "
+     "+ course-blue lanes + a warm-orange lever; Serega's green tübetey is the ONLY green. Fills ≥85% width."),
+    ("L9", "L9/L9-01-star-by-star-death.png", "16:9", True,
+     "Serega in a tiny rowboat paddling star-to-star one at a time, exhausted, a comic sweat-drop; "
+     "behind him the tall hooded cloaked Curse-of-Dimensionality Wraith (same Nazgûl-like design as "
+     "earlier lectures) reaches an ink hand out to crush a distance-histogram flat into a thin spike. "
+     "Conveys exact NN dies twice over (linear cost + high-d concentration). Black ink + course-blue; "
+     "Serega's green tübetey the ONLY green; the Wraith is bare and wears no green."),
+    ("L9", "L9/L9-02-jump-gates-hnsw.png", "16:9", True,
+     "Victor the Vector (the bold arrow character) hops gate→gate→gate across a layered small-world "
+     "graph — an upper-layer entry node and a denser base layer of linked nodes — following a greedy "
+     "path toward a target; Serega watches, reading a little hop-counter. Black ink graph + course-blue "
+     "path + warm-orange target; Serega's green tübetey is the ONLY green; Victor wears no green."),
+    ("L9", "L9/L9-03-sectors-ivf.png", "4:3", True,
+     "the galaxy carved into three glowing pie-slice sectors (Voronoi cells), each with a centroid star; "
+     "Serega probes only the two sectors nearest his query-marker with a torch, ignoring the far sector. "
+     "Black ink sectors + course-blue + a warm-orange query-marker; Serega's green tübetey is the ONLY green."),
+    ("L9", "L9/L9-04-fold-the-maps-pq.png", "16:9", True,
+     "Serega folding a vast star-chart down into a tiny pocket codebook of stamped tiles (product "
+     "quantization: 32 bytes → 4); the big chart on the left, the compact stamped booklet on the right, "
+     "a fold-arrow between them. Black ink + course-blue chart + warm-orange booklet; Serega's green "
+     "tübetey is the ONLY green."),
+    ("L9", "L9/L9-05-turboquant-frontier.png", "4:3", False,
+     "pure-metaphor frontier plate, NO narrator figure: a spinning random-rotation prism scatters an "
+     "incoming vector into a tidy bell-shaped histogram of neat per-coordinate bins (TurboQuant — "
+     "online, data-oblivious, no codebook). Black ink + course-blue only; there is NO green anywhere "
+     "in this image. Fills ≥85% width."),
+    ("L9", "L9/L9-06-engine-room-faiss.png", "16:9", True,
+     "Serega as a ship's mechanic in the engine room where humming index-racks (FAISS) line the walls "
+     "and a glowing vector-database tank bubbles beside them; he holds a wrench, at home among the "
+     "machines. Two short hand-lettered labels read 'FAISS' on a rack and 'vector DB' on the tank. "
+     "Black ink machines + course-blue tank + warm-orange wrench; Serega's green tübetey is the ONLY green."),
+    ("L9", "L9/L9-07-latency-budget.png", "16:9", True,
+     "Serega watching a round SLA dial while a request runs a little pipeline of stages; a budget meter "
+     "fills part-way and stays comfortably below a marked limit line (a fast serving budget under the "
+     "SLA). Black ink pipeline + course-blue meter fill + a warm-orange limit line; Serega's green "
+     "tübetey is the ONLY green."),
+    ("L9", "L9/L9-08-iceberg-returns.png", "16:9", True,
+     "a big iceberg: the small tip above the waterline is the 'demo', and the huge mass below water is "
+     "the 90% — serving, monitoring, index rebuilds, drift — drawn as little gear/log icons in the "
+     "submerged part; Serega peers over the edge of a small boat at the waterline, worried. Black ink "
+     "iceberg + course-blue water; Serega's green tübetey is the ONLY green; the iceberg has no green."),
+    ("L9", "L9/L9-09-lanes-open.png", "16:9", True,
+     "FINAL. Glowing hyperspace lanes lit across the whole galaxy; Serega stands proudly at the helm "
+     "and points the Ship toward a distant glowing ORACLE silhouette on the horizon (the hook to the "
+     "next lecture). Black ink + course-blue lanes + a warm-orange distant Oracle glow; Serega's green "
+     "tübetey is the ONLY green. Fills ≥85% width."),
+
+    # ---- L10 · The Oracle (RAG · chunking · query understanding) — 9 plates, Serega in 8 ----
+    ("L10", "L10/L10-00-the-oracle.png", "16:9", True,
+     "HERO. Serega consults RAGdoll the Oracle — the same patchwork rag-doll STITCHED from retrieved "
+     "text-scrap patches with loose threads, two button eyes and a stitched smile as locked earlier — "
+     "standing tall and confident, freshly fed with a stack of context-scrolls Serega hands it. "
+     "RAGdoll is course-blue cloth with warm-orange patches; Serega's green tübetey is the ONLY green; "
+     "RAGdoll wears no green. Fills ≥85% width."),
+    ("L10", "L10/L10-01-confident-and-wrong.png", "16:9", True,
+     "Serega asks a bare floating 'LLM brain'; it answers in a fluent speech-bubble that has NO source "
+     "tag and a wrong date — and RAGdoll the Oracle slumps beside it, a seam visibly unravelling (stale, "
+     "ungrounded). Black ink + course-blue + warm-orange unravelling thread; Serega's green tübetey is "
+     "the ONLY green; the brain and RAGdoll wear no green."),
+    ("L10", "L10/L10-02-retrieve-then-speak.png", "4:3", True,
+     "the retrieve → augment → generate loop: Serega hands RAGdoll the Oracle a small stack of "
+     "retrieved scrolls; RAGdoll reads them, THEN speaks a grounded answer in a tidy speech-bubble. A "
+     "circular arrow shows the loop. Black ink + course-blue scrolls + warm-orange answer-bubble; "
+     "Serega's green tübetey is the ONLY green; RAGdoll wears no green."),
+    ("L10", "L10/L10-03-chunk-norris.png", "16:9", True,
+     "Chunk Norris (the confident karate-master stick figure, an original character, same as earlier) "
+     "roundhouse-kicks a long scroll into equal passages; in the corner the goofy friendly dinosaur "
+     "Tokenosaurus snips a word into sub-word pieces; Serega holds a ruler measuring the overlap "
+     "between adjacent passages so nothing falls between slices. Black ink + course-blue passages + "
+     "warm-orange overlap band; Serega's green tübetey is the ONLY green; Chunk Norris and Tokenosaurus "
+     "wear no green."),
+    ("L10", "L10/L10-04-overlap-saves.png", "4:3", True,
+     "two stacked passes over the same line of text: the TOP pass has a hard boundary line slicing an "
+     "answer-phrase in half (size=200, no overlap); the BOTTOM pass has an overlapping window that "
+     "catches the whole answer-phrase intact; Serega points at the rescued whole phrase with a small "
+     "grin. Black ink + course-blue windows + a warm-orange rescued span; Serega's green tübetey is the "
+     "ONLY green."),
+    ("L10", "L10/L10-05-hear-the-real-question.png", "16:9", True,
+     "Serega cups a hand to his ear; two speech-bubbles float toward a single query-slot — one is the "
+     "captain's LITERAL short words, the other the fuller TRUE intent behind them — and they converge "
+     "into one combined query card. NO creature in this plate, Serega only. Black ink + course-blue "
+     "bubbles + a warm-orange query-slot; Serega's green tübetey is the ONLY green."),
+    ("L10", "L10/L10-06-hyde-hypothetical.png", "4:3", False,
+     "pure-metaphor plate, NO narrator figure: a ghostly dashed-outline 'hypothetical document' is cast "
+     "like a lure on a line into an embedding-space pond of dots, and it pulls the one true document-dot "
+     "up to the surface (HyDE). Black ink + course-blue pond only; there is NO green anywhere in this "
+     "image. Fills ≥85% width."),
+    ("L10", "L10/L10-07-garbage-in.png", "16:9", True,
+     "Confabulous — the same wispy translucent phantom drawn as a thin black-ink outline with a "
+     "too-wide showman's grin as locked earlier — hands RAGdoll the Oracle a forged 'trust me' "
+     "citation-scroll; RAGdoll, fed the garbage, recites it confidently in a speech-bubble while Serega "
+     "frowns and folds his arms. Black ink phantom + course-blue + a warm-orange forged scroll; Serega's "
+     "green tübetey is the ONLY green; Confabulous and RAGdoll wear no green."),
+    ("L10", "L10/L10-08-it-speaks.png", "16:9", True,
+     "FINAL. RAGdoll the Oracle stands tall and speaks a grounded, cited answer (a tidy speech-bubble "
+     "with little source-tags); Serega nods approvingly — then glances up at a question-mark just "
+     "forming over his head (the hook: but is it true?). Black ink + course-blue + warm-orange "
+     "source-tags; Serega's green tübetey is the ONLY green; RAGdoll wears no green. Fills ≥85% width."),
 ]
 
 H = {"Authorization": f"Bearer {API_KEY}"}
 
 def build_prompt(has_serega, scene):
-    return PREAMBLE + (SEREGA if has_serega else "") + scene + ANTIPATTERN
+    # Single source of truth = mascots.py: inject the LOCKED `appearance` of every NON-Serega cast
+    # member named (by keyword) in the scene, so the canon — not a brief's paraphrase — drives each
+    # mascot's look (the same guarantee SEREGA already gets). Keywords are specific (e.g. "victor the
+    # vector", "wraith", "ragdoll", "chunk norris", "confabulous") so a generic word never false-triggers.
+    low = scene.lower()
+    cast = "".join(" Recurring cast — keep this EXACT locked design: " + v["appearance"]
+                   for m, v in MASCOTS.items()
+                   if m != "serega" and any(kw in low for kw in v["keywords"]))
+    return PREAMBLE + (SEREGA if has_serega else "") + cast + scene + ANTIPATTERN
 
 def generate_one(job, force=False, ref_url=None):
     group, fname, aspect, has_serega, scene = job

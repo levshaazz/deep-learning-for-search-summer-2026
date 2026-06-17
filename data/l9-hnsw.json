@@ -1,0 +1,183 @@
+{
+  "_doc": "HNSW greedy search. Toy = a 6-node small-world graph (M=2) in 2-D, hand-computable Euclidean distances (stdlib). Greedy from entry n0 hops to the closest neighbour until a local min: n0(4.5277)→n1(2.5495)→n2(0.7071), 2 hops, NN=n2 = brute-force NN → recall@1 = 1.0. This is the MECHANISM, not a speedup (6 nodes → no eval saving; the O(log N) win is asymptotic, shown on climb-latency / the 10⁶-vector zoom). The ef knob: a trap where ef=1 stops at a local min (recall 0.0) but ef=3 keeps a candidate list and escapes (recall 1.0). Real = frozen FAISS HNSW recall@10 vs efSearch, spliced by _research/gen_l9_real.py.",
+  "_source": "_research/gen_l9.py (toy, stdlib) + gen_l9_real.py (FAISS HNSW, /usr/bin/python3)",
+  "toy": {
+    "labels": [
+      "n0",
+      "n1",
+      "n2",
+      "n3",
+      "n4",
+      "n5"
+    ],
+    "coords": {
+      "nodes": [
+        [
+          0,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          3,
+          3
+        ],
+        [
+          5,
+          2
+        ]
+      ]
+    },
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ]
+    ],
+    "query": [
+      4.5,
+      0.5
+    ],
+    "entry": 0,
+    "bruteForce": {
+      "nn": "n2",
+      "nnIdx": 2,
+      "dist": 0.7071
+    },
+    "greedy": {
+      "path": [
+        "n0",
+        "n1",
+        "n2"
+      ],
+      "pathIdx": [
+        0,
+        1,
+        2
+      ],
+      "hops": 2,
+      "nodesVisited": 3,
+      "recall": 1.0
+    },
+    "hopTable": [
+      {
+        "at": "n0",
+        "atIdx": 0,
+        "atDist": 4.5277,
+        "neighbors": [
+          {
+            "id": "n1",
+            "idx": 1,
+            "dist": 2.5495
+          },
+          {
+            "id": "n3",
+            "idx": 3,
+            "dist": 4.3012
+          }
+        ],
+        "moveTo": "n1"
+      },
+      {
+        "at": "n1",
+        "atIdx": 1,
+        "atDist": 2.5495,
+        "neighbors": [
+          {
+            "id": "n0",
+            "idx": 0,
+            "dist": 4.5277
+          },
+          {
+            "id": "n2",
+            "idx": 2,
+            "dist": 0.7071
+          },
+          {
+            "id": "n3",
+            "idx": 3,
+            "dist": 4.3012
+          }
+        ],
+        "moveTo": "n2"
+      },
+      {
+        "at": "n2",
+        "atIdx": 2,
+        "atDist": 0.7071,
+        "neighbors": [
+          {
+            "id": "n1",
+            "idx": 1,
+            "dist": 2.5495
+          },
+          {
+            "id": "n4",
+            "idx": 4,
+            "dist": 2.9155
+          },
+          {
+            "id": "n5",
+            "idx": 5,
+            "dist": 1.5811
+          }
+        ],
+        "moveTo": null
+      }
+    ],
+    "trap": {
+      "ef1": {
+        "recall": 0.0
+      },
+      "ef3": {
+        "recall": 1.0
+      }
+    },
+    "knobs": {
+      "M": 2,
+      "ef": 1,
+      "efOptions": [
+        1,
+        3
+      ]
+    }
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "_doc": "Chunking, exact (stdlib). A 1000-token doc with the answer span at [380,470] (binary answer-containment: recall@3 ∈ {0,1} = does ANY window fully contain the span?). size=200/overlap=0 → ceil(1000/200)=5 chunks; the answer STRADDLES boundary 400 (20 tok in chunk 2, 70 in chunk 3) → no chunk holds it whole → recall@3 = 0. overlap=50 → ceil(950/150)=7 chunks; window [300,500] holds [380,470] whole → recall@3 = 1.0. Overlap costs storage, buys recall. Frontier (essay): Late Chunking (arXiv:2409.04701) fixes the context-loss this exposes.",
+  "_source": "_research/gen_l10.py (toy, stdlib): nChunks=ceil((L−o)/(size−o)); recallAt3 = 1 iff a window contains answerSpan.",
+  "docLen": 1000,
+  "answerSpan": [
+    380,
+    470
+  ],
+  "scenarios": [
+    {
+      "size": 200,
+      "overlap": 0,
+      "nChunks": 5,
+      "windows": [
+        [
+          0,
+          200
+        ],
+        [
+          200,
+          400
+        ],
+        [
+          400,
+          600
+        ],
+        [
+          600,
+          800
+        ],
+        [
+          800,
+          1000
+        ]
+      ],
+      "answerChunk": null,
+      "recallAt3": 0
+    },
+    {
+      "size": 200,
+      "overlap": 50,
+      "nChunks": 7,
+      "windows": [
+        [
+          0,
+          200
+        ],
+        [
+          150,
+          350
+        ],
+        [
+          300,
+          500
+        ],
+        [
+          450,
+          650
+        ],
+        [
+          600,
+          800
+        ],
+        [
+          750,
+          950
+        ],
+        [
+          900,
+          1000
+        ]
+      ],
+      "answerChunk": 2,
+      "recallAt3": 1.0
+    }
+  ],
+  "formula": "ceil((L-o)/(size-o))"
+}

@@ -17,12 +17,58 @@
 import { defineWidget } from '../_widget-base.js';
 import { frameHeightFor } from '../_plot-util.js';
 
+// Unique-marker counter for the L10 flat path — ≥5 rag-pipeline mounts coexist in the L10 Book, so each
+// needs its own arrowhead marker id (duplicate ids would all resolve to the first marker).
+let flatSeq = 0;
+
 export const mountRagPipeline = defineWidget({
   id: 'rag-pipeline',
   rootClass: 'rag-root',
   exportName: 'mountRagPipeline',
   maxStep: 3,
   render({ host, data, labels, el }) {
+    data = data || {};   // defensive: a mis-wired mount must not throw and abort the whole page's mount loop
+    // ── L10 "The Oracle" flat-pipeline path (REUSE + backward-compatible EXTENSION): when `data` carries a
+    //    flat `stages` list (chunk→embed→retrieve→stuff→generate), draw the recurring ANCHOR figure with an
+    //    optional labels.focusStage (highlight one stage, dim the rest) + labels.mode (normal / poisoned /
+    //    all-green). L7's mount (data.offline/online, NO `stages`) never enters here → its render is
+    //    byte-identical (risk #1: extension must not regress L7). ──
+    if (Array.isArray(data.stages) && data.stages.length) {
+      const seq = data.stages, N = seq.length;
+      const focus = labels.focusStage || null;
+      const mode = labels.mode || 'normal';
+      const poison = new Set(['retrieve', 'stuff', 'generate']);   // the corruption path lit on the catch beat
+      const W = 760, PAD = 20, GAP = 14, ROWY = 72, BOXH = 66;
+      const boxW = (W - 2 * PAD - (N - 1) * GAP) / N;
+      const boxX = (i) => PAD + i * (boxW + GAP);
+      const cxF = (i) => boxX(i) + boxW / 2;
+      const mid = 'rag-ar-l10-' + (flatSeq++);
+      const svg = el('svg', { viewBox: `0 0 ${W} 10`, class: 'wgt-svg rag-svg', role: 'img', 'aria-label': labels.alt || '' }, host);
+      const defs = el('defs', {}, svg);
+      const mk = el('marker', { id: mid, viewBox: '0 0 10 10', refX: '8', refY: '5', markerWidth: '7', markerHeight: '7', orient: 'auto-start-reverse' }, defs);
+      el('path', { d: 'M0,0 L10,5 L0,10 z', class: 'rag-arhead' }, mk);
+      el('text', { x: W / 2, y: 38, class: 'rag-band rag-band-on', 'text-anchor': 'middle' }, svg)
+        .textContent = labels.flowLabel || 'retrieve → augment → generate';
+      for (let i = 0; i < N; i++) {
+        const id = seq[i];
+        let bcls = 'rag-box rag-stage';
+        if (mode === 'all-green') bcls += ' rag-ok';
+        else if (mode === 'poisoned' && poison.has(id)) bcls += ' rag-bad';
+        if (focus) bcls += (id === focus ? ' rag-focus' : ' rag-faint');
+        el('rect', { x: boxX(i), y: ROWY, width: boxW, height: BOXH, rx: 9, class: bcls }, svg);
+        el('text', { x: cxF(i), y: ROWY + BOXH / 2 + 5, 'text-anchor': 'middle',
+          class: 'rag-boxtxt rag-boxtxt-stage' + (focus && id !== focus ? ' rag-faint' : '') }, svg).textContent = labels[id] || id;
+        if (i > 0) {
+          const pa = (mode === 'poisoned' && poison.has(id) && poison.has(seq[i - 1])) ? ' rag-bad-arrow' : '';
+          el('line', { x1: boxX(i) - GAP + 1, y1: ROWY + BOXH / 2, x2: boxX(i) - 2, y2: ROWY + BOXH / 2,
+            class: 'rag-arrow' + pa, 'marker-end': `url(#${mid})` }, svg);
+        }
+      }
+      svg.setAttribute('viewBox', `0 0 ${W} ${frameHeightFor(ROWY + BOXH + 28, 8)}`);
+      // static anchor figure: focus/mode are applied at render; the scaffold steps the caption text.
+      return function update() {};
+    }
+
     const offline = (data.offline || []).map((s) => s.id);
     const online = (data.online || []).map((s) => s.id);
     const seq = offline.concat(online);

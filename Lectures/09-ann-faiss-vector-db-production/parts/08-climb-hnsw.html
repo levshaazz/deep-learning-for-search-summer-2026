@@ -1,0 +1,211 @@
+<section class="slide" data-type="archflow" data-max-step="3" data-current-step="0" data-screen-label="08 Climb · HNSW">
+  <div class="slide-header">
+    <h2>HNSW — greedy search on a small-world graph</h2>
+    <span class="slide-kicker">step the hops (←/→)</span>
+  </div>
+  <div class="widget-mount" data-widget="hnsw-graph"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "toy": {
+      "labels": [
+        "n0",
+        "n1",
+        "n2",
+        "n3",
+        "n4",
+        "n5"
+      ],
+      "coords": {
+        "nodes": [
+          [
+            0,
+            0
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            3,
+            3
+          ],
+          [
+            5,
+            2
+          ]
+        ]
+      },
+      "edges": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          2,
+          5
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          5
+        ]
+      ],
+      "query": [
+        4.5,
+        0.5
+      ],
+      "entry": 0,
+      "bruteForce": {
+        "nn": "n2",
+        "nnIdx": 2,
+        "dist": 0.7071
+      },
+      "greedy": {
+        "path": [
+          "n0",
+          "n1",
+          "n2"
+        ],
+        "pathIdx": [
+          0,
+          1,
+          2
+        ],
+        "hops": 2,
+        "nodesVisited": 3,
+        "recall": 1.0
+      },
+      "hopTable": [
+        {
+          "at": "n0",
+          "atIdx": 0,
+          "atDist": 4.5277,
+          "neighbors": [
+            {
+              "id": "n1",
+              "idx": 1,
+              "dist": 2.5495
+            },
+            {
+              "id": "n3",
+              "idx": 3,
+              "dist": 4.3012
+            }
+          ],
+          "moveTo": "n1"
+        },
+        {
+          "at": "n1",
+          "atIdx": 1,
+          "atDist": 2.5495,
+          "neighbors": [
+            {
+              "id": "n0",
+              "idx": 0,
+              "dist": 4.5277
+            },
+            {
+              "id": "n2",
+              "idx": 2,
+              "dist": 0.7071
+            },
+            {
+              "id": "n3",
+              "idx": 3,
+              "dist": 4.3012
+            }
+          ],
+          "moveTo": "n2"
+        },
+        {
+          "at": "n2",
+          "atIdx": 2,
+          "atDist": 0.7071,
+          "neighbors": [
+            {
+              "id": "n1",
+              "idx": 1,
+              "dist": 2.5495
+            },
+            {
+              "id": "n4",
+              "idx": 4,
+              "dist": 2.9155
+            },
+            {
+              "id": "n5",
+              "idx": 5,
+              "dist": 1.5811
+            }
+          ],
+          "moveTo": null
+        }
+      ],
+      "trap": {
+        "ef1": {
+          "recall": 0.0
+        },
+        "ef3": {
+          "recall": 1.0
+        }
+      },
+      "knobs": {
+        "M": 2,
+        "ef": 1,
+        "efOptions": [
+          1,
+          3
+        ]
+      }
+    }
+  },
+  "labels": {
+    "alt": "A six-node small-world graph in 2-D with a query point; greedy search hops n0→n1→n2 to the nearest neighbour.",
+    "query": "query",
+    "dist": "dist",
+    "hop": "hop",
+    "move": "move",
+    "localMin": "all neighbours farther → local minimum, stop",
+    "atNN": "arrive at the nearest node",
+    "isNN": "is the true nearest neighbour",
+    "hops": "hops",
+    "efKnob": "the ef knob — a wider candidate list escapes a local-min trap:",
+    "readStart": "greedy search — start at the entry node",
+    "s0": "Six vectors become six nodes in 2-D, wired into a navigable small-world graph (M = 2 edges each). The query ◆ sits to the right. Greedy search starts at the entry node n0 and will hop toward the query, one neighbour at a time.",
+    "s1": "From n0, compare its neighbours: n1 is 2.55 away, n3 is 4.30. The closest one wins — step to n1. Greedy always walks to the neighbour nearest the query.",
+    "s2": "From n1, the closest neighbour is n2 at 0.7071 — step there. Now look around: every neighbour of n2 is farther than 0.7071. No move improves things, so greedy stops. n2 is a local minimum.",
+    "s3": "And n2 is exactly the brute-force nearest neighbour (0.7071): recall@1 = 1.0. On six nodes this only shows the mechanism — greedy descent — not a speedup; the O(log N) win appears at scale. The ef knob keeps a wider candidate list so a single local-min trap (ef = 1 → recall 0.0) is escaped (ef = 3 → 1.0)."
+  }
+}
+  </script>
+  <p class="viz-caption">Greedy descent: from the entry node, hop to the closest neighbour until a local minimum — that node is the nearest neighbour. The ef knob widens the candidate list; M sets connectivity.</p>
+  <aside class="slide-notes">climb-hnsw widget. maxStep 3: graph+query → hop1 → hop2 (local min) → NN+recall. Mechanism, not speedup.</aside>
+</section>
