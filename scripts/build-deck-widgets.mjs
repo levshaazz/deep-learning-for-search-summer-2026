@@ -29,8 +29,8 @@ const CSS = join(ROOT, 'Lectures', 'css');
 const DECK_WIDGETS = ['course-map',
   'biencoder', 'crossencoder', 'neural-cascade', 'in-batch-negatives', 'rag-pipeline',
   'colbert-maxsim', 'splade-expansion', 'hybrid-fusion', 'ltr-lambda',
-  'hnsw-graph', 'ivf-cells', 'pq-quantize',    // L9 "Hyperspace Lanes" deck-mounted figures
-  'chunking-demo', 'query-rewrite'];           // L10 "The Oracle" deck-mounted figures (rag-pipeline already listed)
+  'hnsw-graph', 'ivf-cells', 'pq-quantize', 'metric-compare', 'recall-curve',    // L9 "Hyperspace Lanes" deck-mounted figures
+  'chunking-demo', 'query-rewrite', 'query-tree', 'raptor-tree', 'semantic-router', 'rag-control-flow'];  // L10 "The Oracle" deck-mounted figures (rag-pipeline already listed)
 
 for (const id of DECK_WIDGETS) {
   await build({
