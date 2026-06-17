@@ -3,15 +3,20 @@
 .iv-svg { width: 100%; height: auto; display: block; }
 
 /* cell regions (translucent bounding circles) */
-.iv-cell { fill-opacity: .10; stroke-width: 1.5; stroke-dasharray: 4 4;
-  transition: fill-opacity var(--dur, 220ms) var(--ease), opacity var(--dur, 220ms) var(--ease); }
-.iv-cell.is-probed { fill-opacity: .22; stroke-dasharray: none; stroke-width: 2.5; }
+/* region = dashed cluster-coloured OUTLINE, no fill. A translucent cluster fill reads as the SAME
+   hue as that cluster's dots + centroid (slide-viz colour-collision, ΔE=0); the boundary stroke
+   carries the cluster identity without a colliding fill. */
+.iv-cell { fill: none; stroke-width: 1.5; stroke-dasharray: 4 4;
+  transition: opacity var(--dur, 220ms) var(--ease); }
+.iv-cell.is-probed { stroke-dasharray: none; stroke-width: 3; }
 .iv-cell.is-dim { opacity: .3; }
 
 /* the three cell colours (accent / amber / violet — neutral categories, NOT green/red) */
-.iv-c0 { fill: var(--accent, #2A6FDB); stroke: var(--accent-ink, #1B4FA0); }
-.iv-c1 { fill: var(--c-amber, #E0A82E); stroke: var(--warm-ink, #B4521F); }
-.iv-c2 { fill: var(--c-violet, #7D5BA6); stroke: var(--c-violet, #7D5BA6); }
+/* cluster identity = STROKE only (cell outline + centroid outline); the cluster FILL lives solely on
+   the dots below, so cell / centroid / dot of one cluster are no longer one indistinguishable fill. */
+.iv-c0 { stroke: var(--accent-ink, #1B4FA0); }
+.iv-c1 { stroke: var(--warm-ink, #B4521F); }
+.iv-c2 { stroke: var(--c-violet, #7D5BA6); }
 
 .iv-pt .iv-dot { stroke: #fff; stroke-width: 1; }
 .iv-c0 .iv-dot { fill: var(--accent, #2A6FDB); }
@@ -24,10 +29,10 @@
 .iv-pt.is-found .iv-nnring { stroke: var(--c-green, #3A8A5C); stroke-width: 3; }
 .iv-pt.is-missed .iv-nnring { stroke: var(--c-red, #D7522C); stroke-width: 3; stroke-dasharray: 3 3; }
 
-.iv-cent { stroke-width: 2; fill-opacity: .85; }
+.iv-cent { fill: none; stroke-width: 2.5; }   /* hollow cluster-outline diamond — distinct from the solid dots */
 .iv-clbl { font: 700 12px var(--font-mono, monospace); fill: var(--ink-2, #3D434E); }
 
 .iv-query { fill: var(--ink, #14181F); stroke: #fff; stroke-width: 1.5; }
 .iv-qlbl { font: 700 12px var(--font-mono, monospace); fill: var(--ink, #14181F); }
 
-.iv-readhead { font: 700 13px var(--font-mono, monospace); fill: var(--ink, #14181F); }
+.iv-readhead { font: 700 11px var(--font-mono, monospace); fill: var(--ink, #14181F); }   /* 11px keeps the long nprobe/readout line inside the viewBox (OOB) */
