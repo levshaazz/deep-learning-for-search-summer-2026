@@ -94,10 +94,15 @@ export const mountRagControlFlow = defineWidget({
     const gradeCls = { correct: 'rcf-good', ambiguous: 'rcf-warm', wrong: 'rcf-bad' };
     const gradeNodes = grades.map((g, i) => {
       const n = box('branches', colX[i], branchY, 150, 34, g, gradeCls[g] || '');
-      // labelled arrow from the grade diamond's bottom out to each branch
+      const lblcls = g === 'correct' ? 'rcf-edge-good' : (g === 'wrong' ? 'rcf-edge-bad' : 'rcf-edge-warm');
+      // arrow from the grade diamond out to each branch — NOT labelled on the arrow: the three
+      // threshold tags share one short fan-out and used to collide at their (near-coincident) midpoints.
+      arrow('branches', nGrade.x, bot(nGrade), n.x, top(n));
+      // place each threshold tag directly above its OWN branch box — the columns sit far apart
+      // (0.18 / 0.5 / 0.82·W) so the tags never overlap; the style.css halo masks the arrow behind it.
       const tg = thr[g] ? `${labels[g] || g} ${thr[g]}` : (labels[g] || g);
-      arrow('branches', nGrade.x, bot(nGrade), n.x, top(n), tg,
-        g === 'correct' ? 'rcf-edge-good' : (g === 'wrong' ? 'rcf-edge-bad' : 'rcf-edge-warm'));
+      add('branches', el('text', { x: n.x, y: top(n) - 9, class: 'rcf-edgelbl ' + lblcls,
+        'text-anchor': 'middle' }, svg)).textContent = tg;
       return n;
     });
 
