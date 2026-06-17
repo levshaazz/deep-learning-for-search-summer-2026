@@ -143,12 +143,14 @@ function renderToy2({ host, data, labels, el }) {
   const k = toy.k || 5;
   const cls = (ci) => CELL_CLS5[ci % CELL_CLS5.length];
 
-  const W = 480, PAD = 22, plotH = 280;
+  const W = 480, PAD = 22, plotH = 280, topPad = 44;   // top pad 28→44: a cell bounding-circle
+  // (its centre is the member-mean, radius reaches the farthest member + 14) can extend ABOVE the
+  // plot box; 44px of headroom keeps the topmost cell (c2) inside the viewBox (was overrunning ~6px).
   const xs = pts.map((p) => p[0]).concat(cents.map((c) => c[0]), q[0]);
   const ys = pts.map((p) => p[1]).concat(cents.map((c) => c[1]), q[1]);
   const dx = padDomain(Math.min(...xs), Math.max(...xs), 0.14);
   const dy = padDomain(Math.min(...ys), Math.max(...ys), 0.16);
-  const box = { x: PAD, y: 28, w: W - 2 * PAD, h: plotH };
+  const box = { x: PAD, y: topPad, w: W - 2 * PAD, h: plotH };
   const sx = (vx) => box.x + (vx - dx.min) / dx.span * box.w;
   const sy = (vy) => box.y + box.h - (vy - dy.min) / dy.span * box.h;
 

@@ -82,7 +82,7 @@ export const mountRaptorTree = defineWidget({
     const nodeEls = levelBoxes.map((boxes, li) => {
       const name = 'lvl' + li;
       layer(name, li);
-      add(name, el('text', { x: PAD - 4, y: levelY(li) + nodeH / 2 + 4, class: 'rp-leveltag', 'text-anchor': 'end' }, svg))
+      add(name, el('text', { x: 4, y: levelY(li) + nodeH / 2 + 4, class: 'rp-leveltag', 'text-anchor': 'start' }, svg))
         .textContent = levelTag(li);
       return boxes.map((b, i) => {
         const g = el('g', { class: 'rp-nodeg' }, svg);

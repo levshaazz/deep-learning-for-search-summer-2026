@@ -1,0 +1,58 @@
+<section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="46 CRAG & self-RAG">
+  <div class="slide-header">
+    <h2>Self-correcting RAG — grade, then act</h2>
+    <span class="slide-kicker">CRAG branches on a retrieval grade · self-RAG self-critiques (←/→)</span>
+  </div>
+  <div class="widget-mount" data-widget="rag-control-flow"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "_doc": "Self-correcting RAG (descriptive + toy thresholds). CRAG (Yan et al. 2024) runs a retrieval evaluator that grades each retrieval Correct / Ambiguous / Wrong and acts: keep, augment with web search, or discard+rewrite. Self-RAG (Asai et al. ICLR 2024) trains the LM to emit REFLECTION TOKENS — Retrieve, IsRel, IsSup, IsUse. Thresholds illustrative, not measured.",
+    "_source": "_research/gen_l10.py (static, descriptive): toy thresholds; cites CRAG arXiv:2401.15884, Self-RAG arXiv:2310.11511.",
+    "crag": {
+      "grades": ["correct", "ambiguous", "wrong"],
+      "thresholds": {
+        "correct": ">= 0.7",
+        "ambiguous": "0.3 .. 0.7",
+        "wrong": "< 0.3"
+      },
+      "actions": {
+        "correct": "use retrieved context as-is",
+        "ambiguous": "combine retrieved + corrective web search",
+        "wrong": "discard, fall back to web search / query rewrite"
+      },
+      "source": "Yan, Gu, Zhu, Ling, Cao & Zhang, 'Corrective Retrieval Augmented Generation', arXiv:2401.15884 (2024)"
+    },
+    "selfRag": {
+      "reflectionTokens": ["Retrieve", "IsRel", "IsSup", "IsUse"],
+      "gates": {
+        "Retrieve": "decide whether retrieval is needed for this segment",
+        "IsRel": "is the retrieved passage relevant?",
+        "IsSup": "is the generated claim supported by the passage?",
+        "IsUse": "is the overall response useful (1..5)?"
+      },
+      "source": "Asai, Wu, Wang, Sil & Hajishirzi, 'Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection', ICLR 2024 (arXiv:2310.11511)"
+    }
+  },
+  "labels": {
+    "alt": "A directed decision graph: CRAG retrieves, grades each document in a diamond as correct, ambiguous, or wrong, and branches to three actions (use as-is, combine with web search, or discard and fall back to web search); below, self-RAG strings four reflection-token decision diamonds (Retrieve, IsRel, IsSup, IsUse) into a chain ending in a grounded answer.",
+    "cragTitle": "CRAG · grade the retrieval, then act",
+    "selfRagTitle": "self-RAG · reflection-token gates",
+    "retrieve": "retrieve",
+    "grade": "grade each doc",
+    "correct": "correct",
+    "ambiguous": "ambiguous",
+    "wrong": "wrong",
+    "pass": "pass",
+    "answer": "grounded answer",
+    "s0": "Naive RAG retrieves once and trusts whatever comes back. Self-correcting RAG adds a gate. CRAG first retrieves, then runs a lightweight retrieval evaluator that GRADES each document — a decision diamond with toy score thresholds.",
+    "s1": "The grade falls into three buckets by score: correct (≥ 0.7), ambiguous (0.3 .. 0.7), or wrong (< 0.3). Each is a labelled branch out of the diamond — the same retrieval, three possible verdicts.",
+    "s2": "Now act on the verdict. correct → use the retrieved context as-is. ambiguous → combine it with a corrective web search. wrong → discard it and fall back to web search or a query rewrite. The pipeline repairs its own bad retrievals.",
+    "s3": "Self-RAG goes further: it trains the model to emit reflection tokens as it generates. Retrieve? decides whether retrieval is even needed; IsRel asks if a retrieved passage is relevant; IsSup asks if the claim is supported by it. Each is a gate in the chain.",
+    "s4": "The last gate, IsUse, scores how useful the overall response is (1..5). Only a response that clears every reflection gate becomes the grounded answer — the model critiques itself before it commits, instead of trusting one retrieval blindly."
+  }
+}
+  </script>
+  <p class="viz-caption">CRAG grades each retrieval correct / ambiguous / wrong and branches — use as-is, web-augment, or discard &amp; rewrite. Self-RAG goes further: the model emits reflection tokens (Retrieve · IsRel · IsSup · IsUse) that gate retrieval and self-critique.</p>
+  <aside class="slide-notes">CRAG + self-RAG walkthrough (rag-control-flow, l10-selfrag). Steps 0–2 = CRAG (cite arXiv:2401.15884); steps 3–4 = self-RAG (cite arXiv:2310.11511). Thresholds 0.7/0.3 are single-decimal + in widget-data → coverage-safe. The next slide names self-RAG formally.</aside>
+</section>

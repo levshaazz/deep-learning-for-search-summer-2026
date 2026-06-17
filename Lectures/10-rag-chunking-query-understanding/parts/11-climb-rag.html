@@ -1,0 +1,87 @@
+<section class="slide" data-type="archflow" data-max-step="3" data-current-step="0" data-screen-label="11 Climb · RAG pipeline">
+  <div class="slide-header">
+    <h2>The RAG pipeline — the Oracle's anatomy</h2>
+    <span class="slide-kicker">step the stages (←/→)</span>
+  </div>
+  <div class="widget-mount" data-widget="rag-pipeline"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "_doc": "RAG anchor trace + token budget. Toy (exact, stdlib): context 4096; system 200 + query 30 + k·256-token chunks, reserving 512 for the answer. At k=4 → stuffed 1024, prompt 1254, headroom 2842. kMax = floor((4096−200−30−512)/256) = floor(3354/256) = 13. ONE canonical end-to-end trace is the lecture's recurring anchor figure.",
+    "_source": "_research/gen_l10.py (toy, stdlib) + gen_l10_real.py (real retrieve→generate, /usr/bin/python3)",
+    "contextWindow": 4096,
+    "systemTokens": 200,
+    "queryTokens": 30,
+    "answerReserve": 512,
+    "chunkTokens": 256,
+    "stages": [
+      "chunk",
+      "embed",
+      "retrieve",
+      "stuff",
+      "generate"
+    ],
+    "worked": {
+      "k": 4,
+      "stuffed": 1024,
+      "promptTotal": 1254,
+      "headroom": 2842
+    },
+    "kMax": 13,
+    "trace": {
+      "query": "How does the heart pump blood?",
+      "retrieved": [
+        {
+          "id": "doc_cardiac_cycle",
+          "score": 0.82,
+          "chunk": "The cardiac cycle alternates systole and diastole; ventricular contraction ejects blood."
+        },
+        {
+          "id": "doc_circulatory",
+          "score": 0.79,
+          "chunk": "The circulatory system moves blood through arteries and veins to the body's tissues."
+        },
+        {
+          "id": "doc_valves",
+          "score": 0.71,
+          "chunk": "Heart valves keep blood flowing one way between the atria and ventricles."
+        },
+        {
+          "id": "doc_anatomy",
+          "score": 0.65,
+          "chunk": "The heart has four chambers: two atria and two ventricles."
+        }
+      ],
+      "prompt": "System: Answer using ONLY the context. Context: [4 chunks]. Question: How does the heart pump blood?",
+      "answer": "The heart pumps blood through the cardiac cycle: during systole the ventricles contract and eject blood, while valves keep it flowing one way [doc_cardiac_cycle, doc_valves]."
+    }
+  },
+  "labels": {
+    "alt": "A left-to-right pipeline split into an offline build half (ingest, chunk, embed, index) and an online query half (retrieve, rerank, assemble, generate); the cascade is retrieve plus rerank, and the LLM produces a grounded answer with citations.",
+    "bandOffline": "OFFLINE · build-time (once)",
+    "bandOnline": "ONLINE · query-time (per request)",
+    "query": "query",
+    "ingest": "ingest",
+    "chunk": "chunk",
+    "embed": "embed",
+    "index": "index",
+    "qembed": "embed q",
+    "retrieve": "retrieve",
+    "rerank": "rerank",
+    "assemble": "assemble",
+    "generate": "generate",
+    "stuff": "stuff",
+    "flowLabel": "retrieve → augment → generate",
+    "cascadeTag": "the neural cascade",
+    "answerTag": "→ grounded + cited",
+    "citeTag": "+ citations",
+    "s0": "Offline, once per corpus: ingest documents, clean and chunk them, embed every chunk with the bi-encoder, and store the vectors in an ANN index. Expensive — but amortized over every future query.",
+    "s1": "At query time: embed the query, retrieve the top-k from the index (the Scouts), rerank the shortlist (the Judges), assemble the survivors into a context. This is the per-request latency budget.",
+    "s2": "The retrieve→rerank pair is exactly the neural cascade: the bi-encoder Scouts sweep wide and cheap; the cross-encoder Judges deliberate on the few. Cheap-and-wide first, dear-and-narrow last.",
+    "s3": "For RAG, the LLM reads the reranked context and writes an answer grounded in those passages — with citations back to the sources. Retrieval quality caps answer quality: garbage in, garbage out."
+  }
+}
+  </script>
+  <p class="viz-caption">chunk → embed → retrieve → stuff → generate. Retrieval (L3–L9) sits upstream; the LLM reads the stuffed context and answers, grounded, with citations. This figure is the lecture's recurring anchor.</p>
+  <aside class="slide-notes">climb-rag master figure (rag-pipeline flat path on l10-rag). The token budget is the formula slide two slides on; the cosine that produces the retrieval scores is the next slide.</aside>
+</section>
