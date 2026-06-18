@@ -1,7 +1,12 @@
     {
       id: 'four-metric-decomposition', kind: 'prose',
       heading: { en: 'The four-metric quad', ru: 'Квадрат из четырёх метрик', tt: 'Дүрт метрика квадраты' },
-      imgPos: 'inline',
+      img: 'L11/L11-02-four-metrics.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'The four RAGAS metrics laid out as a two-by-two grid over RAGdoll the Oracle\'s answer — faithfulness and answer relevance grading the generator, context precision and recall grading the retriever; Séréga, in his green tübetey, points at one low panel to localise which stage failed.',
+        ru: 'Четыре метрики RAGAS, разложенные сеткой два-на-два поверх ответа Оракула RAGdoll: верность и релевантность ответа оценивают генератор, точность и полнота контекста — поисковик; Серёга в зелёной тюбетейке указывает на одну низкую панель, чтобы локализовать отказавший этап.',
+        tt: 'RAGdoll Оракулының җавабы өстенә ике-ике челтәр итеп куелган дүрт RAGAS метрикасы — тугрылык һәм җавап релевантлыгы генераторны, контекст төгәллеге һәм тулылыгы эзләгечне бәяли; яшел түбәтәйле Серёга кайсы этапның егылганын ачыклар өчен бер түбән панельгә күрсәтә.',
+      },
       body: {
         en: [
           "Lay the four side by side and the design clicks into place. They form a two-by-two: **answer vs. context** crossed with **what we have vs. what we needed**. Faithfulness and answer relevance grade the *generator* (given this context, did it write a grounded, on-topic answer?); context precision and context recall grade the *retriever* (did it surface the right passages, ranked well, with nothing missing?).",

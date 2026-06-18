@@ -1,6 +1,12 @@
     {
       id: 'bias', kind: 'prose',
       heading: { en: 'Risk 1 — bias', ru: 'Риск 1 — смещение', tt: 'Риск 1 — авышлык' },
+      img: 'L12/L12-12-ethics-bias.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'A two-stage pipeline where a skewed corpus feeds a tilted retriever and then a generator, the imbalance growing at each stage; an audit magnifier inspects the corpus and the subgroup bars on the side.',
+        ru: 'Двухстадийный конвейер, где перекошенный корпус питает наклонённый поисковик, а затем генератор, и дисбаланс растёт на каждой стадии; лупа аудита изучает корпус и столбики подгрупп сбоку.',
+        tt: 'Кыек корпус авышкан эзләгечне, аннары генераторны туендырган ике этаплы пайплайн, тигезсезлек һәр этапта үсә; аудит лупасы корпусны һәм яктагы төркемчә баганаларын тикшерә.',
+      },
       body: {
         en: [
           "Bias enters a RAG system at **two stages** and compounds. **Retrieval** inherits the corpus: a skewed corpus surfaces skewed passages — the recall floor from the Oracle, now an ethical problem. **Generation** inherits the model: an LLM amplifies whatever its training taught it to say. The retriever picks biased evidence; the generator dresses it in fluent prose.",

@@ -1,7 +1,12 @@
     {
       id: 'problem-no-gold', kind: 'prose',
       heading: { en: 'No gold answer, and fluent is not correct', ru: 'Нет золотого ответа, и беглый — не значит верный', tt: 'Алтын җавап юк, ә шома — дөрес дигән сүз түгел' },
-      imgPos: 'inline',
+      img: 'L11/L11-01-fluent-but-wrong.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'RAGdoll the Oracle, a patchwork rag-doll, hands over two equally fluent answers — one true, one carrying a fabricated line — and from the outside they read identically; Séréga, in his green tübetey, holds two scorecards and cannot tell which is which without measuring.',
+        ru: 'Оракул RAGdoll, лоскутная кукла, протягивает два одинаково беглых ответа — один верный, другой с выдуманной строкой — и снаружи они читаются одинаково; Серёга в зелёной тюбетейке держит два оценочных листа и не может различить их без измерения.',
+        tt: 'RAGdoll Оракулы, ямаулы курчак, бертөрле шома ике җавап сузып бирә — берсе дөрес, икенчесендә уйлап чыгарылган юл — ә тыштан алар бертөрле укыла; яшел түбәтәйле Серёга ике бәяләү битен тота һәм үлчәмичә аерып булмый.',
+      },
       body: {
         en: [
           "Two facts break every classical metric at once. **First: there is no gold answer.** In ranking we held a labelled relevance judgment for each document and scored the system against it. A generated paragraph has no single correct string — paraphrase, ordering, level of detail, and citation style all vary while the answer stays correct. You cannot diff the model's output against a key that does not exist.",

@@ -1405,6 +1405,87 @@ JOBS = [
      "FINAL. Serega turns and HANDS THE HELM to YOU — offering the ship's wheel forward out of the frame, "
      "the mapped deep-field glowing behind him, a warm proud send-off into the Defense. Black ink + "
      "course-blue + warm-orange; Serega's green tübetey is the ONLY green. No lettered title bar. Fills ≥85% width."),
+
+    # ── L11 expansion (5 → 13 plates): one plate per divider + the key worked/concept slides. The new
+    #    highest-numbered plate (L11-12) is the Serega finale (image-gate sorts by filename). ──
+    ("L11", "L11/L11-01-fluent-but-wrong.png", "16:9", True,
+     "Serega frowns at RAGdoll the Oracle, which delivers a fluent answer-scroll stamped with a big "
+     "confident seal — but the scroll has NO source tag and a wrong date circled. Conveys 'fluent does "
+     "not mean correct; you cannot grade it by how confident it sounds'. Black ink + course-blue scroll "
+     "+ warm-orange wrong-date circle; Serega's green tübetey is the ONLY green; RAGdoll wears no green."),
+    ("L11", "L11/L11-02-four-metrics.png", "4:3", True,
+     "Serega lays out a RAGAS scorecard with FOUR labelled dials — faithfulness, answer-relevance, "
+     "context-precision, context-recall — each a little gauge needle. Conveys the four-way decomposition "
+     "of RAG quality. Black ink + course-blue dials + warm-orange needles; Serega's green tübetey is the "
+     "ONLY green. No lettered title bar."),
+    ("L11", "L11/L11-03-faithfulness-claims.png", "16:9", False,
+     "RAGdoll the Oracle's answer-scroll is split into four claim-strips; a magnifier checks each against "
+     "a stack of retrieved context-cards — three strips get a check, one (an unsupported claim) gets a "
+     "cross. NO Serega in this scene, so NO green anywhere. Black ink + course-blue cards + warm-orange "
+     "cross only. Conveys faithfulness = supported claims / all claims."),
+    ("L11", "L11/L11-07-react-loop.png", "4:3", True,
+     "Serega watches a small agent walk a ReAct loop drawn as a circle: Thought → Action (a lookup) → "
+     "Observation, then round again, a second lookup landing the missing fact. Conveys the agentic "
+     "reason-act loop. Black ink + course-blue loop arrows + warm-orange observation-cards; Serega's "
+     "green tübetey is the ONLY green. No lettered title bar."),
+    ("L11", "L11/L11-09-position-bias.png", "16:9", False,
+     "Goodhart the Trickster (the small sly grinning trickster with impish pointy features, locked "
+     "design) swaps the LEFT/RIGHT order of two answer-cards before a blindfolded judge — and the judge's "
+     "verdict flips with the position, not the content. NO Serega, so NO green anywhere. Black ink + "
+     "warm-orange swap-arrows only. Conveys position bias in an LLM judge."),
+    ("L11", "L11/L11-10-eval-matrix.png", "16:9", True,
+     "Serega studies a comparison wall-chart with three columns — RAGAS, LLM-judge, human — and rows of "
+     "ticks/crosses for what each catches and misses. Conveys 'pick the evaluator that fits the task'. "
+     "Black ink + course-blue chart + warm-orange ticks; Serega's green tübetey is the ONLY green. No "
+     "lettered title bar."),
+    ("L11", "L11/L11-11-self-rag-crag.png", "4:3", False,
+     "two small decision-diamond flows side by side: one grades each retrieval correct/ambiguous/wrong "
+     "and branches (CRAG), the other emits reflection-token gates in a chain (self-RAG). NO Serega in "
+     "this scene, so NO green anywhere. Black ink + course-blue diamonds + warm-orange branch-arrows "
+     "only. Conveys the structured agentic cousins of free-form ReAct."),
+    ("L11", "L11/L11-12-the-verdict.png", "16:9", True,
+     "FINAL. Serega stands confident beside RAGdoll the Oracle, holding up a stamped VERDICT card with a "
+     "clean checkmark — the Ship now grades AND corrects itself, ready for the frontier. A warm, resolved "
+     "send-off mood. Black ink + course-blue + warm-orange; Serega's green tübetey is the ONLY green; "
+     "RAGdoll wears no green. No lettered title bar. Fills ≥85% width."),
+
+    # ── L12 expansion (9 → 16 plates): one plate per divider + worked/concept slide. New highest-numbered
+    #    plate (L12-15) is the Serega finale. ──
+    ("L12", "L12/L12-09-single-hop-trap.png", "16:9", False,
+     "a single retrieval beam reaches ONE far star (record) and stops — a second, linked star stays dark "
+     "and unreached, so a multi-step question goes unanswered. NO Serega in this scene, so NO green "
+     "anywhere. Black ink + course-blue stars + warm-orange beam only. Conveys 'flat single-hop retrieval "
+     "cannot chain across records'. No lettered title bar."),
+    ("L12", "L12/L12-10-community-summaries.png", "4:3", False,
+     "the constellation graph is encircled into TWO communities, each with a small folded summary-card "
+     "beside it; a broad question is answered from the two summary-cards (global view), while a thin "
+     "bridge-edge links the communities. NO Serega in this scene, so NO green anywhere. Black ink + "
+     "course-blue communities + warm-orange summary-cards only. Conveys GraphRAG community summaries."),
+    ("L12", "L12/L12-11-clip-topk.png", "4:3", True,
+     "Sir Cosine — Serega dressed as the stick-figure knight (locked design) — holds one picture-card and "
+     "a RANKED stack of caption-cards beside it: the matching caption sits on top (rank 1), the rest "
+     "below. Conveys CLIP top-k retrieval: the right caption is the nearest. Black ink + course-blue "
+     "cards + warm-orange rank-1 marker; Sir Cosine's green cap is the ONLY green. No lettered title bar."),
+    ("L12", "L12/L12-12-ethics-bias.png", "16:9", False,
+     "a retrieval funnel pours records into an answer, and a skewed scale shows some groups over- and "
+     "under-represented — the bias the corpus and model carry through. NO Serega in this scene, so NO "
+     "green anywhere. Black ink + course-blue funnel + warm-orange skewed-scale only. Conveys corpus + "
+     "model bias in RAG. No lettered title bar."),
+    ("L12", "L12/L12-13-attribution.png", "16:9", True,
+     "Serega the captain points to an answer that carries clear CITATION tags linking each sentence back "
+     "to its source-card — provenance you can inspect and contest. Black ink + course-blue source-cards "
+     "+ warm-orange citation-threads; Serega's green tübetey is the ONLY green. Conveys attribution / "
+     "verifiable provenance. No lettered title bar."),
+    ("L12", "L12/L12-14-bestiary-bow.png", "16:9", True,
+     "the recurring cast takes a small closing bow in a row with Serega at the centre: RAGdoll the Oracle, "
+     "Sir Cosine, Goodhart the Trickster, Chunk Norris and Tokenosaurus (each in their locked design), a "
+     "warm curtain-call. Black ink + course-blue + warm-orange; ONLY Serega's green tübetey and Sir "
+     "Cosine's green cap are green; every other character is bare-headed with no green. No lettered title bar."),
+    ("L12", "L12/L12-15-defense-doorway.png", "16:9", True,
+     "FINAL. Serega stands at a glowing doorway labelled by an arrow (no text) onto the next stage, "
+     "gesturing YOU through — the mapped deep-field behind, the Defense ahead. A warm, proud, send-off "
+     "mood. Black ink + course-blue doorway-glow + warm-orange arrow; Serega's green tübetey is the ONLY "
+     "green. No lettered title bar. Fills ≥85% width."),
 ]
 
 H = {"Authorization": f"Bearer {API_KEY}"}

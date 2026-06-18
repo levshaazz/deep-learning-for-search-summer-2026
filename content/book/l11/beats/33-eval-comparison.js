@@ -1,7 +1,12 @@
     {
       id: 'eval-comparison', kind: 'prose',
       heading: { en: 'RAGAS vs. judge vs. human', ru: 'RAGAS против судьи против человека', tt: 'RAGAS каршы хөкемче каршы кеше' },
-      imgPos: 'inline',
+      img: 'L11/L11-10-eval-matrix.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'A comparison matrix pinned to the courtroom wall — RAGAS, LLM-as-judge, and human raters down the rows, cost, speed, and trust across the columns; Séréga, in his green tübetey, arranges the three methods as a ladder while RAGdoll the Oracle waits to be graded.',
+        ru: 'Сравнительная матрица, приколотая к стене зала суда: RAGAS, LLM-судья и люди-оценщики по строкам, стоимость, скорость и доверие по столбцам; Серёга в зелёной тюбетейке выстраивает три метода лесенкой, пока Оракул RAGdoll ждёт оценки.',
+        tt: 'Хөкем залы стенасына кадакланган чагыштыру матрицасы — юлларда RAGAS, LLM-хөкемче һәм кеше-бәяләүчеләр, баганаларда бәя, тизлек һәм ышаныч; яшел түбәтәйле Серёга өч ысулны баскыч итеп тезә, ә RAGdoll Оракулы бәяләнүне көтә.',
+      },
       body: {
         en: [
           "Three witnesses, three trade-offs — pick by what you can afford and what you need to know. **RAGAS** is cheap, fast, and *decomposed*: four interpretable metrics that localise blame to the generator or the retriever. Its weakness is that it needs a factual, retrieval-grounded question and runs on a judging model whose blind spots it inherits. Use it for **continuous monitoring** — every answer, every day — and for **diagnosis** when something breaks.",
