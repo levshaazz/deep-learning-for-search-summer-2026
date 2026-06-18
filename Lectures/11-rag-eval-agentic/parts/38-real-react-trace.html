@@ -1,0 +1,36 @@
+<section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="38 Real ReAct trace, step by step">
+  <div class="slide-header">
+    <h2>A real model solves a 2-hop question</h2>
+    <span class="slide-kicker">E2E · frozen llama3.1:8b (temp 0, seed 42)</span>
+  </div>
+  <div class="e2e-arch">
+    <div class="e2e-arch-block" data-role="reduce" data-step-range="1" data-tooltip="Hop 1: look up the book to find its authors."><div class="arch-name">lookup · book</div><div class="arch-shape">authors</div></div>
+    <div class="e2e-arch-arrow" data-step-range="1..2"></div>
+    <div class="e2e-arch-block" data-role="project" data-step-range="2" data-tooltip="Hop 2: look up the author to find the publisher they co-founded."><div class="arch-name">lookup · author</div><div class="arch-shape">publisher</div></div>
+    <div class="e2e-arch-arrow" data-step-range="2..3"></div>
+    <div class="e2e-arch-block" data-role="nonlinear" data-step-range="3" data-tooltip="Both hops landed — emit the finish action."><div class="arch-name">finish</div><div class="arch-shape">answer</div></div>
+    <div class="e2e-arch-legend"><span class="leg" data-role="reduce">hop 1</span><span class="leg" data-role="project">hop 2</span><span class="leg" data-role="nonlinear">finish</span></div>
+  </div>
+  <div class="e2e-twin">
+    <div class="e2e-panel e2e-math-panel">
+      <div class="panel-head">The question &amp; loop</div>
+      <div class="e2e-step" data-step="0"><div class="step-formula">&ldquo;What publishing company did an author of <em>The Pragmatic Programmer</em> co-found?&rdquo;</div><p class="step-caption">Two hops: book &rarr; author &rarr; publisher. Press &rarr; to run the loop.</p></div>
+      <div class="e2e-step" data-step="1"><div class="step-formula"><code>Thought:</code> who wrote it? <code>Action: lookup[the pragmatic programmer]</code></div><p class="step-caption">Hop 1 — find the authors.</p></div>
+      <div class="e2e-step" data-step="2"><div class="step-formula"><code>Thought:</code> what did an author co-found? <code>Action: lookup[andrew hunt]</code></div><p class="step-caption">Hop 2 — follow an author to the publisher.</p></div>
+      <div class="e2e-step" data-step="3"><div class="step-formula"><code>Action: finish[...]</code></div><p class="step-caption">Both facts in hand &rarr; answer.</p></div>
+    </div>
+    <div class="e2e-panel e2e-example-panel">
+      <div class="panel-head">What the real model observed</div>
+      <div class="e2e-step" data-step="0"><p class="step-caption">&darr; The actual frozen-model trace, step by step.</p></div>
+      <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label">obs: &ldquo;<em>The Pragmatic Programmer</em> was written by Andrew Hunt and David Thomas.&rdquo;</span></div></div>
+      <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label">obs: &ldquo;Andrew Hunt&hellip; co-founded the publisher Pragmatic Bookshelf.&rdquo;</span></div></div>
+      <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label is-highlight">answer: <strong>Pragmatic Bookshelf</strong> — solved in 3 steps</span></div><p class="step-caption tiny">A small open model, made a capable agent by giving it a structured lookup tool.</p></div>
+    </div>
+  </div>
+  <div class="e2e-stepper">
+    <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">&larr;</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 3</span></div><button type="button" class="step-btn" data-step-act="next">&rarr;</button></div>
+    <span class="e2e-stage-name">2-hop ReAct</span>
+    <button type="button" class="e2e-toggle">Loop only</button>
+  </div>
+  <aside class="slide-notes">real-ReAct-trace e2e. l11-agentic.real (frozen llama3.1:8b, temp 0, seed 42): question = "publishing company an author of The Pragmatic Programmer co-founded"; 3-step trace book→author→publisher→finish; finalAnswer "Pragmatic Bookshelf"; solved true. The lesson: structure (a lookup tool over an entity list) turns a small model into a capable agent. All strings/numbers from the data file.</aside>
+</section>

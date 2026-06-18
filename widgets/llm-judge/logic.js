@@ -7,7 +7,7 @@
    text from i18n `labels` (en+ru+tt). Built on _widget-base.js + _plot-util.js. GREEN marks ONLY the
    winner / the honest-good answer; RED marks the gamed / losing answer; WARM flags the verbosity bias.
 
-   Steps (maxStep = 5, the deck may pass k up to maxStep so we clamp and hold the final state):
+   Steps (maxStep = 4; the deck may pass k up to maxStep so we clamp and hold the final state):
      0 → the rubric (3 criteria) + the two answers' per-criterion score chips.
      1 → pointwise means: A 4.0, B 2.6667 (two 1..5 bars).
      2 → pairwise verdict: A wins (A highlighted green).
@@ -22,7 +22,7 @@ export const mountLlmJudge = defineWidget({
   id: 'llm-judge',
   rootClass: 'lj-root',
   exportName: 'mountLlmJudge',
-  maxStep: 5,
+  maxStep: 4,
   render({ host, data, labels, el }) {
     const d = data || {};
     const rubric = (d.rubric && d.rubric.criteria) || [];

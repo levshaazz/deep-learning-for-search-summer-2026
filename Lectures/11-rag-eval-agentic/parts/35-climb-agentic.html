@@ -1,0 +1,66 @@
+<section class="slide" data-type="archflow" data-max-step="4" data-current-step="0" data-screen-label="35 Climb · The agentic loop">
+  <div class="slide-header">
+    <h2>The agentic climb — Thought, Action, Observation</h2>
+    <span class="slide-kicker">step the ReAct loop over a two-hop question (&larr;/&rarr;)</span>
+  </div>
+  <div class="widget-mount" data-widget="agentic-loop"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "_src": "toy ReAct/Self-RAG/CRAG trace (gen_l11.py) + REAL frozen llama3.1:8b ReAct trace",
+    "react": {
+      "question": "What did the founder of Acme Corp study?",
+      "steps": [
+        { "step": 0, "thought": "I need the founder of Acme Corp.", "action": "lookup[Acme Corp]", "observation": "Acme Corp was founded by Dana Reyes.", "recallAt1": 0 },
+        { "step": 1, "thought": "Now find what Dana Reyes studied.", "action": "lookup[Dana Reyes]", "observation": "Dana Reyes studied computer science at MIT.", "recallAt1": 1 },
+        { "step": 2, "thought": "I can answer now.", "action": "finish[computer science at MIT]", "observation": null, "recallAt1": 1 }
+      ],
+      "recallByStep": [0, 0, 1],
+      "hops": 2,
+      "solved": true
+    },
+    "selfRag": {
+      "reflectionTokens": ["Retrieve", "IsRel", "IsSup", "IsUse"],
+      "note": "The model emits reflection tokens to gate retrieval and critique its own output (L10 callback)."
+    },
+    "crag": {
+      "grades": ["correct", "ambiguous", "wrong"],
+      "actions": { "correct": "use as-is", "ambiguous": "combine + web search", "wrong": "discard, rewrite" },
+      "note": "A retrieval evaluator grades each doc and branches — the L10 self-correcting loop (callback)."
+    },
+    "real": {
+      "_model": "llama3.1:8b",
+      "question": "What publishing company did an author of the book 'The Pragmatic Programmer' co-found?",
+      "steps": 3,
+      "solved": true,
+      "finalAnswer": "Pragmatic Bookshelf",
+      "trace": [
+        { "step": 0, "type": "lookup", "query": "the pragmatic programmer", "observation": "The book 'The Pragmatic Programmer' was written by Andrew Hunt and David Thomas." },
+        { "step": 1, "type": "lookup", "query": "andrew hunt", "observation": "Andrew Hunt is a software author who co-founded the publisher Pragmatic Bookshelf." },
+        { "step": 2, "type": "finish", "query": null, "observation": null }
+      ],
+      "note": "Real llama3.1:8b ReAct loop (temp 0, seed 42): a 2-hop question solved in 3 steps (book → author → publisher → finish). Structure (an entity list) made the small model a capable agent."
+    }
+  },
+  "labels": {
+    "alt": "A ReAct loop over a two-hop question: three lanes — Thought, Action, Observation — iterate. The first lookup finds the founder, the second lands the missing fact, and recall@1 climbs from 0 to 1. A finish step gives the answer, a real llama-3.1 run badge appears, and Self-RAG reflection tokens and CRAG grades are shown as the structured cousins of free-form ReAct.",
+    "qHead": "2-hop question",
+    "recallLabel": "recall@1",
+    "laneThought": "Thought",
+    "laneAction": "Action",
+    "laneObservation": "Observation",
+    "finishLabel": "finish",
+    "realBadge": "{model} solved it in {steps} steps",
+    "selfRagHdr": "Self-RAG · reflection tokens",
+    "cragHdr": "CRAG · retrieval grades",
+    "s0": "A two-hop question can't be answered from one retrieval — the answer lives behind a fact we don't have yet. So instead of retrieving once, the model runs a loop: Thought, then Action, then Observation, repeated. recall@1 starts at zero — nothing relevant has been found.",
+    "s1": "First iteration. The Thought names what's missing; the Action is a lookup that searches for the first entity; the Observation returns the founder's name. We're one hop in, but we still don't have what was actually asked — so recall@1 is still zero.",
+    "s2": "Second iteration — this is the hop that matters. The new Thought feeds the founder's name back into a second lookup, and this Observation finally returns the missing fact. The chain closed: recall@1 jumps to one and the Observation lane turns green.",
+    "s3": "With both hops landed, the model stops looping and emits a finish action with the answer — the loop is solved. And this isn't only a toy: a real, small open model ran exactly this ReAct loop end to end on a different two-hop question and got it right, shown in the badge below.",
+    "s4": "Free-form ReAct improvises its loop in natural language. Its structured cousins make the same control flow explicit: Self-RAG emits reflection tokens to decide when to retrieve and to critique its own output, while CRAG grades each retrieved doc and branches on the grade. Both are the L10 self-correcting loop, now tokenized."
+  }
+}
+  </script>
+  <p class="viz-caption">Two hops, three steps: lookup the founder (recall@1 = 0), feed it back to find what they studied (recall@1 &rarr; 1), then finish. A real frozen llama3.1:8b ran the same loop and solved a different 2-hop question in 3 steps.</p>
+  <aside class="slide-notes">climb-agentic master figure (agentic-loop on l11-agentic). Steps 0–3 = the toy ReAct loop (recall@1 0→0→1, hops 2, solved); step 4 = Self-RAG/CRAG as structured cousins. The real badge shows the frozen llama3.1:8b run (3 steps → "Pragmatic Bookshelf"). All numbers/strings from data/l11-agentic.json.</aside>
+</section>

@@ -1322,6 +1322,89 @@ JOBS = [
      "RAGdoll's patches and the loose thread. Conveys 'reflection tokens: decide whether to retrieve, "
      "then self-critique'. RAGdoll is bare-headed and wears no green, and neither does its "
      "reflection; Serega's green tübetey is the ONLY green in the image. Fills ≥85% width."),
+
+    # ── L11 "Judging the Oracle" (RAG evaluation + agentic). Goodhart the Trickster gets his
+    #    Measure-villain climax. hero (00) + final (08) feature Serega; Serega ratio 3/5 = 60%. ──
+    ("L11", "L11/L11-00-judging-the-oracle.png", "16:9", True,
+     "HERO. Serega the host stands before RAGdoll the Oracle (the patchwork rag-doll STITCHED from "
+     "retrieved text-scrap patches with two button eyes and a stitched smile, as locked) and holds up "
+     "a RUBRIC SCORECARD — a small clipboard with four tick-boxes (a scale, a checkmark, a magnifier, "
+     "a net) — grading the Oracle's freshly-spoken answer-scroll. Serega's expression is discerning, "
+     "weighing. Black ink + course-blue (RAGdoll cloth + clipboard) + warm-orange (the answer-scroll); "
+     "Serega's green tübetey is the ONLY green; RAGdoll wears no green. No lettered title bar. Fills ≥85% width."),
+    ("L11", "L11/L11-04-goodhart-returns.png", "16:9", False,
+     "Goodhart the Trickster returns — the small sly grinning trickster with impish pointy features "
+     "(locked design) — sneaking to a JUDGE'S desk and pressing a thumb on the scale, tilting a balance "
+     "so a fat padded answer-scroll outweighs a slim correct one. The judge is a plain bare-headed stick "
+     "figure wearing a blindfold. NO Serega in this scene, so NO green anywhere at all. Black ink + "
+     "warm-orange (the tilted scale + padding) only. Conveys 'optimise the metric and you game it, not "
+     "the quality — the score becomes a target'. No lettered title bar."),
+    ("L11", "L11/L11-05-judge-gamed.png", "16:9", False,
+     "two answer-cards before a bare-headed judge: a SHORT card (correct, tidy) and a LONG verbose card "
+     "(the same content padded and stretched, repetitive); the judge's hand reaches for the LONG one. A "
+     "small ruler shows the long card is merely bigger, not better. NO Serega in this scene, so NO green "
+     "anywhere. Black ink + course-blue cards + warm-orange ruler only. Conveys verbosity bias in an "
+     "LLM judge. No lettered title bar."),
+    ("L11", "L11/L11-06-self-rag.png", "4:3", True,
+     "the self-correcting loop: RAGdoll the Oracle reads a retrieved scroll, then re-reads its OWN draft "
+     "answer through a small magnifier, crossing out one unsupported line and rewriting it; a circular "
+     "arrow shows the retrieve→grade→correct loop. Serega stands quietly at the edge as a small approving "
+     "observer, not the focus. Black ink + course-blue scrolls + warm-orange correction-mark; Serega's "
+     "green tübetey is the ONLY green; RAGdoll wears no green. No lettered title bar."),
+    ("L11", "L11/L11-08-grades-itself.png", "16:9", True,
+     "FINAL. Serega stands proud beside RAGdoll the Oracle, who now holds up its OWN answer next to a "
+     "small self-grading checklist — every box ticked, one line corrected — the Ship grades and corrects "
+     "itself. A confident, resolved mood; a faint gateway-light ahead hints at the next frontier. Black "
+     "ink + course-blue + warm-orange; Serega's green tübetey is the ONLY green; RAGdoll wears no green. "
+     "No lettered title bar. Fills ≥85% width."),
+
+    # ── L12 "The Deep Field" (advanced RAG · multimodal · ethics). Sir Cosine rules the shared CLIP
+    #    space; arc-level helm handoff. hero (00) + final (08) feature Serega; Serega ratio 5/9 = 56%. ──
+    ("L12", "L12/L12-00-the-deep-field.png", "16:9", True,
+     "HERO. Serega the host stands at the prow of the Ship gazing into THE DEEP FIELD — a vast star-field "
+     "where distant records glow as points and faint lines hint at links between them. He holds a small "
+     "spyglass; awe and resolve. Black ink + course-blue starfield + warm-orange spyglass-glint; Serega's "
+     "green tübetey is the ONLY green. No lettered title bar. Fills ≥85% width."),
+    ("L12", "L12/L12-01-constellation.png", "16:9", False,
+     "a CONSTELLATION GRAPH: glowing star-nodes (entities) joined by faint lines (relations), with a path "
+     "of THREE linked stars highlighted to show a multi-hop chain across the dark — distant stars cannot "
+     "be reached in a single leap, only by hopping the links. NO Serega in this scene, so NO green "
+     "anywhere. Black ink + course-blue stars + warm-orange highlighted path only. No lettered title bar."),
+    ("L12", "L12/L12-02-shared-space.png", "4:3", True,
+     "Serega holds up TWO cards that snap together in one shared space — a small picture-card (an image) "
+     "and a word-card (its caption) — joined by a short warm-orange tether showing they sit close; other "
+     "mismatched picture/word cards drift far apart. Conveys 'an image and its caption are neighbours in "
+     "one space'. Black ink + course-blue cards + warm-orange tether; Serega's green tübetey is the ONLY "
+     "green. No lettered title bar."),
+    ("L12", "L12/L12-03-sir-cosine-crossmodal.png", "4:3", True,
+     "Sir Cosine — Serega dressed as the stick-figure knight (locked design) — stands between a PICTURE "
+     "and a WORD and measures the ANGLE between them with a knightly protractor-compass, the small angle "
+     "meaning 'a match'. Conveys CLIP = cosine in a shared space, now across modalities. Black ink + "
+     "course-blue + warm-orange protractor; Sir Cosine's green cap is the ONLY green. No lettered title bar."),
+    ("L12", "L12/L12-04-colpali.png", "16:9", False,
+     "a vision-language 'eye' reads a whole DOCUMENT PAGE as an image — patches of the page (a table, a "
+     "figure, a paragraph) glow as it retrieves directly from the pixels, no OCR; a magnifier hovers over "
+     "the page. NO Serega in this scene, so NO green anywhere. Black ink + course-blue page + warm-orange "
+     "glowing patches only. No lettered title bar."),
+    ("L12", "L12/L12-05-the-helm.png", "4:3", False,
+     "the Ship's HELM — a ship's wheel at the bridge — lit and ready, the deep-field starlight beyond the "
+     "viewport, waiting for a hand to take it. NO Serega in this scene, so NO green anywhere. Black ink + "
+     "course-blue wheel + warm-orange console-glow only. No lettered title bar."),
+    ("L12", "L12/L12-06-the-captain.png", "16:9", True,
+     "Serega as the responsible CAPTAIN, one hand on the helm, weighing a decision: a small balance holds "
+     "'cite + ground + abstain' on one pan against a tempting fluent-but-unsourced answer on the other — "
+     "he chooses the grounded pan. Conveys 'with power, responsibility — the captain answers for the "
+     "Ship'. Black ink + course-blue + warm-orange balance; Serega's green tübetey is the ONLY green. No "
+     "lettered title bar."),
+    ("L12", "L12/L12-07-mapped.png", "16:9", False,
+     "the once-deep field now MAPPED — the star-field laced with bright routes connecting clusters of "
+     "records, the whole galaxy charted as four linked regions (get data → measure → rank → generate) "
+     "without any text labels. NO Serega in this scene, so NO green anywhere. Black ink + course-blue map "
+     "+ warm-orange routes only. No lettered title bar."),
+    ("L12", "L12/L12-08-helm-handoff.png", "16:9", True,
+     "FINAL. Serega turns and HANDS THE HELM to YOU — offering the ship's wheel forward out of the frame, "
+     "the mapped deep-field glowing behind him, a warm proud send-off into the Defense. Black ink + "
+     "course-blue + warm-orange; Serega's green tübetey is the ONLY green. No lettered title bar. Fills ≥85% width."),
 ]
 
 H = {"Authorization": f"Bearer {API_KEY}"}

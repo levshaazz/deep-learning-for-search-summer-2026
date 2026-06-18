@@ -530,7 +530,7 @@ def claims():
              anchor=r"\b(32\.3)\s*%", must=True),
         dict(id="top-3 %",   deck="L1", value=CLICK["top3Pct"], tol=0.2,
              anchor=r"\b(60\.6)\b", must=True),
-    ] + l3_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims()
+    ] + l3_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims() + l11_deck_claims() + l12_deck_claims()
 
 # ── [C] BOOK CLAIMS: the built Book PROSE must show the same flagship numbers as data/ ───────────
 # The Book restates the decks' worked examples in its own prose/KaTeX, so the deck anchors do NOT
@@ -633,6 +633,7 @@ def book_claims():
     out += l8_book_claims()
     out += l9_book_claims()
     out += l10_book_claims()
+    out += l11_book_claims()
     return out
 
 # ── [C] L7 DECK claims: the cited reranker benchmarks the deck DISPLAYS (≥2-decimal → coverage-gated).
@@ -1181,8 +1182,13 @@ COVERAGE_BASELINE = {
     # claims are matched GLOBALLY, so they ALSO cover numbers some earlier units displayed-but-shared
     # (cosines, fractions, √-norms reused across lectures) → those un-gated counts dropped, ratchet lowered
     # to match (strictly stronger; never raised). New units L9/L10 stay at 0 via .get(surf, 0).
-    "deck:L0": 0, "deck:L1": 1, "deck:L2": 6, "deck:L3": 47, "deck:L4": 36, "deck:L5": 48, "deck:L6": 29,
-    "book:L0": 0, "book:L1": 1, "book:L2": 7,  "book:L3": 12, "book:L4": 19, "book:L5": 12, "book:L6": 7,
+    # TIGHTENED again after the L11/L12 [C] expansion: the new L11 reverse-question cosines (0.92/0.88/0.31)
+    # and RAGAS/Goodhart means are matched GLOBALLY, so they ALSO coincidentally cover a handful of earlier
+    # displayed-but-shared numbers (deck:L2 0.31, deck:L3 0.8798≈0.88, deck:L4 0.6538/0.654/0.88, deck:L5
+    # 0.3098≈0.31, book:L1/L6 0.92) → those un-gated counts dropped, ratchet lowered to match (strictly
+    # stronger; never raised). New units L11/L12 stay at 0 via .get(surf, 0).
+    "deck:L0": 0, "deck:L1": 1, "deck:L2": 5, "deck:L3": 46, "deck:L4": 33, "deck:L5": 47, "deck:L6": 29,
+    "book:L0": 0, "book:L1": 0, "book:L2": 7,  "book:L3": 12, "book:L4": 19, "book:L5": 12, "book:L6": 6,
 }
 _COV_DEC   = re.compile(r'(?<![\d.])\d+\.\d{2,}(?!\d)')   # grounded signature: a decimal, ≥2 fractional digits
 _COV_ARXIV = re.compile(r'^\d{4}\.\d{4,}$')               # arXiv id (e.g. 1901.04085) — not data
@@ -1947,6 +1953,51 @@ def l10_deck_claims():
     ]
 
 
+# ── [C] L11 DECK CLAIMS: every visible ≥2-dp worked value the L11 deck DISPLAYS == data/l11-*.json.
+#    Anchored against the raw KaTeX / prose on the RAGAS + LLM-judge slides. Values from data globals
+#    (reverseQuestionCos / answerRelevance / contextPrecision and the Goodhart honest/length-biased means);
+#    these also COVER the Book restatement (coverage-guard's gated set is claims()+book_claims()). ──
+def l11_deck_claims():
+    rqc = RAGAS11["reverseQuestionCos"]                            # [0.92, 0.88, 0.31] — paraphrase→original cosines
+    gh  = JUDGE11["goodhart"]                                      # honest A 4.3333 vs length-biased gamed C 4.25
+    C = lambda id, value, anchor, tol=1e-4: dict(id=id, deck="L11", value=value, tol=tol, anchor=anchor, must=True)
+    return [
+        # ── RAGAS answer-relevance: mean[0.92, 0.88, 0.31] = 2.11/3 = 0.7033 (the reverse-question cosines) ──
+        C("L11 deck rqc0",  rqc[0], r"\\operatorname\{mean\}\[([\d.]+), 0\.88, 0\.31\]"),
+        C("L11 deck rqc1",  rqc[1], r"\\operatorname\{mean\}\[0\.92, ([\d.]+), 0\.31\]"),
+        C("L11 deck rqc2",  rqc[2], r"\\operatorname\{mean\}\[0\.92, 0\.88, ([\d.]+)\]"),
+        # numerator 2.11 = Σ reverseQuestionCos (the displayed \frac sum) — value derived from the data, not typed
+        C("L11 deck rqc sum", round(sum(rqc), 2), r"= \\frac\{([\d.]+)\}\{3\} = \\mathbf\{0\.703"),
+        C("L11 deck ans rel", RAGAS11["answerRelevance"], r"\\frac\{2\.11\}\{3\} = \\mathbf\{([\d.]+)\}"),
+        # ── RAGAS context precision: (1 + 2/3)/2 = 0.8333 (ranking-aware precision) ──
+        C("L11 deck ctx prec", RAGAS11["contextPrecision"], r"\(1 \+ 2/3\)/2 = ([\d.]+)"),
+        # ── LLM-judge Goodhart flip: honest A = mean[5,5,3] = 4.3333; over-weight length and gamed C = 4.25 wins ──
+        C("L11 deck honest A", gh["honest"]["good"],       r"A = \\operatorname\{mean\}\[5, 5, 3\] = \\mathbf\{([\d.]+)\}"),
+        C("L11 deck gamed C",  gh["lengthBiased"]["gamed"], r"length-biased winner C ([\d.]+) (?:&gt;|>) A 4\.0"),
+    ]
+
+
+# ── [C] L12 DECK CLAIMS: every visible ≥2-dp worked value the L12 deck DISPLAYS == data/l12-*.json.
+#    Anchored against the raw KaTeX CLIP cosine matrix (\begin{bmatrix}) + the matched-mean/gap prose.
+#    Values from data globals (cosineMatrix cells, matchedMeanCos, contrastiveGap). ──
+def l12_deck_claims():
+    M = CLIP12["cosineMatrix"]                                     # 3×3 image×text cosines (diagonal = matched pairs)
+    C = lambda id, value, anchor, tol=1e-4: dict(id=id, deck="L12", value=value, tol=tol, anchor=anchor, must=True)
+    return [
+        # ── CLIP cosine matrix off-diagonals: pinned by each cell's row/column neighbours in the bmatrix ──
+        C("L12 deck m01", M[0][1], r"\\mathbf\{0\.9974\} & ([\d.]+) & 0\.171"),
+        C("L12 deck m02", M[0][2], r"& 0\.6547 & ([\d.]+) \\\\"),
+        C("L12 deck m11", M[1][1], r"0\.6609 & \\mathbf\{([\d.]+)\}"),
+        C("L12 deck m12", M[1][2], r"\\mathbf\{0\.991\} & ([\d.]+) \\\\"),
+        C("L12 deck m20", M[2][0], r"\\\\ ([\d.]+) & 0\.329"),
+        C("L12 deck m21", M[2][1], r"0\.1712 & ([\d.]+) & \\mathbf"),
+        C("L12 deck m22", M[2][2], r"0\.329 & \\mathbf\{([\d.]+)\}"),
+        # ── contrastive gap: matched mean 0.9944 vs mismatched 0.3791, gap 0.6153 (the punchline carved by the loss) ──
+        C("L12 deck matched", CLIP12["matchedMeanCos"], r"matched <strong>([\d.]+)</strong> vs mi"),
+        C("L12 deck gap",     CLIP12["contrastiveGap"], r"carved the <strong>([\d.]+)</strong> gap"),
+    ]
+
+
 def l9_book_claims():
     H = HNSW9["toy"]
     nd = {}                                   # node label → distance-to-q (from the hop table)
@@ -2022,6 +2073,29 @@ def l10_book_claims():
         dict(id="book L10 rr hyde", deck="L10", value=W["hyde"]["rr"], tol=1e-4, anchor=r"1/2 = \\mathbf\{([\d.]+)\}", must=True),
         dict(id="book L10 mq single", deck="L10", value=W["multiQuery"]["recallAt5Single"], tol=1e-4, anchor=r"2/5.{0,45}?\\mathbf\{([\d.]+)\}", must=True),
         dict(id="book L10 mq union", deck="L10", value=W["multiQuery"]["recallAt5Union"], tol=1e-4, anchor=r"4/5.{0,45}?\\mathbf\{([\d.]+)\}", must=True),
+    ]
+
+
+# ── [C] L11 BOOK CLAIMS: the built Book PROSE (worked :::calc + KaTeX) must show the same RAGAS answer-
+#    relevance trace + Goodhart means as data/l11-*.json. Same numbers the deck shows, but the Book restates
+#    them in its own KaTeX (\dfrac / \([\,..\]\)), so the deck anchors don't match — paired here with Book
+#    markup. Values from the data globals (single source — never re-typed); 2.11 = Σ reverseQuestionCos. ──
+def l11_book_claims():
+    rqc = RAGAS11["reverseQuestionCos"]
+    gh  = JUDGE11["goodhart"]
+    C = lambda id, value, anchor, tol=1e-4: dict(id="book "+id, deck="L11", value=value, tol=tol, anchor=anchor, must=True)
+    return [
+        # ── RAGAS answer relevance: \([\,0.92,\ 0.88,\ 0.31\,]\) → 2.11/3 = 0.7033 ──
+        C("L11 rqc0",  rqc[0], r"question \\\(q\\\): \\\(\[\\,([\d.]+),\\ 0\.88"),
+        C("L11 rqc1",  rqc[1], r"\\,0\.92,\\ ([\d.]+),\\ 0\.31"),
+        C("L11 rqc2",  rqc[2], r"0\.88,\\ ([\d.]+)\\,\]"),
+        C("L11 rqc sum", round(sum(rqc), 2), r"= \\dfrac\{([\d.]+)\}\{3\} = \\mathbf\{0\.7033\}"),
+        C("L11 ans rel", RAGAS11["answerRelevance"], r"\\dfrac\{2\.11\}\{3\} = \\mathbf\{([\d.]+)\}"),
+        # ── RAGAS context precision: \dfrac{1 + \tfrac{2}{3}}{2} = 0.8333 ──
+        C("L11 ctx prec", RAGAS11["contextPrecision"], r"\\dfrac\{1 \+ \\tfrac\{2\}\{3\}\}\{2\} = \\mathbf\{([\d.]+)\}"),
+        # ── LLM-judge Goodhart flip: honest A = mean[5,5,3] = 4.3333; padded C = (4+3+2·5)/4 = 4.25 wins ──
+        C("L11 honest A", gh["honest"]["good"],        r"A = \\operatorname\{mean\}\[5, 5, 3\] = \\mathbf\{([\d.]+)\}"),
+        C("L11 gamed C",  gh["lengthBiased"]["gamed"], r"2\\cdot 5\}\{4\} = \\mathbf\{([\d.]+)\}"),
     ]
 
 
@@ -2422,6 +2496,22 @@ def selftest():
     print("[selftest:prov-L10-raptor]", next((m for s, m in repL10f if s == "HARD"), "provenance-L10 raptor: NO FLAG"))
     okL10X = okC4 and okRF and okRt and okBd and okL10c and okL10d and okL10e and okL10f
 
+    # New L11/L12 [C]: the RAGAS answer-relevance trace (deck), a Book RAGAS number, and a CLIP cosine-matrix
+    # cell (deck) must all flag DRIFT — proving the new L11/L12 anchors are not blind.
+    cAR = next(x for x in claims() if x["id"] == "L11 deck ans rel")
+    sevAR, msgAR = check_claim(cAR, r"\frac{2.11}{3} = \mathbf{0.9999}")  # data/ answerRelevance is 0.7033
+    okAR = sevAR == "HARD" and "DRIFT" in msgAR
+    print("[selftest:L11-ragas]", msgAR)
+    cBR = next(x for x in book_claims() if x["id"] == "book L11 honest A")
+    sevBR, msgBR = check_claim(cBR, r"A = \operatorname{mean}[5, 5, 3] = \mathbf{9.9999}")  # data/ honest A is 4.3333
+    okBR = sevBR == "HARD" and "DRIFT" in msgBR
+    print("[selftest:L11-judge]", msgBR)
+    cCM = next(x for x in claims() if x["id"] == "L12 deck m11")
+    sevCM, msgCM = check_claim(cCM, r"0.6609 & \mathbf{0.9999} & 0.2877")  # data/ matrix[1][1] is 0.991
+    okCM = sevCM == "HARD" and "DRIFT" in msgCM
+    print("[selftest:L12-clip]", msgCM)
+    okL11L12X = okAR and okBR and okCM
+
     # New L11 [P]: RAGAS faithfulness<1, the Goodhart winner-flip, the measured verbosity bias.
     repL11a = []; sv = RAGAS11["faithfulness"]; RAGAS11["faithfulness"] = 1.0  # no hallucination → must flag (<1)
     provenance_l11(repL11a); RAGAS11["faithfulness"] = sv
@@ -2455,7 +2545,7 @@ def selftest():
     ok = (okD and okA and okP and okL3 and okL4 and okP2 and okL5 and okL6 and okP3 and okP4
           and okGX and okTK and okTS and okP5 and okP6 and okP7 and okP8 and okP9
           and okW and okU and okS and okT47 and okPE and okCX and okBK and okBW and okNCE and okCov
-          and okL7c and okL7p and okL8 and okL9 and okL10 and okL9X and okL10X and okL11 and okL12)
+          and okL7c and okL7p and okL8 and okL9 and okL10 and okL9X and okL10X and okL11L12X and okL11 and okL12)
     print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 + L5-GloVe/t-SNE + L2-tokenizers + enrichment-trajectory + l6-contextual cross-file + L6-InfoNCE-bars (data + deck) + Book-prose deck & cross-file + coverage-guard ratchet (incl. data-only pins) + L7 BAM + L8 four cross-pillar BAMs + L9 (HNSW/IVF + metrics/ADC/codebook/highd/HNSW-toy2/IVF-toy2) + L10 (chunk/rewrite + budget/cos4/RRF/rerank/routing/RAPTOR) + L11 (RAGAS/Goodhart-flip/verbosity) + L12 (GraphRAG/CLIP/hallucination) BAMs all fire"
           if ok else "FAIL — a check is blind!")
     return 0 if ok else 1

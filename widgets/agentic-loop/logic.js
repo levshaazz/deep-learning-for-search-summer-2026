@@ -36,7 +36,7 @@ export const mountAgenticLoop = defineWidget({
     const trunc = (s, n) => { const t = String(s == null ? '' : s); return t.length > n ? t.slice(0, n - 1) + '…' : t; };
 
     // ── geometry ────────────────────────────────────────────────────────────
-    const qTop = 22;                         // question head baseline
+    const qTop = 30;                         // question head baseline (≥30 so the header text stays inside the frame top)
     const recTop = 46;                       // recall@1 readout row (top-right gauge)
     const laneTop = 86;                       // first lane (Thought) top
     const laneH = 30, laneGap = 8;            // per-lane box height + gap
@@ -84,6 +84,12 @@ export const mountAgenticLoop = defineWidget({
       const y1 = laneTop + i * laneStride + laneH;
       el('line', { x1: boxX + 18, y1, x2: boxX + 18, y2: y1 + laneGap, class: 'al-conn' }, svg);
     }
+
+    // a 'found ✓' tick on the Observation lane, revealed ONLY once recall hits 1 (step 2 lands the
+    // missing fact) — a real new mark so the step-progression gate sees step 2 ≠ step 1.
+    const obsLaneY = laneTop + 2 * laneStride;
+    const foundTick = el('text', { x: boxX + boxW - 12, y: obsLaneY + laneH / 2 + 5, class: 'al-found is-hidden', 'text-anchor': 'end' }, svg);
+    foundTick.textContent = '✓';
 
     // ── finish[answer] chip (solved) ─────────────────────────────────────────
     const finishG = el('g', { class: 'al-finish is-hidden' }, svg);
@@ -152,6 +158,7 @@ export const mountAgenticLoop = defineWidget({
       const recVal = traceShown > 0 ? Number(recallByStep[traceShown - 1] || 0) : 0;
       recValEl.textContent = String(recVal);
       recG.classList.toggle('is-solved', recVal >= 1);
+      foundTick.classList.toggle('is-hidden', !(recVal >= 1));   // reveals at step 2 (recall 0→1)
 
       // step 3: finish chip + real-run badge (solved / green).
       const solved = k >= 3;

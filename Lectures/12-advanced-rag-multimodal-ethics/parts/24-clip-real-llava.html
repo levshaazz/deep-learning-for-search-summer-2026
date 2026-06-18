@@ -1,0 +1,40 @@
+<section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="24 Real · llava 5/5">
+  <div class="slide-header">
+    <h2>Not a toy &mdash; a real vision model retrieves captions</h2>
+    <span class="slide-kicker">E2E · llava:7b image&rarr;caption forced choice on 5 text-free shapes</span>
+  </div>
+  <div class="e2e-arch">
+    <div class="e2e-arch-block" data-role="project" data-step-range="0" data-tooltip="A picture of a plain, text-free shape."><div class="arch-name">image</div><div class="arch-shape">text-free shape</div></div>
+    <div class="e2e-arch-arrow" data-step-range="0..1"></div>
+    <div class="e2e-arch-block" data-role="nonlinear" data-step-range="1" data-tooltip="llava:7b reads the pixels, not letters."><div class="arch-name">llava:7b</div><div class="arch-shape">vision encode</div></div>
+    <div class="e2e-arch-arrow" data-step-range="1..2"></div>
+    <div class="e2e-arch-block" data-role="nonlinear" data-step-range="2" data-tooltip="Score the image against each candidate caption."><div class="arch-name">argmax cos</div><div class="arch-shape">pick caption</div></div>
+    <div class="e2e-arch-arrow" data-step-range="2..3"></div>
+    <div class="e2e-arch-block" data-role="project" data-step-range="3..4" data-tooltip="The matching caption is the top pick."><div class="arch-name">retrieved</div><div class="arch-shape">5/5 correct</div></div>
+    <div class="e2e-arch-legend"><span class="leg" data-role="project">state</span><span class="leg" data-role="nonlinear">model</span></div>
+  </div>
+  <div class="e2e-twin">
+    <div class="e2e-panel e2e-math-panel">
+      <div class="panel-head">The cross-modal retrieval</div>
+      <div class="e2e-step" data-step="0"><div class="step-formula">$$\text{image} \;\longrightarrow\; \operatorname*{arg\,max}_{j}\ \cos\!\big(\mathbf{e}_{\text{img}},\mathbf{e}_{\text{txt}}^{(j)}\big)$$</div><p class="step-caption">A plain shape, no text in the picture, so the model cannot cheat by reading letters. Press &rarr;.</p></div>
+      <div class="e2e-step" data-step="1"><div class="step-formula">$$\mathbf{e}_{\text{img}} = f_{\text{img}}(\text{pixels})$$</div><p class="step-caption"><strong>See.</strong> llava:7b &mdash; a genuine vision-language model &mdash; encodes the <em>image</em> into the shared space.</p></div>
+      <div class="e2e-step" data-step="2"><div class="step-formula">$$\text{score each caption } j$$</div><p class="step-caption"><strong>Compare.</strong> Score the image against every candidate caption by cosine; take the highest &mdash; argmax, exactly the matrix's diagonal.</p></div>
+      <div class="e2e-step" data-step="3"><div class="step-formula">$$\text{top-1} = \text{matching caption}$$</div><p class="step-caption"><strong>Retrieve.</strong> The model's top pick is the correct caption.</p></div>
+      <div class="e2e-step" data-step="4"><div class="step-formula">$$\text{top-1 accuracy} = 5/5 = \mathbf{1.0}$$</div><p class="step-caption"><strong>All five.</strong> Forced-choice over 5 text-free shapes: 5/5 correct. It is reading the picture, not the letters.</p></div>
+    </div>
+    <div class="e2e-panel e2e-example-panel">
+      <div class="panel-head">The run</div>
+      <div class="e2e-step" data-step="0"><div class="step-calc-row"><span class="matrix-label"><code>n = 5 shapes</code></span></div></div>
+      <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label"><code>model = llava:7b</code></span></div><p class="step-caption tiny">vision, not OCR.</p></div>
+      <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label"><code>forced choice over captions</code></span></div><p class="step-caption tiny">argmax cosine.</p></div>
+      <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label"><code>top-1 = matching caption</code></span></div><p class="step-caption tiny">cross-modal retrieval.</p></div>
+      <div class="e2e-step" data-step="4"><div class="step-calc-row"><span class="matrix-label is-highlight"><code>5 / 5 correct → 1.0</code></span></div><p class="step-caption tiny">real multimodal model.</p></div>
+    </div>
+  </div>
+  <div class="e2e-stepper">
+    <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">&larr;</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 4</span></div><button type="button" class="step-btn" data-step-act="next">&rarr;</button></div>
+    <span class="e2e-stage-name">overview</span>
+    <button type="button" class="e2e-toggle">Theory only</button>
+  </div>
+  <aside class="slide-notes">Real llava run. data/l12-clip.json real block: llava:7b, top1Accuracy 1.0, top1Correct 5, n 5, on TEXT-FREE shapes (so it's vision, not OCR). The matching caption is the model's top pick — cross-modal retrieval in a shared space, on a genuine multimodal model. Same argmax as the matrix diagonal.</aside>
+</section>

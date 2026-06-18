@@ -1,0 +1,67 @@
+<section class="slide" data-type="archflow" data-max-step="4" data-current-step="0" data-screen-label="11 Climb · GraphRAG">
+  <div class="slide-header">
+    <h2>GraphRAG &mdash; walking the constellation</h2>
+    <span class="slide-kicker">step (&larr;/&rarr;): single-hop fails &rarr; build the graph &rarr; walk it</span>
+  </div>
+  <div class="widget-mount" data-widget="graphrag" style="max-width:min(900px,52cqw)"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "docs": [
+      { "id": "d1", "text": "Acme Corp was founded by Dana Reyes. Acme Corp is headquartered in Portland." },
+      { "id": "d2", "text": "Dana Reyes studied computer science at MIT before founding a company." },
+      { "id": "d3", "text": "MIT is a research university located in Cambridge, Massachusetts." }
+    ],
+    "triples": [
+      ["Acme Corp", "founded_by", "Dana Reyes", "d1"],
+      ["Acme Corp", "headquartered_in", "Portland", "d1"],
+      ["Dana Reyes", "studied", "computer science", "d2"],
+      ["Dana Reyes", "studied_at", "MIT", "d2"],
+      ["MIT", "located_in", "Cambridge", "d3"]
+    ],
+    "question": "What field did the founder of Acme Corp study?",
+    "answerNode": "computer science",
+    "path": [
+      ["Acme Corp", "founded_by", "Dana Reyes", "d1"],
+      ["Dana Reyes", "studied", "computer science", "d2"]
+    ],
+    "hops": 2,
+    "docsTouched": ["d1", "d2"],
+    "singleHopDoc": "d1",
+    "recallSingleHop": 0,
+    "recallMultiHop": 1,
+    "real": {
+      "_model": "llama3.1:8b",
+      "nTriplesExtracted": 7,
+      "derivedAnswer": "computer science",
+      "traversalPath": [
+        ["Acme Corp", "was founded by", "Dana Reyes"],
+        ["Dana Reyes", "studied", "computer science"]
+      ]
+    }
+  },
+  "labels": {
+    "alt": "An entity graph for a two-hop question. Three retrieved documents sit above five linked entities. A single-hop pick of the top document names the founder but no field of study, so recall is zero; a two-hop graph traversal from the company to its founder to the field reaches the answer node, so recall is one.",
+    "questionHead": "question",
+    "hopsLabel": "hops needed",
+    "docsHead": "retrieved documents",
+    "graphHead": "entity graph",
+    "noField": "no field",
+    "recallSingle": "single-hop recall",
+    "recallMulti": "multi-hop recall",
+    "realHead": "real run",
+    "realExtracted": "extracted",
+    "realTriples": "triples",
+    "realTraversed": "traversed to",
+    "communityNote": "GraphRAG also pre-summarises graph communities",
+    "s0": "The question asks for the field the founder of Acme Corp studied — but no single document names both the founder and a field of study. Above sit the three retrieved documents; below, the entities they mention wait as faint nodes. Answering will take more than one lookup.",
+    "s1": "Single-hop retrieval grabs the one best document and stops. It names the founder, Dana Reyes, but says nothing about a field of study — so the answer is simply not in this chunk. Recall against the question lands at zero: the right fact lives one hop away, in another document.",
+    "s2": "Instead of treating documents as a flat bag, we extract entities and the relations between them and link them into a graph. Each edge is a fact lifted from a document: the company to its founder, the founder to what she studied and where, the school to its city. Now the corpus is navigable.",
+    "s3": "Now we walk the graph. Start at Acme Corp, follow the founded_by edge to Dana Reyes, then her studied edge to computer science — two hops crossing two documents to reach the answer node. The fact a single lookup missed sits at the end of a short path, so recall is now full.",
+    "s4": "This is not just a toy: a real local model, llama3.1:8b, read the same three documents, extracted the triples on its own, and then traversed the graph to the same field of study. The entities and relations were the model's; chaining two documents was the graph's. GraphRAG also pre-summarises clusters of the graph into community summaries for global questions."
+  }
+}
+  </script>
+  <p class="viz-caption">Single-hop stops at the best document &mdash; recall <strong>0</strong>. Walk the graph Acme&nbsp;Corp&nbsp;&rarr;&nbsp;Dana&nbsp;Reyes&nbsp;&rarr;&nbsp;computer&nbsp;science (2 hops) &mdash; recall <strong>1</strong>. A real llama3.1:8b walked the same path.</p>
+  <aside class="slide-notes">climb-graphrag master figure (graphrag widget on l12-graphrag). Steps: question → single-hop recall 0 → build graph → 2-hop walk recall 1 → real llama3.1:8b (7 triples, same traversal). Numbers from data/l12-graphrag.json; the by-hand recall slide is next, the real extraction walkthrough two slides on.</aside>
+</section>
