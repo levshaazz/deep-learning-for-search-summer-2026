@@ -1,0 +1,27 @@
+    {
+      id: 'catch-goodhart', kind: 'prose',
+      heading: { en: 'Goodhart returns for the judge', ru: 'Гудхарт возвращается за судьёй', tt: 'Goodhart хөкемче өчен кайта' },
+      img: 'L11/L11-04-goodhart-returns.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'Goodhart the trickster — a smirking figure in a measuring-tape sash — leans over the judge\'s shoulder, whispering, while RAGdoll quietly pads its answer longer and longer to win; Séréga spots the trick from across the room.',
+        ru: 'Гудхарт-трикстер — ухмыляющаяся фигура в перевязи из измерительной ленты — склоняется над плечом судьи и шепчет, пока RAGdoll тихо раздувает свой ответ всё длиннее, чтобы победить; Серёга замечает трюк с другого конца комнаты.',
+        tt: 'Goodhart-мутлык иясе — үлчәү тасмасыннан перевязь кигән елмаючы фигура — хөкемче иңбашына иелеп пышылдый, ә RAGdoll җиңәр өчен җавабын тыныч кына озынайтканнан-озынайта; Серёга хәйләне бүлмәнең икенче башыннан күрә.',
+      },
+      body: {
+        en: [
+          "Here he is, in his strongest scene: **Goodhart**, the trickster who first appeared in Lecture 1 with the line *\"when a measure becomes a target, it ceases to be a good measure,\"* and returned in Lecture 4 to game ranking metrics. He has been waiting for this moment, because the LLM-judge is the most gameable target we have ever built. The instant you optimise your generator *against* a judge — say, by reinforcement learning on the judge's score — the generator stops learning to *be better* and starts learning to *score higher*. Those are not the same thing, and the gap between them is Goodhart's whole domain.",
+          "The mechanism is brutally simple. An LLM-judge is itself a language model, with all of a language model's superficial preferences — and a generator optimised against it will discover those preferences and exploit them, regardless of whether they track real quality. The judge likes longer answers? The generator pads. The judge anchors to the first answer it sees? The generator games position. The judge over-weights one rubric criterion? The generator inflates exactly that criterion. None of this makes the answer truer; all of it makes the score go up.",
+          "This is not a hypothetical. In the next two beats we freeze a *real* judge — llama3.1:8b at temperature 0, seed 42 — and measure two of its biases directly, and the numbers are damning. But first, the arithmetic flip: how re-weighting a single rubric criterion can invert the winner without changing a word of either answer.",
+        ],
+        ru: [
+          "Вот он, в сильнейшей сцене: **Гудхарт**, трикстер, что впервые явился в лекции 1 с фразой *«когда мера становится целью, она перестаёт быть хорошей мерой»* и вернулся в лекции 4 обманывать метрики ранжирования. Он ждал этого момента, ведь LLM-судья — самая обманываемая цель, что мы когда-либо строили. В тот миг, когда ты оптимизируешь генератор *против* судьи — скажем, обучением с подкреплением на оценке судьи, — генератор перестаёт учиться *быть лучше* и начинает учиться *набирать больше*. Это не одно и то же, и разрыв между ними — вся вотчина Гудхарта.",
+          "Механизм жестоко прост. LLM-судья сам языковая модель, со всеми поверхностными предпочтениями языковой модели — и генератор, оптимизированный против него, отыщет эти предпочтения и выжмет их, безотносительно того, отслеживают ли они реальное качество. Судья любит ответы подлиннее? Генератор раздувает. Судья якорится на первом увиденном ответе? Генератор играет на позиции. Судья перевешивает один критерий рубрики? Генератор накручивает ровно его. Ничто из этого не делает ответ вернее; всё это поднимает оценку.",
+          "Это не гипотеза. В следующих двух битах мы заморозим *настоящего* судью — llama3.1:8b при температуре 0, seed 42 — и измерим два его смещения напрямую, и числа изобличают. Но сперва арифметический переворот: как перевешивание единственного критерия рубрики может инвертировать победителя, не меняя ни слова в обоих ответах.",
+        ],
+        tt: [
+          "Менә ул, иң көчле сәхнәдә: **Goodhart**, 1 нче лекциядә *«үлчәү максатка әйләнгәч, ул яхшы үлчәү булудан туктый»* юлы белән беренче тапкыр килгән һәм 4 нче лекциядә ранжлау метрикаларын алдарга кайткан мутлык иясе. Ул бу мизгелне көтте, чөнки LLM-хөкемче — без төзегән иң алданучан максат. Син генераторны хөкемчегә *каршы* оптимизацияләгән мизгелдә — әйтик, хөкемче бәясендә ныгытулы өйрәтү белән — генератор *яхшырак булырга* өйрәнүдән туктый һәм *күбрәк җыярга* өйрәнә башлый. Болар бер үк нәрсә түгел, ә арадагы ярык — Goodhart ның бөтен биләмәсе.",
+          "Механизм рәхимсез гади. LLM-хөкемче үзе тел моделе, тел моделенең бар өслек өстенлекләре белән — ә аңа каршы оптимизацияләнгән генератор бу өстенлекләрне табачак һәм аларны кысып чыгарачак, алар чын сыйфатны күзәтәме-юкмы — карамастан. Хөкемче озынрак җаваплар яратамы? Генератор тутыра. Хөкемче күргән беренче җавапка ябышамы? Генератор позициядә уйный. Хөкемче бер рубрика критериен артык авырлыклыймы? Генератор нәкъ шуны кабарта. Боларның берсе дә җавапны дөресрәк итми; барысы да бәяне күтәрә.",
+          "Бу — гипотеза түгел. Киләсе ике биттә без *чын* хөкемчене — температура 0, seed 42 дә llama3.1:8b ны — туңдырабыз һәм аның ике авышуын туры үлчибез, ә саннар фаш итә. Ләкин башта арифметик әйләнеш: бер рубрика критериен яңадан авырлыклау ничек ике җавапның бер сүзен дә үзгәртмичә җиңүчене аударырга мөмкин.",
+        ],
+      },
+    },

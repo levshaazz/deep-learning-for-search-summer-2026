@@ -1,0 +1,18 @@
+<section class="slide" data-type="definition" data-screen-label="14 Building the graph">
+  <div class="slide-header">
+    <h2>Building the graph &mdash; the offline indexing pipeline</h2>
+    <span class="slide-kicker">where the edges come from, before any query arrives</span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">Pipeline · index-time, once per corpus</span>
+    <div class="def-term">extract triples &rarr; resolve &amp; merge entities &rarr; build the graph &rarr; detect communities &amp; pre-summarise &mdash; all offline, so query-time is just a <em>walk</em>.</div>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">1</span><span class="obj-text"><strong>Extract</strong> &mdash; an LLM reads each chunk and emits <em>(head, relation, tail)</em> triples (our llama3.1:8b ran exactly this, returning 7 triples from 3 docs).</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">2</span><span class="obj-text"><strong>Resolve</strong> &mdash; merge co-referent mentions (&ldquo;Dana&rdquo;, &ldquo;Dana&nbsp;Reyes&rdquo;, &ldquo;the founder&rdquo;) into one node, so edges from different documents actually connect.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">3</span><span class="obj-text"><strong>Build &amp; cluster</strong> &mdash; assemble the graph, detect communities, and pre-summarise each (the global-search step). This is the cost the boundaries slide warned about &mdash; paid once, amortised over every query.</span></li>
+      </ul>
+    </div>
+  </div>
+  <aside class="slide-notes">GraphRAG build pipeline (offline, like L10's offline/online split). Steps: extract triples (LLM, our llama3.1:8b → 7 triples), entity resolution / co-reference merge, build + community detection + pre-summarise. Index-time cost (the boundaries slide's warning), amortised. Query-time = a walk. Mirrors the offline/online framing from L10's rag-pipeline.</aside>
+</section>

@@ -183,9 +183,13 @@ export const mountGraphrag = defineWidget({
       });
       recSingle.classList.toggle('is-hidden', k < 1);
 
-      // step 2 — the extracted edges appear (graph forms); nodes brighten from faint.
+      // step 2 — the extracted edges + nodes APPEAR (the graph forms). They are genuinely revealed
+      // here (is-hidden before step 2), so the step-progression gate sees a real reveal, not an
+      // opacity tween of already-present marks.
       const graphOn = k >= 2;
       svg.classList.toggle('gr-graph-on', graphOn);
+      edgeEls.forEach((e) => e.g.classList.toggle('is-hidden', !graphOn));
+      Object.keys(nodeEls).forEach((name) => nodeEls[name].classList.toggle('is-hidden', !graphOn));
 
       // step 3 — traverse the 2-hop path green; light the answer node; show multi-hop recall 1.
       const traversed = k >= 3;

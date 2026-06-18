@@ -1,0 +1,64 @@
+<section class="slide" data-type="archflow" data-max-step="4" data-current-step="0" data-screen-label="11 Climb · RAGAS metrics">
+  <div class="slide-header">
+    <h2>The RAGAS climb — score the answer, metric by metric</h2>
+    <span class="slide-kicker">step the four gauges (&larr;/&rarr;)</span>
+  </div>
+  <div class="widget-mount" data-widget="ragas-metrics"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "_src": "toy worked example (gen_l11.py, stdlib) — RAGAS four metrics, hand-checkable fractions/means",
+    "question": "How does the heart pump blood?",
+    "contexts": [
+      { "id": "c1", "rank": 1, "relevant": true, "text": "The heart is a muscular organ that pumps blood through the circulatory system." },
+      { "id": "c2", "rank": 2, "relevant": false, "text": "Blood type is determined by antigens on the surface of red blood cells." },
+      { "id": "c3", "rank": 3, "relevant": true, "text": "Ventricular systole contracts the ventricles, ejecting blood into the arteries." },
+      { "id": "c4", "rank": 4, "relevant": false, "text": "The average adult human has roughly five litres of blood." }
+    ],
+    "answerClaims": [
+      { "text": "The heart is a muscular organ that pumps blood.", "supported": true },
+      { "text": "It contracts rhythmically.", "supported": true },
+      { "text": "Ventricular systole ejects blood into the arteries.", "supported": true },
+      { "text": "William Harvey discovered this circulation in 1628.", "supported": false }
+    ],
+    "groundTruthClaims": [
+      { "text": "The heart pumps blood through the body.", "inContext": true },
+      { "text": "Ventricular systole ejects blood into the arteries.", "inContext": true },
+      { "text": "Diastole then refills the heart chambers.", "inContext": false }
+    ],
+    "reverseQuestionCos": [0.92, 0.88, 0.31],
+    "k": 4,
+    "totalRelevant": 2,
+    "precisionAtK": [
+      { "k": 1, "precisionAtK": 1.0, "relevant": true },
+      { "k": 2, "precisionAtK": 0.5, "relevant": false },
+      { "k": 3, "precisionAtK": 0.6667, "relevant": true },
+      { "k": 4, "precisionAtK": 0.5, "relevant": false }
+    ],
+    "faithfulness": 0.75,
+    "answerRelevance": 0.7033,
+    "contextPrecision": 0.8333,
+    "contextRecall": 0.6667,
+    "supportedClaims": 3,
+    "answerClaimCount": 4,
+    "groundTruthInContext": 2,
+    "groundTruthCount": 3
+  },
+  "labels": {
+    "alt": "A RAGAS scorecard: a generated answer's four claims (three supported, one hallucinated), then four gauges — faithfulness, answer relevance, context precision, context recall — each revealed and scored 0 to 1.",
+    "answerHead": "generated answer · claim-by-claim",
+    "mFaith": "faithfulness",
+    "mRel": "answer relevance",
+    "mPrec": "context precision",
+    "mRec": "context recall",
+    "s0": "No gold answer here — only the question, the retrieved contexts, and a generated answer broken into atomic claims. Three are supported by the contexts; one (“William Harvey, 1628”) is fluent but unsupported — a hallucination. RAGAS scores generation without a reference answer.",
+    "s1": "Faithfulness = supported claims / total claims = 3/4 = 0.75. It catches the hallucinated claim directly: one unsupported sentence drops the score a full quarter. This is the metric that grades “did the answer stay grounded in what we retrieved?”",
+    "s2": "Answer relevance reverse-engineers questions from the answer and measures their mean cosine to the original question (mean[0.92, 0.88, 0.31] = 0.7033). The drifting third question — born of the hallucinated claim — drags the mean down. It grades “does the answer actually address the question?”",
+    "s3": "Context precision asks whether the relevant chunks sit near the top of what was retrieved: Σ precision@k over the relevant ranks, divided by the relevant count = (1 + 2/3)/2 = 0.8333. Relevant items at ranks 1 and 3, with noise between, cost some precision. It grades the retriever's ranking.",
+    "s4": "Context recall asks the opposite: of the ground-truth claims, how many are actually present in the retrieved context? 2 of 3 = 0.6667 — the third truth (“diastole refills the heart”) was never retrieved. Together the four metrics decompose RAG quality into generation faithfulness, relevance, and both sides of retrieval."
+  }
+}
+  </script>
+  <p class="viz-caption">One answer, four gauges: faithfulness 0.75, answer relevance 0.7033, context precision 0.8333, context recall 0.6667. The hallucinated &ldquo;William Harvey, 1628&rdquo; claim is what pulls faithfulness and relevance down. The next four slides recompute each by hand.</p>
+  <aside class="slide-notes">climb-ragas master figure (ragas-metrics on l11-ragas). Steps reveal the four gauges in order. Every number is from data/l11-ragas.json. The running example "How does the heart pump blood?" feeds the four by-hand slides that follow.</aside>
+</section>
