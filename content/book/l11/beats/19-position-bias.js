@@ -1,6 +1,12 @@
     {
       id: 'position-bias', kind: 'prose',
       heading: { en: 'Position bias, measured', ru: 'Смещение позиции, измеренное', tt: 'Позиция авышуы, үлчәнгән' },
+      img: 'L11/L11-09-position-bias.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'Two identically good answers sit in slots 1 and 2 on the judge\'s verdict board; Goodhart the Trickster, bare-headed and grinning, tugs the scale toward slot 1 with his clickbait fishing-hook while Séréga, in his green tübetey, points out that the two answers are a genuine tie.',
+        ru: 'Два одинаково хороших ответа стоят в слотах 1 и 2 на доске вердиктов судьи; Гудхарт-Трикстер, без головного убора и ухмыляясь, тянет весы к слоту 1 своим кликбейт-крючком, а Серёга в зелёной тюбетейке указывает, что эти два ответа — настоящая ничья.',
+        tt: 'Хөкемченең карар тактасында 1 һәм 2 слотларда бертөрле яхшы ике җавап тора; башы ачык, елмаючы Goodhart Trickster үзенең кликбейт кармагы белән үлчәүне 1 слотка тарта, ә яшел түбәтәйле Серёга бу ике җавапның чын тигезлек икәнен күрсәтә.',
+      },
       body: {
         en: [
           "Now stop theorising and measure. We froze a real judge — **llama3.1:8b**, temperature \\(0\\), seed \\(42\\) so the run is reproducible — and fed it pairwise battles. First, the good news. When one answer is **clearly** better, the judge is right every time.",

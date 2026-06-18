@@ -1794,6 +1794,19 @@ def provenance_l12(report):
     need(GR["hops"] == len(GR["path"]), "graphrag hops == path length")
     need(GR["path"][-1][2] == GR["answerNode"], "graphrag path ends at the answer node")
     need(len({e[3] for e in GR["path"]}) >= 2, "graphrag path crosses ≥2 docs (a true multi-hop chain)")
+    # ── GraphRAG community summaries (GLOBAL search): partition covers every entity exactly once; the
+    #    cross-community edge count is recomputed from the triples + the membership. ──
+    comms = GR["communities"]
+    need(GR["nCommunities"] == len(comms), "graphrag nCommunities == #communities")
+    need(GR["communitySizes"] == [len(c["members"]) for c in comms], "graphrag communitySizes == member counts")
+    need(sum(GR["communitySizes"]) == GR["nEntities"], "graphrag community partition covers every entity")
+    mem = [m for c in comms for m in c["members"]]
+    need(len(mem) == len(set(mem)), "graphrag communities are a partition (no entity in two communities)")
+    def _comm(ent):
+        return next((c["id"] for c in comms if ent in c["members"]), None)
+    cross = sum(1 for t in GR["triples"] if _comm(t[0]) and _comm(t[2]) and _comm(t[0]) != _comm(t[2]))
+    checks.append(("graphrag.crossCommunityEdges", GR["crossCommunityEdges"], cross, 0))
+    need(GR["crossCommunityEdges"] >= 1, "graphrag ≥1 cross-community edge bridges the partition")
 
     # ── CLIP: recompute the shared-space cosine matrix; the diagonal (matching pair) must be row-argmax ──
     def cos(a, b):
@@ -1810,6 +1823,13 @@ def provenance_l12(report):
     checks.append(("clip.matchedMeanCos", CL["matchedMeanCos"], round(sum(matched) / len(matched), 4), 1e-4))
     checks.append(("clip.mismatchedMeanCos", CL["mismatchedMeanCos"], round(sum(mismatched) / len(mismatched), 4), 1e-4))
     need(CL["matchedMeanCos"] > CL["mismatchedMeanCos"], "clip matched-pair cosine > mismatched (contrastive separation; BAM)")
+    # ── CLIP top-k retrieval (derived from the SAME matrix): rank-1 per image is the diagonal; recall@1 ──
+    for i, ci in enumerate(cs):
+        row = CL["topKByImage"][i]
+        order = sorted(range(len(cs)), key=lambda j: M[i][j], reverse=True)
+        need(row["top1"] == cs[order[0]] == ci, f"clip top-1 for image {ci} is its own caption (the diagonal)")
+        need([x["caption"] for x in row["ranked"]] == [cs[j] for j in order], f"clip top-k({ci}) ranks captions by cosine desc")
+    checks.append(("clip.recallAt1 == diagonalCorrect/n", CL["recallAt1"], round(diag / len(cs), 4), 1e-4))
 
     # ── Ethics: REAL hallucination demo — closed-book confabulates, grounding enables abstention ──
     real = ET["real"]

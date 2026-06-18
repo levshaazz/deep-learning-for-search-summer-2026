@@ -1,6 +1,12 @@
     {
       id: 'problem-single-hop', kind: 'prose',
       heading: { en: 'A bag of chunks has no edges', ru: 'У мешка чанков нет рёбер', tt: 'Чанклар капчыгында кырлар юк' },
+      img: 'L12/L12-09-single-hop-trap.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'A flat heap of disconnected paper chunks; one chunk naming the founder glows as the top match, but the answer chunk one hop away sits dark and unreachable — there is no edge between them to cross.',
+        ru: 'Плоская куча разрозненных бумажных чанков; один чанк, называющий основателя, светится как лучшее совпадение, но чанк с ответом в одном прыжке остаётся тёмным и недосягаемым — между ними нет ребра, чтобы перейти.',
+        tt: 'Бәйләнешсез кәгазь чанкларының яссы өеме; нигезләүчене атаган бер чанк иң яхшы туры килү буларак яктыра, ләкин бер адым ераклыктагы җавап чанкы караңгы һәм ирешеп булмаслык кала — алар арасында үтәргә кыр юк.',
+      },
       body: {
         en: [
           "Why does the Oracle fail here? Because naive RAG treats the corpus as a **flat bag** of independent passages. Embed the query, take the top-\\(k\\) chunks by cosine, stuff them into the prompt, generate — the whole loop from the Oracle. Nowhere in that loop is there a notion of *which entity appears in which document*, or that two documents might be **linked**.",

@@ -1,6 +1,12 @@
     {
       id: 'bestiary-bow', kind: 'prose',
       heading: { en: 'The bestiary takes a bow', ru: 'Бестиарий кланяется', tt: 'Бестиарий баш ия' },
+      img: 'L12/L12-14-bestiary-bow.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'The whole course menagerie lined up on a stage taking a bow — Joey Multi-Hop, Clippy, Sir Cosine, RAGdoll and Confabulous in front, with Tokenosaurus, Chunk Norris, Goodhart and the rest behind — Séréga clapping from the wings.',
+        ru: 'Весь зверинец курса выстроился на сцене и кланяется — Джоуи Многопрыг, Клиппи, Сэр Косинус, RAGdoll и Конфабулус впереди, Токенозавр, Чанк Норрис, Гудхарт и прочие позади — Серёга аплодирует из-за кулис.',
+        tt: 'Курсның бөтен зоопаркы сәхнәдә тезелеп баш ия — Джоуи Күпадым, Клиппи, Сэр Косинус, RAGdoll һәм Конфабулус алда, Токенозавр, Чанк Норрис, Гудхарт һәм калганнары артта — Серёга кулис артыннан кул чаба.',
+      },
       body: {
         en: [
           "Every creature was a lesson in disguise. This lecture's cast: **Joey Multi-Hop**, who hops node → node → node to assemble an answer no record holds (GraphRAG); **Clippy**, who aligns image and text in one shared space (CLIP); **Sir Cosine**, the knight who measures the angle — from L2, through L6, to here across modalities; and **RAGdoll the Oracle** with **Confabulous**, the answerer and the phantom that fabricates when ungrounded.",

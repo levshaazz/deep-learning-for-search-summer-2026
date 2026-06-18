@@ -1,6 +1,12 @@
     {
       id: 'react-worked', kind: 'prose',
       heading: { en: 'ReAct, by hand', ru: 'ReAct, вручную', tt: 'ReAct, кул белән' },
+      img: 'L11/L11-07-react-loop.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'RAGdoll the Oracle walks a circular Thought to Action to Observation loop — a thought-bubble, a reaching hand fetching a scroll, then reading it — spiralling inward toward a finish stamp as a two-hop question gets answered; Séréga, in his green tübetey, watches the loop tighten on the answer.',
+        ru: 'Оракул RAGdoll идёт по кругу Мысль → Действие → Наблюдение — пузырь мысли, тянущаяся рука достаёт свиток, затем читает его — закручиваясь внутрь к печати finish, пока двухпрыжковый вопрос находит ответ; Серёга в зелёной тюбетейке смотрит, как цикл стягивается к ответу.',
+        tt: 'RAGdoll Оракулы Фикер → Гамәл → Күзәтү боҗрасы буенча йөри — фикер куыгы, сузылган кул свитокны ала, аннары укый — ике сикерүле сорау җавапланганда finish тамгасына эчкә бөтерелеп; яшел түбәтәйле Серёга боҗраның җавапка кысылуын күзәтә.',
+      },
       body: {
         en: [
           "**ReAct** (Yao, Zhao, Yu, Du, Shafran, Narasimhan & Cao, ICLR 2023, arXiv:2210.03629) interleaves **Rea**soning and **Act**ing: the model emits a *thought*, takes an *action* (a retrieval), reads the *observation*, and loops — reasoning over what it just learned to decide the next action. This is what makes multi-hop questions answerable: questions whose answer requires chaining facts no single retrieval holds.",

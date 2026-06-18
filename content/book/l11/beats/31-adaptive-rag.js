@@ -1,7 +1,12 @@
     {
       id: 'adaptive-rag', kind: 'prose',
       heading: { en: 'Adaptive-RAG: should we retrieve at all?', ru: 'Adaptive-RAG: а извлекать ли вообще?', tt: 'Adaptive-RAG: гомумән алыргамы?' },
-      imgPos: 'inline',
+      img: 'L11/L11-11-self-rag-crag.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'RAGdoll the Oracle stands at a fork — on one path it grades a retrieved scroll correct, ambiguous, or wrong (CRAG); on the other it stamps reflection-token seals on its own draft (Self-RAG) — and self-corrects either way; Séréga, in his green tübetey, watches the Oracle repair its own retrievals.',
+        ru: 'Оракул RAGdoll стоит на развилке: по одному пути он оценивает извлечённый свиток как верный, неоднозначный или неверный (CRAG); по другому ставит печати рефлексивных токенов на собственный черновик (Self-RAG) — и в обоих случаях самокорректируется; Серёга в зелёной тюбетейке смотрит, как Оракул чинит свои извлечения.',
+        tt: 'RAGdoll Оракулы аерылышта тора — бер юлда ул алынган свитокны дөрес, икеле яки ялгыш дип бәяли (CRAG); икенчесендә үз драфтына рефлексия-токен мөһерләре сала (Self-RAG) — һәм икесендә дә үзен-үзе төзәтә; яшел түбәтәйле Серёга Оракулның үз алуларын төзәтүен күзәтә.',
+      },
       body: {
         en: [
           "Self-RAG let the model skip retrieval segment by segment; **Adaptive-RAG** (Jeong, Baek, Cho, Hwang & Park, NAACL 2024, arXiv:2403.14403) lifts that decision to the whole query and asks the prior question: *how hard is this question, and how much machinery does it deserve?* It routes each query by estimated **complexity** before committing any retrieval at all.",

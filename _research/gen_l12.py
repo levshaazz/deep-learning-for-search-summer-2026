@@ -83,6 +83,20 @@ def build_graphrag():
     hops = len(path)
     docs_touched = sorted({e[3] for e in path})
 
+    # ── community summaries (GraphRAG GLOBAL search): partition the entities into 2 communities, each
+    #    pre-summarised. A broad question is answered from the few community summaries (global), not by a
+    #    local walk. The edges that cross communities (Dana Reyes's two study edges) are the bridges a
+    #    local 2-hop must traverse — so global (2 summaries) and local (2 hops) are complementary. ──
+    communities = [
+        {"id": "A", "label": "the company & its founder", "members": ["Acme Corp", "Dana Reyes", "Portland"]},
+        {"id": "B", "label": "the university & the field", "members": ["MIT", "Cambridge", "computer science"]},
+    ]
+    def comm_of(ent):
+        return next((c["id"] for c in communities if ent in c["members"]), None)
+    entities = sorted({e for t in triples for e in (t[0], t[2])})
+    cross_edges = [t for t in triples if comm_of(t[0]) and comm_of(t[2]) and comm_of(t[0]) != comm_of(t[2])]
+    community_sizes = [len(c["members"]) for c in communities]
+
     # ── REAL extraction (frozen) ──
     fb = {"nTriples": 7, "derivedAnswer": "computer science",
           "allTriples": [["Acme Corp", "was founded by", "Dana Reyes"], ["Dana Reyes", "studied", "computer science"]],
@@ -102,8 +116,11 @@ def build_graphrag():
         "docs": docs, "triples": triples, "question": question, "answerNode": answer_node,
         "path": path, "hops": hops, "docsTouched": docs_touched,
         "singleHopDoc": single_hop_doc, "recallSingleHop": recall_single, "recallMultiHop": recall_multi,
-        "communitySummaryNote": "GraphRAG also clusters the graph into communities and pre-summarises each "
-                                "(global search); local search walks entities. Here we show the local 2-hop walk.",
+        "communities": communities, "nCommunities": len(communities), "communitySizes": community_sizes,
+        "nEntities": len(entities), "crossCommunityEdges": len(cross_edges),
+        "communitySummaryNote": "GraphRAG GLOBAL search clusters the graph into communities and pre-summarises "
+                                "each: a broad question is answered from the 2 community summaries. LOCAL search "
+                                "walks the entities (the 2-hop path here). The cross-community edges bridge them.",
         "real": real,
     }
 
@@ -123,6 +140,15 @@ def build_clip():
     matched_mean = r(sum(matched) / len(matched))
     mismatched_mean = r(sum(mismatched) / len(mismatched))
 
+    # ── top-k retrieval per image (derived from the SAME matrix): rank captions by cosine, descending.
+    #    The matching caption (the diagonal) is rank 1 for every image → recall@1 = diagonalCorrect/n. ──
+    topk = []
+    for i, ci in enumerate(concepts):
+        order = sorted(range(len(concepts)), key=lambda j: matrix[i][j], reverse=True)
+        topk.append({"image": ci, "ranked": [{"caption": concepts[j], "cos": matrix[i][j]} for j in order],
+                     "top1": concepts[order[0]]})
+    recall_at1 = r(diag_correct / len(concepts))   # 1.0 — every image's nearest caption is its own
+
     fb = {"top1Accuracy": 1.0, "top1Correct": 5, "n": 5}
     art = load_frozen("l12_ollama_clip.json", fb)
     real = {
@@ -136,6 +162,7 @@ def build_clip():
         "_src": "toy shared-space cosine matrix (gen_l12.py, stdlib) — CLIP cross-modal retrieval + REAL llava run",
         "concepts": concepts, "imageVectors": img, "textVectors": txt,
         "cosineMatrix": matrix, "retrievedPerImage": retrieved, "diagonalCorrect": diag_correct,
+        "topKByImage": topk, "recallAt1": recall_at1,
         "matchedMeanCos": matched_mean, "mismatchedMeanCos": mismatched_mean,
         "contrastiveGap": r(matched_mean - mismatched_mean),
         "callbackNote": "Same cosine-in-a-shared-space idea as L6 contrastive learning (Sir Cosine), now across "

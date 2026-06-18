@@ -1,7 +1,12 @@
     {
       id: 'bridge-frontier', kind: 'prose',
       heading: { en: 'Bridge to the frontier', ru: 'Мост к фронтиру', tt: 'Фронтирга күпер' },
-      imgPos: 'inline',
+      img: 'L11/L11-12-the-verdict.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'The verdict is in — RAGdoll the Oracle stands acquitted beside a self-stamped scorecard, a hallucinated line crossed out by its own hand; Séréga, in his green tübetey, raises the verdict while Goodhart the Trickster slinks out the courtroom door, his clickbait hook empty, the Measure-villain arc closed.',
+        ru: 'Вердикт вынесен — Оракул RAGdoll оправдан рядом с самозаверенным оценочным листом, галлюцинированная строка вычеркнута его собственной рукой; Серёга в зелёной тюбетейке оглашает вердикт, а Гудхарт-Трикстер ускользает за дверь зала суда с пустым кликбейт-крючком — арка злодея-Меры закрыта.',
+        tt: 'Карар чыкты — RAGdoll Оракулы үзе мөһерләгән бәяләү бите янында аклангач тора, галлюцинацияле юл үз кулы белән сызып ташланган; яшел түбәтәйле Серёга карарны игълан итә, ә Goodhart Trickster кликбейт кармагы буш хәлдә хөкем залы ишегеннән шылып чыга — Үлчәү-явыз аркасы ябыла.',
+      },
       body: {
         en: [
           "The Ship can now find, rank, answer, and judge — and judge *itself*. Across eleven lectures the spine has grown from a single leg (Rank) to four (Index, Rank, Generate, Measure), and the Measure leg, the one that began this whole journey with precision and recall, has finally caught up to the generative era. The Oracle speaks, and it grades what it speaks. The courtroom we built today is the last piece of machinery the standard pipeline needs.",

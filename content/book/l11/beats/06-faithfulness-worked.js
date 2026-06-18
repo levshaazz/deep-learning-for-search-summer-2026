@@ -1,6 +1,12 @@
     {
       id: 'faithfulness-worked', kind: 'prose',
       heading: { en: 'Faithfulness, by hand', ru: 'Верность, вручную', tt: 'Тугрылык, кул белән' },
+      img: 'L11/L11-03-faithfulness-claims.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'RAGdoll the Oracle\'s answer broken into four claim-cards — three carry a checkmark with a thread tracing back to a retrieved passage, while the fourth, the William Harvey 1628 claim, floats with a red cross and no thread; Séréga, in his green tübetey, tallies three of four for a faithfulness of 0.75.',
+        ru: 'Ответ Оракула RAGdoll разбит на четыре карточки-утверждения: три с галочкой и нитью, ведущей к извлечённому отрывку, а четвёртая — утверждение про Уильяма Гарвея 1628 — висит с красным крестом и без нити; Серёга в зелёной тюбетейке считает три из четырёх, верность 0,75.',
+        tt: 'RAGdoll Оракулының җавабы дүрт раслау-картага вата — өчесендә тамга һәм алынган өзеккә кайтучы җеп, ә дүртенчесе, Уильям Гарвей 1628 раславы, кызыл хач белән һәм җепсез эленеп тора; яшел түбәтәйле Серёга дүрттән өчне саный, тугрылык 0,75.',
+      },
       body: {
         en: [
           "Take a real answer to *\"How does the heart pump blood?\"* and break it into atomic claims. Faithfulness asks, of each claim: is it **entailed by a retrieved passage**? Count the supported claims, divide by the total. One hallucinated sentence — however fluent — drops the score by a full quotient.",

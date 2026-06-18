@@ -1,6 +1,12 @@
     {
       id: 'attribution', kind: 'prose',
       heading: { en: 'Risk 3 — attribution', ru: 'Риск 3 — атрибуция', tt: 'Риск 3 — атрибуция' },
+      img: 'L12/L12-13-attribution.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'A generated answer with each claim tied by a thread back to a stamped source passage — a provenance receipt — while an unsourced claim dangles with no thread, flagged as uncheckable.',
+        ru: 'Сгенерированный ответ, где каждое утверждение привязано нитью к проштампованному отрывку-источнику — чек происхождения, — а утверждение без источника свисает без нити, помеченное как непроверяемое.',
+        tt: 'Һәр раславы җеп белән мөһерле чыганак-өзеккә бәйләнгән генерацияләнгән җавап — чыгыш чегы, — ә чыганаксыз раслау җепсез асылынып тора, тикшереп булмаслык дип билгеләнгән.',
+      },
       body: {
         en: [
           "An answer without sources **cannot be verified or contested**. The user has no way to tell a grounded claim from a confident guess, and no way to push back. The generator can paraphrase the retrieved context without ever pointing to it — and fluency hides the seam between *\"the passage said\"* and *\"the model decided.\"*",
