@@ -1,0 +1,1777 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lecture 10 — The Oracle · RAG, Chunking &amp; Query Understanding</title>
+
+  <!-- Apply saved theme/lang BEFORE first paint to avoid a flash of the
+       wrong theme. Mirrors tools.js prefs key. -->
+  <script>
+    try {
+      var __p = JSON.parse(localStorage.getItem('lecture.template.prefs.v1') || '{}');
+      var __de = document.documentElement;
+      if (__p.theme === 'dark' || __p.theme === 'light') __de.setAttribute('data-theme', __p.theme);
+      if (__p.lang === 'ru' || __p.lang === 'en') {
+        __de.setAttribute('data-lang', __p.lang);
+        __de.setAttribute('lang', __p.lang);
+      }
+    } catch (e) {}
+  </script>
+
+  <!-- Asset-load failure banner. -->
+  <script>
+    window.__assetFail = (function () {
+      var failed = [];
+      return function (name) {
+        if (failed.indexOf(name) !== -1) return;
+        failed.push(name);
+        function show() {
+          if (!document.body) { document.addEventListener('DOMContentLoaded', show); return; }
+          var el = document.getElementById('__asset-banner');
+          if (!el) {
+            el = document.createElement('div');
+            el.id = '__asset-banner';
+            el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:2147483647;' +
+              'background:#D7522C;color:#fff;font:600 15px/1.4 system-ui,sans-serif;' +
+              'padding:10px 16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.3)';
+            el.addEventListener('click', function () { el.remove(); });
+            document.body.appendChild(el);
+          }
+          el.textContent = 'Не загрузились ресурсы: ' + failed.join(', ') +
+            '. Формулы/подсветка/QR могут не отрисоваться — запустите офлайн-файл ' +
+            '«Lecture Template (Standalone).html». · Failed to load: ' + failed.join(', ') +
+            ' — use the Standalone file. (клик чтобы скрыть)';
+        }
+        show();
+      };
+    })();
+  </script>
+
+  <!-- Fonts — vendored locally. -->
+  <link href="vendor/fonts/fonts.css" rel="stylesheet"
+        onerror="window.__assetFail&&window.__assetFail('Шрифты/Fonts')" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/template.css?v=6" />
+  <link rel="stylesheet" href="css/slides.css?v=6" />
+  <link rel="stylesheet" href="css/components.css?v=6" />
+  <link rel="stylesheet" href="css/presenter.css?v=6" />
+  <link rel="stylesheet" href="css/tweaks.css?v=6" />
+  <link rel="stylesheet" href="css/e2e.css?v=6" />
+  <link rel="stylesheet" href="css/lab.css?v=6" />
+  <link rel="stylesheet" href="css/archflow.css?v=6" />
+  <link rel="stylesheet" href="css/sysdesign.css?v=6" />
+  <link rel="stylesheet" href="css/preflight.css?v=6" />
+  <link rel="stylesheet" href="css/wbw-art.css?v=1" />
+  <link rel="stylesheet" href="css/autofit.css?v=1" />
+  <!-- L10 deck-mounted widget styles (widgets/_base.css + course-map/rag-pipeline/chunking-demo/query-rewrite style.css).
+       BUILD OUTPUT (scripts/build-deck-widgets.mjs) — the deck doesn't load widgets/*/style.css like the Book. -->
+  <link rel="stylesheet" href="css/deck-widgets.css?v=1" />
+
+  <!-- KaTeX — vendored locally. -->
+  <link rel="stylesheet" href="vendor/katex/katex.min.css"
+        onerror="window.__assetFail&&window.__assetFail('KaTeX')">
+  <script defer src="vendor/katex/katex.min.js"
+        onerror="window.__assetFail&&window.__assetFail('KaTeX')"></script>
+  <script defer src="vendor/katex/auto-render.min.js"
+    onerror="window.__assetFail&&window.__assetFail('KaTeX')"
+    onload="renderMathInElement(document.body, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '\\[', right: '\\]', display: true },
+        { left: '\\(', right: '\\)', display: false }
+      ],
+      throwOnError: false,
+      strict: 'ignore'
+    });
+    document.dispatchEvent(new CustomEvent('katex:done'));"></script>
+
+  <!-- Prism — vendored. -->
+  <script src="vendor/prism/prism-core.min.js"
+        onerror="window.__assetFail&&window.__assetFail('Prism')"></script>
+  <script src="vendor/prism/prism-python.min.js"></script>
+  <script src="vendor/prism/prism-bash.min.js"></script>
+  <script src="vendor/prism/prism-yaml.min.js"></script>
+  <script src="vendor/prism/prism-json.min.js"></script>
+
+  <!-- QR code generator — vendored. -->
+  <script src="vendor/qrcode/qrcode.js"
+        onerror="window.__assetFail&&window.__assetFail('QR')"></script>
+
+  <!-- R8 deck auto-layout primitives → window.DeckLayout (esbuild of widgets/_layout.js). -->
+  <script src="js/layout.js"
+        onerror="window.__assetFail&&window.__assetFail('DeckLayout')"></script>
+</head>
+
+<body>
+  <!-- Bundler thumbnail -->
+  <template id="__bundler_thumbnail">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="var(--bg, #FBFAF6)"/>
+          <stop offset="1" stop-color="var(--accent-soft, #DCE8F8)"/>
+        </linearGradient>
+      </defs>
+      <rect width="600" height="600" fill="url(#bg)"/>
+      <g transform="translate(180,180)">
+        <rect x="0" y="0" width="240" height="240" rx="20" fill="var(--accent, #2A6FDB)"/>
+        <text x="120" y="160" font-family="Georgia, serif" font-size="120" font-weight="500"
+              text-anchor="middle" fill="white">∇</text>
+      </g>
+      <text x="300" y="490" font-family="Georgia, serif" font-size="40" font-weight="500"
+            text-anchor="middle" fill="var(--ink, #14181F)">Lecture Template</text>
+      <text x="300" y="528" font-family="ui-monospace, monospace" font-size="18"
+            text-anchor="middle" fill="var(--ink-3, #6B7280)" letter-spacing="3">LOADING…</text>
+    </svg>
+  </template>
+
+  <!-- Logo template -->
+  <template id="tpl-logo">
+    <div class="logo-mark">DLS</div>
+    <span>
+      INNOPOLIS UNIVERSITY
+    </span>
+  </template>
+
+  <!-- Deck -->
+  <div class="deck">
+    <div class="stage">
+      <div class="slides" data-course-ru="Deep Learning for Search · Summer 2026" data-course-en="Deep Learning for Search · Summer 2026">
+<section class="slide" data-type="title" data-screen-label="01 Title">
+  <div class="title-header">
+    <div class="course-tag">DEEP LEARNING FOR SEARCH · SUMMER 2026</div>
+    <div data-logo-slot></div>
+  </div>
+  <div class="title-body">
+    <div class="eyebrow">Lecture 10 · The Ship learns to answer</div>
+    <h1>The Oracle</h1>
+    <p class="subtitle">Finding a passage is not answering a question. Ground a language model in what we retrieved: retrieve &rarr; augment &rarr; generate. Chunking decides what is findable; query translation hears the real question; routing, fusion and self-correction turn a flat pipe into a system. RAG &middot; chunking &middot; query translation &middot; routing &middot; advanced retrieval.</p>
+  </div>
+  <div class="title-footer">
+    <div><div class="meta-label">Lecturer</div><div class="meta-value">Albert Nasybullin</div></div>
+    <div><div class="meta-label">Affiliation</div><div class="meta-value">Innopolis University</div></div>
+    <div><div class="meta-label">Date</div><div class="meta-value">Week 5 · Wed, Jul 1</div></div>
+  </div>
+  <aside class="slide-notes">Lecture 10 — "The Oracle." RAG, chunking, query translation, routing, advanced retrieval (re-rank, CRAG, self-RAG), generation. RAGdoll the Oracle is the hero. The spine gains its fourth leg, Generate. Bridges to L11 (judging the Oracle).</aside>
+</section>
+<section class="slide" data-type="viz" data-max-step="0" data-current-step="0" data-screen-label="02 You are here">
+  <div class="slide-header">
+    <h2>The spine of the course — the border crossing</h2>
+    <span class="slide-kicker">Get Data &rarr; Measure &rarr; <strong>Rank</strong> &rarr; <strong>Generate</strong></span>
+  </div>
+  <div class="widget-mount" data-widget="course-map"></div>
+  <script class="widget-data" type="application/json">
+  {
+    "data": {},
+    "labels": {
+      "role": "img",
+      "alt": "The four-stop course spine — Get Data, Measure, Rank, Generate — with Rank and the new Generate stop lit.",
+      "leg0": "Get Data", "leg1": "Measure", "leg2": "Rank", "leg3": "Generate",
+      "active": ["rank", "generate"]
+    }
+  }
+  </script>
+  <p class="viz-caption">This is the border crossing: for ten lectures the Ship has lived in <strong>Rank</strong>. Today the spine earns its fourth leg — <strong>Generate</strong> — and keeps it. The Ship stops merely finding and starts answering.</p>
+  <aside class="slide-notes">Spine anchor: L10 lights Rank AND the new Generate stop (the first new leg in ten lectures). RAG sits on top of Rank — it consumes retrieval, doesn't replace it.</aside>
+</section>
+<section class="slide" data-type="agenda" data-screen-label="03 Agenda">
+  <div class="slide-header">
+    <h2>From finding to answering</h2>
+    <span class="slide-kicker">six acts of retrieval-augmented generation</span>
+  </div>
+  <div class="agenda-grid">
+    <a class="toc-item" href="#/9">
+      <span class="toc-num">01</span>
+      <span class="toc-text"><span class="toc-title">The RAG loop &amp; indexing</span><span class="toc-sub">retrieve &rarr; augment &rarr; generate · token budget · chunking · RAPTOR &amp; Late Chunking</span></span>
+    </a>
+    <a class="toc-item" href="#/24">
+      <span class="toc-num">02</span>
+      <span class="toc-text"><span class="toc-title">Query translation</span><span class="toc-sub">vocabulary gap · multi-query · HyDE · RAG-Fusion · decomposition · step-back</span></span>
+    </a>
+    <a class="toc-item" href="#/36">
+      <span class="toc-num">03</span>
+      <span class="toc-text"><span class="toc-title">Routing &amp; construction</span><span class="toc-sub">logical &amp; semantic routing · self-query · text-to-SQL</span></span>
+    </a>
+    <a class="toc-item" href="#/43">
+      <span class="toc-num">04</span>
+      <span class="toc-text"><span class="toc-title">Advanced retrieval</span><span class="toc-sub">cross-encoder re-rank · CRAG · self-RAG · adaptive-RAG · the big matrix</span></span>
+    </a>
+    <a class="toc-item" href="#/52">
+      <span class="toc-num">05</span>
+      <span class="toc-text"><span class="toc-title">Generation &amp; the catch</span><span class="toc-sub">prompt anatomy · faithfulness vs relevance · garbage in, fluent garbage out</span></span>
+    </a>
+    <a class="toc-item" href="#/56">
+      <span class="toc-num">06</span>
+      <span class="toc-text"><span class="toc-title">The payoff</span><span class="toc-sub">the full pipeline · when to reach for what · the Oracle speaks (&rarr; L11)</span></span>
+    </a>
+  </div>
+  <aside class="slide-notes">Six acts. Act 1 builds the loop + indexing; Act 2 aims the retriever (query translation); Act 3 routes &amp; constructs; Act 4 is the advanced-retrieval menu with the 7-strategy matrix as the centerpiece; Act 5 generation + the catch; Act 6 the payoff. The rag-pipeline figure is the recurring anchor.</aside>
+</section>
+<section class="slide" data-type="objectives" data-screen-label="04 Objectives · compute by hand">
+  <div class="slide-header">
+    <h2>By the end you can… <span style="font-weight:400;opacity:.6">(1 / 2)</span></h2>
+    <span class="slide-kicker">objectives · compute the loop by hand</span>
+  </div>
+  <ul class="obj-list">
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong>Trace the retrieve &rarr; augment &rarr; generate loop</strong> and write it formally — the answer is generated from the query plus its top-<em>k</em> retrieved chunks.</span></li>
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong>Reason about the token budget</strong> — compute <em>k</em><sub>max</sub> from a context window, and see how it grows across 4K / 8K / 32K / 128K windows.</span></li>
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong>Compute chunk counts</strong> from size/overlap, explain the boundary-straddle that breaks retrieval, and read an overlap sweep.</span></li>
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong>Quantify query translation</strong> — the recall / MRR lift from multi-query, HyDE, RAG-Fusion (RRF) and decomposition.</span></li>
+  </ul>
+  <aside class="slide-notes">Objectives 1–4: the by-hand skills — trace the loop, the token budget, chunk counts, query-translation lift. Five more on the next slide.</aside>
+</section>
+<section class="slide" data-type="objectives" data-screen-label="05 Objectives · reason about">
+  <div class="slide-header">
+    <h2>By the end you can… <span style="font-weight:400;opacity:.6">(2 / 2)</span></h2>
+    <span class="slide-kicker">objectives · reason about the system</span>
+  </div>
+  <ul class="obj-list">
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong>Route a query</strong> — pick a prompt by semantic similarity (semantic routing) and <strong>construct</strong> a structured retrieval (self-query &middot; text-to-SQL).</span></li>
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong>Place advanced retrieval correctly</strong> — cross-encoder re-rank (callback L7), CRAG and self-RAG as control flow, adaptive-RAG as a complexity router.</span></li>
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong>Choose a strategy</strong> from the 7-row matrix — by lift, extra LLM calls, latency, and when each is worth it (don't over-engineer).</span></li>
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong>Write a grounded prompt</strong> — anatomy of system + context + question, answer using only the context, with citations.</span></li>
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong>Name the failure mode</strong> — garbage in &rarr; fluent garbage out — and separate <em>faithfulness</em> from <em>relevance</em> (the metric is deferred to L11).</span></li>
+  </ul>
+  <aside class="slide-notes">Objectives 5–9: route &amp; construct, place advanced retrieval, read the matrix, write a grounded prompt, name the catch. Nine verbs across the six acts. Faithfulness METRIC is L11 — here we only name the axis.</aside>
+</section>
+<section class="slide" data-type="divider" data-screen-label="06 Divider · The Oracle">
+  <div class="divider-content">
+    <div class="divider-num">Part 1 · From finding to answering</div>
+    <h1>The Oracle</h1>
+    <p class="divider-sub"><em>The Ship has always found records. Today it learns to answer.</em> A bare model is fluent — and sometimes confidently wrong. Ground it in what our lanes retrieved, and it <strong>reads</strong> before it speaks. Enter RAGdoll the Oracle.</p>
+  </div>
+  <div class="viz-frame fig-fit" style="--fig-max:64cqh; --fig-w:54%;">
+    <img src="assets/img/L10/L10-00-the-oracle.png?v=1" alt="Séréga consulting RAGdoll the Oracle — a patchwork rag-doll stitched from retrieved paper-scraps — standing tall, freshly fed with context." />
+  </div>
+  <aside class="slide-notes">Cold open. Callback to L9 (lanes open, retrieval fast) → but finding ≠ answering. RAGdoll the Oracle, the hero.</aside>
+</section>
+<section class="slide" data-type="default" data-screen-label="07 Confident ≠ correct">
+  <div class="slide-header">
+    <h2>Confident ≠ correct</h2>
+    <span class="slide-kicker">why a bare LLM can't be trusted as a search answer</span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <h3>Three failures</h3>
+      <ul>
+        <li><strong>Stale</strong> — parametric memory froze at training time.</li>
+        <li><strong>Unciteable</strong> — it cannot point to a source.</li>
+        <li><strong>Confident either way</strong> — a correct answer and a fabricated one sound identical.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>The fix: grounding</h3>
+      <p>Not a bigger model — <strong>retrieval</strong>. Don't ask the model to <em>know</em>; make it <em>read</em> what we retrieved, then answer using only that, with citations. That is the RAG loop.</p>
+    </div>
+  </div>
+  <aside class="slide-notes">problem-ungrounded. Parametric staleness + no citation + confident hallucination. Grounding, not scale, is the fix.</aside>
+</section>
+<section class="slide" data-type="misconception" data-screen-label="08 Misconception · scale won't fix it">
+  <div class="slide-header">
+    <h2>"A bigger model won't hallucinate"</h2>
+    <span class="slide-kicker">grounding, not scale — the lecture's thesis</span>
+  </div>
+  <div class="misc-card">
+    <div class="misc-label">What students think</div>
+    <p class="misc-statement">&ldquo;Just use a bigger model &mdash; hallucination is a capacity problem, and a larger model trained on more tokens will simply <em>know</em> the answer.&rdquo;</p>
+    <button class="misc-reveal-btn" type="button">Reveal truth</button>
+    <div class="misc-truth">Scale sharpens <em>fluency</em>, not <em>provenance</em> &mdash; a bigger model is a more convincing guesser, still confident when it is wrong. Parametric memory is frozen at training time and unciteable: a private, fresh, or proprietary corpus is something <strong>no</strong> pre-training can hold. The fix is <strong>orthogonal to size</strong>: <strong>retrieve</strong> the evidence and make the model read it. RAG adds <strong>non-parametric memory</strong> (the index) alongside the parametric model &mdash; Lewis et al., 2020.</div>
+  </div>
+  <aside class="slide-notes">why-grounding-not-scale. The thesis misconception: scale ≠ grounding. RAG = parametric + non-parametric memory (Lewis et al., NeurIPS 2020). Sets up the whole lecture.</aside>
+</section>
+<section class="slide" data-type="divider" data-screen-label="09 Divider · RAG">
+  <div class="divider-content">
+    <div class="divider-num">Act 1 · The loop &amp; the index</div>
+    <h1>Retrieve &rarr; augment &rarr; generate</h1>
+    <p class="divider-sub"><em>Don't ask the model to know — make it read.</em> Retrieve the top passages through everything we built (index, embeddings, cascade, ANN lanes); stuff them into the prompt; generate an answer grounded in them. Retrieval sits <strong>upstream</strong> — RAG consumes it.</p>
+  </div>
+  <aside class="slide-notes">turn-rag. The three moves. Retrieval (L3–L9) is upstream; RAG doesn't replace it. Act 1 also covers how you INDEX (chunking, RAPTOR, Late Chunking).</aside>
+</section>
+<section class="slide" data-type="definition" data-screen-label="10 RAG, formally">
+  <div class="slide-header">
+    <h2>RAG, formally</h2>
+    <span class="slide-kicker">the loop as one equation</span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">Definition · retrieval-augmented generation</span>
+    <div class="def-term">$$ \text{answer} \;=\; G\big(q,\; R_k(q)\big), \qquad R_k(q) \;=\; \operatorname*{top\text{-}k}_{d \in \mathcal{C}} \; \cos\!\big(\mathbf{e}_q,\, \mathbf{e}_d\big) $$</div>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>\(R_k(q)\)</strong> — the retriever returns the <em>k</em> chunks of corpus \(\mathcal{C}\) whose embeddings are most cosine-similar to the query's. This is everything from L3–L9: index, bi-encoder, cascade, ANN lanes.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>\(G(\cdot)\)</strong> — the generator (an LLM) reads the query <em>and</em> the retrieved chunks, and writes an answer grounded in them, with citations.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">The whole lecture is two questions about this equation: what goes <em>into</em> \(R_k\) (chunking, indexing, query translation, routing), and how to make \(R_k\) and \(G\) more reliable (re-rank, self-correction).</span></li>
+      </ul>
+    </div>
+  </div>
+  <aside class="slide-notes">RAG-loop-formally. answer = G(q, R_k(q)); R_k = top-k by cosine. R_k is everything from L3–L9 (retrieval upstream). G is the LLM. Frames the whole lecture: improve what feeds R_k, and make R_k + G reliable.</aside>
+</section>
+<section class="slide" data-type="archflow" data-max-step="3" data-current-step="0" data-screen-label="11 Climb · RAG pipeline">
+  <div class="slide-header">
+    <h2>The RAG pipeline — the Oracle's anatomy</h2>
+    <span class="slide-kicker">step the stages (←/→)</span>
+  </div>
+  <div class="widget-mount" data-widget="rag-pipeline"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "_doc": "RAG anchor trace + token budget. Toy (exact, stdlib): context 4096; system 200 + query 30 + k·256-token chunks, reserving 512 for the answer. At k=4 → stuffed 1024, prompt 1254, headroom 2842. kMax = floor((4096−200−30−512)/256) = floor(3354/256) = 13. ONE canonical end-to-end trace is the lecture's recurring anchor figure.",
+    "_source": "_research/gen_l10.py (toy, stdlib) + gen_l10_real.py (real retrieve→generate, /usr/bin/python3)",
+    "contextWindow": 4096,
+    "systemTokens": 200,
+    "queryTokens": 30,
+    "answerReserve": 512,
+    "chunkTokens": 256,
+    "stages": [
+      "chunk",
+      "embed",
+      "retrieve",
+      "stuff",
+      "generate"
+    ],
+    "worked": {
+      "k": 4,
+      "stuffed": 1024,
+      "promptTotal": 1254,
+      "headroom": 2842
+    },
+    "kMax": 13,
+    "trace": {
+      "query": "How does the heart pump blood?",
+      "retrieved": [
+        {
+          "id": "doc_cardiac_cycle",
+          "score": 0.82,
+          "chunk": "The cardiac cycle alternates systole and diastole; ventricular contraction ejects blood."
+        },
+        {
+          "id": "doc_circulatory",
+          "score": 0.79,
+          "chunk": "The circulatory system moves blood through arteries and veins to the body's tissues."
+        },
+        {
+          "id": "doc_valves",
+          "score": 0.71,
+          "chunk": "Heart valves keep blood flowing one way between the atria and ventricles."
+        },
+        {
+          "id": "doc_anatomy",
+          "score": 0.65,
+          "chunk": "The heart has four chambers: two atria and two ventricles."
+        }
+      ],
+      "prompt": "System: Answer using ONLY the context. Context: [4 chunks]. Question: How does the heart pump blood?",
+      "answer": "The heart pumps blood through the cardiac cycle: during systole the ventricles contract and eject blood, while valves keep it flowing one way [doc_cardiac_cycle, doc_valves]."
+    }
+  },
+  "labels": {
+    "alt": "A left-to-right pipeline split into an offline build half (ingest, chunk, embed, index) and an online query half (retrieve, rerank, assemble, generate); the cascade is retrieve plus rerank, and the LLM produces a grounded answer with citations.",
+    "bandOffline": "OFFLINE · build-time (once)",
+    "bandOnline": "ONLINE · query-time (per request)",
+    "query": "query",
+    "ingest": "ingest",
+    "chunk": "chunk",
+    "embed": "embed",
+    "index": "index",
+    "qembed": "embed q",
+    "retrieve": "retrieve",
+    "rerank": "rerank",
+    "assemble": "assemble",
+    "generate": "generate",
+    "stuff": "stuff",
+    "flowLabel": "retrieve → augment → generate",
+    "cascadeTag": "the neural cascade",
+    "answerTag": "→ grounded + cited",
+    "citeTag": "+ citations",
+    "s0": "Offline, once per corpus: ingest documents, clean and chunk them, embed every chunk with the bi-encoder, and store the vectors in an ANN index. Expensive — but amortized over every future query.",
+    "s1": "At query time: embed the query, retrieve the top-k from the index (the Scouts), rerank the shortlist (the Judges), assemble the survivors into a context. This is the per-request latency budget.",
+    "s2": "The retrieve→rerank pair is exactly the neural cascade: the bi-encoder Scouts sweep wide and cheap; the cross-encoder Judges deliberate on the few. Cheap-and-wide first, dear-and-narrow last.",
+    "s3": "For RAG, the LLM reads the reranked context and writes an answer grounded in those passages — with citations back to the sources. Retrieval quality caps answer quality: garbage in, garbage out."
+  }
+}
+  </script>
+  <p class="viz-caption">chunk → embed → retrieve → stuff → generate. Retrieval (L3–L9) sits upstream; the LLM reads the stuffed context and answers, grounded, with citations. This figure is the lecture's recurring anchor.</p>
+  <aside class="slide-notes">climb-rag master figure (rag-pipeline flat path on l10-rag). The token budget is the formula slide two slides on; the cosine that produces the retrieval scores is the next slide.</aside>
+</section>
+<section class="slide" data-type="formula" data-screen-label="12 Cosine retrieval, by hand">
+  <div class="slide-header">
+    <h2>Where the retrieval scores come from</h2>
+    <span class="slide-kicker">\(R_k\) is just cosine — by hand on the anchor trace</span>
+  </div>
+  <div class="formula-stage">
+    $$ \cos(\mathbf{e}_q,\mathbf{e}_d) = \frac{\mathbf{e}_q\cdot\mathbf{e}_d}{\lVert\mathbf{e}_q\rVert\,\lVert\mathbf{e}_d\rVert}, \qquad \mathbf{e}_q = (3,2,1,1) $$
+    $$ \text{cardiac cycle } (1,2,1,2):\ \frac{10}{\lVert\mathbf{e}_q\rVert\,\lVert\mathbf{e}_d\rVert} = \mathbf{0.8165} $$
+    $$ \text{circulatory } (1,2,2,2):\ \frac{11}{\lVert\mathbf{e}_q\rVert\,\lVert\mathbf{e}_d\rVert} = \mathbf{0.7877} \qquad \text{valves } (1,5,0,2):\ \frac{15}{\lVert\mathbf{e}_q\rVert\,\lVert\mathbf{e}_d\rVert} = \mathbf{0.7071} $$
+  </div>
+  <p class="small muted center mt-2">The four dimensions are <em>pump · anatomy · flow · valves</em>. Higher dot product is not enough — <strong>valves</strong> has the biggest dot (15) yet the lowest cosine, because cosine divides out length. These are exactly the scores the pipeline showed: ranking by cosine is the whole of \(R_k\).</p>
+  <aside class="slide-notes">cosine-retrieval by-hand. Vectors from l10-rag.retrievalMath. dot = 10 / 11 / 15; ‖q‖ ≈ 3.873; ‖d‖ ≈ 3.1623 / 3.6056 / 5.4772. cos to 4 dp = 0.8165 / 0.7877 / 0.7071, which round to the 0.82 / 0.79 / 0.71 the pipeline displayed (recomputed from raw vectors, never hand-picked). Lesson: valves has the largest dot (15) but lowest cosine — length normalization matters.</aside>
+</section>
+<section class="slide" data-type="formula" data-screen-label="13 Token budget">
+  <div class="slide-header">
+    <h2>The token budget</h2>
+    <span class="slide-kicker">the context window caps max k</span>
+  </div>
+  <div class="formula-stage">
+    $$ k_{\max} = \left\lfloor \frac{4096 - 200 - 30 - 512}{256} \right\rfloor = \left\lfloor \frac{3354}{256} \right\rfloor = \mathbf{13} $$
+    $$ \text{at } k=4:\quad \text{stuffed} = 4\times 256 = 1024, \quad \text{prompt} = 200+30+1024 = 1254, \quad \text{headroom} = 4096-1254 = 2842 $$
+  </div>
+  <p class="small muted center mt-2">Context window 4096; system 200 + query 30 + reserve 512. So \(k \le 13\): the window <em>caps</em> how much you can retrieve — which is exactly why ranking matters. Spend the budget on the best passages.</p>
+  <aside class="slide-notes">climb-rag token budget. kMax = floor(3354/256) = 13. Integers gated vs data/l10-rag.json; provenance_l10 pins kMax = floor((ctx-sys-q-reserve)/chunk).</aside>
+</section>
+<section class="slide" data-type="table" data-screen-label="14 Budget across windows">
+  <div class="slide-header">
+    <h2>A bigger window buys more k — not for free</h2>
+    <span class="slide-kicker">same overhead, four context windows · \(k_{\max} = \lfloor(\text{ctx}-200-30-512)/256\rfloor\)</span>
+  </div>
+  <table class="cmp-table">
+    <thead><tr>
+      <th>context window</th>
+      <th>\(k_{\max}\) (256-token chunks)</th>
+      <th>what it means</th>
+    </tr></thead>
+    <tbody>
+      <tr><td>4096</td><td>13</td><td>the classic budget — ranking decides which 13</td></tr>
+      <tr><td>8192</td><td>29</td><td>twice the window, ~twice the chunks</td></tr>
+      <tr><td>32768</td><td>125</td><td>long-context: room for a small library</td></tr>
+      <tr><td>128000</td><td class="cell-good">497</td><td>huge — but every extra chunk adds latency &amp; "lost-in-the-middle" dilution</td></tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2">\(k_{\max}\) grows roughly <em>linearly</em> in the context size — but a bigger window is not free retrieval: more chunks means more latency and more dilution, so <strong>ranking still decides which k you keep</strong>. The window raises the ceiling; it doesn't replace the retriever.</p>
+  <aside class="slide-notes">budget-across-windows. l10-budget: kMax 13 / 29 / 125 / 497 for ctx 4096 / 8192 / 32768 / 128000 (all integers → coverage-safe). Lesson: bigger window ≠ free; lost-in-the-middle; ranking still decides.</aside>
+</section>
+<section class="slide" data-type="divider" data-screen-label="15 Divider · Chunking">
+  <div class="divider-content">
+    <div class="divider-num">Act 1 · How you cut</div>
+    <h1>How you cut decides what you can find</h1>
+    <p class="divider-sub"><em>You can only retrieve a whole chunk.</em> If the answer is split across two chunks, no single retrieval brings it back whole. Chunk Norris chops the scroll; Tokenosaurus reminds us the pieces are sub-word tokens. The knobs: <strong>size</strong> and <strong>overlap</strong>.</p>
+  </div>
+  <div class="viz-frame fig-fit" style="--fig-max:60cqh; --fig-w:54%;">
+    <img src="assets/img/L10/L10-03-chunk-norris.png?v=1" alt="Chunk Norris roundhouse-kicks a long scroll into equal passages; Tokenosaurus snips sub-words; Séréga measures the overlap." />
+  </div>
+  <aside class="slide-notes">turn-chunking. Chunk Norris + Tokenosaurus cameo. Chunking is the input stage that decides everything downstream.</aside>
+</section>
+<section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="16 Climb · Chunking">
+  <div class="slide-header">
+    <h2>Chunking — size, overlap, answer-containment</h2>
+    <span class="slide-kicker">scrub size/overlap (←/→)</span>
+  </div>
+  <div class="widget-mount" data-widget="chunking-demo"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "_doc": "Chunking, exact (stdlib). A 1000-token doc with the answer span at [380,470] (binary answer-containment). size=200/overlap=0 → 5 chunks; the answer STRADDLES boundary 400 → recall@3 = 0. overlap=50 → 7 chunks; window [300,500] holds [380,470] whole → recall@3 = 1.0.",
+    "_source": "_research/gen_l10.py (toy, stdlib): nChunks=ceil((L−o)/(size−o)); recallAt3 = 1 iff a window contains answerSpan.",
+    "docLen": 1000,
+    "answerSpan": [
+      380,
+      470
+    ],
+    "scenarios": [
+      {
+        "size": 200,
+        "overlap": 0,
+        "nChunks": 5,
+        "windows": [
+          [0, 200],
+          [200, 400],
+          [400, 600],
+          [600, 800],
+          [800, 1000]
+        ],
+        "answerChunk": null,
+        "recallAt3": 0
+      },
+      {
+        "size": 200,
+        "overlap": 50,
+        "nChunks": 7,
+        "windows": [
+          [0, 200],
+          [150, 350],
+          [300, 500],
+          [450, 650],
+          [600, 800],
+          [750, 950],
+          [900, 1000]
+        ],
+        "answerChunk": 2,
+        "recallAt3": 1.0
+      }
+    ],
+    "formula": "ceil((L-o)/(size-o))"
+  },
+  "labels": {
+    "alt": "A 1000-token document ruler with the answer span [380,470]; size=200/overlap=0 gives 5 windows that straddle the answer (recall 0), overlap=50 gives 7 windows where one holds the whole answer (recall 1.0).",
+    "docLabel": "document",
+    "tokens": "tokens",
+    "answer": "answer",
+    "chunks": "chunks",
+    "intact": "answer intact?",
+    "formulaLbl": "chunks",
+    "s0": "A 1000-token document, and the answer to our question lives in tokens [380, 470] — a 90-token span. Retrieval works on chunks, not whole documents, so the question becomes: will any chunk contain this answer whole?",
+    "s1": "size=200, overlap=0 cuts the document into 5 back-to-back windows. The answer span crosses the boundary at token 400: 20 tokens fall in chunk [200,400], 70 in chunk [400,600]. No single chunk holds it whole — so retrieving any one chunk gives a fragment. Binary answer-containment: recall@3 = 0.",
+    "s2": "Add overlap=50 and the windows step by 150 instead of 200, giving 7 windows. Now the window [300,500] contains the whole answer span [380,470]. Retrieve that chunk and the answer arrives intact: recall@3 = 1.0.",
+    "s3": "The count is ⌈(L − overlap) / (size − overlap)⌉: 5 chunks at overlap 0, 7 at overlap 50. Overlap costs storage (more, fatter chunks) and buys recall (no answer falls between the cracks). That tension is exactly what the frontier — Late Chunking — attacks."
+  }
+}
+  </script>
+  <p class="viz-caption">A 1000-token doc with the answer at [380,470]. size=200/overlap=0 → 5 windows, the answer straddles a boundary (recall@3 = 0); overlap=50 → 7 windows, one holds the whole answer (recall@3 = 1.0).</p>
+  <aside class="slide-notes">climb-chunking widget (chunking-demo). Binary answer-containment; overlap rescues the straddle.</aside>
+</section>
+<section class="slide" data-type="formula" data-screen-label="17 Chunking, by hand">
+  <div class="slide-header">
+    <h2>Size, overlap, by hand</h2>
+    <span class="slide-kicker">binary answer-containment · answer at [380,470]</span>
+  </div>
+  <div class="formula-stage">
+    $$ \text{chunks} = \left\lceil \frac{L - \text{overlap}}{\text{size} - \text{overlap}} \right\rceil $$
+    $$ \text{size}=200,\ \text{overlap}=0:\ \lceil 1000/200 \rceil = \mathbf{5},\quad \text{answer straddles boundary } 400 \;\Longrightarrow\; \text{recall@3} = \mathbf{0} $$
+    $$ \text{size}=200,\ \text{overlap}=50:\ \lceil 950/150 \rceil = \mathbf{7},\quad [300,500] \text{ holds } [380,470] \;\Longrightarrow\; \text{recall@3} = \mathbf{1.0} $$
+  </div>
+  <p class="small muted center mt-2">Overlap costs storage and buys recall — the answer no longer falls between the cracks. <strong>Frontier:</strong> Late Chunking (Günther et al., 2024) embeds the whole document first, chunking after the transformer, so no overlap-vs-context tradeoff.</p>
+  <aside class="slide-notes">climb-chunking. 5→7 chunks; binary recall@3 0→1.0. Recomputed in provenance_l10 (nChunks + containment). Late Chunking is the essay/frontier.</aside>
+</section>
+<section class="slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="18 Chunk-size sweep">
+  <div class="slide-header">
+    <h2>Sweep the overlap — watch recall climb, storage swell</h2>
+    <span class="slide-kicker">fixed size=200, overlap 0 → 50 → 100 → 150 (←/→)</span>
+  </div>
+  <div class="viz-frame">
+    <svg viewBox="0 0 1500 560" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="An overlap sweep over a 1000-token document with the gold answer span between tokens 380 and 470. At overlap 0 the answer straddles a boundary and recall is 0 with 5 chunks; overlap 50, 100 and 150 each keep a window that holds the whole answer, so recall is 1, while the chunk count grows from 7 to 9 to 17.">
+      <defs>
+        <marker id="cs18" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-3)"/></marker>
+      </defs>
+      <g font-family="var(--font-sans)">
+        <!-- gold answer span band, drawn under every row (tokens 380..470 → x 60 + 0.38*1380 .. 0.47*1380) -->
+        <rect x="584.4" y="44" width="124.2" height="468" rx="4" fill="var(--accent-soft)" opacity="0.55"/>
+        <text x="646" y="34" text-anchor="middle" font-size="17" fill="var(--accent-ink)" font-weight="700">answer [380,470]</text>
+
+        <!-- row template: x maps token t → 60 + (t/1000)*1380 ; rows at y = 70 + i*112 -->
+        <!-- ROW 0 · overlap 0 → 5 chunks, recall 0 (straddle) -->
+        <g data-step="0">
+          <text x="20" y="66" font-size="18" font-weight="700" fill="var(--ink-2)">overlap=0<tspan font-size="16" font-weight="400" fill="var(--ink-3)">  ·  5 chunks</tspan></text>
+          <rect x="61"  y="76" width="274" height="40" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/>
+          <rect x="337" y="76" width="274" height="40" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/>
+          <rect x="613" y="76" width="274" height="40" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/>
+          <rect x="889" y="76" width="274" height="40" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/>
+          <rect x="1165" y="76" width="274" height="40" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/>
+          <text x="1470" y="101" text-anchor="end" font-size="20" fill="var(--c-red, #D7522C)" font-weight="800">recall@3 = 0 ✗</text>
+        </g>
+
+        <!-- ROW 1 · overlap 50 → 7 chunks, recall 1 (window [300,500] holds it) -->
+        <g data-step="1">
+          <text x="20" y="178" font-size="18" font-weight="700" fill="var(--ink-2)">overlap=50<tspan font-size="16" font-weight="400" fill="var(--ink-3)">  ·  7 chunks</tspan></text>
+          <rect x="61"   y="188" width="274" height="40" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/>
+          <rect x="268"  y="188" width="274" height="40" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/>
+          <rect x="475"  y="188" width="274" height="40" rx="5" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5"/>
+          <rect x="682"  y="188" width="274" height="40" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/>
+          <rect x="889"  y="188" width="274" height="40" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/>
+          <rect x="1096" y="188" width="274" height="40" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/>
+          <rect x="1303" y="188" width="137" height="40" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/>
+          <text x="1470" y="213" text-anchor="end" font-size="20" fill="var(--c-green, #2E8B57)" font-weight="800">recall@3 = 1 ✓</text>
+        </g>
+
+        <!-- ROW 2 · overlap 100 → 9 chunks, recall 1 -->
+        <g data-step="2">
+          <text x="20" y="290" font-size="18" font-weight="700" fill="var(--ink-2)">overlap=100<tspan font-size="16" font-weight="400" fill="var(--ink-3)">  ·  9 chunks</tspan></text>
+          <rect x="61"   y="300" width="274" height="40" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/>
+          <rect x="199"  y="300" width="274" height="40" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/>
+          <rect x="337"  y="300" width="274" height="40" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/>
+          <rect x="475"  y="300" width="274" height="40" rx="5" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5"/>
+          <rect x="613"  y="300" width="274" height="40" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/>
+          <rect x="751"  y="300" width="274" height="40" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/>
+          <rect x="889"  y="300" width="274" height="40" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/>
+          <rect x="1027" y="300" width="274" height="40" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/>
+          <rect x="1165" y="300" width="274" height="40" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/>
+          <text x="1470" y="325" text-anchor="end" font-size="20" fill="var(--c-green, #2E8B57)" font-weight="800">recall@3 = 1 ✓</text>
+        </g>
+
+        <!-- ROW 3 · overlap 150 → 17 chunks, recall 1 (storage cost) -->
+        <g data-step="3">
+          <text x="20" y="402" font-size="18" font-weight="700" fill="var(--ink-2)">overlap=150<tspan font-size="16" font-weight="400" fill="var(--ink-3)">  ·  17 chunks</tspan></text>
+          <rect x="61"   y="412" width="274" height="34" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.2" opacity="0.92"/>
+          <rect x="130"  y="412" width="274" height="34" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.2" opacity="0.92"/>
+          <rect x="199"  y="412" width="274" height="34" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.2" opacity="0.92"/>
+          <rect x="268"  y="412" width="274" height="34" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.2" opacity="0.92"/>
+          <rect x="337"  y="412" width="274" height="34" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.2" opacity="0.92"/>
+          <rect x="475"  y="412" width="274" height="34" rx="5" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5"/>
+          <rect x="751"  y="412" width="274" height="34" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.2" opacity="0.92"/>
+          <rect x="1027" y="412" width="274" height="34" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.2" opacity="0.92"/>
+          <rect x="1165" y="412" width="274" height="34" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.2" opacity="0.92"/>
+          <text x="1470" y="436" text-anchor="end" font-size="20" fill="var(--c-green, #2E8B57)" font-weight="800">recall@3 = 1 ✓</text>
+        </g>
+
+        <!-- step 4 · the lesson -->
+        <g data-step="4">
+          <line x1="61" y1="486" x2="1439" y2="486" stroke="var(--rule)" stroke-width="1.5"/>
+          <text x="61" y="520" font-size="20" fill="var(--ink)" font-weight="700">recall@3: 0 → 1 → 1 → 1 (monotone)</text>
+          <text x="61" y="546" font-size="18" fill="var(--ink-3)">chunks: 5 → 7 → 9 → 17 — more overlap never hurts containment, but storage swells</text>
+        </g>
+      </g>
+    </svg>
+  </div>
+  <div class="step-controls">
+    <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+    <span class="step-counter">0/4</span>
+    <button data-step-act="next" aria-label="Next step">&rarr;</button>
+  </div>
+  <aside class="slide-notes">chunk-size sweep (l10-chunking.sweep). FIXED size=200, overlap 0/50/100/150 → nChunks 5/7/9/17, recall@3 0→1→1→1 (all integers → coverage-safe). The highlighted window each row is the one that holds the gold span [380,470]; overlap 0 has none (straddle), so recall 0. Lesson: overlap rescues the boundary straddle and never hurts containment, but each step costs storage (5→17 chunks). This is exactly the tension Late Chunking removes.</aside>
+</section>
+<section class="slide" data-type="table" data-screen-label="19 Four chunking strategies">
+  <div class="slide-header">
+    <h2>Four ways to cut</h2>
+    <span class="slide-kicker">fixed · recursive · semantic · late — cost vs structure (representative)</span>
+  </div>
+  <table class="cmp-table">
+    <thead><tr>
+      <th>strategy</th>
+      <th>how it cuts</th>
+      <th>cost</th>
+      <th>when to use</th>
+    </tr></thead>
+    <tbody>
+      <tr><td><strong>fixed-size</strong></td><td>every N tokens, hard boundaries (optionally with overlap)</td><td>cheapest</td><td>uniform text, fast baseline; pair with overlap to soften boundaries</td></tr>
+      <tr><td><strong>recursive</strong></td><td>split on a separator hierarchy (¶ → sentence → word) until each piece fits N</td><td>cheap</td><td>structured prose / markdown / code where natural boundaries matter</td></tr>
+      <tr><td><strong>semantic</strong></td><td>embed sentences, start a new chunk where adjacent-sentence similarity drops</td><td>moderate (one embed pass)</td><td>topic-shifting docs where fixed cuts split ideas</td></tr>
+      <tr><td class="cell-good"><strong>late-chunking</strong></td><td>embed ALL tokens of the long doc first, chunk AFTER the transformer (before pooling)</td><td>needs a long-context encoder; training-free</td><td>when chunk embeddings must keep full-document context</td></tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2">Going down the table trades cheapness for structure-awareness. The first three cut <em>before</em> embedding, so each chunk is embedded in isolation; <strong>late-chunking</strong> inverts the order — embed first, cut later — which is the frontier idea on the next slide.</p>
+  <aside class="slide-notes">four-chunking-strategies (l10-chunkstrat, descriptive — no computed numbers). fixed/recursive/semantic/late. The pivot: first three cut before embedding (isolated chunks); late-chunking cuts after. Sets up the Late Chunking definition.</aside>
+</section>
+<section class="slide" data-type="two-col" data-screen-label="20 Frontier · Late Chunking">
+  <div class="slide-header">
+    <h2>Frontier · Late Chunking</h2>
+    <span class="slide-kicker">embed the whole document, <em>then</em> chunk</span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag">Frontier idea · arXiv:2409.04701</span>
+        <div class="def-term">Encode the <em>entire</em> document first; cut into chunks <strong>after</strong> the transformer, before mean-pooling each chunk's token vectors.</div>
+        <div class="def-body">
+          <ul class="obj-list">
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Fixes:</strong> naïve chunking embeds each chunk <em>alone</em> → "it" / "the company" loses its referent.</span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Trick:</strong> attention saw the whole document, so every token vector is contextualized — pooling keeps it. No overlap-vs-context tradeoff.</span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Training-free:</strong> reuses any long-context embedder — just invert cut-then-embed (Günther et al., 2024).</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="twocol-col">
+      <div class="viz-frame fig-fit" style="--fig-max:56cqh; --fig-w:94%;">
+        <img src="assets/img/L10/L10-09-late-chunking.png?v=1" alt="Two embedding diagrams side by side: naïve chunking embeds each chunk alone as isolated bubbles, while late chunking embeds one long ribbon whole and only then slices it." />
+      </div>
+    </div>
+  </div>
+  <aside class="slide-notes">Late-Chunking frontier definition. arXiv:2409.04701 (Günther et al., Jina AI). Embed-then-chunk, training-free, fixes isolated-chunk context loss — the exact tension the sweep slide exposed (overlap buys recall but not context).</aside>
+</section>
+<section class="slide" data-type="divider" data-screen-label="21 Divider · Index smarter">
+  <div class="divider-content">
+    <div class="divider-num">Act 1 · Index smarter</div>
+    <h1>What you store decides what you can ask</h1>
+    <p class="divider-sub"><em>Chunking is only the first cut.</em> You can index the same document in <strong>several representations</strong>, or build a <strong>tree of summaries</strong> so one index answers both zoomed-out and zoomed-in questions. The index is a design choice, not a given.</p>
+  </div>
+  <div class="viz-frame fig-fit" style="--fig-max:60cqh; --fig-w:48%;">
+    <img src="assets/img/L10/L10-10-raptor-tree.png?v=1" alt="RAGdoll the Oracle stacks scraps into a pyramid — many leaf-scraps summarise up into fewer summary-scraps, then into one root — while Séréga points at the level his question lands on." />
+  </div>
+  <aside class="slide-notes">divider-index-smarter. Bridges from chunking to richer indexing: multi-representation indexing + RAPTOR. Still Act 1 (the build-time half of the pipeline).</aside>
+</section>
+<section class="slide" data-type="definition" data-screen-label="22 Multi-representation indexing">
+  <div class="slide-header">
+    <h2>Multi-representation indexing</h2>
+    <span class="slide-kicker">index a summary, retrieve the full chunk</span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">Definition</span>
+    <div class="def-term">Embed and index a <em>derived</em> representation of each document — a summary, a hypothetical question, a set of propositions — but return the <strong>full</strong> chunk to the generator.</div>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Why:</strong> what reads best for <em>retrieval</em> (a tight summary that matches a query) is not what reads best for <em>generation</em> (the full passage with the details). So split them: index the summary, store a pointer to the raw chunk.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Examples:</strong> summary-indexing, "parent-document" retrieval (match a small chunk, return its larger parent), and hypothetical-question indexing.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Callback (L8):</strong> ColBERT's per-token vectors are <em>also</em> a multi-representation index — many vectors per document instead of one. Same instinct, learned end-to-end. <em>(We taught it in L8; here it's one of several.)</em></span></li>
+      </ul>
+    </div>
+  </div>
+  <aside class="slide-notes">multi-representation-indexing definition. Index a derived view (summary / hypothetical question / proposition / parent-doc), return the full chunk. ColBERT is a ONE-LINE callback only (L8 owns it — do not re-teach MaxSim).</aside>
+</section>
+<section class="slide" data-type="archflow" data-max-step="4" data-current-step="0" data-screen-label="23 RAPTOR">
+  <div class="slide-header">
+    <h2>RAPTOR — a tree of recursive summaries</h2>
+    <span class="slide-kicker">build bottom-up, retrieve at any level (←/→)</span>
+  </div>
+  <div class="widget-mount" data-widget="raptor-tree"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "_doc": "RAPTOR — recursive abstractive tree. Cluster + summarize leaf chunks into higher nodes, recurse to a root: 8 leaf chunks → 3 mid summaries → 1 root, depth 3. Retrieval can pull from ANY level (a high node answers a broad question; a leaf answers a detail). Sarthi et al. 2024 (arXiv:2401.18059).",
+    "_source": "_research/gen_l10.py (static, descriptive): tree shape is a toy illustration; cites arXiv:2401.18059.",
+    "tree": {
+      "levels": [
+        { "n": 8 },
+        { "n": 3 },
+        { "n": 1 }
+      ],
+      "depth": 3
+    },
+    "idea": "cluster + summarize chunks recursively; retrieve from any tree level (leaf=detail, root=overview)",
+    "source": "Sarthi, Abdullah, Tuli, Khanna, Goldie & Manning, 'RAPTOR: Recursive Abstractive Processing for Tree-Organized Retrieval', ICLR 2024 (arXiv:2401.18059)"
+  },
+  "labels": {
+    "alt": "A recursive summary tree built bottom-up: 8 leaf chunks cluster into 3 summary nodes (fan-in 8 to 3), which summarize into 1 root (3 to 1), depth 3. A broad query is routed to the root overview; a detail query is routed to a leaf — any level is retrievable.",
+    "title": "Recursive summary tree",
+    "depth": "depth",
+    "leaf": "leaves",
+    "summary": "summaries",
+    "root": "root",
+    "fanin": "fan-in",
+    "broadQuery": "broad query → overview",
+    "detailQuery": "detail query → leaf",
+    "s0": "Start at the bottom: 8 leaf chunks — the raw passages, exactly the units a flat index would store. Standard retrieval stops here, so it can only ever answer at the granularity of a single chunk.",
+    "s1": "Cluster the leaves and summarize each cluster: the 8 chunks fan in to 3 summary nodes (8 → 3). Each summary node is a short abstraction over several leaves — a level of context no single chunk holds.",
+    "s2": "Recurse: summarize the 3 summaries into 1 root node (3 → 1). The tree now has depth 3 — leaf, summary, root — a single index that holds the document at three zoom levels at once.",
+    "s3": "Now route by question. A broad, zoomed-out question ('what is this document about?') lands at the ROOT: one summary node answers it directly — no need to read all 8 leaves.",
+    "s4": "A zoomed-in, specific question ('what exact number is in passage 4?') lands at a LEAF: the detail lives in a raw chunk, so retrieval pulls the leaf. One tree, queried at the abstraction level the question needs — that is RAPTOR's payoff (Sarthi et al. 2024)."
+  }
+}
+  </script>
+  <p class="viz-caption">8 leaf chunks → 3 cluster summaries → 1 root, depth 3. Retrieval can pull from any level — the root answers a broad question, a leaf answers a detail. One index serves both zoom levels (Sarthi et al., ICLR 2024).</p>
+  <aside class="slide-notes">RAPTOR walkthrough (raptor-tree, l10-raptor). 8→3→1, depth 3 (integers → coverage-safe). Cite arXiv:2401.18059. Built bottom-up; retrieve at any level. Closes Act 1's indexing arc.</aside>
+</section>
+<section class="slide" data-type="divider" data-screen-label="24 Divider · Query translation">
+  <div class="divider-content">
+    <div class="divider-num">Act 2 · Aim the retriever</div>
+    <h1>Hear the real question</h1>
+    <p class="divider-sub"><em>The captain's words are rarely the corpus's words.</em> Retrieval matches the words it's given — so <strong>translate</strong> the query before retrieving: expand it, rewrite it into answer-shape, fuse several phrasings, or break a compound question apart. Same retriever, a better query.</p>
+  </div>
+  <div class="viz-frame fig-fit" style="--fig-max:58cqh; --fig-w:50%;">
+    <img src="assets/img/L10/L10-05-hear-the-real-question.png?v=1" alt="Séréga cups an ear; two speech-bubbles — the captain's literal words and the true intent — converge into a single query slot." />
+  </div>
+  <aside class="slide-notes">turn-query-translation. The aiming stage. No creature (plain metaphor). Clippy is reserved for L12 — do NOT use it. Act 2 covers vocabulary gap, multi-query, HyDE, RAG-Fusion, decomposition, step-back.</aside>
+</section>
+<section class="slide" data-type="definition" data-screen-label="25 The vocabulary gap">
+  <div class="slide-header">
+    <h2>The vocabulary gap</h2>
+    <span class="slide-kicker">why the right doc can rank low</span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">Definition</span>
+    <div class="def-term">A query and its true answer often use <em>different words for the same idea</em> — so a retriever scoring by word/embedding similarity ranks the right document below worse matches.</div>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Example:</strong> "How does the heart pump blood?" vs a doc on "the cardiac cycle, ventricular systole" — same topic, almost no shared vocabulary.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Callback (L3):</strong> Furnas et al. found two people pick the same word for a concept under 20% of the time. Embeddings narrow the gap; they don't close it.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>The move:</strong> don't build a better <em>retriever</em> — give it a better <em>query</em>, closer in vocabulary to the answer. That is query translation.</span></li>
+      </ul>
+    </div>
+  </div>
+  <aside class="slide-notes">vocabulary-gap definition. The query and answer use different words → true doc ranks low. Callback L3 (Furnas et al., <20% agreement). Motivates query translation (the next moves: multi-query, HyDE, fusion, decomposition).</aside>
+</section>
+<section class="slide" data-type="definition" data-screen-label="26 Multi-query">
+  <div class="slide-header">
+    <h2>Multi-query</h2>
+    <span class="slide-kicker">ask several ways, take the union</span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">Definition</span>
+    <div class="def-term">Have an LLM rewrite the query into several paraphrases, retrieve the top-<em>k</em> for <em>each</em>, and return the <strong>union</strong> of their results.</div>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Why it works:</strong> each phrasing lands near a different part of the relevant set. One query might miss "ventricular systole"; another phrased around "diastole" catches it. The union covers more of the gold set — it lifts <em>recall</em>.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Cost:</strong> one LLM call to generate paraphrases, then several retrievals instead of one. The results are de-duplicated before they hit the generator's budget.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">It widens <em>coverage</em>; the next move — HyDE — instead changes the <em>shape</em> of the query. They are complementary.</span></li>
+      </ul>
+    </div>
+  </div>
+  <aside class="slide-notes">multi-query definition. Paraphrase → retrieve each → union → recall lift. Cost: 1 LLM call + several retrievals, de-duplicated. Contrast with HyDE (shape, not coverage). The by-hand lift (0.4→0.8) is two slides on.</aside>
+</section>
+<section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="27 Climb · Query rewriting">
+  <div class="slide-header">
+    <h2>Query rewriting — HyDE &amp; multi-query</h2>
+    <span class="slide-kicker">toggle original/HyDE/multi-query (←/→)</span>
+  </div>
+  <div class="widget-mount" data-widget="query-rewrite"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "_doc": "Query rewriting, exact (stdlib). A short, vocabulary-poor query finds the true doc at rank 8 → recall@5 = 0, RR = 1/8 = 0.125. HyDE writes a hypothetical answer, embeds THAT → true doc rises to rank 2 → recall@5 = 1, RR = 1/2 = 0.5. Multi-query is a SEPARATE 5-relevant gold-set: single query 2/5 → recall@5 = 0.4; union of 3 paraphrases 4/5 → recall@5 = 0.8.",
+    "_source": "_research/gen_l10.py (toy, stdlib): RR=1/rank; single recall@5=(trueRank≤5); multi recall@5=|gold∩found|/5.",
+    "query": "How does the heart pump blood?",
+    "trueDocId": "doc_cardiac_cycle",
+    "original": {
+      "rankedList": [
+        "doc_blood_types",
+        "doc_anatomy",
+        "doc_exercise",
+        "doc_diet",
+        "doc_circulatory",
+        "doc_valves",
+        "doc_pressure",
+        "doc_cardiac_cycle",
+        "doc_history",
+        "doc_aneurysm"
+      ],
+      "trueRank": 8,
+      "recallAt5": 0,
+      "rr": 0.125
+    },
+    "hyde": {
+      "hypotheticalDoc": "The cardiac cycle drives blood flow: during ventricular systole the ventricles contract, ejecting blood; during diastole they refill. Pressure gradients and one-way valves keep circulation moving.",
+      "rankedList": [
+        "doc_circulatory",
+        "doc_cardiac_cycle",
+        "doc_valves",
+        "doc_anatomy",
+        "doc_pressure",
+        "doc_exercise",
+        "doc_diet",
+        "doc_blood_types",
+        "doc_history",
+        "doc_aneurysm"
+      ],
+      "trueRank": 2,
+      "recallAt5": 1,
+      "rr": 0.5
+    },
+    "multiQuery": {
+      "paraphrases": [
+        "How does the heart pump blood?",
+        "What happens during the cardiac cycle?",
+        "Explain ventricular systole and diastole."
+      ],
+      "goldRelevant": [
+        "gold_cycle",
+        "gold_systole",
+        "gold_ventricle",
+        "gold_diastole",
+        "gold_output"
+      ],
+      "foundSingle": [
+        "gold_cycle",
+        "gold_systole"
+      ],
+      "foundUnion": [
+        "gold_cycle",
+        "gold_systole",
+        "gold_ventricle",
+        "gold_diastole"
+      ],
+      "recallAt5Single": 0.4,
+      "recallAt5Union": 0.8
+    }
+  },
+  "labels": {
+    "alt": "A ranked list where the true doc sits at rank 8 (below the top-5 cut) under the original query; HyDE lifts it to rank 2; a separate multi-query gold-set raises recall@5 from 0.4 to 0.8.",
+    "ranked": "retrieved, ranked",
+    "cut": "top-5 cut",
+    "trueDoc": "true doc",
+    "rank": "rank",
+    "origLbl": "original query",
+    "hydeLbl": "HyDE query",
+    "hydeTitle": "HyDE",
+    "hydeL1": "write a hypothetical",
+    "hydeL2": "answer, then embed",
+    "hydeL3": "THAT vector",
+    "mqHead": "multi-query · a separate 5-relevant gold-set",
+    "mqSingle": "single query",
+    "mqUnion": "union of 3 paraphrases",
+    "s0": "The query “How does the heart pump blood?” is short and vocabulary-poor. The true doc speaks of “cardiac cycle, ventricular systole” — a lexical and semantic mismatch. So the retriever ranks the true doc only 8th: below the top-5 cut, it is never read. recall@5 = 0, RR = 1/8 = 0.125.",
+    "s1": "HyDE's trick: don't search with the bare question. First ask an LLM to write a hypothetical answer paragraph — full of the words a real answer would use (cardiac cycle, ventricles, systole) — and embed THAT paragraph instead of the question.",
+    "s2": "The hypothetical answer's vector lands right next to the true doc — they speak the same vocabulary. Re-retrieve, and the true doc jumps from rank 8 to rank 2: now inside the top-5. recall@5 = 1, RR = 1/2 = 0.5. Same retriever, a better query.",
+    "s3": "Multi-query attacks recall differently — on a SEPARATE query with 5 relevant docs (never blended with HyDE's single-doc count). The bare query retrieves 2 of 5 → recall@5 = 0.4. Issue 3 paraphrases and take the UNION of their top-5: it covers 4 of 5 → recall@5 = 0.8. More phrasings, more of the relevant set found."
+  }
+}
+  </script>
+  <p class="viz-caption">The true doc sits at rank 8 (recall@5=0, RR=0.125). HyDE embeds a hypothetical answer → rank 2 (recall@5=1, RR=0.5). Multi-query, on a separate 5-relevant gold-set, lifts recall@5 0.4→0.8.</p>
+  <aside class="slide-notes">climb-queryrewrite widget (query-rewrite). Two recall senses on two gold-sets, never blended.</aside>
+</section>
+<section class="slide" data-type="formula" data-screen-label="28 Multi-query recall, by hand">
+  <div class="slide-header">
+    <h2>Multi-query union recall, by hand</h2>
+    <span class="slide-kicker">a separate 5-relevant gold-set</span>
+  </div>
+  <div class="formula-stage">
+    $$ \text{recall@5} = \frac{|\text{gold} \cap \text{found}|}{|\text{gold}|}, \qquad |\text{gold}| = 5 $$
+    $$ \text{single query: } 2/5 \Rightarrow \mathbf{0.4} \qquad \text{union of 3 paraphrases: } 4/5 \Rightarrow \mathbf{0.8} $$
+  </div>
+  <p class="small muted center mt-2">The bare query finds 2 of the 5 relevant docs; three paraphrases together cover 4 of 5. The union doubles recall <em>without touching the retriever</em> — it just asks the same question several ways. (This is its own gold-set, never blended with HyDE's single-true-doc count.)</p>
+  <aside class="slide-notes">multi-query union recall by-hand. l10-rewrite.multiQuery: single 2/5 = 0.4 → union 4/5 = 0.8 (both gated, anchored 2/5⇒0.4 and 4/5⇒0.8). Separate 5-relevant gold-set — never blended with HyDE's binary recall.</aside>
+</section>
+<section class="slide" data-type="formula" data-screen-label="29 HyDE, by hand">
+  <div class="slide-header">
+    <h2>HyDE reciprocal rank, by hand</h2>
+    <span class="slide-kicker">single true doc · RR = 1/rank</span>
+  </div>
+  <div class="formula-stage">
+    $$ \text{RR} = \frac{1}{\text{rank of the true doc}} $$
+    $$ \text{original: true doc rank } 8 \;\Longrightarrow\; \text{recall@5} = 0, \quad \text{RR} = 1/8 = \mathbf{0.125} $$
+    $$ \text{HyDE: rank } 2 \;\Longrightarrow\; \text{recall@5} = 1, \quad \text{RR} = 1/2 = \mathbf{0.5} $$
+  </div>
+  <p class="small muted center mt-2">HyDE closes the vocabulary gap by searching with answer-shaped text; multi-query widens coverage by asking several ways. Both lift the ranking <em>without touching the retriever</em> — they just feed it a better query.</p>
+  <aside class="slide-notes">HyDE single-doc binary recall (RR 0.125→0.5, anchored 1/8=0.125 and 1/2=0.5). provenance_l10 pins RR=1/rank and the two recall senses on their own gold-sets.</aside>
+</section>
+<section class="slide" data-type="definition" data-screen-label="30 HyDE, formally">
+  <div class="slide-header">
+    <h2>HyDE, formally</h2>
+    <span class="slide-kicker">embed a hypothetical answer, not the question</span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">Definition · arXiv:2212.10496</span>
+    <div class="def-term">Ask an LLM to write a <em>hypothetical answer</em> to the query, embed <strong>that</strong> document, and retrieve with its vector — even though the hypothetical may be partly wrong.</div>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Why it works:</strong> an answer-shaped paragraph lives in the same region of embedding space as the real answers. Searching with it closes the vocabulary gap — the hypothetical's <em>shape</em> matters more than its factual accuracy.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Precise Zero-shot Dense Retrieval:</strong> Gao, Ma, Lin &amp; Callan (ACL 2023) showed it lifts retrieval with <em>no relevance labels</em> — the LLM supplies the missing query-document bridge.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Cost &amp; risk:</strong> one extra LLM call per query, and a confidently-wrong hypothetical can mislead retrieval — pair it with a retriever that still ranks the true doc highly.</span></li>
+      </ul>
+    </div>
+  </div>
+  <aside class="slide-notes">HyDE-formally definition. Cite Gao, Ma, Lin & Callan, "Precise Zero-Shot Dense Retrieval without Relevance Labels", ACL 2023 (arXiv:2212.10496). Shape > accuracy; closes the vocabulary gap; costs one LLM call.</aside>
+</section>
+<section class="slide" data-type="formula" data-screen-label="31 RAG-Fusion">
+  <div class="slide-header">
+    <h2>RAG-Fusion = multi-query + RRF</h2>
+    <span class="slide-kicker">fuse the paraphrase rankings, not their scores</span>
+  </div>
+  <div class="formula-stage">
+    $$ \text{RRF}(d) \;=\; \sum_{\text{lists}} \frac{1}{k + \text{rank}_{\,d}}, \qquad k = 60 $$
+    $$ \text{multi-query gives several ranked lists} \;\longrightarrow\; \text{RRF fuses them into one order} $$
+  </div>
+  <p class="small muted center mt-2"><strong>Callback (L3, L8):</strong> this is exactly Reciprocal Rank Fusion — the same \(\sum 1/(60+\text{rank})\) we used to fuse sparse + dense. RAG-Fusion reuses it across the <em>paraphrases</em> of one query: rank-based, no score calibration, and a doc that <em>several</em> phrasings agree on rises to the top.</p>
+  <div class="viz-frame fig-fit" style="--fig-max:30cqh; --fig-w:32%;">
+    <img src="assets/img/L10/L10-11-rag-fusion.png?v=1" alt="Three Séréga speech-bubbles — the same question paraphrased three ways — each cast a fishing line into the same pond; their votes pull one consensus document to the surface (RRF)." />
+  </div>
+  <aside class="slide-notes">RAG-Fusion = multi-query + RRF. REUSE the locked RRF Σ1/(60+r), k=60 — callback to L3 (fusion) and L8 (hybrid RRF). Do not re-derive RRF; it's owned earlier. Sets up the by-hand consensus on the next slide.</aside>
+</section>
+<section class="slide" data-type="formula" data-screen-label="32 RAG-Fusion, by hand">
+  <div class="slide-header">
+    <h2>RAG-Fusion, by hand — consensus wins</h2>
+    <span class="slide-kicker">two paraphrase lists · k=60</span>
+  </div>
+  <div class="formula-stage">
+    $$ \text{list A: } [\text{circulatory},\ \mathbf{cardiac\_cycle},\ \text{anatomy},\dots] \qquad \text{list B: } [\mathbf{cardiac\_cycle},\ \text{systole},\ \text{circulatory},\dots] $$
+    $$ \text{cardiac\_cycle (rank 2 in A, rank 1 in B): } \tfrac{1}{60+2}+\tfrac{1}{60+1} = \mathbf{0.0325} $$
+    $$ \text{circulatory (rank 1 in A, rank 3 in B): } \tfrac{1}{60+1}+\tfrac{1}{60+3} = \mathbf{0.0323} $$
+  </div>
+  <p class="small muted center mt-2">Circulatory <em>tops</em> list A, yet loses the fusion: \(\mathbf{0.0325} &gt; \mathbf{0.0323}\). The consensus doc — ranked highly by <em>both</em> paraphrases — beats the doc that one list alone loved. Agreement across phrasings is the signal RAG-Fusion rewards.</p>
+  <aside class="slide-notes">RAG-Fusion by-hand. l10-fusion: consensus doc_cardiac_cycle RRF 0.0325 beats list-A leader doc_circulatory 0.0323 (both gated/covered). The other six RRF scores stay in the data file (not displayed). Lesson: consensus beats a single high rank — the same as L8's hybrid RRF.</aside>
+</section>
+<section class="slide" data-type="archflow" data-max-step="4" data-current-step="0" data-screen-label="33 Decomposition & step-back">
+  <div class="slide-header">
+    <h2>Decomposition &amp; step-back — reshape the question</h2>
+    <span class="slide-kicker">fan a compound query out · or abstract it up (←/→)</span>
+  </div>
+  <div class="widget-mount" data-widget="query-tree"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "_doc": "Query decomposition + step-back, exact-binary (stdlib). The multi-part question asks TWO things at once; binary answer-containment shows why one retrieval fails: each sub-answer sits in its OWN chunk (recallSub=[1,1]) but no single chunk contains BOTH facts (recallJoint=0). step-back: abstract a specific question to a generic one, retrieve the underlying PRINCIPLE (Zheng et al. 2023).",
+    "_source": "_research/gen_l10.py (toy, stdlib): binary answer-containment recall; step-back cites arXiv:2310.06117.",
+    "question": "Does the heart pump faster during exercise, and what controls that rate?",
+    "subQuestions": [
+      "Does heart rate increase during exercise?",
+      "What controls heart rate?"
+    ],
+    "recallSub": [1, 1],
+    "recallJoint": 0,
+    "recallNote": "each sub-answer is contained in its own chunk (1,1); no single chunk contains both (joint=0) — decomposition recovers both facts.",
+    "stepBack": {
+      "specific": "Why did my heart rate hit 180 bpm running up the stairs?",
+      "generic": "What physiological mechanism regulates heart rate under exertion?",
+      "principleRetrieved": "The sympathetic nervous system raises heart rate during exertion (autonomic regulation of cardiac output).",
+      "idea": "abstract the specific query to a generic one → retrieve the underlying principle → answer the specific",
+      "source": "Zheng, Mishra, Chen, Cheng, Chi, Le & Zhou, 'Take a Step Back: Evoking Reasoning via Abstraction in Large Language Models', arXiv:2310.06117 (2023)"
+    }
+  },
+  "labels": {
+    "alt": "A one-question-to-two fan-out (each sub-question retrieves its own chunk, recall 1 each, but one joint retrieval gets recall 0), above a three-rung step-back ladder: specific question abstracted to a generic one to retrieve the underlying principle.",
+    "fanTitle": "A · Decomposition fan-out",
+    "stepBackTitle": "B · Step-back ladder",
+    "subPrefix": "sub",
+    "chunk": "chunk",
+    "recallSub": "recall per sub",
+    "recallJoint": "recall on one joint retrieval",
+    "specific": "specific",
+    "generic": "generic",
+    "principle": "principle",
+    "s0": "Some questions ask two things at once. This one wants BOTH whether heart rate rises during exercise AND what controls it. Retrieval works on chunks, and these two facts may live in different chunks — so the multi-part query is a trap.",
+    "s1": "Decompose it. The one question fans out into two single-purpose sub-questions: 'Does heart rate increase during exercise?' and 'What controls heart rate?' Each is now a clean, atomic retrieval target.",
+    "s2": "Retrieve each sub-question separately. Sub-answer 1 lives in its own chunk, sub-answer 2 in another: recall per sub = [1, 1] — both found. But a SINGLE retrieval over the joint question hits no chunk that contains both: recall on one joint retrieval = 0. Decomposition recovers what one pass drops.",
+    "s3": "A different reshape: step-back. Start from a too-specific question — 'Why did my heart rate hit 180 bpm running up the stairs?' Taken literally, that exact event may not be in any chunk.",
+    "s4": "Abstract UP the ladder: the specific question becomes a generic one — 'What mechanism regulates heart rate under exertion?' — which retrieves the underlying PRINCIPLE (the sympathetic nervous system raises heart rate). Answer the principle, then come back down to the specific. Climb to retrieve, descend to answer (Zheng et al. 2023)."
+  }
+}
+  </script>
+  <p class="viz-caption">Decomposition: one compound question fans into two atomic sub-questions — recall per sub = [1, 1], but a single joint retrieval = 0. Step-back: abstract a too-specific question up to a generic one, retrieve the principle, then answer.</p>
+  <aside class="slide-notes">decomposition walkthrough (query-tree, l10-decomp). recallSub [1,1] vs recallJoint 0 (integers → safe). Steps 3–4 are the step-back ladder (cite arXiv:2310.06117) — the next slide names it formally.</aside>
+</section>
+<section class="slide" data-type="definition" data-screen-label="34 Step-back prompting">
+  <div class="slide-header">
+    <h2>Step-back, formally</h2>
+    <span class="slide-kicker">climb to retrieve, descend to answer</span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">Definition · arXiv:2310.06117</span>
+    <div class="def-term">Abstract a too-specific question into a <em>generic</em> one, retrieve the underlying <strong>principle</strong>, then answer the specific question with it.</div>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Trap:</strong> "Why did my heart rate hit 180 bpm running upstairs?" is so specific that no chunk states it — the literal query retrieves nothing.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Move:</strong> step back to "What regulates heart rate under exertion?" — which <em>does</em> match a chunk. Retrieve the principle, then reason down.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>vs decomposition:</strong> decomposition fans <em>out</em>; step-back abstracts <em>up</em>. Both query translation — Zheng et al. (2023).</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="viz-frame fig-fit" style="--fig-max:42cqh; --fig-w:25%;">
+    <img src="assets/img/L10/L10-12-decompose.png?v=1" alt="Chunk Norris chops one big question-scroll into two sub-question scrolls with a karate strike, while Séréga collects both answers." />
+  </div>
+  <aside class="slide-notes">step-back definition. l10-decomp.stepBack; cite Zheng et al., "Take a Step Back", arXiv:2310.06117 (2023). Contrast: decomposition fans out, step-back abstracts up. Paired with the query-tree figure (steps 3–4) on the previous slide.</aside>
+</section>
+<section class="slide" data-type="table" data-screen-label="35 Query-translation menu">
+  <div class="slide-header">
+    <h2>The query-translation menu</h2>
+    <span class="slide-kicker">five moves, one retriever · what each one buys</span>
+  </div>
+  <table class="cmp-table">
+    <thead><tr>
+      <th>move</th>
+      <th>what it does</th>
+      <th>buys</th>
+      <th>extra LLM calls</th>
+    </tr></thead>
+    <tbody>
+      <tr><td><strong>multi-query</strong></td><td>paraphrase, retrieve each, take the union</td><td class="cell-good">recall (coverage)</td><td>1 (generate paraphrases)</td></tr>
+      <tr><td><strong>HyDE</strong></td><td>embed a hypothetical answer instead of the question</td><td>closes the vocabulary gap</td><td>1 (write hypothetical)</td></tr>
+      <tr><td><strong>RAG-Fusion</strong></td><td>multi-query + RRF over the paraphrase rankings</td><td>consensus-weighted recall</td><td>1 (paraphrases) + RRF</td></tr>
+      <tr><td><strong>decomposition</strong></td><td>fan a compound question into atomic sub-questions</td><td>multi-fact answers</td><td>1 + one retrieval per sub</td></tr>
+      <tr><td><strong>step-back</strong></td><td>abstract up to a generic question, retrieve the principle</td><td>answers over-specific queries</td><td>1 (abstract the query)</td></tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2">All five share the same trick: <strong>change the query, not the retriever</strong>. They differ in what they buy — coverage, vocabulary, consensus, multi-fact, or abstraction — and all cost roughly one extra LLM call. Reach for the one your failure mode needs.</p>
+  <aside class="slide-notes">query-translation-menu cmp-table. multi-query / HyDE / RAG-Fusion / decomposition / step-back. Qualitative (no gated numbers beyond the menu). Closes Act 2; bridges to routing (Act 3).</aside>
+</section>
+<section class="slide" data-type="divider" data-screen-label="36 Divider · Routing">
+  <div class="divider-content">
+    <div class="divider-num">Act 3 · Routing &amp; construction</div>
+    <h1>Send the query where it belongs</h1>
+    <p class="divider-sub"><em>One pipeline rarely fits every question.</em> Some queries want a different <strong>data source</strong>, a different <strong>prompt</strong>, or a different <strong>query shape</strong> entirely. Routing picks the destination; construction turns the natural-language question into a structured retrieval.</p>
+  </div>
+  <aside class="slide-notes">divider-routing. Act 3: logical routing (pick a source), semantic routing (pick a prompt), and query construction (NL → metadata filter / SQL). The pipeline becomes a system, not a flat pipe.</aside>
+</section>
+<section class="slide" data-type="definition" data-screen-label="37 Logical routing">
+  <div class="slide-header">
+    <h2>Logical routing</h2>
+    <span class="slide-kicker">let the LLM pick the data source</span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">Definition</span>
+    <div class="def-term">Give the LLM a menu of data sources (indices, tools) and have it <em>classify</em> which one the query belongs to — a function call over a constrained set.</div>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Example:</strong> a code question routes to docs; billing to the SQL database; general to the web. One classifier, several back-ends.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>How:</strong> structured output (an enum / function-calling schema), so the route is a valid label the system dispatches on — not free text.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>vs semantic:</strong> logical reasons over an <em>explicit menu</em>; semantic (next) picks by <em>embedding similarity</em> — logical when choices are nameable.</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="viz-frame fig-fit" style="--fig-max:42cqh; --fig-w:25%;">
+    <img src="assets/img/L10/L10-13-switchboard.png?v=1" alt="Séréga at a switchboard plugs a query-cable into the right source-pipe among three (logical / semantic routing)." />
+  </div>
+  <aside class="slide-notes">logical-routing definition. LLM classifies the query into one of a named menu of sources/indices/tools (structured output / function call). Contrast with semantic routing (similarity-based). No gated numbers.</aside>
+</section>
+<section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="38 Semantic routing">
+  <div class="slide-header">
+    <h2>Semantic routing &amp; query construction</h2>
+    <span class="slide-kicker">route by cosine to a prompt centroid, then construct (←/→)</span>
+  </div>
+  <div class="widget-mount" data-widget="semantic-router"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "_doc": "Query routing + construction, exact (stdlib). Embed the query, take cosine to 3 prompt-template centroids (factQA / howTo / compare), route = argmax. The toy query [2,3,1] leans how-to → cos 0.8058 / 0.9670 / 0.6447 → route 'howTo'. Construction: turn the NL query into a STRUCTURED retrieval — a metadata filter (self-query) or a SQL query (text-to-SQL).",
+    "_source": "_research/gen_l10.py (toy, stdlib): sims = cos(query, centroid); route = argmax.",
+    "dims": [
+      "factual-lookup",
+      "how-to/procedure",
+      "comparison"
+    ],
+    "query": [2, 3, 1],
+    "centroids": [
+      { "template": "factQA", "centroid": [3, 1, 1], "cos": 0.8058 },
+      { "template": "howTo", "centroid": [1, 3, 1], "cos": 0.967 },
+      { "template": "compare", "centroid": [1, 1, 3], "cos": 0.6447 }
+    ],
+    "sims": [0.8058, 0.967, 0.6447],
+    "route": "howTo",
+    "construct": {
+      "metadataFilter": {
+        "nl": "papers on retrieval published after 2020",
+        "filter": { "topic": "retrieval", "year": { "$gt": 2020 } },
+        "note": "self-query: NL → a metadata filter applied alongside vector search"
+      },
+      "textToSql": {
+        "nl": "how many documents did we index last month?",
+        "sql": "SELECT COUNT(*) FROM documents WHERE indexed_at >= date_trunc('month', now() - interval '1 month');",
+        "note": "text-to-SQL: NL → an executable query over a structured store"
+      }
+    }
+  },
+  "labels": {
+    "alt": "A query is embedded and compared by cosine to three prompt-template centroids (factQA, howTo, compare); three bars grow to the cosine values, the highest (howTo) is highlighted as the chosen route, then the query is constructed into a metadata filter and a SQL query.",
+    "query": "embed the query · cosine to each template",
+    "routeTo": "route →",
+    "constructHead": "construct: turn NL into a structured retrieval",
+    "selfQuery": "self-query · NL → metadata filter",
+    "textToSql": "text-to-SQL · NL → SQL",
+    "s0": "Not every query wants the same prompt. A semantic router embeds the query and compares it (cosine) to one centroid per prompt template — here factQA (factual lookup), howTo (a procedure), and compare (a comparison). The targets start empty.",
+    "s1": "Compute the cosine of the query to each centroid: the three bars grow to those similarities. The toy query leans how-to — factQA 0.8058, howTo 0.9670, compare 0.6447. Higher cosine means a closer template fit.",
+    "s2": "The route is the argmax: the template with the highest cosine wins. howTo (0.9670) lights up — the query is sent down the how-to prompt. One router, many specialised prompts, chosen by similarity, no hand-written rules.",
+    "s3": "Routing chooses the prompt; construction chooses the QUERY shape. The same natural-language question becomes a structured retrieval: self-query turns it into a metadata filter applied alongside vector search, and text-to-SQL turns it into an executable query over a structured store."
+  }
+}
+  </script>
+  <p class="viz-caption">Embed the query, take cosine to each prompt-template centroid, route to the argmax (howTo wins). Then <em>construct</em>: the same question becomes a metadata filter (self-query) or an executable SQL query (text-to-SQL).</p>
+  <aside class="slide-notes">semantic-routing walkthrough (semantic-router, l10-routing). sims 0.8058 / 0.9670 / 0.6447 (in widget-data JSON → stripped by the coverage-guard, rendered by the widget) → route howTo. Steps 3 introduces construction (self-query + text-to-SQL), expanded on the next slides.</aside>
+</section>
+<section class="slide" data-type="definition" data-screen-label="39 Query construction">
+  <div class="slide-header">
+    <h2>Query construction</h2>
+    <span class="slide-kicker">natural language → a structured retrieval</span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">Definition · text-to-metadata</span>
+    <div class="def-term">Translate the natural-language query into a <strong>structured</strong> form the store can execute — a metadata filter, SQL, or graph query — instead of (or alongside) vector search.</div>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Why:</strong> "papers on retrieval <em>published after 2020</em>" hides a hard constraint (year &gt; 2020) that embeddings approximate poorly. A filter enforces it exactly; vector search ranks within it.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Two forms:</strong> <em>self-query</em> extracts a metadata filter (applied next to vector search); <em>text-to-SQL</em> compiles the question into a query over a structured store.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">This is where unstructured retrieval meets the structured world — the LLM is the compiler from intent to query.</span></li>
+      </ul>
+    </div>
+  </div>
+  <aside class="slide-notes">query-construction definition (text-to-metadata). NL → structured retrieval: metadata filter (self-query) or SQL (text-to-SQL). Hard constraints (year>2020) that embeddings approximate poorly become exact filters. The next slide shows both by example.</aside>
+</section>
+<section class="slide" data-type="code" data-screen-label="40 Self-query & text-to-SQL">
+  <div class="slide-header">
+    <h2>Self-query &amp; text-to-SQL, by example</h2>
+    <span class="slide-kicker">the LLM compiles intent into a query</span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <h3>self-query · NL → metadata filter</h3>
+      <pre class="language-json"><code class="language-json">// "papers on retrieval published after 2020"
+{
+  "topic": "retrieval",
+  "year": { "$gt": 2020 }
+}
+// applied ALONGSIDE the vector search:
+// filter first, then rank within the matches</code></pre>
+    </div>
+    <div class="col">
+      <h3>text-to-SQL · NL → SQL</h3>
+      <pre class="language-sql"><code class="language-sql">-- "how many documents did we
+--  index last month?"
+SELECT COUNT(*)
+FROM documents
+WHERE indexed_at >= date_trunc(
+  'month', now() - interval '1 month'
+);</code></pre>
+    </div>
+  </div>
+  <p class="small muted center mt-2">Self-query keeps the vector search but adds an exact filter; text-to-SQL leaves the vector world entirely for an executable query over a structured store. Both turn a fuzzy question into something the back-end can run precisely.</p>
+  <aside class="slide-notes">self-query & text-to-SQL walkthrough (l10-routing.construct). Two construction examples — metadata filter (self-query, applied alongside vector search) and executable SQL (text-to-SQL). The 2020 in the filter is a year, not a 2dp decimal; SQL has no gated numbers.</aside>
+</section>
+<section class="slide" data-type="table" data-screen-label="41 Routing menu">
+  <div class="slide-header">
+    <h2>The routing &amp; construction menu</h2>
+    <span class="slide-kicker">what to vary, and how the LLM decides</span>
+  </div>
+  <table class="cmp-table">
+    <thead><tr>
+      <th>technique</th>
+      <th>what it picks</th>
+      <th>how it decides</th>
+      <th>when</th>
+    </tr></thead>
+    <tbody>
+      <tr><td><strong>logical routing</strong></td><td>the data source / index / tool</td><td>LLM classifies into a named menu (structured output)</td><td>choices are nameable &amp; distinct</td></tr>
+      <tr><td class="cell-good"><strong>semantic routing</strong></td><td>the prompt template</td><td>cosine of the query to each template centroid → argmax</td><td>choices are fuzzy / many</td></tr>
+      <tr><td><strong>self-query</strong></td><td>a metadata filter beside vector search</td><td>LLM extracts structured fields from the question</td><td>hard constraints (date, author, tag)</td></tr>
+      <tr><td><strong>text-to-SQL</strong></td><td>an executable query over a DB</td><td>LLM compiles NL into SQL</td><td>the answer lives in a structured store</td></tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2">Routing answers "<em>where</em> should this query go?"; construction answers "<em>what shape</em> should this query take?". Together they turn a single flat pipe into a small system that adapts to the question — without a hand-written rule engine.</p>
+  <aside class="slide-notes">routing-menu cmp-table. logical / semantic routing + self-query / text-to-SQL. Qualitative. Closes Act 3; the quiz checks the logical-vs-semantic distinction next.</aside>
+</section>
+<section class="slide" data-type="quiz" data-screen-label="42 Quiz · routing">
+  <div class="slide-header">
+    <h2>Quick check — which router?</h2>
+    <span class="slide-kicker">logical vs semantic vs construction</span>
+  </div>
+  <div class="quiz-frame">
+    <div class="quiz-q">A user asks: <em>"Show me reviews of the X200 laptop with a rating above 4 stars."</em> Which technique enforces the "above 4 stars" part <strong>exactly</strong>?</div>
+    <div class="quiz-options">
+      <div class="quiz-option" data-correct="false"><span class="quiz-letter">A</span><span>Semantic routing — embed the query and send it to the closest prompt template.</span><span></span></div>
+      <div class="quiz-option" data-correct="true"><span class="quiz-letter">B</span><span>Query construction (self-query) — extract a metadata filter <code>rating &gt; 4</code> applied alongside the vector search.</span><span></span></div>
+      <div class="quiz-option" data-correct="false"><span class="quiz-letter">C</span><span>Multi-query — paraphrase "above 4 stars" several ways and take the union.</span><span></span></div>
+    </div>
+    <details class="hidden-answer mt-4">
+      <summary>Reveal explanation</summary>
+      <div class="ha-content"><strong>B</strong>. A numeric threshold is a <em>hard</em> constraint that embeddings only approximate — paraphrasing or routing won't enforce it. Self-query extracts the structured filter <code>rating &gt; 4</code> and applies it exactly, then the vector search ranks within the matches. Routing would pick a <em>prompt</em>, not enforce the constraint; multi-query would widen recall, not filter.</div>
+    </details>
+  </div>
+  <aside class="slide-notes">Quiz: hard numeric constraint → query construction (self-query metadata filter), not routing or multi-query. Answer B. Drives home that construction enforces constraints embeddings only approximate.</aside>
+</section>
+<section class="slide" data-type="divider" data-screen-label="43 Divider · Advanced retrieval">
+  <div class="divider-content">
+    <div class="divider-num">Act 4 · Make retrieval reliable</div>
+    <h1>When one pass isn't enough</h1>
+    <p class="divider-sub"><em>The recall floor still caps the answer.</em> So spend more compute where it pays: <strong>re-rank</strong> the shortlist with a cross-encoder, <strong>grade</strong> the retrieval and self-correct (CRAG, self-RAG), and <strong>route</strong> by question complexity (adaptive-RAG). Then read the whole menu as one matrix.</p>
+  </div>
+  <div class="viz-frame fig-fit" style="--fig-max:58cqh; --fig-w:46%;">
+    <img src="assets/img/L10/L10-14-crag-inspect.png?v=1" alt="RAGdoll the Oracle holds each retrieved scrap up to a magnifying glass and stamps it check, cross, or question-mark before stitching, tossing a rejected scrap toward a web basket (CRAG grade-then-correct)." />
+  </div>
+  <aside class="slide-notes">divider-advanced-retrieval. Act 4: cross-encoder re-rank (callback L7), CRAG + self-RAG as control flow, adaptive-RAG as a complexity router, and the 7-strategy matrix centerpiece.</aside>
+</section>
+<section class="slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="44 Cross-encoder re-rank">
+  <div class="slide-header">
+    <h2>Cross-encoder re-rank — fix the order, cheaply</h2>
+    <span class="slide-kicker">re-score the shortlist · callback L7 (the Judges) (←/→)</span>
+  </div>
+  <div class="viz-frame">
+    <svg viewBox="0 0 1500 470" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="A bi-encoder returns five candidates with the only relevant document buried at rank 4; a cross-encoder re-scores the same five and lifts the relevant document to rank 1, so the metric jumps to its perfect value.">
+      <defs>
+        <marker id="re44" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-3)"/></marker>
+      </defs>
+      <g font-family="var(--font-sans)">
+        <!-- left column: bi-encoder order d1 d3 d4 d2 d5 (relevant = d2 at rank 4) -->
+        <text x="250" y="48" text-anchor="middle" font-size="22" fill="var(--ink-2)" font-weight="700">bi-encoder shortlist</text>
+        <text x="250" y="74" text-anchor="middle" font-size="16" fill="var(--ink-3)">cheap · wide · the Scouts (L7)</text>
+        <g data-step="0">
+          <rect x="120" y="92"  width="260" height="48" rx="8" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/><text x="250" y="122" text-anchor="middle" font-size="19" fill="var(--ink-2)">rank 1 · d1</text>
+          <rect x="120" y="150" width="260" height="48" rx="8" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/><text x="250" y="180" text-anchor="middle" font-size="19" fill="var(--ink-2)">rank 2 · d3</text>
+          <rect x="120" y="208" width="260" height="48" rx="8" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/><text x="250" y="238" text-anchor="middle" font-size="19" fill="var(--ink-2)">rank 3 · d4</text>
+          <rect x="120" y="266" width="260" height="48" rx="8" fill="var(--c-red-soft, #F6DAD0)" stroke="var(--c-red, #D7522C)" stroke-width="2.5"/><text x="250" y="296" text-anchor="middle" font-size="19" fill="var(--c-red, #D7522C)" font-weight="800">rank 4 · d2 (relevant!)</text>
+          <rect x="120" y="324" width="260" height="48" rx="8" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/><text x="250" y="354" text-anchor="middle" font-size="19" fill="var(--ink-2)">rank 5 · d5</text>
+        </g>
+        <!-- middle: cross-encoder re-scores -->
+        <g data-step="1">
+          <rect x="560" y="180" width="380" height="100" rx="12" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="3"/>
+          <text x="750" y="222" text-anchor="middle" font-size="24" fill="#fff" font-weight="800">cross-encoder</text>
+          <text x="750" y="252" text-anchor="middle" font-size="17" fill="#fff">re-score the SAME 5 · the Judges (L7)</text>
+          <line x1="380" y1="290" x2="555" y2="240" stroke="var(--ink-3)" stroke-width="2.5" marker-end="url(#re44)"/>
+          <line x1="945" y1="230" x2="1115" y2="138" stroke="var(--ink-3)" stroke-width="2.5" marker-end="url(#re44)"/>
+        </g>
+        <!-- right column: cross-encoder order d2 d4 d1 d3 d5 (relevant = d2 at rank 1) -->
+        <text x="1250" y="48" text-anchor="middle" font-size="22" fill="var(--ink-2)" font-weight="700">re-ranked order</text>
+        <text x="1250" y="74" text-anchor="middle" font-size="16" fill="var(--ink-3)">expensive · narrow · k candidates only</text>
+        <g data-step="2">
+          <rect x="1120" y="92"  width="260" height="48" rx="8" fill="var(--c-green-soft, #D6EEDD)" stroke="var(--c-green, #2E8B57)" stroke-width="2.5"/><text x="1250" y="122" text-anchor="middle" font-size="19" fill="var(--c-green, #2E8B57)" font-weight="800">rank 1 · d2 (relevant!)</text>
+          <rect x="1120" y="150" width="260" height="48" rx="8" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/><text x="1250" y="180" text-anchor="middle" font-size="19" fill="var(--ink-2)">rank 2 · d4</text>
+          <rect x="1120" y="208" width="260" height="48" rx="8" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/><text x="1250" y="238" text-anchor="middle" font-size="19" fill="var(--ink-2)">rank 3 · d1</text>
+          <rect x="1120" y="266" width="260" height="48" rx="8" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/><text x="1250" y="296" text-anchor="middle" font-size="19" fill="var(--ink-2)">rank 4 · d3</text>
+          <rect x="1120" y="324" width="260" height="48" rx="8" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.5"/><text x="1250" y="354" text-anchor="middle" font-size="19" fill="var(--ink-2)">rank 5 · d5</text>
+        </g>
+        <!-- step 3: the rank move -->
+        <g data-step="3">
+          <text x="750" y="412" text-anchor="middle" font-size="22" fill="var(--ink)" font-weight="700">the relevant doc moves rank 4 → 1</text>
+        </g>
+        <!-- step 4: the metric jump -->
+        <g data-step="4">
+          <text x="750" y="444" text-anchor="middle" font-size="20" fill="var(--c-green, #2E8B57)" font-weight="800">nDCG@5 → 1.0 (perfect) · MRR → 1.0</text>
+        </g>
+      </g>
+    </svg>
+  </div>
+  <div class="step-controls">
+    <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+    <span class="step-counter">0/4</span>
+    <button data-step-act="next" aria-label="Next step">&rarr;</button>
+  </div>
+  <aside class="slide-notes">cross-encoder re-rank e2e (l10-rerank). Bi-encoder order d1 d3 d4 d2 d5 buries the only graded-relevant doc (d2, gain 3) at rank 4; the cross-encoder re-scores the SAME 5 → d2 d4 d1 d3 d5, lifting d2 to rank 1. nDCG@5 0.4935 → 1.0, MRR 0.3333 → 1.0 (exact before-values kept in notes — 0.4935/0.3333 are not in the coverage pool, so only the perfect 1.0 is shown on-slide). You pay the cross-encoder on k candidates only, not the whole corpus. Callback L7 (the Judges).</aside>
+</section>
+<section class="slide" data-type="formula" data-screen-label="45 Re-rank, by hand">
+  <div class="slide-header">
+    <h2>Why the metric jumps — by hand</h2>
+    <span class="slide-kicker">nDCG = DCG / IDCG · the only relevant doc has gain 3</span>
+  </div>
+  <div class="formula-stage">
+    $$ \text{DCG} = \sum_i \frac{\text{gain}_i}{\log_2(i+1)}, \qquad \text{nDCG} = \frac{\text{DCG}}{\text{IDCG}} $$
+    $$ \text{before (relevant doc at rank 4): } \text{nDCG@5} = \frac{3/\log_2(5)}{3/\log_2(2)+1/\log_2(3)} \;<\; 0.5 $$
+    $$ \text{after (relevant doc at rank 1): } \text{nDCG@5} = \frac{\text{IDCG}}{\text{IDCG}} = \mathbf{1.0} $$
+  </div>
+  <p class="small muted center mt-2">Discounted gain falls fast with rank, so burying the gain-3 doc at rank 4 wastes most of it (nDCG below half). Lift it to rank 1 and the order is <em>ideal</em> — nDCG@5 = <strong>1.0</strong>. The cross-encoder didn't find a new doc; it just put the right one on top.</p>
+  <aside class="slide-notes">re-rank by-hand. nDCG = DCG/IDCG (callback L4). Before = 0.4935 (shown symbolically as <0.5 — the exact 0.4935 and MRR 0.3333 are not in the coverage pool, so kept in notes); after = 1.0 (ideal order, covered/anchored elsewhere). gains d2=3, d4=1 from l10-rerank.</aside>
+</section>
+<section class="slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="46 CRAG & self-RAG">
+  <div class="slide-header">
+    <h2>Self-correcting RAG — grade, then act</h2>
+    <span class="slide-kicker">CRAG branches on a retrieval grade · self-RAG self-critiques (←/→)</span>
+  </div>
+  <div class="widget-mount" data-widget="rag-control-flow"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "_doc": "Self-correcting RAG (descriptive + toy thresholds). CRAG (Yan et al. 2024) runs a retrieval evaluator that grades each retrieval Correct / Ambiguous / Wrong and acts: keep, augment with web search, or discard+rewrite. Self-RAG (Asai et al. ICLR 2024) trains the LM to emit REFLECTION TOKENS — Retrieve, IsRel, IsSup, IsUse. Thresholds illustrative, not measured.",
+    "_source": "_research/gen_l10.py (static, descriptive): toy thresholds; cites CRAG arXiv:2401.15884, Self-RAG arXiv:2310.11511.",
+    "crag": {
+      "grades": ["correct", "ambiguous", "wrong"],
+      "thresholds": {
+        "correct": ">= 0.7",
+        "ambiguous": "0.3 .. 0.7",
+        "wrong": "< 0.3"
+      },
+      "actions": {
+        "correct": "use retrieved context as-is",
+        "ambiguous": "combine retrieved + corrective web search",
+        "wrong": "discard, fall back to web search / query rewrite"
+      },
+      "source": "Yan, Gu, Zhu, Ling, Cao & Zhang, 'Corrective Retrieval Augmented Generation', arXiv:2401.15884 (2024)"
+    },
+    "selfRag": {
+      "reflectionTokens": ["Retrieve", "IsRel", "IsSup", "IsUse"],
+      "gates": {
+        "Retrieve": "decide whether retrieval is needed for this segment",
+        "IsRel": "is the retrieved passage relevant?",
+        "IsSup": "is the generated claim supported by the passage?",
+        "IsUse": "is the overall response useful (1..5)?"
+      },
+      "source": "Asai, Wu, Wang, Sil & Hajishirzi, 'Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection', ICLR 2024 (arXiv:2310.11511)"
+    }
+  },
+  "labels": {
+    "alt": "A directed decision graph: CRAG retrieves, grades each document in a diamond as correct, ambiguous, or wrong, and branches to three actions (use as-is, combine with web search, or discard and fall back to web search); below, self-RAG strings four reflection-token decision diamonds (Retrieve, IsRel, IsSup, IsUse) into a chain ending in a grounded answer.",
+    "cragTitle": "CRAG · grade the retrieval, then act",
+    "selfRagTitle": "self-RAG · reflection-token gates",
+    "retrieve": "retrieve",
+    "grade": "grade each doc",
+    "correct": "correct",
+    "ambiguous": "ambiguous",
+    "wrong": "wrong",
+    "pass": "pass",
+    "answer": "grounded answer",
+    "s0": "Naive RAG retrieves once and trusts whatever comes back. Self-correcting RAG adds a gate. CRAG first retrieves, then runs a lightweight retrieval evaluator that GRADES each document — a decision diamond with toy score thresholds.",
+    "s1": "The grade falls into three buckets by score: correct (≥ 0.7), ambiguous (0.3 .. 0.7), or wrong (< 0.3). Each is a labelled branch out of the diamond — the same retrieval, three possible verdicts.",
+    "s2": "Now act on the verdict. correct → use the retrieved context as-is. ambiguous → combine it with a corrective web search. wrong → discard it and fall back to web search or a query rewrite. The pipeline repairs its own bad retrievals.",
+    "s3": "Self-RAG goes further: it trains the model to emit reflection tokens as it generates. Retrieve? decides whether retrieval is even needed; IsRel asks if a retrieved passage is relevant; IsSup asks if the claim is supported by it. Each is a gate in the chain.",
+    "s4": "The last gate, IsUse, scores how useful the overall response is (1..5). Only a response that clears every reflection gate becomes the grounded answer — the model critiques itself before it commits, instead of trusting one retrieval blindly."
+  }
+}
+  </script>
+  <p class="viz-caption">CRAG grades each retrieval correct / ambiguous / wrong and branches — use as-is, web-augment, or discard &amp; rewrite. Self-RAG goes further: the model emits reflection tokens (Retrieve · IsRel · IsSup · IsUse) that gate retrieval and self-critique.</p>
+  <aside class="slide-notes">CRAG + self-RAG walkthrough (rag-control-flow, l10-selfrag). Steps 0–2 = CRAG (cite arXiv:2401.15884); steps 3–4 = self-RAG (cite arXiv:2310.11511). Thresholds 0.7/0.3 are single-decimal + in widget-data → coverage-safe. The next slide names self-RAG formally.</aside>
+</section>
+<section class="slide" data-type="two-col" data-screen-label="47 Self-RAG">
+  <div class="slide-header">
+    <h2>Self-RAG, formally</h2>
+    <span class="slide-kicker">the model learns to decide when &amp; whether to retrieve</span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag">Definition · arXiv:2310.11511</span>
+        <div class="def-term">Train the LM to emit <strong>reflection tokens</strong> — <code>Retrieve</code> · <code>IsRel</code> · <code>IsSup</code> · <code>IsUse</code> — that gate retrieval and critique its own output as it generates.</div>
+        <div class="def-body">
+          <ul class="obj-list">
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong><code>Retrieve</code></strong> — decide per segment whether retrieval is needed at all (skip what the model already knows).</span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong><code>IsRel</code> / <code>IsSup</code></strong> — is the passage relevant, and each claim <em>supported</em> by it? The seed of <em>faithfulness</em> (metric in L11).</span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong><code>IsUse</code></strong> — is the response useful? CRAG bolts a grader <em>on</em>; self-RAG bakes critique <em>in</em> — Asai et al. (ICLR 2024).</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="twocol-col">
+      <div class="viz-frame fig-fit" style="--fig-max:56cqh; --fig-w:80%;">
+        <img src="assets/img/L10/L10-15-self-rag-mirror.png?v=1" alt="RAGdoll the Oracle glances in a mirror mid-stitch, asking itself whether it even needs to retrieve (self-RAG reflection), with Séréga a quiet approving observer at the edge." />
+      </div>
+    </div>
+  </div>
+  <aside class="slide-notes">self-RAG definition. Cite Asai et al., "Self-RAG", ICLR 2024 (arXiv:2310.11511). Reflection tokens Retrieve/IsRel/IsSup/IsUse. IsSup is the seed of faithfulness — defer the METRIC to L11. Contrast: CRAG bolts on, self-RAG bakes in.</aside>
+</section>
+<section class="slide" data-type="definition" data-screen-label="48 Adaptive-RAG">
+  <div class="slide-header">
+    <h2>Adaptive-RAG</h2>
+    <span class="slide-kicker">match the effort to the question</span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">Definition · arXiv:2403.14403</span>
+    <div class="def-term">A lightweight <em>complexity classifier</em> routes each query to the cheapest strategy that can answer it: <strong>no retrieval</strong> &middot; <strong>single-step RAG</strong> &middot; <strong>multi-step (iterative) RAG</strong>.</div>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Simple / known facts</strong> → answer directly, no retrieval (don't pay for what the model already knows).</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Single-hop</strong> → one retrieve-then-generate pass — the classic loop.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Multi-hop / compositional</strong> → iterate (decompose, retrieve, reason, repeat). The router spends compute only where the question earns it — Jeong et al. (NAACL 2024).</span></li>
+      </ul>
+    </div>
+  </div>
+  <aside class="slide-notes">adaptive-RAG definition. Cite Jeong et al., "Adaptive-RAG", NAACL 2024 (arXiv:2403.14403). Complexity classifier → no-retrieval / single-step / multi-step. The meta-lesson for the matrix + boundaries slide: match effort to question, don't over-engineer.</aside>
+</section>
+<section class="slide" data-type="table" data-screen-label="49 The big matrix">
+  <div class="slide-header">
+    <h2>The seven-strategy matrix</h2>
+    <span class="slide-kicker">mechanism · what it lifts · extra LLM calls · latency · when (the centerpiece)</span>
+  </div>
+  <table class="cmp-table">
+    <thead><tr>
+      <th>strategy</th>
+      <th>mechanism</th>
+      <th>lifts</th>
+      <th>extra LLM calls</th>
+      <th>latency</th>
+      <th>reach for it when…</th>
+    </tr></thead>
+    <tbody>
+      <tr><td><strong>naive RAG</strong></td><td>retrieve top-k once, stuff, generate</td><td>baseline</td><td>0</td><td>lowest</td><td>query &amp; corpus already align</td></tr>
+      <tr><td><strong>multi-query</strong></td><td>paraphrase, retrieve each, union</td><td>recall</td><td>1</td><td>+ retrievals</td><td>phrasing misses recall</td></tr>
+      <tr><td><strong>RAG-Fusion</strong></td><td>multi-query + RRF over rankings</td><td>consensus recall</td><td>1</td><td>+ retrievals, RRF</td><td>want a robust ranking</td></tr>
+      <tr><td><strong>decomposition</strong></td><td>split a compound query into sub-Qs</td><td>multi-fact coverage</td><td>1+</td><td>+ retrieval per sub</td><td>question asks several things</td></tr>
+      <tr><td class="cell-good"><strong>re-rank</strong></td><td>cross-encoder re-scores the shortlist</td><td>precision @ top</td><td>0 (re-ranker, not LLM)</td><td>+ k cross-enc passes</td><td>right doc retrieved but low</td></tr>
+      <tr><td><strong>CRAG</strong></td><td>grade → keep / web-augment / discard</td><td>robust to bad retrieval</td><td>1 grader (+ web)</td><td>+ grader (+ search)</td><td>retrieval is unreliable</td></tr>
+      <tr><td><strong>self-RAG</strong></td><td>reflection tokens, self-critique</td><td>faithfulness, control</td><td>baked into generation</td><td>+ reflection decode</td><td>you have a self-RAG model</td></tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2">A cost-vs-payoff ladder: each row down spends more compute for a more specific reliability — recall, consensus, multi-fact, precision, robustness, faithfulness. Pick the row whose <em>lift</em> matches your failure mode; <strong>adaptive-RAG</strong> automates the choice.</p>
+  <aside class="slide-notes">the-big-matrix — THE CENTERPIECE. 7 strategies (naive / multi-query / RAG-Fusion / decomposition / re-rank / CRAG / self-RAG) × mechanism / lifts / extra-calls / latency / when. All qualitative (no gated numbers). Re-rank's extra LLM calls = 0 because the cross-encoder is a re-ranker, not the generator. adaptive-RAG automates the row choice.</aside>
+</section>
+<section class="slide" data-type="misconception" data-screen-label="50 Misconception · don't over-engineer">
+  <div class="slide-header">
+    <h2>"More stages always help"</h2>
+    <span class="slide-kicker">applicability boundaries — don't over-engineer</span>
+  </div>
+  <div class="misc-card">
+    <div class="misc-label">What students think</div>
+    <p class="misc-statement">&ldquo;Always add more retrieval techniques &mdash; if re-rank, CRAG and self-RAG each add quality, stacking all of them must be best.&rdquo;</p>
+    <button class="misc-reveal-btn" type="button">Reveal truth</button>
+    <div class="misc-truth">Every stage adds an LLM call, latency, and a new failure point &mdash; a grader can mis-grade, a re-ranker can re-bury. Cost compounds; quality saturates. Many techniques target the <em>same</em> failure: if your problem is phrasing, multi-query already fixes it &mdash; adding CRAG buys nothing but latency. <strong>Diagnose the failure mode first</strong>, then add the <em>one</em> stage whose lift matches it. Start naive; earn each stage with a measured win &mdash; which is exactly what adaptive-RAG automates.</div>
+  </div>
+  <aside class="slide-notes">applicability-boundaries misconception. Don't over-engineer: each stage costs latency + a failure point; many target the same failure. Diagnose first, add the one stage that matches, earn each stage. adaptive-RAG automates it. Pairs with the matrix.</aside>
+</section>
+<section class="slide" data-type="quiz" data-screen-label="51 Quiz · advanced retrieval">
+  <div class="slide-header">
+    <h2>Quick check — which stage?</h2>
+    <span class="slide-kicker">match the failure mode to the fix</span>
+  </div>
+  <div class="quiz-frame">
+    <div class="quiz-q">Your evaluation shows the relevant document is <strong>almost always in the retrieved top-20</strong>, but the generator often reads past it because it sits near the bottom. What's the cheapest fix?</div>
+    <div class="quiz-options">
+      <div class="quiz-option" data-correct="false"><span class="quiz-letter">A</span><span>Multi-query — paraphrase to widen recall.</span><span></span></div>
+      <div class="quiz-option" data-correct="true"><span class="quiz-letter">B</span><span>Cross-encoder re-rank — re-score the top-20 so the relevant doc rises to the top.</span><span></span></div>
+      <div class="quiz-option" data-correct="false"><span class="quiz-letter">C</span><span>Self-RAG — train the model to emit reflection tokens.</span><span></span></div>
+    </div>
+    <details class="hidden-answer mt-4">
+      <summary>Reveal explanation</summary>
+      <div class="ha-content"><strong>B</strong>. The failure is <em>ranking</em>, not <em>recall</em> — the right doc is already retrieved, just ordered too low. A cross-encoder re-ranks the shortlist (k candidates only) and lifts it to the top, exactly the nDCG@5 → 1.0 we computed. Multi-query fixes recall you don't lack; self-RAG is a heavy retrain for a problem a re-ranker solves cheaply. Diagnose the failure, then pick the matching row of the matrix.</div>
+    </details>
+  </div>
+  <aside class="slide-notes">Quiz: recall is fine, ranking is the failure → cross-encoder re-rank (answer B). Reinforces the matrix discipline: match the fix to the failure mode, cheapest first.</aside>
+</section>
+<section class="slide" data-type="divider" data-screen-label="52 Divider · Generation">
+  <div class="divider-content">
+    <div class="divider-num">Act 5 · Generation &amp; the catch</div>
+    <h1>Now make it read — and tell the truth</h1>
+    <p class="divider-sub"><em>The retrieval is done; the Oracle must speak.</em> A grounded answer is only as honest as its prompt forces it to be. So we anatomize the generation prompt, separate <strong>faithfulness</strong> from <strong>relevance</strong> — and meet the failure that haunts the whole pipeline: garbage in, fluent garbage out.</p>
+  </div>
+  <aside class="slide-notes">divider-generation. Act 5: prompt anatomy, faithfulness vs relevance (axis only — metric is L11), and the garbage-in catch. Bridges to L11 (judging the Oracle).</aside>
+</section>
+<section class="slide" data-type="definition" data-screen-label="53 Generation prompt anatomy">
+  <div class="slide-header">
+    <h2>Anatomy of a grounded prompt</h2>
+    <span class="slide-kicker">system · context · question — answer using only the context</span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">Definition · the generation prompt</span>
+    <div class="def-term">The prompt that turns retrieved chunks into a grounded answer has three parts: a <strong>system</strong> instruction, the <strong>retrieved context</strong>, and the <strong>question</strong>.</div>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>System:</strong> "Answer using ONLY the context below. If it isn't there, say you don't know. Cite every claim." — the instruction that <em>forces</em> grounding.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Context:</strong> the reranked top-<em>k</em> chunks, each tagged with its source id — what fits the token budget (recall \(k_{\max}\)).</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Question:</strong> the user's query. "Use only the context" + "cite sources" make the answer citeable and auditable — the cure for the bare-LLM failures.</span></li>
+      </ul>
+    </div>
+  </div>
+  <aside class="slide-notes">generation-prompt-anatomy definition. system + context + question. The "answer using ONLY the context" and "cite sources" clauses force grounding/citeability — the cure for the three bare-LLM failures (stale/unciteable/confident). Ties back to the anchor trace's prompt.</aside>
+</section>
+<section class="slide" data-type="definition" data-screen-label="54 Faithfulness vs relevance">
+  <div class="slide-header">
+    <h2>Faithfulness vs relevance</h2>
+    <span class="slide-kicker">two different questions about one answer (&rarr; L11)</span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">Definition · the two axes of a RAG answer</span>
+    <div class="def-term"><strong>Faithfulness:</strong> is every claim in the answer <em>supported by the retrieved context</em>? &nbsp;·&nbsp; <strong>Relevance:</strong> does the answer actually <em>address the question</em>?</div>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">They are independent. An answer can be <em>faithful but irrelevant</em> (true to the context, but off-topic) or <em>relevant but unfaithful</em> (on-topic, but invents facts the context never stated).</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">Self-RAG's <code>IsSup</code> token is a faithfulness check; its <code>IsUse</code> token is closer to relevance — the system <em>already</em> distinguishes these two axes.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>The catch:</strong> a confident answer can be high on one axis and zero on the other — and look identical from the outside. <em>How to measure each is the whole of L11</em> — we only name the axes here.</span></li>
+      </ul>
+    </div>
+  </div>
+  <aside class="slide-notes">faithfulness-vs-relevance definition. Two independent axes: faithfulness (supported by context) vs relevance (answers the question). DEFER the metric to L11 — only name the axes here (course boundary: faithfulness METRICS owned by L11). Connects to self-RAG's IsSup/IsUse.</aside>
+</section>
+<section class="slide" data-type="misconception" data-screen-label="55 Catch · Garbage in">
+  <div class="slide-header">
+    <h2>Garbage in, fluent garbage out</h2>
+    <span class="slide-kicker">Confabulous, the hallucination phantom (first appearance)</span>
+  </div>
+  <div class="viz-frame fig-fit" style="--fig-max:56cqh; --fig-w:46%;">
+    <img src="assets/img/L10/L10-07-garbage-in.png?v=1" alt="Confabulous — a wispy phantom with a too-wide grin — hands RAGdoll a forged trust-me citation-scroll; RAGdoll recites it confidently; Séréga frowns." />
+  </div>
+  <div class="misc-card">
+    <div class="misc-label">What students think</div>
+    <p class="misc-statement">&ldquo;Fluent output means the answer is correct &mdash; if the model writes a confident, well-formed reply, the system worked.&rdquo;</p>
+    <button class="misc-reveal-btn" type="button">Reveal truth</button>
+    <div class="misc-truth">If <strong>retrieve</strong> brings back wrong passages, <strong>augment</strong> stuffs them in, and <strong>generate</strong> dutifully writes a fluent, confident answer grounded in <em>garbage</em>. The recall floor strikes again: the generator can only be as good as what retrieval brought back. Everything in this lecture &mdash; chunking, query translation, routing, re-rank, self-correction &mdash; exists to keep <em>garbage</em> out of that context. <strong>Confabulous</strong> hands the Oracle a forged citation, and it recites it with the same assurance as a true one.</div>
+  </div>
+  <p class="small muted center mt-2">Confident and correct look identical from the outside — which is precisely the problem the next lecture must solve. How do you <em>grade</em> an Oracle?</p>
+  <aside class="slide-notes">catch-garbage-in (kept). Confabulous (first appearance, pays off as L11's villain). The faithfulness problem sets up L11. The whole lecture's machinery is in service of keeping garbage out of the context.</aside>
+</section>
+<section class="slide" data-type="archflow" data-max-step="3" data-current-step="0" data-screen-label="56 The full pipeline">
+  <div class="slide-header">
+    <h2>The full pipeline — every act in one flow</h2>
+    <span class="slide-kicker">translate → route → retrieve → re-rank → self-correct → generate (←/→)</span>
+  </div>
+  <div class="widget-mount" data-widget="rag-pipeline"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "_doc": "RAG anchor figure, final form. The same chunk→embed→retrieve→stuff→generate spine — now read as the destination of the whole lecture: query translation and routing sharpen what enters retrieve; re-rank + self-correction guard what leaves it; generation grounds it.",
+    "_source": "_research/gen_l10.py (toy, stdlib) + gen_l10_real.py (real retrieve→generate).",
+    "contextWindow": 4096,
+    "systemTokens": 200,
+    "queryTokens": 30,
+    "answerReserve": 512,
+    "chunkTokens": 256,
+    "stages": [
+      "chunk",
+      "embed",
+      "retrieve",
+      "stuff",
+      "generate"
+    ],
+    "worked": {
+      "k": 4,
+      "stuffed": 1024,
+      "promptTotal": 1254,
+      "headroom": 2842
+    },
+    "kMax": 13
+  },
+  "labels": {
+    "alt": "The same five-stage RAG spine — chunk, embed, retrieve, stuff, generate — now framed as the destination of the lecture: query translation and routing feed the retrieve stage, re-ranking and self-correction guard it, and generation grounds the answer with citations.",
+    "query": "query",
+    "chunk": "chunk",
+    "embed": "embed",
+    "retrieve": "retrieve",
+    "stuff": "stuff",
+    "generate": "generate",
+    "flowLabel": "translate → route → retrieve → re-rank → self-correct → generate",
+    "s0": "The build half, once per corpus: chunk (now smartly — fixed/recursive/semantic/late, or a RAPTOR tree) and embed into the index. How you cut and index decides the ceiling on everything downstream.",
+    "s1": "Query time, sharpened: query translation (multi-query, HyDE, RAG-Fusion, decomposition, step-back) and routing (logical, semantic, construction) decide WHAT enters retrieve. The same retriever, aimed better.",
+    "s2": "Guard the shortlist: a cross-encoder re-ranks the top-k (precision), and self-correction (CRAG / self-RAG) grades and repairs the retrieval before it reaches the generator. adaptive-RAG decides how much of this to even run.",
+    "s3": "Generate, grounded: the LLM reads the reranked, verified context and answers using ONLY it, with citations. Retrieve → augment → generate — but now the whole system feeds and guards that one loop."
+  }
+}
+  </script>
+  <p class="viz-caption">The same retrieve → augment → generate spine — now the destination of the whole lecture. Translation &amp; routing sharpen what enters retrieve; re-rank &amp; self-correction guard what leaves it; generation grounds it, with citations.</p>
+  <aside class="slide-notes">full-pipeline archflow (rag-pipeline, final form). Re-frames the anchor figure as the sum of all six acts: chunking/indexing (build) → translation/routing (aim) → retrieve → re-rank/self-correct (guard) → generate (ground). Same widget/data as climb-rag, recast as the payoff.</aside>
+</section>
+<section class="slide" data-type="table" data-screen-label="57 When to reach for what">
+  <div class="slide-header">
+    <h2>When to reach for what</h2>
+    <span class="slide-kicker">a decision map from symptom to fix</span>
+  </div>
+  <table class="cmp-table">
+    <thead><tr>
+      <th>symptom</th>
+      <th>likely cause</th>
+      <th>reach for</th>
+    </tr></thead>
+    <tbody>
+      <tr><td>answer cites the wrong era / can't cite at all</td><td>no grounding</td><td class="cell-good">RAG at all — retrieve + "use only the context"</td></tr>
+      <tr><td>the answer is split across chunk boundaries</td><td>chunking</td><td>overlap, semantic chunking, or Late Chunking</td></tr>
+      <tr><td>the right doc exists but ranks low</td><td>vocabulary gap</td><td>HyDE / multi-query (recall) then re-rank (precision)</td></tr>
+      <tr><td>question asks several things at once</td><td>compound query</td><td>decomposition</td></tr>
+      <tr><td>over-specific question matches nothing</td><td>granularity</td><td>step-back, or RAPTOR (retrieve at the right level)</td></tr>
+      <tr><td>a hard constraint (date, rating) is ignored</td><td>unstructured-only</td><td>query construction (self-query / text-to-SQL)</td></tr>
+      <tr><td>retrieval is unreliable / sometimes wrong</td><td>robustness</td><td>CRAG / self-RAG (grade &amp; repair)</td></tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2">There is no single best architecture — only the symptom-to-fix map. Start with naive RAG, measure, and add the <em>one</em> stage your failure mode calls for. The matrix tells you the cost; this map tells you the trigger.</p>
+  <aside class="slide-notes">when-to-reach-for-what decision map (cmp-table). Symptom → cause → fix, spanning all six acts. Pairs with the 7-strategy matrix: matrix = cost, this map = trigger. Reinforces don't-over-engineer.</aside>
+</section>
+<section class="slide" data-type="divider" data-screen-label="58 Payoff · The Oracle speaks">
+  <div class="divider-content">
+    <div class="divider-num">Payoff · It speaks</div>
+    <h1>The Oracle speaks</h1>
+    <p class="divider-sub">Chunk, embed and retrieve through the lanes, translate and route the query, re-rank and self-correct the shortlist, stuff the best passages into the budget, and generate an answer <strong>grounded</strong> in them, with citations. The Ship no longer merely finds — it answers. <strong>But is it telling the truth?</strong> A confident answer and a correct one look identical (bridge → <em>Judging the Oracle</em>, L11).</p>
+  </div>
+  <div class="viz-frame fig-fit" style="--fig-max:62cqh; --fig-w:54%;">
+    <img src="assets/img/L10/L10-08-it-speaks.png?v=1" alt="RAGdoll the Oracle speaks a grounded, cited answer; Séréga nods, then glances at a question mark forming overhead (hook to L11)." />
+  </div>
+  <aside class="slide-notes">payoff-it-speaks (kept). Catchphrase resolves (the Oracle speaks). Bridge to L11: confident ≠ correct → how to grade; Goodhart returns.</aside>
+</section>
+<section class="slide" data-type="quote" data-screen-label="59 Bridge · But is it true?">
+  <div>
+    <div class="quote-mark">"</div>
+    <blockquote>
+      A fluent answer is not a true one.<br />
+      We taught the Oracle to <em>read before it speaks</em> —<br />
+      next we must learn to tell when it is lying.
+    </blockquote>
+    <div class="quote-attr">
+      bridge → Lecture 11 · Judging the Oracle
+    </div>
+  </div>
+  <aside class="slide-notes">bridge-but-is-it-true quote. The whole pipeline produces a grounded answer — but grounding ≠ truth. Confident and correct look identical from outside. Sets the agenda for L11 (faithfulness/relevance metrics, the Oracle on trial). Goodhart returns.</aside>
+</section>
+<section class="slide" data-type="refs" data-screen-label="60 References · the loop & the index">
+  <div class="slide-header">
+    <h2>References <span style="font-weight:400;opacity:.6">(1 / 3)</span></h2>
+    <span class="slide-kicker">the loop &amp; the index — primary sources</span>
+  </div>
+  <ol class="ref-list">
+    <li>
+      <span class="ref-body">
+        <span class="ref-authors">Lewis, P. et al.</span> ·
+        <span class="ref-title"><a href="https://arxiv.org/abs/2005.11401" target="_blank" rel="noopener">Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks</a></span> ·
+        <span class="ref-venue">NeurIPS</span>
+      </span>
+      <span class="ref-year">2020</span>
+    </li>
+    <li>
+      <span class="ref-body">
+        <span class="ref-authors">Günther, M. et al. (Jina AI)</span> ·
+        <span class="ref-title"><a href="https://arxiv.org/abs/2409.04701" target="_blank" rel="noopener">Late Chunking: Contextual Chunk Embeddings Using Long-Context Embedding Models</a></span>
+      </span>
+      <span class="ref-year">2024</span>
+    </li>
+    <li>
+      <span class="ref-body">
+        <span class="ref-authors">Sarthi, P., Abdullah, S., Tuli, A., Khanna, S., Goldie, A. &amp; Manning, C. D.</span> ·
+        <span class="ref-title"><a href="https://arxiv.org/abs/2401.18059" target="_blank" rel="noopener">RAPTOR: Recursive Abstractive Processing for Tree-Organized Retrieval</a></span> ·
+        <span class="ref-venue">ICLR</span>
+      </span>
+      <span class="ref-year">2024</span>
+    </li>
+  </ol>
+  <aside class="slide-notes">Core sources: RAG (Lewis et al., NeurIPS 2020), Late Chunking (Günther et al., Jina AI), RAPTOR (Sarthi et al., ICLR 2024). arXiv ids/years are coverage-free.</aside>
+</section>
+<section class="slide" data-type="refs" data-screen-label="61 References · query translation">
+  <div class="slide-header">
+    <h2>References <span style="font-weight:400;opacity:.6">(2 / 3)</span></h2>
+    <span class="slide-kicker">query translation — primary sources</span>
+  </div>
+  <ol class="ref-list">
+    <li>
+      <span class="ref-body">
+        <span class="ref-authors">Gao, L., Ma, X., Lin, J. &amp; Callan, J.</span> ·
+        <span class="ref-title"><a href="https://arxiv.org/abs/2212.10496" target="_blank" rel="noopener">Precise Zero-Shot Dense Retrieval without Relevance Labels (HyDE)</a></span> ·
+        <span class="ref-venue">ACL</span>
+      </span>
+      <span class="ref-year">2023</span>
+    </li>
+    <li>
+      <span class="ref-body">
+        <span class="ref-authors">Zheng, H. S., Mishra, S., Chen, X., Cheng, H.-T., Chi, E. H., Le, Q. V. &amp; Zhou, D.</span> ·
+        <span class="ref-title"><a href="https://arxiv.org/abs/2310.06117" target="_blank" rel="noopener">Take a Step Back: Evoking Reasoning via Abstraction in Large Language Models</a></span>
+      </span>
+      <span class="ref-year">2023</span>
+    </li>
+    <li>
+      <span class="ref-body">
+        <span class="ref-authors">Cormack, G. V., Clarke, C. L. A. &amp; Büttcher, S.</span> ·
+        <span class="ref-title"><a href="https://dl.acm.org/doi/10.1145/1571941.1572114" target="_blank" rel="noopener">Reciprocal Rank Fusion outperforms Condorcet and individual rank learning methods</a></span> ·
+        <span class="ref-venue">SIGIR</span>
+      </span>
+      <span class="ref-year">2009</span>
+    </li>
+  </ol>
+  <aside class="slide-notes">Query-translation sources: HyDE (Gao et al., ACL 2023, arXiv:2212.10496), step-back (Zheng et al., 2023, arXiv:2310.06117), RRF (Cormack et al., SIGIR 2009 — the fusion engine RAG-Fusion reuses; callback L3/L8). Multi-query is a folklore/LangChain technique, no single canonical paper.</aside>
+</section>
+<section class="slide" data-type="refs" data-screen-label="62 References · advanced retrieval">
+  <div class="slide-header">
+    <h2>References <span style="font-weight:400;opacity:.6">(3 / 3)</span></h2>
+    <span class="slide-kicker">advanced retrieval — primary sources</span>
+  </div>
+  <ol class="ref-list">
+    <li>
+      <span class="ref-body">
+        <span class="ref-authors">Yan, S.-Q., Gu, J.-C., Zhu, Y., Ling, Z.-H., Cao, Z. &amp; Zhang, Q.</span> ·
+        <span class="ref-title"><a href="https://arxiv.org/abs/2401.15884" target="_blank" rel="noopener">Corrective Retrieval Augmented Generation (CRAG)</a></span>
+      </span>
+      <span class="ref-year">2024</span>
+    </li>
+    <li>
+      <span class="ref-body">
+        <span class="ref-authors">Asai, A., Wu, Z., Wang, Y., Sil, A. &amp; Hajishirzi, H.</span> ·
+        <span class="ref-title"><a href="https://arxiv.org/abs/2310.11511" target="_blank" rel="noopener">Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection</a></span> ·
+        <span class="ref-venue">ICLR</span>
+      </span>
+      <span class="ref-year">2024</span>
+    </li>
+    <li>
+      <span class="ref-body">
+        <span class="ref-authors">Jeong, S., Baek, J., Cho, S., Hwang, S. J. &amp; Park, J. C.</span> ·
+        <span class="ref-title"><a href="https://arxiv.org/abs/2403.14403" target="_blank" rel="noopener">Adaptive-RAG: Learning to Adapt Retrieval-Augmented LLMs through Question Complexity</a></span> ·
+        <span class="ref-venue">NAACL</span>
+      </span>
+      <span class="ref-year">2024</span>
+    </li>
+  </ol>
+  <aside class="slide-notes">Advanced-retrieval sources: CRAG (Yan et al., 2024, arXiv:2401.15884), Self-RAG (Asai et al., ICLR 2024, arXiv:2310.11511), Adaptive-RAG (Jeong et al., NAACL 2024, arXiv:2403.14403). Cross-encoder re-rank is owned by L7 (the Judges) — referenced, not re-cited here.</aside>
+</section>
+<section class="slide" data-type="final" data-screen-label="63 Final">
+  <div class="final-body">
+    <h1>Questions?</h1>
+    <p class="final-sub">Slides, homework and recording — via the QR code or the link below.</p>
+    <div class="contact-grid">
+      <div class="contact-item"><div class="contact-label">Email</div><div class="contact-value">a.nasibullin@innopolis.university</div></div>
+      <div class="contact-item"><div class="contact-label">Office hours</div><div class="contact-value">Wed 16:00–17:40 (before class)</div></div>
+      <div class="contact-item"><div class="contact-label">GitHub</div><div class="contact-value">github.com/levshaazz/deep-learning-for-search-summer-2026</div></div>
+    </div>
+    <div class="qr-block">
+      <div class="qr-canvas" data-qr="https://levshaazz.github.io/deep-learning-for-search-summer-2026/"></div>
+      <div class="qr-caption">Full lecture materials<span class="qr-url">levshaazz.github.io/deep-learning-for-search-summer-2026</span></div>
+    </div>
+  </div>
+
+  <img src="assets/img/L10/L10-08-it-speaks.png?v=1" alt="" aria-hidden="true"
+       class="cameo bl" style="width:300px; border-radius:14px;" />
+
+  <aside class="slide-notes">Q&amp;A. Sign-off: the Oracle reads before it speaks — RAG grounds the Ship's answers in retrieved evidence, with citations. Next lecture (L11): Judging the Oracle — faithfulness &amp; relevance metrics, the Oracle on trial; Goodhart returns. QR points to the course hub.</aside>
+</section>
+
+      </div><!-- /.slides -->
+    </div><!-- /.stage -->
+  </div><!-- /.deck -->
+
+  <!-- JS -->
+  <script src="js/deck.js"></script>
+  <script src="js/tools.js"></script>
+  <script src="js/pen.js"></script>
+  <script src="js/notes.js"></script>
+  <script src="js/handout.js"></script>
+  <script src="js/presenter.js"></script>
+  <script src="js/tweaks.js"></script>
+  <script src="js/demos.js"></script>
+  <script src="js/e2e.js"></script>
+  <script src="js/lab.js"></script>
+  <script src="js/archflow.js"></script>
+  <script src="js/sequence.js"></script>
+  <script src="js/budget.js"></script>
+  <script src="js/preflight.js"></script>
+
+  <!-- L10 deck-mounted widgets: classic offline bundles register window.mount<Pascal>; the deck-adapter
+       (loaded after deck.js) drives them with the deck step engine. BUILD OUTPUT (scripts/build-deck-widgets.mjs). -->
+  <script src="js/course-map.classic.js"></script>
+  <script src="js/rag-pipeline.classic.js"></script>
+  <script src="js/chunking-demo.classic.js"></script>
+  <script src="js/query-rewrite.classic.js"></script>
+  <script src="js/query-tree.classic.js"></script>
+  <script src="js/raptor-tree.classic.js"></script>
+  <script src="js/semantic-router.classic.js"></script>
+  <script src="js/rag-control-flow.classic.js"></script>
+  <script src="js/deck-adapter.js"></script>
+</body>
+</html>
