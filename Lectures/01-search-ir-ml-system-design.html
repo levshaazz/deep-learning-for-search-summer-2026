@@ -1,0 +1,2279 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lecture Template — Computer Science</title>
+
+  <!-- Apply saved theme/lang BEFORE first paint to avoid a flash of the
+       wrong theme. Mirrors tools.js prefs key. -->
+  <script>
+    try {
+      var __p = JSON.parse(localStorage.getItem('lecture.template.prefs.v1') || '{}');
+      var __de = document.documentElement;
+      if (__p.theme === 'dark' || __p.theme === 'light') __de.setAttribute('data-theme', __p.theme);
+      if (__p.lang === 'ru' || __p.lang === 'en') {
+        __de.setAttribute('data-lang', __p.lang);
+        __de.setAttribute('lang', __p.lang);
+      }
+    } catch (e) {}
+  </script>
+
+  <!-- Asset-load failure banner. If a vendored dependency fails to load
+       (e.g. the vendor/ folder was lost when copying the deck), tell the
+       lecturer in plain language instead of silently degrading. -->
+  <script>
+    window.__assetFail = (function () {
+      var failed = [];
+      return function (name) {
+        if (failed.indexOf(name) !== -1) return;
+        failed.push(name);
+        function show() {
+          if (!document.body) { document.addEventListener('DOMContentLoaded', show); return; }
+          var el = document.getElementById('__asset-banner');
+          if (!el) {
+            el = document.createElement('div');
+            el.id = '__asset-banner';
+            el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:2147483647;' +
+              'background:#D7522C;color:#fff;font:600 15px/1.4 system-ui,sans-serif;' +
+              'padding:10px 16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.3)';
+            el.addEventListener('click', function () { el.remove(); });
+            document.body.appendChild(el);
+          }
+          el.textContent = 'Не загрузились ресурсы: ' + failed.join(', ') +
+            '. Формулы/подсветка/QR могут не отрисоваться — запустите офлайн-файл ' +
+            '«Lecture Template (Standalone).html». · Failed to load: ' + failed.join(', ') +
+            ' — use the Standalone file. (клик чтобы скрыть)';
+        }
+        show();
+      };
+    })();
+  </script>
+
+  <!-- Fonts — vendored locally (run `node build-vendor.mjs` to refresh). -->
+  <link href="vendor/fonts/fonts.css" rel="stylesheet"
+        onerror="window.__assetFail&&window.__assetFail('Шрифты/Fonts')" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/template.css?v=6" />
+  <link rel="stylesheet" href="css/slides.css?v=6" />
+  <link rel="stylesheet" href="css/components.css?v=6" />
+  <link rel="stylesheet" href="css/presenter.css?v=6" />
+  <link rel="stylesheet" href="css/tweaks.css?v=6" />
+  <link rel="stylesheet" href="css/e2e.css?v=6" />
+  <link rel="stylesheet" href="css/lab.css?v=6" />
+  <link rel="stylesheet" href="css/archflow.css?v=6" />
+  <link rel="stylesheet" href="css/sysdesign.css?v=6" />
+  <link rel="stylesheet" href="css/preflight.css?v=6" />
+  <link rel="stylesheet" href="css/wbw-art.css?v=1" />
+  <link rel="stylesheet" href="css/autofit.css?v=1" />
+  <!-- deck-mounted widget styles (widgets/_base.css + course-map style.css). BUILD OUTPUT (scripts/build-deck-widgets.mjs). -->
+  <link rel="stylesheet" href="css/deck-widgets.css?v=1" />
+
+
+  <!-- KaTeX — vendored locally (zero runtime CDN). 4× faster + lighter than
+       MathJax; handles 99% of CS/ML formulas. See README to swap to MathJax. -->
+  <link rel="stylesheet" href="vendor/katex/katex.min.css"
+        onerror="window.__assetFail&&window.__assetFail('KaTeX')">
+  <script defer src="vendor/katex/katex.min.js"
+        onerror="window.__assetFail&&window.__assetFail('KaTeX')"></script>
+  <script defer src="vendor/katex/auto-render.min.js"
+    onerror="window.__assetFail&&window.__assetFail('KaTeX')"
+    onload="renderMathInElement(document.body, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '\\[', right: '\\]', display: true },
+        { left: '\\(', right: '\\)', display: false }
+      ],
+      throwOnError: false,
+      strict: 'ignore'
+    });
+    document.dispatchEvent(new CustomEvent('katex:done'));"></script>
+
+  <!-- Prism — vendored core + python/bash/yaml/json. The autoloader is
+       intentionally dropped: it fetches grammars from a CDN at runtime,
+       which defeats the zero-network goal. Long-tail languages won't
+       highlight; add their grammar files to vendor/prism/ if needed. -->
+  <script src="vendor/prism/prism-core.min.js"
+        onerror="window.__assetFail&&window.__assetFail('Prism')"></script>
+  <script src="vendor/prism/prism-python.min.js"></script>
+  <script src="vendor/prism/prism-bash.min.js"></script>
+  <script src="vendor/prism/prism-yaml.min.js"></script>
+  <script src="vendor/prism/prism-json.min.js"></script>
+
+  <!-- QR code generator — vendored. -->
+  <script src="vendor/qrcode/qrcode.js"
+        onerror="window.__assetFail&&window.__assetFail('QR')"></script>
+</head>
+
+<body>
+  <!-- Bundler thumbnail (shown while standalone-HTML unpacks; also no-JS fallback) -->
+  <template id="__bundler_thumbnail">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="var(--bg, #FBFAF6)"/>
+          <stop offset="1" stop-color="var(--accent-soft, #DCE8F8)"/>
+        </linearGradient>
+      </defs>
+      <rect width="600" height="600" fill="url(#bg)"/>
+      <g transform="translate(180,180)">
+        <rect x="0" y="0" width="240" height="240" rx="20" fill="var(--accent, #2A6FDB)"/>
+        <text x="120" y="160" font-family="Georgia, serif" font-size="120" font-weight="500"
+              text-anchor="middle" fill="white">∇</text>
+      </g>
+      <text x="300" y="490" font-family="Georgia, serif" font-size="40" font-weight="500"
+            text-anchor="middle" fill="var(--ink, #14181F)">Lecture Template</text>
+      <text x="300" y="528" font-family="ui-monospace, monospace" font-size="18"
+            text-anchor="middle" fill="var(--ink-3, #6B7280)" letter-spacing="3">LOADING…</text>
+    </svg>
+  </template>
+
+  <!-- Logo template — edit once, reused on every slide -->
+  <template id="tpl-logo">
+    <div class="logo-mark">DLS</div>
+    <span>
+      INNOPOLIS UNIVERSITY
+    </span>
+  </template>
+
+  <!-- Deck -->
+  <div class="deck">
+    <div class="stage">
+      <div class="slides" data-course-ru="Deep Learning for Search · Summer 2026" data-course-en="Deep Learning for Search · Summer 2026">
+
+        <!-- ============================================
+             01 · TITLE
+             ============================================ -->
+        <section class="slide" data-type="title" data-screen-label="01 Title">
+          <div class="title-header">
+            <div class="course-tag">
+              DEEP LEARNING FOR SEARCH · SUMMER 2026
+            </div>
+            <div data-logo-slot></div>
+          </div>
+          <div class="title-body">
+            <div class="eyebrow">
+              Lecture 01 · Week 1 / Pair 1
+            </div>
+            <h1>
+              Search &amp; Information Retrieval<br />+ ML System Design
+            </h1>
+            <p class="subtitle">
+              Finding the one record that matters among billions — and building the machine that finds it, reliably, forever.
+            </p>
+          </div>
+          <div class="title-footer">
+            <div>
+              <div class="meta-label">Lecturer</div>
+              <div class="meta-value">Albert Nasybullin</div>
+            </div>
+            <div>
+              <div class="meta-label">Date</div>
+              <div class="meta-value">03.06.2026</div>
+            </div>
+            <div>
+              <div class="meta-label">Room</div>
+              <div class="meta-value">106</div>
+            </div>
+          </div>
+
+          <aside class="slide-notes">Welcome. This is the opening pair of <em>Deep Learning for Search</em>. Today is deliberately <strong>conceptual</strong>, not code-heavy: we build the mental model the whole course hangs on. Two halves: (1) what Information Retrieval is and why search is genuinely hard; (2) the ML System Design framework that turns a model into a system that survives production. Sci-fi framing — call it <em>The Lost Record</em>: imagine a lone operator on a ship who must find the <em>one</em> record that saves the mission among billions — IR is finding it; ML System Design is building the machine that keeps finding it after you have gone to sleep. <strong>Serega</strong>, the doodle guide from the briefing, rides along to narrate this one.
+
+Tip: press <strong>T</strong> for the toolbar, <strong>O</strong> for the slide overview, <strong>N</strong> to toggle these notes, <strong>P</strong> to draw on the slide.</aside>
+        </section>
+
+        <!-- ============================================
+             02 · AGENDA
+             ============================================ -->
+        <section class="slide" data-type="agenda" data-screen-label="02 Agenda">
+          <div class="slide-header">
+            <h2>Lecture outline</h2>
+            <span class="slide-kicker">Agenda · 5 parts</span>
+          </div>
+
+          <div class="agenda-grid">
+            <a class="toc-item" href="#/6">
+              <span class="toc-num">01</span>
+              <span class="toc-text">
+                <span class="toc-title">The problem of finding</span>
+                <span class="toc-sub">information need, relevance, why we rank</span>
+              </span>
+            </a>
+            <a class="toc-item" href="#/17">
+              <span class="toc-num">02</span>
+              <span class="toc-text">
+                <span class="toc-title">Anatomy &amp; why search is hard</span>
+                <span class="toc-sub">inverted index, the cascade, the lexical gap</span>
+              </span>
+            </a>
+            <a class="toc-item" href="#/32">
+              <span class="toc-num">03</span>
+              <span class="toc-text">
+                <span class="toc-title">ML System Design</span>
+                <span class="toc-sub">the framework around the model, metrics, drift</span>
+              </span>
+            </a>
+            <a class="toc-item" href="#/52">
+              <span class="toc-num">04</span>
+              <span class="toc-text">
+                <span class="toc-title">Putting it together</span>
+                <span class="toc-sub">framing, the course map, takeaways</span>
+              </span>
+            </a>
+            <a class="toc-item" href="#/57">
+              <span class="toc-num">05</span>
+              <span class="toc-text">
+                <span class="toc-title">References &amp; Q&amp;A</span>
+                <span class="toc-sub">reading list and audience questions</span>
+              </span>
+            </a>
+          </div>
+
+          <aside class="slide-notes">Five parts. Parts 01–02 are the IR half; part 03 is the system-design half; part 04 stitches them together and maps onto the rest of the course. Click any item to jump to its section divider.</aside>
+        </section>
+
+        <!-- ============================================
+             03 · LEARNING OBJECTIVES
+             ============================================ -->
+        <section class="slide" data-type="objectives" data-screen-label="03 Objectives · IR anatomy">
+          <div class="slide-header">
+            <h2>Learning objectives <span style="font-weight:400;opacity:.6">(1 / 2)</span></h2>
+            <span class="slide-kicker">Objectives · IR anatomy</span>
+          </div>
+
+          <ul class="obj-list">
+            <li class="obj-item">
+              <span class="obj-check" aria-hidden="true">✓</span>
+              <span class="obj-text">Define information retrieval and relevance, and explain why <em>need → query</em> is lossy compression that ranking must reconstruct.</span>
+            </li>
+            <li class="obj-item">
+              <span class="obj-check" aria-hidden="true">✓</span>
+              <span class="obj-text">Trace a query through the offline / online anatomy of a search engine, including the inverted index and the multi-stage cascade.</span>
+            </li>
+            <li class="obj-item">
+              <span class="obj-check" aria-hidden="true">✓</span>
+              <span class="obj-text">Diagnose why search is hard: the vocabulary mismatch, the long tail of queries, intent ambiguity, and position bias.</span>
+            </li>
+          </ul>
+
+          <aside class="slide-notes">These are the testable outcomes — distinct from the agenda, which is the route. Part 1 is the IR anatomy: define relevance, trace a query through the offline/online cascade, and diagnose why search is hard. The system-design lifecycle objectives are on the next slide.</aside>
+        </section>
+
+        <!-- ============================================
+             03b · OBJECTIVES (2/2) — system design lifecycle
+             ============================================ -->
+        <section class="slide" data-type="objectives" data-screen-label="04 Objectives · system design">
+          <div class="slide-header">
+            <h2>Learning objectives <span style="font-weight:400;opacity:.6">(2 / 2)</span></h2>
+            <span class="slide-kicker">Objectives · system design &amp; metrics</span>
+          </div>
+
+          <ul class="obj-list">
+            <li class="obj-item">
+              <span class="obj-check" aria-hidden="true">✓</span>
+              <span class="obj-text">Apply the ML System Design framework: frame → data → model &amp; baselines → evaluate → serve → monitor.</span>
+            </li>
+            <li class="obj-item">
+              <span class="obj-check" aria-hidden="true">✓</span>
+              <span class="obj-text">Distinguish offline, online and guardrail metrics, and explain the offline–online gap and Goodhart's law.</span>
+            </li>
+            <li class="obj-item">
+              <span class="obj-check" aria-hidden="true">✓</span>
+              <span class="obj-text">Recognise feedback loops, training–serving skew and distribution drift, and name the systems-level fixes for each.</span>
+            </li>
+          </ul>
+
+          <aside class="slide-notes">Part 2 is the system-design lifecycle: apply the frame → data → model → evaluate → serve → monitor framework, distinguish offline/online/guardrail metrics with the offline–online gap and Goodhart's law, and recognise the failure modes — feedback loops, training–serving skew, drift — with their systems-level fixes. By the end you can sketch both the IR anatomy and the lifecycle on a whiteboard.</aside>
+        </section>
+
+        <!-- ============================================
+             04 · ARCH · the course spine
+             ============================================ -->
+        <section class="slide" data-type="viz" data-max-step="0" data-current-step="0" data-screen-label="05 Architecture · Course spine">
+  <div class="slide-header">
+    <h2>The spine of the course</h2>
+    <span class="slide-kicker">Get Data &rarr; Measure &rarr; <strong>Rank</strong> &rarr; Generate</span>
+  </div>
+  <div class="widget-mount" data-widget="course-map"></div>
+  <script class="widget-data" type="application/json">
+  {
+    "data": {},
+    "labels": {
+      "role": "img",
+      "alt": "The four-stop course spine with this lecture's stop (Rank) lit.",
+      "leg0": "Get Data", "leg1": "Measure", "leg2": "Rank", "leg3": "Generate",
+      "active": ["rank"]
+    }
+  }
+  </script>
+  <p class="viz-caption">The Lost Record: we anchor in <strong>Rank</strong> — find a record among billions and keep it findable, forever. ML System Design wraps the whole loop.</p>
+  <aside class="slide-notes">Spine anchor (migrated to the shared course-map widget). Lit stop(s) mirror this lecture's course.json spine. Generate joins the map for good at L10.</aside>
+</section>
+<section class="slide" data-type="divider" data-screen-label="06 Divider · Part 01">
+          <div class="divider-content">
+            <div class="divider-num">Part 01</div>
+            <h1>The needle<br />in the cosmos</h1>
+            <p class="divider-sub">A user has a need. Somewhere in billions of documents sits the one that answers it. What does it even mean to <em>find</em> it?</p>
+          </div>
+
+          <aside class="slide-notes">Set the scene. The Project Hail Mary framing: a single operator, a catalogue the size of a galaxy, and one record that matters — Serega cues the catchphrase here, <em>The Lost Record</em>. Part 01 is about the <em>problem</em> — relevance, the lossy gap between need and query, and why the right answer is a ranked list rather than a filter.</aside>
+        </section>
+
+        <!-- ============================================
+             06 · QUOTE · hook (drowning in data)
+             ============================================ -->
+        <section class="slide" data-type="quote" data-screen-label="07 Hook · Drowning">
+          <div>
+            <div class="quote-mark">"</div>
+            <blockquote>
+              We are drowning in information,<br />but starved for knowledge.
+            </blockquote>
+            <div class="quote-attr">John Naisbitt · <em>Megatrends</em>, 1982</div>
+            <div class="viz-frame fig-fit" style="--fig-max:40cqh; --fig-w:56%; --fig-mt:var(--sp-3);">
+              <img src="assets/img/L1/L1-06-needle.png?v=1" alt="Serega on a raft in an ocean of bytes, reaching for the one document he needs"
+                   />
+            </div>
+          </div>
+
+          <aside class="slide-notes">A hook from 1982 — before the web. The point: the bottleneck was never <em>storing</em> data; it is <em>finding</em> the relevant slice on demand. That is the entire reason search exists. Land the sci-fi image: the operator is not short of records, they are short of the <em>one</em> record.</aside>
+        </section>
+
+        <!-- ============================================
+             07 · DEFINITION · Information Retrieval
+             ============================================ -->
+        <section class="slide" data-type="definition" data-screen-label="08 Definition · IR">
+          <div class="slide-header">
+            <h2>What we are actually doing</h2>
+            <span class="slide-kicker">Definition</span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag">Definition</span>
+            <div class="def-term">
+              Information Retrieval
+              <span class="term-en">IR · Manning, Raghavan &amp; Schütze, 2008</span>
+            </div>
+            <div class="def-body">
+              <p>Finding material — usually <strong>unstructured</strong> (text) — that satisfies an <strong>information need</strong> from within large collections.</p>
+              <p class="small muted">The system stores <strong>documents</strong>; the user holds a <strong>need</strong>; the only bridge between them is a short, lossy <strong>query</strong>. IR is the discipline of building that bridge well.</p>
+            </div>
+          </div>
+
+          <aside class="slide-notes">Read the definition slowly. Three nouns matter: <em>documents</em> (what we have), <em>need</em> (what the user actually wants — which we never directly observe), and <em>query</em> (the few words they typed). The whole subject lives in the gap between need and query. "Unstructured" is doing work too: contrast with a database, where the data is typed and the query is exact — that contrast is two slides away.</aside>
+        </section>
+
+        <!-- ============================================
+             08 · VIZ · need → query → docs lossy funnel
+             ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="09 Visualization · Lossy need">
+          <div class="slide-header">
+            <h2>need → query is lossy compression</h2>
+            <span class="slide-kicker">Average web query ≈ 2.3–2.9 words</span>
+          </div>
+
+          <div class="viz-frame">
+            <img src="assets/img/L1/L1-08-lossy-need.png?v=1" alt="Need compressed through a funnel into a two-word query, then fanned out to documents" />
+          </div>
+          <p class="viz-caption">The system never sees the need — only the two words. Ranking is the attempt to <em>reconstruct</em> the need from a lossy signal.</p>
+
+          <aside class="slide-notes">This is the single most important framing of the IR half. The user compresses a rich, context-laden need into ~2.5 words and throws away trimester, intent, reading level, language. Search must reconstruct all of that. Ask the room: "if you only had the two words, which of those five documents would you put first?" — there is no objectively correct answer, which is exactly why relevance is hard.</aside>
+        </section>
+
+        <!-- ============================================
+             09 · DEFINITION · relevance
+             ============================================ -->
+        <section class="slide" data-type="definition" data-screen-label="10 Definition · Relevance">
+          <div class="slide-header">
+            <h2>The slippery word: relevance</h2>
+            <span class="slide-kicker">Definition</span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag">Definition</span>
+            <div class="def-term">
+              Relevance
+              <span class="term-en">does this document satisfy the need?</span>
+            </div>
+            <div class="def-body">
+              <p><strong>Binary vs graded</strong> — relevant / not, or a 5-point scale (Perfect · Excellent · Good · Fair · Bad) that feeds \(\text{nDCG}\).</p>
+              <p><strong>Topical vs situational</strong> — a document can be perfectly on-topic yet useless: wrong level, outdated, paywalled, wrong language.</p>
+              <p class="small muted">Relevance is <em>dynamic</em> (freshness), <em>personal</em> and <em>situational</em>. This is precisely why an offline label rarely equals real user happiness.</p>
+            </div>
+          </div>
+
+          <aside class="slide-notes">Relevance is not a property of the document alone — it is a relation between document, need, and context. The topical/situational split is the seed of the whole offline–online gap we hit in Part 03: a human judge marks topical relevance against a label, but the user lives in a situation the judge never saw. Graded relevance is what makes \(\text{nDCG}\) possible — keep that thread.</aside>
+        </section>
+
+        <!-- ============================================
+             10 · VIZ · graded relevance scale → why rank
+             ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="11 Visualization · Graded scale">
+          <div class="slide-header">
+            <h2>Why we rank instead of filter</h2>
+            <span class="slide-kicker">Graded relevance · the 5-point scale</span>
+          </div>
+
+          <div class="viz-frame">
+            <svg viewBox="0 0 1600 560" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;">
+              <defs>
+                <linearGradient id="gradrel" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0" stop-color="var(--c-green)"/>
+                  <stop offset="1" stop-color="var(--c-red)"/>
+                </linearGradient>
+              </defs>
+              <rect x="120" y="120" width="1360" height="90" rx="12" fill="url(#gradrel)" opacity="0.85"/>
+              <g font-family="var(--font-sans)" font-size="30" fill="#fff" text-anchor="middle" font-weight="600">
+                <text x="256" y="175">Perfect</text>
+                <text x="528" y="175">Excellent</text>
+                <text x="800" y="175">Good</text>
+                <text x="1072" y="175">Fair</text>
+                <text x="1344" y="175">Bad</text>
+              </g>
+              <g font-family="var(--font-mono)" font-size="26" fill="var(--ink)" text-anchor="middle">
+                <text x="256" y="270">4</text><text x="528" y="270">3</text><text x="800" y="270">2</text><text x="1072" y="270">1</text><text x="1344" y="270">0</text>
+              </g>
+              <text x="800" y="350" text-anchor="middle" font-family="var(--font-sans)" font-size="30" fill="var(--ink)">A binary filter throws away all of this structure.</text>
+              <text x="800" y="410" text-anchor="middle" font-family="var(--font-sans)" font-size="30" fill="var(--ink)">A <tspan font-weight="700" fill="var(--accent)">ranking</tspan> preserves it: the best goes to position&nbsp;1, where attention is.</text>
+              <text x="800" y="480" text-anchor="middle" font-family="var(--font-mono)" font-size="24" fill="var(--ink-3)">grade → discounted gain → nDCG@k</text>
+            </svg>
+          </div>
+          <p class="viz-caption">Filtering says yes/no; ranking says <em>how good, and in what order</em> — which matches how users read top-down.</p>
+
+          <aside class="slide-notes">The pedagogical payoff of graded relevance: if there are degrees of "good", a yes/no filter is lossy. Users read top-down and rarely past the first few results, so the order is the product. This is the bridge to ranking metrics — \(\text{nDCG}@10\) rewards putting grade-4 above grade-2 — and it sets up the quiz at the end of Part 01.</aside>
+        </section>
+
+        <!-- ============================================
+             11 · TABLE · search vs database lookup
+             ============================================ -->
+        <section class="slide" data-type="table" data-screen-label="12 Table · Search vs DB">
+          <div class="slide-header">
+            <h2>Search is not a database lookup</h2>
+            <span class="slide-kicker">Two very different machines</span>
+          </div>
+
+          <table class="cmp-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Database (SQL)</th>
+                <th>Search (IR)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Query type</td>
+                <td class="cell-good">exact, structured predicate</td>
+                <td class="cell-meh">fuzzy, ~2–3 free words</td>
+              </tr>
+              <tr>
+                <td>Data</td>
+                <td class="cell-good">typed, structured rows</td>
+                <td class="cell-meh">unstructured text</td>
+              </tr>
+              <tr>
+                <td>Result</td>
+                <td class="cell-good">a <em>set</em> (order irrelevant)</td>
+                <td class="cell-meh">a <em>ranked list</em></td>
+              </tr>
+              <tr>
+                <td>Correctness</td>
+                <td class="cell-good">exact &amp; verifiable</td>
+                <td class="cell-bad">graded &amp; subjective</td>
+              </tr>
+              <tr>
+                <td>Failure mode</td>
+                <td class="cell-meh">wrong rows / error</td>
+                <td class="cell-bad">silently bad ranking</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p class="small muted center mt-3">A database asks "which rows match?"; search asks "which document <em>best</em> answers a need it can only guess at?"</p>
+
+          <aside class="slide-notes">Engineers often arrive thinking search is `WHERE text LIKE '%query%'`. The killer differences: the result is an <em>ordered list</em>, correctness is graded and subjective, and failure is <em>silent</em> — a bad ranking still returns ten plausible-looking results, so nothing throws an exception. That silent-failure property is the bridge to monitoring in Part 03.</aside>
+        </section>
+
+        <!-- ============================================
+             12 · TWO-COL · search vs recommendation
+             ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="13 Two-column · Search vs Recsys">
+          <div class="slide-header">
+            <h2>Search ≈ recommendation</h2>
+            <span class="slide-kicker">PULL vs PUSH — a continuum</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>Search — PULL</h3>
+              <p>An <strong>explicit query</strong>; an active need <em>right now</em>. The signal of intent is loud.</p>
+              <div class="callout" data-kind="info">
+                <div class="callout-icon">i</div>
+                <div class="callout-body">
+                  <strong>Drive file search</strong>
+                  <p>You know what you want; you type it.</p>
+                </div>
+              </div>
+            </div>
+            <div class="twocol-col">
+              <h3>Recommendation — PUSH</h3>
+              <p><strong>No query.</strong> Intent is inferred from implicit signals: watch time, dwell, clicks, history.</p>
+              <div class="callout" data-kind="info">
+                <div class="callout-icon">i</div>
+                <div class="callout-body">
+                  <strong>TikTok "For You"</strong>
+                  <p>The system guesses the query you never typed.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="small muted center mt-3">
+            One continuum: explicit → implicit, with "you may also like" in the middle. Architecturally they <strong>converge</strong> — both run a candidate-generation → ranking cascade; recsys just swaps the query embedding for a user-context embedding.
+          </p>
+
+          <aside class="slide-notes">Old-deck line: "all of that is search plus a little RecSys — which are almost the same." The deep point is architectural convergence: the same cascade serves both, so everything you learn about ranking transfers. Recsys is search where the query is implicit. This is why the production blueprint later in the deck is drawn for "search/recsys" interchangeably.</aside>
+        </section>
+
+        <!-- ============================================
+             13 · TABLE · search is everywhere
+             ============================================ -->
+        <section class="slide" data-type="table" data-screen-label="14 Table · Search everywhere">
+          <div class="slide-header">
+            <h2>Search is everywhere</h2>
+            <span class="slide-kicker">Same problem, different "relevant"</span>
+          </div>
+
+          <table class="cmp-table">
+            <thead>
+              <tr>
+                <th>Domain</th>
+                <th>"Relevant" means</th>
+                <th>Distinctive challenge</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Web</td>
+                <td class="cell-meh">authoritative &amp; fresh</td>
+                <td class="cell-bad">spam, scale, intent</td>
+              </tr>
+              <tr>
+                <td>E-commerce</td>
+                <td class="cell-meh">will convert</td>
+                <td class="cell-bad">relevance ≠ revenue, in-stock</td>
+              </tr>
+              <tr>
+                <td>Enterprise</td>
+                <td class="cell-meh">answers a coworker</td>
+                <td class="cell-bad">ACLs, no link graph</td>
+              </tr>
+              <tr>
+                <td>Code</td>
+                <td class="cell-meh">semantic + exact symbol</td>
+                <td class="cell-bad">identifier mismatch</td>
+              </tr>
+              <tr>
+                <td>Legal / medical</td>
+                <td class="cell-meh">high recall — miss one = catastrophe</td>
+                <td class="cell-bad">controlled vocabulary (MeSH)</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p class="small muted center mt-3">The pipeline is shared; the definition of "relevant" and the cost of error change everything.</p>
+
+          <aside class="slide-notes">The point is that "search" is not one product — it is a shape that recurs. Note the legal/medical row: there, <em>recall</em> dominates (missing one precedent or one contraindication is catastrophic), which flips the usual web bias toward precision. Desktop re-finding (tiny corpus, recency) is a sixth case you can mention verbally. The cost-of-error column foreshadows guardrail metrics in Part 03.</aside>
+        </section>
+
+        <!-- ============================================
+             14 · VIZ · real products + hallucination hook
+             ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="15 Visualization · Products hook">
+          <div class="slide-header">
+            <h2>Three products, one retrieval problem</h2>
+            <span class="slide-kicker">Google · Ozon · Yandex Neuro</span>
+          </div>
+
+          <div class="split-art">
+            <div class="split-art__body">
+              <table class="cmp-table">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>What the user wants</th>
+                    <th>What gets retrieved</th>
+                    <th>How the answer is delivered</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Google</strong> <span class="muted small">(web search)</span></td>
+                    <td>a credible page</td>
+                    <td>web documents</td>
+                    <td>ten blue links, ordered</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Ozon</strong> <span class="muted small">(e-commerce)</span></td>
+                    <td>an item to buy</td>
+                    <td>product listings</td>
+                    <td>a grid of products, ordered</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Yandex Neuro</strong> <span class="muted small">(generative answer)</span></td>
+                    <td>a direct answer</td>
+                    <td>passages from retrieved pages</td>
+                    <td>one fluent paragraph + citations</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="small muted mt-3"><em>Same machinery underneath: a query, a corpus, a ranker.</em> Different surfaces. Yandex Neuro adds an LLM on top of retrieval — when that grounding fails, you get a confident horse with eight legs.</p>
+            </div>
+            <figure class="split-art__fig">
+              <img src="assets/img/L1/L1-14-grounding.png?v=1" alt="A confident robot declares a horse has 8 legs; a grounding/retrieval box corrects it to 4" />
+              <figcaption class="split-art__cap">No grounding → confident hallucination. The teaser for RAG.</figcaption>
+            </figure>
+          </div>
+
+          <aside class="slide-notes">Three very different products — web (Google), e-commerce (Ozon), and a generative answer engine (Yandex Neuro) — are the same retrieval problem underneath: query → corpus → ranker → ordered result. The Neuro example is the hallucination hook ("a horse has 8 legs"): an LLM is fluent but ungrounded; bolt good retrieval in front of it and the answer becomes both fluent and correct. This motivates RAG at the very end of the course.</aside>
+        </section>
+
+        <!-- ============================================
+             15 · QUIZ · why a ranked list?
+             ============================================ -->
+        <section class="slide" data-type="quiz" data-screen-label="16 Quiz · Why rank">
+          <div class="slide-header">
+            <h2>Audience question</h2>
+            <span class="slide-kicker">Quick check</span>
+          </div>
+
+          <div class="quiz-frame">
+            <div class="quiz-q">
+              Why does a search engine return a <strong>ranked list</strong> instead of just every matching document?
+            </div>
+
+            <div class="quiz-options">
+              <div class="quiz-option" data-correct="false">
+                <span class="quiz-letter">A</span>
+                <span>Ranking is cheaper to compute than returning everything</span>
+                <span></span>
+              </div>
+              <div class="quiz-option" data-correct="true">
+                <span class="quiz-letter">B</span>
+                <span>Relevance is graded and user attention is top-heavy, so order is the product</span>
+                <span></span>
+              </div>
+              <div class="quiz-option" data-correct="false">
+                <span class="quiz-letter">C</span>
+                <span>To hide irrelevant documents from the user entirely</span>
+                <span></span>
+              </div>
+            </div>
+
+            <details class="hidden-answer mt-4">
+              <summary>Reveal explanation</summary>
+              <div class="ha-content">
+                <strong>B.</strong> Relevance comes in degrees, and users overwhelmingly read top-down — most clicks land in the first few positions. So the <em>order</em>, not the membership, carries the value. Returning "everything" is useless when "everything" is \(10^6\) documents. This is why ranking metrics like \(\text{nDCG}@10\) discount by position.
+              </div>
+            </details>
+          </div>
+
+          <aside class="slide-notes">Let them commit before revealing. Distractor A is tempting but wrong — ranking is <em>more</em> work, not less. The real reasons are graded relevance (Slide 10) and top-heavy attention (Slide 29's position bias previews this). Tie it back: order is the product.</aside>
+        </section>
+
+        <!-- ============================================
+             16 · DIVIDER · Part 02
+             ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="17 Divider · Part 02">
+          <div class="divider-content">
+            <div class="divider-num">Part 02</div>
+            <h1>Anatomy of a<br />search engine</h1>
+            <p class="divider-sub">How does one machine answer a query against a billion documents in under 200&nbsp;ms — and why is it still so hard to get right?</p>
+          </div>
+
+          <aside class="slide-notes">Part 02 opens the machine. First the anatomy (offline build vs online serve, the inverted index, the cascade), then a tour of <em>why</em> search is hard — the lexical gap, the long tail, intent, and biased feedback. Every "hard" slide plants a seed that the DL half of the course later harvests.</aside>
+        </section>
+
+        <!-- ============================================
+             17 · ARCH · full pipeline
+             ============================================ -->
+        <section class="slide" data-type="arch" data-screen-label="18 Architecture · Pipeline">
+          <div class="slide-header">
+            <h2>The full pipeline</h2>
+            <span class="slide-kicker">Offline build · online serve</span>
+          </div>
+
+          <div class="arch-diagram">
+            <div class="arch-node" data-color="violet">
+              <div class="arch-icon">⬇</div>
+              <div class="arch-name">Crawl / ingest</div>
+              <div class="arch-shape">offline</div>
+            </div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node" data-color="violet">
+              <div class="arch-icon">Aa</div>
+              <div class="arch-name">Analyze</div>
+              <div class="arch-shape">tokenize · stem</div>
+            </div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node" data-color="violet">
+              <div class="arch-icon">▤</div>
+              <div class="arch-name">Index</div>
+              <div class="arch-shape">inverted index</div>
+            </div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node" data-color="cyan">
+              <div class="arch-icon">q?</div>
+              <div class="arch-name">Query proc.</div>
+              <div class="arch-shape">online</div>
+            </div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node">
+              <div class="arch-icon">∩</div>
+              <div class="arch-name">Retrieve</div>
+              <div class="arch-shape">BM25 / ANN</div>
+            </div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node" data-color="amber">
+              <div class="arch-icon">↕</div>
+              <div class="arch-name">Rank · re-rank</div>
+              <div class="arch-shape">LTR · models</div>
+            </div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node" data-color="green">
+              <div class="arch-icon">▦</div>
+              <div class="arch-name">Present</div>
+              <div class="arch-shape">SERP · snippets</div>
+            </div>
+          </div>
+
+          <p class="small muted mt-4 center">
+            Purple = built <strong>offline</strong>, on a schedule. Everything from "Query proc." onward runs <strong>online</strong>, per request, on a latency budget.
+          </p>
+
+          <aside class="slide-notes">Walk left to right. The colour break (purple → the rest) is the most important line on the slide: offline we can take hours to crawl and index; online we have a couple of hundred milliseconds total. Presentation (snippets, the SERP layout) is part of relevance too — a perfect result with a terrible snippet still loses the click.</aside>
+        </section>
+
+        <!-- ============================================
+             18 · TWO-COL · offline vs online
+             ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="19 Two-column · Offline vs Online">
+          <div class="slide-header">
+            <h2>Two clocks, two worlds</h2>
+            <span class="slide-kicker">Build the index vs walk the index</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>Offline · build</h3>
+              <p>Crawl, analyze, index. <strong>Latency-insensitive</strong>, throughput-bound. Crawl billions of pages over <em>days</em>; rebuild on a schedule.</p>
+              <div class="callout" data-kind="info">
+                <div class="callout-icon">i</div>
+                <div class="callout-body">
+                  <strong>The clock here is hours.</strong>
+                  <p>You optimise for coverage and cost-per-document.</p>
+                </div>
+              </div>
+            </div>
+            <div class="twocol-col">
+              <h3>Online · serve</h3>
+              <p>Parse → retrieve → rank → present. <strong>Latency-critical.</strong> Walk the pre-built index and answer in <em>\(&lt;200\)&nbsp;ms</em>.</p>
+              <div class="callout" data-kind="warn">
+                <div class="callout-icon">!</div>
+                <div class="callout-body">
+                  <strong>The clock here is milliseconds.</strong>
+                  <p>You optimise for tail latency (p99) and relevance.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="small muted center mt-3">"Offline builds the index; online walks it." The asymmetry between the two clocks shapes every design decision that follows.</p>
+
+          <aside class="slide-notes">The mantra: <em>offline builds the index, online walks it</em>. This split is why we can afford an expensive analysis pipeline (it runs once, offline) but must keep retrieval cheap (it runs per request). It also seeds the train/serving-skew discussion in Part 03 — the same feature must be computed identically in both worlds.</aside>
+        </section>
+
+        <!-- ============================================
+             19 · DEFINITION · inverted index
+             ============================================ -->
+        <section class="slide" data-type="definition" data-screen-label="20 Definition · Inverted index">
+          <div class="slide-header">
+            <h2>The data structure that makes search possible</h2>
+            <span class="slide-kicker">Definition</span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag">Definition</span>
+            <div class="def-term">
+              Inverted index
+              <span class="term-en">term → list of documents</span>
+            </div>
+            <div class="def-body">
+              <p>A <strong>forward index</strong> maps doc → terms; answering a query means scanning every document — \(O(N)\) in corpus size.</p>
+              <p>An <strong>inverted index</strong> flips it: a <strong>dictionary</strong> (term + document frequency \(\mathrm{df}\)) pointing at a <strong>postings list</strong> (sorted doc IDs, optionally term frequency \(\mathrm{tf}\) and positions).</p>
+              <p class="small muted">Cost now depends on the number of <em>matching</em> documents, not the corpus size — this is why web-scale search is even possible.</p>
+            </div>
+          </div>
+
+          <aside class="slide-notes">This is the one classical data structure every search person must know cold. The key insight is the cost flip: instead of \(O(N)\) over the whole corpus, you pay roughly for the length of the postings lists you intersect. Positions in the postings enable phrase queries. We will build BM25 on top of this in Lecture 02 — \(\mathrm{tf}\) and \(\mathrm{df}\) are already living in the index.</aside>
+        </section>
+
+        <!-- ============================================
+             20 · E2E / WALKTHROUGH · inverted index worked
+             ============================================ -->
+        <section class="slide" data-type="walkthrough" data-max-step="5" data-current-step="0" data-screen-label="21 Walkthrough · Inverted index">
+          <div class="slide-header">
+            <h2>Building an inverted index, by hand</h2>
+            <span class="slide-kicker">Worked example · <code>fox AND quick</code></span>
+          </div>
+
+          <p class="small muted mt-2">
+            Two documents — Doc&nbsp;1 <code>"the quick brown fox"</code>, Doc&nbsp;2 <code>"the lazy fox"</code>. Build the index, then answer <code>fox AND quick</code>.
+          </p>
+
+          <div class="walk-flow">
+            <div class="walk-step" data-step="1" data-color="violet">
+              <div class="walk-num">01</div>
+              <div class="walk-content">
+                <div class="walk-label">Tokenize each document</div>
+                <div class="walk-detail">Doc&nbsp;1 → <code>the · quick · brown · fox</code>; Doc&nbsp;2 → <code>the · lazy · fox</code>.</div>
+              </div>
+              <div class="walk-state">2 docs</div>
+            </div>
+
+            <div class="walk-step" data-step="2" data-color="cyan">
+              <div class="walk-num">02</div>
+              <div class="walk-content">
+                <div class="walk-label">Emit (term, docID) pairs</div>
+                <div class="walk-detail"><code>(the,1)(quick,1)(brown,1)(fox,1)(the,2)(lazy,2)(fox,2)</code>.</div>
+              </div>
+              <div class="walk-state">7 pairs</div>
+            </div>
+
+            <div class="walk-step" data-step="3" data-color="cyan">
+              <div class="walk-num">03</div>
+              <div class="walk-content">
+                <div class="walk-label">Sort &amp; group into postings</div>
+                <div class="walk-detail"><code>brown→[1]</code>, <code>fox→[1,2]</code>, <code>lazy→[2]</code>, <code>quick→[1]</code>, <code>the→[1,2]</code>.</div>
+              </div>
+              <div class="walk-state">5 terms</div>
+            </div>
+
+            <div class="walk-step" data-step="4" data-color="amber">
+              <div class="walk-num">04</div>
+              <div class="walk-content">
+                <div class="walk-label">Look up the query terms</div>
+                <div class="walk-detail"><code>fox → [1,2]</code> and <code>quick → [1]</code>. We only touch these two postings lists, not the corpus.</div>
+              </div>
+              <div class="walk-state">\(\mathrm{df}_{\text{fox}}=2\)</div>
+            </div>
+
+            <div class="walk-step" data-step="5" data-final="true">
+              <div class="walk-num">→</div>
+              <div class="walk-content">
+                <div class="walk-label">Intersect the postings</div>
+                <div class="walk-detail"><code>[1,2] ∩ [1] = [1]</code>. Answer: <strong>Doc&nbsp;1</strong>. A merge of two sorted lists — \(O(\text{list lengths})\), not \(O(N)\).</div>
+              </div>
+              <div class="walk-state">→ Doc 1</div>
+            </div>
+          </div>
+
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">←</button>
+            <span class="step-counter">5/5</span>
+            <button data-step-act="next" aria-label="Next step">→</button>
+          </div>
+
+          <aside class="slide-notes">Step through it slowly — this is the concrete payoff of the previous definition. Emphasise step 5: the intersection is a linear merge of two <em>sorted</em> lists, which is why postings are kept sorted. With more terms you intersect shortest-first to minimise work. This worked example is the seed of BM25 scoring next lecture: \(\mathrm{tf}\) and \(\mathrm{df}\) are already in the postings.</aside>
+        </section>
+
+        <!-- ============================================
+             21 · FUNNEL · the cascade with real numbers
+             ============================================ -->
+        <section class="slide" data-type="funnel" data-max-step="4" data-current-step="0" data-screen-label="22 Funnel · Cascade">
+          <div class="slide-header">
+            <h2>The cascade: narrow before you spend</h2>
+            <span class="slide-kicker">Retrieval → ranking → re-rank</span>
+          </div>
+
+          <div class="funnel">
+            <div class="funnel-stage" data-step="1" style="--w:100%">
+              <div class="fn-bar" data-role="corpus">
+                <span class="fn-name">Corpus</span>
+                <span class="fn-count">\(\sim 10^{9}\)</span>
+              </div>
+              <div class="fn-desc">the whole index — far too many to score with an expensive model</div>
+            </div>
+            <div class="funnel-stage" data-step="2" style="--w:62%">
+              <div class="fn-bar" data-role="retrieval">
+                <span class="fn-name">Retrieval (L0)</span>
+                <span class="fn-count">\(\sim 10^{3}\)</span>
+              </div>
+              <div class="fn-desc">cheap, high-recall: BM25 / ANN — optimises <strong>recall</strong></div>
+            </div>
+            <div class="funnel-stage" data-step="3" style="--w:40%">
+              <div class="fn-bar" data-role="rank">
+                <span class="fn-name">Ranking (L1)</span>
+                <span class="fn-count">\(\sim 10^{2}\)</span>
+              </div>
+              <div class="fn-desc">moderate cost, many features: GBDT / LTR</div>
+            </div>
+            <div class="funnel-stage" data-step="4" style="--w:24%">
+              <div class="fn-bar" data-role="rerank">
+                <span class="fn-name">Re-rank (L2)</span>
+                <span class="fn-count">\(\sim 10\)</span>
+              </div>
+              <div class="fn-desc">expensive cross-encoder + business rules — optimises <strong>precision@k</strong></div>
+            </div>
+          </div>
+
+          <p class="small muted center mt-3">
+            Why not run the best model on every document? A BERT cross-encoder at ~tens of ms/pair × \(10^{9}\) documents is roughly \(10^{8}\times\) over budget. So: cheap-and-broad, then expensive-and-precise.
+          </p>
+
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">←</button>
+            <span class="step-counter">0/4</span>
+            <button data-step-act="next" aria-label="Next step">→</button>
+          </div>
+
+          <aside class="slide-notes">The cascade is the central systems idea of search. The arithmetic on the caption sells it: you cannot afford the good model on \(10^{9}\) documents, so each stage spends ~10× more compute on ~10× fewer candidates. Recall lives early (you can never recover a document you didn't retrieve — next slide); precision lives late. The same funnel reappears as a latency budget in Part 03.</aside>
+        </section>
+
+        <!-- ============================================
+             22 · VIZ · recall ceiling = leaky bucket
+             ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="23 Recall ceiling">
+          <div class="slide-header">
+            <h2>The recall ceiling</h2>
+            <span class="slide-kicker">You can't re-rank what you didn't retrieve</span>
+          </div>
+
+          <div class="twocol">
+            <div class="twocol-col">
+              <div class="viz-frame" style="height:520px">
+                <img src="assets/img/L1/L1-22-leaky-bucket.png?v=1" alt="Leaky bucket of stars; the reranker robot cannot grab stars that already fell through" />
+              </div>
+            </div>
+            <div class="twocol-col">
+              <h3>If retrieval gets 80%, a perfect re-ranker still tops out at 80%.</h3>
+              <div class="callout" data-kind="info">
+                <div class="callout-icon">!</div>
+                <div class="callout-body">
+                  <strong>The hard ceiling is first-stage recall</strong>
+                  <p>Whatever stage-1 drops, no re-ranker — even a perfect one — can recover.</p>
+                </div>
+              </div>
+              <p>Loss that happens at retrieval is <em>permanent</em>. Invest in first-stage recall (and hybrid retrieval) before you tune the re-ranker.</p>
+            </div>
+          </div>
+
+          <aside class="slide-notes">The single most common production mistake: teams pour effort into a fancy re-ranker while 20% of relevant documents were silently dropped at stage 1. The leaky-bucket image makes it physical — the re-ranker robot cannot reach a star that already fell through the floor. The fix is better recall: hybrid retrieval (lexical + dense), which we will see closes recall@1000 to ≈0.98.</aside>
+        </section>
+
+        <!-- ============================================
+             23 · TABLE · cascade stages L0/L1/L2
+             ============================================ -->
+        <section class="slide" data-type="table" data-screen-label="24 Table · Cascade stages">
+          <div class="slide-header">
+            <h2>The cascade as a table</h2>
+            <span class="slide-kicker">L0 / L1 / L2 — job, cost, set size</span>
+          </div>
+
+          <table class="cmp-table">
+            <thead>
+              <tr>
+                <th>Stage</th>
+                <th>Job · model</th>
+                <th>Cost / doc</th>
+                <th>Set size</th>
+                <th>Optimises</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>L0 retrieval</td>
+                <td class="cell-meh">candidate-gen · BM25 / ANN</td>
+                <td class="cell-good">very cheap</td>
+                <td>millions → \(\sim 10^{3}\)</td>
+                <td class="cell-good">recall</td>
+              </tr>
+              <tr>
+                <td>L1 ranking</td>
+                <td class="cell-meh">GBDT / LTR, many features</td>
+                <td class="cell-meh">moderate</td>
+                <td>\(\sim 10^{3} \to 10^{2}\)</td>
+                <td class="cell-meh">order quality</td>
+              </tr>
+              <tr>
+                <td>L2 re-rank</td>
+                <td class="cell-meh">cross-encoder + rules</td>
+                <td class="cell-bad">expensive</td>
+                <td>\(\sim 10^{2} \to 10\)</td>
+                <td class="cell-good">precision@k</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p class="small muted center mt-3">
+            YouTube (Covington 2016): candidate-gen millions → hundreds, ranking ~\(10^{9}\) params, serving in <em>tens of ms</em>. MS&nbsp;MARCO: a BERT cross-encoder lifted MRR <strong>16.7 → 36.5</strong>, but only feasible on a ~100-doc shortlist.
+          </p>
+
+          <aside class="slide-notes">Concrete numbers anchor the abstraction. YouTube's two-stage system (Covington et al., RecSys 2016) is the canonical example — candidate generation shrinks millions to hundreds, then a heavy ranker with ~\(10^{9}\) parameters scores the survivors, all under tens of milliseconds. MS MARCO shows the precision payoff of L2: Nogueira &amp; Cho's BERT re-ranker more than doubled MRR, but attention is quadratic, so it is only affordable on the shortlist the cascade hands it.</aside>
+        </section>
+
+        <!-- ============================================
+             24 · VIZ · vocabulary mismatch / lexical gap
+             ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="25 Visualization · Lexical gap">
+          <div class="slide-header">
+            <h2>The #1 problem: the vocabulary mismatch</h2>
+            <span class="slide-kicker"><a href="https://doi.org/10.1145/32206.32212" target="_blank" rel="noopener">Furnas 1987</a> · ~80% disagreement</span>
+          </div>
+
+          <div class="viz-frame">
+            <img src="assets/img/L1/L1-24-lexical-gremlin.png?v=1" alt="The Lexical Gremlin holds a BM25 wall between couch and sofa; jaguar splits into cat, car, laptop" />
+          </div>
+          <p class="viz-caption">Furnas et al. (1987): two people pick the <em>same</em> word for the same thing under 20% of the time. This single fact motivates LSI, query expansion, and neural retrieval.</p>
+
+          <aside class="slide-notes">If students remember one "why search is hard" slide, make it this one. Synonymy and polysemy are dual failures of lexical matching: synonymy means a relevant doc shares no query words (recall loss); polysemy means irrelevant docs share the query word (precision loss). The Furnas 80%-disagreement number is the empirical anchor. The escape hatch — embeddings that place "couch" and "sofa" near each other — is the entire motivation for the dense-retrieval weeks. Meet the <strong>Lexical Gremlin</strong>: the little troublemaker holding that BM25 wall in place between synonyms — embeddings are how we finally get him to let go.</aside>
+        </section>
+
+        <!-- ============================================
+             25 · VIZ · Zipf long tail
+             ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="26 Visualization · Long tail">
+          <div class="slide-header">
+            <h2>The long tail of queries</h2>
+            <span class="slide-kicker">~15% of daily queries are brand-new</span>
+          </div>
+
+          <div class="viz-frame">
+            <img src="assets/img/L1/L1-25-zipf-beach.png?v=1" alt="Zipf long tail drawn as a beach: head sandcastles, endless never-seen-before tail" />
+          </div>
+          <p class="viz-caption">You cannot memorise the tail — you must <em>generalise</em>. This is the statistical reason search needs machine learning.</p>
+
+          <aside class="slide-notes">Query frequency is Zipfian: a small head dominates volume, but the tail is endless. Google has reaffirmed for years that ~15% of daily queries have never been seen before (25% in 2007, ~15% since ~2013). At ~8.5B queries/day that is ≈1.3B novel queries every single day. You cannot precompute answers for queries you have never seen — so you must generalise, which is exactly what learned representations buy you.</aside>
+        </section>
+
+        <!-- ============================================
+             26 · TABLE · Broder intent triptych
+             ============================================ -->
+        <section class="slide" data-type="table" data-screen-label="27 Table · Intent">
+          <div class="slide-header">
+            <h2>Three kinds of intent</h2>
+            <span class="slide-kicker"><a href="https://doi.org/10.1145/792550.792552" target="_blank" rel="noopener">Broder 2002</a> · AltaVista</span>
+          </div>
+
+          <table class="cmp-table">
+            <thead>
+              <tr>
+                <th>Intent</th>
+                <th>Share</th>
+                <th>Example</th>
+                <th>What "good" looks like</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Navigational</td>
+                <td class="cell-good">~24.5%</td>
+                <td><code>facebook login</code></td>
+                <td class="cell-good">one right answer, top-1</td>
+              </tr>
+              <tr>
+                <td>Informational</td>
+                <td class="cell-good">~39%</td>
+                <td><code>how vaccines work</code></td>
+                <td class="cell-meh">several good docs, diversity</td>
+              </tr>
+              <tr>
+                <td>Transactional</td>
+                <td class="cell-good">~36%</td>
+                <td><code>buy iphone 15</code></td>
+                <td class="cell-meh">enable an action / conversion</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p class="small muted center mt-3">
+            The same ranking that nails a navigational query can be wrong for an informational one. And note: these shares are study-dependent — labelling intent is itself fuzzy, which is a teaching point in its own right.
+          </p>
+
+          <aside class="slide-notes">Broder's taxonomy (from AltaVista logs) is the classic frame. The practical lesson: optimal ranking <em>depends on intent</em> — top-1 precision for navigational, diversity for ambiguous informational, conversion signals for transactional. Stress the caveat: different studies give different percentages because intent labelling is subjective — that fuzziness is exactly why we eventually learn intent from behaviour rather than hand-labelling it.</aside>
+        </section>
+
+        <!-- ============================================
+             27 · MISCONCEPTION · exact match = relevant
+             ============================================ -->
+        <section class="slide" data-type="misconception" data-screen-label="28 Misconception · Exact match">
+          <div class="slide-header">
+            <h2>Common misconception</h2>
+            <span class="slide-kicker">Bust the myth</span>
+          </div>
+          <div class="misc-card">
+            <div class="misc-label">What students think</div>
+            <p class="misc-statement">
+              "If a document contains all the query words, it must be relevant — and if it's missing one, it can't be."
+            </p>
+            <button class="misc-reveal-btn" type="button">Reveal truth</button>
+            <div class="misc-truth">
+              Lexical match is <strong>neither necessary nor sufficient</strong>. Keyword-stuffed spam contains every query word and is useless (<em>has all words, irrelevant</em>). The best document may share <strong>zero</strong> words with the query because of synonymy (<em>missing words, perfect answer</em>). Term overlap is a weak, biased proxy for relevance — which is why we move to learned representations.
+              <p class="misc-anchor">
+                <strong>Concrete cases.</strong>
+                <br>(a) Query <code>"comfortable couch"</code> · doc says <code>"plush sofa, sleeps two"</code> · overlap = 0 words · clearly the right answer (synonymy → recall loss).
+                <br>(b) Query <code>"java tutorial"</code> · doc <code>"java java coffee java cup java"</code> · overlap = perfect · clearly spam (term-stuffing → precision loss).
+                <br>Furnas et al. (1987) measured agreement: two users pick the <em>same</em> word for the same concept under <strong>20% of the time</strong>.
+              </p>
+            </div>
+          </div>
+          <aside class="slide-notes">Use this right after the lexical-gap slide to drive the point home. The two failure directions: (1) spam proves overlap is not sufficient; (2) synonymy proves overlap is not necessary. Once students accept that exact match is a leaky proxy, dense retrieval stops feeling like magic and starts feeling like the obvious fix.</aside>
+        </section>
+
+        <!-- ============================================
+             28 · TWO-COL · more hard realities
+             ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="29 Two-column · Hard realities">
+          <div class="slide-header">
+            <h2>More hard realities</h2>
+            <span class="slide-kicker">The world keeps moving</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>Queries are messy</h3>
+              <p><strong>Short:</strong> 2–3 words, almost no context. <strong>Misspelled:</strong> typos everywhere. <strong>Ambiguous:</strong> <code>python</code> = language or snake?</p>
+              <div class="callout" data-kind="warn">
+                <div class="callout-icon">!</div>
+                <div class="callout-body">
+                  <strong>Zero-result queries</strong>
+                  <p>10–20% of on-site e-commerce searches return nothing — usually vocabulary mismatch (<code>joggers</code> vs catalog <code>sweatpants</code>), not missing stock.</p>
+                </div>
+              </div>
+            </div>
+            <div class="twocol-col">
+              <h3>Relevance moves</h3>
+              <p><strong>Freshness:</strong> after an earthquake, a 1-hour-old report beats a perfect 5-year-old page. <strong>Personalization:</strong> <code>python</code> means different things to a programmer and a herpetologist; <code>coffee near me</code> depends on where you stand.</p>
+              <div class="callout" data-kind="info">
+                <div class="callout-icon">i</div>
+                <div class="callout-body">
+                  <strong>The label rots.</strong>
+                  <p>A "relevant" judgment from last year may be wrong today.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <aside class="slide-notes">Each item here is a future engineering project: spell correction, query understanding, freshness signals, personalization, zero-result recovery. The zero-result number has teeth: 100k searches/month × 10% = 10,000 high-intent visitors lost monthly — and the fix is usually synonyms and typo tolerance, not more inventory. "The label rots" connects forward to concept drift in Part 03.</aside>
+        </section>
+
+        <!-- ============================================
+             29 · MISCONCEPTION/VIZ · position bias
+             ============================================ -->
+        <section class="slide" data-type="misconception" data-screen-label="30 Misconception · Position bias">
+          <div class="slide-header">
+            <h2>Click logs lie</h2>
+            <span class="slide-kicker">Position &amp; presentation bias</span>
+          </div>
+          <div class="split-art">
+            <div class="split-art__body">
+              <div class="misc-card">
+                <div class="misc-label">What teams assume</div>
+                <p class="misc-statement">
+                  "Result #1 gets the most clicks, so it must be the most relevant — let's train the ranker on clicks."
+                </p>
+                <button class="misc-reveal-btn" type="button">Reveal truth</button>
+                <div class="misc-truth">
+                  Eye-tracking (the "Golden Triangle", Enquiro 2005) shows attention concentrates top-left. The #1 organic result earns ~32–33% of clicks <strong>largely because it is #1</strong>, not because it is best. So raw clicks are <strong>biased training data</strong>: a naive learning-to-rank model learns "predict what was already on top" and freezes the incumbents in place. Fix: model the bias explicitly — unbiased LTR with inverse-propensity weighting (we return to this in Part 03).
+                  <p class="misc-anchor">
+                    <strong>Worked simulation</strong> · grounded in <code>_research/data/position_bias.py</code>.
+                    Cascade examination model from <strong>Craswell et al. 2008</strong> (<em>"An Experimental Comparison of Click Position-Bias Models"</em>): examination probability \( p_r \propto 1/r^{\gamma} \), the rank-dependent decay that turns equal relevance into unequal clicks. The <strong>clicks ≠ relevance</strong> framing — that clicks reveal <em>relative</em> not absolute relevance — is the contribution of <strong>Joachims, Granka et al. 2005</strong> (<em>"Accurately Interpreting Clickthrough Data as Implicit Feedback"</em>); the ~32% rank-1 share is the Enquiro 2005 "golden triangle" eye-tracking number that anchors \( \gamma = 0.94 \) here.
+                    <br>Under that model, with <em>equal</em> true relevance for the top-10: rank 1 = <strong>32.3%</strong>, rank 2 = 16.8%, rank 3 = 11.5%, … top-3 together <strong>60.6%</strong>.
+                    <br>So a click on rank-1 carries about <strong>3×</strong> the weight of a click on rank-3, even when the docs are <em>equally</em> good — that is the bias to undo.
+                    <br>Train LTR on raw clicks and you bake the ranking <em>into</em> the model; IPW reweights each click by \( 1/p_r \) to recover an unbiased estimate of true relevance.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <figure class="split-art__fig">
+              <img src="assets/img/L1/L1-29-position-bias.png?v=1" alt="A golden-triangle click heatmap feeding a loop: click #1, logs say #1 is best, rank it #1 again" />
+            </figure>
+          </div>
+          <aside class="slide-notes">This is the bridge between the IR half and the systems half. Position bias means the feedback you collect is contaminated by the very ranking that produced it — a feedback loop. Training naively on clicks bakes in a rich-get-richer dynamic. The fix (IPW / unbiased LTR) shows up again on the feedback-loops slide in Part 03; flag it now so it lands later. Grounded illustration in <code>_research/data/position_bias.py</code> (cascade examination model from Craswell et al. 2008, γ≈0.94 fit to the ~32% rank-1 share from Enquiro 2005's "golden triangle"; the "clicks ≠ relevance" framing is Joachims, Granka et al. 2005): under EQUAL relevance, rank-1 still takes 32% of clicks and the top-3 take ~61% — pure position bias, explicitly modelled (not a proprietary log).</aside>
+        </section>
+
+        <!-- ============================================
+             30 · QUOTE · classic → neural bridge
+             ============================================ -->
+        <section class="slide" data-type="timeline" data-screen-label="31 Timeline · Classic to neural">
+          <div class="slide-header">
+            <h2>Classical &nbsp;<span class="wbw-arrow"></span>&nbsp; neural retrieval</h2>
+            <span class="slide-kicker">Timeline</span>
+          </div>
+          <p class="lead" style="margin-top: 8px;">
+            Each step kept the previous step's wins and patched one of its scars. Production today runs <em>all of them</em>, cascaded.
+          </p>
+          <ol class="tl" data-density="dense">
+            <li class="tl-node">
+              <div class="tl-year">1958</div>
+              <div class="tl-card">
+                <div class="tl-kicker">Luhn</div>
+                <h3 class="tl-what">TF / auto-index</h3>
+                <p class="tl-why">Term frequency marks topic. The bedrock weight.</p>
+              </div>
+            </li>
+            <li class="tl-node">
+              <div class="tl-year">1972</div>
+              <div class="tl-card">
+                <div class="tl-kicker">Spärck Jones</div>
+                <h3 class="tl-what">IDF</h3>
+                <p class="tl-why">Down-weight words that appear everywhere. <span class="wbw-mark">Specificity</span> matters.</p>
+              </div>
+            </li>
+            <li class="tl-node is-pivot">
+              <div class="tl-year">1994</div>
+              <div class="tl-card">
+                <div class="tl-kicker">Robertson · Walker</div>
+                <h3 class="tl-what">BM25</h3>
+                <p class="tl-why">TF · IDF with length normalisation. Still the lexical baseline 30 years later.</p>
+              </div>
+            </li>
+            <li class="tl-node">
+              <div class="tl-year">2013</div>
+              <div class="tl-card">
+                <div class="tl-kicker">Mikolov et al.</div>
+                <h3 class="tl-what">word2vec</h3>
+                <p class="tl-why">Words become vectors. Synonyms get close. The lexical gap starts to close.</p>
+              </div>
+            </li>
+            <li class="tl-node is-pivot">
+              <div class="tl-year">2019</div>
+              <div class="tl-card">
+                <div class="tl-kicker">SBERT · DPR</div>
+                <h3 class="tl-what">Dense retrieval</h3>
+                <p class="tl-why">Bi-encoders make semantic search fast — but stumble on rare exact tokens.</p>
+              </div>
+            </li>
+            <li class="tl-node">
+              <div class="tl-year">2020</div>
+              <div class="tl-card">
+                <div class="tl-kicker">Bruch · Lin · …</div>
+                <h3 class="tl-what">Hybrid + RRF</h3>
+                <p class="tl-why">Fuse lexical and dense. <span class="wbw-mark">recall@1000 ≈ 0.98</span> — the production norm.</p>
+              </div>
+            </li>
+            <li class="tl-node">
+              <div class="tl-year">2020+</div>
+              <div class="tl-card">
+                <div class="tl-kicker">Lewis et al.</div>
+                <h3 class="tl-what">RAG</h3>
+                <p class="tl-why">Retrieval grounds an LLM. The course's final destination.</p>
+              </div>
+            </li>
+          </ol>
+          <aside class="slide-notes">The narrative spine of the whole term, drawn as the arc that took us here. BM25 over the inverted index is fast, interpretable, and strong on rare/exact terms (names, IDs, codes) — but it hits the lexical-gap wall. Dense retrieval (SBERT, DPR) bridges synonymy/polysemy but underperforms on rare exact tokens (recall as low as ~5% on lexical-heavy queries). Fuse them and recall@1000 climbs to ≈0.98 — hybrid is the production norm. The orange-bead pivots — BM25 (1994) and dense (2019) — are the two transitions everything else hangs off. This timeline reuses the new `data-type="timeline"` template; see `css/wbw-art.css`. Inverted index → BM25 → lexical gap → embeddings → dense → hybrid → cross-encoder re-rank → cascade ties it all together.</aside>
+        </section>
+
+        <!-- ============================================
+             31 · DIVIDER · Part 03
+             ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="32 Divider · Part 03">
+          <div class="divider-content">
+            <div class="divider-num">Part 03</div>
+            <h1>Building the machine<br />that never sleeps</h1>
+            <p class="divider-sub">A model in a notebook is a demo. A model in production is a <em>system</em> — and systems rot unless you design for it.</p>
+          </div>
+          <aside class="slide-notes">Part 03 switches from "what is search" to "how do we ship and keep it alive." The ML System Design framework: frame → data → model → evaluate → serve → monitor. Throughout, the running example stays search/ranking, so every abstract beat has a concrete search instance.</aside>
+        </section>
+
+        <!-- ============================================
+             32 · QUOTE · model in a notebook
+             ============================================ -->
+        <section class="slide" data-type="quote" data-screen-label="33 Hook · Not a system">
+          <div>
+            <div class="quote-mark">"</div>
+            <blockquote>
+              A model in a notebook<br />is not a system.
+            </blockquote>
+            <div class="quote-attr">the entire premise of ML System Design</div>
+            <div class="viz-frame fig-fit" style="--fig-max:38cqh; --fig-w:54%; --fig-mt:var(--sp-3);">
+              <img src="assets/img/L1/L1-32-not-a-system.png?v=1" alt="Serega proud of a laptop showing accuracy 0.92, dwarfed by a huge tangled production machine behind him"
+                   />
+            </div>
+          </div>
+          <aside class="slide-notes">The pivot line. A `model.fit()` cell that scores 0.92 on a held-out set has solved maybe 5% of the problem. The other 95% — data pipelines, serving, monitoring, config, feedback — is where real systems live and die. Next slide makes that 5% / 95% split visual.</aside>
+        </section>
+
+        <!-- ============================================
+             33 · VIZ · the ML iceberg
+             ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="34 ML iceberg">
+          <div class="slide-header">
+            <h2>The ML iceberg</h2>
+            <span class="slide-kicker">Sculley et al., NeurIPS 2015</span>
+          </div>
+
+          <div class="twocol">
+            <div class="twocol-col">
+              <div class="viz-frame" style="height:520px">
+                <img src="assets/img/L1/L1-33-iceberg.png?v=1" alt="ML iceberg: tiny ML-code tip above the waterline, vast hidden infrastructure below" />
+              </div>
+            </div>
+            <div class="twocol-col">
+              <h3>The model is just the tip.</h3>
+              <p>Everything below the waterline is where systems quietly rot:</p>
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">configuration · data collection</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">feature extraction · data verification</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">serving infrastructure · resource management</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">monitoring · process &amp; tooling</span></li>
+              </ul>
+              <p class="small muted">"Only a small fraction of real-world ML systems is ML code."</p>
+            </div>
+          </div>
+
+          <aside class="slide-notes">The canonical Sculley 2015 figure. The famous tiny "ML code" box surrounded by huge boxes for everything else. The teaching beat: your course so far has been about the tip; this part is about the iceberg. Every box below the waterline is a place a search system fails silently — a stale config, an unverified data feed, a cold cache after deploy.</aside>
+        </section>
+
+        <!-- ============================================
+             34 · DEFINITION · ML System Design
+             ============================================ -->
+        <section class="slide" data-type="definition" data-screen-label="35 Definition · ML SysDes">
+          <div class="slide-header">
+            <h2>What we mean by ML System Design</h2>
+            <span class="slide-kicker">Definition</span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag">Definition</span>
+            <div class="def-term">
+              ML System Design
+              <span class="term-en">the engineering around the model</span>
+            </div>
+            <div class="def-body">
+              <p>The discipline of designing the <strong>end-to-end system</strong> in which a model lives: how the problem is framed, how data flows in, how predictions are served under a latency budget, and how the whole thing is monitored and improved over time.</p>
+              <p class="small muted">The model is one component. The design question is everything around it — and that is what determines whether the system works in production and keeps working.</p>
+            </div>
+          </div>
+          <aside class="slide-notes">Define the term cleanly before the framework. The emphasis: <em>end-to-end</em> and <em>over time</em>. A static, one-shot model is not the unit of design — the lifecycle is. This sets up the six-step walkthrough next.</aside>
+        </section>
+
+        <!-- ============================================
+             35 · TWO-COL · hidden technical debt
+             ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="36 Two-column · Tech debt">
+          <div class="slide-header">
+            <h2>Hidden technical debt</h2>
+            <span class="slide-kicker"><a href="https://papers.nips.cc/paper/2015/hash/86df7dcfd896fcaf2674f757a2463eba-Abstract.html" target="_blank" rel="noopener">Sculley 2015</a> · mapped to search</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>CACE</h3>
+              <p><strong>Changing Anything Changes Everything.</strong> No clean module boundaries — retune one feature and downstream behaviour shifts.</p>
+              <div class="callout" data-kind="warn">
+                <div class="callout-icon">!</div>
+                <div class="callout-body">
+                  <strong>Search:</strong>
+                  <p>swap the tokenizer or the BM25 floor → the input distribution to the re-ranker silently changes.</p>
+                </div>
+              </div>
+            </div>
+            <div class="twocol-col">
+              <h3>Glue, config &amp; loops</h3>
+              <p><strong>Glue code / pipeline jungles</strong> testable only end-to-end. <strong>Config debt</strong>: one stale feature-version pin degrades ranking with no exception. <strong>Hidden feedback loops</strong>: clicks on what you ranked become tomorrow's labels.</p>
+              <div class="callout" data-kind="info">
+                <div class="callout-icon">i</div>
+                <div class="callout-body">
+                  <strong>The pattern:</strong>
+                  <p>ML systems fail <em>silently</em> — no stack trace, just slowly worse results.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <aside class="slide-notes">These are the debt categories from Sculley 2015, each grounded in search. CACE is why you can't reason about components in isolation. Config debt is the silent killer — a stale version pin throws no exception, the ranking just quietly rots. Hidden feedback loops connect straight back to position bias (Slide 29). The unifying theme: failure is silent, so you must <em>monitor</em>, which is the last framework step.</aside>
+        </section>
+
+        <!-- ============================================
+             36 · WALKTHROUGH · the 6-step framework
+             ============================================ -->
+        <section class="slide" data-type="walkthrough" data-max-step="6" data-current-step="0" data-screen-label="37 Walkthrough · Framework">
+          <div class="slide-header">
+            <h2>The framework, in six steps</h2>
+            <span class="slide-kicker">Each chip = the artifact you produce</span>
+          </div>
+
+          <p class="small muted mt-2">
+            One disciplined loop, told through our running search example. The chip on the right is the concrete deliverable of each step.
+          </p>
+
+          <div class="walk-flow">
+            <div class="walk-step" data-step="1" data-color="violet">
+              <div class="walk-num">01</div>
+              <div class="walk-content">
+                <div class="walk-label">Frame the problem</div>
+                <div class="walk-detail">Business goal → ML objective → proxy. "Users find what they want" → learn \(P(\text{relevant}\mid q,d)\). Google Rule&nbsp;#1: don't be afraid to launch <em>without</em> ML first.</div>
+              </div>
+              <div class="walk-state">spec</div>
+            </div>
+
+            <div class="walk-step" data-step="2" data-color="cyan">
+              <div class="walk-num">02</div>
+              <div class="walk-content">
+                <div class="walk-label">Get the data</div>
+                <div class="walk-detail">Collection, labels, splits, leakage. Query/click logs + graded 0–4 judgments. Beware temporal leakage and position bias.</div>
+              </div>
+              <div class="walk-state">\((q,d,\text{label})\)</div>
+            </div>
+
+            <div class="walk-step" data-step="3" data-color="cyan">
+              <div class="walk-num">03</div>
+              <div class="walk-content">
+                <div class="walk-label">Model &amp; baselines</div>
+                <div class="walk-detail">Simplest first. BM25 / two-tower → GBDT / neural re-ranker. Google Rule&nbsp;#4: keep the first model simple, get the infrastructure right.</div>
+              </div>
+              <div class="walk-state">BM25 baseline</div>
+            </div>
+
+            <div class="walk-step" data-step="4" data-color="amber">
+              <div class="walk-num">04</div>
+              <div class="walk-content">
+                <div class="walk-label">Evaluate</div>
+                <div class="walk-detail">Offline that <em>predicts</em> online, then online. \(\text{nDCG}@10\) offline; interleaving + A/B online.</div>
+              </div>
+              <div class="walk-state">\(\text{nDCG}@10\)</div>
+            </div>
+
+            <div class="walk-step" data-step="5" data-color="green">
+              <div class="walk-num">05</div>
+              <div class="walk-content">
+                <div class="walk-label">Serve</div>
+                <div class="walk-detail">Latency, throughput, cost. ANN retrieval → ranking under a \(p_{99}\) budget. Watch train/serve skew (Rules&nbsp;#29/#32).</div>
+              </div>
+              <div class="walk-state">\(p_{99} &lt; 200\)ms</div>
+            </div>
+
+            <div class="walk-step" data-step="6" data-final="true">
+              <div class="walk-num">→</div>
+              <div class="walk-content">
+                <div class="walk-label">Monitor &amp; close the loop</div>
+                <div class="walk-detail">Drift, skew, degeneracy. Track feature/score distributions and online metrics; logs feed the next retraining cycle.</div>
+              </div>
+              <div class="walk-state">logs → retrain</div>
+            </div>
+          </div>
+
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">←</button>
+            <span class="step-counter">6/6</span>
+            <button data-step-act="next" aria-label="Next step">→</button>
+          </div>
+
+          <aside class="slide-notes">This is the backbone of the systems half — memorise the six steps. Two Google Rules of ML anchor the early steps: Rule&nbsp;#1 (a heuristic often beats a premature model and de-risks the infra) and Rule&nbsp;#4 (a simple first model proves the pipeline before you add complexity). The chips are deliverables, so students can ask "what artifact have I actually produced?" at each stage. Step 6 loops back to step 2 — the lifecycle is a cycle, not a line.</aside>
+        </section>
+
+        <!-- ============================================
+             37 · TABLE · goal → objective → metric
+             ============================================ -->
+        <section class="slide" data-type="table" data-screen-label="38 Table · Goal to metric">
+          <div class="slide-header">
+            <h2>Business goal → ML objective → proxy metric</h2>
+            <span class="slide-kicker">The translation spine (step 01)</span>
+          </div>
+
+          <table class="cmp-table">
+            <thead>
+              <tr>
+                <th>Business goal</th>
+                <th>ML objective</th>
+                <th>Proxy metric</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Users find what they want</td>
+                <td class="cell-meh">rank relevant docs at the top</td>
+                <td class="cell-good">\(\text{nDCG}@10\)</td>
+              </tr>
+              <tr>
+                <td>Answers feel fast</td>
+                <td class="cell-meh">low serving latency</td>
+                <td class="cell-good">\(p_{99}\) latency</td>
+              </tr>
+              <tr>
+                <td>Content stays fresh</td>
+                <td class="cell-meh">keep the index up to date</td>
+                <td class="cell-good">indexing lag</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p class="small muted center mt-3">
+            Every row is a <strong>contract</strong>: if the metric moves the right way, the goal is served. Choosing the metric <em>is</em> the design decision — and the next slides show how that choice can betray you.
+          </p>
+
+          <aside class="slide-notes">Stage 01 made concrete. The most expensive failures live here: an ML objective only loosely coupled to the business goal. Chasing \(\text{nDCG}\) while latency quietly blows the SLA is a classic. Each row is a contract you must be able to defend. This sets up the metrics taxonomy and Goodhart's law next.</aside>
+        </section>
+
+        <!-- ============================================
+             38 · TWO-COL · metrics taxonomy
+             ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="39 Two-column · Metrics">
+          <div class="slide-header">
+            <h2>Three families of metrics</h2>
+            <span class="slide-kicker">Offline · online · guardrail</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>Offline &amp; online</h3>
+              <p><strong>Offline</strong> (on logged labels): \(\text{nDCG}\), MAP, MRR, plus classification proxies AUC and log-loss. Cheap, fast to iterate.</p>
+              <p><strong>Online</strong> (on live users): CTR, conversion, dwell time, session success, time-to-first-click. The behaviour you actually care about.</p>
+            </div>
+            <div class="twocol-col">
+              <h3>Guardrail</h3>
+              <p><strong>Must-not-harm</strong> metrics that veto a launch even if the primary metric improves:</p>
+              <div class="callout" data-kind="warn">
+                <div class="callout-icon">!</div>
+                <div class="callout-body">
+                  <strong>\(p_{99}\) latency · error rate · revenue · retention</strong>
+                  <p>A treatment that lifts CTR but breaks the latency guardrail does <em>not</em> ship.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <aside class="slide-notes">Three families with three jobs. Offline metrics are for fast iteration; online metrics are the ground truth of user behaviour; guardrails are the safety net. The key discipline: every primary metric is paired with guardrails that catch its degenerate direction. Calibration matters when scores feed a cascade or an auction — log-loss, not just AUC. Next two slides: why offline ≠ online, and why the proxy itself can betray you.</aside>
+        </section>
+
+        <!-- ============================================
+             39 · MISCONCEPTION · offline ≠ online
+             ============================================ -->
+        <section class="slide" data-type="misconception" data-screen-label="40 Misconception · Offline online gap">
+          <div class="slide-header">
+            <h2>Common misconception</h2>
+            <span class="slide-kicker">Bust the myth</span>
+          </div>
+          <div class="misc-card">
+            <div class="misc-label">What everyone wants to believe</div>
+            <p class="misc-statement">
+              "Our new model wins on \(\text{nDCG}@10\) offline, so it will win with real users."
+            </p>
+            <button class="misc-reveal-btn" type="button">Reveal truth</button>
+            <div class="misc-truth">
+              The <strong>offline–online gap</strong> is real and routine. Offline metrics are computed in isolation on <em>historical, biased</em> logs; they miss freshness, diversity, trust, presentation, session dynamics, and novelty. A model can win offline and <em>lose</em> the A/B test. Strategy: validate <em>which</em> offline metrics actually correlate with online lift, then use offline for iteration and online (interleaving + A/B) for the real verdict.
+              <p class="misc-anchor">
+                <strong>Numeric anchor.</strong> Kohavi, Tang &amp; Xu (2020), <em>Trustworthy Online Controlled Experiments</em>: at Microsoft Bing, only about <strong>1 in 3</strong> ideas that look promising offline produce a positive online A/B effect; the other ~⅔ are flat or worse. Comparable rates have been reported at Netflix and Booking. The discipline: treat your offline metric as a hypothesis to validate online, not a verdict.
+              </p>
+            </div>
+          </div>
+          <aside class="slide-notes">This is the most important reality check in the systems half. Offline metrics are necessary (you can't A/B every idea) but not sufficient. The discipline is to treat your offline metric as a hypothesis about online behaviour and to measure the correlation empirically. The next slide (Goodhart) explains a deeper failure: even the right metric, over-optimised, turns toxic.</aside>
+        </section>
+
+        <!-- ============================================
+             40 · VIZ · Goodhart loop
+             ============================================ -->
+        <section class="slide" data-type="viz" data-screen-label="41 Visualization · Goodhart">
+          <div class="slide-header">
+            <h2>Goodhart's law</h2>
+            <span class="slide-kicker">When a measure becomes a target…</span>
+          </div>
+
+          <div class="viz-frame">
+            <img src="assets/img/L1/L1-40-goodhart.png?v=1" alt="Goodhart the Trickster pulls the CTR line up with a clickbait hook as real satisfaction falls" />
+          </div>
+          <p class="viz-caption">Optimise CTR hard enough and you optimise <em>clickbait, outrage, and accidental taps</em> — the proxy rises while the thing you actually wanted falls. Pair every proxy with a guardrail (dwell time, quick-back rate).</p>
+
+          <aside class="slide-notes">Goodhart: "when a measure becomes a target, it ceases to be a good measure." Picture <strong>Goodhart the Trickster</strong> yanking the CTR line up with a clickbait hook while real satisfaction quietly sinks. A pure CTR objective rewards clickbait, outrage, ambiguity, and accidental taps — none of which is satisfaction. The mitigation is exactly the guardrail discipline from two slides back: pair CTR with dwell time and pogo-sticking/quick-back rate so the degenerate direction is caught. Prefer causal goal metrics over convenient proxies where you can.</aside>
+        </section>
+
+        <!-- ============================================
+             41 · TWO-COL · online experimentation
+             ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="42 Two-column · Experimentation">
+          <div class="slide-header">
+            <h2>How we actually decide</h2>
+            <span class="slide-kicker">Online experimentation</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>The ladder of risk</h3>
+              <p><strong>Shadow:</strong> run the new model in parallel, serve none, just log — validates infra &amp; latency at zero risk.</p>
+              <p><strong>Canary:</strong> ramp 1% → 5% → 50% with automatic rollback on any guardrail breach.</p>
+              <p><strong>A/B:</strong> the gold standard for causal lift — but noisy and slow for ranking.</p>
+            </div>
+            <div class="twocol-col">
+              <h3>Interleaving</h3>
+              <p>Merge results of A and B into <em>one</em> list (team-draft); attribute each click to the ranker that contributed it. <strong>Every user sees both</strong> → between-user variance vanishes.</p>
+              <div class="callout" data-kind="info">
+                <div class="callout-icon">i</div>
+                <div class="callout-body">
+                  <strong>Netflix: &gt;100× more sensitive</strong>
+                  <p>than the best A/B metric (Netflix interleaving study, 2017); interleaving's general sensitivity gain is 1–2 orders of magnitude (Chapelle et al. 2012). Filter with interleaving (days), confirm survivors with A/B.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <aside class="slide-notes">Interleaving is the ranking-specific superpower: because every user sees both rankers in one merged list, you remove the dominant noise source (between-user variance) and need far fewer users for the same statistical power — Netflix reports &gt;100×. Mention novelty/primacy effects: treatment effects are non-stationary, so never read out on day 1. Workflow: interleaving as a fast filter, A/B as the final causal confirmation.</aside>
+        </section>
+
+        <!-- ============================================
+             42 · VIZ · SRM gate + guardrails
+             ============================================ -->
+        <section class="slide" data-type="arch" data-screen-label="43 SRM gate">
+          <div class="slide-header">
+            <h2>Trust the experiment before you trust the result</h2>
+            <span class="slide-kicker">Validate the test, then read it</span>
+          </div>
+
+          <div class="arch-diagram" style="height:320px">
+            <div class="arch-node">
+              <div class="arch-icon">50/50</div>
+              <div class="arch-name">Traffic</div>
+              <div class="arch-shape">random assignment</div>
+            </div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node" data-color="red">
+              <div class="arch-icon">χ²</div>
+              <div class="arch-name">SRM gate</div>
+              <div class="arch-shape">split as intended?</div>
+            </div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node" data-color="amber">
+              <div class="arch-icon">!</div>
+              <div class="arch-name">Guardrail gate</div>
+              <div class="arch-shape">\(p_{99}\), revenue OK?</div>
+            </div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node" data-color="green">
+              <div class="arch-icon">✓</div>
+              <div class="arch-name">Read metric</div>
+              <div class="arch-shape">+ segment cuts</div>
+            </div>
+          </div>
+
+          <div class="callout" data-kind="info" style="margin-top:var(--sp-4)">
+            <div class="callout-icon">i</div>
+            <div class="callout-body">
+              <strong>SRM = Sample-Ratio Mismatch.</strong>
+              <p>You assigned traffic 50/50, but observe, say, 50.2 / 49.8. A chi-square test says that gap is <em>not</em> chance — it points to a logging or assignment bug (bot filtering, a redirect, lost events), so the whole experiment is untrustworthy. Microsoft's rule: pass the SRM check <em>before</em> you look at any metric. Treat a failed SRM like a fever — diagnose before trusting anything.</p>
+            </div>
+          </div>
+
+          <aside class="slide-notes">Sample-Ratio Mismatch (SRM) is the first thing to check, before you even look at the primary metric. If you assigned 50/50 but observe a significant deviation, something upstream is broken — bot filtering, a redirect, logging loss — and the experiment is untrustworthy. Microsoft's rule: every A/B passes an SRM chi-square test before any analysis. Then guardrails, then the metric — and always with segment cuts, because of Simpson's paradox (next on the drift slide).</aside>
+        </section>
+
+        <!-- ============================================
+             43 · VIZ · data flywheel + evil twin
+             ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="44 Data flywheel">
+          <div class="slide-header">
+            <h2>The data flywheel — and its evil twin</h2>
+            <span class="slide-kicker">The same loop that helps, harms</span>
+          </div>
+
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3 style="color:var(--c-green)">The flywheel ↻ &nbsp;<span class="small muted">(virtuous)</span></h3>
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" style="color:var(--c-green)">1</span><span class="obj-text">more users</span></li>
+                <li class="obj-item"><span class="obj-check" style="color:var(--c-green)">2</span><span class="obj-text">more logs / labels</span></li>
+                <li class="obj-item"><span class="obj-check" style="color:var(--c-green)">3</span><span class="obj-text">a better model</span></li>
+                <li class="obj-item"><span class="obj-check" style="color:var(--c-green)">4</span><span class="obj-text">better results &nbsp;<span class="muted">↻ back to 1</span></span></li>
+              </ul>
+              <p class="small muted">Scale compounds <strong>quality</strong>.</p>
+            </div>
+            <div class="twocol-col">
+              <h3 style="color:var(--c-red)">The evil twin ↻ &nbsp;<span class="small muted">(degenerate)</span></h3>
+              <ul class="obj-list">
+                <li class="obj-item"><span class="obj-check" style="color:var(--c-red)">1</span><span class="obj-text">show a popular item</span></li>
+                <li class="obj-item"><span class="obj-check" style="color:var(--c-red)">2</span><span class="obj-text">more exposure</span></li>
+                <li class="obj-item"><span class="obj-check" style="color:var(--c-red)">3</span><span class="obj-text">more clicks (just from position)</span></li>
+                <li class="obj-item"><span class="obj-check" style="color:var(--c-red)">4</span><span class="obj-text">ranked even higher &nbsp;<span class="muted">↻ back to 1</span></span></li>
+              </ul>
+              <p class="small muted">The <em>same</em> loop, fed naive clicks, amplifies <strong>bias</strong> — &ldquo;rich get richer&rdquo;.</p>
+            </div>
+          </div>
+          <div class="art-strip">
+            <img src="assets/img/L1/L1-43-flywheel.png?v=1" alt="A smooth virtuous flywheel (users to logs to model to results) beside a red rich-get-richer wheel" />
+          </div>
+
+          <aside class="slide-notes">The flywheel is the dream: scale compounds quality. The evil twin is the nightmare: the <em>same</em> loop, fed naive click data, amplifies whatever bias is in the logs. Popular items get more exposure → more clicks → ranked higher → even more exposure — a degenerate, rich-get-richer spiral that buries the long tail and freezes the catalogue. The fixes are on the next slide.</aside>
+        </section>
+
+        <!-- ============================================
+             44 · TWO-COL · feedback loops + fixes
+             ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="45 Two-column · Feedback loops">
+          <div class="slide-header">
+            <h2>Feedback loops and how to break the bad ones</h2>
+            <span class="slide-kicker">Bias → degeneracy → fix</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>The biases</h3>
+              <p><strong>Position bias:</strong> clicks reward rank-1 for being rank-1.</p>
+              <p><strong>Exposure bias:</strong> never-shown items get no feedback — missing-not-at-random.</p>
+              <p><strong>Degenerate loops:</strong> the model only ever sees feedback on what it chose to show.</p>
+            </div>
+            <div class="twocol-col">
+              <h3>The fixes</h3>
+              <p><strong>Unbiased LTR:</strong> inverse-propensity-weight clicks by examination probability (Joachims) — or model examination vs relevance directly.</p>
+              <p><strong>Exploration:</strong> \(\varepsilon\)-greedy / bandits to gather feedback on unshown items.</p>
+              <p><strong>Context features:</strong> time, device — not pure interaction history.</p>
+            </div>
+          </div>
+          <aside class="slide-notes">This pays off the position-bias slide from Part 02. The bias on the left and the fix on the right line up: position bias ↔ inverse-propensity weighting; exposure bias ↔ exploration; degenerate loops ↔ context features over raw interaction history. The meta-lesson: you must actively counteract the loop your own system creates, or it slowly poisons its own training data.</aside>
+        </section>
+
+        <!-- ============================================
+             45 · DEFINITION · feature store / train-serve skew
+             ============================================ -->
+        <section class="slide" data-type="definition" data-screen-label="46 Definition · Feature store">
+          <div class="slide-header">
+            <h2>The #1 silent killer — and its architectural fix</h2>
+            <span class="slide-kicker">Definition</span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag">Definition</span>
+            <div class="def-term">
+              Training–serving skew
+              <span class="term-en">+ the feature store that kills it</span>
+            </div>
+            <div class="def-body">
+              <p><strong>Skew</strong> = the features at serving time differ from those at training time — different code paths, data that changed in between, or a feedback loop. The model trained on one distribution, serves on another, and degrades <em>silently</em>.</p>
+              <p><strong>Fix</strong> — a <strong>feature store</strong>: one source of feature values for both training and serving, guaranteeing parity. (Google Rules&nbsp;#29 "train like you serve", #32 "reuse code between training and serving".)</p>
+            </div>
+          </div>
+          <aside class="slide-notes">Train/serve skew is the most common silent production failure. The root cause is two code paths computing "the same" feature slightly differently, or a feature that drifts between when you trained and when you serve. The architectural fix is the feature store — compute each feature once, write it where both training and serving read it. This is exactly the bridge node in the production blueprint two slides from now.</aside>
+        </section>
+
+        <!-- ============================================
+             46 · TABLE · drift & data pitfalls
+             ============================================ -->
+        <section class="slide" data-type="table" data-screen-label="47 Table · Drift">
+          <div class="slide-header">
+            <h2>Drift &amp; the data pitfalls</h2>
+            <span class="slide-kicker">Match the fix to the failure</span>
+          </div>
+
+          <table class="cmp-table">
+            <thead>
+              <tr>
+                <th>Pitfall</th>
+                <th>What changes</th>
+                <th>How to catch it</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Covariate shift</td>
+                <td class="cell-meh">\(P(x)\) (holiday traffic)</td>
+                <td class="cell-good">monitor feature dist · KL / PSI</td>
+              </tr>
+              <tr>
+                <td>Concept drift</td>
+                <td class="cell-bad">\(P(y\mid x)\) ("corona" pre/post-2020)</td>
+                <td class="cell-good">error vs fresh labels</td>
+              </tr>
+              <tr>
+                <td>Data leakage</td>
+                <td class="cell-bad">future leaks into train</td>
+                <td class="cell-good">split by <em>time</em>, not at random</td>
+              </tr>
+              <tr>
+                <td>Label delay</td>
+                <td class="cell-meh">conversions arrive late</td>
+                <td class="cell-meh">"no conversion" ≠ "not yet"</td>
+              </tr>
+              <tr>
+                <td>Simpson's paradox</td>
+                <td class="cell-bad">traffic mix shifts</td>
+                <td class="cell-good">always cut by segment</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p class="small muted center mt-3">
+            Applying a covariate-shift fix to concept drift solves nothing — the diagnosis determines the cure. Cold start (new user/query/doc, no history) needs content features, popularity priors, and exploration.
+          </p>
+
+          <aside class="slide-notes">The discipline is matching diagnosis to cure. Covariate shift (\(P(x)\) moves, \(P(y\mid x)\) fixed) is caught by watching feature distributions — KL divergence or PSI. Concept drift (\(P(y\mid x)\) itself moves) is invisible in feature distributions; you only see it as rising error against fresh labels. Leakage is the offline-metric inflator — random splits on temporal data leak the future. Simpson's paradox: if the aggregate moves but no cohort moves the same way, suspect a traffic-mix shift and never trust the aggregate alone.</aside>
+        </section>
+
+        <!-- ============================================
+             47 · ARCHFLOW BLUEPRINT · production search system
+             ============================================ -->
+        <section class="slide" data-type="archflow" data-max-step="5" data-current-step="0" data-screen-label="48 Blueprint · Search system">
+          <div class="slide-header">
+            <h2>A production search system: offline ↔ online</h2>
+            <span class="slide-kicker">Archflow · system blueprint</span>
+          </div>
+
+          <!-- auto-legend (engine fills role swatches + sync/async from the diagram) -->
+          <div class="af-legend af-legend-bar" data-auto></div>
+
+          <div class="af-stage">
+            <div class="af-canvas af-blueprint" data-layout="grid" data-routing="orthogonal">
+              <!-- swim-lanes (data-lane → also the grid bands for auto-layout) -->
+              <div class="af-lane" data-lane="offline" data-role="offline" data-from="1" style="left:1%;top:9%;width:98%;height:34%">
+                <div class="af-lane-label">offline · indexing &amp; training</div>
+              </div>
+              <div class="af-lane" data-lane="online" data-role="online" data-from="3" style="left:1%;top:60%;width:98%;height:36%">
+                <div class="af-lane-label">online · serving</div>
+              </div>
+              <!-- group container nested in the offline lane -->
+              <div class="af-group" data-from="1" style="left:50%;top:11%;width:47%;height:30%">
+                <div class="af-group-label">model lifecycle</div>
+              </div>
+
+              <!-- EDGES (declarative; labeled + typed) -->
+              <div class="af-edge" data-from-node="af-logs" data-to-node="af-fpipe" data-from="1" data-from-anchor="right" data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-fpipe" data-to-node="af-train" data-from="1" data-from-anchor="right" data-to-anchor="left" data-label="training data"></div>
+              <div class="af-edge" data-from-node="af-train" data-to-node="af-registry" data-from="1" data-from-anchor="right" data-to-anchor="left" data-label="ranker"></div>
+              <div class="af-edge" data-from-node="af-fpipe" data-to-node="af-fs" data-from="2" data-from-anchor="bottom" data-to-anchor="top" data-kind="async" data-label="batch write"></div>
+              <div class="af-edge" data-from-node="af-req" data-to-node="af-retr" data-from="3" data-from-anchor="right" data-to-anchor="left"></div>
+              <div class="af-edge" data-from-node="af-retr" data-to-node="af-rank" data-from="3" data-from-anchor="right" data-to-anchor="left" data-label="~1000"></div>
+              <div class="af-edge" data-from-node="af-rank" data-to-node="af-rerank" data-from="3" data-from-anchor="right" data-to-anchor="left" data-label="~100"></div>
+              <div class="af-edge" data-from-node="af-rerank" data-to-node="af-resp" data-from="3" data-from-anchor="right" data-to-anchor="left" data-label="~10"></div>
+              <div class="af-edge" data-from-node="af-fs" data-to-node="af-retr" data-from="3" data-label="features · low-latency read"></div>
+              <div class="af-edge" data-from-node="af-fs" data-to-node="af-rank" data-from="3"></div>
+              <div class="af-edge" data-from-node="af-registry" data-to-node="af-rank" data-from="4" data-from-anchor="bottom" data-to-anchor="top" data-label="deploy"></div>
+              <!-- feedback (back-edges): NO data-route — the engine AUTO-detects
+                   them (target far upstream) and routes around the perimeter on
+                   separate nested tracks so the two parallel loops don't overlap. -->
+              <div class="af-edge" data-from-node="af-resp"   data-to-node="af-logs" data-from="5" data-kind="async" data-label="clicks"></div>
+              <div class="af-edge" data-from-node="af-rerank" data-to-node="af-logs" data-from="5" data-kind="async" data-label="served list"></div>
+
+              <!-- OFFLINE nodes — auto-placed on the grid (data-lane + data-col) -->
+              <div class="af-node" id="af-logs"     data-role="source"   data-from="1" data-lane="offline" data-col="1">Query &amp;<br>click logs</div>
+              <div class="af-node" id="af-fpipe"    data-role="pipeline" data-from="1" data-lane="offline" data-col="2">Feature &amp;<br>index pipeline</div>
+              <div class="af-node" id="af-train"    data-role="pipeline" data-from="1" data-focus="1" data-lane="offline" data-col="4">Training<br>(ranker)</div>
+              <div class="af-node" id="af-registry" data-role="store"    data-from="1" data-focus="4" data-lane="offline" data-col="5">Model<br>registry</div>
+
+              <!-- FEATURE / INDEX STORE bridge — explicit position (no data-lane → not on the grid) -->
+              <div class="af-node" id="af-fs" data-role="store" data-from="2" data-focus="2" style="left:43%;top:50%">Feature /<br>Index Store</div>
+
+              <!-- ONLINE nodes — auto-placed on the grid -->
+              <div class="af-node" id="af-req"    data-role="external" data-from="3" data-lane="online" data-col="1">Query</div>
+              <div class="af-node" id="af-retr"   data-role="serving"  data-from="3" data-lane="online" data-col="2">Retrieval</div>
+              <div class="af-node" id="af-rank"   data-role="serving"  data-from="3" data-focus="3" data-lane="online" data-col="3">Ranking</div>
+              <div class="af-node" id="af-rerank" data-role="serving"  data-from="3" data-lane="online" data-col="4">Re-rank</div>
+              <div class="af-node" id="af-resp"   data-role="external" data-from="3" data-focus="5" data-lane="online" data-col="5">Results</div>
+
+              <div class="af-focus"></div>
+            </div>
+
+            <div class="af-panel">
+              <div class="af-note is-current" data-step="0" data-label="overview">
+                <div class="af-note-head">Two worlds</div>
+                <p>A production search system = <strong>offline</strong> (index &amp; train) + <strong>online</strong> (serve), linked by a Feature / Index Store and a feedback loop. Press <kbd>→</kbd>.</p>
+              </div>
+              <div class="af-note" data-step="1" data-label="offline">
+                <div class="af-note-head">Offline (batch)</div>
+                <p>Query &amp; click logs → feature &amp; index pipeline → train the ranker → model registry. Runs on a schedule, off the request path.</p>
+              </div>
+              <div class="af-note" data-step="2" data-label="store">
+                <div class="af-note-head">Feature / Index Store</div>
+                <p>The bridge: offline <strong>writes</strong> the index and features in batch; online <strong>reads</strong> them at low latency. One source of truth kills train/serving skew.</p>
+              </div>
+              <div class="af-note" data-step="3" data-label="online">
+                <div class="af-note-head">Online (per request)</div>
+                <p>The cascade: retrieval → ranking → re-rank, narrowing <strong>~1000 → 100 → 10</strong>; features and the index are read from the store in real time.</p>
+              </div>
+              <div class="af-note" data-step="4" data-label="deploy">
+                <div class="af-note-head">Model deploy</div>
+                <p>The trained ranker rolls out from the registry into serving: shadow → canary → full.</p>
+              </div>
+              <div class="af-note" data-step="5" data-label="flywheel">
+                <div class="af-note-head">The data flywheel</div>
+                <p>Clicks and served lists are logged <em>asynchronously</em> → flow back into the logs → next training cycle. The system improves itself.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">←</button>
+            <span class="step-counter">0/5</span>
+            <button data-step-act="next" aria-label="Next step">→</button>
+          </div>
+
+          <aside class="slide-notes">The flagship slide — the whole course on one canvas. This is the search version of the production blueprint: two swim-lanes (offline indexing/training vs online serving), the Feature/Index Store as the bridge (the fix for the train/serve skew we just defined), the retrieval→rank→re-rank cascade in the online lane, model deploy from the registry, and the async feedback loop (clicks logged back = the data flywheel from two slides ago). Step through 0→5. Every box becomes a future lecture; the back-edges are routed automatically around the perimeter.</aside>
+        </section>
+
+        <!-- ============================================
+             48 · SEQUENCE · online request path + latency budget
+             ============================================ -->
+        <section class="slide" data-type="sequence" data-max-step="5" data-current-step="0" data-budget="200" data-screen-label="49 Sequence · Latency">
+          <div class="slide-header">
+            <h2>Online request path &amp; latency budget</h2>
+            <span class="slide-kicker">Serving · SLA \(p_{99} &lt; 200\)ms</span>
+          </div>
+
+          <div class="seq-stage">
+            <div class="seq-canvas">
+              <div class="seq-actors">
+                <div class="seq-actor" data-actor="client"><span class="seq-actor-chip">Client</span></div>
+                <div class="seq-actor" data-actor="api"><span class="seq-actor-chip">API</span></div>
+                <div class="seq-actor" data-actor="retr"><span class="seq-actor-chip">Retriever</span></div>
+                <div class="seq-actor" data-actor="rank"><span class="seq-actor-chip">Ranker</span></div>
+                <div class="seq-actor" data-actor="log"><span class="seq-actor-chip">Cache / log</span></div>
+              </div>
+              <svg class="seq-lines"></svg>
+              <div class="seq-msgs">
+                <div class="seq-msg" data-step="1" data-from="client" data-to="api" data-lat="3">
+                  <span class="seq-msg-label">GET /search?q=…</span><span class="seq-lat">+3ms</span>
+                </div>
+                <div class="seq-msg" data-step="2" data-from="api" data-to="retr" data-lat="35">
+                  <span class="seq-msg-label">retrieve ~1000 candidates</span><span class="seq-lat">+35ms</span>
+                </div>
+                <div class="seq-msg" data-step="3" data-from="api" data-to="rank" data-lat="90">
+                  <span class="seq-msg-label">rank ~100 candidates</span><span class="seq-lat">+90ms</span>
+                </div>
+                <div class="seq-msg" data-step="4" data-from="api" data-to="log" data-lat="2" data-kind="async">
+                  <span class="seq-msg-label">cache + log (async)</span><span class="seq-lat">+2ms</span>
+                </div>
+                <div class="seq-msg" data-step="5" data-from="api" data-to="client" data-lat="4">
+                  <span class="seq-msg-label">top-K results</span><span class="seq-lat">+4ms</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="seq-budget">
+              <div class="seq-budget-head">latency budget</div>
+              <div class="seq-budget-row" data-step="1"><span>request</span><span class="seq-b-lat">3ms</span></div>
+              <div class="seq-budget-row" data-step="2"><span>retrieval</span><span class="seq-b-lat">35ms</span></div>
+              <div class="seq-budget-row" data-step="3"><span>ranking</span><span class="seq-b-lat">90ms</span></div>
+              <div class="seq-budget-row" data-step="4"><span>cache/log</span><span class="seq-b-lat">2ms</span></div>
+              <div class="seq-budget-row" data-step="5"><span>response</span><span class="seq-b-lat">4ms</span></div>
+              <div class="seq-budget-total"><span>total</span><span class="seq-b-lat" data-seq-total>0</span></div>
+              <p class="small muted mt-3">Alert on \(p_{99}\), not \(p_{50}\) — the tail is what users feel. YouTube ranking serves in <em>tens of ms</em>. Ranking dominates: exactly why the cascade calls the heavy model on ~100 survivors, not the corpus.</p>
+            </div>
+          </div>
+
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">←</button>
+            <span class="step-counter">0/5</span>
+            <button data-step-act="next" aria-label="Next step">→</button>
+          </div>
+
+          <aside class="slide-notes">Step through the request (←/→); the running budget on the right sums each hop and turns red if it crosses the 200ms SLA. Total here is 134ms — comfortably under. Latency is a design budget you spend, and the ranker is the expensive line item — which is precisely why retrieval narrows the field first. Critical detail: monitor \(p_{99}\), not \(p_{50}\) — and if \(p_{99}\) rises while \(p_{50}\) falls, your request queue is backing up.</aside>
+        </section>
+
+        <!-- ============================================
+             49 · TABLE · cascade as a systems decision
+             ============================================ -->
+        <section class="slide" data-type="table" data-screen-label="50 Table · Cascade systems">
+          <div class="slide-header">
+            <h2>The cascade is a systems knob</h2>
+            <span class="slide-kicker">Latency &amp; cost vs relevance gain</span>
+          </div>
+
+          <table class="cmp-table">
+            <thead>
+              <tr>
+                <th>Stage choice</th>
+                <th>Added latency</th>
+                <th>Relevance gain</th>
+                <th>Note</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>ANN retrieval (millions → ~100)</td>
+                <td class="cell-good">~10ms</td>
+                <td class="cell-meh">sets the recall ceiling</td>
+                <td>~99.99% reduction</td>
+              </tr>
+              <tr>
+                <td>Light re-ranker (MiniLM, 100→20)</td>
+                <td class="cell-meh">~60ms</td>
+                <td class="cell-good">+5–15 \(\text{nDCG}@10\)</td>
+                <td>distilled: 70–90% of gain at 30–50% cost</td>
+              </tr>
+              <tr>
+                <td>Heavy re-ranker (top-20→5)</td>
+                <td class="cell-bad">~+200ms</td>
+                <td class="cell-good">finalises the order</td>
+                <td>only on a tiny shortlist</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p class="small muted center mt-3">
+            Candidate-set size and per-stage model complexity are the two dials. Halving the candidate set (100 → 50) roughly halves cost for a tiny relevance loss — that is the trade you tune.
+          </p>
+
+          <aside class="slide-notes">This reframes the Part 02 cascade as an explicit engineering decision rather than an IR abstraction. The numbers matter: a distilled 60–120M-parameter re-ranker recovers most of the relevance gain at a fraction of the cost — usually the right default. The two tunable dials are candidate-set size and model complexity per stage; you spend your latency budget where it buys the most \(\text{nDCG}\) per millisecond.</aside>
+        </section>
+
+        <!-- ============================================
+             50 · TWO-COL · case study before/after ledger
+             ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="51 Two-column · Case study">
+          <div class="slide-header">
+            <h2>Case study: measured pain → engineered fix</h2>
+            <span class="slide-kicker">371M docs · 2 languages · 1s SLA</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>Before (naive)</h3>
+              <p>Embed all <strong>371M</strong> docs with a multilingual model, float64, dimension <strong>784</strong>.</p>
+              <div class="callout" data-kind="warn">
+                <div class="callout-icon">!</div>
+                <div class="callout-body">
+                  <strong>Resource ledger</strong>
+                  <p>Vector store shape \((371\text{M}, 784)\) — huge memory; no GPU available for inference; brute-force similarity blows the <strong>1s SLA</strong>.</p>
+                </div>
+              </div>
+            </div>
+            <div class="twocol-col">
+              <h3>After (engineered)</h3>
+              <p>Cascade + ANN index, shrink embeddings to dimension <strong>24</strong>, cache hot queries.</p>
+              <div class="callout" data-kind="info">
+                <div class="callout-icon">i</div>
+                <div class="callout-body">
+                  <strong>Resource ledger</strong>
+                  <p>Vector store shape \((371\text{M}, 24)\) — memory <em>(no problem)</em>; ANN avoids brute force <em>(no problem)</em>; top-100 in well under 1s <em>(no problem)</em>.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="small muted center mt-3">
+            Same model quality, a tiny fraction of the resources. Every technique — cascade, smaller embeddings, caching — entered as the <em>fix to a measured pain point</em>, not as a default.
+          </p>
+
+          <aside class="slide-notes">Ported from the old Lecture 1 PCA arc: a real task — 371M short multilingual strings, top-100 matches with a score, 1-second SLA. The naive ledger (784-dim float64 over 371M rows, no GPU) is unservable. The engineered ledger shrinks dimension 784 → 24 (e.g. via PCA / a smaller model), adds an ANN index and a cache, and every pain annotation flips to "(no problem)". The pedagogical pattern to reuse all term: introduce each technique as the answer to a measured bottleneck, never as a hammer looking for a nail.</aside>
+        </section>
+
+        <!-- ============================================
+             51 · DIVIDER · Part 04
+             ============================================ -->
+        <section class="slide" data-type="divider" data-screen-label="52 Divider · Part 04">
+          <div class="divider-content">
+            <div class="divider-num">Part 04</div>
+            <h1>Putting it<br />together</h1>
+            <p class="divider-sub">Where the most expensive bugs hide, how today maps onto the rest of the course, and the one idea to keep.</p>
+          </div>
+          <aside class="slide-notes">Synthesis. Tie the IR half (the problem &amp; its metrics) to the systems half (the lifecycle that keeps it alive), and project both onto the course schedule. Short and punchy — we are landing the plane.</aside>
+        </section>
+
+        <!-- ============================================
+             52 · MISCONCEPTION · framing is the expensive bug
+             ============================================ -->
+        <section class="slide" data-type="misconception" data-screen-label="53 Misconception · Framing bug">
+          <div class="slide-header">
+            <h2>The most expensive bug</h2>
+            <span class="slide-kicker">Bust the myth</span>
+          </div>
+          <div class="misc-card">
+            <div class="misc-label">Where we think the risk is</div>
+            <p class="misc-statement">
+              "The hard, risky part is the modeling — pick the wrong architecture and everything fails."
+            </p>
+            <button class="misc-reveal-btn" type="button">Reveal truth</button>
+            <div class="misc-truth">
+              The most expensive bug is in <strong>problem framing</strong>, not modeling. If the objective is misaligned with the goal, a <em>technically perfect</em> model makes things <em>worse</em> — a flawless CTR-maximiser that quietly tanks retention. You can always swap the model; you rarely notice you optimised the wrong thing until the business metric has already moved against you.
+              <p class="misc-anchor">
+                <strong>Worked case: YouTube ranker objective (Covington, Adams &amp; Sargin, RecSys 2016 §3 — "Modeling Expected Watch Time").</strong>
+                If you train the ranker on \( P(\text{click}\mid\text{shown}) \), the model learns the proxy: it favours thumbnail-bait and short clickbait — CTR up, satisfaction down. The paper instead trains a <strong>weighted logistic</strong>: positives are weighted by observed watch-time, negatives by 1. The odds \( e^{Wx+b} \) then approximate \( E[\text{watch&nbsp;time}\mid\text{shown}] \) — a different quantity than click probability. Same two-tower architecture, same logged data &nbsp;&rArr;&nbsp; the ranker now prefers videos people <em>finish</em>, not videos they <em>start</em>. Architecture didn't change; the framing of "good" did.
+              </p>
+            </div>
+          </div>
+          <aside class="slide-notes">The closing systems lesson and the reason step 01 (framing) leads the framework. A perfect model on the wrong objective is not neutral — it is actively harmful, and it fails silently because the proxy metric looks great. This is why we spend a whole framework step on framing and pair every proxy with a guardrail. It also rhymes with Goodhart: the danger is not a bad model, it is a well-optimised wrong target. Anchored to Covington, Adams &amp; Sargin 2016 "Deep Neural Networks for YouTube Recommendations" (RecSys'16) — they explicitly describe the click→watch-time reframe as a larger product win than any subsequent architecture change.</aside>
+        </section>
+
+        <!-- ============================================
+             53 · TWO-COL · course map
+             ============================================ -->
+        <section class="slide" data-type="two-col" data-screen-label="54 Two-column · Course map">
+          <div class="slide-header">
+            <h2>How today maps onto the course</h2>
+            <span class="slide-kicker">Each week fills a box on the spine</span>
+          </div>
+          <div class="twocol">
+            <div class="twocol-col">
+              <h3>The IR pipeline, week by week</h3>
+              <p><strong>Classical IR:</strong> inverted index, BM25 — <em>Acquire</em>.</p>
+              <p><strong>Embeddings:</strong> tokenisation, word2vec, similarity — <em>Represent</em>.</p>
+              <p><strong>Neural retrieval:</strong> dense / two-tower — <em>Measure similarity</em>.</p>
+              <p><strong>ANN &amp; vector DBs:</strong> serving at scale — <em>Rank fast</em>.</p>
+              <p><strong>RAG:</strong> grounding generation — <em>the payoff</em>.</p>
+            </div>
+            <div class="twocol-col">
+              <h3>System design wraps all of it</h3>
+              <p>Every technique above lands as a box in the production blueprint, and every box carries the same lifecycle: frame → data → model → evaluate → serve → monitor.</p>
+              <div class="callout" data-kind="info">
+                <div class="callout-icon">i</div>
+                <div class="callout-body">
+                  <strong>The two views are one.</strong>
+                  <p>IR tells you <em>what</em> to build and how to measure it; system design keeps it alive in production.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <aside class="slide-notes">Project the whole term onto the spine from Slide 4. Each week fills one box: classical IR (Acquire), embeddings (Represent), neural retrieval (Measure similarity), ANN/vector DBs (Rank at scale), RAG (the grounding payoff that fixes the "8 legs" hallucination). The system-design lifecycle is the wrapper around every one of them. Use this as the roadmap students return to.</aside>
+        </section>
+
+        <!-- ============================================
+             54 · QUOTE · takeaway
+             ============================================ -->
+        <section class="slide" data-type="quote" data-screen-label="55 Quote · Takeaway">
+          <div>
+            <div class="quote-mark">"</div>
+            <blockquote>
+              IR gives you the problem and the metrics.<br />Deep learning fills the pipeline.<br />ML system design keeps it alive.
+            </blockquote>
+            <div class="quote-attr">the one idea to keep from Lecture 01</div>
+          </div>
+          <aside class="slide-notes">The single takeaway. Three sentences, three halves of the field. If a student forgets everything else, this triad is the scaffold they can rebuild the rest on. Then straight into references and Q&amp;A.</aside>
+        </section>
+
+        <!-- ============================================
+             55 · REFERENCES
+             ============================================ -->
+        <section class="slide" data-type="refs" data-screen-label="56 References">
+          <div class="slide-header">
+            <h2>References &amp; further reading</h2>
+            <span class="slide-kicker">Read next</span>
+          </div>
+
+          <style>.refs-2col{display:block;columns:2;column-gap:48px;font-size:26px}.refs-2col li{break-inside:avoid;-webkit-column-break-inside:avoid;padding:6px 0}.refs-2col .ref-venue,.refs-2col .ref-year{font-size:22px}.refs-2col li::before{font-size:22px}</style>
+          <ol class="ref-list refs-2col">
+            <li>
+              <span class="ref-body">
+                <span class="ref-authors">Manning, C., Raghavan, P. &amp; Schütze, H.</span> ·
+                <span class="ref-title"><a href="https://nlp.stanford.edu/IR-book/" target="_blank" rel="noopener">Introduction to Information Retrieval</a></span> ·
+                <span class="ref-venue">Cambridge — ch. 1, 6, 8</span>
+              </span>
+              <span class="ref-year">2008</span>
+            </li>
+            <li>
+              <span class="ref-body">
+                <span class="ref-authors">Croft, Metzler &amp; Strohman</span> ·
+                <span class="ref-title">Search Engines: Information Retrieval in Practice</span> ·
+                <span class="ref-venue">Pearson</span>
+              </span>
+              <span class="ref-year">2010</span>
+            </li>
+            <li>
+              <span class="ref-body">
+                <span class="ref-authors">Broder, A.</span> ·
+                <span class="ref-title"><a href="https://doi.org/10.1145/792550.792552" target="_blank" rel="noopener">A Taxonomy of Web Search</a></span> ·
+                <span class="ref-venue">SIGIR Forum</span>
+              </span>
+              <span class="ref-year">2002</span>
+            </li>
+            <li>
+              <span class="ref-body">
+                <span class="ref-authors">Furnas, G. et al.</span> ·
+                <span class="ref-title"><a href="https://doi.org/10.1145/32206.32212" target="_blank" rel="noopener">The Vocabulary Problem in Human-System Communication</a></span> ·
+                <span class="ref-venue">CACM</span>
+              </span>
+              <span class="ref-year">1987</span>
+            </li>
+            <li>
+              <span class="ref-body">
+                <span class="ref-authors">Covington, Adams &amp; Sargin</span> ·
+                <span class="ref-title"><a href="https://doi.org/10.1145/2959100.2959190" target="_blank" rel="noopener">Deep Neural Networks for YouTube Recommendations</a></span> ·
+                <span class="ref-venue">RecSys</span>
+              </span>
+              <span class="ref-year">2016</span>
+            </li>
+            <li>
+              <span class="ref-body">
+                <span class="ref-authors">Nogueira, R. &amp; Cho, K.</span> ·
+                <span class="ref-title">Passage Re-ranking with BERT</span> ·
+                <span class="ref-venue">arXiv:1901.04085</span>
+              </span>
+              <span class="ref-year">2019</span>
+            </li>
+            <li>
+              <span class="ref-body">
+                <span class="ref-authors">Karpukhin, V. et al.</span> ·
+                <span class="ref-title"><a href="https://arxiv.org/abs/2004.04906" target="_blank" rel="noopener">Dense Passage Retrieval for Open-Domain QA (DPR)</a></span> ·
+                <span class="ref-venue">EMNLP</span>
+              </span>
+              <span class="ref-year">2020</span>
+            </li>
+            <li>
+              <span class="ref-body">
+                <span class="ref-authors">Sculley, D. et al.</span> ·
+                <span class="ref-title"><a href="https://papers.nips.cc/paper/2015/hash/86df7dcfd896fcaf2674f757a2463eba-Abstract.html" target="_blank" rel="noopener">Hidden Technical Debt in Machine Learning Systems</a></span> ·
+                <span class="ref-venue">NeurIPS</span>
+              </span>
+              <span class="ref-year">2015</span>
+            </li>
+            <li>
+              <span class="ref-body">
+                <span class="ref-authors">Huyen, C.</span> ·
+                <span class="ref-title">Designing Machine Learning Systems</span> ·
+                <span class="ref-venue">O'Reilly</span>
+              </span>
+              <span class="ref-year">2022</span>
+            </li>
+            <li>
+              <span class="ref-body">
+                <span class="ref-authors">Zinkevich, M.</span> ·
+                <span class="ref-title">Rules of Machine Learning (Google) — Rules #1, #4, #29, #32, #37</span> ·
+                <span class="ref-venue">Google Developers</span>
+              </span>
+              <span class="ref-year">2017</span>
+            </li>
+          </ol>
+
+          <aside class="slide-notes">Manning et al. is the IR bible — chapters 1, 6, 8 first. Broder and Furnas are the two classics behind the "why search is hard" half. Sculley, Huyen and Google's Rules of ML are the spine of the system-design half. Covington, Nogueira &amp; Cho, and DPR are the bridge into neural ranking and dense retrieval later in the term.</aside>
+        </section>
+
+        <!-- ============================================
+             56 · FINAL / Q&A
+             ============================================ -->
+        <section class="slide" data-type="final" data-screen-label="57 Final">
+          <div class="final-body">
+            <h1>Questions?</h1>
+            <p class="final-sub">
+              Slides, homework and recording — via the QR code or the link below.
+            </p>
+
+            <div class="contact-grid">
+              <div class="contact-item">
+                <div class="contact-label">Email</div>
+                <div class="contact-value">a.nasibullin@innopolis.university</div>
+              </div>
+              <div class="contact-item">
+                <div class="contact-label">Office hours</div>
+                <div class="contact-value">Wed 16:00–17:40 (before class)</div>
+              </div>
+              <div class="contact-item">
+                <div class="contact-label">GitHub</div>
+                <div class="contact-value">github.com/levshaazz/deep-learning-for-search-summer-2026</div>
+              </div>
+            </div>
+
+            <div class="qr-block">
+              <div class="qr-canvas" data-qr="https://levshaazz.github.io/deep-learning-for-search-summer-2026/"></div>
+              <div class="qr-caption">
+                Full lecture materials
+                <span class="qr-url">levshaazz.github.io/deep-learning-for-search-summer-2026</span>
+              </div>
+            </div>
+          </div>
+
+          <img src="assets/img/L1/L1-56-found.png?v=1" alt="" aria-hidden="true"
+               class="cameo bl" style="width:300px; border-radius:14px;" />
+
+          <aside class="slide-notes">Q&amp;A. Serega's sign-off — <em>The Lost Record, found</em>: we located the needle in the cosmos <strong>and</strong> sketched the machine that keeps finding it after you have gone to sleep. Replace the TODO contact fields before delivery. The QR points at the course materials hub (GitHub Pages). Tease Lecture 02: the inverted index and BM25 — the first concrete box in today's blueprint, and the start of the "Acquire" leg of the spine.</aside>
+        </section>
+
+      </div><!-- /.slides -->
+    </div><!-- /.stage -->
+  </div><!-- /.deck -->
+
+  <!-- JS -->
+  <script src="js/deck.js"></script>
+  <script src="js/tools.js"></script>
+  <script src="js/pen.js"></script>
+  <script src="js/notes.js"></script>
+  <script src="js/handout.js"></script>
+  <script src="js/presenter.js"></script>
+  <script src="js/tweaks.js"></script>
+  <script src="js/demos.js"></script>
+  <script src="js/e2e.js"></script>
+  <script src="js/lab.js"></script>
+  <script src="js/archflow.js"></script>
+  <script src="js/sequence.js"></script>
+  <script src="js/budget.js"></script>
+  <script src="js/preflight.js"></script>
+  <!-- deck-mounted spine widget (course-map): classic offline bundle + the deck-adapter (after deck.js). BUILD OUTPUT. -->
+  <script src="js/course-map.classic.js"></script>
+  <script src="js/deck-adapter.js"></script>
+
+</body>
+</html>
