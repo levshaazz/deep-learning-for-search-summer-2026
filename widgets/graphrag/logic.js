@@ -88,12 +88,20 @@ export const mountGraphrag = defineWidget({
       el('rect', { x, y: docTop, width: docW, height: docH, rx: 6, class: 'gr-doc-box' }, g);
       el('text', { x: x + 8, y: docTop + 16, class: 'gr-doc-id' }, g).textContent = String(doc.id || '').toUpperCase();
       // wrap the doc text onto two short lines so nothing clips outside the card.
-      const words = String(doc.text || '').split(/\s+/);
+      // greedy: fill line0 until the next word would exceed cap, then spill onto line1;
+      // if line1 also overflows, truncate it with an ellipsis (don't silently drop words).
+      const words = String(doc.text || '').split(/\s+/).filter(Boolean);
       const lines = ['', ''];
-      const cap = 26;
-      for (const w of words) {
-        const li = (lines[0].length + w.length + 1 <= cap || lines[1].length) ? (lines[0].length + w.length + 1 <= cap ? 0 : 1) : 0;
-        if (lines[li].length + w.length + 1 <= cap + 6) lines[li] += (lines[li] ? ' ' : '') + w;
+      const cap = 22;
+      let li = 0;
+      for (let wi = 0; wi < words.length; wi++) {
+        const w = words[wi];
+        const cand = lines[li] ? lines[li] + ' ' + w : w;
+        if (cand.length <= cap) { lines[li] = cand; continue; }
+        if (li === 0) { li = 1; lines[1] = w.length <= cap ? w : w.slice(0, cap - 1) + '…'; continue; }
+        // line1 is full and more words remain → mark truncation and stop.
+        lines[1] = lines[1].length <= cap - 1 ? lines[1] + '…' : lines[1].slice(0, cap - 1) + '…';
+        break;
       }
       el('text', { x: x + 8, y: docTop + 32, class: 'gr-doc-txt' }, g).textContent = lines[0];
       el('text', { x: x + 8, y: docTop + 46, class: 'gr-doc-txt' }, g).textContent = lines[1];
@@ -123,7 +131,9 @@ export const mountGraphrag = defineWidget({
       const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
       const ex = b.x - a.x, ey = b.y - a.y;
       const len = Math.max(1e-6, Math.hypot(ex, ey));
-      const off = 9;
+      // push the label farther off SHORT edges so it clears the node band instead of being
+      // overrun by an adjacent box (e.g. the short Dana→MIT 'studied at' label tucking under MIT).
+      const off = len < 90 ? 9 + (90 - len) * 0.6 : 9;
       const lx = mx - (ey / len) * off, ly = my + (ex / len) * off;
       el('text', { x: lx, y: ly + 3, class: 'gr-edge-lbl', 'text-anchor': 'middle' }, g)
         .textContent = String(rel || '').replace(/_/g, ' ');

@@ -84,10 +84,20 @@
       });
     }
 
+    // Opt-in (data-seq-skip-async): async fire-and-forget hops (data-kind="async")
+    // are off the user-facing critical path, so they are kept visible but NOT
+    // added to the latency total that gates the p99 SLA. Off by default so other
+    // decks whose stated total counts every hop are unaffected.
+    const skipAsync = slide.hasAttribute('data-seq-skip-async');
+
     function updateTotal() {
       const cur = parseInt(slide.dataset.currentStep || '0', 10) || 0;
       let sum = 0;
-      msgs.forEach(m => { if ((parseInt(m.dataset.step, 10) || 0) <= cur) sum += parseFloat(m.dataset.lat || '0'); });
+      msgs.forEach(m => {
+        if ((parseInt(m.dataset.step, 10) || 0) > cur) return;
+        if (skipAsync && m.dataset.kind === 'async') return;
+        sum += parseFloat(m.dataset.lat || '0');
+      });
       if (totalEl) totalEl.textContent = (Math.round(sum * 10) / 10) + 'ms';
       if (totalRow && budget) totalRow.classList.toggle('is-over', sum > budget);
     }

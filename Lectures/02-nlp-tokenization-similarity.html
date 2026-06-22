@@ -610,10 +610,10 @@
             <span class="slide-kicker">vocab size ↔ sequence length ↔ OOV</span>
           </div>
           <div class="viz-frame">
-            <svg viewBox="0 0 1600 560" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">
-              <polygon points="800,70 200,500 1400,500" fill="none" stroke="var(--rule)" stroke-width="3"/>
+            <svg viewBox="0 0 1600 600" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">
+              <polygon points="800,90 200,500 1400,500" fill="none" stroke="var(--rule)" stroke-width="3"/>
               <!-- vertices -->
-              <circle cx="800" cy="70" r="14" fill="var(--accent)"/>
+              <circle cx="800" cy="90" r="14" fill="var(--accent)"/>
               <text x="800" y="50" text-anchor="middle" font-family="var(--font-sans)" font-size="32" fill="var(--ink)">Character / byte</text>
               <circle cx="200" cy="500" r="14" fill="var(--c-red)"/>
               <text x="200" y="540" text-anchor="middle" font-family="var(--font-sans)" font-size="32" fill="var(--ink)">Word</text>
@@ -1014,10 +1014,10 @@
               <g font-family="var(--font-mono)" font-size="30">
                 <rect x="640" y="214" width="180" height="74" rx="8" fill="var(--c-red)" opacity="0.14" stroke="var(--c-red)"/>
                 <text x="730" y="260" text-anchor="middle" fill="var(--c-red)">[UNK]</text>
-                <text x="730" y="322" font-family="var(--font-sans)" font-size="22" text-anchor="middle" fill="var(--ink-3)">"café" — é never seen</text>
+                <text x="730" y="322" font-family="var(--font-sans)" font-size="22" text-anchor="middle" fill="var(--ink-3)">"café" — a, é never seen</text>
               </g>
               <text x="80" y="392" font-family="var(--font-sans)" font-size="26" fill="var(--ink-2)">Unseen "quicker" reuses the learned piece <tspan font-family="var(--font-mono)" fill="var(--accent-ink)">quick</tspan>, then falls back to single characters <tspan font-family="var(--font-mono)" fill="var(--accent-ink)">##e ##r</tspan> — not [UNK].</text>
-              <text x="80" y="438" font-family="var(--font-sans)" font-size="24" fill="var(--ink-3)">[UNK] appears only when a character is outside the base alphabet (the é in "café"), never merely because a whole word is unseen.</text>
+              <text x="80" y="438" font-family="var(--font-sans)" font-size="24" fill="var(--ink-3)">[UNK] appears only when a character is outside the base alphabet (the a and é in "café"), never merely because a whole word is unseen.</text>
             </svg>
           </div>
           <p class="viz-caption">Greedy longest-match reuses pieces from training, then falls back to single characters (<code>quicker</code> → <code>quick ##e ##r</code>); a word collapses to <span class="term">[UNK]</span> only when one of its characters was never in the training alphabet (<code>café</code>).</p>
@@ -1333,7 +1333,7 @@ tok.encode(user_text, add_special_tokens=False)</code></pre>
                 <button class="misc-reveal-btn" type="button">Reveal truth</button>
                 <div class="misc-truth">Some tokens are <strong>glitch tokens</strong> — e.g. <code>SolidGoldMagikarp</code> (a scraped Reddit username). It earned a vocabulary slot because it appeared while training the <em>tokenizer</em>, but was rare or absent when training the <em>model</em>, so its embedding stayed essentially <strong>untrained</strong>. Prompting it produces bizarre behaviour: the model repeats "distribute", refuses, or hallucinates. Lesson: the tokenizer's vocabulary and the model's training data must share the same distribution.
                   <p class="misc-anchor">
-                    <strong>Concrete anchor.</strong> GPT-2 BPE token id <code>28666</code>. Rumbelow &amp; Watkins (LessWrong, Feb 2023) documented that asking GPT-3.5 to repeat the string would return <code>"distribute"</code> or other nonsense; the same vocabulary entry is inert in many later models because the username vanished from filtered training data.
+                    <strong>Concrete anchor.</strong> GPT-2 BPE token id <code>43453</code> (the leading-space variant <code>&nbsp;SolidGoldMagikarp</code>). Rumbelow &amp; Watkins (LessWrong, Feb 2023) documented that asking GPT-3.5 to repeat the string would return <code>"distribute"</code> or other nonsense; the same vocabulary entry is inert in many later models because the username vanished from filtered training data.
                   </p>
                 </div>
               </div>
@@ -1413,7 +1413,7 @@ tok.encode(user_text, add_special_tokens=False)</code></pre>
               <div class="ha-content"><strong>A</strong>. The atom of computation is the <em>token</em>, not the character — "strawberry" is split into <code>str</code>+<code>aw</code>+<code>berry</code> under cl100k, so the model never inspects letters at run time; counting R's requires memorised spellings for every subword. B is false (byte-level fallback guarantees coverage, so an OOV "strawberry" can't happen); C is a different (real) bug.</div>
             </details>
           </div>
-          <aside class="slide-notes">Reinforces slide 42. The trap is C — students invoke OOV, but byte-level fallback means "strawberry" is always representable; the issue is granularity, not coverage.</aside>
+          <aside class="slide-notes">Reinforces slide 42. The trap is B — students invoke OOV, but byte-level fallback means "strawberry" is always representable; the issue is granularity, not coverage.</aside>
         </section>
 
         <!-- ============================================ 45 · CODE · tools & live demos ============================================ -->
@@ -1499,7 +1499,7 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
             <span class="ng-cell is-dim">0.08</span>
           </div>
           <div class="numgrid-zoom">Concretely, a vector <em>is</em> a row of numbers — here a <strong>real</strong> 8-dim embedding of a Newsgroups post (TF-IDF → LSA, L2-normalized so <code>‖v‖ = 1</code>). Production models use <code>d</code> = 384–4096.</div>
-          <aside class="slide-notes">Keep the scope tight: we are not learning embeddings today. We take the vector geometry as given and study the comparison operators that turn it into a ranking. The "manufacture a geometry" promise from slide 8 is now cashed in. The 8 numbers are real and reproducible — <code>_research/data/embedding_demo.py</code> (sklearn TruncatedSVD on 20 Newsgroups, L2-normalized); the same vector below is what every similarity measure on the next slides operates on.</aside>
+          <aside class="slide-notes">Keep the scope tight: we are not learning embeddings today. We take the vector geometry as given and study the comparison operators that turn it into a ranking. The "manufacture a geometry" promise from slide 9 is now cashed in. The 8 numbers are real and reproducible — <code>_research/data/embedding_demo.py</code> (sklearn TruncatedSVD on 20 Newsgroups, L2-normalized); the same vector below is what every similarity measure on the next slides operates on.</aside>
         </section>
 
         <!-- ============================================ 50 · VIZ · similarity decision tree ============================================ -->
@@ -1870,7 +1870,7 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
                 Vectors \( u=(1,1) \) and \( v=(10,10) \) point the <em>same direction</em>.
                 <br>Cosine: \( u\!\cdot\!v / (\lVert u\rVert\lVert v\rVert) = 20 / (\sqrt{2}\cdot\sqrt{200}) = 20/20 = \mathbf{1.0} \) — identical.
                 <br>Euclidean: \( \lVert u-v\rVert = \sqrt{(1\!-\!10)^2 + (1\!-\!10)^2} = \sqrt{162} \approx \mathbf{12.73} \) — far apart.
-                <br>Same two vectors, ranked the same under cosine, ranked very differently under Euclidean. Steck et&nbsp;al. (2024) push the point further: under regularized MF a diagonal gauge leaves dot-product predictions invariant while making cosine arbitrary — so "cosine of learned embeddings" can be ill-defined unless the gauge is fixed (L2-normalize, or train against cosine, or whiten).
+                <br>Same two vectors, ranked the same under cosine, ranked very differently under Euclidean.
               </p>
             </div>
           </div>
@@ -1954,11 +1954,11 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
             <li><span class="ref-body"><span class="ref-authors">Sennrich, R., Haddow, B. &amp; Birch, A.</span> · <span class="ref-title"><a href="https://arxiv.org/abs/1508.07909" target="_blank" rel="noopener">Neural MT of Rare Words with Subword Units (BPE)</a></span> · <span class="ref-venue">ACL · arXiv:1508.07909</span></span><span class="ref-year">2016</span></li>
             <li><span class="ref-body"><span class="ref-authors">Kudo, T.</span> · <span class="ref-title"><a href="https://arxiv.org/abs/1804.10959" target="_blank" rel="noopener">Subword Regularization (Unigram LM)</a></span> · <span class="ref-venue">ACL · arXiv:1804.10959</span></span><span class="ref-year">2018</span></li>
             <li><span class="ref-body"><span class="ref-authors">Karpathy, A.</span> · <span class="ref-title">Let's build the GPT Tokenizer / minBPE</span> · <span class="ref-venue">github.com/karpathy/minbpe</span></span><span class="ref-year">2024</span></li>
-            <li><span class="ref-body"><span class="ref-authors">Steck, H., Ekanadham, C. &amp; Kallus, N.</span> · <span class="ref-title">Is Cosine-Similarity Really About Similarity?</span> · <span class="ref-venue">arXiv:2403.05440</span></span><span class="ref-year">2024</span></li>
+            <li><span class="ref-body"><span class="ref-authors">Steck, H., Ekanadham, C. &amp; Kallus, N.</span> · <span class="ref-title">Is Cosine-Similarity of Embeddings Really About Similarity?</span> · <span class="ref-venue">arXiv:2403.05440</span></span><span class="ref-year">2024</span></li>
             <li><span class="ref-body"><span class="ref-authors">Aggarwal, Hinneburg &amp; Keim</span> · <span class="ref-title"><a href="https://doi.org/10.1007/3-540-44503-X_27" target="_blank" rel="noopener">On the Surprising Behavior of Distance Metrics in High-Dim. Space</a></span> · <span class="ref-venue">ICDT</span></span><span class="ref-year">2001</span></li>
             <li><span class="ref-body"><span class="ref-authors">Ethayarajh, K.</span> · <span class="ref-title"><a href="https://arxiv.org/abs/1909.00512" target="_blank" rel="noopener">How Contextual are Contextualized Word Representations? (anisotropy)</a></span> · <span class="ref-venue">EMNLP</span></span><span class="ref-year">2019</span></li>
             <li><span class="ref-body"><span class="ref-authors">Manning, Raghavan &amp; Schütze</span> · <span class="ref-title"><a href="https://nlp.stanford.edu/IR-book/" target="_blank" rel="noopener">Introduction to Information Retrieval</a></span> · <span class="ref-venue">CUP · ch. 6</span></span><span class="ref-year">2008</span></li>
-            <li><span class="ref-body"><span class="ref-authors">"The Token Tax"</span> · <span class="ref-title">Multilingual Fertility Bias</span> · <span class="ref-venue">arXiv:2509.05486</span></span><span class="ref-year">2025</span></li>
+            <li><span class="ref-body"><span class="ref-authors">Lundin, J. M. et al.</span> · <span class="ref-title">The Token Tax: Systematic Bias in Multilingual Tokenization</span> · <span class="ref-venue">arXiv:2509.05486</span></span><span class="ref-year">2025</span></li>
             <li><span class="ref-body"><span class="ref-authors">OpenAI / HuggingFace</span> · <span class="ref-title">tiktoken &amp; tokenizers documentation</span> · <span class="ref-venue">github.com/openai/tiktoken</span></span><span class="ref-year">2024</span></li>
           </ol>
           <aside class="slide-notes">Jurafsky &amp; Martin ch. 2 (tokenization) and ch. 6 (vector semantics) are the textbook spine; Sennrich and Kudo are the source papers for BPE and Unigram; Karpathy's minBPE is the best hands-on build; Steck 2024, Aggarwal 2001, and Ethayarajh 2019 back the high-dimensional caveats; Manning et al. for the IR similarity foundations we build on next week.</aside>

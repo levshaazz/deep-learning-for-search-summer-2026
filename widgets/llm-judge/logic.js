@@ -54,37 +54,37 @@ export const mountLlmJudge = defineWidget({
     const p1Bot = row2Y + 20;
 
     // Panel 2 (step 1): two pointwise mean bars (1..5).
-    const p2Top = p1Bot + 24;
+    const p2Top = p1Bot + 16;
     const p2HeadY = p2Top + 4;
     const barX = PAD + 120, barW = 250;     // value labels live to the RIGHT of barX+barW
-    const meanRow = 38;
-    const meanA_Y = p2HeadY + 24;
+    const meanRow = 32;
+    const meanA_Y = p2HeadY + 22;
     const meanB_Y = meanA_Y + meanRow;
-    const p2Bot = meanB_Y + 18;
+    const p2Bot = meanB_Y + 16;
 
     // Panel 3 (steps 2..3): pairwise verdict + the Goodhart flip.
-    const p3Top = p2Bot + 24;
+    const p3Top = p2Bot + 16;
     const p3HeadY = p3Top + 4;
     // pairwise verdict line (step 2)
-    const verdictY = p3HeadY + 24;
+    const verdictY = p3HeadY + 22;
     // goodhart two judge columns (step 3): honest | length-biased, each a small 2-bar pair
-    const ghTop = verdictY + 26;
+    const ghTop = verdictY + 22;
     const ghColW = (W - 2 * PAD - 24) / 2;   // two columns with a gap
     const ghColX = [PAD, PAD + ghColW + 24];
     const ghHeadY = ghTop + 14;
     const ghBarTop = ghHeadY + 18;
     const ghBarW = ghColW - 76;              // leave room for the answer label + value
     const ghBarX = (col) => ghColX[col] + 54;
-    const ghRowH = 26;
-    const ghBot = ghBarTop + 2 * ghRowH + 22; // +22 for the winner-flip note
-    const p3Bot = ghBot + 6;
+    const ghRowH = 24;
+    const ghBot = ghBarTop + 2 * ghRowH + 20; // +20 for the winner-flip note
+    const p3Bot = ghBot + 4;
 
     // Panel 4 (step 4): three REAL measured 0..1 bars on separate baselines.
-    const p4Top = p3Bot + 24;
+    const p4Top = p3Bot + 16;
     const p4HeadY = p4Top + 4;
     const realBarX = PAD + 196, realBarW = 220;
-    const realRow = 34;
-    const real0Y = p4HeadY + 26;
+    const realRow = 30;
+    const real0Y = p4HeadY + 24;
     const real1Y = real0Y + realRow;
     const real2Y = real1Y + realRow;
     const p4Bot = real2Y + 16;

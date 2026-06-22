@@ -413,7 +413,7 @@
     <span class="slide-kicker"><span lang="ru">вектор на токен → большой индекс</span><span lang="en">one vector per token → a big index</span></span>
   </div>
   <div class="viz-frame">
-    <svg viewBox="0 0 1400 460" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="A bar chart comparing the MS MARCO ColBERT index size: a naive full index is about 286 gibibytes, while a compressed ColBERTv2-style index is about 27 gibibytes — roughly a tenfold reduction.">
+    <svg viewBox="0 0 1400 460" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="A bar chart comparing the MS MARCO ColBERT index size: a naive full index is about 286 gibibytes, while a compressed index (24-dimensional vectors stored as 2-byte floats) is about 27 gibibytes — roughly a tenfold reduction.">
       <g font-family="var(--font-sans)">
         <line x1="240" y1="400" x2="1320" y2="400" stroke="var(--rule-strong)" stroke-width="2.5"/>
         <rect x="360" y="70" width="220" height="330" rx="8" fill="var(--warm-soft, #FBE6D8)" stroke="var(--warm, #E8743B)" stroke-width="3"/>
@@ -421,12 +421,12 @@
         <text x="470" y="440" text-anchor="middle" font-size="22" fill="var(--ink-2)">naive full index</text>
         <rect x="900" y="369" width="220" height="31" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="3"/>
         <text x="1010" y="349" text-anchor="middle" font-size="30" fill="var(--accent-ink)" font-weight="800">27 GiB</text>
-        <text x="1010" y="440" text-anchor="middle" font-size="22" fill="var(--ink-2)">compressed (v2)</text>
+        <text x="1010" y="440" text-anchor="middle" font-size="22" fill="var(--ink-2)">compressed (24-dim, 2B)</text>
         <text x="740" y="230" text-anchor="middle" font-size="26" fill="var(--ink-3)" font-family="var(--font-mono)">≈ 10× smaller</text>
       </g>
     </svg>
   </div>
-  <p class="viz-caption"><span lang="ru">Хранить вектор <em>на каждый токен</em> дорого: на MS MARCO наивный индекс ColBERT ≈ <strong>286 GiB</strong> (Khattab &amp; Zaharia 2020). Сжатие до ≈ <strong>27 GiB</strong> (остаточная компрессия ColBERTv2; Santhanam и др. 2022) делает его практичным — об этом следующий слайд.</span><span lang="en">Storing a vector <em>per token</em> is expensive: on MS MARCO a naive ColBERT index is ≈ <strong>286 GiB</strong> (Khattab &amp; Zaharia 2020). Compressing to ≈ <strong>27 GiB</strong> (ColBERTv2 residual compression; Santhanam et al. 2022) makes it practical — that's the next slide.</span></p>
+  <p class="viz-caption"><span lang="ru">Хранить вектор <em>на каждый токен</em> дорого: на MS MARCO наивный индекс ColBERT ≈ <strong>286 GiB</strong> (Khattab &amp; Zaharia 2020). Сжатие до ≈ <strong>27 GiB</strong> (24-мерные векторы как 2-байтовые float; Khattab &amp; Zaharia 2020, табл. 4) делает его практичным — об этом следующий слайд.</span><span lang="en">Storing a vector <em>per token</em> is expensive: on MS MARCO a naive ColBERT index is ≈ <strong>286 GiB</strong> (Khattab &amp; Zaharia 2020). Compressing to ≈ <strong>27 GiB</strong> (24-dimensional vectors stored as 2-byte floats; Khattab &amp; Zaharia 2020, Table 4) makes it practical — that's the next slide.</span></p>
   <aside class="slide-notes">Storage blow-up: 286 GiB → 27 GiB on MS MARCO (cited, data/l8-bench.json colbert.storageGiB). Integers, so coverage-free; the point is the order of magnitude.</aside>
 </section>
 
@@ -493,7 +493,7 @@
     <h1><span lang="ru">Научить разрежённость читать</span><span lang="en">Teaching sparsity to read</span></h1>
     <p class="divider-sub"><em><span lang="ru">А если веса разрежённого вектора <strong>выучить</strong>?</span><span lang="en">What if the sparse weights were <strong>learned</strong>?</span></em> <span lang="ru">BM25 считает буквальные термины. SPLADE учит веса — и расширяет словарь — оставаясь в том же инвертированном индексе.</span><span lang="en">BM25 counts literal terms. SPLADE learns the weights — and expands the vocabulary — while staying in the same inverted index.</span></p>
   </div>
-  <div class="viz-frame fig-fit" style="--fig-max:58cqh; --fig-w:46%;">
+  <div class="viz-frame fig-fit" style="--fig-max:64cqh; --fig-w:58%;">
     <img src="assets/img/L8/L8-02-expanded-banner.png?v=1" alt="A sparse constellation where, beyond a few literal lit points, several faint related points kindle around them — the emblem grows richer without becoming a dense field." />
   </div>
   <aside class="slide-notes">Pillar 2: learned sparse. The question — learn the weights, and expand — sets up SPLADE.</aside>
@@ -551,7 +551,7 @@
   <div class="formula-stage">
     $$ w_j \;=\; \sum_{i \in q} \log\!\big(1 + \mathrm{ReLU}(z_{ij})\big) $$
   </div>
-  <p class="small muted center mt-2"><span lang="ru">Для слова словаря \(j\): суммируем по токенам входа \(i\) значение \(\log(1+\mathrm{ReLU}(z_{ij}))\), где \(z_{ij}\) — логит MLM-головы. <strong>ReLU</strong> отбрасывает отрицательные логиты (большинство), \(\log\) усмиряет большие. Регуляризатор <strong>FLOPS</strong> штрафует плотность — поэтому вектор остаётся разрежённым и попадает в инвертированный индекс.</span><span lang="en">For vocabulary word \(j\): sum over input tokens \(i\) of \(\log(1+\mathrm{ReLU}(z_{ij}))\), where \(z_{ij}\) is the MLM-head logit. <strong>ReLU</strong> drops the negative logits (most of them), \(\log\) tames the large ones. The <strong>FLOPS</strong> regularizer penalizes density — so the vector stays sparse and lands in the inverted index.</span></p>
+  <p class="small muted center mt-2"><span lang="ru">Для слова словаря \(j\): суммируем по токенам входа \(i\) значение \(\log(1+\mathrm{ReLU}(z_{ij}))\), где \(z_{ij}\) — логит MLM-головы. <strong>ReLU</strong> отбрасывает отрицательные логиты (большинство), \(\log\) усмиряет большие. Регуляризатор <strong>FLOPS</strong> штрафует плотность — поэтому вектор остаётся разрежённым и попадает в инвертированный индекс. Пулинг по позициям \(i\) здесь — <strong>sum</strong> (оригинал); с v2 он заменён на <strong>max</strong>.</span><span lang="en">For vocabulary word \(j\): sum over input tokens \(i\) of \(\log(1+\mathrm{ReLU}(z_{ij}))\), where \(z_{ij}\) is the MLM-head logit. <strong>ReLU</strong> drops the negative logits (most of them), \(\log\) tames the large ones. The <strong>FLOPS</strong> regularizer penalizes density — so the vector stays sparse and lands in the inverted index. The pooling over positions \(i\) here is <strong>sum</strong> (the original); from v2 it becomes <strong>max</strong>.</span></p>
   <aside class="slide-notes">The SPLADE weight: log(1+ReLU(logit)) summed over input positions; FLOPS regularizer for sparsity. Operator only here; numbers on the worked slides.</aside>
 </section>
 
@@ -576,7 +576,7 @@
       "head": "learned weights over the vocabulary: wⱼ = Σᵢ log(1 + ReLU(zᵢⱼ))",
       "expandLabel": "+ expansion", "dotLabel": "sparse dot",
       "s0": "You typed two words. BM25 would weight only these literal terms — raw frequency, nothing more.",
-      "s1": "SPLADE turns each term's logit into a weight w = log(1 + ReLU(z)) — a learned, saturating weight, not a raw count.",
+      "s1": "SPLADE turns each term's logit into a weight w = log(1 + ReLU(z)) — a learned, saturating weight, not a raw count. (Original SPLADE sums these over positions; SPLADE-v2 max-pools.)",
       "s2": "It also lights up related terms it never saw typed — that is expansion. The sparse vector grows richer, yet stays sparse.",
       "s3": "Score the document by the sparse dot of the two weight vectors — sum the products over the shared terms. Same inverted index as BM25." }
   }
@@ -646,8 +646,8 @@
       <th>MS MARCO MRR@10 · BEIR nDCG@10</th>
     </tr></thead>
     <tbody>
-      <tr><td>SPLADE <span class="muted">(SIGIR'21)</span></td><td><span lang="ru">sum-пулинг</span><span lang="en">sum pooling</span></td><td>MRR@10 <strong>34.0</strong></td></tr>
-      <tr><td>SPLADE v2 <span class="muted">(arXiv'21)</span></td><td><span lang="ru">max-пулинг + дистилляция</span><span lang="en">max pooling + distillation</span></td><td>MRR@10 <strong>36.8</strong></td></tr>
+      <tr><td>SPLADE-max <span class="muted">(v2, arXiv'21)</span></td><td><span lang="ru">max-пулинг</span><span lang="en">max pooling</span></td><td>MRR@10 <strong>34.0</strong></td></tr>
+      <tr><td>DistilSPLADE-max <span class="muted">(v2, arXiv'21)</span></td><td><span lang="ru">max-пулинг + дистилляция</span><span lang="en">max pooling + distillation</span></td><td>MRR@10 <strong>36.8</strong></td></tr>
       <tr><td class="cell-good">SPLADE++ <span class="muted">(SIGIR'22)</span></td><td><span lang="ru">жёсткие негативы</span><span lang="en">hard negatives</span></td><td>MRR@10 <strong>38.0</strong> · BEIR <strong>50.7</strong></td></tr>
     </tbody>
   </table>
@@ -890,7 +890,7 @@
     <h1><span lang="ru">Капитан строит войско</span><span lang="en">The Captain orders the host</span></h1>
     <p class="divider-sub"><em><span lang="ru">Много сигналов → выучить <strong>один</strong> порядок.</span><span lang="en">Many signals → learn <strong>one</strong> order.</span></em> <span lang="ru">BM25, плотный, SPLADE, ColBERT, свежесть, клики… как свести их в одно ранжирование? Обучить капитана. Это и есть мост из L7.</span><span lang="en">BM25, dense, SPLADE, ColBERT, freshness, clicks… how do you combine them into one order? Train the captain. This is the bridge from L7.</span></p>
   </div>
-  <div class="viz-frame fig-fit" style="--fig-max:58cqh; --fig-w:46%;">
+  <div class="viz-frame fig-fit" style="--fig-max:64cqh; --fig-w:58%;">
     <img src="assets/img/L8/L8-04-the-captain-orders.png?v=1" alt="The Standard-Bearer, now a marshal, arranges a scattered crowd of figures into a clean ranked column, gesturing the line into place." />
   </div>
   <aside class="slide-notes">Pillar 4: LTR. The L7 promise — RankNet → LambdaRank → LambdaMART — paid off here.</aside>
@@ -1250,6 +1250,7 @@
   </div>
   <ol class="ref-list">
     <li><span class="ref-body"><span class="ref-authors">Formal, T., Piwowarski, B. &amp; Clinchant, S.</span> · <span class="ref-title"><a href="https://arxiv.org/abs/2107.05720" target="_blank" rel="noopener">SPLADE: Sparse Lexical and Expansion Model for First Stage Ranking</a></span> · <span class="ref-venue">SIGIR</span></span><span class="ref-year">2021</span></li>
+    <li><span class="ref-body"><span class="ref-authors">Formal, T., Lassance, C., Piwowarski, B. &amp; Clinchant, S.</span> · <span class="ref-title"><a href="https://arxiv.org/abs/2109.10086" target="_blank" rel="noopener">SPLADE v2: Sparse Lexical and Expansion Model for Information Retrieval</a></span> · <span class="ref-venue">arXiv</span></span><span class="ref-year">2021</span></li>
     <li><span class="ref-body"><span class="ref-authors">Formal, T., Lassance, C., Piwowarski, B. &amp; Clinchant, S.</span> · <span class="ref-title"><a href="https://arxiv.org/abs/2205.04733" target="_blank" rel="noopener">From Distillation to Hard Negative Sampling: Making Sparse Neural IR Models More Effective (SPLADE++)</a></span> · <span class="ref-venue">SIGIR</span></span><span class="ref-year">2022</span></li>
     <li><span class="ref-body"><span class="ref-authors">Cormack, G. V., Clarke, C. L. A. &amp; Büttcher, S.</span> · <span class="ref-title"><a href="https://dl.acm.org/doi/10.1145/1571941.1572114" target="_blank" rel="noopener">Reciprocal Rank Fusion Outperforms Condorcet and Individual Rank Learning Methods</a></span> · <span class="ref-venue">SIGIR</span></span><span class="ref-year">2009</span></li>
     <li><span class="ref-body"><span class="ref-authors">Thakur, N., Reimers, N., Rücklé, A. <em>et al.</em></span> · <span class="ref-title"><a href="https://arxiv.org/abs/2104.08663" target="_blank" rel="noopener">BEIR: A Heterogeneous Benchmark for Zero-shot Evaluation of Information Retrieval Models</a></span> · <span class="ref-venue">NeurIPS</span></span><span class="ref-year">2021</span></li>
