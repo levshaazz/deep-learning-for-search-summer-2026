@@ -3,6 +3,12 @@ name: site-ci
 # On every push / PR that touches the site or its single-source layers, build the Astro site
 # (so the gates can inspect the rendered Book) and run the deterministic site gates. Each gate
 # also runs its --selftest, so a detector that has gone blind FAILS CI too (AUDIT_V2 §2.4).
+#
+# Split into two PARALLEL jobs so wall-time ≈ the slow (browser) job, not the sum:
+#   • static  — pure Node/Python gates (no Chromium): fast, fails early on data/translation defects.
+#   • browser — Playwright gates, with the Chromium download CACHED across runs.
+# `concurrency` cancels superseded runs on rapid pushes. Each job builds independently (build is ~2s
+# and npm is cached, so sharing a build artifact would add more plumbing than it saves).
 
 on:
   push:
@@ -15,6 +21,8 @@ on:
       - 'tokens/**'
       - 'Lectures/**'
       - '_research/check_claims.py'
+      - '_research/check_citations.py'
+      - '_research/check_lexicon.py'
       - '_research/check_images.py'
       - '_research/gen_images.py'
       - '_research/mascots.py'
@@ -35,6 +43,8 @@ on:
       - 'tokens/**'
       - 'Lectures/**'
       - '_research/check_claims.py'
+      - '_research/check_citations.py'
+      - '_research/check_lexicon.py'
       - '_research/check_images.py'
       - '_research/gen_images.py'
       - '_research/mascots.py'
@@ -43,8 +53,15 @@ on:
       - '_audit/baselines/**'
   workflow_dispatch: {}
 
+# Cancel an in-flight run when a newer commit lands on the same ref (saves runner minutes,
+# avoids two CI runs racing on the same PR). Deploy keeps cancel-in-progress:false separately.
+concurrency:
+  group: site-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  gates:
+  # ───────────────────────── STATIC GATES (no browser) ─────────────────────────
+  static:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -55,29 +72,43 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-
       - run: npm ci
 
-      # Build assembles BOTH the Book chapters (content/book/lN.js) and the decks
-      # (Lectures/NN-*.html) from their fragments, then renders the site. Both are BUILD
-      # OUTPUT (gitignored) reassembled byte-identically from their tracked fragments
-      # (content/book/<stem>/beats/, Lectures/<slug>/parts/). Every gate below — including
-      # the four that read content/book/lN.js directly (beat-coverage, i18n, scroll-step,
-      # widget-render) — runs AFTER this step, so the chapters and decks are present.
+      # Build assembles BOTH the Book chapters (content/book/lN.js) and the decks (Lectures/NN-*.html)
+      # from their fragments, then renders the site. Both are BUILD OUTPUT (gitignored), reassembled
+      # byte-identically from their tracked fragments. Every gate below runs AFTER this step.
       - name: Build site (assemble chapters + decks + render)
         run: npm run build
 
-      # G1 — facts-gate: data/ is the single source; decks must match; provenance + arithmetic.
+      # G16 — data-immutability: `npm run build` must NOT mutate the committed data/ (the single source).
+      #        Full byte-identity reproduction (reproduce.sh) is a LOCAL proof — its frozen macOS/py3.9
+      #        ABI cache can't exist on a Linux runner — so this is the CI-feasible H3 guard; check_claims
+      #        (below) enforces deck==data + arithmetic.
+      - name: G16 data-immutability (build must not touch data/)
+        run: git diff --exit-code -- data/
+
+      # G1 — facts-gate: data/ is the single source; decks/Book must match; provenance + arithmetic.
       - name: G1 facts-gate
         run: python3 _research/check_claims.py
       - name: G1 facts-gate self-test
         run: python3 _research/check_claims.py --selftest
 
-      # G12 — image-gate: the recurring mascots (mascots.py) must stay present + on-palette so
-      #        the brand can't silently fade out (Serega drifted 5→3→0→0 across L5→L8 once).
-      #        Pure Python, no browser: it ast-reads the illustration briefs in gen_images.py
-      #        and the locked cast, then HARD-fails on a low Serega ratio, a Serega-less
-      #        hero/final plate, or GREEN used anywhere but his tübetey.
+      # G14 — citation completeness: every arXiv id cited in a deck/Book beat resolves in papers.json
+      #        (the stated single source of truth). Round-3 found ~24 cited works missing; this gates it.
+      - name: G14 citation-completeness
+        run: python3 _research/check_citations.py
+      - name: G14 citation-completeness self-test
+        run: python3 _research/check_citations.py --selftest
+
+      # G15 — lexicon/typography: forbids the recurring RU/TT defect classes that LLM passes kept
+      #        re-finding — soft-hyphen in Cyrillic, the rejected renderings "чанкинг"/"реранкинг",
+      #        and model/version decimal-commas (GPT-3,5) — turning them into a static, un-recurring check.
+      - name: G15 lexicon-gate
+        run: python3 _research/check_lexicon.py
+      - name: G15 lexicon-gate self-test
+        run: python3 _research/check_lexicon.py --selftest
+
+      # G12 — image-gate: the recurring mascots must stay present + on-palette (brand can't fade out).
       - name: G12 image-gate
         run: python3 _research/check_images.py
       - name: G12 image-gate self-test
@@ -102,15 +133,13 @@ jobs:
         run: node _audit/token-gate.mjs --selftest
 
       # G2b — font-size lint: ratchet on raw `font-size` literals in deck CSS (vs the --fs-* scale).
-      #        HARD-fails if the count exceeds the frozen baseline (a NEW raw font-size was added).
       - name: G2b font-gate
         run: node _audit/font-gate.mjs
       - name: G2b font-gate self-test
         run: node _audit/font-gate.mjs --selftest
 
-      # G2c — layout-gate: bind placeLabels' label separation to slide-viz's overprint threshold
-      #        (shared _audit/lib/thresholds.mjs) so "overlap has one definition" — pure, no browser.
-      - name: G2c layout-gate (placeLabels minGap vs overprint threshold)
+      # G2c — layout-gate: bind placeLabels' label separation to slide-viz's overprint threshold.
+      - name: G2c layout-gate
         run: node _audit/layout-gate.mjs
       - name: G2c layout-gate self-test
         run: node _audit/layout-gate.mjs --selftest
@@ -121,10 +150,33 @@ jobs:
       - name: G3 i18n-coverage self-test
         run: node _audit/i18n-coverage-gate.mjs --selftest
 
-      # G8 — the Book reads on phone/tablet (no horizontal overflow). Needs Playwright/Chromium.
+  # ───────────────────────── BROWSER GATES (Playwright) ─────────────────────────
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Build site (assemble chapters + decks + render)
+        run: npm run build
+
+      # Cache the Chromium download so it isn't re-fetched every run (~30–60s saved on a cache hit).
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('_audit/package.json', 'package-lock.json') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
       - name: Install audit deps + Chromium
         working-directory: _audit
         run: npm install --no-audit --no-fund && npx playwright install --with-deps chromium
+
+      # G8 — the Book reads on phone/tablet (no horizontal overflow).
       - name: G8 responsive
         working-directory: _audit
         run: node responsive-gate.mjs
@@ -132,11 +184,8 @@ jobs:
         working-directory: _audit
         run: node responsive-gate.mjs --selftest
 
-      # G9 — slide visual defects the box-size gates are blind to: everything-at-step-0
-      #       (no progressive reveal), label overlap / out-of-bounds inside the SVG, and
-      #       near-identical colours on distinct elements. AUTO-GLOBS every stepped deck slide
-      #       (decks 00–06) + every scrolly Book widget (chapters 00–06) — 92 figures, all 7
-      #       units (was 26 curated L5/L6). Adding a unit needs ZERO target edits. Needs Chromium.
+      # G9 — slide visual defects the box-size gates are blind to (step-progression, label overlap /
+      #       out-of-bounds in the SVG, near-identical colours). Auto-globs every stepped deck slide.
       - name: G9 slide-viz
         working-directory: _audit
         run: node slide-viz-gate.mjs --strict
@@ -144,13 +193,8 @@ jobs:
         working-directory: _audit
         run: node slide-viz-gate.mjs --selftest
 
-      # G10 — "does it RUN" + "does it render the SAME": every Book scroll-step widget mounts and
-      #        steps WITHOUT a runtime error (console.error / pageerror / unhandledrejection /
-      #        setStep-throw / missing export) and WITHOUT an empty/degenerate figure, in both themes
-      #        (complements G9's "does it look right"). It ALSO compares each (widget,theme,step) to a
-      #        committed paint-signature baseline (_audit/baselines/widget-viz.json) and HARD-fails on
-      #        DRIFT — a vanished mark, a collapsed step, a fill/stroke/HALO change (the regression a
-      #        dropped .svg-halo is). An intentional visual change is re-frozen via --update-baseline.
+      # G10 — every Book scroll-step widget mounts + steps WITHOUT a runtime error, and matches its
+      #        committed paint-signature baseline (HARD-fails on visual drift; re-frozen via --update-baseline).
       - name: G10 widget-render-check
         working-directory: _audit
         run: node widget-render-check.mjs
@@ -158,13 +202,22 @@ jobs:
         working-directory: _audit
         run: node widget-render-check.mjs --selftest
 
-      # G11 — word-by-word gate over the SHIPPED decks (Lectures/NN-*.html): engine registered
-      #        every slide (total === DOM .slide count), 0 pageerrors, 0 console errors, KaTeX
-      #        typeset (no raw $$), pre-flight 0 errors. Deck list is glob-derived (zero edits for
-      #        L7). Closes the coverage hole: ci.yml only smoke-tests the template, never the decks.
+      # G11 — word-by-word gate over the shipped decks (Lectures/NN-*.html, rebuilt above): engine
+      #        registered every slide, 0 pageerrors, 0 console errors, KaTeX typeset, pre-flight clean.
       - name: G11 wbw-check (shipped decks)
         working-directory: _audit
         run: node wbw-check.mjs
       - name: G11 wbw-check self-test
         working-directory: _audit
         run: node wbw-check.mjs --selftest
+
+      # G13 — dynamic-illustration probe: drives EVERY step of EVERY published deck slide (EN+RU) and
+      #        HARD-fails on a COLLAPSED figure image, a BROKEN/failed plate, an OFF-SLIDE element, or
+      #        BILINGUAL DOUBLING (overlaps + sub-16px text are reported as WARN). Caught the L8 RU
+      #        divider collapse + L11 climb-widget overflow that the step-0 visual gate missed.
+      - name: G13 viz-probe-gate
+        working-directory: _audit
+        run: node viz-probe-gate.mjs
+      - name: G13 viz-probe-gate self-test
+        working-directory: _audit
+        run: node viz-probe-gate.mjs --selftest
