@@ -95,6 +95,11 @@ export const mountRecallCurve = defineWidget({
       .textContent = `${knobName} →`;
 
     // ── the connecting polyline (drawn under the points) — clipped to the prefix revealed so far ──
+    // The ef series is a SINGLE-QUERY recall@1, which is binary (0 or 1) and therefore STEPS; a diagonal
+    // connector would falsely imply a smooth knee that only exists when averaged over a query set. So for
+    // 'ef' we draw a right-angle staircase (hold the previous recall across the x-gap, then jump at the new
+    // x); 'nprobe' is genuinely curve-shaped and keeps the diagonal polyline. Data dots are unchanged.
+    const stepped = name === 'ef';
     const line = el('polyline', { points: '', class: 'rc-line', fill: 'none' }, svg);
 
     // ── points (+ recall value label + faint cost annotation), one group per sweep entry ──
@@ -120,9 +125,13 @@ export const mountRecallCurve = defineWidget({
     return function update(k) {
       const upto = Math.min(k, lastStep);        // reveal points 0..upto (left→right)
       ptEls.forEach((g, i) => g.classList.toggle('is-hidden', i > upto));
-      // polyline through the revealed prefix
-      const pts = sweep.slice(0, upto + 1).map((p, i) => `${sx(knobs[i])},${sy(recalls[i])}`).join(' ');
-      line.setAttribute('points', pts);
+      // polyline through the revealed prefix — diagonal for nprobe, a right-angle staircase for ef
+      const verts = [];
+      for (let i = 0; i <= upto; i++) {
+        if (stepped && i > 0) verts.push(`${sx(knobs[i])},${sy(recalls[i - 1])}`); // hold prev recall to the new x
+        verts.push(`${sx(knobs[i])},${sy(recalls[i])}`);                            // then the real data point
+      }
+      line.setAttribute('points', verts.join(' '));
     };
   },
 });

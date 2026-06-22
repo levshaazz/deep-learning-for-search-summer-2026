@@ -86,6 +86,7 @@ GOODHART     = load(DATA, "l4-goodhart-steps.json")     # binary-gain DCG terms 
 # ── L5 (embeddings + dim-reduction) and L6 (attention/positional/contrastive). Same single source. ──
 EMB     = load(DATA, "l5-embeddings.json")    # GloVe-50 analogies + pairwise cosines (+ raw vectors)
 DIMRED  = load(DATA, "l5-dimred.json")        # PCA explained-variance + t-SNE (44 words / 7 clusters)
+PCAROT  = load(DATA, "l5-pca-rotate.json")    # slide-33 3-D→2-D rotation toy: var2dPct 97.21 (kicker breadcrumb)
 GLOVE   = load(DATA, "l5-glove.json")         # GloVe mini-corpus: X / log X / f(x) / worked king·queen + loss
 TSNE    = load(DATA, "l5-tsne-math.json")     # t-SNE on 9 GloVe-50 words: σ/perplexity, p_{j|i}, joint P, q, KL
 ATTN    = load(DATA, "l6-attention.json")     # scaled-dot-product worked example (√d_k, weights, output)
@@ -922,6 +923,11 @@ def l5_claims():
              anchor=r"→ PC1 19\.6% \+ PC2 ([\d.]+)% = 37\.7%", must=True),
         dict(id="L5 PCA 2-D",     deck="L5", value=pca["var2dPct"], tol=0.05,
              anchor=r"→ PC1 19\.6% \+ PC2 18\.1% = ([\d.]+)%", must=True),
+        # slide-33 kicker breadcrumb "… → 2-D (97.21%)" — the 3-D→2-D rotation toy's variance kept
+        # (l5-pca-rotate.json, distinct from the 44-word DIMRED PCA's 37.7%). [\d.,] captures the RU
+        # "97,21%" too; num() normalises both to 97.21. Gating it covers both lang spans for the guard.
+        dict(id="L5 PCA 2-D kick", deck="L5", value=PCAROT["var2dPct"], tol=0.05,
+             anchor=r"2-D \(([\d.,]+)%\)", must=True),
         # dataset shape: 44 words, 7 clusters, t-SNE perplexity 14
         dict(id="L5 nWords",      deck="L5", value=DIMRED["nWords"], tol=0,
              anchor=r"PCA на ([\d.]+) словах", must=True),
@@ -1204,8 +1210,10 @@ COVERAGE_BASELINE = {
     # status as their EN twins) and num() resolving a few to covered (deck:L5 −2, deck:L6 −3 — TIGHTENED).
     # FURTHER TIGHTENED (2026-06): gating preferenceForB (L4 IL pref = 0.64) now covers a previously-ungated
     # 0.64-ish number in book:L4 (19->18) and deck:L6 (26->25) — strictly stronger (a [C] claim now pins them).
-    "deck:L0": 0, "deck:L1": 1, "deck:L2": 6, "deck:L3": 49, "deck:L4": 33, "deck:L5": 45, "deck:L6": 25,
-    "book:L0": 0, "book:L1": 0, "book:L2": 8,  "book:L3": 12, "book:L4": 18, "book:L5": 12, "book:L6": 6,
+    # AUDIT-2 (2026-06): gated the slide-33 PCA-rotate kicker var2dPct=97.21 (L5 PCA 2-D kick) → deck:L5 45->44;
+    # L5 RU/TT decimal-comma canon fixes resolve one more book number to covered → book:L5 12->11. Both stronger.
+    "deck:L0": 0, "deck:L1": 1, "deck:L2": 6, "deck:L3": 49, "deck:L4": 33, "deck:L5": 44, "deck:L6": 25,
+    "book:L0": 0, "book:L1": 0, "book:L2": 8,  "book:L3": 12, "book:L4": 18, "book:L5": 11, "book:L6": 6,
 }
 _COV_DEC   = re.compile(r'(?<![\d.,])\d+[.,]\d{2,}(?!\d)')# grounded signature: a decimal (dot OR RU comma), ≥2 fractional digits
 _COV_ARXIV = re.compile(r'^\d{4}[.,]\d{4,}$')             # arXiv id (e.g. 1901.04085) — not data

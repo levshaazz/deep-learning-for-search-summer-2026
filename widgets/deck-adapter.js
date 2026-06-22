@@ -39,10 +39,29 @@
     var payload = readPayload(slide);
     var fig = null;
 
+    // Current deck language ('en' | 'ru' | …) from the <html> data-lang/lang the toolbar flips.
+    function curLang() {
+      var de = document.documentElement;
+      return ((de && (de.getAttribute('data-lang') || de.getAttribute('lang'))) || 'en').slice(0, 2);
+    }
+
     function ensure() {
       if (fig) return true;
       if (typeof mountFn !== 'function') return false;
-      fig = mountFn(mountEl, { data: payload.data, labels: payload.labels || {} });
+      // Trilingual payloads: an optional `i18n` bundle ({en:{…},ru:{…},tt:{…}} of FLAT label maps,
+      // mirroring the widget's widgets/<id>/i18n.json) localizes the labels the widget GENERATES
+      // (stage names, captions) — which the deck's [lang]-span toggle can't reach. We resolve the
+      // CURRENT language for the initial render and forward the whole bundle as `i18nAll` so the
+      // widget factory's in-place language switch (TRICK 2) repaints on toggle. Payloads without an
+      // `i18n` key are unchanged (i18nAll stays undefined → the factory no-ops). */
+      var labels = payload.labels || {};
+      var i18nAll = (payload.i18n && typeof payload.i18n === 'object') ? payload.i18n : null;
+      if (i18nAll) {
+        var lang = curLang();
+        var loc = i18nAll[lang] || i18nAll.en || {};
+        labels = Object.assign({}, labels, loc);
+      }
+      fig = mountFn(mountEl, { data: payload.data, labels: labels, i18nAll: i18nAll || undefined });
       // tell the deck engine the step range if the author didn't.
       if (!slide.hasAttribute('data-max-step')) slide.setAttribute('data-max-step', String(fig.maxStep));
       (window.__deckFigs = window.__deckFigs || {})[id] = fig; // verification hook
