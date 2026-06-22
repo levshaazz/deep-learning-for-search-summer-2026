@@ -5,7 +5,7 @@
       imgAlt: {
         en: 'Séréga stands beside RAGdoll the Oracle, who now holds up its own answer to a mirror, stamps it, catches a flaw, and re-stitches it — grading and correcting itself — while Goodhart slinks away defeated and a new horizon glows ahead (bridge to L12).',
         ru: 'Серёга стоит рядом с Оракулом RAGdoll, что теперь подносит собственный ответ к зеркалу, ставит штамп, ловит изъян и перешивает его — оценивая и исправляя себя, — пока Гудхарт побеждённо уползает, а впереди светится новый горизонт (мост к L12).',
-        tt: 'Серёга RAGdoll Оракулы янында тора, ул хәзер үз җавабын көзгегә тота, штамп сугә, кимчелекне тота һәм аны яңадан тегә — үзен бәяләп һәм төзәтеп — ә Goodhart җиңелеп шуышып китә, алда яңа офык яктыра (L12 гә күпер).',
+        tt: 'Серёга RAGdoll Оракулы янында тора, ул хәзер үз җавабын көзгегә тота, штамп суга, кимчелекне тота һәм аны яңадан тегә — үзен бәяләп һәм төзәтеп — ә Goodhart җиңелеп шуышып китә, алда яңа офык яктыра (L12 гә күпер).',
       },
       body: {
         en: [

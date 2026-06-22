@@ -407,7 +407,7 @@
     $$ \text{single-hop } (\text{best doc } d_1):\ \{\text{Acme Corp},\ \text{Dana Reyes},\ \text{Portland}\} \;\not\ni\; \text{computer science} \;\Longrightarrow\; \text{recall} = \mathbf{0} $$
     $$ \text{2-hop walk } (d_1 \to d_2):\ \text{Acme Corp} \xrightarrow{\text{founded\_by}} \text{Dana Reyes} \xrightarrow{\text{studied}} \textbf{computer science} \;\Longrightarrow\; \text{recall} = \mathbf{1} $$
   </div>
-  <p class="small muted center mt-2">Single-hop stops at \(d_1\) and never sees the field &mdash; recall <strong>0</strong>. The 2-hop walk crosses two documents (\(d_1 \to d_2\)) along the shared entity Dana&nbsp;Reyes and lands on the answer node &mdash; recall <strong>1</strong>. The lift comes entirely from the <em>edges</em>: the same documents, now navigable.</p>
+  <p class="small muted center mt-2">Single-hop stops at \(d_1\) and never sees the field &mdash; recall <strong>0</strong>. The 2-hop walk crosses two documents (\(d_1 \to d_2\)) along the shared entity Dana&nbsp;Reyes and lands on the answer node &mdash; recall <strong>1</strong>. The lift comes entirely from the <em>edges</em>: the same documents, now navigable. This is a <strong>binary answer-hit indicator</strong> on the single answer node &mdash; not L04's Recall@k (the <em>fraction</em> of relevant items retrieved); we reuse the word for the one-node case here.</p>
   <aside class="slide-notes">multi-hop recall by-hand. Binary answer-containment from data/l12-graphrag.json: recallSingleHop 0 (d1 holds founder/Portland, not "computer science"), recallMultiHop 1 (2-hop path d1→d2 reaches answerNode). hops=2, docsTouched [d1,d2], path verbatim. The edges do the work — same docs, now navigable.</aside>
 </section>
 <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="13 Walkthrough · Real extraction">
@@ -415,7 +415,7 @@
     <h2>A real model extracts the graph &mdash; 7 triples, no toy</h2>
     <span class="slide-kicker">llama3.1:8b read the 3 docs and named the entities &amp; relations itself</span>
   </div>
-  <p class="small muted mt-2">Open-extraction prompt over the same three documents. The model emitted <strong>7</strong> <em>(head, relation, tail)</em> triples; the graph then chained two of them to the answer. The entities and relations are the model's; the chaining is the graph's.</p>
+  <p class="small muted mt-2">Open-extraction prompt over the same three documents. The model emitted <strong>7</strong> <em>(head, relation, tail)</em> triples; the graph then chained two of them to the answer. The entities and relations are the model's; the chaining is the graph's. This is a single illustrative run (\(n{=}1\)) of a local llama3.1:8b &mdash; the exact triple count can vary run-to-run; the point that survives is that the model names the entities and the graph chains the docs.</p>
   <div class="walk-flow">
     <div class="walk-step" data-step="1" data-color="cyan">
       <div class="walk-num">01</div>
@@ -564,7 +564,7 @@
     $$ \mathcal{L} = -\frac{1}{N}\sum_{i=1}^{N} \log \frac{\exp\!\big(\cos(\mathbf{e}_{\text{img}}^{(i)},\,\mathbf{e}_{\text{txt}}^{(i)})/\tau\big)}{\sum_{j=1}^{N} \exp\!\big(\cos(\mathbf{e}_{\text{img}}^{(i)},\,\mathbf{e}_{\text{txt}}^{(j)})/\tau\big)} $$
     $$ \text{maximise the diagonal } \cos(\text{img}_i,\text{txt}_i), \quad \text{minimise the off-diagonal } \cos(\text{img}_i,\text{txt}_{j\neq i}) $$
   </div>
-  <p class="small muted center mt-2">For a batch of \(N\) image&ndash;caption pairs, the loss is a softmax over the <strong>row of the cosine matrix</strong>: the correct caption (the diagonal cell) should win. This is the L6 in-batch contrastive loss exactly &mdash; the off-diagonal pairs are the negatives. Minimising it <em>is</em> what carved the <strong>0.6153</strong> gap we measured.</p>
+  <p class="small muted center mt-2">For a batch of \(N\) image&ndash;caption pairs, the loss is a softmax over the <strong>row of the cosine matrix</strong>: the correct caption (the diagonal cell) should win. This is the same family as L6's in-batch contrastive loss &mdash; the off-diagonal pairs are the negatives. CLIP additionally <strong>symmetrises</strong>, averaging this row-wise (image&rarr;text) loss with the matching column-wise (text&rarr;image) loss &mdash; the symmetric InfoNCE. Minimising it <em>is</em> what carved the <strong>0.6153</strong> gap we measured.</p>
   <aside class="slide-notes">Contrastive objective. CLIP InfoNCE over the batch cosine matrix: softmax per row, diagonal = positive, off-diagonal = in-batch negatives. Identical to L6 in-batch contrastive loss. Temperature τ. This loss carves the matched/mismatched gap (0.9944/0.3791/0.6153) the matrix slide measured. No NEW gated number here — the gap is the same one from data/l12-clip.json.</aside>
 </section>
 <section class="slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="21 Climb · CLIP matrix">
@@ -667,7 +667,7 @@
 </section>
 <section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="24 Real · llava 5/5">
   <div class="slide-header">
-    <h2>Not a toy &mdash; a real vision model retrieves captions</h2>
+    <h2>Not a toy &mdash; a real vision model reads the picture</h2>
     <span class="slide-kicker">E2E · llava:7b image&rarr;caption forced choice on 5 text-free shapes</span>
   </div>
   <div class="e2e-arch">
@@ -675,26 +675,26 @@
     <div class="e2e-arch-arrow" data-step-range="0..1"></div>
     <div class="e2e-arch-block" data-role="nonlinear" data-step-range="1" data-tooltip="llava:7b reads the pixels, not letters."><div class="arch-name">llava:7b</div><div class="arch-shape">vision encode</div></div>
     <div class="e2e-arch-arrow" data-step-range="1..2"></div>
-    <div class="e2e-arch-block" data-role="nonlinear" data-step-range="2" data-tooltip="Score the image against each candidate caption."><div class="arch-name">argmax cos</div><div class="arch-shape">pick caption</div></div>
+    <div class="e2e-arch-block" data-role="nonlinear" data-step-range="2" data-tooltip="The model reads the 5 candidate captions and generates the best match (forced multiple choice)."><div class="arch-name">forced choice</div><div class="arch-shape">pick caption</div></div>
     <div class="e2e-arch-arrow" data-step-range="2..3"></div>
-    <div class="e2e-arch-block" data-role="project" data-step-range="3..4" data-tooltip="The matching caption is the top pick."><div class="arch-name">retrieved</div><div class="arch-shape">5/5 correct</div></div>
+    <div class="e2e-arch-block" data-role="project" data-step-range="3..4" data-tooltip="The matching caption is the model's pick."><div class="arch-name">matched</div><div class="arch-shape">5/5 correct</div></div>
     <div class="e2e-arch-legend"><span class="leg" data-role="project">state</span><span class="leg" data-role="nonlinear">model</span></div>
   </div>
   <div class="e2e-twin">
     <div class="e2e-panel e2e-math-panel">
-      <div class="panel-head">The cross-modal retrieval</div>
-      <div class="e2e-step" data-step="0"><div class="step-formula">$$\text{image} \;\longrightarrow\; \operatorname*{arg\,max}_{j}\ \cos\!\big(\mathbf{e}_{\text{img}},\mathbf{e}_{\text{txt}}^{(j)}\big)$$</div><p class="step-caption">A plain shape, no text in the picture, so the model cannot cheat by reading letters. Press &rarr;.</p></div>
-      <div class="e2e-step" data-step="1"><div class="step-formula">$$\mathbf{e}_{\text{img}} = f_{\text{img}}(\text{pixels})$$</div><p class="step-caption"><strong>See.</strong> llava:7b &mdash; a genuine vision-language model &mdash; encodes the <em>image</em> into the shared space.</p></div>
-      <div class="e2e-step" data-step="2"><div class="step-formula">$$\text{score each caption } j$$</div><p class="step-caption"><strong>Compare.</strong> Score the image against every candidate caption by cosine; take the highest &mdash; argmax, exactly the matrix's diagonal.</p></div>
-      <div class="e2e-step" data-step="3"><div class="step-formula">$$\text{top-1} = \text{matching caption}$$</div><p class="step-caption"><strong>Retrieve.</strong> The model's top pick is the correct caption.</p></div>
-      <div class="e2e-step" data-step="4"><div class="step-formula">$$\text{top-1 accuracy} = 5/5 = \mathbf{1.0}$$</div><p class="step-caption"><strong>All five.</strong> Forced-choice over 5 text-free shapes: 5/5 correct. It is reading the picture, not the letters.</p></div>
+      <div class="panel-head">The forced choice (generative)</div>
+      <div class="e2e-step" data-step="0"><div class="step-formula">$$\text{image} + \{\text{caption}_j\}_{j=1}^{5} \;\longrightarrow\; \text{pick } j^\star$$</div><p class="step-caption">A plain shape, no text in the picture, so the model cannot cheat by reading letters. Press &rarr;.</p></div>
+      <div class="e2e-step" data-step="1"><div class="step-formula">$$\text{pixels} \;\xrightarrow{\text{vision enc.}}\; \text{LLM}$$</div><p class="step-caption"><strong>See.</strong> llava:7b is a <em>generative</em> vision-language model: a vision encoder feeds an LLM that emits text &mdash; not a CLIP dual-encoder, so there is no image embedding to take a cosine of.</p></div>
+      <div class="e2e-step" data-step="2"><div class="step-formula">$$\text{read 5 captions} \;\longrightarrow\; \text{emit } j^\star$$</div><p class="step-caption"><strong>Choose.</strong> The model reads all five candidate captions and <em>generates</em> the number of the best match &mdash; a forced multiple-choice, not a cosine score.</p></div>
+      <div class="e2e-step" data-step="3"><div class="step-formula">$$j^\star = \text{matching caption}$$</div><p class="step-caption"><strong>Ground.</strong> Its choice is the correct caption &mdash; grounded in the picture, since the shapes are text-free.</p></div>
+      <div class="e2e-step" data-step="4"><div class="step-formula">$$\text{top-1 accuracy} = 5/5 = \mathbf{1.0}$$</div><p class="step-caption"><strong>All five.</strong> Forced choice over 5 text-free shapes: 5/5 correct. It is reading the picture, not the letters. This is a single \(n{=}5\) existence check &mdash; illustrative, not a benchmark of llava's accuracy.</p></div>
     </div>
     <div class="e2e-panel e2e-example-panel">
       <div class="panel-head">The run</div>
       <div class="e2e-step" data-step="0"><div class="step-calc-row"><span class="matrix-label"><code>n = 5 shapes</code></span></div></div>
       <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label"><code>model = llava:7b</code></span></div><p class="step-caption tiny">vision, not OCR.</p></div>
-      <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label"><code>forced choice over captions</code></span></div><p class="step-caption tiny">argmax cosine.</p></div>
-      <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label"><code>top-1 = matching caption</code></span></div><p class="step-caption tiny">cross-modal retrieval.</p></div>
+      <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label"><code>forced choice over captions</code></span></div><p class="step-caption tiny">generates the #.</p></div>
+      <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label"><code>top-1 = matching caption</code></span></div><p class="step-caption tiny">grounded in the image.</p></div>
       <div class="e2e-step" data-step="4"><div class="step-calc-row"><span class="matrix-label is-highlight"><code>5 / 5 correct → 1.0</code></span></div><p class="step-caption tiny">real multimodal model.</p></div>
     </div>
   </div>
@@ -703,7 +703,7 @@
     <span class="e2e-stage-name">overview</span>
     <button type="button" class="e2e-toggle">Theory only</button>
   </div>
-  <aside class="slide-notes">Real llava run. data/l12-clip.json real block: llava:7b, top1Accuracy 1.0, top1Correct 5, n 5, on TEXT-FREE shapes (so it's vision, not OCR). The matching caption is the model's top pick — cross-modal retrieval in a shared space, on a genuine multimodal model. Same argmax as the matrix diagonal.</aside>
+  <aside class="slide-notes">Real llava run. data/l12-clip.json real block: llava:7b, top1Accuracy 1.0, top1Correct 5, n 5, on TEXT-FREE shapes (so it's vision, not OCR). IMPORTANT mechanism: this is NOT cosine retrieval. llava:7b is a generative VLM — for each image it was shown the five candidate captions and prompted "Which ONE caption best describes it? Reply with only the number" (see _research/exp_l12_ollama.py, run_clip), then we parsed the digit. So it GENERATES a forced multiple-choice answer grounded in the pixels; it does not produce a CLIP-style image embedding or an argmax over cosine. Reserve the cosine/argmax-diagonal framing for the toy CLIP matrix (slides 21–22) and CLIP proper. The takeaway that survives: a real vision model genuinely grounds its answer in the picture (5/5 on text-free shapes), which is why the toy diagonal was not just hand-picked vectors. n=5 is an illustrative existence-proof, not a benchmark.</aside>
 </section>
 <section class="slide" data-type="two-col" data-screen-label="25 Frontier · ColPali">
   <div class="slide-header">
@@ -838,7 +838,7 @@
       <div class="e2e-step" data-step="1"><div class="step-formula">$$\text{answer} = G(q),\quad \text{no context}$$</div><p class="step-caption"><strong>Closed-book.</strong> Ask llama3.1:8b with nothing retrieved &mdash; it answers from parametric memory alone.</p></div>
       <div class="e2e-step" data-step="2"><div class="step-formula">$$\text{abstained?} = \mathbf{false}$$</div><p class="step-caption"><strong>It does not abstain.</strong> It invents concrete features &mdash; a confident fabrication about a thing that isn't real.</p></div>
       <div class="e2e-step" data-step="3"><div class="step-formula">$$\text{answer} = G(q, \text{context: ``no such DB''})$$</div><p class="step-caption"><strong>Grounded.</strong> Now retrieve a context stating no such database exists, and answer using only that.</p></div>
-      <div class="e2e-step" data-step="4"><div class="step-formula">$$\text{abstained?} = \mathbf{true}$$</div><p class="step-caption"><strong>It abstains.</strong> Same model, same question &mdash; grounding + the freedom to refuse is the safety control.</p></div>
+      <div class="e2e-step" data-step="4"><div class="step-formula">$$\text{abstained?} = \mathbf{true}$$</div><p class="step-caption"><strong>It abstains.</strong> Same model, same question &mdash; grounding + the freedom to refuse is the safety control. A single illustrative run (\(n{=}1\)) of a local llama3.1:8b &mdash; abstention can vary run-to-run, but grounding+abstention is the control either way.</p></div>
     </div>
     <div class="e2e-panel e2e-example-panel">
       <div class="panel-head">The model output</div>

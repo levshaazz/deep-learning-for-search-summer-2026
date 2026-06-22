@@ -632,7 +632,7 @@
             <img src="assets/img/L2/L2-20-tradeoff.png?v=1" alt="A stick-figure juggler with three balls labelled vocab, seq len, OOV — only two can stay in the air at once" />
           </figure>
           <p class="viz-caption">Real vocab sizes: GPT-2 <strong>50,257</strong>; cl100k (GPT-3.5/4) <strong>~100k</strong>; o200k (GPT-4o) <strong>~200k</strong>; BERT <strong>30,522</strong>; LLaMA / T5 (SentencePiece) <strong>32k</strong>. English ≈ <strong>4 chars/token</strong>.</p>
-          <aside class="slide-notes">You cannot win on all three corners. Push toward characters: vocabulary shrinks to ~256 bytes and OOV vanishes, but sequences blow up ~4–5×, which is brutal under O(n²) attention. Push toward words: sequences are short, but the vocabulary is unbounded (Heaps) and OOV is severe. Subword sits in the interior — a bounded vocab of 30k–200k, moderate sequence length, near-zero OOV. Bigger vocab → fewer tokens per text → shorter sequences and lower cost, but a bigger embedding matrix and softmax.</aside>
+          <aside class="slide-notes">You cannot win on all three corners. Push toward characters: vocabulary shrinks to ~256 bytes and OOV vanishes, but sequences blow up ~4–5×, which is brutal under the O(n²) attention cost we define in the transformers lecture (L4+). Push toward words: sequences are short, but the vocabulary is unbounded (Heaps) and OOV is severe. Subword sits in the interior — a bounded vocab of 30k–200k, moderate sequence length, near-zero OOV. Bigger vocab → fewer tokens per text → shorter sequences and lower cost, but a bigger embedding matrix and softmax.</aside>
         </section>
 
         <!-- ============================================ 20 · WALKTHROUGH · granularity on one sentence ============================================ -->
@@ -957,11 +957,11 @@
           <div class="e2e-twin">
             <div class="e2e-panel e2e-math-panel">
               <div class="panel-head">Score &amp; merge</div>
-              <div class="e2e-step" data-step="0"><div class="step-formula" style="font-family:var(--font-mono); white-space:normal; overflow-wrap:anywhere; line-height:1.4;">corpus&nbsp;=&nbsp;<wbr>"the quick brown fox jumps over the lazy dog"</div><p class="step-caption">In this small corpus \(\texttt{q}\), \(\texttt{u}\), \(\texttt{i}\), \(\texttt{c}\) each occur once; the vocabulary size factor works out to \(29\).</p></div>
+              <div class="e2e-step" data-step="0"><div class="step-formula" style="font-family:var(--font-mono); white-space:normal; overflow-wrap:anywhere; line-height:1.4;">corpus&nbsp;=&nbsp;<wbr>"the quick brown fox"</div><p class="step-caption">In this small corpus \(\texttt{q}\), \(\texttt{u}\), \(\texttt{i}\), \(\texttt{c}\) each occur once. To keep the toy reproducible we use the common <em>\(|V|\)-scaled</em> variant of the slide-30 criterion — multiply the numerator by the vocabulary size, here \(|V|=29\).</p></div>
               <div class="e2e-step" data-step="1"><div class="step-formula">$$\mathrm{score}(\texttt{q},\texttt{\#\#u}) = \frac{1\cdot 29}{1\cdot 1} = 29$$</div><p class="step-caption">Highest score → merge into <code>qu</code>.</p></div>
               <div class="e2e-step" data-step="2"><div class="step-formula">$$\mathrm{score}(\texttt{qu},\texttt{\#\#i}) = \frac{1\cdot 30}{1\cdot 1} = 30$$</div><p class="step-caption">Vocabulary grew by one, so the factor is now \(30\). Merge into <code>qui</code>.</p></div>
               <div class="e2e-step" data-step="3"><div class="step-formula">$$\mathrm{score}(\texttt{qui},\texttt{\#\#c}) = \frac{1\cdot 31}{1\cdot 1} = 31 \to \texttt{quic} \to \texttt{quick}$$</div><p class="step-caption">Continue until the whole word <code>quick</code> is one token.</p></div>
-              <div class="e2e-step" data-step="4"><div class="step-formula">$$\texttt{quickness} \to \texttt{qu}\;\texttt{\#\#ick}\;\texttt{\#\#ness}$$</div><p class="step-caption"><strong>Encoding</strong> is greedy longest-match, left → right; the first piece is bare, the rest get <code>##</code>.</p></div>
+              <div class="e2e-step" data-step="4"><div class="step-formula">$$\texttt{quicker} \to \texttt{quick}\;\texttt{\#\#e}\;\texttt{\#\#r}$$</div><p class="step-caption"><strong>Encoding</strong> is greedy longest-match, left → right; the first piece is bare, the rest get <code>##</code>.</p></div>
             </div>
             <div class="e2e-panel e2e-example-panel">
               <div class="panel-head">Numbers</div>
@@ -969,7 +969,7 @@
               <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label is-highlight">\((\texttt{q},\texttt{\#\#u}) = (1\cdot 29)/(1\cdot 1) = 29\)</span></div></div>
               <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label is-highlight">\((\texttt{qu},\texttt{\#\#i}) = (1\cdot 30)/(1\cdot 1) = 30\)</span></div></div>
               <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label is-highlight">\((\texttt{qui},\texttt{\#\#c}) = (1\cdot 31)/(1\cdot 1) = 31\)</span></div><div class="step-calc-row"><span class="matrix-label">→ <code>quic</code> → <code>quick</code></span></div></div>
-              <div class="e2e-step" data-step="4"><div class="step-calc-row"><span class="matrix-label">unseen "quickness":</span></div><div class="step-calc-row"><span class="matrix-label"><code>qu ##ick ##ness</code></span></div><p class="step-caption tiny">No match → <code>[UNK]</code>; here every piece matches.</p></div>
+              <div class="e2e-step" data-step="4"><div class="step-calc-row"><span class="matrix-label">unseen "quicker":</span></div><div class="step-calc-row"><span class="matrix-label"><code>quick ##e ##r</code></span></div><p class="step-caption tiny"><code>quick</code> is a learned piece; <code>e</code> and <code>r</code> fall back to single characters <code>##e ##r</code> &mdash; no <code>[UNK]</code>.</p></div>
             </div>
           </div>
           <div class="e2e-stepper">
@@ -977,7 +977,7 @@
             <span class="e2e-stage-name">overview</span>
             <button type="button" class="e2e-toggle">Theory only</button>
           </div>
-          <aside class="slide-notes">Walk the three scores aloud: (q,##u) = (1·29)/(1·1) = 29; after merging, the vocabulary grows by one so the factor becomes 30, giving (qu,##i)=30; then (qui,##c)=31. The word "quick" assembles piece by piece. Inference is different from training: it is greedy longest-match, left to right — the first piece is bare, every continuation gets ##. If no piece matches, the whole word becomes [UNK] (unlike byte-level BPE).</aside>
+          <aside class="slide-notes">Walk the three scores aloud: (q,##u) = (1·29)/(1·1) = 29; after merging, the vocabulary grows by one so the factor becomes 30, giving (qu,##i)=30; then (qui,##c)=31. The word "quick" assembles piece by piece. Inference is different from training: it is greedy longest-match, left to right — the first piece is bare, every continuation gets ##. A word becomes [UNK] only if it contains a character outside the training alphabet; otherwise it falls back to known pieces plus single-character pieces (unlike byte-level BPE, which has no [UNK] at all). See the next slide.</aside>
           <aside data-notes-for-step="1">Because q, u, i, c are each unique here, every numerator pair-count is 1 and the score is just the vocab factor — a clean demonstration of the formula.</aside>
         </section>
 
@@ -985,43 +985,43 @@
         <section class="slide" data-type="viz" data-screen-label="32 WP OOV">
           <div class="slide-header">
             <h2>WordPiece on unseen words</h2>
-            <span class="slide-kicker">reuse known pieces, else [UNK]</span>
+            <span class="slide-kicker">reuse pieces, char fallback, [UNK] only for unseen chars</span>
           </div>
           <div class="viz-frame">
             <svg viewBox="0 0 1600 480" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">
-              <text x="80" y="60" font-family="var(--font-mono)" font-size="28" fill="var(--ink-2)">"The fastest brown hare leaps over the sleepy cat"</text>
+              <text x="80" y="60" font-family="var(--font-mono)" font-size="28" fill="var(--ink-2)">"the brown fox quicker café"  →  WordPiece &nbsp;<tspan font-size="20" fill="var(--ink-3)">(corpus: "the quick brown fox")</tspan></text>
+              <!-- Row 1: words that ARE in the training corpus → kept whole -->
               <g font-family="var(--font-mono)" font-size="30">
-                <rect x="80"  y="110" width="150" height="74" rx="8" fill="var(--c-green)" opacity="0.16" stroke="var(--c-green)"/>
-                <text x="155" y="156" text-anchor="middle" fill="var(--c-green)">the</text>
-                <rect x="250" y="110" width="180" height="74" rx="8" fill="var(--c-red)" opacity="0.14" stroke="var(--c-red)"/>
-                <text x="340" y="156" text-anchor="middle" fill="var(--c-red)">[UNK]</text>
-                <rect x="450" y="110" width="200" height="74" rx="8" fill="var(--c-green)" opacity="0.16" stroke="var(--c-green)"/>
-                <text x="550" y="156" text-anchor="middle" fill="var(--c-green)">brown</text>
-                <rect x="670" y="110" width="180" height="74" rx="8" fill="var(--c-red)" opacity="0.14" stroke="var(--c-red)"/>
-                <text x="760" y="156" text-anchor="middle" fill="var(--c-red)">[UNK]</text>
-                <rect x="870" y="110" width="140" height="74" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"/>
-                <text x="940" y="156" text-anchor="middle" fill="var(--accent-ink)">ju</text>
-                <rect x="1030" y="110" width="160" height="74" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"/>
-                <text x="1110" y="156" text-anchor="middle" fill="var(--accent-ink)">##mp</text>
-                <rect x="1210" y="110" width="140" height="74" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"/>
-                <text x="1280" y="156" text-anchor="middle" fill="var(--accent-ink)">##s</text>
+                <rect x="80"  y="104" width="120" height="74" rx="8" fill="var(--c-green)" opacity="0.16" stroke="var(--c-green)"/>
+                <text x="140" y="150" text-anchor="middle" fill="var(--c-green)">the</text>
+                <rect x="220" y="104" width="160" height="74" rx="8" fill="var(--c-green)" opacity="0.16" stroke="var(--c-green)"/>
+                <text x="300" y="150" text-anchor="middle" fill="var(--c-green)">brown</text>
+                <rect x="400" y="104" width="120" height="74" rx="8" fill="var(--c-green)" opacity="0.16" stroke="var(--c-green)"/>
+                <text x="460" y="150" text-anchor="middle" fill="var(--c-green)">fox</text>
+                <text x="540" y="150" font-family="var(--font-sans)" font-size="23" fill="var(--ink-3)">← seen in training, kept whole</text>
               </g>
+              <!-- Row 2a: unseen "quicker" → reuse learned piece "quick", then single-character fallback -->
               <g font-family="var(--font-mono)" font-size="30">
-                <rect x="80"  y="210" width="150" height="74" rx="8" fill="var(--c-green)" opacity="0.16" stroke="var(--c-green)"/>
-                <text x="155" y="256" text-anchor="middle" fill="var(--c-green)">over</text>
-                <rect x="250" y="210" width="150" height="74" rx="8" fill="var(--c-green)" opacity="0.16" stroke="var(--c-green)"/>
-                <text x="325" y="256" text-anchor="middle" fill="var(--c-green)">the</text>
-                <rect x="420" y="210" width="180" height="74" rx="8" fill="var(--c-red)" opacity="0.14" stroke="var(--c-red)"/>
-                <text x="510" y="256" text-anchor="middle" fill="var(--c-red)">[UNK]</text>
-                <rect x="620" y="210" width="180" height="74" rx="8" fill="var(--c-red)" opacity="0.14" stroke="var(--c-red)"/>
-                <text x="710" y="256" text-anchor="middle" fill="var(--c-red)">[UNK]</text>
+                <rect x="80"  y="214" width="170" height="74" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"/>
+                <text x="165" y="260" text-anchor="middle" fill="var(--accent-ink)">quick</text>
+                <rect x="270" y="214" width="110" height="74" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"/>
+                <text x="325" y="260" text-anchor="middle" fill="var(--accent-ink)">##e</text>
+                <rect x="400" y="214" width="110" height="74" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"/>
+                <text x="455" y="260" text-anchor="middle" fill="var(--accent-ink)">##r</text>
+                <text x="295" y="322" font-family="var(--font-sans)" font-size="22" text-anchor="middle" fill="var(--ink-3)">"quicker" (unseen)</text>
               </g>
-              <text x="80" y="360" font-family="var(--font-sans)" font-size="26" fill="var(--ink-2)">"leaps" had no whole-word match, but reused subwords learned from "jumps": ju · ##mp · ##s.</text>
-              <text x="80" y="410" font-family="var(--font-sans)" font-size="24" fill="var(--ink-3)">Pieces with no match at all (fastest, hare, sleepy, cat — unseen here) → [UNK].</text>
+              <!-- Row 2b: "café" → [UNK], because é is outside the base alphabet -->
+              <g font-family="var(--font-mono)" font-size="30">
+                <rect x="640" y="214" width="180" height="74" rx="8" fill="var(--c-red)" opacity="0.14" stroke="var(--c-red)"/>
+                <text x="730" y="260" text-anchor="middle" fill="var(--c-red)">[UNK]</text>
+                <text x="730" y="322" font-family="var(--font-sans)" font-size="22" text-anchor="middle" fill="var(--ink-3)">"café" — é never seen</text>
+              </g>
+              <text x="80" y="392" font-family="var(--font-sans)" font-size="26" fill="var(--ink-2)">Unseen "quicker" reuses the learned piece <tspan font-family="var(--font-mono)" fill="var(--accent-ink)">quick</tspan>, then falls back to single characters <tspan font-family="var(--font-mono)" fill="var(--accent-ink)">##e ##r</tspan> — not [UNK].</text>
+              <text x="80" y="438" font-family="var(--font-sans)" font-size="24" fill="var(--ink-3)">[UNK] appears only when a character is outside the base alphabet (the é in "café"), never merely because a whole word is unseen.</text>
             </svg>
           </div>
-          <p class="viz-caption">Greedy longest-match recycles pieces from training (<code>jumps</code> → <code>ju ##mp ##s</code> reused for "leaps"); whatever matches nothing collapses to <span class="term">[UNK]</span>.</p>
-          <aside class="slide-notes">This contrasts WordPiece with byte-level BPE. WordPiece can still emit [UNK] when no subword matches — its base alphabet is characters of the training data, not all bytes. But notice the partial win: "leaps" wasn't seen, yet its pieces ju/##mp/##s were learned from "jumps", so it is handled. The fully unseen words here (fastest, hare, sleepy, cat) fall to [UNK] in this tiny corpus.</aside>
+          <p class="viz-caption">Greedy longest-match reuses pieces from training, then falls back to single characters (<code>quicker</code> → <code>quick ##e ##r</code>); a word collapses to <span class="term">[UNK]</span> only when one of its characters was never in the training alphabet (<code>café</code>).</p>
+          <aside class="slide-notes">This contrasts WordPiece with byte-level BPE. WordPiece's base alphabet is the <em>characters</em> of the training data, not all bytes — so any word whose letters all appeared in training decomposes to known pieces plus single-character fallbacks, and never becomes [UNK]. Same corpus as the previous slide, "the quick brown fox". Note the partial win: "quicker" wasn't seen, yet the learned piece "quick" (built on the previous slide) is reused, then e and r fall back to character pieces ##e ##r. [UNK] is reserved for genuinely out-of-alphabet characters — here the accented é in "café", which never appeared in the training text (nor did the letter a). (Unlike byte-level BPE, which has no [UNK] at all because every byte is in its alphabet.)</aside>
         </section>
 
         <!-- ============================================ 31 · TWO-COL · Unigram / SentencePiece ============================================ -->
@@ -1315,8 +1315,8 @@ tok.encode(user_text, add_special_tokens=False)</code></pre>
           <div class="viz-frame">
             <img src="assets/img/L2/L2-41-token-tax.png?v=1" alt="Token-coins per language: English short, Hindi/Telugu/Turkish tall; same sentence, bigger bill" />
           </div>
-          <p class="viz-caption">Same content, more tokens in many languages. Train a 16k BPE on 20&nbsp;Newsgroups (mostly English) and the word <em>«привет»</em> (Russian "hello") takes <strong>12 byte-level tokens</strong>; English <em>"tokenization"</em> takes <strong>3</strong>. \(2\times\) fertility → roughly \(4\times\) training cost (\(O(n^{2})\)), ~\(2\times\) API price and latency, and a smaller effective context window.</p>
-          <aside class="slide-notes">This is a fairness story, not just an efficiency one. Fertility is tokens-per-word. A tokenizer trained mostly on English is cheap for English and expensive for Hindi, Telugu, Turkish — and Russian. The fertility numbers in the caption are not hand-waved: `_research/data/bpe_merges.py` trains a 16k-vocab byte-level BPE on 20 Newsgroups and reports the exact token-counts for English vs Russian demo strings. The Token Tax (2025) work: each extra token/word costs roughly 8–18 accuracy points and explains 20–50% of cross-lingual accuracy variance. Because attention is O(n²), 2× fertility is ~4× training compute; at inference it is ~2× the API bill, ~2× latency, and less room in the context window. Low-resource speakers literally pay more for worse service on identical information.</aside>
+          <p class="viz-caption">Same content, more tokens in many languages. Train a 16k BPE on 20&nbsp;Newsgroups (mostly English) and the word <em>«привет»</em> (Russian "hello") takes <strong>12 byte-level tokens</strong>; English <em>"tokenization"</em> takes <strong>3</strong>. \(2\times\) fertility → ~\(2\times\) cost in the typical (FFN-dominated) regime, approaching \(4\times\) only once attention's \(O(n^{2})\) term dominates (very long sequences), plus ~\(2\times\) API price and latency, and a smaller effective context window.</p>
+          <aside class="slide-notes">This is a fairness story, not just an efficiency one. Fertility is tokens-per-word. A tokenizer trained mostly on English is cheap for English and expensive for Hindi, Telugu, Turkish — and Russian. The fertility numbers in the caption are not hand-waved: `_research/data/bpe_merges.py` trains a 16k-vocab byte-level BPE on 20 Newsgroups and reports the exact token-counts for English vs Russian demo strings. The Token Tax (2025) work: each extra token/word costs roughly 8–18 accuracy points and explains 20–50% of cross-lingual accuracy variance. Attention cost — which we define in the transformers lecture (L4+) — grows with the square of sequence length, but for typical model sizes total compute is dominated by the linear feed-forward and projection layers, so 2× fertility is ~2× training compute in that regime, approaching ~4× only when the O(n²) attention term takes over at very long sequences; at inference it is ~2× the API bill, ~2× latency, and less room in the context window. Low-resource speakers literally pay more for worse service on identical information.</aside>
         </section>
 
         <!-- ============================================ 41 · MISCONCEPTION · glitch tokens ============================================ -->
@@ -1365,11 +1365,11 @@ tok.encode(user_text, add_special_tokens=False)</code></pre>
             </div>
             <div class="twocol-col">
               <h3>Why spelling is hard</h3>
-              <p>"How many R's in <em>strawberry</em>?" and "reverse this string" are hard because the model never sees individual letters — only opaque token chunks like <code>straw</code> + <code>berry</code>.</p>
+              <p>"How many R's in <em>strawberry</em>?" and "reverse this string" are hard because the model never sees individual letters — only opaque token chunks — under cl100k <em>strawberry</em> is <code>str</code> + <code>aw</code> + <code>berry</code>.</p>
               <p class="small muted">Character-level operations require the model to have <em>memorized</em> the letter content of each token. It is not looking at letters at run time.</p>
             </div>
           </div>
-          <aside class="slide-notes">Both quirks come from the same fact: the model's atoms are tokens, not characters. " the" ≠ "the" because the leading-space token is a distinct id (byte-level BPE design from earlier). And counting letters in "strawberry" fails because the model sees "straw"+"berry", not s-t-r-a-w-... — it would have to have learned the spelling of each token. This is why letter-counting and string-reversal trip up otherwise strong models.</aside>
+          <aside class="slide-notes">Both quirks come from the same fact: the model's atoms are tokens, not characters. " the" ≠ "the" because the leading-space token is a distinct id (byte-level BPE design from earlier). And counting letters in "strawberry" fails because the model sees "str"+"aw"+"berry" (cl100k), not s-t-r-a-w-... — it would have to have learned the spelling of each token. This is why letter-counting and string-reversal trip up otherwise strong models.</aside>
         </section>
 
         <!-- ============================================ 43 · TWO-COL · why it matters for SEARCH ============================================ -->
@@ -1410,7 +1410,7 @@ tok.encode(user_text, add_special_tokens=False)</code></pre>
             </div>
             <details class="hidden-answer mt-4">
               <summary>Reveal explanation</summary>
-              <div class="ha-content"><strong>A</strong>. The atom of computation is the <em>token</em>, not the character — "strawberry" is typically split into <code>straw</code>+<code>berry</code>, so the model never inspects letters at run time; counting R's requires memorised spellings for every subword. B is false (byte-level fallback guarantees coverage, so an OOV "strawberry" can't happen); C is a different (real) bug.</div>
+              <div class="ha-content"><strong>A</strong>. The atom of computation is the <em>token</em>, not the character — "strawberry" is split into <code>str</code>+<code>aw</code>+<code>berry</code> under cl100k, so the model never inspects letters at run time; counting R's requires memorised spellings for every subword. B is false (byte-level fallback guarantees coverage, so an OOV "strawberry" can't happen); C is a different (real) bug.</div>
             </details>
           </div>
           <aside class="slide-notes">Reinforces slide 42. The trap is C — students invoke OOV, but byte-level fallback means "strawberry" is always representable; the issue is granularity, not coverage.</aside>
@@ -1427,13 +1427,13 @@ tok.encode(user_text, add_special_tokens=False)</code></pre>
             <pre><code class="language-python">import tiktoken
 enc = tiktoken.get_encoding("cl100k_base")   # GPT-3.5/4
 
-enc.encode("327")        # try also "67890"  -> watch the digit split
+enc.encode("67890")      # long runs split; short "327" stays one token
 enc.encode("strawberry") # -> ['str', 'aw', 'berry']  (no single 'r' to count)
 enc.encode(" the")       # leading space token != "the"
 len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</code></pre>
           </div>
           <p class="small muted mt-3">Live demos to run: <strong>Tiktokenizer</strong> (tiktokenizer.vercel.app — shows chat templates, digit splits, trailing spaces, glitch tokens), the OpenAI tokenizer playground, and Karpathy's <strong>minBPE</strong> to build BPE from scratch.</p>
-          <aside class="slide-notes">If you have a projector and a kernel, this is the fun part. Type "327" then "67890" and watch digit splits change; paste the same sentence in English and Hindi to show the fertility ratio jump 2–4×; type " SolidGoldMagikarp"; toggle a trailing space; compare JSON vs YAML token counts. Tiktokenizer is the quickest no-install option. minBPE is the homework-grade reference implementation.</aside>
+          <aside class="slide-notes">If you have a projector and a kernel, this is the fun part. Type "67890" and watch the long digit run split, then "327" to see a short number stay a single cl100k token; paste the same sentence in English and Hindi to show the fertility ratio jump 2–4×; type " SolidGoldMagikarp"; toggle a trailing space; compare JSON vs YAML token counts. Tiktokenizer is the quickest no-install option. minBPE is the homework-grade reference implementation.</aside>
         </section>
 
         <!-- ============================================ 46 · QUOTE · corpus handles it / token-free ============================================ -->
@@ -1756,13 +1756,13 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
               <div class="e2e-step" data-step="0"><div class="step-formula">$$D[i,j]=\min\begin{cases}D[i\!-\!1,j]+1\\ D[i,j\!-\!1]+1\\ D[i\!-\!1,j\!-\!1]+\mathbb{1}[s_i\neq t_j]\end{cases}$$</div><p class="step-caption">Delete, insert, or substitute (free if the characters match).</p></div>
               <div class="e2e-step" data-step="1"><div class="step-formula">$$s=\texttt{HONDA},\quad t=\texttt{HYUNDAI}$$</div><p class="step-caption">Both share the leading <code>H</code> and the medial <code>N</code>, <code>D</code>, <code>A</code>.</p></div>
               <div class="e2e-step" data-step="2"><div class="step-formula">$$\text{fill the }6\times 8\text{ grid}$$</div><p class="step-caption">Each cell is the min of its three neighbours, per the recurrence.</p></div>
-              <div class="e2e-step" data-step="3"><div class="step-formula">$$D[\,|s|,|t|\,] = 3$$</div><p class="step-caption">One alignment: insert <code>Y</code>, insert <code>U</code>, insert <code>I</code> — 3 edits.</p></div>
+              <div class="e2e-step" data-step="3"><div class="step-formula">$$D[\,|s|,|t|\,] = 3$$</div><p class="step-caption">One alignment: substitute <code>O→Y</code>, insert <code>U</code>, insert <code>I</code> — 3 edits.</p></div>
             </div>
             <div class="e2e-panel e2e-example-panel">
               <div class="panel-head">Alignment</div>
               <div class="e2e-step" data-step="0"><p class="step-caption">↓ Trace the cheapest path.</p></div>
-              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label"><code>H _ _ O N D A _</code></span></div><div class="step-calc-row"><span class="matrix-label"><code>H Y U N D A &nbsp; I</code></span></div></div>
-              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label">insert <code>Y</code>, insert <code>U</code> … insert <code>I</code></span></div></div>
+              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label"><code>H O _ N D A _</code></span></div><div class="step-calc-row"><span class="matrix-label"><code>H Y U N D A I</code></span></div></div>
+              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label">substitute <code>O→Y</code>, insert <code>U</code> … insert <code>I</code></span></div></div>
               <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label is-highlight">edit distance = 3</span></div><p class="step-caption tiny">Used for spell-check &amp; fuzzy matching.</p></div>
             </div>
           </div>
@@ -1771,7 +1771,7 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
             <span class="e2e-stage-name">overview</span>
             <button type="button" class="e2e-toggle">Theory only</button>
           </div>
-          <aside class="slide-notes">Ported from Lecture 1. Levenshtein is a true metric on strings via dynamic programming, O(nm). HONDA → HYUNDAI shares H...NDA; you need to insert Y, U, and I → 3 edits. (Equivalently: align HONDA to HYUNDA with two insertions, then append I.) Great for spell-check and fuzzy matching, but O(nm) makes it unsuitable for long documents — there you shingle and use MinHash instead. If a student wants the grid, the bottom-right cell of the 6×8 DP table is 3.</aside>
+          <aside class="slide-notes">Ported from Lecture 1. Levenshtein is a true metric on strings via dynamic programming, O(nm). HONDA → HYUNDAI shares H, N, D, A (but <em>not</em> O); a 3-edit path substitutes O→Y and inserts U and I → 3 edits. (Equivalently: turn HONDA into HYUNDA with one substitution O→Y and one insertion U, then append I.) Note you cannot do it with three pure insertions, because HONDA is not a subsequence of HYUNDAI (the O has no match). Great for spell-check and fuzzy matching, but O(nm) makes it unsuitable for long documents — there you shingle and use MinHash instead. If a student wants the grid, the bottom-right cell of the 6×8 DP table is 3.</aside>
         </section>
 
         <!-- ============================================ 59 · TWO-COL · sparse vs dense ============================================ -->

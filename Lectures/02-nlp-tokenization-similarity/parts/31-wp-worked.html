@@ -20,11 +20,11 @@
           <div class="e2e-twin">
             <div class="e2e-panel e2e-math-panel">
               <div class="panel-head">Score &amp; merge</div>
-              <div class="e2e-step" data-step="0"><div class="step-formula" style="font-family:var(--font-mono); white-space:normal; overflow-wrap:anywhere; line-height:1.4;">corpus&nbsp;=&nbsp;<wbr>"the quick brown fox jumps over the lazy dog"</div><p class="step-caption">In this small corpus \(\texttt{q}\), \(\texttt{u}\), \(\texttt{i}\), \(\texttt{c}\) each occur once; the vocabulary size factor works out to \(29\).</p></div>
+              <div class="e2e-step" data-step="0"><div class="step-formula" style="font-family:var(--font-mono); white-space:normal; overflow-wrap:anywhere; line-height:1.4;">corpus&nbsp;=&nbsp;<wbr>"the quick brown fox"</div><p class="step-caption">In this small corpus \(\texttt{q}\), \(\texttt{u}\), \(\texttt{i}\), \(\texttt{c}\) each occur once. To keep the toy reproducible we use the common <em>\(|V|\)-scaled</em> variant of the slide-30 criterion — multiply the numerator by the vocabulary size, here \(|V|=29\).</p></div>
               <div class="e2e-step" data-step="1"><div class="step-formula">$$\mathrm{score}(\texttt{q},\texttt{\#\#u}) = \frac{1\cdot 29}{1\cdot 1} = 29$$</div><p class="step-caption">Highest score → merge into <code>qu</code>.</p></div>
               <div class="e2e-step" data-step="2"><div class="step-formula">$$\mathrm{score}(\texttt{qu},\texttt{\#\#i}) = \frac{1\cdot 30}{1\cdot 1} = 30$$</div><p class="step-caption">Vocabulary grew by one, so the factor is now \(30\). Merge into <code>qui</code>.</p></div>
               <div class="e2e-step" data-step="3"><div class="step-formula">$$\mathrm{score}(\texttt{qui},\texttt{\#\#c}) = \frac{1\cdot 31}{1\cdot 1} = 31 \to \texttt{quic} \to \texttt{quick}$$</div><p class="step-caption">Continue until the whole word <code>quick</code> is one token.</p></div>
-              <div class="e2e-step" data-step="4"><div class="step-formula">$$\texttt{quickness} \to \texttt{qu}\;\texttt{\#\#ick}\;\texttt{\#\#ness}$$</div><p class="step-caption"><strong>Encoding</strong> is greedy longest-match, left → right; the first piece is bare, the rest get <code>##</code>.</p></div>
+              <div class="e2e-step" data-step="4"><div class="step-formula">$$\texttt{quicker} \to \texttt{quick}\;\texttt{\#\#e}\;\texttt{\#\#r}$$</div><p class="step-caption"><strong>Encoding</strong> is greedy longest-match, left → right; the first piece is bare, the rest get <code>##</code>.</p></div>
             </div>
             <div class="e2e-panel e2e-example-panel">
               <div class="panel-head">Numbers</div>
@@ -32,7 +32,7 @@
               <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label is-highlight">\((\texttt{q},\texttt{\#\#u}) = (1\cdot 29)/(1\cdot 1) = 29\)</span></div></div>
               <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label is-highlight">\((\texttt{qu},\texttt{\#\#i}) = (1\cdot 30)/(1\cdot 1) = 30\)</span></div></div>
               <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label is-highlight">\((\texttt{qui},\texttt{\#\#c}) = (1\cdot 31)/(1\cdot 1) = 31\)</span></div><div class="step-calc-row"><span class="matrix-label">→ <code>quic</code> → <code>quick</code></span></div></div>
-              <div class="e2e-step" data-step="4"><div class="step-calc-row"><span class="matrix-label">unseen "quickness":</span></div><div class="step-calc-row"><span class="matrix-label"><code>qu ##ick ##ness</code></span></div><p class="step-caption tiny">No match → <code>[UNK]</code>; here every piece matches.</p></div>
+              <div class="e2e-step" data-step="4"><div class="step-calc-row"><span class="matrix-label">unseen "quicker":</span></div><div class="step-calc-row"><span class="matrix-label"><code>quick ##e ##r</code></span></div><p class="step-caption tiny"><code>quick</code> is a learned piece; <code>e</code> and <code>r</code> fall back to single characters <code>##e ##r</code> &mdash; no <code>[UNK]</code>.</p></div>
             </div>
           </div>
           <div class="e2e-stepper">
@@ -40,7 +40,7 @@
             <span class="e2e-stage-name">overview</span>
             <button type="button" class="e2e-toggle">Theory only</button>
           </div>
-          <aside class="slide-notes">Walk the three scores aloud: (q,##u) = (1·29)/(1·1) = 29; after merging, the vocabulary grows by one so the factor becomes 30, giving (qu,##i)=30; then (qui,##c)=31. The word "quick" assembles piece by piece. Inference is different from training: it is greedy longest-match, left to right — the first piece is bare, every continuation gets ##. If no piece matches, the whole word becomes [UNK] (unlike byte-level BPE).</aside>
+          <aside class="slide-notes">Walk the three scores aloud: (q,##u) = (1·29)/(1·1) = 29; after merging, the vocabulary grows by one so the factor becomes 30, giving (qu,##i)=30; then (qui,##c)=31. The word "quick" assembles piece by piece. Inference is different from training: it is greedy longest-match, left to right — the first piece is bare, every continuation gets ##. A word becomes [UNK] only if it contains a character outside the training alphabet; otherwise it falls back to known pieces plus single-character pieces (unlike byte-level BPE, which has no [UNK] at all). See the next slide.</aside>
           <aside data-notes-for-step="1">Because q, u, i, c are each unique here, every numerator pair-count is 1 and the score is just the vocab factor — a clean demonstration of the formula.</aside>
         </section>
 

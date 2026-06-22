@@ -669,7 +669,7 @@ Tip: press <strong>T</strong> for the toolbar, <strong>O</strong> for the slide 
             <details class="hidden-answer mt-4">
               <summary>Reveal explanation</summary>
               <div class="ha-content">
-                <strong>B.</strong> Relevance comes in degrees, and users overwhelmingly read top-down — most clicks land in the first few positions. So the <em>order</em>, not the membership, carries the value. Returning "everything" is useless when "everything" is \(10^6\) documents. This is why ranking metrics like \(\text{nDCG}@10\) discount by position.
+                <strong>B.</strong> Relevance comes in degrees, and users overwhelmingly read top-down — most clicks land in the first few positions. So the <em>order</em>, not the membership, carries the value. Returning "everything" is useless when "everything" is \(10^9\) documents. This is why ranking metrics like \(\text{nDCG}@10\) discount by position.
               </div>
             </details>
           </div>
@@ -899,21 +899,21 @@ Tip: press <strong>T</strong> for the toolbar, <strong>O</strong> for the slide 
             </div>
             <div class="funnel-stage" data-step="2" style="--w:62%">
               <div class="fn-bar" data-role="retrieval">
-                <span class="fn-name">Retrieval (L0)</span>
+                <span class="fn-name">Retrieval (stage&nbsp;0)</span>
                 <span class="fn-count">\(\sim 10^{3}\)</span>
               </div>
               <div class="fn-desc">cheap, high-recall: BM25 / ANN — optimises <strong>recall</strong></div>
             </div>
             <div class="funnel-stage" data-step="3" style="--w:40%">
               <div class="fn-bar" data-role="rank">
-                <span class="fn-name">Ranking (L1)</span>
+                <span class="fn-name">Ranking (stage&nbsp;1)</span>
                 <span class="fn-count">\(\sim 10^{2}\)</span>
               </div>
               <div class="fn-desc">moderate cost, many features: GBDT / LTR</div>
             </div>
             <div class="funnel-stage" data-step="4" style="--w:24%">
               <div class="fn-bar" data-role="rerank">
-                <span class="fn-name">Re-rank (L2)</span>
+                <span class="fn-name">Re-rank (stage&nbsp;2)</span>
                 <span class="fn-count">\(\sim 10\)</span>
               </div>
               <div class="fn-desc">expensive cross-encoder + business rules — optimises <strong>precision@k</strong></div>
@@ -930,7 +930,7 @@ Tip: press <strong>T</strong> for the toolbar, <strong>O</strong> for the slide 
             <button data-step-act="next" aria-label="Next step">→</button>
           </div>
 
-          <aside class="slide-notes">The cascade is the central systems idea of search. The arithmetic on the caption sells it: you cannot afford the good model on \(10^{9}\) documents, so each stage spends ~10× more compute on ~10× fewer candidates. Recall lives early (you can never recover a document you didn't retrieve — next slide); precision lives late. The same funnel reappears as a latency budget in Part 03.</aside>
+          <aside class="slide-notes">The cascade is the central systems idea of search. The arithmetic on the caption sells it: you cannot afford the good model on \(10^{9}\) documents, so retrieval makes a huge first cut (≈\(10^{9}\to10^{3}\)), then each later stage spends ~10× more compute on ~10× fewer candidates. Recall lives early (you can never recover a document you didn't retrieve — next slide); precision lives late. The same funnel reappears as a latency budget in Part 03.</aside>
         </section>
 
         <!-- ============================================
@@ -970,7 +970,7 @@ Tip: press <strong>T</strong> for the toolbar, <strong>O</strong> for the slide 
         <section class="slide" data-type="table" data-screen-label="24 Table · Cascade stages">
           <div class="slide-header">
             <h2>The cascade as a table</h2>
-            <span class="slide-kicker">L0 / L1 / L2 — job, cost, set size</span>
+            <span class="slide-kicker">Stage 0 / 1 / 2 — job, cost, set size</span>
           </div>
 
           <table class="cmp-table">
@@ -985,21 +985,21 @@ Tip: press <strong>T</strong> for the toolbar, <strong>O</strong> for the slide 
             </thead>
             <tbody>
               <tr>
-                <td>L0 retrieval</td>
+                <td>Stage 0 · retrieval</td>
                 <td class="cell-meh">candidate-gen · BM25 / ANN</td>
                 <td class="cell-good">very cheap</td>
                 <td>millions → \(\sim 10^{3}\)</td>
                 <td class="cell-good">recall</td>
               </tr>
               <tr>
-                <td>L1 ranking</td>
+                <td>Stage 1 · ranking</td>
                 <td class="cell-meh">GBDT / LTR, many features</td>
                 <td class="cell-meh">moderate</td>
                 <td>\(\sim 10^{3} \to 10^{2}\)</td>
                 <td class="cell-meh">order quality</td>
               </tr>
               <tr>
-                <td>L2 re-rank</td>
+                <td>Stage 2 · re-rank</td>
                 <td class="cell-meh">cross-encoder + rules</td>
                 <td class="cell-bad">expensive</td>
                 <td>\(\sim 10^{2} \to 10\)</td>
@@ -1009,10 +1009,10 @@ Tip: press <strong>T</strong> for the toolbar, <strong>O</strong> for the slide 
           </table>
 
           <p class="small muted center mt-3">
-            YouTube (Covington 2016): candidate-gen millions → hundreds, ranking ~\(10^{9}\) params, serving in <em>tens of ms</em>. MS&nbsp;MARCO: a BERT cross-encoder lifted MRR <strong>16.7 → 36.5</strong>, but only feasible on a ~100-doc shortlist.
+            YouTube (Covington 2016): candidate-gen millions → hundreds, then a compact dense ranking tower over large embedding tables, serving in <em>tens of ms</em>. MS&nbsp;MARCO: a BERT cross-encoder lifted MRR <strong>16.7 → 36.5</strong>, but only feasible on a ~100-doc shortlist.
           </p>
 
-          <aside class="slide-notes">Concrete numbers anchor the abstraction. YouTube's two-stage system (Covington et al., RecSys 2016) is the canonical example — candidate generation shrinks millions to hundreds, then a heavy ranker with ~\(10^{9}\) parameters scores the survivors, all under tens of milliseconds. MS MARCO shows the precision payoff of L2: Nogueira &amp; Cho's BERT re-ranker more than doubled MRR, but attention is quadratic, so it is only affordable on the shortlist the cascade hands it.</aside>
+          <aside class="slide-notes">Concrete numbers anchor the abstraction. YouTube's two-stage system (Covington et al., RecSys 2016) is the canonical example — candidate generation shrinks millions to hundreds, then a compact dense ranking tower (a few fully-connected ReLU layers over large sparse embedding tables) scores the survivors, all under tens of milliseconds. MS MARCO shows the precision payoff of Stage 2 (re-rank): Nogueira &amp; Cho's BERT re-ranker more than doubled MRR, but attention is quadratic, so it is only affordable on the shortlist the cascade hands it.</aside>
         </section>
 
         <!-- ============================================
@@ -1180,7 +1180,7 @@ Tip: press <strong>T</strong> for the toolbar, <strong>O</strong> for the slide 
                     <strong>Worked simulation</strong> · grounded in <code>_research/data/position_bias.py</code>.
                     Cascade examination model from <strong>Craswell et al. 2008</strong> (<em>"An Experimental Comparison of Click Position-Bias Models"</em>): examination probability \( p_r \propto 1/r^{\gamma} \), the rank-dependent decay that turns equal relevance into unequal clicks. The <strong>clicks ≠ relevance</strong> framing — that clicks reveal <em>relative</em> not absolute relevance — is the contribution of <strong>Joachims, Granka et al. 2005</strong> (<em>"Accurately Interpreting Clickthrough Data as Implicit Feedback"</em>); the ~32% rank-1 share is the Enquiro 2005 "golden triangle" eye-tracking number that anchors \( \gamma = 0.94 \) here.
                     <br>Under that model, with <em>equal</em> true relevance for the top-10: rank 1 = <strong>32.3%</strong>, rank 2 = 16.8%, rank 3 = 11.5%, … top-3 together <strong>60.6%</strong>.
-                    <br>So a click on rank-1 carries about <strong>3×</strong> the weight of a click on rank-3, even when the docs are <em>equally</em> good — that is the bias to undo.
+                    <br>So a click on rank-1 carries nearly <strong>3× (2.8×)</strong> the weight of a click on rank-3, even when the docs are <em>equally</em> good — that is the bias to undo.
                     <br>Train LTR on raw clicks and you bake the ranking <em>into</em> the model; IPW reweights each click by \( 1/p_r \) to recover an unbiased estimate of true relevance.
                   </p>
                 </div>
@@ -1246,11 +1246,11 @@ Tip: press <strong>T</strong> for the toolbar, <strong>O</strong> for the slide 
               </div>
             </li>
             <li class="tl-node">
-              <div class="tl-year">2020</div>
+              <div class="tl-year">~2020</div>
               <div class="tl-card">
-                <div class="tl-kicker">Bruch · Lin · …</div>
-                <h3 class="tl-what">Hybrid + RRF</h3>
-                <p class="tl-why">Fuse lexical and dense. <span class="wbw-mark">recall@1000 ≈ 0.98</span> — the production norm.</p>
+                <div class="tl-kicker">Bruch · Lin · … (RRF: Cormack 2009)</div>
+                <h3 class="tl-what">Hybrid fusion</h3>
+                <p class="tl-why">Fuse lexical and dense (RRF dates to Cormack et&nbsp;al. 2009). <span class="wbw-mark">recall@1000 ≈ 0.98</span> — the production norm.</p>
               </div>
             </li>
             <li class="tl-node">
@@ -2027,7 +2027,7 @@ Tip: press <strong>T</strong> for the toolbar, <strong>O</strong> for the slide 
             </div>
           </div>
           <p class="small muted center mt-3">
-            Same model quality, a tiny fraction of the resources. Every technique — cascade, smaller embeddings, caching — entered as the <em>fix to a measured pain point</em>, not as a default.
+            Nearly the same retrieval quality (a small recall trade for the smaller embedding), at a tiny fraction of the resources. Every technique — cascade, smaller embeddings, caching — entered as the <em>fix to a measured pain point</em>, not as a default.
           </p>
 
           <aside class="slide-notes">Ported from the old Lecture 1 PCA arc: a real task — 371M short multilingual strings, top-100 matches with a score, 1-second SLA. The naive ledger (784-dim float64 over 371M rows, no GPU) is unservable. The engineered ledger shrinks dimension 784 → 24 (e.g. via PCA / a smaller model), adds an ANN index and a cache, and every pain annotation flips to "(no problem)". The pedagogical pattern to reuse all term: introduce each technique as the answer to a measured bottleneck, never as a hammer looking for a nail.</aside>

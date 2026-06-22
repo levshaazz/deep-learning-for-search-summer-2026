@@ -317,7 +317,7 @@ def main() -> int:
 
     out = {
         "method": ("skip-gram with negative sampling (SGNS) trained in numpy on a mini royalty+animals "
-                   "corpus; dim=2 (directly plottable); window=2; k=4 negatives from unigram^0.75; "
+                   f"corpus; dim=2 (directly plottable); window=2; k={NEG_K} negatives from unigram^0.75; "
                    f"SGD lr={LR}, {EPOCHS} epochs; RANDOM seeded init (seed={SEED})"),
         "window": WINDOW, "dim": DIM, "negK": NEG_K, "epochs": EPOCHS, "lr": LR, "seed": SEED,
         "noisePow": NOISE_POW,

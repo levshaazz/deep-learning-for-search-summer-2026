@@ -390,9 +390,9 @@ def main():
     ab_z_expr = f"({p_t:.3f}−{p_c:.3f})/{se_ab:.5f} = {z:.4f}"
 
     # ── NEW (от-и-до): ONE concrete team-draft interleaving worked query (consistent with q1: A=2,B=4) ─
-    # Inputs: ranking A=[a1..a4], B=[b1..b4]. Team-draft: coin per round picks who drafts next; the
-    # leading team takes its top remaining doc. The 6-slot interleaved draft below tags each slot's
-    # source team. Clicked positions credit the contributing team → A gets 2 clicks, B gets 4.
+    # Inputs: ranking A=[a1..a4], B=[b1..b4]. Canonical team-draft: each ROUND a coin picks who drafts
+    # first, then BOTH teams take their top remaining doc — so an even-length list splits evenly (3/3 here).
+    # B wins not via more slots but via more CLICKS: its 3 slots are all clicked, A's get 2 → A=2, B=3.
     il_A_in = ["a1", "a2", "a3", "a4"]
     il_B_in = ["b1", "b2", "b3", "b4"]
     # Draft order (per-slot source after team-draft coin flips, no duplicates):
@@ -402,10 +402,10 @@ def main():
         {"slot": 3, "doc": "b2", "source": "B"},
         {"slot": 4, "doc": "a2", "source": "A"},
         {"slot": 5, "doc": "b3", "source": "B"},
-        {"slot": 6, "doc": "b4", "source": "B"},
+        {"slot": 6, "doc": "a3", "source": "A"},
     ]
-    # Clicked slots: 1,2,3,4,5,6 → but only 6 clicks shown; pick clicks giving A=2, B=4.
-    il_clicked_slots = [1, 2, 3, 4, 5, 6]   # all 6 examined+clicked in this worked query
+    # Clicked slots: B's three (1,3,5) all clicked + two of A's (2,6); slot 4 (a2) not clicked → A=2, B=3.
+    il_clicked_slots = [1, 2, 3, 5, 6]      # slot 4 (a2) skipped
     il_credit_A = sum(1 for s in il_draft if s["slot"] in il_clicked_slots and s["source"] == "A")
     il_credit_B = sum(1 for s in il_draft if s["slot"] in il_clicked_slots and s["source"] == "B")
 
@@ -413,7 +413,7 @@ def main():
     # Each query: an interleaved list is shown; clicks credited to the system that contributed the
     # clicked doc. Here a small worked example with explicit credits summed over queries.
     il_queries = [
-        {"q": "q1", "creditA": 2, "creditB": 4},
+        {"q": "q1", "creditA": 2, "creditB": 3},
         {"q": "q2", "creditA": 1, "creditB": 3},
         {"q": "q3", "creditA": 3, "creditB": 2},
         {"q": "q4", "creditA": 1, "creditB": 5},
@@ -462,7 +462,7 @@ def main():
             "preferenceForB": round(il_pref_B, 4),
             "note": "B wins the interleaving preference — far more sensitive than A/B at equal traffic.",
             "interleaveWorkedQuery": {
-                "_doc": "ONE concrete team-draft worked query (consistent with q1 above: A=2, B=4). "
+                "_doc": "ONE concrete team-draft worked query (consistent with q1 above: A=2, B=3). "
                         "Two input rankings, the interleaved draft order with per-slot source tags, the "
                         "clicked positions, and the resulting per-team credit.",
                 "q": "q1",

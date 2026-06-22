@@ -192,11 +192,11 @@
       <span class="toc-num">02</span>
       <span class="toc-text"><span class="toc-title"><span lang="ru">Выученная разрежённость — SPLADE</span><span lang="en">Learned sparse — SPLADE</span></span><span class="toc-sub">log(1+ReLU) weights · term expansion · still inverted-index</span></span>
     </a>
-    <a class="toc-item" href="#/33">
+    <a class="toc-item" href="#/30">
       <span class="toc-num">03</span>
       <span class="toc-text"><span class="toc-title"><span lang="ru">Гибрид — под одно знамя</span><span lang="en">Hybrid — under one banner</span></span><span class="toc-sub">run both · fuse with RRF · consensus wins</span></span>
     </a>
-    <a class="toc-item" href="#/43">
+    <a class="toc-item" href="#/40">
       <span class="toc-num">04</span>
       <span class="toc-text"><span class="toc-title"><span lang="ru">Обучение ранжированию</span><span lang="en">Learning to Rank</span></span><span class="toc-sub">RankNet → LambdaRank → LambdaMART · the L7 bridge paid</span></span>
     </a>
@@ -319,7 +319,7 @@
       </g>
     </svg>
   </div>
-  <p class="viz-caption"><span lang="ru">Каждый токен запроса и документа получает свой 128-мерный вектор (\(E_q \in \mathbb{R}^{|q|\times128}\)). Векторы документа считаются <strong>офлайн</strong> и кэшируются — взаимодействие происходит дёшево, на запросе (отсылка L2: всё — последовательность токенов).</span><span lang="en">Each query and document token gets its own 128-dim vector (\(E_q \in \mathbb{R}^{|q|\times128}\)). The document vectors are computed <strong>offline</strong> and cached — interaction happens cheaply, at query time (callback L2: everything is a sequence of tokens).</span></p>
+  <p class="viz-caption"><span lang="ru">Каждый токен запроса и документа получает свой 128-мерный вектор (\(E_q \in \mathbb{R}^{|q|\times128}\)). Это <strong>один общий BERT-энкодер</strong> в двух режимах: префикс \([Q]\) (с дополнением [MASK]) против \([D]\) — не две разные модели. Векторы документа считаются <strong>офлайн</strong> и кэшируются — взаимодействие происходит дёшево, на запросе (отсылка L2: всё — последовательность токенов).</span><span lang="en">Each query and document token gets its own 128-dim vector (\(E_q \in \mathbb{R}^{|q|\times128}\)). It is <strong>one shared BERT encoder</strong> run in two modes: the \([Q]\) prefix (with [MASK] augmentation) vs \([D]\) — not two separate models. The document vectors are computed <strong>offline</strong> and cached — interaction happens cheaply, at query time (callback L2: everything is a sequence of tokens).</span></p>
   <aside class="slide-notes">Architecture: per-token embeddings, doc precomputed, MaxSim at query time. Shapes E_q ∈ ℝ^(|q|×128).</aside>
 </section>
 
@@ -426,7 +426,7 @@
       </g>
     </svg>
   </div>
-  <p class="viz-caption"><span lang="ru">Хранить вектор <em>на каждый токен</em> дорого: на MS MARCO наивный индекс ColBERT ≈ <strong>286 GiB</strong>. Сжатие до ≈ <strong>27 GiB</strong> (остаточная компрессия v2) делает его практичным — об этом следующий слайд (цитируется: Khattab &amp; Zaharia 2020).</span><span lang="en">Storing a vector <em>per token</em> is expensive: on MS MARCO a naive ColBERT index is ≈ <strong>286 GiB</strong>. Compressing to ≈ <strong>27 GiB</strong> (v2 residual compression) makes it practical — that's the next slide (cited: Khattab &amp; Zaharia 2020).</span></p>
+  <p class="viz-caption"><span lang="ru">Хранить вектор <em>на каждый токен</em> дорого: на MS MARCO наивный индекс ColBERT ≈ <strong>286 GiB</strong> (Khattab &amp; Zaharia 2020). Сжатие до ≈ <strong>27 GiB</strong> (остаточная компрессия ColBERTv2; Santhanam и др. 2022) делает его практичным — об этом следующий слайд.</span><span lang="en">Storing a vector <em>per token</em> is expensive: on MS MARCO a naive ColBERT index is ≈ <strong>286 GiB</strong> (Khattab &amp; Zaharia 2020). Compressing to ≈ <strong>27 GiB</strong> (ColBERTv2 residual compression; Santhanam et al. 2022) makes it practical — that's the next slide.</span></p>
   <aside class="slide-notes">Storage blow-up: 286 GiB → 27 GiB on MS MARCO (cited, data/l8-bench.json colbert.storageGiB). Integers, so coverage-free; the point is the order of magnitude.</aside>
 </section>
 
@@ -1085,7 +1085,7 @@
     </tr></thead>
     <tbody>
       <tr><td>ListNet</td><td><span lang="ru">вероятность «топ-один»: распределение над тем, кто первый</span><span lang="en">top-one probability: a distribution over who ranks first</span></td></tr>
-      <tr><td>ListMLE</td><td><span lang="ru">правдоподобие перестановки (Плакетт–Льюс)</span><span lang="en">permutation likelihood (Plackett–Luce)</span></td></tr>
+      <tr><td>ListMLE</td><td><span lang="ru">правдоподобие перестановки (Плакетт–Люс)</span><span lang="en">permutation likelihood (Plackett–Luce)</span></td></tr>
     </tbody>
   </table>
   <p class="small muted center mt-2"><span lang="ru">Listwise-методы оптимизируют распределение над <em>порядками</em>, а не отдельные пары — ближе к метрике, но дороже в обучении.</span><span lang="en">Listwise methods optimize a distribution over <em>orderings</em>, not single pairs — closer to the metric, costlier to train.</span></p>

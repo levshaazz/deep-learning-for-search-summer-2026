@@ -439,7 +439,7 @@
             </div>
             <div class="walk-step" data-step="3" data-color="cyan">
               <div class="walk-num">03</div>
-              <div class="walk-content"><div class="walk-label">AND-merge (intersection)</div><div class="walk-detail">Walk both sorted lists together. <code>[D0..D3] &cap; [D4..D7]</code> &mdash; the lists are disjoint, so the merge yields nothing.</div></div>
+              <div class="walk-content"><div class="walk-label">AND-merge (intersection)</div><div class="walk-detail">Walk both sorted lists together. <code>[D0..D3] &cap; [D4..D7]</code> &mdash; here the two lists are the two topic partitions, <strong>chosen disjoint on purpose</strong> as the worst case, so the merge yields nothing. (The overlapping case, where the two-pointer merge actually compares, is on the skip-merge slide.)</div></div>
               <div class="walk-state">\(=\varnothing\)</div>
             </div>
             <div class="walk-step" data-step="4" data-final="true">
@@ -985,7 +985,7 @@
             <h2>Worked TF-IDF: distinguishing words score</h2>
             <span class="slide-kicker">idf \(=\log(2/df)\) · 2 docs · the words that score</span>
           </div>
-          <p class="small muted mt-2">Same two docs, \(N=2\). The four words in <strong>only one</strong> document:</p>
+          <p class="small muted mt-2">Same two docs, \(N=2\). Here \(tf\) is <strong>length-normalized</strong> — count over document length — so <code>car</code> (once in A's 7 tokens) has \(tf=\tfrac{1}{7}\) and \(tf\cdot\operatorname{idf}=\tfrac{1}{7}\cdot 0.6931\approx 0.099\). The four words in <strong>only one</strong> document:</p>
           <table class="cmp-table">
             <thead><tr><th>term</th><th>\(df\)</th><th>idf</th><th>tfidf in A</th><th>tfidf in B</th></tr></thead>
             <tbody>
@@ -1023,9 +1023,9 @@
             <h2>Live TF-IDF #1: keyword extraction</h2>
             <span class="slide-kicker">top-weight terms = a doc's "about-ness"</span>
           </div>
-          <p class="small muted mt-2">Document D2: <code>better idea use nasa shuttle astronauts crew them found…</code> Rank its terms by TF-IDF over the 8-doc corpus.</p>
+          <p class="small muted mt-2">Document D2: <code>better idea use nasa shuttle astronauts crew them found…</code> Rank its terms by TF-IDF over the 8-doc corpus. The idf column is the <strong>BM25-smoothed</strong> form \(\ln\!\big(1+\frac{N-df+0.5}{df+0.5}\big)\) from slide 32, so the same numbers feed BM25 later.</p>
           <table class="cmp-table">
-            <thead><tr><th>rank</th><th>term</th><th>\(tf\)</th><th>\(df\)</th><th>idf</th><th>tfidf</th></tr></thead>
+            <thead><tr><th>rank</th><th>term</th><th>\(tf\)</th><th>\(df\)</th><th>idf (BM25-smoothed)</th><th>tfidf</th></tr></thead>
             <tbody>
               <tr><td>1</td><td class="cell-good">shuttle</td><td>3</td><td>2</td><td>1.2809</td><td class="cell-good">3.84</td></tr>
               <tr><td>2</td><td class="cell-good">crew</td><td>2</td><td>1</td><td>1.7918</td><td class="cell-good">3.58</td></tr>
@@ -1035,7 +1035,7 @@
             </tbody>
           </table>
           <p class="small muted center mt-2">The top TF-IDF terms &mdash; <code>shuttle, crew, lost</code> &mdash; summarize what D2 is about, with zero supervision. This is unsupervised keyphrase extraction.</p>
-          <aside class="slide-notes">Exact from the keyword JSON. Sort a single document's terms by TF-IDF and the top of the list reads like a human summary: shuttle, crew, lost, maybe. Note how the weighting works — "shuttle" wins on frequency (three times) despite a lower idf, while "crew" and "lost" tie on a higher idf because they are rarer in the corpus even at lower frequency. No model, no training, no labels: the document's own statistics surface its topic. This is the standard baseline for keyphrase extraction and tag suggestion.</aside>
+          <aside class="slide-notes">Exact from the keyword JSON. The idf here is the BM25-smoothed form from slide 32 (not the bare log N/df of slide 31), so these very numbers carry straight into the BM25 part — that is why shuttle reads 1.2809 rather than log(8/2)=1.386. Sort a single document's terms by TF-IDF and the top of the list reads like a human summary: shuttle, crew, lost, maybe. Note how the weighting works — "shuttle" wins on frequency (three times) despite a lower idf, while "crew" and "lost" tie on a higher idf because they are rarer in the corpus even at lower frequency. No model, no training, no labels: the document's own statistics surface its topic. This is the standard baseline for keyphrase extraction and tag suggestion.</aside>
         </section>
 
         <!-- ============================================ 35 · TWO-COL · live TF-IDF document similarity ============================================ -->
@@ -1687,7 +1687,7 @@
         <section class="slide" data-type="formula" data-screen-label="64 Random surfer">
           <div class="slide-header slide-header--flush">
             <h2>The random surfer &amp; damping</h2>
-            <span class="slide-kicker">teleport fixes sinks · \(d=0.85\)</span>
+            <span class="slide-kicker">teleport makes the walk ergodic · \(d=0.85\)</span>
           </div>
           <div class="formula-stage">
             $$ PR(i) = \frac{1-d}{n} + d\sum_{j\to i}\frac{PR(j)}{\mathrm{outdeg}(j)} $$
@@ -1697,8 +1697,8 @@
             <div class="var-block"><div class="var-symbol">\(1-d\)</div><div class="var-desc"><strong>Teleport</strong><br />jump to a random page</div></div>
             <div class="var-block"><div class="var-symbol">\(\mathrm{outdeg}(j)\)</div><div class="var-desc"><strong>Out-degree</strong><br />\(j\) splits its vote</div></div>
           </div>
-          <p class="small muted center mt-3">A surfer follows a random link with prob \(d\), else <strong>teleports</strong> to a random page. Teleport is "obviously needed": without it, rank leaks into <em>sinks</em> (dangling pages with no out-links) and never returns.</p>
-          <aside class="slide-notes">PageRank is the stationary distribution of a random surfer. With probability d, here 0.85, the surfer follows one of the current page's out-links uniformly; with probability one minus d it teleports to a uniformly random page. The teleport term is not cosmetic — without it, a dangling page with no out-links, or a small cycle, acts as a rank sink that absorbs all probability mass and never gives it back, so the iteration never converges to anything useful. Teleport guarantees the chain is ergodic, so a unique stationary distribution exists. That distribution is the rank.</aside>
+          <p class="small muted center mt-3">A surfer follows a random link with prob \(d\), else <strong>teleports</strong> to a random page. Teleport makes the walk <em>ergodic</em> — it breaks out of cycles and guarantees one unique stationary rank. A true <em>sink</em> (a dangling page with no out-links) needs one more fix: redistribute its mass each step, or treat it as linking to all pages.</p>
+          <aside class="slide-notes">PageRank is the stationary distribution of a random surfer. With probability d, here 0.85, the surfer follows one of the current page's out-links uniformly; with probability one minus d it teleports to a uniformly random page. The teleport term is not cosmetic — without it a small cycle acts as a rank sink that absorbs all probability mass and never gives it back, so the iteration never converges to anything useful. Teleport guarantees the chain is ergodic, so a unique stationary distribution exists. A true dangling page with no out-links is a separate issue: damping alone does not conserve mass when one exists — its mass has to be reinjected each step (treat it as linking to every page, or renormalise). Our toy graph has no dangling node, so it sidesteps that. That stationary distribution is the rank.</aside>
         </section>
 
         <!-- ============================================ 61 · E2E · power iteration worked ============================================ -->
@@ -1722,8 +1722,8 @@
               <div class="panel-head">What happens</div>
               <div class="e2e-step" data-step="0"><div class="step-formula">$$\begin{gathered}v_0=(0.3333,\,0.3333,\,0.3333)\\ \text{outdeg}(A,B,C)=(1,1,2)\end{gathered}$$</div><p class="step-caption">No prior knowledge &rarr; mass spread evenly. C links to A and B, so its vote splits in half.</p></div>
               <div class="e2e-step" data-step="1"><div class="step-formula">$$\mathrm{PR}_1(B)=\tfrac{0.15}{3}+0.85\big(\tfrac{0.3333}{1}+\tfrac{0.3333}{2}\big)$$</div><p class="step-caption"><strong>One node, in full.</strong> B's in-links are A (whole vote) and C (half), with \(\mathrm{PR}_0=0.3333\) substituted.</p></div>
-              <div class="e2e-step" data-step="2"><div class="step-formula">$$=0.05+0.85(0.3333+0.1667)=0.05+0.425=0.475$$</div><p class="step-caption"><strong>\(\mathrm{PR}_1(B)=0.475\).</strong> Teleport \(0.15/3=0.05\), plus damped in-link mass. Iterations 2&ndash;4 omitted &mdash; the same update repeated.</p></div>
-              <div class="e2e-step" data-step="3"><div class="step-formula">$$v_5 = (0.1993,\;0.4058,\;0.3949)$$</div><p class="step-caption"><strong>Settling.</strong> The vector oscillates with shrinking amplitude.</p></div>
+              <div class="e2e-step" data-step="2"><div class="step-formula">$$=0.05+0.85(0.3333+0.1667)=0.05+0.425=0.475$$</div><p class="step-caption"><strong>\(\mathrm{PR}_1(B)=0.475\).</strong> Teleport \(0.15/3=0.05\), plus damped in-link mass. Iterations 2&ndash;3 omitted &mdash; the same update repeated.</p></div>
+              <div class="e2e-step" data-step="3"><div class="step-formula">$$v_4 = (0.1993,\;0.4058,\;0.3949)$$</div><p class="step-caption"><strong>Settling.</strong> The components converge toward their limits, over- and under-shooting by less each step.</p></div>
               <div class="e2e-step" data-step="4"><div class="step-formula">$$v_{25} = (0.2148,\;0.3974,\;0.3878)$$</div><p class="step-caption"><strong>Converged.</strong> \(B\) is the authority: it has 2 in-links (from A and C).</p></div>
               <div class="e2e-step" data-step="5"><div class="step-formula">$$B\;0.3974 > C\;0.3878 > A\;0.2148$$</div><p class="step-caption"><strong>Result.</strong> Two in-links beat one &mdash; the link graph, not the text, decides.</p></div>
             </div>
@@ -1752,7 +1752,7 @@
               <div class="e2e-step" data-step="0"><div class="step-calc-row"><span class="matrix-label"><code>A&larr;C · B&larr;A,C · C&larr;B</code></span></div><p class="step-caption tiny">outdeg A=1, B=1, C=2.</p></div>
               <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label"><code>base = (1−0.85)/3 = 0.05</code></span></div></div>
               <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label is-highlight"><code>PR₁(B) = 0.05 + 0.425 = 0.475</code></span></div></div>
-              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label"><code>oscillating, shrinking</code></span></div></div>
+              <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label"><code>converging, damped</code></span></div></div>
               <div class="e2e-step" data-step="4"><div class="step-calc-row"><span class="matrix-label"><code>v₂₅ settled</code></span></div></div>
               <div class="e2e-step" data-step="5"><div class="step-calc-row"><span class="matrix-label is-highlight"><code>B 0.397 &gt; C 0.388 &gt; A 0.215</code></span></div></div>
             </div>
@@ -1762,7 +1762,7 @@
             <span class="e2e-stage-name">overview</span>
             <button type="button" class="e2e-toggle">Theory only</button>
           </div>
-          <aside class="slide-notes">Exact from the pagerank JSON, edges A to B, B to C, C to A, C to B, damping 0.85. Out-degrees: A 1, B 1, C 2, so C splits its vote in half between A and B. Power iteration repeatedly applies the update to the rank vector. Start uniform at one third each. One node worked in full for iteration 1: PR1(B) = (1−0.85)/3 + 0.85·(PR0(A)/1 + PR0(C)/2) = 0.05 + 0.85·(0.3333 + 0.1667) = 0.05 + 0.425 = 0.475, because B's in-links are A's whole vote plus half of C's. Iterations 2–4 are omitted — the same update repeated. The vector oscillates with decreasing amplitude — see iteration five — and after twenty-five iterations settles to A 0.2148, B 0.3974, C 0.3878. B wins because it has two in-links, from A and from C, while A and C have one each. The result depends entirely on the edge set; these are the exact numbers for these edges, not the plan's old hint.</aside>
+          <aside class="slide-notes">Exact from the pagerank JSON, edges A to B, B to C, C to A, C to B, damping 0.85. Out-degrees: A 1, B 1, C 2, so C splits its vote in half between A and B. Power iteration repeatedly applies the update to the rank vector. Start uniform at one third each. One node worked in full for iteration 1: PR1(B) = (1−0.85)/3 + 0.85·(PR0(A)/1 + PR0(C)/2) = 0.05 + 0.85·(0.3333 + 0.1667) = 0.05 + 0.425 = 0.475, because B's in-links are A's whole vote plus half of C's. Iterations 2–3 are omitted — the same update repeated. By iteration four the components converge toward their limits, over- and under-shooting by less each step, and after twenty-five iterations the vector settles to A 0.2148, B 0.3974, C 0.3878. B wins because it has two in-links, from A and from C, while A and C have one each. The result depends entirely on the edge set; these are the exact numbers for these edges, not the plan's old hint.</aside>
         </section>
 
         <!-- ============================================ 62 · VIZ · PageRank as a feature ============================================ -->
@@ -2021,7 +2021,7 @@
             <li><span class="ref-body"><span class="ref-authors">Maron, M. E. &amp; Kuhns, J. L.</span> · <span class="ref-title"><a href="https://doi.org/10.1145/321033.321035" target="_blank" rel="noopener">On Relevance, Probabilistic Indexing and Information Retrieval</a></span> · <span class="ref-venue">JACM</span></span><span class="ref-year">1960</span></li>
             <li><span class="ref-body"><span class="ref-authors">Spärck Jones, K.</span> · <span class="ref-title"><a href="https://doi.org/10.1108/eb026526" target="_blank" rel="noopener">A Statistical Interpretation of Term Specificity (idf)</a></span> · <span class="ref-venue">J. Documentation</span></span><span class="ref-year">1972</span></li>
             <li><span class="ref-body"><span class="ref-authors">Robertson, S. &amp; Spärck Jones, K.</span> · <span class="ref-title"><a href="https://doi.org/10.1002/asi.4630270302" target="_blank" rel="noopener">Relevance Weighting of Search Terms (BIM / RSJ weight)</a></span> · <span class="ref-venue">JASIS</span></span><span class="ref-year">1976</span></li>
-            <li><span class="ref-body"><span class="ref-authors">Robertson, S.</span> · <span class="ref-title"><a href="https://doi.org/10.1108/eb026690" target="_blank" rel="noopener">The 2-Poisson Model &amp; Eliteness</a></span> · <span class="ref-venue">J. Documentation</span></span><span class="ref-year">1981</span></li>
+            <li><span class="ref-body"><span class="ref-authors">Robertson, van Rijsbergen &amp; Porter</span> · <span class="ref-title"><a href="https://dblp.org/rec/conf/sigir/RobertsonRP80.html" target="_blank" rel="noopener">Probabilistic Models of Indexing and Searching</a></span> · <span class="ref-venue">Information Retrieval Research (Butterworths)</span></span><span class="ref-year">1981</span></li>
           </ol>
           <aside class="slide-notes">Appendix after the payoff, part 1 — the early probabilistic-relevance lineage behind BM25. Maron and Kuhns 1960 seed probabilistic IR; Spärck Jones 1972 is the origin of idf; Robertson and Spärck Jones 1976 give the BIM and the RSJ weight (BM1); Robertson 1981 is the two-Poisson eliteness model that justifies saturation.</aside>
         </section>
