@@ -767,7 +767,7 @@ def l7_book_claims():
         # callbacks (reused data files): L4 recall@3 0.25; BEIR 0.43/0.38; MS MARCO 0.187/0.33
         C("L7 cb recall@3", METRICS["recallAtK"]["3"],  r"recall@3 = ([\d.]+), recall"),
         C("L7 cb BEIR bm25", BENCH["beir"]["BM25"],     r"BM25 reaches nDCG@10 = ([\d.]+) and"),
-        C("L7 cb BEIR dpr",  BENCH["beir"]["denseDPR"], r"denseDPR only ([\d.]+)</strong>"),
+        C("L7 cb BEIR dpr",  BENCH["beir"]["denseDPR"], r"dense DPR only ([\d.]+)</strong>"),
         C("L7 cb MM bm25",   BENCH["msmarco"]["BM25"],     r"BM25&amp;rsquo;s ([\d.]+)\."),
         C("L7 cb MM dpr",    BENCH["msmarco"]["denseDPR"], r"MRR@10 of ([\d.]+) beats"),
     ]
