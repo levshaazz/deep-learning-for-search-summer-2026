@@ -1,7 +1,7 @@
 <section class="slide" data-type="table" data-screen-label="24 Table · Cascade stages">
           <div class="slide-header">
             <h2>The cascade as a table</h2>
-            <span class="slide-kicker">L0 / L1 / L2 — job, cost, set size</span>
+            <span class="slide-kicker">Stage 0 / 1 / 2 — job, cost, set size</span>
           </div>
 
           <table class="cmp-table">
@@ -16,21 +16,21 @@
             </thead>
             <tbody>
               <tr>
-                <td>L0 retrieval</td>
+                <td>Stage 0 · retrieval</td>
                 <td class="cell-meh">candidate-gen · BM25 / ANN</td>
                 <td class="cell-good">very cheap</td>
                 <td>millions → \(\sim 10^{3}\)</td>
                 <td class="cell-good">recall</td>
               </tr>
               <tr>
-                <td>L1 ranking</td>
+                <td>Stage 1 · ranking</td>
                 <td class="cell-meh">GBDT / LTR, many features</td>
                 <td class="cell-meh">moderate</td>
                 <td>\(\sim 10^{3} \to 10^{2}\)</td>
                 <td class="cell-meh">order quality</td>
               </tr>
               <tr>
-                <td>L2 re-rank</td>
+                <td>Stage 2 · re-rank</td>
                 <td class="cell-meh">cross-encoder + rules</td>
                 <td class="cell-bad">expensive</td>
                 <td>\(\sim 10^{2} \to 10\)</td>
@@ -40,10 +40,10 @@
           </table>
 
           <p class="small muted center mt-3">
-            YouTube (Covington 2016): candidate-gen millions → hundreds, ranking ~\(10^{9}\) params, serving in <em>tens of ms</em>. MS&nbsp;MARCO: a BERT cross-encoder lifted MRR <strong>16.7 → 36.5</strong>, but only feasible on a ~100-doc shortlist.
+            YouTube (Covington 2016): candidate-gen millions → hundreds, then a compact dense ranking tower over large embedding tables, serving in <em>tens of ms</em>. MS&nbsp;MARCO: a BERT cross-encoder lifted MRR <strong>16.7 → 36.5</strong>, but only feasible on a ~100-doc shortlist.
           </p>
 
-          <aside class="slide-notes">Concrete numbers anchor the abstraction. YouTube's two-stage system (Covington et al., RecSys 2016) is the canonical example — candidate generation shrinks millions to hundreds, then a heavy ranker with ~\(10^{9}\) parameters scores the survivors, all under tens of milliseconds. MS MARCO shows the precision payoff of L2: Nogueira &amp; Cho's BERT re-ranker more than doubled MRR, but attention is quadratic, so it is only affordable on the shortlist the cascade hands it.</aside>
+          <aside class="slide-notes">Concrete numbers anchor the abstraction. YouTube's two-stage system (Covington et al., RecSys 2016) is the canonical example — candidate generation shrinks millions to hundreds, then a compact dense ranking tower (a few fully-connected ReLU layers over large sparse embedding tables) scores the survivors, all under tens of milliseconds. MS MARCO shows the precision payoff of Stage 2 (re-rank): Nogueira &amp; Cho's BERT re-ranker more than doubled MRR, but attention is quadratic, so it is only affordable on the shortlist the cascade hands it.</aside>
         </section>
 
         <!-- ============================================

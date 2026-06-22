@@ -296,16 +296,16 @@
   </div>
   <div class="def-card">
     <span class="def-tag">Definition · retrieval-augmented generation</span>
-    <div class="def-term">$$ \text{answer} \;=\; G\big(q,\; R_k(q)\big), \qquad R_k(q) \;=\; \operatorname*{top\text{-}k}_{d \in \mathcal{C}} \; \cos\!\big(\mathbf{e}_q,\, \mathbf{e}_d\big) $$</div>
+    <div class="def-term">$$ \text{answer} \;=\; G\big(q,\; R_k(q)\big), \qquad R_k(q) \;=\; \operatorname*{top\text{-}k}_{d \in \mathcal{C}} \; s\!\big(\mathbf{e}_q,\, \mathbf{e}_d\big) $$</div>
     <div class="def-body">
       <ul class="obj-list">
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>\(R_k(q)\)</strong> — the retriever returns the <em>k</em> chunks of corpus \(\mathcal{C}\) whose embeddings are most cosine-similar to the query's. This is everything from L3–L9: index, bi-encoder, cascade, ANN lanes.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>\(R_k(q)\)</strong> — the retriever returns the <em>k</em> chunks of corpus \(\mathcal{C}\) scored highest by a scorer \(s\) (in our toy, \(s=\cos\)). This \(s\) is everything from L3–L9: BM25, bi-encoder, ColBERT MaxSim, cross-encoder cascade, ANN lanes.</span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>\(G(\cdot)\)</strong> — the generator (an LLM) reads the query <em>and</em> the retrieved chunks, and writes an answer grounded in them, with citations.</span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">The whole lecture is two questions about this equation: what goes <em>into</em> \(R_k\) (chunking, indexing, query translation, routing), and how to make \(R_k\) and \(G\) more reliable (re-rank, self-correction).</span></li>
       </ul>
     </div>
   </div>
-  <aside class="slide-notes">RAG-loop-formally. answer = G(q, R_k(q)); R_k = top-k by cosine. R_k is everything from L3–L9 (retrieval upstream). G is the LLM. Frames the whole lecture: improve what feeds R_k, and make R_k + G reliable.</aside>
+  <aside class="slide-notes">RAG-loop-formally. answer = G(q, R_k(q)); R_k = top-k by a general scorer s (toy: s = cosine). s is everything from L3–L9 (BM25/dense/ColBERT/cascade, retrieval upstream). G is the LLM. Frames the whole lecture: improve what feeds R_k, and make R_k + G reliable.</aside>
 </section>
 <section class="slide" data-type="archflow" data-max-step="3" data-current-step="0" data-screen-label="11 Climb · RAG pipeline">
   <div class="slide-header">
@@ -589,7 +589,7 @@
 
         <!-- ROW 3 · overlap 150 → 17 chunks, recall 1 (storage cost) -->
         <g data-step="3">
-          <text x="20" y="402" font-size="18" font-weight="700" fill="var(--ink-2)">overlap=150<tspan font-size="16" font-weight="400" fill="var(--ink-3)">  ·  17 chunks</tspan></text>
+          <text x="20" y="402" font-size="18" font-weight="700" fill="var(--ink-2)">overlap=150<tspan font-size="16" font-weight="400" fill="var(--ink-3)">  ·  17 chunks</tspan><tspan font-size="13" font-weight="400" font-style="italic" fill="var(--ink-3)">  (subset shown)</tspan></text>
           <rect x="61"   y="412" width="274" height="34" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.2" opacity="0.92"/>
           <rect x="130"  y="412" width="274" height="34" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.2" opacity="0.92"/>
           <rect x="199"  y="412" width="274" height="34" rx="5" fill="var(--bg-inset)" stroke="var(--rule-strong)" stroke-width="1.2" opacity="0.92"/>
@@ -1293,11 +1293,11 @@ WHERE indexed_at >= date_trunc(
 <section class="slide" data-type="formula" data-screen-label="45 Re-rank, by hand">
   <div class="slide-header">
     <h2>Why the metric jumps — by hand</h2>
-    <span class="slide-kicker">nDCG = DCG / IDCG · the only relevant doc has gain 3</span>
+    <span class="slide-kicker">nDCG = DCG / IDCG · two graded docs: the answer (gain 3) and a partially-relevant doc (gain 1)</span>
   </div>
   <div class="formula-stage">
     $$ \text{DCG} = \sum_i \frac{\text{gain}_i}{\log_2(i+1)}, \qquad \text{nDCG} = \frac{\text{DCG}}{\text{IDCG}} $$
-    $$ \text{before (relevant doc at rank 4): } \text{nDCG@5} = \frac{3/\log_2(5)}{3/\log_2(2)+1/\log_2(3)} \;<\; 0.5 $$
+    $$ \text{before (gain-3 answer at rank 4): } \text{nDCG@5} = \frac{1/\log_2(4)+3/\log_2(5)}{3/\log_2(2)+1/\log_2(3)} \;<\; 0.5 $$
     $$ \text{after (relevant doc at rank 1): } \text{nDCG@5} = \frac{\text{IDCG}}{\text{IDCG}} = \mathbf{1.0} $$
   </div>
   <p class="small muted center mt-2">Discounted gain falls fast with rank, so burying the gain-3 doc at rank 4 wastes most of it (nDCG below half). Lift it to rank 1 and the order is <em>ideal</em> — nDCG@5 = <strong>1.0</strong>. The cross-encoder didn't find a new doc; it just put the right one on top.</p>

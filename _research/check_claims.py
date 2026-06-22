@@ -35,8 +35,15 @@ DECKS = {
 def load(base, name):
     return json.load(open(base / name))
 
-def num(s):  # parse a displayed number: U+2212 minus, thousands spaces/commas, trailing dot
-    s = s.replace("−", "-").replace(",", "").replace(" ", "")
+def num(s):  # parse a displayed number: U+2212 minus, KaTeX/RU decimal comma, EN thousands, trailing dot
+    s = s.replace("−", "-").replace("{,}", ".").strip()      # KaTeX decimal comma  0{,}5 → 0.5
+    s = re.sub(r"[\s  ]", "", s)                   # thousands spaces (incl. nbsp / thin space)
+    if "." in s and "," in s:                                # EN "1,234.56": comma = thousands, dot = decimal
+        s = s.replace(",", "")
+    elif re.fullmatch(r"-?[1-9]\d{0,2}(?:,\d{3})+", s):      # pure thousands-grouped integer  "94,287" → 94287
+        s = s.replace(",", "")
+    else:                                                    # RU decimal comma  "0,75" / "2,3" → 0.75 / 2.3
+        s = s.replace(",", ".")
     s = re.sub(r"\.+$", "", s)
     return float(s)
 
@@ -870,11 +877,13 @@ def l4_claims():
              anchor=r"\\Rightarrow\\; p = "+N+r"\$\$", must=True),
         dict(id="L4 AB lift",  deck="L4", value=ONLINE["abTest"]["relativeLiftPct"], tol=1e-3,
              anchor=r"\\frac\{0\.012\}\{0\.12\} = (\d+)\\%", must=True),
-        # interleaving: team-draft totals A=9, B=17
+        # interleaving: team-draft totals A=9, B=16; preference 16/25 = 0.64 (B wins via clicks, canonical 3/3 draft)
         dict(id="L4 IL totA",  deck="L4", value=ONLINE["interleaving"]["totalCreditA"], tol=0,
-             anchor=r"over 5 queries: \} A=(\d+),\\ B=17", must=True),
+             anchor=r"over 5 queries: \} A=(\d+),\\ B=16", must=True),
         dict(id="L4 IL totB",  deck="L4", value=ONLINE["interleaving"]["totalCreditB"], tol=0,
              anchor=r"over 5 queries: \} A=9,\\ B=(\d+)", must=True),
+        dict(id="L4 IL pref",  deck="L4", value=ONLINE["interleaving"]["preferenceForB"], tol=0.001,
+             anchor=r"\\frac\{16\}\{9\+16\} = ([\d.]+)", must=True),
     ]
 
 # ── L5 'Map of Meaning' [C] claims: every flagship embedding/dim-red number == data/l5-*.json ─────
@@ -1187,12 +1196,21 @@ COVERAGE_BASELINE = {
     # displayed-but-shared numbers (deck:L2 0.31, deck:L3 0.8798≈0.88, deck:L4 0.6538/0.654/0.88, deck:L5
     # 0.3098≈0.31, book:L1/L6 0.92) → those un-gated counts dropped, ratchet lowered to match (strictly
     # stronger; never raised). New units L11/L12 stay at 0 via .get(surf, 0).
-    "deck:L0": 0, "deck:L1": 1, "deck:L2": 5, "deck:L3": 46, "deck:L4": 33, "deck:L5": 47, "deck:L6": 29,
-    "book:L0": 0, "book:L1": 0, "book:L2": 7,  "book:L3": 12, "book:L4": 19, "book:L5": 12, "book:L6": 6,
+    # RE-BASELINED after the num()/_COV_DEC comma-awareness upgrade (2026-06): the gate now SEES RU/TT
+    # decimal-commas (0,6931) as well as dots, so the trilingual Book's grounded numbers are watched on
+    # BOTH the EN (dot) and RU/TT (comma) surfaces (strictly more coverage). The RU decimal-comma SWEEP is
+    # count-NEUTRAL for the Book (a swept 0.92→0,92 stays counted), so book:L3-L6 are unchanged; the small
+    # shifts are deck RU-span commas now made visible (deck:L2 +1, deck:L3 +3, book:L2 +1 grandfathered, same
+    # status as their EN twins) and num() resolving a few to covered (deck:L5 −2, deck:L6 −3 — TIGHTENED).
+    # FURTHER TIGHTENED (2026-06): gating preferenceForB (L4 IL pref = 0.64) now covers a previously-ungated
+    # 0.64-ish number in book:L4 (19->18) and deck:L6 (26->25) — strictly stronger (a [C] claim now pins them).
+    "deck:L0": 0, "deck:L1": 1, "deck:L2": 6, "deck:L3": 49, "deck:L4": 33, "deck:L5": 45, "deck:L6": 25,
+    "book:L0": 0, "book:L1": 0, "book:L2": 8,  "book:L3": 12, "book:L4": 18, "book:L5": 12, "book:L6": 6,
 }
-_COV_DEC   = re.compile(r'(?<![\d.])\d+\.\d{2,}(?!\d)')   # grounded signature: a decimal, ≥2 fractional digits
-_COV_ARXIV = re.compile(r'^\d{4}\.\d{4,}$')               # arXiv id (e.g. 1901.04085) — not data
-_COV_DATE  = re.compile(r'^0\d+\.')                       # leading-zero date (e.g. 03.06) — not data
+_COV_DEC   = re.compile(r'(?<![\d.,])\d+[.,]\d{2,}(?!\d)')# grounded signature: a decimal (dot OR RU comma), ≥2 fractional digits
+_COV_ARXIV = re.compile(r'^\d{4}[.,]\d{4,}$')             # arXiv id (e.g. 1901.04085) — not data
+_COV_DATE  = re.compile(r'^0\d+[.,]')                     # leading-zero date (e.g. 03.06) — not data
+_COV_THOU  = re.compile(r'^[1-9]\d{0,2}(,\d{3})+$')       # thousands-grouped integer (e.g. 94,287 / 10,000) — not a decimal
 
 def _coverage_visible(html):
     t = re.sub(r'<aside class="slide-notes".*?</aside>', ' ', html, flags=re.S)   # speaker notes: not shown
@@ -1203,9 +1221,9 @@ def _coverage_uncovered(html, gated):
     out = set()
     for m in _COV_DEC.finditer(_coverage_visible(html)):
         s = m.group()
-        if _COV_ARXIV.match(s) or _COV_DATE.match(s):
+        if _COV_ARXIV.match(s) or _COV_DATE.match(s) or _COV_THOU.match(s):
             continue
-        d = float(s)
+        d = num(s)                                           # num() parses dot, RU comma, and KaTeX {,} alike
         if not any(abs(d - v) <= max(tol, 0.001) for v, tol in gated):
             out.add(s)
     return out
@@ -2158,6 +2176,11 @@ def main():
     return 1 if hard else 0
 
 def selftest():
+    # num(): RU decimal comma, KaTeX {,}, and EN thousands all parse (gate is comma-aware for the trilingual Book).
+    assert num("0,75") == 0.75 and num("0{,}75") == 0.75 and num("2,3") == 2.3, "num: RU decimal comma"
+    assert num("0,6931") == 0.6931 and num("0,667") == 0.667, "num: comma decimal incl. leading-zero (not thousands)"
+    assert num("94,287") == 94287 and num("10,000") == 10000 and num("1,234.56") == 1234.56, "num: EN thousands-comma"
+    print("[selftest:num] RU comma / KaTeX {,} / EN thousands all parse ✓")
     # §2.4: a deck snippet with a WRONG β must flag DRIFT against data/.
     bad = 'fill="var(--ink-2)">β ≈ 0.42 — measured</text>'
     c = next(x for x in claims() if x["id"] == "heaps β")

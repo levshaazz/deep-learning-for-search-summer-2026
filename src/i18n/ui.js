@@ -44,7 +44,7 @@ export const ui = {
       ru: 'Библиография курса · каждая цитируемая работа · сгруппирована по областям · с реальной ссылкой и пояснением',
       tt: 'Курс библиографиясе · һәр китерелгән хезмәт · өлкәләр буенча төркемләнгән · реаль сылтама һәм ни өчен кирәклеге белән',
     },
-    playground: { en: 'Playground — drive the algorithms', ru: 'Площадка — управляй алгоритмами', tt: 'Мәйдан — алгоритмнарны идарә ит' },
+    playground: { en: 'Playground — drive the algorithms', ru: 'Площадка — управляй алгоритмами', tt: 'Мәйдан — алгоритмнарга идарә ит' },
     playgroundKicker: {
       en: 'The course lab · every interactive figure in free-play · step / scrub / press play · filter by lecture or topic',
       ru: 'Лаборатория курса · каждая интерактивная фигура в свободном режиме · шаг / перемотка / запуск · фильтр по лекции или теме',
@@ -53,7 +53,7 @@ export const ui = {
     playgroundIntro: {
       en: 'This is the lab. Each card is one of the course’s ~35 interactive figures, freed from the scrolling story — step through it, scrub the slider, or press play to watch the algorithm run. The figures are the same ones that appear in the Book; here you drive them yourself.',
       ru: 'Это лаборатория. Каждая карточка — одна из ~35 интерактивных фигур курса, освобождённая от скролл-истории — пройди по шагам, перемотай ползунок или нажми play, чтобы увидеть работу алгоритма. Это те же фигуры, что в Книге; здесь ты управляешь ими сам.',
-      tt: 'Бу — лаборатория. Әр карта — курсның ~35 интерактив фигурасыннан берсе, скролл-хикәядән аерылган — адымлап уз, тыштаны сөйрә, яки алгоритм эшләвен күрер өчен play бас. Болар — Китаптагы шул үк фигуралар; биредә аларны үзең идарә итәсең.',
+      tt: 'Бу — лаборатория. Һәр карта — курсның ~35 интерактив фигурасыннан берсе, скролл-хикәядән аерылган — адымлап уз, йөгерткечне (слайдерны) сөйрә, яки алгоритм эшләвен күрер өчен play бас. Болар — Китаптагы шул үк фигуралар; биредә аларга үзең идарә итәсең.',
     },
     book: { en: 'The Book', ru: 'Книга', tt: 'Китап' },
     bookKicker: {
@@ -124,7 +124,7 @@ export const ui = {
   // CONCEPT topic names — mirror src/lib/playground.js TOPICS (kept here so the G3 coverage gate,
   // which scans ui.js, reports topic-name translation completeness). Keyed by the topic `id`.
   playgroundTopics: {
-    foundations: { en: 'Foundations & the IR spine', ru: 'Основы и каркас IR', tt: 'Нигезләр һәм IR кылыч сөяге' },
+    foundations: { en: 'Foundations & the IR spine', ru: 'Основы и каркас IR', tt: 'Нигезләр һәм IR умыртка сөяге' },
     tokenization: { en: 'Tokenization & text', ru: 'Токенизация и текст', tt: 'Токенлаштыру һәм текст' },
     retrieval: { en: 'Classical retrieval & ranking', ru: 'Классический поиск и ранжирование', tt: 'Классик эзләү һәм ранжлау' },
     embeddings: { en: 'Embeddings & geometry', ru: 'Эмбеддинги и геометрия', tt: 'Эмбеддинглар һәм геометрия' },

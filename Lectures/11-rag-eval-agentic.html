@@ -230,7 +230,7 @@
   <ul class="obj-list">
     <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong>Choose pointwise vs pairwise</strong> and reference-free vs reference-based judging — and say why a side-by-side verdict drifts less than an absolute score.</span></li>
     <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong>Name the judge's biases</strong> — position, verbosity, self-enhancement — and explain the Goodhart flip: over-weight length and the worse, verbose answer wins.</span></li>
-    <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong>Read measured biases</strong> on a real frozen judge — accurate when quality is clear (1.0), but anchored to the first slot on a tie (0.6667) and always preferring the longer answer (1.0).</span></li>
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong>Read measured biases</strong> on a real frozen judge — accurate when quality is clear (1.0), but anchored to the first slot on a tie (0.6667) and preferring the longer answer on every trial of our probe (1.0).</span></li>
     <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong>Trace the agentic loop</strong> — ReAct's Thought / Action / Observation cycle solving a two-hop question, and place Self-RAG &amp; CRAG as its structured cousins.</span></li>
     <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong>State Goodhart's law</strong> — when a measure becomes a target it ceases to be a good measure (callback L1 &rarr; L4) — and audit a judge before you trust it.</span></li>
   </ul>
@@ -657,7 +657,7 @@
     <div class="misc-label">What students think</div>
     <p class="misc-statement">&ldquo;We optimised our system against the LLM-judge score and it rose from 4.0 to 4.25 — so the new answers are better.&rdquo;</p>
     <button class="misc-reveal-btn" type="button">Reveal truth</button>
-    <div class="misc-truth">Watch the flip. An <strong>honest</strong> judge prefers the genuinely better answer: A scores 4.3333, the padded answer C only 4.0. Now over-weight &ldquo;completeness&rdquo; &mdash; a stand-in for length &mdash; and C climbs to <strong>4.25</strong> while A sits at <strong>4.0</strong>: the worse, verbose answer <em>wins</em>. Nothing about C got truer; we just rewarded length, and the system learned to pad. The moment a measure becomes a target, it stops measuring quality. <strong>Goodhart</strong> isn't a hypothetical &mdash; he is what every leaderboard climb risks becoming.</div>
+    <div class="misc-truth">Watch the flip, on a fresh pair of candidates (not the A/B from the rubric example): an honest answer A and a padded answer C. An <strong>honest</strong> judge prefers the genuinely better answer: A scores 4.3333, the padded answer C only 4.0. Now over-weight &ldquo;completeness&rdquo; &mdash; a stand-in for length &mdash; and C climbs to <strong>4.25</strong> while A sits at <strong>4.0</strong>: the worse, verbose answer <em>wins</em>. Nothing about C got truer; we just rewarded length, and the system learned to pad. The moment a measure becomes a target, it stops measuring quality. <strong>Goodhart</strong> isn't a hypothetical &mdash; he is what every leaderboard climb risks becoming.</div>
   </div>
   <p class="small muted center mt-2">A rising score is necessary, not sufficient. Before you trust the climb, prove the judge wasn't the thing you optimised.</p>
   <aside class="slide-notes">catch-goodhart misconception — THE CLIMAX. l11-judge.goodhart: honest A 4.3333 > gamed C 4.0; length-biased C 4.25 > A 4.0 (the flip, both gated). The metric became a target. Goodhart illustration. This resolves the Measure-villain arc opened in L1.</aside>
@@ -672,7 +672,7 @@
     $$ \text{over-weight completeness } \times 2\ (\text{a proxy for length}): $$
     $$ A = \frac{5 + 5 + 2\cdot 3}{4} = \mathbf{4.0} \;<\; C = \frac{4 + 3 + 2\cdot 5}{4} = \mathbf{4.25} \;\Rightarrow\; \text{winner } C $$
   </div>
-  <p class="small muted center mt-2">Honest judging picks A (4.3333 &gt; 4.0). Now treat &ldquo;completeness&rdquo; as twice as important — a stand-in for rewarding length — and C, the padded answer, wins (<strong>4.25 &gt; 4.0</strong>). <strong>Nothing about C got truer; we just changed what the score rewards.</strong> The metric became a target — Goodhart in three lines of arithmetic.</p>
+  <p class="small muted center mt-2">A fresh pair of candidates here (not the A/B from the rubric slide): an honest answer A and a padded answer C. Honest judging picks A (4.3333 &gt; 4.0). Now treat &ldquo;completeness&rdquo; as twice as important — a stand-in for rewarding length — and C, the padded answer, wins (<strong>4.25 &gt; 4.0</strong>). <strong>Nothing about C got truer; we just changed what the score rewards.</strong> The metric became a target — Goodhart in three lines of arithmetic.</p>
   <aside class="slide-notes">goodhart-flip by-hand. l11-judge.goodhart: goodScores [5,5,3]→honest A 4.3333, gamedScores [4,3,5]→C 4.0; length-biased (completeness ×2) A 4.0 < C 4.25 (all gated). The flip is the metric becoming a target. Three-line arithmetic version of the catch slide.</aside>
 </section>
 <section class="slide" data-type="formula" data-screen-label="27 Position bias, measured">
@@ -696,10 +696,10 @@
     <span class="slide-kicker">the killer empirical finding · llama3.1:8b</span>
   </div>
   <div class="formula-stage">
-    $$ \text{verbosity-preference rate} = \frac{\#\{\text{picks the longer answer}\}}{\#\{\text{length-matched pairs}\}} = \frac{10}{10} = \mathbf{1.0} $$
+    $$ \text{verbosity-preference rate} = \frac{\#\{\text{picks the longer answer}\}}{\#\{\text{trials}\}} = \frac{10}{10} = \mathbf{1.0} $$
     $$ \text{across } 5 \text{ paired prompts} \times 2 \text{ orderings} = 10 \text{ trials},\ \text{the longer answer won } \textbf{every} \text{ time} $$
   </div>
-  <p class="small muted center mt-2">Held content quality fixed and only varied length: the real judge preferred the <strong>longer</strong> answer in <strong>10 of 10</strong> trials — a perfect <strong>1.0</strong>. This is Goodhart made measurable: optimise against this judge and your model learns one lesson — <em>write more</em>. Padding is a free win. It is the single most dangerous bias because it rewards exactly the behaviour that erodes a good search answer.</p>
+  <p class="small muted center mt-2">Held content quality fixed and only varied length: re-measured on a small open judge, it preferred the <strong>longer</strong> answer in <strong>10 of 10</strong> trials (5 prompts &times; 2 orderings) — a perfect <strong>1.0</strong> on this probe. Verbosity bias is a strong tendency, not literally always; but here it is Goodhart made measurable: optimise against this judge and your model learns one lesson — <em>write more</em>. Padding is a free win. It is the single most dangerous bias because it rewards exactly the behaviour that erodes a good search answer.</p>
   <aside class="slide-notes">verbosity-bias, measured — THE killer finding (Saito et al. 2023, arXiv:2310.10076 names it). l11-judge.real: verbosityPreferenceRate 1.0, verbosityLongerWins 10 (5 prompts × 2 orderings), gated. Longer wins EVERY time → optimising the judge teaches the model to pad. This is the concrete Goodhart mechanism.</aside>
 </section>
 <section class="slide" data-type="default" data-screen-label="29 The judge's other biases">
