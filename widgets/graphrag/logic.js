@@ -127,17 +127,34 @@ export const mountGraphrag = defineWidget({
         el('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, class: 'gr-edge-line', 'marker-end': 'url(#gr-ar)' }, g);
       }
       // relation label: at the edge midpoint, nudged perpendicular to the line, with a white halo so
-      // it stays readable where it would otherwise sit on the stroke.
+      // it stays readable where it would otherwise sit on the stroke. Positions are COMPUTED here and
+      // de-collided below (the text is drawn after) so two midpoint labels can never overprint.
       const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
       const ex = b.x - a.x, ey = b.y - a.y;
       const len = Math.max(1e-6, Math.hypot(ex, ey));
       // push the label farther off SHORT edges so it clears the node band instead of being
       // overrun by an adjacent box (e.g. the short Dana→MIT 'studied at' label tucking under MIT).
       const off = len < 90 ? 9 + (90 - len) * 0.6 : 9;
-      const lx = mx - (ey / len) * off, ly = my + (ex / len) * off;
-      el('text', { x: lx, y: ly + 3, class: 'gr-edge-lbl', 'text-anchor': 'middle' }, g)
-        .textContent = String(rel || '').replace(/_/g, ' ');
-      return { g, subj, rel, obj };
+      const text = String(rel || '').replace(/_/g, ' ');
+      return { g, subj, rel, obj, text, lx: mx - (ey / len) * off, ly: my + (ex / len) * off };
+    });
+    // AUTO-LAYOUT (the placeLabels idea applied to edge-midpoint labels): relax any two relation
+    // labels that overlap horizontally apart in y, so an overprint cannot be authored even when two
+    // edges route their offset labels close (e.g. 'studied at' vs 'located in'). Pure number relaxation.
+    const GMINGAP = 15, GCHARW = 5.6;
+    for (let it = 0; it < 80; it++) {
+      for (let i = 0; i < edgeEls.length; i++) for (let j = i + 1; j < edgeEls.length; j++) {
+        const A = edgeEls[i], B = edgeEls[j];
+        // two middle-anchored labels overlap in x iff |lx_A - lx_B| < (wA + wB)/2
+        const sumHalfW = (A.text.length + B.text.length) * GCHARW / 2 + 3;
+        if (Math.abs(A.lx - B.lx) > sumHalfW) continue;         // no horizontal overlap → leave them
+        const oy = GMINGAP - Math.abs(A.ly - B.ly);
+        if (oy > 0) { const d = A.ly <= B.ly ? -1 : 1; A.ly += d * (oy / 2 + 0.3); B.ly -= d * (oy / 2 + 0.3); }
+      }
+    }
+    edgeEls.forEach((e) => {
+      el('text', { x: e.lx, y: e.ly + 3, class: 'gr-edge-lbl', 'text-anchor': 'middle' }, e.g)
+        .textContent = e.text;
     });
 
     // nodes on top.
