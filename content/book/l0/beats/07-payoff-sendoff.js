@@ -8,7 +8,7 @@
         tt: 'Капитан Серёга озату сүзе белән Мәгълүмат Галактикасы өстендә факел күтәрә; курс башлана.',
       },
       imgCaption: {
-        en: 'The captain’s send-off — coordinates set, hatch open. See you out in the galaxy.',
+        en: "The captain's send-off — coordinates set, hatch open. See you out in the galaxy.",
         ru: 'Напутствие капитана — координаты заданы, люк открыт. Увидимся там, в галактике.',
         tt: 'Капитанның озату сүзе — координаталар билгеләнгән, люк ачык. Галактикада очрашырбыз.',
       },
