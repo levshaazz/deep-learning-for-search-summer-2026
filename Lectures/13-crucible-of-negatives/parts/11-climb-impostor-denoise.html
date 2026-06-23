@@ -1,0 +1,100 @@
+<section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="11 Climb &middot; impostor-denoise">
+  <div class="slide-header">
+    <h2>The impostor &amp; denoising &mdash; the second axis</h2>
+    <span class="slide-kicker">step (&larr;/&rarr;): the cos(&middot;,d&#8314;) axis &rarr; pushing n&#8325; drags d&#8314; &rarr; why &rarr; denoise recovers</span>
+  </div>
+  <div class="widget-mount" data-widget="impostor-denoise"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "spine": {
+      "positive": {
+        "id": "dPlus",
+        "label": "true positive",
+        "cosQ": 0.82
+      },
+      "lineup": [
+        {
+          "id": "n1",
+          "label": "random",
+          "cosQ": 0.05,
+          "cosPos": 0.03,
+          "band": "easy",
+          "isFalse": false
+        },
+        {
+          "id": "n2",
+          "label": "in-batch",
+          "cosQ": 0.41,
+          "cosPos": 0.37,
+          "band": "semi",
+          "isFalse": false
+        },
+        {
+          "id": "n3",
+          "label": "BM25-hard",
+          "cosQ": 0.63,
+          "cosPos": 0.34,
+          "band": "hard",
+          "isFalse": false
+        },
+        {
+          "id": "n4",
+          "label": "dynamic-hard",
+          "cosQ": 0.75,
+          "cosPos": 0.31,
+          "band": "hard",
+          "isFalse": false
+        },
+        {
+          "id": "n5",
+          "label": "impostor",
+          "cosQ": 0.79,
+          "cosPos": 0.8,
+          "band": "hard",
+          "isFalse": true
+        }
+      ]
+    },
+    "recallAt10": {
+      "random": {
+        "mean": 0.62,
+        "std": 0.033
+      },
+      "inbatch": {
+        "mean": 0.645,
+        "std": 0.037
+      },
+      "bm25": {
+        "mean": 0.625,
+        "std": 0.037
+      },
+      "undenoised": {
+        "mean": 0.411,
+        "std": 0.03
+      },
+      "denoised": {
+        "mean": 0.783,
+        "std": 0.039
+      }
+    }
+  },
+  "labels": {
+    "alt": "The cos(·,d⁺) collateral axis with n₄ safely far from the positive and n₅ inside its danger zone; pushing n₅ drags the positive so undenoised recall drops below in-batch, and a denoiser that filters n₅ restores it.",
+    "axisHead": "the second axis: cos(·, d⁺) — collateral danger",
+    "dangerLabel": "d⁺'s neighbourhood — pushing here drags the positive",
+    "recallHead": "recall@10 (measured, 20 seeds)",
+    "filteredLabel": "cross-encoder filters n₅",
+    "lbl_inbatch": "in-batch",
+    "lbl_undenoised": "+undenoised",
+    "lbl_denoised": "+denoised",
+    "s0": "Both n₄ and n₅ are equally hard to the query — the miner grabs both. But on the cos(·,d⁺) axis they split: n₄ is far from the positive and safe to push; n₅ sits right in d⁺'s neighbourhood — it is an unlabelled positive.",
+    "s1": "Mine both as negatives with no filter and push them away. Because n₅ lives right next to d⁺, pushing n₅ drags the true positive down with it — recall falls BELOW the in-batch baseline. This is the inversion.",
+    "s2": "Note what the miner could NOT see: on the hardness axis n₄ and n₅ are twins. The damage lives entirely on cos(·,d⁺) — a label property. A query-only view of 'hardness' is blind to the impostor.",
+    "s3": "Add a cross-encoder denoiser: it scores the mined candidates and strikes the suspected positive n₅, keeping the worthy-but-true n₄. Recall recovers — above in-batch and every other strategy."
+  }
+}
+  </script>
+  <p class="viz-caption">n&#8324; and n&#8325; are equally hard to the query, but on the <em>cos(&middot;,d&#8314;)</em> axis they split: n&#8324; is safe to push, n&#8325; sits in d&#8314;’s neighbourhood. Pushing the impostor drags the positive down; a denoiser that filters it restores recall.</p>
+  <aside class="slide-notes">impostor-denoise. The collateral axis cos(&middot;,d&#8314;): n&#8324; safe / n&#8325; in the danger zone; recall in-batch &rarr; +undenoised (drop) &rarr; +denoised (recover). Recall measured (20 seeds).</aside>
+</section>

@@ -1,0 +1,120 @@
+<section class="slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="10 Climb &middot; mining-comparator">
+  <div class="slide-header">
+    <h2>Mining strategies compared &mdash; the inversion, live</h2>
+    <span class="slide-kicker">step (&larr;/&rarr;): random &rarr; in-batch &rarr; BM25-static &rarr; undenoised (drops) &rarr; denoised (recovers)</span>
+  </div>
+  <div class="widget-mount" data-widget="mining-comparator"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "spine": {
+      "positive": {
+        "id": "dPlus",
+        "label": "true positive",
+        "cosQ": 0.82
+      },
+      "lineup": [
+        {
+          "id": "n1",
+          "label": "random",
+          "cosQ": 0.05,
+          "cosPos": 0.03,
+          "band": "easy",
+          "isFalse": false
+        },
+        {
+          "id": "n2",
+          "label": "in-batch",
+          "cosQ": 0.41,
+          "cosPos": 0.37,
+          "band": "semi",
+          "isFalse": false
+        },
+        {
+          "id": "n3",
+          "label": "BM25-hard",
+          "cosQ": 0.63,
+          "cosPos": 0.34,
+          "band": "hard",
+          "isFalse": false
+        },
+        {
+          "id": "n4",
+          "label": "dynamic-hard",
+          "cosQ": 0.75,
+          "cosPos": 0.31,
+          "band": "hard",
+          "isFalse": false
+        },
+        {
+          "id": "n5",
+          "label": "impostor",
+          "cosQ": 0.79,
+          "cosPos": 0.8,
+          "band": "hard",
+          "isFalse": true
+        }
+      ],
+      "minedByStrategy": {
+        "random": [
+          "n1"
+        ],
+        "inbatch": [
+          "n2"
+        ],
+        "bm25": [
+          "n3"
+        ],
+        "undenoised": [
+          "n4",
+          "n5"
+        ],
+        "denoised": [
+          "n4"
+        ]
+      }
+    },
+    "recallAt10": {
+      "random": {
+        "mean": 0.62,
+        "std": 0.033
+      },
+      "inbatch": {
+        "mean": 0.645,
+        "std": 0.037
+      },
+      "bm25": {
+        "mean": 0.625,
+        "std": 0.037
+      },
+      "undenoised": {
+        "mean": 0.411,
+        "std": 0.03
+      },
+      "denoised": {
+        "mean": 0.783,
+        "std": 0.039
+      }
+    }
+  },
+  "labels": {
+    "alt": "Each negative-mining strategy in turn: the candidate it surfaces from the pool and the recall@10 it yields, with an in-batch baseline line so the undenoised drop and the denoised recovery read as the RocketQA inversion.",
+    "poolHead": "the candidate pool (d⁺ must stay on top)",
+    "recallHead": "recall@10 (measured on the toy, 20 seeds)",
+    "refLabel": "in-batch baseline",
+    "strat_random": "random",
+    "strat_inbatch": "in-batch",
+    "strat_bm25": "BM25-static",
+    "strat_undenoised": "undenoised",
+    "strat_denoised": "denoised",
+    "s0": "Random negatives pull n₁ from far away — easy, almost no gradient. Recall sits at the baseline; the model barely learns a boundary from negatives this loose.",
+    "s1": "In-batch negatives reuse other queries' positives (n₂) for free — a touch harder, a touch better. This is the baseline every later strategy is measured against.",
+    "s2": "BM25-static hard negatives (n₃) are lexically close but FROZEN — model-independent, so they soon stop matching what the dense model actually confuses. Recall barely moves off the baseline.",
+    "s3": "The dynamic miner reaches for the model's own hardest near-misses — n₄ AND the impostor n₅. With no denoising it pushes n₅ (an unlabelled positive) away, dragging d⁺ down: recall DROPS below in-batch. This is the RocketQA inversion.",
+    "s4": "Add a denoiser: a cross-encoder filters the suspected positive n₅ out of the mined set, keeping the worthy-but-true n₄. Recall recovers — and now clears every other strategy."
+  }
+}
+  </script>
+  <p class="viz-caption">Each strategy surfaces a different negative and yields a different recall. The dynamic miner reaches for the impostor n&#8325; and recall falls below the in-batch baseline &mdash; the RocketQA inversion &mdash; until a denoiser filters it out.</p>
+  <aside class="slide-notes">mining-comparator (centerpiece). recall@10 bars per strategy with an in-batch reference line; undenoised drops below it, denoised recovers above. Recall measured on the toy (20 seeds); mined set from spine.minedByStrategy.</aside>
+</section>

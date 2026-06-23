@@ -1486,6 +1486,93 @@ JOBS = [
      "gesturing YOU through — the mapped deep-field behind, the Defense ahead. A warm, proud, send-off "
      "mood. Black ink + course-blue doorway-glow + warm-orange arrow; Serega's green tübetey is the ONLY "
      "green. No lettered title bar. Fills ≥85% width."),
+
+    # ── L13 "The Crucible of Negatives" (hard-negative mining for dense retrieval). Metaphor: Serega is a
+    #    BLADE forged in a crucible; negatives are sparring opponents. Forge/duel (00–11) pivots to the
+    #    master-smith / tutelage (12). NEW mascots: the Impostor (false negative) + the Sparring Ghosts
+    #    (stale negatives). hero (00) + final (14) feature Serega; Serega ratio 13/15 = 87%. ──
+    ("L13", "L13/L13-00-the-crucible.png", "16:9", True,
+     "HERO. Serega the host stands at a glowing forge gripping tongs that hold his own unfinished sword-blade "
+     "in the white-hot CRUCIBLE — sparks rising, resolve on his face, about to be tempered by the fight ahead. "
+     "Black ink + course-blue + warm-orange forge-glow; Serega's green tübetey is the ONLY green. No lettered "
+     "title bar. Fills ≥85% width."),
+    ("L13", "L13/L13-01-two-blades.png", "4:3", True,
+     "Serega holds up TWO sword-blades that look identical; the LEFT one slices a ribbon clean while the RIGHT "
+     "one bends limp and useless — same forge, same steel, only the sparring differed. Conveys 'same model, "
+     "very different result — the negatives decided it'. Black ink + course-blue + one warm-orange ribbon; "
+     "Serega's green tübetey is the ONLY green. No lettered title bar."),
+    ("L13", "L13/L13-02-empty-arena.png", "16:9", True,
+     "DIVIDER mood. Serega swings his blade at EMPTY air in a bare practice arena; with no opponent the edge "
+     "stays dull and unhoned, his swing collapsing inward — 'no negatives, nothing to push against, the "
+     "embedding collapses'. Black ink + course-blue arena + a faint warm-orange swing-arc; Serega's green "
+     "tübetey is the ONLY green. No lettered title bar."),
+    ("L13", "L13/L13-03-in-batch-arena.png", "4:3", True,
+     "Serega spars in a busy ring against a WHOLE ROW of free practice partners pulled from the same training "
+     "batch — each other fighter is somebody else's match, reused as his opponent for free (the in-batch grid). "
+     "Black ink + course-blue partners + warm-orange ring-rope; Serega's green tübetey is the ONLY green. No "
+     "lettered title bar."),
+    ("L13", "L13/L13-04-sir-cosine-hardness.png", "4:3", True,
+     "Sir Cosine — Serega dressed as the stick-figure knight (locked design) — stands on a glowing warm-orange "
+     "unit-arc and measures the ANGLE to THREE opponents: a far one (easy, wide angle), a mid one (semi-hard), "
+     "and a near one crowding his guard (hard, small angle). Conveys 'hardness = closeness in angle'. Black ink "
+     "+ course-blue + warm-orange arc; Sir Cosine's green cap is the ONLY green. No lettered title bar."),
+    ("L13", "L13/L13-05-shattered-blade.png", "4:3", True,
+     "Serega's blade SHATTERS into shards as he strikes an impossibly over-spiked monster-opponent head-on — "
+     "the very hardest negative breaks the training instead of sharpening it (FaceNet's collapse). His face: "
+     "alarm. Black ink + course-blue + warm-orange spark of the break; Serega's green tübetey is the ONLY "
+     "green. No lettered title bar."),
+    ("L13", "L13/L13-06-forge-path.png", "16:9", False,
+     "DIVIDER. A winding forge-PATH of milestone anvils marching forward into the distance, each anvil a stage "
+     "of the craft — a tiny pebble, then a wooden dummy, then a sparring partner, then a mirror, then a "
+     "filtered flame — showing the history of how opponents got chosen, with no figures present. NO Serega in "
+     "this scene, so NO green anywhere. Black ink + course-blue anvils + warm-orange path only. No lettered "
+     "title bar."),
+    ("L13", "L13/L13-07-mirror-opponent.png", "16:9", True,
+     "Serega faces his OWN reflection stepping out of a tall mirror to spar him — the model mining its own "
+     "current near-misses as opponents. The mirror-Serega is a faint course-blue echo (a reflection, not a "
+     "second character). Black ink + course-blue mirror + warm-orange glint; the real Serega's green tübetey "
+     "is the ONLY green, and the reflection carries no separate green. No lettered title bar."),
+    ("L13", "L13/L13-08-sparring-ghosts.png", "4:3", True,
+     "Serega has moved on to a fresh stance while the Sparring Ghosts — translucent faded after-images of "
+     "opponents he already beat — keep shadow-boxing an OLD position behind him, growing stale and easy "
+     "(negatives going stale between index refreshes). Black ink + faint course-blue ghosts + warm-orange "
+     "accent on Serega's fresh guard; Serega's green tübetey is the ONLY green. No lettered title bar."),
+    ("L13", "L13/L13-09-the-impostor.png", "4:3", True,
+     "Serega freezes mid-strike facing the Impostor — a masked duelist whose fencing mask is HALF-LIFTED to "
+     "reveal a friendly warm-orange plus-badge underneath: the 'enemy' he was about to push away is actually "
+     "an ally (an unlabelled positive). Serega's blade hesitates. Black ink + course-blue + warm-orange "
+     "plus-badge; Serega's green tübetey is the ONLY green, the Impostor is bare-headed with no green. No "
+     "lettered title bar."),
+    ("L13", "L13/L13-10-two-by-two.png", "4:3", False,
+     "A clean 2x2 quadrant chart drawn as a grid: the horizontal axis runs easy→hard (far opponent → "
+     "close-crowding opponent), the vertical axis runs true↔false (a plain fighter ↔ a masked plus-badge "
+     "ally); four small opponent-silhouettes sit one per cell, and the HARD-and-TRUE cell glows warm-orange as "
+     "the target. NO Serega in this scene, so NO green anywhere. Black ink + course-blue grid + warm-orange "
+     "target cell only. No lettered title bar."),
+    ("L13", "L13/L13-11-blade-dulls.png", "16:9", True,
+     "Serega strikes the Impostor — and his own keen blade visibly DULLS and chips from the blow, because "
+     "pushing away a hidden ally drags his true target with it; Goodhart the Trickster smirks in the corner, "
+     "pleased that a metric is being chased blind. Black ink + course-blue + a warm-orange chip-mark; Serega's "
+     "green tübetey is the ONLY green, while the Impostor and Goodhart are bare-headed with no green. No "
+     "lettered title bar."),
+    ("L13", "L13/L13-12-master-smith.png", "4:3", True,
+     "DIVIDER, mood shifts from duel to tutelage: a wise old master-smith (a bare-headed mentor figure) holds "
+     "Serega's blade up to the light and GRADES each of his practice blows on a small tally, teaching him by "
+     "degree instead of a blunt win/lose — the distillation teacher scoring soft margins. Serega watches as "
+     "the eager apprentice. Black ink + course-blue + warm-orange tally-marks; Serega's green tübetey is the "
+     "ONLY green, the master-smith is bare-headed with no green. No lettered title bar."),
+    ("L13", "L13/L13-13-modern-forge.png", "16:9", True,
+     "Serega works a modern TWIN-forge: on one side a vast furnace roaring with a huge crowd of sparks (a "
+     "massive in-batch of easy opponents, spreading the heat evenly), on the other a delicate pair of tongs "
+     "selecting just a FEW carefully-filtered glowing-hot sparks (a handful of mined, denoised hard negatives) "
+     "to fold into the edge. Black ink + course-blue + warm-orange sparks; Serega's green tübetey is the ONLY "
+     "green. No lettered title bar."),
+    ("L13", "L13/L13-14-true-edge.png", "16:9", True,
+     "FINAL. Serega raises the finished, keen TRUE-EDGED blade in a proud salute; behind him the worthy "
+     "opponents he trained against — including the unmasked Impostor and the faded Sparring Ghosts — give a "
+     "small respectful bow, and he gestures the path onward toward the next deep-dive. Warm, earned send-off. "
+     "Black ink + course-blue + warm-orange edge-gleam; Serega's green tübetey is the ONLY green. No lettered "
+     "title bar. Fills ≥85% width."),
 ]
 
 H = {"Authorization": f"Bearer {API_KEY}"}

@@ -242,6 +242,40 @@ MASCOTS = {
         "carries_green": False,
         "lectures": ["L5", "L6", "L9"],
     },
+
+    # ── NEW for L13 "The Crucible of Negatives" (locked 2026-06-23). The two characters the
+    #    hard-negative-mining story needs: the false negative wearing an enemy's mask, and the
+    #    stale negatives left behind between index refreshes. Both bare-headed, no green. ──
+    "impostor": {
+        "name": "the Impostor (Самозванец)",
+        "role": "the false negative — an unlabelled positive wearing an enemy's mask; the antagonist of hard-negative mining (L13)",
+        "appearance": (
+            "the Impostor is a masked duelist drawn as a course-blue stick figure in a fencing/sparring "
+            "stance, wearing a flat featureless fencing mask. The mask is HALF-LIFTED on one side to reveal, "
+            "underneath, a small friendly POSITIVE badge — a warm-orange plus-sign on the chest — showing it "
+            "was an ally all along (an unlabelled positive the miner mistook for an enemy). One warm-orange "
+            "accent on the revealed plus-badge. BARE-HEADED apart from the removable mask — no skullcap, no "
+            "green anywhere (course-blue body + black ink + one warm-orange badge)."
+        ),
+        "keywords": ["impostor"],
+        "carries_green": False,
+        "lectures": ["L13"],
+    },
+    "sparring_ghosts": {
+        "name": "the Sparring Ghosts (Призраки спарринга)",
+        "role": "stale negatives — opponents the blade already beat, lingering between index refreshes (ANCE staleness, L13)",
+        "appearance": (
+            "the Sparring Ghosts are translucent, faded duelist silhouettes drawn as thin dashed/ghosted "
+            "black-ink outlines with the off-white paper showing through (clearly see-through, no fill), each "
+            "frozen mid-lunge in a stale fighting pose — after-images of opponents already bested, still "
+            "shadow-boxing an old position while the real fight has moved on. A faint course-blue wash inside "
+            "the outlines marks them as 'stale'. BARE-HEADED, no green anywhere — dashed black ink + faint "
+            "course-blue only."
+        ),
+        "keywords": ["sparring ghost"],
+        "carries_green": False,
+        "lectures": ["L13"],
+    },
 }
 
 # Every lecture must feature Serega in at least this share of its plates (tightest current
