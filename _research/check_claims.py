@@ -154,6 +154,12 @@ CLIP12     = load(DATA, "l12-clip.json")     # toy CLIP cosine matrix diagonal 3
 ETHICS12   = load(DATA, "l12-ethics.json")   # framework + REAL hallucination demo (closed-book confabulates, grounded abstains)
 BENCH12    = load(DATA, "l12-bench.json")    # CITED: GraphRAG (2404.16130), CLIP (2103.00020), ColPali (2407.01449), HotpotQA (1809.09600)
 
+# ── L13 "The Crucible of Negatives" (deep-dive #1) — toy = measured over 20 seeds (gen_l13_negatives.py,
+#    frozen toolchain); bench = cited paper numbers (not reproduced). The deck's killer-ablation slide
+#    displays both, on separate axes. ──
+NEG13      = load(DATA, "l13-negatives.json") # toy recall@10: in-batch .645 → +undenoised .411 (drops) → +denoised .783 (RocketQA inversion, 20 seeds)
+BENCH13    = load(DATA, "l13-bench.json")     # CITED: DPR Table 3 (2004.04906), RocketQA ablation (2010.08191), ANCE (2007.00808), STAR/ADORE, TAS-B
+
 # frozen run-once Ollama artifacts (REAL measured numbers; provenance recomputes the data/ "real" blocks from these)
 def load_research(name):
     try:
@@ -538,7 +544,7 @@ def claims():
              anchor=r"\b(32\.3)\s*%", must=True),
         dict(id="top-3 %",   deck="L1", value=CLICK["top3Pct"], tol=0.2,
              anchor=r"\b(60\.6)\b", must=True),
-    ] + l3_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims() + l11_deck_claims() + l12_deck_claims()
+    ] + l3_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims() + l11_deck_claims() + l12_deck_claims() + l13_deck_claims()
 
 # ── [C] BOOK CLAIMS: the built Book PROSE must show the same flagship numbers as data/ ───────────
 # The Book restates the decks' worked examples in its own prose/KaTeX, so the deck anchors do NOT
@@ -2041,6 +2047,31 @@ def l12_deck_claims():
         # ── contrastive gap: matched mean 0.9944 vs mismatched 0.3791, gap 0.6153 (the punchline carved by the loss) ──
         C("L12 deck matched", CLIP12["matchedMeanCos"], r"matched <strong>([\d.]+)</strong> vs mi"),
         C("L12 deck gap",     CLIP12["contrastiveGap"], r"carved the <strong>([\d.]+)</strong> gap"),
+    ]
+
+
+# ── L13 "The Crucible of Negatives" deck claims: the killer-ablation slide shows DPR Table 3 (reported),
+#    the RocketQA inversion (reported), and our toy recall@10 (measured, 20 seeds). Each number is pinned
+#    by a UNIQUE preceding phrase + <strong> (generic ([\d.]+) capture → drift-robust). Values come from
+#    data/l13-bench.json (cited rows) and data/l13-negatives.json (measured recall). The 2–3-fractional
+#    decimals MUST be gated (the coverage-guard counts them on the NEW deck:L13 surface); DPR's 1-frac
+#    69.1/78.0 are coverage-safe but gated here too for correctness. ──
+def l13_deck_claims():
+    DPR, RQ, RC = BENCH13["dprTable3"], BENCH13["rocketqaAblation"], NEG13["recallAt10"]
+    C = lambda id, value, anchor, tol=0.005: dict(id=id, deck="L13", value=value, tol=tol, anchor=anchor, must=True)
+    return [
+        # DPR Table 3 (NQ top-20, reported) — negative selection, not architecture, is decisive
+        C("L13 deck dpr inbatch", DPR["goldInbatch"],    r"gold-7 in-batch <strong>([\d.]+)</strong>", 0.05),
+        C("L13 deck dpr bm25",    DPR["goldPlusBM25Best"], r"one BM25 hard negative <strong>([\d.]+)</strong>", 0.05),
+        # RocketQA ablation (MS MARCO MRR@10, reported) — the inversion + its cure
+        C("L13 deck rq inbatch",    RQ["inbatch"],            r"baseline in-batch <strong>([\d.]+)</strong>"),
+        C("L13 deck rq undenoised", RQ["plusUndenoisedHard"], r"undenoised hard negatives <strong>([\d.]+)</strong>"),
+        C("L13 deck rq denoised",   RQ["plusDenoisedHard"],   r"cross-encoder denoising <strong>([\d.]+)</strong>"),
+        C("L13 deck rq augment",    RQ["plusAugmentation"],   r"data augmentation <strong>([\d.]+)</strong>"),
+        # our toy (recall@10, measured over 20 seeds) — the same shape, reproduced
+        C("L13 deck toy inbatch",    RC["inbatch"]["mean"],    r"toy in-batch <strong>([\d.]+)</strong>"),
+        C("L13 deck toy undenoised", RC["undenoised"]["mean"], r"toy \+undenoised <strong>([\d.]+)</strong>"),
+        C("L13 deck toy denoised",   RC["denoised"]["mean"],   r"toy \+denoised <strong>([\d.]+)</strong>"),
     ]
 
 

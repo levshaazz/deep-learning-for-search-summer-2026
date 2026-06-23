@@ -1,0 +1,161 @@
+<section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="04 Climb &middot; infonce-calc">
+  <div class="slide-header">
+    <h2>InfoNCE by hand &mdash; read the loss off the lineup</h2>
+    <span class="slide-kicker">step (&larr;/&rarr;): the similarities &rarr; the softmax &rarr; sharpen with &tau; &rarr; the log&nbsp;N ceiling</span>
+  </div>
+  <div class="widget-mount" data-widget="infonce-calc"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "spine": {
+      "positive": {
+        "id": "dPlus",
+        "label": "true positive",
+        "cosQ": 0.82
+      },
+      "lineup": [
+        {
+          "id": "n1",
+          "label": "random",
+          "cosQ": 0.05,
+          "cosPos": 0.03,
+          "band": "easy",
+          "isFalse": false
+        },
+        {
+          "id": "n2",
+          "label": "in-batch",
+          "cosQ": 0.41,
+          "cosPos": 0.37,
+          "band": "semi",
+          "isFalse": false
+        },
+        {
+          "id": "n3",
+          "label": "BM25-hard",
+          "cosQ": 0.63,
+          "cosPos": 0.34,
+          "band": "hard",
+          "isFalse": false
+        },
+        {
+          "id": "n4",
+          "label": "dynamic-hard",
+          "cosQ": 0.75,
+          "cosPos": 0.31,
+          "band": "hard",
+          "isFalse": false
+        },
+        {
+          "id": "n5",
+          "label": "impostor",
+          "cosQ": 0.79,
+          "cosPos": 0.8,
+          "band": "hard",
+          "isFalse": true
+        }
+      ],
+      "taus": [
+        0.5,
+        0.2,
+        0.1,
+        0.05
+      ],
+      "infonce": [
+        {
+          "tau": 0.5,
+          "softmax": [
+            0.241,
+            0.0517,
+            0.1061,
+            0.1648,
+            0.2095,
+            0.2269
+          ],
+          "pPos": 0.241,
+          "loss": 1.4231
+        },
+        {
+          "tau": 0.2,
+          "softmax": [
+            0.3224,
+            0.0069,
+            0.0415,
+            0.1247,
+            0.2272,
+            0.2775
+          ],
+          "pPos": 0.3224,
+          "loss": 1.1321
+        },
+        {
+          "tau": 0.1,
+          "softmax": [
+            0.416,
+            0.0002,
+            0.0069,
+            0.0622,
+            0.2066,
+            0.3082
+          ],
+          "pPos": 0.416,
+          "loss": 0.8771
+        },
+        {
+          "tau": 0.05,
+          "softmax": [
+            0.55,
+            0.0,
+            0.0002,
+            0.0123,
+            0.1356,
+            0.3019
+          ],
+          "pPos": 0.55,
+          "loss": 0.5978
+        }
+      ],
+      "logNBound": [
+        {
+          "N": 4,
+          "logN_nats": 1.3863
+        },
+        {
+          "N": 16,
+          "logN_nats": 2.7726
+        },
+        {
+          "N": 64,
+          "logN_nats": 4.1589
+        },
+        {
+          "N": 256,
+          "logN_nats": 5.5452
+        },
+        {
+          "N": 1024,
+          "logN_nats": 6.9315
+        },
+        {
+          "N": 16384,
+          "logN_nats": 9.7041
+        }
+      ]
+    }
+  },
+  "labels": {
+    "alt": "The query scored against its positive and five negatives, turned into a softmax (the InfoNCE target) at temperature τ; lowering τ sharpens it and growing the negative count raises the log N ceiling.",
+    "head": "q scored against d⁺ and the negatives",
+    "simHead": "cos(q, ·)",
+    "lossLine": "L = −log P⁺",
+    "ceilHead": "more negatives N raise the ceiling log N (the bound saturates there)",
+    "s0": "Score the query q against its true match d⁺ and the five candidate negatives n₁..n₅. The bars are cos(q,·): the lineup runs from an easy random negative up to the hardest near-miss.",
+    "s1": "A softmax over sim/τ is the InfoNCE target — it should put its mass on d⁺. The loss is L = −log P⁺. At τ=0.2 the mass is still spread across the hard negatives.",
+    "s2": "Drop the temperature toward zero and the softmax SHARPENS — P⁺ climbs and the loss falls, but the gradient now piles onto the single hardest negative. Temperature is the hardness amplifier.",
+    "s3": "More negatives N raise the mutual-information CEILING log N (the InfoNCE bound I ≥ log N − L_N only saturates there) — this is why retrievers scale the negative count, NOT because 'InfoNCE maximises MI'."
+  }
+}
+  </script>
+  <p class="viz-caption">The query scored against d&#8314; and the five spine negatives becomes a softmax (the InfoNCE target). Lower &tau; sharpens it; more negatives raise the <strong>log&nbsp;N</strong> ceiling &mdash; not a magic maximisation of mutual information.</p>
+  <aside class="slide-notes">infonce-calc widget on the spine lineup. Steps: cos(q,&middot;) bars &rarr; softmax at a moderate &tau; &rarr; sharpen as &tau; falls &rarr; the log N MI ceiling. Numbers inline from data/l13-negatives.json (spine).</aside>
+</section>
