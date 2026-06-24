@@ -46,8 +46,9 @@ export const mountImpostorDenoise = defineWidget({
       .textContent = labels.axisHead || 'the second axis: cos(·, d⁺) — collateral danger';
     // danger zone near the positive (high cos to d⁺)
     add('axis', el('rect', { x: cx(0.62), y: axY - 30, width: axR - cx(0.62), height: 60, rx: 6, class: 'imd-danger' }, svg));
-    add('axis', el('text', { x: (cx(0.62) + axR) / 2, y: axY - 36, class: 'imd-zonelbl', 'text-anchor': 'middle' }, svg))
-      .textContent = labels.dangerLabel || "d⁺'s neighbourhood — pushing here drags the positive";
+    // zone caption sits ABOVE the push label (own line); short so it never exits the narrow book frame.
+    add('axis', el('text', { x: (cx(0.62) + axR) / 2, y: axY - 48, class: 'imd-zonelbl', 'text-anchor': 'middle' }, svg))
+      .textContent = labels.dangerLabel || "d⁺'s neighbourhood (danger)";
     add('axis', el('line', { x1: axL, y1: axY, x2: axR, y2: axY, class: 'imd-axisline' }, svg));
     add('axis', el('text', { x: axL, y: axY + 24, class: 'imd-tick', 'text-anchor': 'middle' }, svg)).textContent = '0';
     add('axis', el('text', { x: axR, y: axY + 24, class: 'imd-tick', 'text-anchor': 'middle' }, svg)).textContent = '1';
@@ -65,11 +66,18 @@ export const mountImpostorDenoise = defineWidget({
 
     // ── the drag mechanic (step 1): push n₅, and d⁺ is dragged toward where n₅ goes ──
     layer('drag', 1);
-    add('drag', el('text', { x: n5x, y: axY - 34, class: 'imd-pushlbl', 'text-anchor': 'middle' }, svg))
+    // push label drops onto its own line below the zone caption (was overprinting it).
+    add('drag', el('text', { x: n5x, y: axY - 28, class: 'imd-pushlbl', 'text-anchor': 'middle' }, svg))
       .textContent = '⟵ push n₅';
     const dragArrow = add('drag', el('path', { d: `M ${cx(posPos)} ${axY - 6} q -20 -16 -40 -2`, class: 'imd-drag', fill: 'none',
       'marker-end': '' }, svg));
     dragArrow.setAttribute('stroke-dasharray', '4 3');
+
+    // ── step 2: hardness is blind to the impostor — emphasise n₅ and note it is n₄'s twin on that axis ──
+    layer('why', 2);
+    add('why', el('circle', { cx: n5x, cy: axY, r: 11, class: 'imd-emph', fill: 'none' }, svg));
+    add('why', el('text', { x: (cx(n4.cosPos) + n5x) / 2, y: axY + 30, class: 'imd-why', 'text-anchor': 'middle' }, svg))
+      .textContent = labels.whyLabel || 'n₄ ≈ n₅ on hardness';
 
     // ── the filter (step 3): n₅ struck out of the mined set ──
     layer('filter', 3);
