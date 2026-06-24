@@ -1218,8 +1218,13 @@ COVERAGE_BASELINE = {
     # 0.64-ish number in book:L4 (19->18) and deck:L6 (26->25) — strictly stronger (a [C] claim now pins them).
     # AUDIT-2 (2026-06): gated the slide-33 PCA-rotate kicker var2dPct=97.21 (L5 PCA 2-D kick) → deck:L5 45->44;
     # L5 RU/TT decimal-comma canon fixes resolve one more book number to covered → book:L5 12->11. Both stronger.
-    "deck:L0": 0, "deck:L1": 1, "deck:L2": 6, "deck:L3": 49, "deck:L4": 33, "deck:L5": 44, "deck:L6": 25,
-    "book:L0": 0, "book:L1": 0, "book:L2": 8,  "book:L3": 12, "book:L4": 18, "book:L5": 11, "book:L6": 6,
+    # TIGHTENED again after the L13 deep-dive REBUILD (2026-06): the rebuilt ~52-slide deck shows the spine
+    # cosines (0.82/0.05/0.79), the two-axis split (0.18/0.62), BM25 recall (0.625) and the by-hand InfoNCE
+    # P+ (0.42) + Boltzmann weights (0.35/0.53) as VISIBLE text, now gated GLOBALLY — those values ALSO cover
+    # a few shared numbers in L3-L6 (e.g. 0.82/0.62/0.18/0.05 cosines), so their un-gated counts dropped:
+    # deck:L3 49->46, L4 33->30, L5 44->42, L6 25->24; book:L3 12->10, L4 18->16, L5 11->10, L6 6->5. Stronger.
+    "deck:L0": 0, "deck:L1": 1, "deck:L2": 6, "deck:L3": 46, "deck:L4": 30, "deck:L5": 42, "deck:L6": 24,
+    "book:L0": 0, "book:L1": 0, "book:L2": 8,  "book:L3": 10, "book:L4": 16, "book:L5": 10, "book:L6": 5,
 }
 _COV_DEC   = re.compile(r'(?<![\d.,])\d+[.,]\d{2,}(?!\d)')# grounded signature: a decimal (dot OR RU comma), ≥2 fractional digits
 _COV_ARXIV = re.compile(r'^\d{4}[.,]\d{4,}$')             # arXiv id (e.g. 1901.04085) — not data
@@ -2072,6 +2077,28 @@ def l13_deck_claims():
         C("L13 deck toy inbatch",    RC["inbatch"]["mean"],    r"toy in-batch <strong>([\d.]+)</strong>"),
         C("L13 deck toy undenoised", RC["undenoised"]["mean"], r"toy \+undenoised <strong>([\d.]+)</strong>"),
         C("L13 deck toy denoised",   RC["denoised"]["mean"],   r"toy \+denoised <strong>([\d.]+)</strong>"),
+    ] + _l13_spine_coverage(C)
+
+# ── the rebuilt deck (~52 slides) shows the spine cosines, the two-axis split, BM25 recall, and the
+#    by-hand InfoNCE P+ and Boltzmann gradient weights as VISIBLE prose/math (the old deck hid them in
+#    widget data-attributes). Each is gated to its data source so the coverage-guard stays at 0. ──
+def _l13_spine_coverage(C):
+    SP, TA = NEG13["spine"], NEG13["twoAxis"]
+    LU, POS = SP["lineup"], SP["positive"]
+    inf = next(r for r in SP["infonce"] if abs(r["tau"] - 0.1) < 1e-9)
+    sm = inf["softmax"]; negsum = sum(sm[1:])           # softmax over [d+, n1..n5]; negatives = sm[1:]
+    A = lambda v: r"(?<![\d.])(" + re.escape(f"{v:.2f}") + r")(?![\d])"
+    A3 = lambda v: r"(?<![\d.])(" + re.escape(f"{v:.3f}") + r")(?![\d])"
+    return [
+        C("L13 cov dplus cosq", POS["cosQ"],                  A(0.82), 0.006),
+        C("L13 cov n1 cosq",    LU[0]["cosQ"],                A(0.05), 0.006),
+        C("L13 cov n5 cosq",    LU[4]["cosQ"],                A(0.79), 0.006),
+        C("L13 cov 2axis sep",  TA["secondAxisSeparation"],   A(0.18), 0.006),
+        C("L13 cov 2axis htn",  TA["hardTrueNeg"]["cosPositive"], A(0.62), 0.006),
+        C("L13 cov bm25 recall", NEG13["recallAt10"]["bm25"]["mean"], A3(0.625), 0.006),
+        C("L13 cov infonce ppos", inf["pPos"],                A(0.42), 0.012),
+        C("L13 cov grad w4",    sm[4] / negsum,               A(0.35), 0.012),
+        C("L13 cov grad w5",    sm[5] / negsum,               A(0.53), 0.012),
     ]
 
 
