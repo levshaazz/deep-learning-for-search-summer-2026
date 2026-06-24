@@ -13,6 +13,10 @@ const m = course.meta;
 // Glob-discovered: a lecture shows "Read book" iff a content/book/lN.js chapter exists for it
 // (chapters.js globs them) AND it's in the catalog. Adding L7's chapter needs ZERO edits here.
 const BOOK_READY = chapterIds.filter((id) => course.lectures.some((l) => l.id === id));
+// Split the catalog: the core syllabus vs the optional deep-dives (track:"deep-dive"), so the
+// additional topics render in their own clearly-marked section instead of the core grid.
+const coreLectures = course.lectures.filter((l) => l.track !== 'deep-dive');
+const deepDives = course.lectures.filter((l) => l.track === 'deep-dive');
 const showFallbackNotice = lang === 'tt'; // Phase 1: TT renders mostly via fallback
 const cover = withBase('/Lectures/assets/img/_char/cover.png');
 ---
@@ -42,7 +46,7 @@ const cover = withBase('/Lectures/assets/img/_char/cover.png');
       <h2>{t(ui.sections.lectures, lang)}</h2>
       <div class="kicker">{t(ui.sections.lecturesKicker, lang)}</div>
       <div class="cards">
-        {course.lectures.map((lec) => (
+        {coreLectures.map((lec) => (
           <div class={`card${lec.status === 'ready' ? '' : ' soon'}`}>
             <span class={`tag ${lec.status === 'ready' ? 'ready' : 'soon'}`}>
               {lec.status === 'ready' ? t(ui.labels.ready, lang) : t(ui.labels.coming, lang)}
@@ -62,6 +66,31 @@ const cover = withBase('/Lectures/assets/img/_char/cover.png');
         ))}
       </div>
     </section>
+
+    {deepDives.length > 0 && (
+      <section class="block deepdives" id="deepdives">
+        <h2>{t(ui.sections.deepdives, lang)}</h2>
+        <div class="kicker">{t(ui.sections.deepdivesKicker, lang)}</div>
+        <div class="cards">
+          {deepDives.map((lec) => (
+            <div class="card card--deep">
+              <span class="tag deep">{t(ui.labels.deepdiveTag, lang)}</span>
+              <div class="num">{lec.id}</div>
+              <div class="catch">{lec.catchphrase}</div>
+              <h3>{t(lec.title, lang)}</h3>
+              <p>{t(lec.blurb, lang)}</p>
+              <div class="when">{t(lec.when, lang)}</div>
+              {(lec.status === 'ready' || BOOK_READY.includes(lec.id)) && (
+                <div class="links">
+                  {BOOK_READY.includes(lec.id) && <a href={localizedPath(lang, `book/${lec.id}`)}>{t(ui.labels.readBook, lang)} →</a>}
+                  {lec.deckFile && <a href={withBase('/' + lec.deckFile)}>{t(ui.labels.openSlides, lang)}</a>}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
 
     <section class="block">
       <h2>{t(ui.sections.schedule, lang)}</h2>

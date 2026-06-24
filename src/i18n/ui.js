@@ -21,6 +21,12 @@ export const ui = {
 
   sections: {
     lectures: { en: 'Lectures', ru: 'Лекции', tt: 'Лекцияләр' },
+    deepdives: { en: 'Additional topics', ru: 'Дополнительные темы', tt: 'Өстәмә темалар' },
+    deepdivesKicker: {
+      en: 'Optional deep-dive lectures · beyond the core syllabus · taken after the main course',
+      ru: 'Необязательные углублённые лекции · вне основной программы · после основного курса',
+      tt: 'Сайланма тирәнәйтелгән лекцияләр · төп программадан тыш · төп курстан соң',
+    },
     assignments: { en: 'Labs & Homework', ru: 'Лабораторные и домашние задания', tt: 'Лаборатор һәм өй эшләре' },
     assignmentsKicker: {
       en: 'Lecture 03–04 · Classical IR & Ranking Metrics · implement by hand, measure, compare',
@@ -77,6 +83,7 @@ export const ui = {
     next: { en: 'Next', ru: 'След.', tt: 'Киләсе' },
     openSlides: { en: 'Open slides', ru: 'Открыть слайды', tt: 'Слайдларны ачу' },
     readBook: { en: 'Read in the Book', ru: 'Читать в Книге', tt: 'Китапта уку' },
+    deepdiveTag: { en: 'Deep-dive', ru: 'Доп. тема', tt: 'Өстәмә' },
     institution: { en: 'Institution', ru: 'Институт', tt: 'Оешма' },
     instructor: { en: 'Instructor', ru: 'Преподаватель', tt: 'Укытучы' },
     term: { en: 'Term', ru: 'Семестр', tt: 'Семестр' },
