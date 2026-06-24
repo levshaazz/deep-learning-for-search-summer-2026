@@ -1588,7 +1588,7 @@ def build_prompt(has_serega, scene):
                    if m != "serega" and any(kw in low for kw in v["keywords"]))
     return PREAMBLE + (SEREGA if has_serega else "") + cast + scene + ANTIPATTERN
 
-def generate_one(job, force=False, ref_url=None):
+def generate_one(job, force=False, ref_url=None, model=MODEL):
     group, fname, aspect, has_serega, scene = job
     out = IMG / fname
     if out.exists() and not force:
@@ -1605,11 +1605,11 @@ def generate_one(job, force=False, ref_url=None):
                   "(same face, same long black hair, same green Tatar skullcap, same blue tunic). "
                   "Draw a COMPLETELY NEW scene, do not copy the reference's pose or background: "
                   + build_prompt(has_serega, scene))
-        body = {"prompt": prompt, "mode": "image", "image_url": ref_url, "model": MODEL,
+        body = {"prompt": prompt, "mode": "image", "image_url": ref_url, "model": model,
                 "aspect_ratio": aspect, "resolution": res, "num_images": 1, "output_format": "png"}
     else:
         prompt = build_prompt(has_serega, scene)
-        body = {"prompt": prompt, "mode": "text", "model": MODEL,
+        body = {"prompt": prompt, "mode": "text", "model": model,
                 "aspect_ratio": aspect, "resolution": res,
                 "num_images": 1, "output_format": "png"}
     try:
@@ -1660,6 +1660,9 @@ def main():
     ref_url = None
     if "--ref" in args:
         idx = args.index("--ref"); ref_url = args[idx+1] if idx+1 < len(args) else None; del args[idx:idx+2]
+    model = MODEL
+    if "--model" in args:
+        idx = args.index("--model"); model = args[idx+1] if idx+1 < len(args) else MODEL; del args[idx:idx+2]
     if "--list" in args:
         for g, f, a, s, _ in JOBS:
             print(f"  [{g}] {f}  {a}  serega={s}")
@@ -1681,11 +1684,11 @@ def main():
         jobs = [j for j in JOBS if j[0] in groups]
     if not jobs:
         raise SystemExit(f"no jobs matched {args}")
-    print(f"[gen] {len(jobs)} job(s) · model={MODEL}" + (f" · ref={ref_url[:50]}…" if ref_url else " · text-only"))
+    print(f"[gen] {len(jobs)} job(s) · model={model}" + (f" · ref={ref_url[:50]}…" if ref_url else " · text-only"))
     counts = {"ok": 0, "skip": 0, "error": 0}
     errors = []
     for job in jobs:
-        st, fname = generate_one(job, force=force, ref_url=ref_url)
+        st, fname = generate_one(job, force=force, ref_url=ref_url, model=model)
         counts[st] += 1
         if st == "error":
             errors.append(fname)
