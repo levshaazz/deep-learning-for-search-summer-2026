@@ -46,6 +46,13 @@ export const GROUPS = [
   { id: '04', title: { en: 'L04 · Ranking metrics & significance', ru: 'L04 · Метрики ранжирования и значимость', tt: 'L04 · Ранжлау метрикалары һәм мөһимлек' } },
   { id: '05', title: { en: 'L05 · Embeddings & dimensionality', ru: 'L05 · Эмбеддинги и размерность', tt: 'L05 · Эмбеддинглар һәм үлчәмлелек' } },
   { id: '06', title: { en: 'L06 · The Council of Attention', ru: 'L06 · Совет Внимания', tt: 'L06 · Игътибар Шурасы' } },
+  { id: '07', title: { en: 'L07 · Scouts and Judges — bi/cross-encoders', ru: 'L07 · Разведчики и судьи — би/кросс-энкодеры', tt: 'L07 · Разведчиклар һәм хөкемчеләр — би/кросс-энкодерлар' } },
+  { id: '08', title: { en: 'L08 · The Alliance — late interaction, SPLADE, LTR', ru: 'L08 · Альянс — позднее взаимодействие, SPLADE, LTR', tt: 'L08 · Альянс — соңгы үзара тәэсир, SPLADE, LTR' } },
+  { id: '09', title: { en: 'L09 · Hyperspace Lanes — ANN (HNSW, IVF, PQ)', ru: 'L09 · Гиперпространственные трассы — ANN (HNSW, IVF, PQ)', tt: 'L09 · Гиперкосмик юллар — ANN (HNSW, IVF, PQ)' } },
+  { id: '10', title: { en: 'L10 · The Oracle — RAG, chunking, queries', ru: 'L10 · Оракул — RAG, чанкование, запросы', tt: 'L10 · Оракул — RAG, чанклау, сораулар' } },
+  { id: '11', title: { en: 'L11 · Judging the Oracle — RAG eval & agentic', ru: 'L11 · Судим Оракула — оценка RAG и агентность', tt: 'L11 · Оракулны хөкем итү — RAG бәяләү һәм агентлык' } },
+  { id: '12', title: { en: 'L12 · The Deep Field — advanced & multimodal RAG', ru: 'L12 · Глубокое поле — продвинутый и мультимодальный RAG', tt: 'L12 · Тирән кыр — алга киткән һәм мультимодаль RAG' } },
+  { id: '13', title: { en: 'L13 · The Crucible of Negatives (deep-dive)', ru: 'L13 · Горнило негативов (углублённо)', tt: 'L13 · Негативлар горны (тирән чуму)' } },
 ];
 const EXTRAS = { id: 'extras', title: { en: 'More demos', ru: 'Другие демо', tt: 'Башка демолар' } };
 

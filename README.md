@@ -12,10 +12,10 @@ Everything ships from a single source of truth: offline-standalone **lecture dec
 
 ## Lectures
 
-Eight decks are live (**L0–L7**); five more are planned (L8–L12). Each deck is an interactive,
-**offline-standalone** HTML slideshow — open it in any browser with no network (`file://` works),
-1920×1080, with an **EN/RU** language toggle. Navigate with `←` / `→` / `Space`, `O` for overview,
-`T` for the toolbar, `F` for fullscreen.
+All thirteen core decks are live (**L0–L12**), plus the first **deep-dive**, **L13 · The Crucible of
+Negatives**. Each deck is an interactive, **offline-standalone** HTML slideshow — open it in any
+browser with no network (`file://` works), 1920×1080, with an **EN/RU** language toggle. Navigate
+with `←` / `→` / `Space`, `O` for overview, `T` for the toolbar, `F` for fullscreen.
 
 | # | Lecture | Status |
 |---|---------|--------|
@@ -27,11 +27,12 @@ Eight decks are live (**L0–L7**); five more are planned (L8–L12). Each deck 
 | 05 | [Intro to DL for Search · Word Embeddings · Dimensionality Reduction](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/05-dl-embeddings-dimred.html) | ✅ ready |
 | 06 | [Dense & Contextual Embeddings · Contrastive Learning · Transformers & Attention](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/06-contextual-attention-transformers.html) | ✅ ready |
 | 07 | [Bi-encoders (DPR, SBERT) · Cross-encoders & Reranking · Multi-stage Pipelines](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/07-bi-cross-encoders-reranking.html) | ✅ ready |
-| 08 | Late Interaction (ColBERT) · SPLADE · Hybrid · Learning to Rank | 🟡 planned |
-| 09 | ANN: HNSW, IVF, PQ · FAISS · Vector DBs · Production | 🟡 planned |
-| 10 | RAG Fundamentals · Chunking · Query Understanding & Rewriting | 🟡 planned |
-| 11 | RAG Evaluation (RAGAS, LLM-as-judge) · Agentic RAG (ReAct, Self-RAG, CRAG) | 🟡 planned |
-| 12 | Advanced RAG (multi-hop, GraphRAG) · Multimodal (CLIP, ColPali) · Ethics & Safety | 🟡 planned |
+| 08 | [Late Interaction (ColBERT) · SPLADE · Hybrid · Learning to Rank](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/08-colbert-splade-ltr.html) | ✅ ready |
+| 09 | [ANN: HNSW, IVF, PQ · FAISS · Vector DBs · Production](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/09-ann-faiss-vector-db-production.html) | ✅ ready |
+| 10 | [RAG Fundamentals · Chunking · Query Understanding & Rewriting](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/10-rag-chunking-query-understanding.html) | ✅ ready |
+| 11 | [RAG Evaluation (RAGAS, LLM-as-judge) · Agentic RAG (ReAct, Self-RAG, CRAG)](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/11-rag-eval-agentic.html) | ✅ ready |
+| 12 | [Advanced RAG (multi-hop, GraphRAG) · Multimodal (CLIP, ColPali) · Ethics & Safety](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/12-advanced-rag-multimodal-ethics.html) | ✅ ready |
+| 13 | [Deep-dive · The Crucible of Negatives — hard negative mining in contrastive dense retrieval](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/13-crucible-of-negatives.html) | ✅ ready · deep-dive |
 
 The shipped `Lectures/NN-*.html` decks are **build output**: `npm run build` reassembles each one
 byte-identically from its `Lectures/<slug>/parts/*.html` fragments (the tracked source you edit).

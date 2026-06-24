@@ -153,6 +153,30 @@ export const cast = [
     lecture: 'L6',
     href: (lang, localizedPath) => localizedPath(lang, 'book/06'),
   },
+  {
+    id: 'impostor',
+    name: { en: 'the Impostor', ru: 'Самозванец', tt: 'Самозванец' },
+    img: '/Lectures/assets/img/L13/L13-09-the-impostor.png',
+    concept: {
+      en: 'the false negative — an unlabelled positive wearing an enemy’s mask. Mine the hardest candidates and you scoop up relevant-but-unlabelled passages and train against them; the danger lives on a second axis, cos(·,d⁺), invisible to query-only hardness.',
+      ru: 'ложный негатив — неразмеченный позитив в маске врага. Намайнив самые сложные кандидаты, ты подбираешь релевантные, но неразмеченные пассажи и учишься против них; опасность живёт на второй оси, cos(·,d⁺), невидимой для «сложности» со стороны запроса.',
+      tt: 'ялган негатив — дошман битлеген кигән билгеләнмәгән позитив. Иң катлаулы кандидатларны майнинглаганда син мөһим ләкин билгеләнмәгән пассажларны эләктерәсең һәм аларга каршы өйрәнәсең; куркыныч икенче күчәрдә, cos(·,d⁺), сорау ягыннан «катлаулык» өчен күренми.',
+    },
+    lecture: 'L13',
+    href: (lang, localizedPath) => localizedPath(lang, 'book/13'),
+  },
+  {
+    id: 'sparring-ghosts',
+    name: { en: 'the Sparring Ghosts', ru: 'Призраки спарринга', tt: 'Спарринг өрәкләре' },
+    img: '/Lectures/assets/img/L13/L13-08-sparring-ghosts.png',
+    concept: {
+      en: 'stale negatives — opponents the blade already beat, lingering between index refreshes. Mining from a frozen ANN index lets the negatives drift out of date and stop teaching; STAR/ADORE refresh them per step so the sparring stays live.',
+      ru: 'устаревшие негативы — противники, которых клинок уже победил, оставшиеся между обновлениями индекса. Майнинг из замороженного ANN-индекса делает негативы устаревшими, и они перестают учить; STAR/ADORE обновляют их на каждом шаге, чтобы спарринг оставался живым.',
+      tt: 'искергән негативлар — клинок инде жиңгән көндәшләр, индекс яңартулары арасында калган. Туңдырылган ANN индекстан майнинглаганда негативлар искерә һәм өйрәтүдән туктый; STAR/ADORE аларны һәр адымда яңарта, спарринг тере калсын өчен.',
+    },
+    lecture: 'L13',
+    href: (lang, localizedPath) => localizedPath(lang, 'book/13'),
+  },
 ];
 
 // ── Scenes: the narrative illustrations, grouped by lecture ──────────────────
@@ -426,6 +450,29 @@ export const scenes = [
         en: 'the Lexical Gremlin is finally caged (callback L1): contrastive learning collapses "couch" and "sofa" together — the lexical gap is closed. Bridge → L7.',
         ru: 'Лексический Гремлин наконец заперт (отсылка к L1): контрастное обучение сводит «диван» и «софу» вместе — лексический разрыв закрыт. Мост → L7.',
         tt: 'Лексик Гремлин ниһаять читлеккә ябылды (L1’гә ишарә): контраст өйрәнү «диван» белән «софаны» бергә җыя — лексик ярык ябылды. Күпер → L7.' } },
+    ],
+  },
+  {
+    id: 'L13',
+    title: { en: 'Lecture 13 — The Crucible of Negatives', ru: 'Лекция 13 — Горнило негативов', tt: 'Лекция 13 — Негативлар горны' },
+    href: (lang, localizedPath) => localizedPath(lang, 'book/13'),
+    items: [
+      { img: '/Lectures/assets/img/L13/L13-00-the-crucible.png', concept: {
+        en: 'the forge: a dense retriever is forged by the opponents it trains against. Training is the crucible; the negatives are the hammer that gives the blade its edge.',
+        ru: 'горнило: плотный ретривер выкован противниками, против которых обучается. Обучение — это горнило; негативы — молот, дающий клинку остроту.',
+        tt: 'горн: тыгыз ретривер каршы өйрәнгән көндәшләре тарафыннан чарлана. Өйрәнү — бу горн; негативлар — клинокка үткенлек бирүче чүкеч.' } },
+      { img: '/Lectures/assets/img/L13/L13-04-sir-cosine-hardness.png', concept: {
+        en: 'hardness is an angle: Sir Cosine measures cos(q,d⁻). Easy negatives sit far and give no gradient; hard ones crowd the query — a negative is worth exactly its gradient.',
+        ru: 'сложность — это угол: Сэр Косинус измеряет cos(q,d⁻). Лёгкие негативы далеко и не дают градиента; сложные теснят запрос — негатив стоит ровно своего градиента.',
+        tt: 'катлаулык — почмак: Сэр Косинус cos(q,d⁻) үлчи. Җиңел негативлар ерак һәм градиент бирми; катлаулылары сорауны кыса — негатив нәкъ үз градиенты кадәр кыйммәтле.' } },
+      { img: '/Lectures/assets/img/L13/L13-06-forge-path.png', concept: {
+        en: 'the fifteen-year search for good opponents: random → in-batch → BM25 → model-mined → denoised → distilled → modern two-stage. Each anvil fixes the flaw in the one before.',
+        ru: 'пятнадцатилетний поиск хороших противников: случайные → in-batch → BM25 → намайненные моделью → очищенные → дистиллированные → современные двухстадийные. Каждая наковальня чинит изъян предыдущей.',
+        tt: 'яхшы көндәшләр өчен унбиш еллык эзләү: очраклы → in-batch → BM25 → модель майнинглаган → чистартылган → дистилляцияләнгән → заманча ике баскычлы. Һәр сандал алдагысының кимчелеген төзәтә.' } },
+      { img: '/Lectures/assets/img/L13/L13-14-true-edge.png', concept: {
+        en: 'forged by worthy opponents: effectiveness lives in a narrow hard-but-honest band. The impostor and the stale ghosts are beaten; Séréga raises a keen, true-edged blade. Bridge → deep-dive #4, The Curved Map.',
+        ru: 'выкован достойными противниками: эффективность живёт в узкой сложной-но-честной полосе. Самозванец и устаревшие призраки повержены; Серёга поднимает острый, истинный клинок. Мост → глубокое погружение №4, Кривая Карта.',
+        tt: 'лаеклы көндәшләр тарафыннан чарланган: нәтиҗәлелек тар катлаулы ләкин намуслы полосада яши. Самозванец һәм искергән өрәкләр җиңелде; Серёга үткен, чын кырлы клинок күтәрә. Күпер → тирән чуму №4, Бөгелгән Карта.' } },
     ],
   },
 ];
