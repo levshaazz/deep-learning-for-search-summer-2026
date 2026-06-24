@@ -1573,6 +1573,29 @@ JOBS = [
      "small respectful bow, and he gestures the path onward toward the next deep-dive. Warm, earned send-off. "
      "Black ink + course-blue + warm-orange edge-gleam; Serega's green tübetey is the ONLY green. No lettered "
      "title bar. Fills ≥85% width."),
+
+    # ---- bestiary portraits: the L11/L12 recurring cast that lacked a depicting plate ----
+    ("L11", "L11/L11-13-the-re-actor.png", "16:9", True,
+     "PORTRAIT. Serega meets the Re-Actor — the earnest little theatrical actor on a tiny stage, one hand "
+     "raised mid-declamation, ringed by a circular loop-arrow of three beats Thought -> Action -> Observation "
+     "drawn as small masks/placards, with a couple of stick-on 'take two!' self-critique notes. Serega stands "
+     "beside the stage giving an encouraging thumbs-up, learning the agentic self-critique loop. One short "
+     "label 'Re-Actor'. Black ink + course-blue + a warm-orange loop; Serega's green tübetey is the ONLY green; "
+     "the Re-Actor is bare-headed with no green."),
+    ("L12", "L12/L12-16-clippy.png", "16:9", True,
+     "PORTRAIT. Serega meets Clippy — the friendly bent-wire course-blue paperclip assistant with two big "
+     "googly eyes and expressive ink eyebrows, holding a small picture in one loop and a line of text in the "
+     "other and snapping them together into one shared slot (image-text alignment). Serega holds up a photo for "
+     "Clippy to file into the shared space. One short label 'Clippy'. Black ink + course-blue wire + a "
+     "warm-orange accent where image and text align; Serega's green tübetey is the ONLY green; Clippy is a bare "
+     "paperclip with no green."),
+    ("L12", "L12/L12-17-joey-multihop.png", "16:9", True,
+     "PORTRAIT. Serega watches Joey Multi-Hop — a cheerful course-blue cartoon kangaroo with big springy feet "
+     "and a little pouch of gathered clue-cards — captured mid-bound, leaping node -> node -> node across a "
+     "dotted graph of stepping-stone document-nodes, a dashed warm-orange arc tracing the chain of hops, each "
+     "landing tucking one clue-card into the pouch. Serega points along the chain of hops. One short label "
+     "'Joey Multi-Hop'. Black ink + course-blue + a warm-orange hop-arc; Serega's green tübetey is the ONLY "
+     "green; Joey is bare-headed with no green."),
 ]
 
 H = {"Authorization": f"Bearer {API_KEY}"}
