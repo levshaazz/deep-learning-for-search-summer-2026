@@ -49,7 +49,8 @@ export const mountInfonceCalc = defineWidget({
     layer('head', 0);
     add('head', el('text', { x: PAD, y: 24, class: 'inc-head' }, svg))
       .textContent = labels.head || 'q scored against d⁺ and the negatives';
-    add('head', el('text', { x: barX, y: 24, class: 'inc-sub' }, svg))
+    // column header drops to its own line above the bars (was overprinting the title on the same line).
+    add('head', el('text', { x: barX, y: 50, class: 'inc-sub' }, svg))
       .textContent = labels.simHead || 'cos(q, ·)';
 
     // ── rows: label + cos(q,·) bar (step 0), repurposed as the softmax bar from step 1 ──

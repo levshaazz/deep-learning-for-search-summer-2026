@@ -68,7 +68,9 @@ export const mountHardnessSphere = defineWidget({
     const legX = ox + R + 70, legTop = 40, legRowH = 30, legBarMax = W - PAD - (legX + 92);
     const dots = [], falseMarks = [], bars = [], wvals = [];
     items.forEach((it, i) => {
-      const cls = it.pos ? 'hsp-pos' : (it.isFalse ? 'hsp-false' : 'hsp-' + (it.band || 'hard'));
+      // one colour CLASS for all true negatives (hardness is read off the wedge bands + arc angle,
+      // not the dot hue); the positive and the secretly-positive impostor each get their own.
+      const cls = it.pos ? 'hsp-pos' : (it.isFalse ? 'hsp-false' : 'hsp-neg');
       layer('pt' + i, 0);
       // arc dot
       add('pt' + i, el('line', { x1: ox, y1: oy, x2: px(it.cosQ), y2: py(it.cosQ), class: 'hsp-ray ' + cls }, svg));
