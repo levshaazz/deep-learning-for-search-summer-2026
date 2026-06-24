@@ -154,6 +154,42 @@ export const cast = [
     href: (lang, localizedPath) => localizedPath(lang, 'book/06'),
   },
   {
+    id: 'ragdoll',
+    name: { en: 'RAGdoll — the Oracle', ru: 'РАГдолл — Оракул', tt: 'РАГдолл — Оракул' },
+    img: '/Lectures/assets/img/L10/L10-00-the-oracle.png',
+    concept: {
+      en: 'the RAG system itself — a patchwork rag-doll stitched from retrieved scraps. It does not know; it retrieves, then speaks from what it found. Feed it good context and it answers grounded; starve it and it confabulates.',
+      ru: 'сама RAG-система — лоскутная тряпичная кукла, сшитая из найденных обрывков. Она не знает; она извлекает, а потом говорит из найденного. Дай хороший контекст — ответит обоснованно; оставь без — начнёт сочинять.',
+      tt: 'RAG-системасы үзе — табылган кисәкләрдән теккән ямаулы курчак. Ул белми; ул табып ала, аннары тапканыннан сөйли. Яхшы контекст бир — нигезле җавап бирә; ач калдыр — уйлап чыгара башлый.',
+    },
+    lecture: 'L10',
+    href: (lang, localizedPath) => localizedPath(lang, 'book/10'),
+  },
+  {
+    id: 'chunk-norris',
+    name: { en: 'Chunk Norris', ru: 'Чанк Норрис', tt: 'Чанк Норрис' },
+    img: '/Lectures/assets/img/L10/L10-03-chunk-norris.png',
+    concept: {
+      en: 'chunking incarnate — a karate master who splits long documents into well-sized, overlapping passages, so no idea is cut in half and nothing falls between the slices.',
+      ru: 'воплощённое чанкование — мастер карате, рубящий длинные документы на пассажи нужного размера с нахлёстом, чтобы ни одна мысль не разрезалась пополам и ничто не проваливалось между кусками.',
+      tt: 'чанклауның гәүдәләнеше — каратэ остасы, озын документларны кирәкле зурлыктагы, өслек-өслек ятыш пассажларга бүлә, бер фикер дә урталай киселмәсен һәм бернәрсә дә кисәкләр арасына төшмәсен өчен.',
+    },
+    lecture: 'L10',
+    href: (lang, localizedPath) => localizedPath(lang, 'book/10'),
+  },
+  {
+    id: 'confabulous',
+    name: { en: 'Confabulous', ru: 'Конфабулус', tt: 'Конфабулус' },
+    img: '/Lectures/assets/img/L10/L10-07-garbage-in.png',
+    concept: {
+      en: 'the hallucination phantom — a fluent, confident ghost that fabricates answers and citations out of thin air. The villain RAG evaluation is built to catch: faithfulness asks whether every claim is grounded in a real source.',
+      ru: 'призрак галлюцинаций — гладкий, уверенный фантом, сочиняющий ответы и ссылки из воздуха. Злодей, которого ловит оценка RAG: верность (faithfulness) проверяет, опирается ли каждое утверждение на реальный источник.',
+      tt: 'галлюцинация өрәге — шома, үзенә ышанган фантом, җавапларны һәм сылтамаларны юктан уйлап чыгара. RAG бәяләве тоту өчен корылган явыз: тугрылык (faithfulness) һәр раславның чын чыганакка таянуын тикшерә.',
+    },
+    lecture: 'L11',
+    href: (lang, localizedPath) => localizedPath(lang, 'book/11'),
+  },
+  {
     id: 'impostor',
     name: { en: 'the Impostor', ru: 'Самозванец', tt: 'Самозванец' },
     img: '/Lectures/assets/img/L13/L13-09-the-impostor.png',
@@ -450,6 +486,144 @@ export const scenes = [
         en: 'the Lexical Gremlin is finally caged (callback L1): contrastive learning collapses "couch" and "sofa" together — the lexical gap is closed. Bridge → L7.',
         ru: 'Лексический Гремлин наконец заперт (отсылка к L1): контрастное обучение сводит «диван» и «софу» вместе — лексический разрыв закрыт. Мост → L7.',
         tt: 'Лексик Гремлин ниһаять читлеккә ябылды (L1’гә ишарә): контраст өйрәнү «диван» белән «софаны» бергә җыя — лексик ярык ябылды. Күпер → L7.' } },
+    ],
+  },
+  {
+    id: 'L7',
+    title: { en: 'Lecture 7 — Scouts and Judges', ru: 'Лекция 7 — Разведчики и судьи', tt: 'Лекция 7 — Разведчиклар һәм хөкемчеләр' },
+    href: (lang, localizedPath) => localizedPath(lang, 'book/07'),
+    items: [
+      { img: '/Lectures/assets/img/L7/L7-00-scouts-and-judges.png', concept: {
+        en: 'two roles in one pipeline: the bi-encoder is a fast SCOUT that embeds query and documents separately and recalls many candidates; the cross-encoder is a slow JUDGE that reads a (query, doc) pair together and ranks the few.',
+        ru: 'две роли в одном конвейере: би-энкодер — быстрый РАЗВЕДЧИК, кодирующий запрос и документы по отдельности и набирающий много кандидатов; кросс-энкодер — медленный СУДЬЯ, читающий пару (запрос, документ) вместе и ранжирующий немногих.',
+        tt: 'бер конвейерда ике роль: би-энкодер — сорау белән документларны аерым кодлап күп кандидат җыючы тиз РАЗВЕДЧИК; кросс-энкодер — (сорау, документ) парын бергә укып азларны ранжлаучы әкрен ХӨКЕМЧЕ.' } },
+      { img: '/Lectures/assets/img/L7/L7-06-hiring-funnel.png', concept: {
+        en: 'the multi-stage funnel: cheap dense retrieval casts a wide net for recall, then an expensive cross-encoder re-ranks the shortlist for precision — recall first, precision last.',
+        ru: 'многостадийная воронка: дешёвый плотный поиск забрасывает широкую сеть ради полноты, затем дорогой кросс-энкодер переранжирует короткий список ради точности — сначала полнота, потом точность.',
+        tt: 'күп баскычлы воронка: арзан тыгыз эзләү тулылык өчен киң җәя ташлый, аннары кыйммәтле кросс-энкодер кыска исемлекне төгәллек өчен яңадан ранжлый — башта тулылык, аннары төгәллек.' } },
+      { img: '/Lectures/assets/img/L7/L7-04-interview-room.png', concept: {
+        en: 'the cross-encoder interview: query and document sit in the same room and attend to each other token by token — far more accurate than two separate embeddings, far too slow to run on millions.',
+        ru: 'собеседование кросс-энкодера: запрос и документ сидят в одной комнате и обращают внимание друг на друга токен за токеном — куда точнее двух раздельных эмбеддингов, но слишком медленно для миллионов.',
+        tt: 'кросс-энкодер әңгәмәсе: сорау белән документ бер бүлмәдә утыра һәм токен-токен бер-берсенә игътибар итә — ике аерым эмбеддингка караганда күпкә төгәлрәк, ләкин миллионнар өчен артык әкрен.' } },
+      { img: '/Lectures/assets/img/L7/L7-09-embedder-zoo.png', concept: {
+        en: 'the embedder zoo: DPR, SBERT, E5, BGE… choose an encoder by task, budget and domain — there is no single best scout for every mission.',
+        ru: 'зоопарк энкодеров: DPR, SBERT, E5, BGE… выбирай энкодер по задаче, бюджету и домену — единственного лучшего разведчика на все случаи нет.',
+        tt: 'энкодерлар хайванаты бакчасы: DPR, SBERT, E5, BGE… энкодерны бурыч, бюджет һәм өлкә буенча сайла — һәр миссия өчен бердәнбер иң яхшы разведчик юк.' } },
+    ],
+  },
+  {
+    id: 'L8',
+    title: { en: 'Lecture 8 — The Alliance', ru: 'Лекция 8 — Альянс', tt: 'Лекция 8 — Альянс' },
+    href: (lang, localizedPath) => localizedPath(lang, 'book/08'),
+    items: [
+      { img: '/Lectures/assets/img/L8/L8-00-the-alliance.png', concept: {
+        en: 'the alliance of representations: dense (meaning), sparse (exact terms) and late-interaction (token-level) join forces — each covers the others’ blind spots.',
+        ru: 'альянс представлений: плотные (смысл), разреженные (точные термины) и позднее взаимодействие (на уровне токенов) объединяются — каждый закрывает слепые зоны других.',
+        tt: 'күрсәтмәләр альянсы: тыгыз (мәгънә), сирәк (төгәл терминнар) һәм соңгы үзара тәэсир (токен дәрәҗәсендә) көчләрен берләштерә — һәрберсе башкаларның сукыр почмакларын каплый.' } },
+      { img: '/Lectures/assets/img/L8/L8-01-token-muster.png', concept: {
+        en: 'late interaction (ColBERT): keep one vector per token and score by summing each query token’s best match — the accuracy of a cross-encoder at a fraction of the cost.',
+        ru: 'позднее взаимодействие (ColBERT): храни по вектору на токен и считай счёт как сумму лучших совпадений каждого токена запроса — точность кросс-энкодера за долю стоимости.',
+        tt: 'соңгы үзара тәэсир (ColBERT): һәр токенга бер вектор сакла һәм сорауның һәр токены өчен иң яхшы туры килүләрне кушып бәя сана — кросс-энкодер төгәллеге бәясенең бер өлешенә.' } },
+      { img: '/Lectures/assets/img/L8/L8-02-expanded-banner.png', concept: {
+        en: 'learned sparse (SPLADE): a neural model expands a query into weighted terms — including words that were never typed — so the inverted index can find synonyms.',
+        ru: 'обучаемая разреженность (SPLADE): нейросеть расширяет запрос во взвешенные термины — включая слова, которые не набирали, — чтобы инвертированный индекс находил синонимы.',
+        tt: 'өйрәнелгән сирәклек (SPLADE): нейросеть сорауны авырлыклы терминнарга киңәйтә — язылмаган сүзләрне дә кертеп — инверт индекс синонимнарны таба алсын өчен.' } },
+      { img: '/Lectures/assets/img/L8/L8-03-two-rivers.png', concept: {
+        en: 'hybrid retrieval: two rivers — dense and sparse — merged by rank (RRF), so a result strong in either stream survives the confluence.',
+        ru: 'гибридный поиск: две реки — плотная и разреженная — сливаются по рангу (RRF), так что результат, сильный в любом из потоков, переживает слияние.',
+        tt: 'гибрид эзләү: ике елга — тыгыз һәм сирәк — ранг буенча кушыла (RRF), шуңа теләсә кайсы агымда көчле нәтиҗә кушылуны кичерә.' } },
+    ],
+  },
+  {
+    id: 'L9',
+    title: { en: 'Lecture 9 — Hyperspace Lanes', ru: 'Лекция 9 — Гиперпространственные трассы', tt: 'Лекция 9 — Гиперкосмик юллар' },
+    href: (lang, localizedPath) => localizedPath(lang, 'book/09'),
+    items: [
+      { img: '/Lectures/assets/img/L9/L9-00-hyperspace-lanes.png', concept: {
+        en: 'approximate nearest-neighbour search: at a billion vectors you cannot scan every star. ANN trades a sliver of recall for orders-of-magnitude speed by precomputing lanes through the space.',
+        ru: 'приближённый поиск ближайших соседей: на миллиарде векторов нельзя просканировать каждую звезду. ANN меняет крупицу полноты на ускорение в разы, заранее прокладывая трассы сквозь пространство.',
+        tt: 'якынча иң якын күршеләрне эзләү: миллиард вектор булганда һәр йолдызны сканерлап булмый. ANN киңлек аша юлларны алдан салып, тулылыкның бер кисәген тизлеккә алыштыра.' } },
+      { img: '/Lectures/assets/img/L9/L9-02-jump-gates-hnsw.png', concept: {
+        en: 'HNSW: a multi-layer graph of jump-gates — start coarse on the top layer, descend, and greedily hop toward the query’s neighbourhood in logarithmic steps.',
+        ru: 'HNSW: многослойный граф прыжковых врат — начни грубо на верхнем слое, спускайся и жадно прыгай к окрестности запроса за логарифмическое число шагов.',
+        tt: 'HNSW: сикерү капкаларының күп катлы графы — өске катламда тупас башла, төш һәм сорау тирәлегенә логарифмик адымнарда комсызланып сикер.' } },
+      { img: '/Lectures/assets/img/L9/L9-03-sectors-ivf.png', concept: {
+        en: 'IVF: carve the space into sectors (clusters) and search only the few nearest — a coarse map that lets you skip most of the galaxy.',
+        ru: 'IVF: разрежь пространство на секторы (кластеры) и ищи только в нескольких ближайших — грубая карта, позволяющая пропустить бóльшую часть галактики.',
+        tt: 'IVF: киңлекне секторларга (кластерларга) бүл һәм бары иң якын берничәсендә эзлә — галактиканың күп өлешен сикереп үтәргә мөмкинлек бирүче тупас карта.' } },
+      { img: '/Lectures/assets/img/L9/L9-04-fold-the-maps-pq.png', concept: {
+        en: 'product quantization: fold each vector into a short code of sub-space centroids — 32× smaller in memory, with distances read from a tiny lookup table.',
+        ru: 'продуктовое квантование: сверни каждый вектор в короткий код центроидов подпространств — в 32× меньше памяти, а расстояния читаются из крошечной таблицы.',
+        tt: 'продукт квантлау: һәр векторны асль-киңлек центроидларының кыска кодына төр — хәтердә 32 тапкыр кечерәк, ераклыклар кечкенә таблицадан укыла.' } },
+    ],
+  },
+  {
+    id: 'L10',
+    title: { en: 'Lecture 10 — The Oracle', ru: 'Лекция 10 — Оракул', tt: 'Лекция 10 — Оракул' },
+    href: (lang, localizedPath) => localizedPath(lang, 'book/10'),
+    items: [
+      { img: '/Lectures/assets/img/L10/L10-02-retrieve-then-speak.png', concept: {
+        en: 'the RAG loop: retrieve relevant passages, hand them to the model, THEN let it answer — grounded in what it found, not in what it half-remembers.',
+        ru: 'цикл RAG: извлеки релевантные пассажи, передай их модели и ТОЛЬКО ПОТОМ дай ответить — опираясь на найденное, а не на смутно припоминаемое.',
+        tt: 'RAG циклы: мөһим пассажларны табып ал, аларны моделгә бир һәм АННАН ГЫНА җавап бирергә рөхсәт ит — тапканына таянып, ярым хәтерләгәненә түгел.' } },
+      { img: '/Lectures/assets/img/L10/L10-04-overlap-saves.png', concept: {
+        en: 'chunk overlap: let adjacent passages share a margin, so an idea straddling a boundary still lands whole in at least one chunk.',
+        ru: 'нахлёст чанков: пусть соседние пассажи делят край, чтобы мысль, попавшая на границу, целиком уместилась хотя бы в одном куске.',
+        tt: 'чанклар ятышы: күрше пассажлар чикне уртаклашсын, чик өстенә эләккән фикер ким дигәндә бер кисәктә тулысынча урнашсын өчен.' } },
+      { img: '/Lectures/assets/img/L10/L10-05-hear-the-real-question.png', concept: {
+        en: 'query understanding: a raw question is often under-specified. Rewrite, expand or decompose it before retrieval, so the index hears what was really meant.',
+        ru: 'понимание запроса: сырой вопрос часто недоопределён. Перепиши, расширь или разложи его до поиска, чтобы индекс услышал, что имелось в виду на самом деле.',
+        tt: 'сорауны аңлау: чи сорау еш кына җитәрлек ачыкланмаган. Эзләүгә кадәр аны яңадан яз, киңәйт яисә кисәкләргә бүл, индекс чынлыкта нәрсә күздә тотылганын ишетсен өчен.' } },
+      { img: '/Lectures/assets/img/L10/L10-10-raptor-tree.png', concept: {
+        en: 'RAPTOR: cluster and summarise passages into a tree, so a query can pull a high-level summary or a leaf-level detail as the question needs.',
+        ru: 'RAPTOR: кластеризуй и суммируй пассажи в дерево, чтобы запрос мог достать обзор высокого уровня или детальный лист — по потребности вопроса.',
+        tt: 'RAPTOR: пассажларны кластерла һәм агачка йомгаклап тупла, сорау кирәгенә карап югары дәрәҗәдәге йомгакны яки яфрак дәрәҗәсендәге детальне ала алсын өчен.' } },
+    ],
+  },
+  {
+    id: 'L11',
+    title: { en: 'Lecture 11 — Judging the Oracle', ru: 'Лекция 11 — Судим Оракула', tt: 'Лекция 11 — Оракулны хөкем итү' },
+    href: (lang, localizedPath) => localizedPath(lang, 'book/11'),
+    items: [
+      { img: '/Lectures/assets/img/L11/L11-00-judging-the-oracle.png', concept: {
+        en: 'you cannot ship what you cannot measure: RAG needs its own scorecard — retrieval quality, answer faithfulness and relevance, not just a single accuracy number.',
+        ru: 'нельзя выпустить то, что не можешь измерить: RAG нужна своя оценочная карта — качество поиска, верность и релевантность ответа, а не одно число точности.',
+        tt: 'үлчәп булмаганны чыгарып булмый: RAG’ка үз бәя картасы кирәк — эзләү сыйфаты, җавапның тугрылыгы һәм мөнәсәбәтлелеге, бер генә төгәллек саны түгел.' } },
+      { img: '/Lectures/assets/img/L11/L11-02-four-metrics.png', concept: {
+        en: 'the RAGAS quartet: context precision & recall (did retrieval bring the right passages?) and faithfulness & answer relevance (did the answer use them honestly?).',
+        ru: 'квартет RAGAS: точность и полнота контекста (принёс ли поиск нужные пассажи?) и верность с релевантностью ответа (честно ли ответ их использовал?).',
+        tt: 'RAGAS дүртлеге: контекстның төгәллеге һәм тулылыгы (эзләү кирәкле пассажларны китердеме?) һәм җавапның тугрылыгы белән мөнәсәбәтлелеге (җавап аларны намуслы кулландымы?).' } },
+      { img: '/Lectures/assets/img/L11/L11-03-faithfulness-claims.png', concept: {
+        en: 'faithfulness, claim by claim: break the answer into atomic claims and check each one is supported by a retrieved source — catch the confident fabrication.',
+        ru: 'верность, утверждение за утверждением: разбей ответ на атомарные утверждения и проверь, что каждое подкреплено найденным источником — поймай уверенную выдумку.',
+        tt: 'тугрылык, раслау артыннан раслау: җавапны атомар раславларга бүл һәм һәрберсенең табылган чыганак белән ныгытылуын тикшер — үзенә ышанган уйдырманы тот.' } },
+      { img: '/Lectures/assets/img/L11/L11-09-position-bias.png', concept: {
+        en: 'the LLM judge has biases — it favours the first option, longer answers and its own style. Robust evaluation swaps positions and ensembles judges to cancel them.',
+        ru: 'у LLM-судьи есть смещения — он любит первый вариант, ответы подлиннее и собственный стиль. Надёжная оценка меняет позиции местами и ансамблирует судей, чтобы их погасить.',
+        tt: 'LLM-хөкемченең янтаюлары бар — ул беренче вариантны, озынрак җаваптарны һәм үз стилен ярата. Ышанычлы бәяләү позицияләрне алыштыра һәм хөкемчеләрне ансамбльли, аларны юкка чыгару өчен.' } },
+    ],
+  },
+  {
+    id: 'L12',
+    title: { en: 'Lecture 12 — The Deep Field', ru: 'Лекция 12 — Глубокое поле', tt: 'Лекция 12 — Тирән кыр' },
+    href: (lang, localizedPath) => localizedPath(lang, 'book/12'),
+    items: [
+      { img: '/Lectures/assets/img/L12/L12-00-the-deep-field.png', concept: {
+        en: 'some questions no single record answers: stare long enough and a thousand linked galaxies bloom. The deepest answers are scattered across many records, in many forms.',
+        ru: 'на иные вопросы не ответит ни одна запись: вглядись подольше — и расцветает тысяча связанных галактик. Самые глубокие ответы рассеяны по многим записям, во многих формах.',
+        tt: 'кайбер сорауларга бер язма да җавап бирми: озаграк карап тор — меңләгән бәйле галактика чәчәк ата. Иң тирән җаваптар күп язмаларга, күп формаларга чәчелгән.' } },
+      { img: '/Lectures/assets/img/L12/L12-02-shared-space.png', concept: {
+        en: 'multimodal embeddings: pull text and images into one shared space, so “a photo of a sunset” retrieves the picture — different modalities, one geometry.',
+        ru: 'мультимодальные эмбеддинги: втяни текст и изображения в одно общее пространство, чтобы «фото заката» доставало картинку — разные модальности, одна геометрия.',
+        tt: 'мультимодаль эмбеддинглар: текст белән рәсемнәрне бер уртак киңлеккә тарт, «кояш баешы фотосы» рәсемне тапсын өчен — төрле модальлекләр, бер геометрия.' } },
+      { img: '/Lectures/assets/img/L12/L12-04-colpali.png', concept: {
+        en: 'ColPali: embed a document’s page IMAGE directly with late interaction — skip brittle OCR and parsing and retrieve straight from the rendered page.',
+        ru: 'ColPali: эмбедь саму КАРТИНКУ страницы документа через позднее взаимодействие — пропусти хрупкий OCR и парсинг и ищи прямо по отрисованной странице.',
+        tt: 'ColPali: документ битенең РӘСЕМЕН соңгы үзара тәэсир аша турыдан-туры эмбеддла — челпәрәмә OCR һәм парсингны сикереп үт, ясалган биттән туры эзлә.' } },
+      { img: '/Lectures/assets/img/L12/L12-12-ethics-bias.png', concept: {
+        en: 'retrieval inherits the corpus: what is under-represented stays unfound. Bias, attribution and safety are part of the system, not an afterthought.',
+        ru: 'поиск наследует корпус: недопредставленное так и остаётся ненайденным. Смещения, атрибуция и безопасность — часть системы, а не запоздалая мысль.',
+        tt: 'эзләү корпусны мирас итеп ала: аз тәкъдим ителгән нәрсә табылмыйча кала. Янтаюлар, атрибуция һәм куркынычсызлык — системаның өлеше, соңыннан уйланган фикер түгел.' } },
     ],
   },
   {
