@@ -190,6 +190,42 @@ export const cast = [
     href: (lang, localizedPath) => localizedPath(lang, 'book/11'),
   },
   {
+    id: 're-actor',
+    name: { en: 'the Re-Actor', ru: 'Ре-Актёр', tt: 'Ре-Актёр' },
+    img: '/Lectures/assets/img/L11/L11-13-the-re-actor.png',
+    concept: {
+      en: 'agentic RAG — a little theatrical actor running the Thought → Action → Observation loop: reason, retrieve, look at what came back, then decide the next move (ReAct, Self-RAG, CRAG).',
+      ru: 'агентный RAG — маленький театральный актёр, прогоняющий цикл Мысль → Действие → Наблюдение: рассуждает, извлекает, смотрит на результат и решает следующий ход (ReAct, Self-RAG, CRAG).',
+      tt: 'агентлы RAG — Фикер → Гамәл → Күзәтү циклын үткәрүче кечкенә театр актёры: уйлый, табып ала, нәтиҗәгә карый, аннары киләсе адымны хәл итә (ReAct, Self-RAG, CRAG).',
+    },
+    lecture: 'L11',
+    href: (lang, localizedPath) => localizedPath(lang, 'book/11'),
+  },
+  {
+    id: 'clippy',
+    name: { en: 'Clippy', ru: 'Клиппи', tt: 'Клиппи' },
+    img: '/Lectures/assets/img/L12/L12-16-clippy.png',
+    concept: {
+      en: 'multimodal alignment — a friendly paperclip who pins an image and its caption into one shared embedding space, so a picture and the words that describe it land close together (CLIP).',
+      ru: 'мультимодальное выравнивание — дружелюбная скрепка, скалывающая картинку и её подпись в одно общее пространство эмбеддингов, чтобы изображение и описывающие его слова оказались рядом (CLIP).',
+      tt: 'мультимодаль тигезләү — рәсемне һәм аның язмасын бер уртак эмбеддинг киңлегенә кадаклаучы дус кәгазь кыстыргыч, рәсем белән аны тасвирлаган сүзләр янәшә төшсен өчен (CLIP).',
+    },
+    lecture: 'L12',
+    href: (lang, localizedPath) => localizedPath(lang, 'book/12'),
+  },
+  {
+    id: 'joey-multihop',
+    name: { en: 'Joey Multi-Hop', ru: 'Джоуи Мульти-Хоп', tt: 'Джоуи Мульти-Хоп' },
+    img: '/Lectures/assets/img/L12/L12-17-joey-multihop.png',
+    concept: {
+      en: 'multi-hop reasoning — a kangaroo who bounds node → node → node, gathering one clue per hop until the scattered pieces add up to an answer no single passage held (multi-hop / GraphRAG).',
+      ru: 'многошаговое рассуждение — кенгуру, прыгающий узел → узел → узел и собирающий по подсказке за прыжок, пока разрозненные кусочки не сложатся в ответ, которого не было ни в одном пассаже (multi-hop / GraphRAG).',
+      tt: 'күп адымлы фикерләү — төен → төен → төен сикерүче кенгуру, һәр сикерүдә бер ишарә җыя, таркау кисәкләр бер пассажда да булмаган җавапка өстәлгәнче (multi-hop / GraphRAG).',
+    },
+    lecture: 'L12',
+    href: (lang, localizedPath) => localizedPath(lang, 'book/12'),
+  },
+  {
     id: 'impostor',
     name: { en: 'the Impostor', ru: 'Самозванец', tt: 'Самозванец' },
     img: '/Lectures/assets/img/L13/L13-09-the-impostor.png',
