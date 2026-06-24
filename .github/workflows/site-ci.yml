@@ -114,6 +114,14 @@ jobs:
       - name: G12 image-gate self-test
         run: python3 _research/check_images.py --selftest
 
+      # G17 — missing-image gate: every referenced illustration AND every gen_images.py BRIEF must
+      #        exist on disk. Kills the "illustrations not generated / broken image ref" class that
+      #        the brand image-gate (reads briefs, not files) is blind to.
+      - name: G17 asset-gate (missing images)
+        run: python3 _research/check_assets.py
+      - name: G17 asset-gate self-test
+        run: python3 _research/check_assets.py --selftest
+
       # G6 — every Book scroll-step maps to a real widget step.
       - name: G6 scroll-step
         run: node _audit/scroll-step-gate.mjs
@@ -221,3 +229,21 @@ jobs:
       - name: G13 viz-probe-gate self-test
         working-directory: _audit
         run: node viz-probe-gate.mjs --selftest
+
+      # G18 — lecture-parity: a deck must match L10-L12 depth (>=45 slides, no walls of text,
+      #        objectives + references present). Kills the "short and shallow" deep-dive class.
+      - name: G18 parity-gate (depth)
+        working-directory: _audit
+        run: node parity-gate.mjs
+      - name: G18 parity-gate self-test
+        working-directory: _audit
+        run: node parity-gate.mjs --selftest
+
+      # G19 — composition: render every slide; HARD-fail if HTML content overflows/clips the
+      #        1920x1080 frame (the "composition breaks / text spills out" class slide-viz misses).
+      - name: G19 composition-gate (frame overflow)
+        working-directory: _audit
+        run: node composition-gate.mjs
+      - name: G19 composition-gate self-test
+        working-directory: _audit
+        run: node composition-gate.mjs --selftest
