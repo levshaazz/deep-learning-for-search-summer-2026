@@ -1,6 +1,17 @@
     {
       id: 'turn-teacher', kind: 'prose',
       heading: { en: 'The teacher unmasks the impostor', ru: 'Учитель срывает маску', tt: 'Остаз битлекне ача' },
+      img: 'L13/L13-12-master-smith.png', imgPos: 'mascot',
+      imgAlt: {
+        en: "The master smith — a cross-encoder teacher reading query and passage together — grading each negative so the student keeps the worthy hard one and drops the impostor.",
+        ru: "Мастер-кузнец — учитель-кросс-энкодер, читающий запрос и пассаж вместе, — оценивает каждый негатив, чтобы ученик оставил достойный трудный и отбросил самозванца.",
+        tt: "Оста тимерче — сорау белән пассажны бергә укый торган кросс-энкодер укытучы — һәр негативны бәяли, шунда укучы лаеклы авырын калдыра, ә алдакчыны ташлый.",
+      },
+      imgCaption: {
+        en: "A cross-encoder teacher reads query and passage together and grades each negative — keeping the worthy, unmasking the impostor.",
+        ru: "Учитель-кросс-энкодер читает запрос и пассаж вместе и оценивает каждый негатив — достойного оставляет, самозванца разоблачает.",
+        tt: "Кросс-энкодер укытучы сорау белән пассажны бергә укый һәм һәр негативны бәяли — лаеклысын калдыра, алдакчыны фаш итә.",
+      },
       body: {
         en: [
           "The duel now becomes tutelage. Instead of a blunt right/wrong label, a strong **teacher** — a cross-encoder that reads the query and passage together — grades each pair with a soft *margin*: how much better the positive is than the negative. The student learns to match that margin.",

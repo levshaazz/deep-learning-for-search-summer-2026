@@ -1,6 +1,17 @@
     {
       id: 'modern-synthesis', kind: 'prose',
       heading: { en: 'The modern recipe', ru: 'Современный рецепт', tt: 'Заманча рецепт' },
+      img: 'L13/L13-13-modern-forge.png', imgPos: 'scene',
+      imgAlt: {
+        en: "Séréga at a modern forge in his green tübetey: one bellows blasts a wide, even heat across the whole blade, while a fine hammer taps a single sharp edge — the two-stage recipe rendered as a smithy.",
+        ru: "Серёга у современного горна в зелёной тюбетейке: одни мехи дают широкий ровный жар по всему клинку, а тонкий молоток выстукивает единственную острую кромку — двухэтапный рецепт в виде кузницы.",
+        tt: "Яшел түбәтәйле Серёга заманча кузницада: бер күрек бөтен пычак буйлап киң, тигез җылылык өрә, ә нечкә чүкеч бердәнбер үткен кырыйны чүки — ике этаплы рецепт кузница рәвешендә.",
+      },
+      imgCaption: {
+        en: "The modern recipe in one image: a wide blast of in-batch negatives for even heat, plus a few mined hard ones to tap the edge.",
+        ru: "Современный рецепт в одной картинке: широкий поток внутрибатчевых негативов для ровного жара плюс несколько добытых трудных, чтобы выстучать кромку.",
+        tt: "Заманча рецепт бер сурәттә: тигез җылылык өчен батч эчендәге негативларның киң агымы, өстенә кырыйны чүкү өчен берничә казып алынган авыры.",
+      },
       body: {
         en: [
           "Today's strongest open embedding models converge on one two-stage shape. **Stage one:** a *massive* in-batch contrast — tens of thousands of easy negatives at once — to spread the space out evenly. **Stage two:** fine-tune with a *few* mined hard negatives, filtered so no impostor survives.",

@@ -1,6 +1,17 @@
     {
       id: 'temperature-and-ceiling', kind: 'prose',
       heading: { en: 'Temperature and the ceiling', ru: 'Температура и потолок', tt: 'Температура һәм түшәм' },
+      img: 'L13/L13-00-the-crucible.png', imgPos: 'scene',
+      imgAlt: {
+        en: "Séréga at the forge, heating a glowing blade in a crucible over an orange flame, hammer and anvil beside him — the heat of the fire is the temperature that sets how sharply the contrast bites.",
+        ru: "Серёга у горна нагревает раскалённый клинок в тигле над оранжевым пламенем, рядом молот и наковальня, — жар огня и есть температура, что задаёт остроту контраста.",
+        tt: "Серёга кузницада оранж ялкын өстендәге тигельдә кызган пычакны җылыта, янәшәдә чүкеч һәм сандал — ут җылысы нәкъ контрастның никадәр үткен тешләвен билгели торган температура ул.",
+      },
+      imgCaption: {
+        en: "Temperature is the forge's heat: too cool and nothing sharpens, too fierce and the steel burns. There is a band that works.",
+        ru: "Температура — это жар горна: слишком слабый — ничего не точится, слишком яростный — сталь сгорает. Есть рабочая полоса.",
+        tt: "Температура — кузница җылысы: артык салкын булса — берни үткенләнми, артык көчле булса — корыч яна. Эшли торган полоса бар.",
+      },
       body: {
         en: [
           "Lowering \\(\\tau\\) sharpens the softmax: the probability piles onto the hardest candidate, and the loss falls. Temperature is the **hardness amplifier** — it decides how much a near-miss dominates the gradient.",

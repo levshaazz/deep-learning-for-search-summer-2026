@@ -1,6 +1,17 @@
     {
       id: 'turn-the-arc', kind: 'prose',
       heading: { en: 'The search for good opponents', ru: 'Поиск хороших противников', tt: 'Яхшы көндәшләр эзләү' },
+      img: 'L13/L13-06-forge-path.png', imgPos: 'hero',
+      imgAlt: {
+        en: "A winding forge-path of milestone anvils marching into the distance — pebble, wooden dummy, sparring partner, mirror, filtered flame — fifteen years of learning how to choose good opponents.",
+        ru: "Извилистая кузнечная тропа из наковален-вех, уходящая вдаль, — камешек, деревянный манекен, спарринг-партнёр, зеркало, отфильтрованное пламя — пятнадцать лет учёбы, как выбирать достойных противников.",
+        tt: "Еракка сузылган сандал-этаплардан торган бормалы кузница сукмагы — вак таш, агач манекен, спарринг-иптәш, көзге, фильтрланган ялкын — яхшы көндәшләр сайларга өйрәнгән унбиш ел.",
+      },
+      imgCaption: {
+        en: "Fifteen years, one anvil at a time: the whole history of negative selection is a search for the right opponent.",
+        ru: "Пятнадцать лет, по одной наковальне зараз: вся история выбора негативов — это поиск правильного противника.",
+        tt: "Унбиш ел, берәр сандал саен: негатив сайлауның бөтен тарихы — дөрес көндәш эзләү ул.",
+      },
       body: {
         en: [
           "From here the chapter is a history. For fifteen years the field has been asking one question in better and better ways: *where do good negatives come from?* Each answer fixes a specific flaw in the one before it.",

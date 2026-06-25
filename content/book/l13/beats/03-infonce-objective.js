@@ -1,6 +1,17 @@
     {
       id: 'infonce-objective', kind: 'prose',
       heading: { en: 'Pick the positive out of N', ru: 'Выбери позитив из N', tt: 'N арасыннан позитивны сайла' },
+      img: 'L13/L13-03-in-batch-arena.png', imgPos: 'scene',
+      imgAlt: {
+        en: "An arena where the query faces one true positive among a lineup of in-batch negatives — InfoNCE as a multiple-choice contest the model must win by scoring the positive highest.",
+        ru: "Арена, где запрос стоит против одного истинного позитива среди шеренги внутрибатчевых негативов — InfoNCE как тест с выбором, который модель выигрывает, дав позитиву высший балл.",
+        tt: "Сорау батч эчендәге негативлар сафы арасында бер чын позитивга каршы торган арена — InfoNCE сайлаулы тест буларак, монда модель позитивга иң югары балл биреп җиңәргә тиеш.",
+      },
+      imgCaption: {
+        en: "InfoNCE is a multiple-choice exam: score the one positive above every negative in the line-up.",
+        ru: "InfoNCE — экзамен с выбором ответа: поставить единственный позитив выше каждого негатива в шеренге.",
+        tt: "InfoNCE — сайлаулы имтихан: бердәнбер позитивны сафтагы һәр негативтан өстен куярга.",
+      },
       body: {
         en: [
           "The contrastive loss — **InfoNCE** — turns retrieval into a multiple-choice question: among the positive and a batch of negatives, score each by similarity, take a softmax at temperature \\(\\tau\\), and ask the model to put all its probability on the positive. The loss is \\(-\\log P^+\\).",

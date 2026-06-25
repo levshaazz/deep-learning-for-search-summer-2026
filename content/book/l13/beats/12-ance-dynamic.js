@@ -1,6 +1,17 @@
     {
       id: 'ance-dynamic', kind: 'prose',
       heading: { en: 'Let the model pick its opponents', ru: 'Пусть модель выбирает противников', tt: 'Модель көндәшләрен үзе сайласын' },
+      img: 'L13/L13-07-mirror-opponent.png', imgPos: 'mascot',
+      imgAlt: {
+        en: "Séréga sparring against a mirror image of himself — the model mining its own hardest opponents from its current index, an opponent that grows as the fighter grows.",
+        ru: "Серёга спаррингует против собственного зеркального отражения — модель добывает самых трудных противников из своего же текущего индекса, и противник растёт вместе с бойцом.",
+        tt: "Серёга үзенең көзге чагылышына каршы спарринг ясый — модель үзенең хәзерге индексыннан иң авыр көндәшләрен казып ала, һәм көндәш көрәшче белән бергә үсә.",
+      },
+      imgCaption: {
+        en: "Let the model pick its own opponents: ANCE mines the hardest negatives from the live index, so they sharpen as the model improves.",
+        ru: "Пусть модель сама выбирает противников: ANCE добывает самые трудные негативы из живого индекса, и они становятся острее по мере роста модели.",
+        tt: "Модель үз көндәшләрен үзе сайласын: ANCE тере индекстан иң авыр негативларны казып ала, һәм алар модель үскән саен үткенләнә.",
+      },
       body: {
         en: [
           "The turn that changed dense retrieval: stop guessing what is hard, and let the **model mine its own**. Index the whole corpus with the current model, retrieve each query's nearest non-positives, and train against *those*. These are the negatives the model actually confuses — and they keep up with it as it improves.",
