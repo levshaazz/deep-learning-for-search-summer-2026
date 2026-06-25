@@ -1,6 +1,17 @@
     {
       id: 'toxic-hardest', kind: 'prose',
       heading: { en: 'The hardest can break the blade', ru: 'Самый сложный может сломать клинок', tt: 'Иң катлаулысы пычакны сындырырга мөмкин' },
+      img: 'L13/L13-05-shattered-blade.png', imgPos: 'scene',
+      imgAlt: {
+        en: "A shattered blade lying in pieces — quenching the steel too hard makes it brittle, just as feeding only the very hardest negatives collapses training.",
+        ru: "Разлетевшийся на куски клинок — слишком резкая закалка делает сталь хрупкой, как и обучение на одних самых трудных негативах разрушает тренировку.",
+        tt: "Кисәкләргә таркалган пычак — корычны артык кискен чыныктыру аны вак-төякле итә, нәкъ бары тик иң авыр негативлар белән өйрәтү дә өйрәнүне җимергән кебек.",
+      },
+      imgCaption: {
+        en: "Feed *only* the hardest and the blade shatters: the very hardest negatives are often mislabeled positives in disguise.",
+        ru: "Дай *только* самые трудные — и клинок разлетится: самые трудные негативы часто оказываются переодетыми позитивами.",
+        tt: "*Бары тик* иң авырларны бирсәң, пычак чәлпәрәмә килә: иң авыр негативлар еш кына кыяфәт алыштырган позитивлар булып чыга.",
+      },
       body: {
         en: [
           "If a negative is worth its gradient, why not always train on the very hardest? Because the early work on triplet losses found the opposite: feeding a model only the hardest negatives can **collapse** training — the gradients become huge and unstable, and the model folds. The classic fix was to stay in a *semi-hard* band, hard enough to teach but not so hard it destabilises.",

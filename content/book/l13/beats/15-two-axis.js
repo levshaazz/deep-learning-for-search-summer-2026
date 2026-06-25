@@ -1,6 +1,17 @@
     {
       id: 'two-axis', kind: 'prose',
       heading: { en: 'Two axes, not one', ru: 'Две оси, а не одна', tt: 'Бер түгел, ике күчәр' },
+      img: 'L13/L13-10-two-by-two.png', imgPos: 'scene',
+      imgAlt: {
+        en: "A 2x2 plane: the horizontal query-hardness axis where two negatives look like twins, and the vertical collateral-danger axis where only one sits dangerously inside the positive's neighbourhood.",
+        ru: "Плоскость 2x2: горизонтальная ось трудности к запросу, где два негатива выглядят близнецами, и вертикальная ось сопутствующей опасности, где лишь один опасно сидит в окрестности позитива.",
+        tt: "2x2 яссылык: горизонталь сорау-авырлыгы күчәре, монда ике негатив игезәкләр кебек, һәм вертикаль янәшә-куркыныч күчәре, монда бары берсе генә позитив тирәлегендә куркынычлы утыра.",
+      },
+      imgCaption: {
+        en: "Hardness alone hides the danger: you need a second axis — how close the negative sits to the *positive* it could collide with.",
+        ru: "Одна трудность прячет опасность: нужна вторая ось — насколько негатив близок к *позитиву*, с которым может столкнуться.",
+        tt: "Бер авырлык куркынычны яшерә: икенче күчәр кирәк — негатив бәрелешә ала торган *позитивга* никадәр якын.",
+      },
       body: {
         en: [
           "The impostor exposes a confusion the field carried for years. *Hardness* is one axis — \\(\\cos(q, d^-)\\), how close a candidate sits to the query. But danger lives on a **second, orthogonal axis** — \\(\\cos(d^-, d^+)\\), how close it sits to the *positive*.",

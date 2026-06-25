@@ -1,6 +1,17 @@
     {
       id: 'hook-paradox', kind: 'prose',
       heading: { en: 'Same code, a different blade', ru: 'Тот же код — другой клинок', tt: 'Шул ук код — башка пычак' },
+      img: 'L13/L13-01-two-blades.png', imgPos: 'hero',
+      imgAlt: {
+        en: "Two blades forged from the same steel — one keen and bright, one dull and notched. Same code, same data; only the opponents differed.",
+        ru: "Два клинка, выкованных из одной стали, — один острый и светлый, другой тупой и зазубренный. Тот же код, те же данные; различались лишь противники.",
+        tt: "Бер үк корычтан сугылган ике пычак — берсе үткен һәм якты, икенчесе тупас һәм кителгән. Шул ук код, шул ук мәгълүмат; бары тик көндәшләр генә башка булды.",
+      },
+      imgCaption: {
+        en: "Same forge, two edges. What separated them was the **negatives** each blade was sharpened against.",
+        ru: "Одна кузница — две кромки. Разделил их выбор **негативов**, о которые точили каждый клинок.",
+        tt: "Бер кузница — ике кырый. Аларны һәр пычакны үткенләгән **негативлар** аерды.",
+      },
       body: {
         en: [
           "Two teams clone the same dense-retriever code, train on the same data with the same architecture. One ends up finding the right passage almost every time; the other barely beats keyword search. The only thing they chose differently was the **negatives** — the wrong answers each query is taught to push away.",

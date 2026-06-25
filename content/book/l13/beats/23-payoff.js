@@ -1,6 +1,17 @@
     {
       id: 'payoff', kind: 'prose',
       heading: { en: 'Forged by worthy opponents', ru: 'Выкован достойными противниками', tt: 'Лаеклы көндәшләр чарлаган' },
+      img: 'L13/L13-14-true-edge.png', imgPos: 'hero',
+      imgAlt: {
+        en: "Séréga raises a keen, true-edged blade overhead — forged in the narrow hard-but-honest band; the dull blade and the shattered too-hard blade lie discarded at his feet. His green tübetey is the only green.",
+        ru: "Серёга вздымает острый, верно заточенный клинок — выкованный в узкой полосе «трудно, но честно»; тупой клинок и расколотый слишком-твёрдый брошены у его ног. Зелёная тюбетейка — единственное зелёное.",
+        tt: "Серёга үткен, дөрес кырыйлы пычакны баш өстенә күтәрә — «авыр, ләкин намуслы» тар полосада сугылган; тупас пычак белән артык каты, чәлпәрәмә килгән пычак аяк астында ташланган. Яшел түбәтәе — бердәнбер яшеллек.",
+      },
+      imgCaption: {
+        en: "Forged by worthy opponents: an edge that lives only in the narrow **hard-but-honest** band — and the whole field's history is the search for it.",
+        ru: "Выкован достойными противниками: кромка, что живёт лишь в узкой полосе **«трудно, но честно»**, — и вся история области есть её поиск.",
+        tt: "Лаеклы көндәшләр сугып ясаган: бары тик тар **«авыр, ләкин намуслы»** полосада гына яши торган кырый — һәм бөтен өлкәнең тарихы шуны эзләү ул.",
+      },
       body: {
         en: [
           "A dense retriever is forged by the opponents it trains against. Easy negatives teach nothing; the hardest are often impostors that corrupt the edge; effectiveness lives in a narrow **hard-but-honest** band — and the field's whole history is the search for it.",
