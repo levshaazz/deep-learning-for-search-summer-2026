@@ -3,10 +3,11 @@
    step of EVERY slide via the deck's #/N/k deep-link engine (so archflow/divider/widget slides are
    exercised, not just step-0), at native 1920×1080 in BOTH EN and RU, and classifies:
      HARD — a defect that loses or breaks content: a COLLAPSED figure image (rendered <40px), a BROKEN
-            image (naturalWidth 0 / failed WebP), an element OFF the 1920×1080 slide, or BILINGUAL
-            DOUBLING (both lang twins visible). These are 0 on a healthy deck; any >0 fails the build.
-     WARN — visible-but-not-content-losing: text OVERLAP (≥30% box cover) or sub-16px text. Dense
-            real-data figures can carry justified partial crowding, so these inform without blocking.
+            image (naturalWidth 0 / failed WebP), an element OFF the 1920×1080 slide, BILINGUAL
+            DOUBLING (both lang twins visible), or a SEVERE label OVERLAP (≥50% box cover — a
+            collision, not crowding). These are 0 on a healthy deck; any >0 fails the build.
+     WARN — visible-but-not-content-losing: MILD text overlap (30–50% box cover) or sub-16px text.
+            Dense real-data figures can carry justified partial crowding, so these inform without blocking.
    WHY: slide-viz checks OOB/garbled/oversize at step 0; this caught what it missed — the L8 RU divider
    collapsing to 16px and the L11 climb-widget overflow (both step- and image-specific). Read-only.
 
@@ -19,7 +20,10 @@ import { join } from 'node:path';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));   // _audit/ → repo root
 const DOCS_LECT = join(ROOT, 'docs', 'Lectures');
-const TINY_PX = 16, OVERLAP_FRAC = 0.30, OFF_PAD = 2, IMG_MIN = 40;
+const TINY_PX = 16, OVERLAP_FRAC = 0.30, HARD_OVERLAP_FRAC = 0.50, OFF_PAD = 2, IMG_MIN = 40;
+// overlap severity split: a SEVERE box cover (>= HARD_OVERLAP_FRAC) is a real label COLLISION
+// (illegible — the "наложение" defect) and HARD-fails; mild crowding (OVERLAP_FRAC..HARD) stays
+// WARN, since dense real-data figures can carry justified partial overlap. Both were WARN before.
 
 // ── pure classifier: a measured slide record → { hard:[...], warn:[...] } (shared by run + selftest) ──
 export function classify(rec) {
@@ -29,7 +33,11 @@ export function classify(rec) {
   for (const b of (rec.imgs?.broken || [])) hard.push(`${where}: BROKEN image ${b}`);
   for (const o of (rec.offSlide || [])) hard.push(`${where}: OFF-SLIDE ${JSON.stringify(o.t)} by ${o.over}px`);
   if (rec.doubled) hard.push(`${where}: BILINGUAL DOUBLING ×${rec.doubled}`);
-  for (const o of (rec.overlaps || [])) warn.push(`${where}: overlap ${JSON.stringify(o.a)}~${JSON.stringify(o.b)} ${o.frac}`);
+  for (const o of (rec.overlaps || [])) {
+    const msg = `${where}: overlap ${JSON.stringify(o.a)}~${JSON.stringify(o.b)} ${o.frac}`;
+    if (o.frac >= HARD_OVERLAP_FRAC) hard.push(msg + ` (SEVERE ≥${HARD_OVERLAP_FRAC} — labels collide)`);
+    else warn.push(msg);
+  }
   if ((rec.tinyText || []).length) warn.push(`${where}: ${rec.tinyText.length} sub-${TINY_PX}px text (min ${rec.minTextPx})`);
   return { hard, warn };
 }
@@ -128,7 +136,7 @@ async function main() {
   for (const h of hard) console.log('  ✗ [HARD] ' + h);
   for (const w of warn.slice(0, 40)) console.log('  ! [WARN] ' + w);
   console.log(`\n[viz-probe-gate] scanned ${records.length} slide-states across all decks (EN+RU, every step)`);
-  console.log(`[viz-probe-gate] HARD(collapsed/broken/off-slide/doubling)=${hard.length}  WARN(overlap/tiny-text)=${warn.length}`);
+  console.log(`[viz-probe-gate] HARD(collapsed/broken/off-slide/doubling/severe-overlap)=${hard.length}  WARN(mild-overlap/tiny-text)=${warn.length}`);
   if (hard.length) process.exit(1);
 }
 
@@ -138,7 +146,8 @@ function selftest() {
     { name: 'broken image', rec: { lang: 'en', slide: 2, step: 0, maxStep: 0, imgs: { broken: ['y.webp'] } }, mustHard: true },
     { name: 'off-slide', rec: { lang: 'en', slide: 3, step: 0, maxStep: 0, offSlide: [{ t: 'z', over: 40 }] }, mustHard: true },
     { name: 'bilingual doubling', rec: { lang: 'en', slide: 4, step: 0, maxStep: 0, doubled: 2 }, mustHard: true },
-    { name: 'overlap (warn only)', rec: { lang: 'en', slide: 5, step: 0, maxStep: 0, overlaps: [{ a: 'p', b: 'q', frac: 0.6 }] }, mustHard: false, mustWarn: true },
+    { name: 'severe overlap (≥0.5 → HARD)', rec: { lang: 'en', slide: 5, step: 0, maxStep: 0, overlaps: [{ a: 'p', b: 'q', frac: 0.6 }] }, mustHard: true, mustWarn: false },
+    { name: 'mild overlap (0.3–0.5 → WARN)', rec: { lang: 'en', slide: 5, step: 1, maxStep: 1, overlaps: [{ a: 'p', b: 'q', frac: 0.4 }] }, mustHard: false, mustWarn: true },
     { name: 'clean slide', rec: { lang: 'en', slide: 6, step: 0, maxStep: 0, imgs: {} }, mustHard: false, mustWarn: false },
   ];
   let ok = true;
@@ -150,7 +159,7 @@ function selftest() {
     if (!pass) ok = false;
   }
   if (!ok) { console.log('[viz-probe-gate] SELFTEST FAILED'); process.exit(1); }
-  console.log('[viz-probe-gate] selftest PASS — classifier fires on collapsed/broken/off-slide/doubling, warns on overlap, silent on clean');
+  console.log('[viz-probe-gate] selftest PASS — classifier fires on collapsed/broken/off-slide/doubling + severe overlap (HARD), warns on mild overlap, silent on clean');
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });
