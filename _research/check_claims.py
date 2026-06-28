@@ -648,7 +648,17 @@ def book_claims():
     out += l9_book_claims()
     out += l10_book_claims()
     out += l11_book_claims()
+    out += l13_book_claims()
     return out
+
+# ── [C] L13 BOOK CLAIMS: the built Book PROSE restates TAS-B's achieved MS MARCO MRR@10 (≈ 0.34) — the only
+#    NEW ≥2-dp number this depth pass adds to the Book. Gating it keeps book:L13 coverage at 0 (ANCE's 0.33 is
+#    already gated == MS MARCO denseDPR). Value from BENCH13["tasb"]["mrr"]; anchored to the topic-aware beat. ──
+def l13_book_claims():
+    return [
+        dict(id="book L13 tasb mrr", deck="L13", value=BENCH13["tasb"]["mrr"], tol=1e-4,
+             anchor=r"MS MARCO MRR@10 (?:&asymp;|≈) ([\d.]+) on a single 11", must=True),
+    ]
 
 # ── [C] L7 DECK claims: the cited reranker benchmarks the deck DISPLAYS (≥2-decimal → coverage-gated).
 #    value sourced from data/l7-bench.json; anchored to the rendered deck tables (slides 31 & 33). These
@@ -2086,6 +2096,9 @@ def l13_deck_claims():
         C("L13 deck toy inbatch",    RC["inbatch"]["mean"],    r"toy in-batch <strong>([\d.]+)</strong>"),
         C("L13 deck toy undenoised", RC["undenoised"]["mean"], r"toy \+undenoised <strong>([\d.]+)</strong>"),
         C("L13 deck toy denoised",   RC["denoised"]["mean"],   r"toy \+denoised <strong>([\d.]+)</strong>"),
+        # slide-41 TAS-B achieved efficiency (MS MARCO MRR@10, reported) — the only NEW ≥2-dp number this
+        # depth pass adds; gating it keeps deck:L13 coverage at 0 (ANCE's 0.33 is already gated == MS MARCO denseDPR).
+        C("L13 deck tasb mrr", BENCH13["tasb"]["mrr"], r"MRR@10 &asymp; </span><strong>([\d.]+)</strong>"),
     ] + _l13_spine_coverage(C)
 
 # ── the rebuilt deck (~52 slides) shows the spine cosines, the two-axis split, BM25 recall, and the
