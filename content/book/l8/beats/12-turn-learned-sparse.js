@@ -1,6 +1,12 @@
     {
       id: 'turn-learned-sparse', kind: 'prose',
       heading: { en: 'Teaching sparsity to read', ru: 'Научить разрежённость читать', tt: 'Сирәклекне укырга өйрәтү' },
+      img: 'L8/L8-02-expanded-banner.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'Séréga holds up a sparse banner of a few already-lit literal points (the words you typed) and, with a small torch, kindles several faint related points nearby that flicker to life — SPLADE expansion. The emblem grows richer yet stays clearly sparse, with plenty of empty dark space; a hand-lettered label by a new point reads "found these too".',
+        ru: 'Серёга поднимает разрежённое знамя из нескольких уже зажжённых буквальных точек (слова, которые ты ввёл) и маленьким факелом разжигает рядом несколько тусклых связанных точек, которые загораются — расширение SPLADE. Эмблема становится богаче, но остаётся явно разрежённой, с большим количеством пустого тёмного пространства; рукописная подпись у новой точки гласит «нашли и эти».',
+        tt: 'Серёга берничә инде кабынган хәрефи ноктадан (син язган сүзләр) торган сирәк байрак күтәрә һәм кечкенә факел белән янәшәдәге берничә тонык бәйле ноктаны кабыза, алар яктыра — SPLADE киңәйтүе. Эмблема баерак була, әмма ачык сирәк булып кала, күп буш караңгы урын белән; яңа нокта янындагы кулдан язылган язу «боларны да таптык» дип укыла.',
+      },
       body: {
         en: [
           "BM25 (Lecture 3) weighs only the words literally present, with raw term-frequency times inverse document frequency. It is fast and lives in an inverted index — but it has a lexical gap: a query \"river flood\" never lights up \"water\" or \"riverbank\".",

@@ -112,20 +112,27 @@ export const mountRankingMetrics = defineWidget({
       labels.mapHint || ('mean of precision at each relevant rank: ' +
         hits.map((h) => fmt2(h.p)).join(' + ') + ' over ' + hits.length));
 
-    // — step 4: nDCG (headline)
+    // — step 4: nDCG (headline). The contrib column lights at the same step; the DCG line now SHOWS
+    // the accumulation explicitly (Σ of the discounted gains) so the sum is built on screen, not just
+    // asserted as a finished total, and the ratio nDCG = DCG / IDCG is written out long-hand.
     const ndY = mapY + 40;
+    const relContribs = (data.discounts || []).filter((d) => d.contrib > 0);
     head('ndcg', panel.x, ndY, 'rm-ndcg-h',
-      `DCG = ${fmt(data.dcg)}   IDCG = ${fmt(data.idcg)}`);
-    add('ndcg', el('text', { x: panel.x, y: ndY + 26, class: 'rm-annot rm-ndcg-big' }, svg))
-      .textContent = `nDCG = ${fmt(data.ndcg)}`;
-    sub('ndcg', panel.x, ndY + 46,
-      labels.ndcgHint || ('ideal order: ' + (data.idealOrder || []).join(' › ')));
+      `DCG = ${relContribs.map((d) => fmt(d.contrib)).join(' + ')} = ${fmt(data.dcg)}`);
+    // IDCG line: name the ideal order but cap it to the relevant head (the docs that actually carry
+    // gain) + an ellipsis, so the line never runs past the 480px frame.
+    const idealHead = (data.idealOrder || []).slice(0, data.relevantTotal || 4);
+    const idealStr = idealHead.join(' › ') + ((data.idealOrder || []).length > idealHead.length ? ' …' : '');
+    head('ndcg', panel.x, ndY + 18, 'rm-ndcg-h2',
+      `IDCG = ${fmt(data.idcg)}   (${labels.idealLabel || 'ideal order'}: ${idealStr})`);
+    add('ndcg', el('text', { x: panel.x, y: ndY + 46, class: 'rm-annot rm-ndcg-big' }, svg))
+      .textContent = `nDCG = ${fmt(data.dcg)} / ${fmt(data.idcg)} = ${fmt(data.ndcg)}`;
 
     // Size the viewBox to the DEEPEST content, not a constant — the panel stacks below the list and
     // its last line (nDCG hint at ndY+46) sits well past the old H=460. frameHeightFor adds bottom
     // padding so the text's descenders clear the box too. (audit p1-widgets.md #1)
     const listBottom = list.y + ranked.length * list.rowH;     // last ranked row bottom
-    const panelBottom = ndY + 46;                              // last metric-panel line baseline
+    const panelBottom = ndY + 46;                              // last metric-panel line baseline (nDCG big)
     const H = frameHeightFor(Math.max(listBottom, panelBottom));
     svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 

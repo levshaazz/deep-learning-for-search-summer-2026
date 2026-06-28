@@ -87,22 +87,41 @@ export const mountSemanticRouter = defineWidget({
     add('construct', el('text', { x: PAD, y: cardsTop, class: 'sr-conhead' }, svg))
       .textContent = labels.constructHead || 'construct: turn NL into a structured retrieval';
 
-    const cardW = W - 2 * PAD, cardH = 58, cardGap = 12;
-    function card(idx, title, nlText, codeText) {
-      const cy = cardsTop + 12 + idx * (cardH + cardGap);
+    // wrap a code/SQL string into ≤maxChars greedy-by-token lines so the full WHERE clause
+    // (date_trunc / interval — what distinguishes text-to-SQL from a trivial count) survives,
+    // instead of being sliced at 56 chars.
+    function wrapCode(s, maxChars) {
+      const toks = String(s || '').split(/\s+/);
+      const lines = [];
+      let cur = '';
+      for (const t of toks) {
+        if (!cur) { cur = t; continue; }
+        if ((cur + ' ' + t).length <= maxChars) cur += ' ' + t;
+        else { lines.push(cur); cur = t; }
+      }
+      if (cur) lines.push(cur);
+      return lines;
+    }
+    const cardW = W - 2 * PAD, cardGap = 12, codeLH = 15;
+    // the card grows to hold every wrapped code line (1 line → 58px, 2 lines → 73px, …)
+    function card(cy, title, nlText, codeLines) {
+      const cardH = 42 + codeLines.length * codeLH;
       add('construct', el('rect', { x: PAD, y: cy, width: cardW, height: cardH, rx: 9, class: 'sr-card' }, svg));
       add('construct', el('text', { x: PAD + 12, y: cy + 18, class: 'sr-cardttl' }, svg)).textContent = title;
       add('construct', el('text', { x: PAD + 12, y: cy + 35, class: 'sr-cardnl' }, svg)).textContent = '“' + nlText + '”';
-      add('construct', el('text', { x: PAD + 12, y: cy + 51, class: 'sr-cardcode' }, svg)).textContent = codeText;
+      codeLines.forEach((ln, i) => {
+        add('construct', el('text', { x: PAD + 12, y: cy + 51 + i * codeLH, class: 'sr-cardcode' }, svg)).textContent = ln;
+      });
       return cy + cardH;
     }
     const mf = construct.metadataFilter || {};
     const ts = construct.textToSql || {};
     let deepest = cardsTop + 12;
-    if (mf.nl) deepest = card(0, labels.selfQuery || 'self-query · NL → metadata filter',
-      mf.nl, JSON.stringify(mf.filter || {}));
-    if (ts.nl) deepest = card(1, labels.textToSql || 'text-to-SQL · NL → SQL',
-      ts.nl, (ts.sql || '').length > 56 ? (ts.sql || '').slice(0, 53) + '…' : (ts.sql || ''));
+    let cy = cardsTop + 12;
+    if (mf.nl) { deepest = card(cy, labels.selfQuery || 'self-query · NL → metadata filter',
+      mf.nl, wrapCode(JSON.stringify(mf.filter || {}), 56)); cy = deepest + cardGap; }
+    if (ts.nl) { deepest = card(cy, labels.textToSql || 'text-to-SQL · NL → SQL',
+      ts.nl, wrapCode(ts.sql || '', 56)); }
 
     const H = frameHeightFor(Math.max(rowY(N - 1) + rowH, deepest) + 16, 14);
     svg.setAttribute('viewBox', `0 0 ${W} ${H}`);

@@ -9,15 +9,16 @@
    human text comes from i18n `labels` (en+ru+tt). Built on _widget-base.js + _plot-util.js. GREEN
    outlines/marks ONLY the matching diagonal cells.
 
-   Steps (maxStep = 4):
+   Steps (maxStep = 5):
      0 → the 3 image concepts (rows) and 3 text concepts (columns) as a labelled EMPTY 3×3 grid — one
          shared space for both modalities.
      1 → fill the cells with their cosine values + heat shading (from data.cosineMatrix).
-     2 → highlight the diagonal (matching image/text pairs) in green — every image's top match is its own
-         caption; argmax wins on the diagonal (diagonalCorrect / #concepts).
-     3 → the contrastive separation: matchedMeanCos (high) vs mismatchedMeanCos (low) as two bars + the
+     2 → ONE worked row: scan the first image row, dim its losers, ring its argmax cell — the visible
+         act of picking the brightest cell in a row IS cross-modal retrieval (search text with a picture).
+     3 → generalise: every row's argmax lights the green diagonal (diagonalCorrect / #concepts).
+     4 → the contrastive separation: matchedMeanCos (high) vs mismatchedMeanCos (low) as two bars + the
          gap — matching pairs are close, everything else far.
-     4 → a REAL badge: llava:7b forced-choice image→caption on text-free shapes scored real.top1Correct /
+     5 → a REAL badge: llava:7b forced-choice image→caption on text-free shapes scored real.top1Correct /
          real.n = real.top1Accuracy. */
 import { defineWidget } from '../_widget-base.js';
 import { frameHeightFor } from '../_plot-util.js';
@@ -26,7 +27,7 @@ export const mountClipMatrix = defineWidget({
   id: 'clip-matrix',
   rootClass: 'clm-root',
   exportName: 'mountClipMatrix',
-  maxStep: 4,
+  maxStep: 5,
   render({ host, data, labels, el }) {
     const d = data || {};
     const concepts = (d.concepts && d.concepts.length) ? d.concepts : ['cat', 'dog', 'car'];
@@ -40,8 +41,10 @@ export const mountClipMatrix = defineWidget({
     const gridTop = 78;                                // matrix top edge
     const CELL = 96, GAP = 8, STEP = CELL + GAP;
     const rowLblW = 96;                                // left gutter for "image i" row labels
-    const gridLeft = PAD + rowLblW;                    // matrix left edge (leaves ≥10px margin)
     const gridW = n * STEP - GAP;
+    // CENTER the [row-label gutter + grid] block in the 540-wide frame so the figure is balanced
+    // (was left-skewed: gridLeft=112 → 124px dead band on the right). blockW = rowLblW + gridW.
+    const gridLeft = Math.round((W - (rowLblW + gridW)) / 2) + rowLblW; // ≈166, ≥10px margin each side
     const gridBottom = gridTop + n * STEP - GAP;
 
     // contrastive bars (step 3) sit below the matrix
@@ -95,11 +98,18 @@ export const mountClipMatrix = defineWidget({
         const valText = el('text', { x: cx + CELL / 2, y: cy + CELL / 2 + 6, class: 'clm-cellval',
                                      'text-anchor': 'middle' }, svg);
         valText.textContent = (typeof v === 'number' && isFinite(v)) ? v.toFixed(4) : '';
-        cells.push({ rect, valText, v, isDiag });
+        cells.push({ rect, valText, v, isDiag, i, j });
       }
     }
 
-    // ── contrastive bars (step 3): matched-mean vs mismatched-mean + the gap ──
+    // step 2 worked-row: which column is the argmax of the FIRST image row (the one we scan by hand).
+    const exRow = 0;
+    let exArgmax = 0;
+    for (let j = 1; j < n; j++) {
+      if (Number((M[exRow] && M[exRow][j]) || 0) > Number((M[exRow] && M[exRow][exArgmax]) || 0)) exArgmax = j;
+    }
+
+    // ── contrastive bars (step 4): matched-mean vs mismatched-mean + the gap ──
     const matched = Math.max(0, Math.min(1, Number(d.matchedMeanCos) || 0));
     const mismatched = Math.max(0, Math.min(1, Number(d.mismatchedMeanCos) || 0));
     const gapG = el('g', { class: 'clm-bars is-hidden' }, svg);
@@ -116,7 +126,12 @@ export const mountClipMatrix = defineWidget({
     el('text', { x: barX + barW / 2, y: barsBottom + 0, class: 'clm-gap', 'text-anchor': 'middle' }, gapG)
       .textContent = `${labels.gapLbl || 'contrastive gap'} = ${(Number(d.contrastiveGap) || 0).toFixed(4)}`;
 
-    // ── diagonal tally line (step 2) ──
+    // ── worked-row note (step 2 only) + diagonal tally line (step 3+) share the bottom band ──
+    const rowPickG = el('g', { class: 'clm-rowpick is-hidden' }, svg);
+    el('text', { x: PAD, y: gridBottom + 22, class: 'clm-rowpicktxt' }, rowPickG).textContent =
+      `${labels.rowPick || 'scan one row → pick its brightest cell (argmax)'}: ` +
+      `${concepts[exRow]} → ${concepts[exArgmax]}`;
+
     const tallyG = el('g', { class: 'clm-tally is-hidden' }, svg);
     el('text', { x: PAD, y: gridBottom + 22, class: 'clm-tallytxt' }, tallyG).textContent =
       `${labels.tally || 'top match on the diagonal'}: ${Number(d.diagonalCorrect) || 0} / ${n}`;
@@ -131,16 +146,23 @@ export const mountClipMatrix = defineWidget({
       `${Number(real.top1Correct) || 0}/${Number(real.n) || 0} = ${acc.toFixed(2)}`;
 
     return function update(k) {
-      // 1 → fill values + heat; 2 → green diagonal; 3 → bars; 4 → real badge
+      // 1 → fill values + heat; 2 → scan ONE row (ring its argmax, dim its losers);
+      // 3 → every row's argmax = green diagonal + tally; 4 → bars; 5 → real badge.
       cells.forEach((c) => {
         c.rect.setAttribute('fill', k >= 1 ? heat(c.v) : 'var(--bg-inset, #EBE7DA)');
         c.valText.classList.toggle('is-shown', k >= 1);
-        c.rect.classList.toggle('is-diag', k >= 2 && c.isDiag);
-        c.valText.classList.toggle('is-diag', k >= 2 && c.isDiag);
+        // step 2 lights ONLY the worked row's argmax; step 3+ lights the whole diagonal.
+        const lit = (k >= 3 && c.isDiag) || (k === 2 && c.i === exRow && c.j === exArgmax);
+        c.rect.classList.toggle('is-diag', lit);
+        c.valText.classList.toggle('is-diag', lit);
+        // at step 2, fade the scanned row's non-winning cells so the argmax pick is the visible act.
+        c.rect.classList.toggle('is-rowloser', k === 2 && c.i === exRow && c.j !== exArgmax);
+        c.valText.classList.toggle('is-rowloser', k === 2 && c.i === exRow && c.j !== exArgmax);
       });
-      tallyG.classList.toggle('is-hidden', !(k >= 2));
-      gapG.classList.toggle('is-hidden', !(k >= 3));
-      badgeG.classList.toggle('is-hidden', !(k >= 4));
+      rowPickG.classList.toggle('is-hidden', !(k === 2));
+      tallyG.classList.toggle('is-hidden', !(k >= 3));
+      gapG.classList.toggle('is-hidden', !(k >= 4));
+      badgeG.classList.toggle('is-hidden', !(k >= 5));
     };
   },
 });

@@ -1,6 +1,12 @@
     {
       id: 'turn-multistage', kind: 'prose',
       heading: { en: 'Don&rsquo;t choose &mdash; stage them', ru: 'Не выбирай — выстраивай в стадии', tt: 'Сайлама — стадияләргә тез' },
+      img: 'L7/L7-06-hiring-funnel.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'A hiring funnel: a wide top where fast Scouts screen a crowd of applicants down to a shortlist, narrowing to a few careful Judge interviews at the bottom — cheap-and-wide first, dear-and-narrow last.',
+        ru: 'Воронка найма: широкий верх, где быстрые Разведчики отсеивают толпу кандидатов до короткого списка, сужается к нескольким вдумчивым собеседованиям Судей внизу — сначала дёшево-и-широко, в конце дорого-и-узко.',
+        tt: 'Яллау воронкасы: киң өске, анда тиз Разведчиклар кандидатлар төркемен кыска исемлеккә кадәр сайлый, аска берничә җентекле Судья әңгәмәсенә тарая — башта арзан-һәм-киң, ахырда кыйммәт-һәм-тар.',
+      },
       body: {
         en: [
           "We don&rsquo;t have to choose between fast and careful. **Stage** them: a cheap, wide Scout sweep first, then a dear, narrow Judge pass last. This is exactly the L1 retrieve-then-rerank funnel from *The Lost Record* — only now both stages are neural. Cheap-and-wide protects recall (don&rsquo;t lose the answer); dear-and-narrow protects precision@k (put the best on top where the user looks). The whole architecture of modern neural search is this one funnel.",

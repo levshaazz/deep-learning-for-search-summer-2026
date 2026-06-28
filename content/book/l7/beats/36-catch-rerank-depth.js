@@ -1,6 +1,12 @@
     {
       id: 'catch-rerank-depth', kind: 'prose',
       heading: { en: 'There is no free k', ru: 'Бесплатного k не бывает', tt: 'Бушлай k юк' },
+      img: 'L7/L7-07-depth-dial.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'A control dial marked with rerank depth k: turning it up feeds more candidates to the Judges (more recovered answers) while a rising latency gauge tracks the cost — there is no setting that is both deep and free.',
+        ru: 'Регулятор с делениями глубины переранжирования k: поворот вверх подаёт Судьям больше кандидатов (больше вытащенных ответов), а растущий индикатор задержки отслеживает цену — нет положения, что глубоко и бесплатно одновременно.',
+        tt: 'Кабат тәртипләү тирәнлеге k белән билгеләнгән борма: өскә бору Судьяларга күбрәк кандидат бирә (күбрәк кайтарылган җавап), ә үсүче тоткарлык күрсәткече бәяне күзәтә — тирән дә, бушлай да булган көйләнеш юк.',
+      },
       body: {
         en: [
           "How deep do you rerank? The depth \\(k\\) is a dial. Turn it up and the Judges see more of the Scouts&rsquo; output, so they can recover answers buried deeper — but each extra candidate is another cross-encoder pass, and the latency rises roughly linearly with \\(k\\). Turn it down and you are fast but you risk leaving good answers unjudged. There is **no free \\(k\\)**: you pick the shallowest depth that still captures the recall your retriever provides, and trade the rest against your latency budget (your SLA).",

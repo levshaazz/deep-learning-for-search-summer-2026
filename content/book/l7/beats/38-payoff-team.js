@@ -3,7 +3,7 @@
       heading: { en: 'The team wins the day', ru: 'Команда побеждает', tt: 'Команда җиңә' },
       img: 'L7/L7-08-team-wins.png', imgPos: 'scene',
       imgAlt: {
-        en: 'Scouts handing a small shortlist to the judges at the bench — the team working as one — with a faint road leading off toward jump-gates on the horizon.',
+        en: 'Scouts handing a small shortlist to the Judges at the bench — the team working as one — with a faint road leading off toward jump-gates on the horizon.',
         ru: 'Разведчики передают короткий список судьям за скамьёй — команда работает как одно целое — а вдали еле заметная дорога ведёт к джамп-гейтам на горизонте.',
         tt: 'Разведчиклар кыска исемлекне эскәмиядәге судьяларга тапшыра — команда бер бөтен булып эшли — офыктагы сикерү-капкаларга таба сүрән юл белән.',
       },

@@ -19,14 +19,25 @@ export const mountRetrieveRankFunnel = defineWidget({
     panel.className = 'wgt-panel fn-panel';
     host.appendChild(panel);
 
+    // Compute-per-doc cost climbs ≈10× per stage as the candidate count drops ≈10× — the inverse
+    // of the narrowing bar. Derived from the stage ORDER (the data note + s3 caption state the
+    // "≈10× more compute on ≈10× fewer candidates" rule), not new grounded numbers, so no data edit.
+    // i.e. corpus reference 1×, then each later stage ×10. The corpus row carries no cost chip
+    // (nothing is scored there yet); retrieval is the 1× reference for compute-per-doc.
+    const COST = ['', '~1×', '~10×', '~100×'];
+
     const rows = stages.map((s, i) => {
       const row = document.createElement('div');
       row.className = 'fn-stage is-hidden';
       row.style.setProperty('--w', s.w + '%');
       row.dataset.role = s.role;
+      const costChip = COST[i]
+        ? `<span class="fn-cost"><span class="fn-cost-k">${esc(labels.costlbl || 'compute/doc')}</span>` +
+          `<span class="fn-cost-v">${esc(COST[i])}</span></span>`
+        : '';
       row.innerHTML =
         `<div class="fn-bar"><span class="fn-name">${esc(labels['name' + i] || s.id)}</span>` +
-        `<span class="fn-count">${esc(s.count)}</span></div>` +
+        `<span class="fn-count">${esc(s.count)}</span>${costChip}</div>` +
         `<div class="fn-desc">${esc(labels['desc' + i] || '')}</div>`;
       panel.appendChild(row);
       return row;

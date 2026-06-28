@@ -330,7 +330,7 @@
   </div>
   <aside class="slide-notes">Multi-hop-formally. answer = walk over graph G=(E,R); h hops. h=2 on the anchor: Acme Corp → Dana Reyes → computer science (data/l12-graphrag.json hops, path). Graph adds edges on top of L10's flat R_k. GraphRAG = Edge et al. arXiv:2404.16130. Two-col def|image for fit.</aside>
 </section>
-<section class="slide" data-type="archflow" data-max-step="4" data-current-step="0" data-screen-label="11 Climb · GraphRAG">
+<section class="slide" data-type="archflow" data-max-step="5" data-current-step="0" data-screen-label="11 Climb · GraphRAG">
   <div class="slide-header">
     <h2>GraphRAG &mdash; walking the constellation</h2>
     <span class="slide-kicker">step (&larr;/&rarr;): single-hop fails &rarr; build the graph &rarr; walk it</span>
@@ -388,9 +388,10 @@
     "communityNote": "GraphRAG also pre-summarises graph communities",
     "s0": "The question asks for the field the founder of Acme Corp studied — but no single document names both the founder and a field of study. Above sit the three retrieved documents; below, the entities they mention wait as faint nodes. Answering will take more than one lookup.",
     "s1": "Single-hop retrieval grabs the one best document and stops. It names the founder, Dana Reyes, but says nothing about a field of study — so the answer is simply not in this chunk. Recall against the question lands at zero: the right fact lives one hop away, in another document.",
-    "s2": "Instead of treating documents as a flat bag, we extract entities and the relations between them and link them into a graph. Each edge is a fact lifted from a document: the company to its founder, the founder to what she studied and where, the school to its city. Now the corpus is navigable.",
-    "s3": "Now we walk the graph. Start at Acme Corp, follow the founded_by edge to Dana Reyes, then her studied edge to computer science — two hops crossing two documents to reach the answer node. The fact a single lookup missed sits at the end of a short path, so recall is now full.",
-    "s4": "This is not just a toy: a real local model, llama3.1:8b, read the same three documents, extracted the triples on its own, and then traversed the graph to the same field of study. The entities and relations were the model's; chaining two documents was the graph's. GraphRAG also pre-summarises clusters of the graph into community summaries for global questions."
+    "s2": "Instead of treating documents as a flat bag, we extract entities and relations and link them into a graph — starting with the chain that answers the question. From d1 the company links to its founder; from d2 the founder links to what she studied. Acme Corp → Dana Reyes → computer science: the two facts that matter, now connected across two documents.",
+    "s3": "The rest of the graph fills in too: Acme Corp is headquartered in Portland, Dana Reyes studied at MIT, and MIT is located in Cambridge. These context edges are facts the extractor lifted but the question does not need — the full constellation, with the answer-path already laid through it.",
+    "s4": "Now we walk the graph. Start at Acme Corp, follow the founded_by edge to Dana Reyes, then her studied edge to computer science — two hops crossing two documents to reach the answer node. The fact a single lookup missed sits at the end of a short path, so recall is now full.",
+    "s5": "This is not just a toy: a real local model, llama3.1:8b, read the same three documents, extracted the triples on its own, and then traversed the graph to the same field of study. The entities and relations were the model's; chaining two documents was the graph's. GraphRAG also pre-summarises clusters of the graph into community summaries for global questions."
   }
 }
   </script>
@@ -565,9 +566,10 @@
     $$ \text{maximise the diagonal } \cos(\text{img}_i,\text{txt}_i), \quad \text{minimise the off-diagonal } \cos(\text{img}_i,\text{txt}_{j\neq i}) $$
   </div>
   <p class="small muted center mt-2">For a batch of \(N\) image&ndash;caption pairs, the loss is a softmax over the <strong>row of the cosine matrix</strong>: the correct caption (the diagonal cell) should win. This is the same family as L6's in-batch contrastive loss &mdash; the off-diagonal pairs are the negatives. CLIP additionally <strong>symmetrises</strong>, averaging this row-wise (image&rarr;text) loss with the matching column-wise (text&rarr;image) loss &mdash; the symmetric InfoNCE. Minimising it <em>is</em> what carved the <strong>0.6153</strong> gap we measured.</p>
+  <p class="small muted center mt-1">\(\tau\) is the <strong>temperature</strong>: a small \(\tau\) sharpens the softmax so the matched pair must dominate &mdash; which also makes in-batch <strong>false negatives</strong> (e.g. two near-duplicate captions of the same image) costly &mdash; while a large \(\tau\) flattens the distribution. CLIP <em>learns</em> \(\tau\) rather than fixing it (a learnable logit-scale, clamped to a ceiling). Lower \(\tau\) &rArr; a wider matched/mismatched gap.</p>
   <aside class="slide-notes">Contrastive objective. CLIP InfoNCE over the batch cosine matrix: softmax per row, diagonal = positive, off-diagonal = in-batch negatives. Identical to L6 in-batch contrastive loss. Temperature τ. This loss carves the matched/mismatched gap (0.9944/0.3791/0.6153) the matrix slide measured. No NEW gated number here — the gap is the same one from data/l12-clip.json.</aside>
 </section>
-<section class="slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="21 Climb · CLIP matrix">
+<section class="slide" data-type="viz" data-max-step="5" data-current-step="0" data-screen-label="21 Climb · CLIP matrix">
   <div class="slide-header">
     <h2>CLIP &mdash; the shared-space cosine matrix</h2>
     <span class="slide-kicker">step (&larr;/&rarr;): fill cosines &rarr; argmax the diagonal &rarr; the gap</span>
@@ -610,15 +612,17 @@
     "textAxis": "caption (text) j →",
     "imgAxis": "↓ image i",
     "tally": "top match on the diagonal",
+    "rowPick": "scan one row → pick its brightest cell (argmax)",
     "matched": "matching pairs (diagonal)",
     "mismatched": "everything else (off-diagonal)",
     "gapLbl": "contrastive gap",
     "real": "real llava:7b · image→caption forced choice",
     "s0": "Both pictures and their captions are embedded into ONE shared space — the same coordinate system holds image vectors and text vectors at once. Down the rows sit three image concepts; across the columns sit the same three caption concepts. The grid is empty for now: every cell will become the cosine similarity between an image and a caption.",
     "s1": "Now fill each cell with the cosine of that image against that caption, shaded by value: pale where they are far apart, deep green where they nearly coincide. A bright band runs down the diagonal — an image and its own caption land almost on top of each other — while the off-diagonal cells stay faint. The structure is already visible before we name it.",
-    "s2": "For each image row, the top match is the cell with the highest cosine — and it is the diagonal one, the image's own caption. Highlighted in green, the winning cells form a clean diagonal: every image retrieves the right caption. This argmax-per-row is exactly cross-modal retrieval — searching text with a picture, or pictures with text, inside the shared space.",
-    "s3": "Why does the diagonal win so cleanly? Average the cosine of the matching pairs and average it for everything else: the matched mean is high and the mismatched mean is low, and the gap between them is wide. This is the contrastive idea from L6 (Sir Cosine), now across modalities — an image and its caption are trained to be neighbours while every other pairing is pushed apart.",
-    "s4": "And this is not just a toy. A real llava:7b vision model, given pictures of plain text-free shapes and asked to pick the matching caption, gets every one of them right — so it is reading the image, not the letters in it. The matching caption is the model's top choice: cross-modal retrieval in a shared space, working on a genuine multimodal model."
+    "s2": "Take one image row — the cat — and scan it left to right. Cross-modal retrieval is a single act: pick the cell with the highest cosine, the argmax of the row. The losing cells fade; the brightest one is ringed green — and it is the cat's own caption. That one pick is 'search the captions with a picture' in miniature.",
+    "s3": "For each image row, the top match is the cell with the highest cosine — and it is the diagonal one, the image's own caption. Highlighted in green, the winning cells form a clean diagonal: every image retrieves the right caption. This argmax-per-row is exactly cross-modal retrieval — searching text with a picture, or pictures with text, inside the shared space.",
+    "s4": "Why does the diagonal win so cleanly? Average the cosine of the matching pairs and average it for everything else: the matched mean is high and the mismatched mean is low, and the gap between them is wide. This is the contrastive idea from L6 (Sir Cosine), now across modalities — an image and its caption are trained to be neighbours while every other pairing is pushed apart.",
+    "s5": "And this is not just a toy. A real llava:7b vision model, given pictures of plain text-free shapes and asked to pick the matching caption, gets every one of them right — so it is reading the image, not the letters in it. The matching caption is the model's top choice: cross-modal retrieval in a shared space, working on a genuine multimodal model."
   }
 }
   </script>
@@ -720,6 +724,7 @@
             <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Fixes:</strong> the classic pipeline is OCR &rarr; layout parse &rarr; chunk &rarr; embed &mdash; brittle on tables, figures and scans. ColPali skips it: the page <em>is</em> the input.</span></li>
             <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Trick:</strong> a query token attends to the most similar image patch (MaxSim). The figure, the table cell, the stamp &mdash; all retrievable without ever transcribing them.</span></li>
             <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Callback:</strong> it is L8's late-interaction (Sir&nbsp;Cosine measuring per-patch) fused with L12's shared image&ndash;text space &mdash; the two frontiers meet (Faysse et al., 2024).</span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Cost:</strong> late interaction keeps <em>one vector per image patch</em> (hundreds&ndash;to&ndash;over-a-thousand per page), so the index is one&ndash;two orders of magnitude larger than a single CLIP page vector, and MaxSim scores every query-patch &times; page-patch pair per candidate &mdash; the same multi-vector storage/latency tax as ColBERT in L8, now charged <em>per page</em>.</span></li>
           </ul>
         </div>
       </div>
@@ -951,6 +956,7 @@
       <ul class="obj-list">
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Faithfulness vs relevance</strong> &mdash; relevance: right passages? faithfulness: answer stayed <em>true</em> to them? Quasar-9 is exactly this failure.</span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Wire it in</strong> &mdash; a faithfulness check (LLM-judge / NLI) before display; below threshold, abstain.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Why a gate at all</strong> &mdash; grounding <em>reduces</em> but never <em>removes</em> hallucination: a grounded model can still ignore the context, over-claim past it, or mis-cite. That residual unfaithfulness is the whole reason L11's check runs <em>after</em> retrieval, not instead of it.</span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>The thread</strong> &mdash; L11 taught us to judge the Oracle; L12 says we are <em>obliged</em> to.</span></li>
       </ul>
     </div>

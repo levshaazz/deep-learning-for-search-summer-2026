@@ -94,10 +94,18 @@ export const mountTokenizerCompare = defineWidget({
       rowHead.appendChild(badge);
       row.appendChild(rowHead);
 
-      // chips: each token; marker prefixes (Ġ / ##) get a muted accent so they read as structure
+      // chips: each token; marker prefixes (Ġ / ##) get a muted accent so they read as structure.
+      // CAP the render (audit #1): a near-character-level cutter (byte-level BPE = 35 chips) would
+      // wrap to 5–6 lines and blow up the row balance. We show the first CAP chips then a single
+      // "… +N more" chip — the teaching point is the COUNT (held by the authoritative badge), not
+      // 35 legible glyphs. Short rows (≤ CAP) are unaffected.
+      const CHIP_CAP = 16;
+      const allToks = t.tokens || [];
+      const capped = allToks.length > CHIP_CAP;
+      const shown = capped ? allToks.slice(0, CHIP_CAP) : allToks;
       const chips = document.createElement('div');
       chips.className = 'tc-toks';
-      (t.tokens || []).forEach((tok) => {
+      shown.forEach((tok) => {
         const c = document.createElement('span');
         c.className = 'tc-tok';
         // split a leading marker so it can be tinted without changing the glyph
@@ -112,6 +120,14 @@ export const mountTokenizerCompare = defineWidget({
         }
         chips.appendChild(c);
       });
+      if (capped) {
+        const more = document.createElement('span');
+        more.className = 'tc-tok tc-tok--more';
+        const n = allToks.length - CHIP_CAP;
+        const tmpl = labels.moreChip || '… +{n} more';
+        more.textContent = tmpl.replace('{n}', String(n));
+        chips.appendChild(more);
+      }
       row.appendChild(chips);
 
       // efficiency bar: width ∝ token count (longer bar = more tokens = less efficient)

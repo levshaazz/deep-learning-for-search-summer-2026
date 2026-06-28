@@ -8,11 +8,12 @@
    the loss at each τ, the log N ceiling) comes from data/l13-negatives.json → spine; labels from i18n.
    Built on widgets/_widget-base.js.
 
-   Steps (maxStep = 3):
+   Steps (maxStep = 4):
      0 → the similarities cos(q,·): d⁺ and the five negatives, ranked by hardness.       s0
      1 → softmax(sim/τ) at τ=0.2 — the InfoNCE target; the loss L = −log P⁺.             s1
-     2 → drop τ to 0.05: the softmax SHARPENS onto the hardest, P⁺↑, loss↓.              s2
-     3 → more negatives raise the CEILING log N (bound saturates at log N).              s3 */
+     2 → τ=0.1 — the softmax sharpens in the MIDDLE: P⁺ climbs, loss falls.              s2
+     3 → drop τ to 0.05: the softmax SHARPENS onto the hardest, P⁺↑, loss↓.              s3
+     4 → more negatives raise the CEILING log N (bound saturates at log N).              s4 */
 import { defineWidget } from '../_widget-base.js';
 import { frameHeightFor } from '../_plot-util.js';
 
@@ -20,7 +21,7 @@ export const mountInfonceCalc = defineWidget({
   id: 'infonce-calc',
   rootClass: 'inc-root',
   exportName: 'mountInfonceCalc',
-  maxStep: 3,
+  maxStep: 4,
   render({ host, data, labels, el }) {
     const sp = (data && data.spine) || {};
     const pos = sp.positive || { label: 'positive', cosQ: 0.82 };
@@ -33,7 +34,7 @@ export const mountInfonceCalc = defineWidget({
       ...lineup.map((n) => ({ id: n.id, label: n.label, cosQ: n.cosQ, pos: false, isFalse: n.isFalse }))];
     // InfoNCE rows by τ: index 0=positive then n₁..n₅. softmax at the soft (τ=0.2) and sharp (τ=0.05) step.
     const byTau = (t) => inf.find((r) => r.tau === t) || inf[0] || { softmax: [], pPos: 0, loss: 0, tau: t };
-    const SOFT = byTau(0.2), SHARP = byTau(0.05);
+    const SOFT = byTau(0.2), MID = byTau(0.1), SHARP = byTau(0.05);
 
     const W = 600, PAD = 20, LBL = 168, rowH = 34, top = 64;
     const barX = PAD + LBL, barMax = W - PAD - barX - 56;
@@ -74,8 +75,8 @@ export const mountInfonceCalc = defineWidget({
     const lossY = top + rows.length * rowH + 24;
     const lossT = add('loss', el('text', { x: PAD, y: lossY, class: 'inc-loss' }, svg));
 
-    // ── ceiling strip: I ≥ log N − L_N, saturates at log N (step 3) ──
-    layer('ceil', 3);
+    // ── ceiling strip: I ≥ log N − L_N, saturates at log N (step 4) ──
+    layer('ceil', 4);
     const cy = lossY + 30;
     add('ceil', el('text', { x: PAD, y: cy, class: 'inc-sub' }, svg))
       .textContent = labels.ceilHead || 'more negatives N raise the ceiling log N (the bound saturates there)';
@@ -98,7 +99,7 @@ export const mountInfonceCalc = defineWidget({
         for (const node of layers[name].nodes) node.classList.toggle('is-hidden', !on);
       }
       const showSoftmax = k >= 1;
-      const R = k >= 2 ? SHARP : SOFT;            // soft τ at step 1, sharp τ at step 2
+      const R = k >= 3 ? SHARP : (k >= 2 ? MID : SOFT);   // τ=0.2 @s1 → 0.1 @s2 → 0.05 @s3
       rows.forEach((r, i) => {
         simbars[i].classList.toggle('is-hidden', showSoftmax);
         bars[i].classList.toggle('is-hidden', !showSoftmax);

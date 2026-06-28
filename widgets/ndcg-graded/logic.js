@@ -105,8 +105,11 @@ export const mountNdcgGraded = defineWidget({
     const px = list.x;
     // active-variant tag (which gain function is in play)
     const tag = el('text', { x: px, y: panelY, class: 'gr-tag' }, svg);
-    const dcgLine = el('text', { x: px, y: panelY + 24, class: 'gr-dcg' }, svg);
-    const ndcgLine = el('text', { x: px, y: panelY + 48, class: 'gr-ndcg' }, svg);
+    // the DCG accumulation written out term-by-term (gain·discount for each nonzero hit), so the
+    // total is BUILT on screen rather than snapping to a finished number — see worklist L4 #1.
+    const dcgTerms = el('text', { x: px, y: panelY + 22, class: 'gr-dcg-terms' }, svg);
+    const dcgLine = el('text', { x: px, y: panelY + 42, class: 'gr-dcg' }, svg);
+    const ndcgLine = el('text', { x: px, y: panelY + 64, class: 'gr-ndcg' }, svg);
 
     // a small three-row scoreboard that fills in as each variant lands (the disagreement, side by side)
     const board = { x: px, y: panelY + 74, rowH: 20 };
@@ -152,6 +155,13 @@ export const mountNdcgGraded = defineWidget({
       tag.textContent = k >= 1 ? stepTag[k] : '';
       tag.classList.toggle('is-hidden', k < 1);
       tag.setAttribute('data-key', key || '');
+      // DCG accumulation, term by term: gain·discount for each nonzero hit, derived from the same
+      // grades + discounts the rows show, so the total below is built, not asserted.
+      dcgTerms.textContent = fn
+        ? ranked.filter((r) => fn(r.grade) > 0)
+            .map((r) => `${dsc(fn(r.grade))}·${dsc(disc[r.rank])}`).join(' + ') + ` = ${f4(v.dcg)}`
+        : '';
+      dcgTerms.classList.toggle('is-hidden', k < 1);
       dcgLine.textContent = v
         ? `${labels.dcgLabel || 'DCG'} = ${f4(v.dcg)}    ${labels.idcgLabel || 'IDCG'} = ${f4(v.idcg)}`
         : '';

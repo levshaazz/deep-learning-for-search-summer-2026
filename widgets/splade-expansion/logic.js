@@ -45,7 +45,9 @@ export const mountSpladeExpansion = defineWidget({
     layer('expansion', 2); layer('doc', 3); layer('dot', 3);
 
     // ── bar chart geometry: one group per term; query bar (left) + doc bar (right, step 3) ──
-    const box = { x: PAD + 34, y: 56, w: W - 2 * PAD - 34, h: 210 };
+    // box.y leaves a top band (above the bars) for the saturation-curve inset so the tall
+    // 'water' doc bar can never overprint it (audit illustration-overlap fix).
+    const box = { x: PAD + 34, y: 144, w: W - 2 * PAD - 34, h: 210 };
     add('literal', el('line', { x1: box.x, y1: box.y + box.h, x2: box.x + box.w, y2: box.y + box.h, class: 'sx-axis' }, svg));
     add('literal', el('text', { x: PAD, y: 30, class: 'sx-head' }, svg))
       .textContent = labels.head || 'learned weights over the vocabulary: wⱼ = log(1 + ReLU(zⱼ))';
@@ -61,9 +63,9 @@ export const mountSpladeExpansion = defineWidget({
       const qy = yOf(o.q);
       add(lname, el('rect', { x: qx, y: qy, width: barW, height: box.y + box.h - qy, rx: 4,
         class: 'sx-bar ' + (o.exp ? 'sx-bar-exp' : 'sx-bar-q') }, svg));
-      // query-weight value label (step 1+)
+      // query-weight value label (step 1+) — num2 to match the doc weight width and keep clear of the doc bar
       add('weights', el('text', { x: qx + barW / 2, y: qy - 6, class: 'sx-wval', 'text-anchor': 'middle' }, svg))
-        .textContent = num4(o.q);
+        .textContent = num2(o.q);
       // doc-weight bar (step 3)
       const dx = cx + 2;
       const dy = yOf(o.d);
@@ -78,7 +80,8 @@ export const mountSpladeExpansion = defineWidget({
     });
 
     // ── saturation curve inset (step 1): y = log(1 + ReLU(x)), x in [-2, 3] ──
-    const ix = box.x + box.w - 150, iy = box.y - 6, iw = 140, ih = 96;
+    // pinned into the top band (below the head line, above the bars) so it never overlaps a bar.
+    const ix = box.x + box.w - 150, iy = 40, iw = 140, ih = 96;
     add('curve', el('rect', { x: ix, y: iy, width: iw, height: ih, rx: 8, class: 'sx-inset' }, svg));
     const cx0 = ix + 14, cy0 = iy + ih - 16, cw = iw - 26, ch = ih - 30;
     add('curve', el('line', { x1: cx0, y1: cy0, x2: cx0 + cw, y2: cy0, class: 'sx-iaxis' }, svg));

@@ -1,6 +1,12 @@
     {
       id: 'depth-data-prep', kind: 'prose',
       heading: { en: 'Offline: data preparation', ru: 'Офлайн: подготовка данных', tt: 'Офлайн: мәгълүмат әзерләү' },
+      img: 'L7/L7-11-the-archive.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'A vast archive being readied before opening day — passages cleaned, deduplicated, chunked into uniform shelves and expanded with the questions they answer — the MS MARCO corpus groomed at build time, before any query arrives.',
+        ru: 'Огромный архив, готовящийся к открытию — отрывки вычищены, дедуплицированы, нарезаны на ровные полки и расширены вопросами, на которые отвечают — корпус MS MARCO приводится в порядок на этапе сборки, до прихода любого запроса.',
+        tt: 'Ачылыр алдыннан әзерләнгән гаять зур архив — өзекләр чистартылган, дедупланган, тигез киштәләргә киселгән һәм җавап биргән сораулар белән киңәйтелгән — теләсә кайсы сорау килгәнче, төзү этабында тәртипкә салынган MS MARCO корпусы.',
+      },
       body: {
         en: [
           "Before any query, a heavy **offline** stage prepares the corpus. **Clean and deduplicate** — near-duplicates crowd the top of the ranking. **Chunk** long documents under the encoder's token limit, typically **512–1024 tokens with 10–20% overlap** so a fact is never cut at a boundary.",

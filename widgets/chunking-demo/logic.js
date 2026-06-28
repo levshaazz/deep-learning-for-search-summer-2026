@@ -13,7 +13,7 @@
      2  → size=200, overlap=50 → 7 windows; window [300,500] holds it whole → recall@3 = 1.0.  s2
      3  → the chunk-count formula ceil((L-o)/(size-o)); overlap costs storage, buys recall.    s3
 
-   VARIANT: ctx.variant === 'sweep' renders the OVERLAP-SWEEP path instead (mountChunkingSweep). At a
+   VARIANT: labels.variant === 'sweep' renders the OVERLAP-SWEEP path instead (mountChunkingSweep). At a
    FIXED size=200 it sweeps overlap = 0 / 50 / 100 / 150 over the SAME gold span, revealing one config
    per step: recall@3 climbs 0 → 1 → 1 → 1 (overlap rescues the [380,470] boundary straddle) while
    nChunks grows 5 → 7 → 9 → 17 (the storage cost). Every number comes from data.sweep in
@@ -33,7 +33,11 @@ export const mountChunkingDemo = defineWidget({
   exportName: 'mountChunkingDemo',
   maxStep: 3,
   render(ctx) {
-    if (ctx.variant === 'sweep') return renderSweep(ctx);
+    // variant selection follows the codebase idiom (cf. ivf-cells / hnsw-graph): the deck data and
+    // the Book beat both carry it on labels.variant; we also accept a top-level ctx.variant for
+    // any caller that spreads it directly onto the mount ctx.
+    const variant = (ctx.labels && ctx.labels.variant) || ctx.variant;
+    if (variant === 'sweep') return renderSweep(ctx);
     const { host, data, labels, el } = ctx;
     const L = data.docLen || 1000;
     const span = data.answerSpan || [0, 0];
@@ -63,8 +67,13 @@ export const mountChunkingDemo = defineWidget({
 
     // ── the answer span band (drawn through all rows so you see which windows cross it) ──
     const spanBand = el('rect', { x: x(span[0]), y: rulerY - 4, width: x(span[1]) - x(span[0]), height: readTop - rulerY - 6, rx: 3, class: 'ck-span' }, svg);
+    // 'answer' word sits to the LEFT of the band as a leader (start-anchored, off the window bars);
+    // only the compact [a,b] range is centred on the ~45px band so it no longer overshoots onto
+    // the neighbouring chunk windows.
+    el('text', { x: x(span[0]) - 6, y: rulerY + 18, class: 'ck-spanlbl', 'text-anchor': 'end' }, svg)
+      .textContent = (labels.answer || 'answer');
     el('text', { x: (x(span[0]) + x(span[1])) / 2, y: rulerY + 18, class: 'ck-spanlbl', 'text-anchor': 'middle' }, svg)
-      .textContent = (labels.answer || 'answer') + ' [' + span[0] + ',' + span[1] + ']';
+      .textContent = '[' + span[0] + ',' + span[1] + ']';
 
     // ── one window-row per scenario ──
     scen.forEach((sc, si) => {
@@ -97,7 +106,7 @@ export const mountChunkingDemo = defineWidget({
   },
 });
 
-/* renderSweep — the OVERLAP-SWEEP variant (ctx.variant === 'sweep'). At a FIXED size=200 it sweeps
+/* renderSweep — the OVERLAP-SWEEP variant (labels.variant === 'sweep'). At a FIXED size=200 it sweeps
    overlap = 0 / 50 / 100 / 150 over the SAME gold span [380,470], one config per step (cumulative).
    setStep(k) reveals sweep configs 0..k, so the reader watches recall@3 climb 0 → 1 → 1 → 1 and the
    chunk count grow 5 → 7 → 9 → 17 (the storage cost of overlap). All numbers from data.sweep. */

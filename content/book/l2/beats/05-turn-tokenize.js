@@ -4,7 +4,7 @@
       img: 'L2/L2-23-tokenosaurus.png', imgPos: 'mascot',
       imgAlt: {
         en: 'The Tokenosaurus, a friendly dinosaur, snipping a word into sub-word chunks with its teeth.',
-        ru: 'Токенозавр — дружелюбный динозавр — зубами нарезает слово на под-словные куски.',
+        ru: 'Токенозавр — дружелюбный динозавр — зубами нарезает слово на подсловные куски.',
         tt: 'Токенозавр — дустанә динозавр — теше белән сүзне өлеш-сүз кисәкләренә кисә.',
       },
       imgCaption: {

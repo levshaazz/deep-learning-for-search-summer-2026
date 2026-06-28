@@ -1,7 +1,7 @@
-<section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="04 Climb &middot; infonce-calc">
+<section class="slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="04 Climb &middot; infonce-calc">
   <div class="slide-header">
     <h2>InfoNCE by hand &mdash; read the loss off the lineup</h2>
-    <span class="slide-kicker">step (&larr;/&rarr;): the similarities &rarr; the softmax &rarr; sharpen with &tau; &rarr; the log&nbsp;N ceiling</span>
+    <span class="slide-kicker">step (&larr;/&rarr;): the similarities &rarr; the softmax (&tau;=0.2) &rarr; sharpen (&tau;=0.1) &rarr; sharpest (&tau;=0.05) &rarr; the log&nbsp;N ceiling</span>
   </div>
   <div class="widget-mount" data-widget="infonce-calc"></div>
   <script class="widget-data" type="application/json">
@@ -151,8 +151,9 @@
     "ceilHead": "more negatives N raise the ceiling log N (the bound saturates there)",
     "s0": "Score the query q against its true match d⁺ and the five candidate negatives n₁..n₅. The bars are cos(q,·): the lineup runs from an easy random negative up to the hardest near-miss.",
     "s1": "A softmax over sim/τ is the InfoNCE target — it should put its mass on d⁺. The loss is L = −log P⁺. At τ=0.2 the mass is still spread across the hard negatives.",
-    "s2": "Drop the temperature toward zero and the softmax SHARPENS — P⁺ climbs and the loss falls, but the gradient now piles onto the single hardest negative. Temperature is the hardness amplifier.",
-    "s3": "More negatives N raise the mutual-information CEILING log N (the InfoNCE bound I ≥ log N − L_N only saturates there) — this is why retrievers scale the negative count, NOT because 'InfoNCE maximises MI'."
+    "s2": "Halve the temperature to τ=0.1 and the softmax sharpens in the MIDDLE — P⁺ climbs further and the loss drops again, the easy negatives fading toward zero. The climb is monotone: lower τ, sharper target.",
+    "s3": "Drop the temperature toward zero (τ=0.05) and the softmax SHARPENS hardest — P⁺ climbs and the loss falls, but the gradient now piles onto the single hardest negative. Temperature is the hardness amplifier.",
+    "s4": "More negatives N raise the mutual-information CEILING log N (the InfoNCE bound I ≥ log N − L_N only saturates there) — this is why retrievers scale the negative count, NOT because 'InfoNCE maximises MI'."
   }
 }
   </script>

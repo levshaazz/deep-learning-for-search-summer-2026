@@ -28,7 +28,7 @@ export const mountAbTest = defineWidget({
   render({ host, data, labels, el }) {
     const t = data.abTest;
     const A = t.control, B = t.treatment;
-    const W = 480, H = 404;
+    const W = 480, H = 426;     // +22 over the old 404 to fit the third z-test line (SE shown explicitly)
     const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'wgt-svg ab-svg',
       role: 'img', 'aria-label': labels.alt || '' }, host);
 
@@ -86,18 +86,21 @@ export const mountAbTest = defineWidget({
     head('lift', panel.x, panel.y, 'ab-lift-h',
       `lift:  ${pct(A.ctr)} → ${pct(B.ctr)}   (+${num(t.relativeLiftPct, 1)}% relative)`);
 
-    // step 2 — the two-proportion z-test, substituted from data.abTest.steps
+    // step 2 — the two-proportion z-test, with the SUBSTITUTED pieces from data.abTest.steps so the
+    // derivation (pool the rate → form SE → form z) is shown, not just three finished numbers.
     const st = t.steps || {};
     head('z', panel.x, panel.y + 26, 'ab-z-h',
-      `pooled  p̄ = ${num(t.pooledCtr, 3)}    SE = ${num(t.se, 5)}`);
+      `pooled  p̄ = ${st.pPooledExpr || ((1200 + 1320) + '/' + (10000 + 10000) + ' = ' + num(t.pooledCtr, 3))}`);
     head('z', panel.x, panel.y + 46, 'ab-z-sub',
-      `z = (${num(B.ctr, 3)} − ${num(A.ctr, 3)}) / ${num(t.se, 5)} = ${num(t.z, 3)}`);
+      `SE = ${st.seExpr || ('√(p̄·(1−p̄)·(1/nC+1/nT)) = ' + num(t.se, 5))}`);
+    head('z', panel.x, panel.y + 64, 'ab-z-sub',
+      `z = ${st.zExpr || ('(' + num(B.ctr, 3) + ' − ' + num(A.ctr, 3) + ')/' + num(t.se, 5) + ' = ' + num(t.z, 3))}`);
 
-    // step 3 — verdict: p-value, threshold, and the call
+    // step 3 — verdict: p-value, threshold, and the call (pushed down to clear the third z-line)
     const sig = t.significant05;
-    head('verdict', panel.x, panel.y + 76, 'ab-v-h',
+    head('verdict', panel.x, panel.y + 86, 'ab-v-h',
       `p ≈ ${num(t.p, 3)}  ${sig ? '<' : '≥'}  0.05`);
-    const v = add('verdict', el('text', { x: panel.x, y: panel.y + 100, class: 'ab-annot ab-v-call' + (sig ? ' is-real' : '') }, svg));
+    const v = add('verdict', el('text', { x: panel.x, y: panel.y + 110, class: 'ab-annot ab-v-call' + (sig ? ' is-real' : '') }, svg));
     v.textContent = sig ? (labels.verdictReal || 'The lift is real — ship B.')
                         : (labels.verdictNoise || 'Could be noise — hold.');
 

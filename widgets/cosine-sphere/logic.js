@@ -87,7 +87,21 @@ export const mountCosineSphere = defineWidget({
     layer('euclid', 1);
     add('euclid', el('line', { x1: tu.x, y1: tu.y, x2: tv.x, y2: tv.y, class: 'cs-euclid' }, svg));
     const em = { x: (tu.x + tv.x) / 2, y: (tu.y + tv.y) / 2 };
-    const eLbl = add('euclid', el('text', { x: em.x + 10, y: em.y, class: 'cs-tag cs-tag-euclid' }, svg));
+    // Offset the ‖u−v‖ label PERPENDICULAR to the u−v segment, not by a flat +10 in x (audit #3).
+    // For the collinear cos=1 pair the segment lies along both vectors, so a flat x-nudge drops the
+    // label straight onto the vector strokes + the "u" tip label. The screen-space normal of the
+    // segment pushes it clear of that shared line. We bias the normal AWAY from the origin (toward
+    // the emptier upper-left of the plot) and clamp x so the label never leaves the frame.
+    const segx = tv.x - tu.x, segy = tv.y - tu.y;
+    const segLen = Math.hypot(segx, segy) || 1;
+    let nx = -segy / segLen, ny = segx / segLen;            // unit normal to the segment
+    // point the normal away from the origin O so the label sits in open space, not over the wedge
+    if ((em.x - O.x) * nx + (em.y - O.y) * ny < 0) { nx = -nx; ny = -ny; }
+    const NOFF = 14;
+    let elx = em.x + nx * NOFF, ely = em.y + ny * NOFF + 4; // +4 ≈ baseline centring
+    elx = Math.max(38, Math.min(W - 8, elx));               // keep inside the plot frame
+    const eLbl = add('euclid', el('text', { x: elx, y: ely, class: 'cs-tag cs-tag-euclid',
+      'text-anchor': 'middle' }, svg));
     eLbl.textContent = `‖u−v‖ = ${pair.euclidExact || ''} ≈ ${pair.euclid.toFixed(2)}`;
 
     // angle + cosine readout — step 2

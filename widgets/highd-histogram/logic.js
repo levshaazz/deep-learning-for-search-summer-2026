@@ -32,7 +32,16 @@ export const mountHighdHistogram = defineWidget({
     el('line', { x1: box.x, y1: box.y + box.h, x2: box.x + box.w, y2: box.y + box.h, class: 'hd-axis' }, svg);
     el('line', { x1: sx(1), y1: box.y, x2: sx(1), y2: box.y + box.h, class: 'hd-mean' }, svg);
     el('text', { x: sx(1), y: box.y - 6, class: 'hd-axlbl', 'text-anchor': 'middle' }, svg).textContent = 'mean';
-    el('text', { x: box.x + box.w, y: box.y + box.h + 20, class: 'hd-axlbl', 'text-anchor': 'end' }, svg)
+    // numeric x-axis ticks (audit #5): without them the collapse "cv→0, everything piles at mean=1"
+    // had no scale to read against — only the lone "mean" marker. Draw a few ticks (skip 1.0, which
+    // the "mean" line already marks) inside the data range so the bars sit on an actual axis.
+    const TICKS = [0.5, 1.0, 1.5].filter((v) => v > xmin && v < xmax && Math.abs(v - 1) > 1e-6);
+    TICKS.forEach((v) => {
+      el('line', { x1: sx(v), y1: box.y + box.h, x2: sx(v), y2: box.y + box.h + 4, class: 'hd-axis' }, svg);
+      el('text', { x: sx(v), y: box.y + box.h + 16, class: 'hd-axlbl', 'text-anchor': 'middle' }, svg)
+        .textContent = v.toFixed(1);
+    });
+    el('text', { x: box.x + box.w, y: box.y + box.h + 32, class: 'hd-axlbl', 'text-anchor': 'end' }, svg)
       .textContent = (labels.xaxis || 'distance / mean →');
 
     const bars = centers.map((c) => el('rect', { x: sx(c) - bw / 2, width: bw, y: sy(0), height: 0, class: 'hd-bar' }, svg));
