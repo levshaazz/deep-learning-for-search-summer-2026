@@ -13,7 +13,7 @@ import { defineWidget, esc } from '../_widget-base.js';
 export const mountRrfFusion = defineWidget({
   id: 'rrf-fusion',
   rootClass: 'rrf-root',
-  maxStep: 3,
+  maxStep: 4,
   render({ host, data, labels }) {
     const k = data.k;
     const bm25 = data.lists?.bm25 || [];
@@ -201,10 +201,11 @@ export const mountRrfFusion = defineWidget({
       colF.col.classList.toggle('is-hidden', s < 3);
       score.classList.toggle('is-hidden', s < 2);
 
-      // Final reveal (step 3): the full fused table + tie/upset notes appear alongside the
-      // fused column. Earlier steps stay exactly as before — additive only.
-      table.classList.toggle('is-hidden', s < 3);
-      note.classList.toggle('is-hidden', s < 3);
+      // Final reveal is split across two steps so a 1920×1080 deck slide never gets three
+      // heavy elements at once (G19): step 3 reveals the fused COLUMN (+ its score readout),
+      // step 4 reveals the full fused TABLE + the tie/upset prose notes below it. Additive only.
+      table.classList.toggle('is-hidden', s < 4);
+      note.classList.toggle('is-hidden', s < 4);
 
       // Reset per-step chip decorations across all columns.
       [colA, colB, colF].forEach((set) => {

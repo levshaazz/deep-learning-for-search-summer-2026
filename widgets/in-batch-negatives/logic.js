@@ -45,7 +45,13 @@ export const mountInBatchNegatives = defineWidget({
     const heatPos = (x) => `color-mix(in srgb, var(--warm, #E8743B) ${Math.round(Math.max(0.25, x) * 92)}%, var(--bg-card, #fff))`;
 
     // ── geometry ──
-    const ROWLBL = 120, CELL = 54, CGAP = 6, STEP = CELL + CGAP;
+    // ROWLBL is the reserved gutter for the right-aligned "qi  <phrase>" row labels. At 12px mono
+    // (~7.0px/glyph) a 138px gutter (minus the 12px pad to the grid) holds ~18 chars; clampLbl()
+    // ellipsizes anything longer so a long/data-driven query phrase or a wider locale can never
+    // clip past the SVG's left edge (overlap-fix: was 120 with zero margin on "q1  stock market").
+    const ROWLBL = 138, CELL = 54, CGAP = 6, STEP = CELL + CGAP;
+    const LBL_MAXCH = 18;
+    const clampLbl = (s) => (s.length > LBL_MAXCH ? s.slice(0, LBL_MAXCH - 1) + '…' : s);
     const gx = PAD + ROWLBL, gyTop = 30, gy = gyTop + 30;     // grid origin (first cell top-left)
     const gridW = B * CELL + (B - 1) * CGAP;
     const gridH = B * CELL + (B - 1) * CGAP;
@@ -63,7 +69,7 @@ export const mountInBatchNegatives = defineWidget({
       .textContent = 'd' + j);
     // row labels: the query phrase, right-aligned to the grid
     Q.forEach((q, i) => add('head', el('text', { x: gx - 12, y: rowCy(i) + 4, class: 'ibn-rowlbl', 'text-anchor': 'end' }, svg))
-      .textContent = 'q' + i + '  ' + q);
+      .textContent = clampLbl('q' + i + '  ' + q));
 
     layer('diag', 0);                                          // the positives (known before any scoring)
     for (let i = 0; i < B; i++) {

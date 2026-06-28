@@ -75,8 +75,11 @@ export const mountPagerankPower = defineWidget({
     gWrap.appendChild(gHead);
     panel.appendChild(gWrap);
 
+    // viewBox top raised to -34 (was -20) so the authority tag's baseline at B.y−44 = −6 keeps full
+    // cap-height clearance above the frame edge (and headroom for the longer RU/TT tag). Bottom edge
+    // is unchanged: −34 + 218 = 184 = the previous −20 + 204.
     const svg = s('svg', {
-      viewBox: '0 -20 420 204', width: '100%', class: 'wgt-svg pr-svg',
+      viewBox: '0 -34 420 218', width: '100%', class: 'wgt-svg pr-svg',
       role: 'img',
       'aria-label': 'Three-page link graph: A points to B, B points to C, C points to A and B, so B has two in-links and is the authority.',
     }, gWrap);

@@ -1,6 +1,12 @@
     {
       id: 'turn-late-interaction', kind: 'prose',
       heading: { en: 'Three ways to interact', ru: 'Три способа взаимодействия', tt: 'Тәэсир итешүнең өч ысулы' },
+      img: 'L8/L8-01-token-muster.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'A muster Séréga conducts: a front row of query-token figures faces an opposite row of document-token figures across a gap, and from each front figure a single bright beam shoots to the one opposite figure it matches best — late interaction as MaxSim, each token saluting its strongest partner.',
+        ru: 'Смотр, который проводит Серёга: передний ряд фигурок-токенов запроса стоит напротив ряда фигурок-токенов документа, и от каждой передней фигурки единственный яркий луч бьёт к той одной фигурке напротив, с которой она совпадает лучше всего — позднее взаимодействие как MaxSim, каждый токен салютует сильнейшему партнёру.',
+        tt: 'Серёга үткәргән смотр: алгы рәттәге сорау-токен фигуралары каршыдагы документ-токен фигуралары рәтенә карый, һәм һәр алгы фигурадан бер яктыр нур ул иң яхшы туры килгән бер каршы фигурага бәрә — соңгы тәэсир итешү MaxSim буларак, һәр токен иң көчле партнёрына сәлам бирә.',
+      },
       body: {
         en: [
           "There are three ways a query and a document can meet. **Early-pool** (the bi-encoder, L7): collapse each into one vector *before* comparing — cheap and cacheable, but detail is lost. **Every-layer** (the cross-encoder, L7): let them attend at every layer — accurate, but the score is a property of the pair, so it cannot be cached, and it is \\(O(N)\\) per query.",

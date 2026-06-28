@@ -8,12 +8,13 @@
    DRIVER-AGNOSTIC: setStep(k)/maxStep, binds NO keyboard/scroll. EVERY number (cos(q,·), the Boltzmann
    weights per τ) comes from data/l13-negatives.json → spine; labels from i18n. Built on _widget-base.js.
 
-   Steps (maxStep = 4):
+   Steps (maxStep = 5):
      0 → place q, d⁺ and n₁..n₅ on the arc by angle to q (closer = harder).            s0
      1 → the three hardness bands: easy / semi-hard / hard.                             s1
      2 → the second channel: n₅ sits in the HARD band but is secretly a positive.       s2
      3 → the Boltzmann gradient weight on each negative at τ=0.2 (hard ones dominate).   s3
-     4 → drop τ to 0.05: the weight collapses onto the hardest — hard-max.              s4 */
+     4 → drop τ to 0.1: the weight marches further toward the hardest.                  s4
+     5 → drop τ to 0.05: the weight collapses onto the hardest — hard-max.              s5 */
 import { defineWidget } from '../_widget-base.js';
 import { frameHeightFor } from '../_plot-util.js';
 
@@ -21,7 +22,7 @@ export const mountHardnessSphere = defineWidget({
   id: 'hardness-sphere',
   rootClass: 'hsp-root',
   exportName: 'mountHardnessSphere',
-  maxStep: 4,
+  maxStep: 5,
   render({ host, data, labels, el }) {
     const sp = (data && data.spine) || {};
     const pos = sp.positive || { cosQ: 0.82 };
@@ -29,7 +30,7 @@ export const mountHardnessSphere = defineWidget({
     const bz = sp.boltzmann || [];
     const f2 = (x) => (typeof x !== 'number' || !isFinite(x) ? '' : x.toFixed(2));
     const byTau = (t) => bz.find((r) => r.tau === t) || bz[0] || { weights: [], tau: t };
-    const SOFT = byTau(0.2), SHARP = byTau(0.05);
+    const SOFT = byTau(0.2), MID = byTau(0.1), SHARP = byTau(0.05);
 
     const W = 600, PAD = 20;
     const ox = PAD + 26, oy = 248, R = 196;                    // arc origin (q along the +x axis)
@@ -52,9 +53,13 @@ export const mountHardnessSphere = defineWidget({
                 `A ${R} ${R} 0 ${large} 1 ${(ox + R * Math.cos(a1)).toFixed(1)} ${(oy - R * Math.sin(a1)).toFixed(1)} Z`;
       return add('bands', el('path', { d, class: 'hsp-wedge ' + cls }, svg));
     };
+    // Band cuts must match the data's authored `band` thresholds: n₃ (cosQ 0.63) is band:"hard",
+    // n₂ (cosQ 0.41) is band:"semi". A semi/hard cut at 0.66 wrongly drops n₃ into the SEMI wedge;
+    // moving it to 0.55 puts every lineup dot inside the wedge matching its data band
+    // (easy ≤0.40: n₁=0.05 · semi 0.40–0.55: n₂=0.41 · hard ≥0.55: n₃=0.63, n₄=0.75, n₅=0.79, d⁺=0.82).
     wedge(0.0, 0.40, 'hsp-easy');     // far / wide angle
-    wedge(0.40, 0.66, 'hsp-semi');
-    wedge(0.66, 1.0, 'hsp-hard');     // crowding the query
+    wedge(0.40, 0.55, 'hsp-semi');
+    wedge(0.55, 1.0, 'hsp-hard');     // crowding the query
 
     // ── arc + q axis (step 0 chrome) ──
     layer('arc', 0);
@@ -75,8 +80,14 @@ export const mountHardnessSphere = defineWidget({
       // arc dot
       add('pt' + i, el('line', { x1: ox, y1: oy, x2: px(it.cosQ), y2: py(it.cosQ), class: 'hsp-ray ' + cls }, svg));
       add('pt' + i, el('circle', { cx: px(it.cosQ), cy: py(it.cosQ), r: it.pos ? 7 : 6, class: 'hsp-dot ' + cls }, svg));
-      add('pt' + i, el('text', { x: px(it.cosQ, R + 14), y: py(it.cosQ, R + 14) + 4, class: 'hsp-dotlbl ' + cls,
-        'text-anchor': py(it.cosQ) < oy - 6 ? 'middle' : 'middle' }, svg)).textContent = it.id;
+      // Stagger the on-arc id label radius in the crowded HARD cluster (cosQ ≳ 0.66) so d⁺/n₄/n₅,
+      // which sit only ~11–24px apart on the arc, fan OUT along their own rays and stop colliding.
+      // Far/easy points keep the tight R+14; harder (larger cos) points push progressively further.
+      const lblR = it.cosQ >= 0.66
+        ? R + 16 + (it.cosQ - 0.66) * 380     // 0.66→+16 … 0.82→+77 spread along the ray
+        : R + 14;
+      add('pt' + i, el('text', { x: px(it.cosQ, lblR), y: py(it.cosQ, lblR) + 4, class: 'hsp-dotlbl ' + cls,
+        'text-anchor': 'middle' }, svg)).textContent = it.id;
       // second channel: the secretly-positive ring (step 2)
       if (it.isFalse) {
         layer('false', 2);
@@ -107,7 +118,7 @@ export const mountHardnessSphere = defineWidget({
         for (const node of layers[name].nodes) node.classList.toggle('is-hidden', !on);
       }
       if (k >= 3) {
-        const Wt = k >= 4 ? SHARP : SOFT;
+        const Wt = k >= 5 ? SHARP : (k >= 4 ? MID : SOFT);   // τ=0.2 @s3 → 0.1 @s4 → 0.05 @s5
         lineup.forEach((n, j) => {
           const i = j + 1;                                     // legend row index (d⁺ is row 0)
           const w = (Wt.weights && Wt.weights[j]) || 0;

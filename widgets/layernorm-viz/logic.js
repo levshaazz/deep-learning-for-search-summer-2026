@@ -43,7 +43,7 @@ export const mountLayernormViz = defineWidget({
 
     // per-step value vector for the bars, and the baseline (μ-line) value in DATA units.
     const series = [x, centred, normed, out];
-    const baseVal = [mean, 0, 0, 0];          // s0 baseline = mean 5.0; s1+ baseline = 0
+    const baseVal = [mean, 0, 0, 0];          // s0 baseline = mean 0.98; s1+ baseline = 0
     // post-affine mean/var, computed FROM the data `out` vector (not invented): after γ⊙·+β the
     // vector is NO LONGER unit-variance, so step 3 must not reassert σ²=1 / "✓ normed" (m3 fix).
     const outMean = out.length ? out.reduce((a, b) => a + b, 0) / out.length : 0;
@@ -67,9 +67,9 @@ export const mountLayernormViz = defineWidget({
     const slotW = (panelW - gutter) / dim;
     const barW = slotW * 0.62;
     // value→pixel: a symmetric data range that holds the largest |value| across all steps, so bars
-    // never escape the band. Raw x peaks at 9 (above μ); centred/normed/out are small. We scale the
-    // RAW step against [0, maxRaw] and the centred/normed/out steps against a symmetric [-S, S].
-    const maxRaw = Math.max(...x, 1);                          // 9
+    // never escape the band. Raw x peaks at ~2.0 (above μ=0.98); centred/normed/out are small. We scale
+    // the RAW step against [0, maxRaw] and the centred/normed/out steps against a symmetric [-S, S].
+    const maxRaw = Math.max(...x, 1);                          // ~2.0 (the cat row's largest dim, 1.996)
     const S = Math.max(2, ...centred.map(Math.abs), ...normed.map(Math.abs), ...out.map(Math.abs));
     // pixel for a value at a given step: raw step maps [0,maxRaw] onto the band bottom→top;
     // centred/normed/out map [-S,S] onto bottom→top (0 in the middle of the band).
@@ -258,7 +258,7 @@ export const mountLayernormViz = defineWidget({
         bars[i].r.setAttribute('fill', v < 0 ? 'var(--warm, #E8743B)' : 'var(--accent, #2A6FDB)');
         bars[i].r.setAttribute('stroke', v < 0 ? 'var(--warm-ink, #B4521F)' : 'var(--accent-ink, #1B4FA0)');
       });
-      // baseline (μ-line): s0 at mean 5.0 (in raw scale), s1+ at 0 (sym scale)
+      // baseline (μ-line): s0 at mean 0.98 (in raw scale), s1+ at 0 (sym scale)
       const bY = (k === 0) ? yRaw(mean) : ySym(0);
       baseLine.setAttribute('y1', bY); baseLine.setAttribute('y2', bY);
       baseLbl.setAttribute('y', bY - 4);

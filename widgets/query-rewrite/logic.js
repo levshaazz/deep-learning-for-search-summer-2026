@@ -40,8 +40,10 @@ export const mountQueryRewrite = defineWidget({
     const cutLine = el('line', { x1: padL, y1: cutY, x2: padL + colW, y2: cutY, class: 'qr-cut' }, svg);
     el('text', { x: padL + colW + 6, y: cutY + 4, class: 'qr-cutlbl' }, svg).textContent = labels.cut || 'top-5 cut';
 
-    // HyDE hypothetical-doc card (right side; shown from step 1)
-    const cardX = padL + colW + 70, cardW = W - cardX - padL;
+    // HyDE hypothetical-doc card (right side; shown from step 1). The card sits BELOW the
+    // 'top-5 cut' label vertically (card y 86–178, cut label ~y205), so the gutter can be tight
+    // without colliding — widening it lets the body text live at the 11px readability floor.
+    const cardX = padL + colW + 30, cardW = W - cardX - padL;
     const hydeCard = el('g', { class: 'qr-card is-hidden' }, svg);
     el('rect', { x: cardX, y: listTop, width: cardW, height: 92, rx: 8, class: 'qr-cardbox' }, hydeCard);
     el('text', { x: cardX + 10, y: listTop + 20, class: 'qr-cardttl' }, hydeCard).textContent = labels.hydeTitle || 'HyDE';

@@ -50,17 +50,14 @@ export const mountZipfHeaps = defineWidget({
     el('text', { x: zb.x - 8, y: zb.y + 8, class: 'zh-axlbl', 'text-anchor': 'end' }, svg).textContent = 'freq';
     el('text', { x: zb.x + zb.w, y: zb.y + zb.h + 18, class: 'zh-axlbl', 'text-anchor': 'end' }, svg).textContent = 'rank →';
 
-    layer('zpts', 0); layer('zline', 1); layer('zannot', 2);
+    layer('zline', 1); layer('zpts', 0); layer('zannot', 2);
     const lr = top.map(t => log10(t.rank)), lc = top.map(t => log10(t.count));
-    top.forEach((t, i) => {
-      add('zpts', el('circle', { cx: Z.sx(lr[i]), cy: Z.sy(lc[i]), r: 4, class: 'zh-dot' }, svg));
-    });
-    // label the #1 token
-    const t0 = add('zpts', el('text', { x: Z.sx(lr[0]) + 8, y: Z.sy(lc[0]) + 4, class: 'zh-tok' }, svg));
-    t0.textContent = `“${top[0].token}” ×${top[0].count.toLocaleString('en-US')}`;
     // fit line through centroid with Zipf slope — CLAMP to the frame rect so the extrapolated left
     // end (which used to shoot above the frame to negative screen-y) and the right end stay inside
     // the plot box. We draw only the segment of the trend that lies within the frame. (audit #2)
+    // It is painted BEFORE the dots/label (audit #4) so where the descending trend crosses the
+    // top-left "the ×173,736" token label, the line reads as passing BEHIND the annotation rather
+    // than colliding with it.
     const slope = data.zipf.loglogSlope;
     const xb = lr.reduce((a, b) => a + b, 0) / lr.length, yb = lc.reduce((a, b) => a + b, 0) / lc.length;
     const yAt = (x) => yb + slope * (x - xb);
@@ -69,6 +66,13 @@ export const mountZipfHeaps = defineWidget({
       { x: zb.x, y: zb.y, w: zb.w, h: zb.h }) ||
       { x1: Z.sx(zb.xmin), y1: zb.y, x2: Z.sx(zb.xmax), y2: zb.y + zb.h };
     add('zline', el('line', { x1: seg.x1, y1: seg.y1, x2: seg.x2, y2: seg.y2, class: 'zh-fit' }, svg));
+    top.forEach((t, i) => {
+      add('zpts', el('circle', { cx: Z.sx(lr[i]), cy: Z.sy(lc[i]), r: 4, class: 'zh-dot' }, svg));
+    });
+    // label the #1 token — dropped a touch below the dot (audit #4) so it clears the steep head of
+    // the curve where the fit line is still near the frame top.
+    const t0 = add('zpts', el('text', { x: Z.sx(lr[0]) + 10, y: Z.sy(lc[0]) + 14, class: 'zh-tok' }, svg));
+    t0.textContent = `“${top[0].token}” ×${top[0].count.toLocaleString('en-US')}`;
     const sl = add('zannot', el('text', { x: zb.x + zb.w - 6, y: zb.y + 22, class: 'zh-eq', 'text-anchor': 'end' }, svg));
     sl.textContent = `slope ≈ ${slope.toFixed(2)}`;
     const hc = add('zannot', el('text', { x: zb.x + zb.w - 6, y: zb.y + 40, class: 'zh-sub', 'text-anchor': 'end' }, svg));

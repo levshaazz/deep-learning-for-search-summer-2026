@@ -712,7 +712,7 @@
           </div>
           <aside class="slide-notes">The construction, token by token. Start with CLS, append the query tokens, a SEP, the document tokens, and a final SEP. CLS is a summary slot; its final-layer vector becomes the score. The SEP markers tell the model where the query ends and the document begins. Crucially, all of these sit in one sequence, so attention can connect any query token to any document token — the next slide shows that interaction live.</aside>
         </section>
-        <section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="27 Tokens talk across [SEP]">
+        <section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="27 Tokens talk across [SEP]">
           <div class="slide-header">
             <h2><span lang="ru">Токены говорят через [SEP]</span><span lang="en">Tokens talk across [SEP]</span></h2>
             <span class="slide-kicker"><span lang="ru">кросс-внимание q&times;d &rarr; [CLS] &rarr; логит &rarr; оценка</span><span lang="en">q&times;d cross-attention &rarr; [CLS] &rarr; logit &rarr; score</span></span>
@@ -726,7 +726,8 @@
                 "dTokens": ["bank", "not", "flood"],
                 "attnQxD": [[0.1, 0.1, 0.8], [0.2, 0.1, 0.7], [0.1, 0.7, 0.2]],
                 "clsRel": [1.0, 1.5], "w": [0.5, 1.0], "b": 0.4,
-                "logitRel": 2.4, "scoreRel": 0.9168
+                "logitRel": 2.4, "scoreRel": 0.9168,
+                "clsNeg": [1.0, -2.0], "logitNeg": -1.1, "scoreNeg": 0.2497
               }
             },
             "labels": {
@@ -737,14 +738,17 @@
               "heatHead": "cross-attention (rows sum to 1)",
               "headLine": "[CLS] = {cls} · w = {w} · b = {b}",
               "headNote": "one logit per (q, d) pair — uncacheable",
+              "discHead": "the Judge discriminates — same head, a distractor pair",
+              "discGap": "≪ the relevant pair",
               "s0": "The query and document are concatenated into one input: [CLS], the query tokens, a [SEP], the doc tokens, a [SEP].",
               "s1": "Full attention lets every query token attend to every doc token — across the [SEP]. The Judge reads both at once.",
               "s2": "Read the q×d attention: each query token (a row) spreads its attention over the doc tokens; rows sum to 1.",
-              "s3": "The [CLS] vector is read out: w·[CLS] + b = a logit, then a sigmoid → one relevance score. It depends on the pair, so it can't be cached."
+              "s3": "The [CLS] vector is read out: w·[CLS] + b = a logit, then a sigmoid → one relevance score. It depends on the pair, so it can't be cached.",
+              "s4": "Now a distractor that shares a keyword but does not answer: the same head reads its [CLS] and returns σ(−1.1) = 0.250 ≪ 0.917. The Judge discriminates where a Scout would blur."
             }
           }
           </script>
-          <aside class="slide-notes">The cross-encoder forward pass, mounted and driven by the deck. Step zero: the joint input row, CLS, query, SEP, document, SEP. Step one: full attention connects query tokens to document tokens across the separator. Step two: the query-by-document attention heatmap — each query token, a row, spreads its attention over the document tokens, and each row sums to one. Step three: read the CLS vector through the linear head, w dot CLS plus b gives the logit two-point-four, and the sigmoid gives zero-point-nine-two. One logit per pair — a property of the pair, so it cannot be cached.</aside>
+          <aside class="slide-notes">The cross-encoder forward pass, mounted and driven by the deck. Step zero: the joint input row, CLS, query, SEP, document, SEP. Step one: full attention connects query tokens to document tokens across the separator. Step two: the query-by-document attention heatmap — each query token, a row, spreads its attention over the document tokens, and each row sums to one. Step three: read the CLS vector through the linear head, w dot CLS plus b gives the logit two-point-four, and the sigmoid gives zero-point-nine-two. One logit per pair — a property of the pair, so it cannot be cached. Step four: the same head on a keyword-sharing distractor returns sigmoid of minus-one-point-one, zero-point-two-five — far below the relevant pair's zero-point-nine-two. The Judge discriminates where the Scout would blur.</aside>
         </section>
         <section class="slide" data-type="formula" data-screen-label="28 [CLS] to logit to score">
           <div class="slide-header slide-header--flush">
@@ -883,7 +887,7 @@
             <div class="def-term"><span lang="ru">InfoNCE / NT-Xent</span><span lang="en">InfoNCE / NT-Xent</span><span class="term-en">\(\mathcal{L} = -\log \dfrac{e^{\,\mathrm{sim}(q,d^+)/\tau}}{\sum_{d}\, e^{\,\mathrm{sim}(q,d)/\tau}}\)</span></div>
             <div class="def-body">
               <p><span lang="ru">Один <strong>позитив</strong> \(d^+\) против многих <strong>негативов</strong>: софтмакс с температурой \(\tau\) (чем меньше \(\tau\), тем резче распределение и тем сильнее давление на трудные негативы). Та же InfoNCE, что и в L6,&nbsp;&mdash; и ровно отрицательная лог-правдоподобность позитива у DPR.</span><span lang="en">One <strong>positive</strong> \(d^+\) against many <strong>negatives</strong>: a softmax at temperature \(\tau\) (smaller \(\tau\) = sharper, leans harder on hard negatives). It is the same InfoNCE from L6 &mdash; and exactly DPR&rsquo;s negative log-likelihood of the positive.</span></p>
-              <p class="small muted"><span lang="ru">Размер батча&nbsp;&mdash; рычаг: больше батч &rarr; больше негативов &rarr; лучше. У DPR top-20 растёт от \(69.1\) с числом негативов в батче \(7\!\to\!127\); E5 учит при батче \(32{,}768\).</span><span lang="en">Batch size is a lever: bigger batch &rarr; more negatives &rarr; better. DPR&rsquo;s top-20 climbs from \(69.1\) as the in-batch negatives grow \(7\!\to\!127\); E5 trains at batch \(32{,}768\).</span></p>
+              <p class="small muted"><span lang="ru">Размер батча&nbsp;&mdash; рычаг: больше батч &rarr; больше негативов &rarr; лучше. У DPR top-20 растёт от \(69.1\) с числом негативов в батче \(7\!\to\!127\); E5 учит при батче \(32{,}768\). <em>Осторожно:</em> слишком маленькая \(\tau\) штрафует ложные негативы&nbsp;&mdash; неразмеченные парафразы позитива, попавшие в батч (та же «ловушка близнецов», что на слайде 37), так что \(\tau\) и размер батча балансируют различение против коллапса на ложных негативах.</span><span lang="en">Batch size is a lever: bigger batch &rarr; more negatives &rarr; better. DPR&rsquo;s top-20 climbs from \(69.1\) as the in-batch negatives grow \(7\!\to\!127\); E5 trains at batch \(32{,}768\). <em>Caveat:</em> too small a \(\tau\) over-penalises false negatives&nbsp;&mdash; unlabeled paraphrases of the positive that land in the batch (the same &lsquo;twin trap&rsquo; as slide 37), so \(\tau\) and batch size trade discrimination against false-negative collapse.</span></p>
             </div>
           </div>
           <aside class="slide-notes">The loss behind every modern retriever, and a callback to Lecture 6. InfoNCE is a softmax over similarities: the numerator is the positive pair, the denominator sums the positive and all the negatives, divided by a temperature. Minimizing it pulls the query toward its true document and pushes it away from the rest — exactly DPR's negative log-likelihood of the positive. Two knobs matter. Temperature sharpens the distribution; a small tau makes hard negatives dominate. And batch size is a lever, because the negatives are largely the other documents in the batch — DPR's accuracy climbs with batch size, and E5 trains at a batch of thirty-two thousand to drown the positive in negatives. The next slide makes the in-batch trick visual.</aside>
@@ -916,13 +920,13 @@
               "lossLine": "L = −Σ log P⁺",
               "s0": "A training batch is B matched (query, document) pairs — the diagonal positives.",
               "s1": "Score every query against every document: a B×B grid; the off-diagonal docs are free negatives.",
-              "s2": "Diagonal = positives; the rest of each row = in-batch negatives. Bigger batch = more (harder) negatives.",
+              "s2": "Diagonal = positives; the rest of each row = in-batch negatives. Bigger batch = more negatives — but mostly easy/random ones.",
               "s3": "A row softmax at temperature τ is the InfoNCE target: push each row's mass onto the diagonal."
             }
           }
           </script>
-          <p class="viz-caption"><span lang="ru">Один батч из \(B\) пар: <strong>диагональ</strong>&nbsp;&mdash; истинные соответствия (позитивы), вся остальная строка&nbsp;&mdash; <strong>негативы из батча</strong> (бесплатно). Софтмакс по строке&nbsp;&mdash; цель InfoNCE; больше батч &rarr; больше негативов &rarr; лучше Разведчик (callback L6).</span><span lang="en">One batch of \(B\) pairs: the <strong>diagonal</strong> is the true matches (positives), the rest of each row are <strong>in-batch negatives</strong> (free). The row softmax is the InfoNCE target; bigger batch &rarr; more negatives &rarr; a better Scout (callback L6).</span></p>
-          <aside class="slide-notes">The in-batch trick, made live. Step zero: a batch is B matched query-document pairs, the diagonal. Step one: score every query against every document in the batch, a B-by-B grid — and the off-diagonal cells are negatives you got for free, with no extra forward pass. Step two: the diagonal is the positives, the rest of each row are in-batch negatives, which is exactly why a bigger batch gives more and harder negatives. Step three: a row softmax at temperature tau is the InfoNCE target, and training pushes each row's probability mass onto the diagonal positive. This is the picture behind the batch-size lever from the contrastive-objective slide.</aside>
+          <p class="viz-caption"><span lang="ru">Один батч из \(B\) пар: <strong>диагональ</strong>&nbsp;&mdash; истинные соответствия (позитивы), вся остальная строка&nbsp;&mdash; <strong>негативы из батча</strong> (бесплатно). Софтмакс по строке&nbsp;&mdash; цель InfoNCE; больше батч &rarr; больше негативов &rarr; лучше Разведчик (callback L6). Но эти негативы в основном лёгкие/случайные&nbsp;&mdash; вот почему на слайде 37 трудные негативы ещё и <em>добывают</em>.</span><span lang="en">One batch of \(B\) pairs: the <strong>diagonal</strong> is the true matches (positives), the rest of each row are <strong>in-batch negatives</strong> (free). The row softmax is the InfoNCE target; bigger batch &rarr; more negatives &rarr; a better Scout (callback L6). But these are mostly easy/random negatives&nbsp;&mdash; which is why slide 37 then <em>mines</em> hard ones.</span></p>
+          <aside class="slide-notes">The in-batch trick, made live. Step zero: a batch is B matched query-document pairs, the diagonal. Step one: score every query against every document in the batch, a B-by-B grid — and the off-diagonal cells are negatives you got for free, with no extra forward pass. Step two: the diagonal is the positives, the rest of each row are in-batch negatives, so a bigger batch gives more negatives — but they are mostly easy, random ones, which is exactly why slide 37 then mines hard negatives on top. Step three: a row softmax at temperature tau is the InfoNCE target, and training pushes each row's probability mass onto the diagonal positive. This is the picture behind the batch-size lever from the contrastive-objective slide.</aside>
         </section>
         <section class="slide" data-type="viz" data-screen-label="37 Hard negatives">
           <div class="slide-header">
@@ -1055,8 +1059,8 @@
             <div class="def-body">
               <p><span lang="ru">Прогоняем би-энкодер по <em>всему</em> корпусу и складываем векторы в индекс приближённого поиска. Перебор \(N\) скалярных произведений на запрос&nbsp;&mdash; линеен; ANN снижает это до \(\sim\!\log N\).</span><span lang="en">Run the bi-encoder over the <em>entire</em> corpus and store the vectors in an approximate-nearest-neighbour index. Scanning \(N\) dot-products per query is linear; ANN cuts it toward \(\sim\!\log N\).</span></p>
               <ul class="obj-list">
-                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>HNSW</strong>&nbsp;&mdash; <span lang="ru">граф «маленького мира»; ручка \(M\) (связей, \(\approx\!16\)&ndash;\(48\)) и \(efSearch\) крутит полноту против латентности.</span><span lang="en">a small-world graph; \(M\) (links, \(\approx\!16\)&ndash;\(48\)) and \(efSearch\) trade recall against latency.</span></span></li>
-                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>IVF-PQ</strong>&nbsp;&mdash; <span lang="ru">ячейки (probe немногие) + сжатие до \(\sim\!8\) байт/вектор для миллиардного масштаба.</span><span lang="en">cells (probe a few) + compression to \(\sim\!8\) bytes/vector for billion-scale.</span></span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>HNSW</strong>&nbsp;&mdash; <span lang="ru">граф «маленького мира»: \(M\) (степень графа, \(\approx\!16\)&ndash;\(48\))&nbsp;&mdash; параметр <em>сборки</em>, фиксируется при построении (больше связей = выше потолок полноты, но больше памяти); \(efSearch\)&nbsp;&mdash; ручка <em>времени запроса</em>, живой размен полноты против латентности.</span><span lang="en">a small-world graph: \(M\) (graph degree, \(\approx\!16\)&ndash;\(48\)) is a <em>build-time</em> knob fixed at construction (more links = higher recall ceiling but more memory); \(efSearch\) is the <em>query-time</em> dial that trades recall against latency live.</span></span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>IVF-PQ</strong>&nbsp;&mdash; <span lang="ru">ячейки (probe немногие) + сжатие до \(\sim\!8\) байт/вектор для миллиардного масштаба. PQ&nbsp;&mdash; с потерями (ошибка восстановления снижает полноту) &rarr; пересчитать top-k в полной точности, как на слайде 23.</span><span lang="en">cells (probe a few) + compression to \(\sim\!8\) bytes/vector for billion-scale. PQ is lossy (reconstruction error lowers recall) &rarr; rescore the top-k at full precision, as in slide 23.</span></span></li>
               </ul>
               <p class="small muted"><span lang="ru">Полнота против латентности&nbsp;&mdash; ручка: на Sift1M полнота растёт от \(\sim\!80\%\) к \(\sim\!100\%\) с ростом \(efSearch\). Подробно&nbsp;&mdash; <strong>L9</strong>.</span><span lang="en">Recall vs latency is a dial: on Sift1M, recall climbs from \(\sim\!80\%\) toward \(\sim\!100\%\) as \(efSearch\) rises. The full story is <strong>L9</strong>.</span></p>
             </div>
@@ -1102,7 +1106,7 @@
           </div>
           <aside class="slide-notes">The synthesis. We refuse to choose between fast and careful. Stage them: the Scouts sweep cheap and wide first, then the Judges deliberate dear and narrow last. This is exactly the retrieve-then-rerank funnel from Lecture 1, The Lost Record — only now both stages are neural. Cheap-and-wide protects recall; dear-and-narrow protects precision where the user looks. This one funnel is the architecture of modern neural search.</aside>
         </section>
-        <section class="slide" data-type="funnel" data-max-step="2" data-current-step="0" data-screen-label="46 The Neural Cascade">
+        <section class="slide" data-type="funnel" data-max-step="3" data-current-step="0" data-screen-label="46 The Neural Cascade">
           <div class="slide-header">
             <h2><span lang="ru">Нейронный каскад</span><span lang="en">The Neural Cascade</span></h2>
             <span class="slide-kicker"><span lang="ru">корпус &rarr; разведчики извлекают &rarr; судьи переранжируют</span><span lang="en">corpus &rarr; Scouts retrieve &rarr; Judges rerank</span></span>
@@ -1115,7 +1119,9 @@
                 { "id": "corpus",   "role": "corpus",    "count": "10⁶", "w": 100 },
                 { "id": "retrieve", "role": "retrieval", "count": "10³", "w": 55 },
                 { "id": "rerank",   "role": "rerank",    "count": "10",  "w": 22 }
-              ]
+              ],
+              "quality": { "bm25Ndcg": 0.6766, "rerankedNdcg": 0.9558 },
+              "latency": { "queryEncodeMs": 8, "annSearchMs": 5, "rerankMs": 120, "totalMs": 133 }
             },
             "labels": {
               "role": "img",
@@ -1123,9 +1129,11 @@
               "name0": "Corpus", "desc0": "the whole collection — far too many for a careful judge to read",
               "name1": "Scouts retrieve", "desc1": "bi-encoder sweeps wide, keeps the top-k — cheap, high-recall",
               "name2": "Judges rerank", "desc2": "cross-encoder deliberates on the few — slow, precise, precision@k",
+              "ndcgLabel": "nDCG", "climbLabel": "quality climbs", "costLabel": "cost",
               "s0": "Start with the whole corpus — ~10⁶ documents. No judge can read them all. So the Scouts go first.",
               "s1": "The Scouts (bi-encoder) sweep the corpus and keep the top ~10³ — cheap and high-recall. The answer must survive this cut.",
-              "s2": "The Judges (cross-encoder) rerank the last ~10 — slow and precise. Cheap-and-wide first, dear-and-narrow last."
+              "s2": "The Judges (cross-encoder) rerank the last ~10 — slow and precise. Cheap-and-wide first, dear-and-narrow last.",
+              "s3": "What the cascade buys: quality climbs 0.68 → 0.96 nDCG, while the per-query cost stays small — encode 8 + ANN 5 + rerank 120 = 133 ms. Each cut is safe because the answer survives the wide top-k."
             },
             "i18n": {
               "en": {
@@ -1133,32 +1141,38 @@
                 "name0": "Corpus", "desc0": "the whole collection — far too many for a careful judge to read",
                 "name1": "Scouts retrieve", "desc1": "bi-encoder sweeps wide, keeps the top-k — cheap, high-recall",
                 "name2": "Judges rerank", "desc2": "cross-encoder deliberates on the few — slow, precise, precision@k",
+                "ndcgLabel": "nDCG", "climbLabel": "quality climbs", "costLabel": "cost",
                 "s0": "Start with the whole corpus — ~10⁶ documents. No judge can read them all. So the Scouts go first.",
                 "s1": "The Scouts (bi-encoder) sweep the corpus and keep the top ~10³ — cheap and high-recall. The answer must survive this cut.",
-                "s2": "The Judges (cross-encoder) rerank the last ~10 — slow and precise. Cheap-and-wide first, dear-and-narrow last."
+                "s2": "The Judges (cross-encoder) rerank the last ~10 — slow and precise. Cheap-and-wide first, dear-and-narrow last.",
+                "s3": "What the cascade buys: quality climbs 0.68 → 0.96 nDCG, while the per-query cost stays small — encode 8 + ANN 5 + rerank 120 = 133 ms. Each cut is safe because the answer survives the wide top-k."
               },
               "ru": {
                 "alt": "Сужающаяся воронка: корпус → би-энкодер извлекает → кросс-энкодер переранжирует.",
                 "name0": "Корпус", "desc0": "вся коллекция — слишком много, чтобы дотошный судья всё прочёл",
                 "name1": "Разведчики извлекают", "desc1": "би-энкодер сметает широко, оставляет top-k — дёшево, высокая полнота",
                 "name2": "Судьи переранжируют", "desc2": "кросс-энкодер обдумывает немногих — медленно, точно, precision@k",
+                "ndcgLabel": "nDCG", "climbLabel": "качество растёт", "costLabel": "цена",
                 "s0": "Начинаем со всего корпуса — ~10⁶ документов. Ни один судья не прочтёт их все. Поэтому первыми идут Разведчики.",
                 "s1": "Разведчики (би-энкодер) сметают корпус и оставляют top ~10³ — дёшево и с высокой полнотой. Ответ обязан пережить этот срез.",
-                "s2": "Судьи (кросс-энкодер) переранжируют последние ~10 — медленно и точно. Сначала дёшево-и-широко, в конце дорого-и-узко."
+                "s2": "Судьи (кросс-энкодер) переранжируют последние ~10 — медленно и точно. Сначала дёшево-и-широко, в конце дорого-и-узко.",
+                "s3": "Что покупает каскад: качество растёт 0.68 → 0.96 nDCG, а цена на запрос остаётся малой — encode 8 + ANN 5 + rerank 120 = 133 мс. Каждый срез безопасен, ведь ответ переживает широкий top-k."
               },
               "tt": {
                 "alt": "Тарая барган воронка: корпус → би-энкодер таба → кросс-энкодер кабат ранжлый.",
                 "name0": "Корпус", "desc0": "бөтен коллекция — игътибарлы судья укырга артык күп",
                 "name1": "Разведчиклар таба", "desc1": "би-энкодер киң себерә, top-k калдыра — арзан, югары тулылык",
                 "name2": "Судьялар кабат ранжлый", "desc2": "кросс-энкодер берничәне уйлый — әкрен, төгәл, precision@k",
+                "ndcgLabel": "nDCG", "climbLabel": "сыйфат үсә", "costLabel": "бәя",
                 "s0": "Бөтен корпустан башлыйбыз — ~10⁶ документ. Бер судья да барысын укый алмый. Шуңа күрә башта Разведчиклар бара.",
                 "s1": "Разведчиклар (би-энкодер) корпусны себерә һәм top ~10³ калдыра — арзан, югары тулылык. Җавап бу кисемне кичерергә тиеш.",
-                "s2": "Судьялар (кросс-энкодер) соңгы ~10'ны кабат ранжлый — әкрен, төгәл. Башта арзан-һәм-киң, ахырда кыйммәт-һәм-тар."
+                "s2": "Судьялар (кросс-энкодер) соңгы ~10'ны кабат ранжлый — әкрен, төгәл. Башта арзан-һәм-киң, ахырда кыйммәт-һәм-тар.",
+                "s3": "Каскад нәрсә сатып ала: сыйфат 0.68 → 0.96 nDCG'га үсә, ә һәр сорау бәясе кечкенә кала — encode 8 + ANN 5 + rerank 120 = 133 мс. Һәр кисем куркынычсыз, чөнки җавап киң top-k'ны кичерә."
               }
             }
           }
           </script>
-          <aside class="slide-notes">The payoff architecture, mounted live. Step zero: the whole corpus, about a million documents — no Judge can read them all. Step one: the Scouts, the bi-encoder, sweep the corpus and keep the top thousand — cheap and high-recall; the answer must survive this cut. Step two: the Judges, the cross-encoder, rerank the last ten — slow and precise, optimising precision where the user looks. Cheap-and-wide first, dear-and-narrow last. This is the L1 funnel made neural, and it is the same widget the Book uses.</aside>
+          <aside class="slide-notes">The payoff architecture, mounted live. Step zero: the whole corpus, about a million documents — no Judge can read them all. Step one: the Scouts, the bi-encoder, sweep the corpus and keep the top thousand — cheap and high-recall; the answer must survive this cut. Step two: the Judges, the cross-encoder, rerank the last ten — slow and precise, optimising precision where the user looks. Cheap-and-wide first, dear-and-narrow last. Step three — what the cascade buys: quality climbs from zero-point-six-eight to zero-point-nine-six nDCG, while the per-query cost stays small — encode eight, ANN five, rerank one-hundred-twenty, one-hundred-thirty-three milliseconds total. Each cut is safe because the answer survives the wide top-k. This is the L1 funnel made neural, and it is the same widget the Book uses.</aside>
         </section>
         <section class="slide" data-type="viz" data-screen-label="47 Stage by stage">
           <div class="slide-header">
@@ -1246,7 +1260,7 @@
               </g>
             </svg>
           </div>
-          <p class="viz-caption"><span lang="ru">Судья выбирает только из короткого списка Разведчиков. На наборе L4 recall растёт с глубиной: \(0 \to 0.25 \to 0.5 \to 1.0\). Извлечёшь слишком мелко&nbsp;&mdash; и упрёшься потолком во весь пайплайн. Сначала полнота, потом точность.</span><span lang="en">A Judge picks only from the Scouts&rsquo; shortlist. On the L4 set recall climbs with depth: \(0 \to 0.25 \to 0.5 \to 1.0\). Retrieve too shallow and you cap the whole pipeline. Recall first, precision second.</span></p>
+          <p class="viz-caption"><span lang="ru">Судья выбирает только из короткого списка Разведчиков. На наборе L4 recall растёт с глубиной: \(0 \to 0.25 \to 0.5 \to 1.0\). Извлечёшь слишком мелко&nbsp;&mdash; и упрёшься потолком во весь пайплайн. Сначала полнота, потом точность. Каскад на слайде 48 переранжирует весь top-8 (recall@8 = 1,0), то есть стоит у самого потолка&nbsp;&mdash; пол кусается лишь при извлечении мельче полной полноты.</span><span lang="en">A Judge picks only from the Scouts&rsquo; shortlist. On the L4 set recall climbs with depth: \(0 \to 0.25 \to 0.5 \to 1.0\). Retrieve too shallow and you cap the whole pipeline. Recall first, precision second. The cascade on slide 48 reranks the full top-8 (recall@8 = 1.0), so it sits at the ceiling&nbsp;&mdash; the floor only bites when you retrieve shallower than full recall.</span></p>
           <aside class="slide-notes">The hard floor. A Judge can only rank a document the Scouts actually returned, so the whole pipeline is capped by the retriever's recall at k. On Lecture 4's eight-document set, recall climbs with depth: zero at one, a quarter at three, a half at five, and one at eight. Retrieve too shallow and you cap the Judges below their potential, no matter how good they are. Recall first, precision second — never the other way round. A strong dense retriever can saturate recall on an easy subset, but on web-scale corpora the depth genuinely matters, which sets up the depth dial.</aside>
         </section>
         <section class="slide" data-type="divider" data-screen-label="50 Divider · In a real product">

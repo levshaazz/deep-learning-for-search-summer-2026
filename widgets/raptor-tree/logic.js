@@ -82,7 +82,10 @@ export const mountRaptorTree = defineWidget({
     const nodeEls = levelBoxes.map((boxes, li) => {
       const name = 'lvl' + li;
       layer(name, li);
-      add(name, el('text', { x: 4, y: levelY(li) + nodeH / 2 + 4, class: 'rp-leveltag', 'text-anchor': 'start' }, svg))
+      // level tag sits ABOVE its node row (start-anchored, x=4) rather than on the row centre —
+      // so it never shares the node band: the n=8 leaf row left edge (≈x26) no longer collides
+      // with a wide localized tag ('summary' / RU 'лист') that previously sat at the same y.
+      add(name, el('text', { x: 4, y: levelY(li) - 6, class: 'rp-leveltag', 'text-anchor': 'start' }, svg))
         .textContent = levelTag(li);
       return boxes.map((b, i) => {
         const g = el('g', { class: 'rp-nodeg' }, svg);

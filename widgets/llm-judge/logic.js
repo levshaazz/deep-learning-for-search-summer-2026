@@ -72,17 +72,22 @@ export const mountLlmJudge = defineWidget({
     const ghColW = (W - 2 * PAD - 24) / 2;   // two columns with a gap
     const ghColX = [PAD, PAD + ghColW + 24];
     const ghHeadY = ghTop + 14;
-    const ghBarTop = ghHeadY + 18;
-    const ghBarW = ghColW - 76;              // leave room for the answer label + value
-    const ghBarX = (col) => ghColX[col] + 54;
-    const ghRowH = 24;
-    const ghBot = ghBarTop + 2 * ghRowH + 20; // +20 for the winner-flip note
+    const ghBarTop = ghHeadY + 30;           // first bar baseline; its label sits ~14px above it (clears the column head)
+    // answer label sits ABOVE its bar (own line); the bar spans the column minus a value gutter,
+    // and the value reads to the RIGHT of the bar — so neither the long bilingual answer label
+    // nor the value ever overprints the track/fill (audit L11 #3/#4).
+    const ghValGutter = 52;                  // room at the right for the toFixed(4) value
+    const ghBarW = ghColW - ghValGutter;
+    const ghBarX = (col) => ghColX[col];
+    const ghLblDY = -14;                      // answer label baseline, above the bar
+    const ghRowH = 38;                        // label line + bar line per row
+    const ghBot = ghBarTop + 2 * ghRowH + 22; // room for the winner-flip note below the bars
     const p3Bot = ghBot + 4;
 
     // Panel 4 (step 4): three REAL measured 0..1 bars on separate baselines.
     const p4Top = p3Bot + 16;
     const p4HeadY = p4Top + 4;
-    const realBarX = PAD + 196, realBarW = 220;
+    const realBarX = PAD + 216, realBarW = 200;
     const realRow = 30;
     const real0Y = p4HeadY + 24;
     const real1Y = real0Y + realRow;
@@ -160,14 +165,16 @@ export const mountLlmJudge = defineWidget({
           win: (judge.winner === 'C'), cls: 'is-gamed' },
       ];
       rows.forEach((r, i) => {
-        const y = ghBarTop + i * ghRowH;
-        el('text', { x: x, y: y + 4, class: 'lj-ghlbl' }, g3g).textContent = r.lbl;
+        const y = ghBarTop + i * ghRowH;     // bar baseline for this row
+        // answer label on its OWN line above the bar (no left gutter to overrun)
+        el('text', { x: x, y: y + ghLblDY, class: 'lj-ghlbl' }, g3g).textContent = r.lbl;
         el('rect', { x: ghBarX(col), y: y - 8, width: ghBarW, height: 14, rx: 3,
           class: 'lj-track' }, g3g);
         const w = Math.round(ghBarW * clampScore(r.val));
         el('rect', { x: ghBarX(col), y: y - 8, width: w, height: 14, rx: 3,
           class: 'lj-fill ' + r.cls + (r.win ? ' is-win' : '') }, g3g);
-        el('text', { x: ghBarX(col) + ghBarW, y: y - 11, class: 'lj-ghval', 'text-anchor': 'end' }, g3g)
+        // value to the RIGHT of the bar (mid-baseline) — never in the inter-row band
+        el('text', { x: ghBarX(col) + ghBarW + 6, y: y + 4, class: 'lj-ghval', 'text-anchor': 'start' }, g3g)
           .textContent = (Number(r.val) || 0).toFixed(4);
       });
       // winner line under the column

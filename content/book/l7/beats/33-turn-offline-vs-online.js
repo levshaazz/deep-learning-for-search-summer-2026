@@ -1,6 +1,12 @@
     {
       id: 'turn-offline-vs-online', kind: 'prose',
       heading: { en: 'Which clock: offline vs online', ru: 'На каких часах: офлайн против онлайн', tt: 'Кайсы сәгать: офлайн каршы онлайн' },
+      img: 'L7/L7-12-the-product.png', imgPos: 'scene',
+      imgAlt: {
+        en: 'The finished product: a split workshop where the build-time half (ingest, chunk, embed, index) runs once on a slow clock, and the query-time half (embed, retrieve, rerank, generate a grounded answer) runs per request on a fast clock — the full retrieval-augmented pipeline.',
+        ru: 'Готовый продукт: разделённая мастерская, где половина времени сборки (приём, нарезка, эмбеддинг, индекс) работает один раз на медленных часах, а половина времени запроса (эмбеддинг, извлечение, переранжирование, генерация обоснованного ответа) — на каждый запрос на быстрых часах — полный поисково-дополненный конвейер.',
+        tt: 'Әзер продукт: бүленгән остаханә, анда төзү вакыты яртысы (кабул итү, кисү, эмбедләү, индекс) акрын сәгатьтә бер тапкыр эшли, ә сорау вакыты яртысы (эмбедләү, табу, кабат тәртипләү, нигезле җавап ясау) — тиз сәгатьтә һәр сорауга — тулы эзләү-тулыландырылган конвейер.',
+      },
       body: {
         en: [
           "The most clarifying line in production retrieval is **which clock a cost runs on**. **Build-time, offline:** ingest, chunk, embed the corpus, build the index, train the models — expensive, but paid *once* and amortized over every query, and measured on **BEIR / MTEB**.",

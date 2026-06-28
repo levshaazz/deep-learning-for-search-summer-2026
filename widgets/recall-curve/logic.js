@@ -56,13 +56,21 @@ export const mountRecallCurve = defineWidget({
     const recalls = sweep.map((p) => Number(p[cfg.recall]));
     const costs = sweep.map((p) => Number(p[cfg.cost]));
 
+    // The ef knob is GEOMETRIC (1,2,4,8,16): on a linear axis 1/2/4 crowd into the leftmost ~70px
+    // (where the interesting ef=1 trap → ef=2 escape knee lives) while 8/16 sprawl. So for 'ef' we
+    // place the x-axis on a log2 scale (the dots/ticks still carry the RAW ef value). nprobe (1..5,
+    // linear) keeps a linear axis. `xpos(knob)` is the axis-position transform used for spacing only.
+    const logAxis = name === 'ef';
+    const xpos = (v) => (logAxis ? Math.log2(v) : v);
+
     // ── frame (SVG scales to 100% width via CSS) ──
     const W = 480, PAD_L = 46, PAD_R = 18, PAD_T = 30;
     const plotW = W - PAD_L - PAD_R, plotH = 230;
-    const dx = padDomain(Math.min(...knobs), Math.max(...knobs), 0.08);
+    const xvals = knobs.map(xpos);
+    const dx = padDomain(Math.min(...xvals), Math.max(...xvals), 0.08);
     const dy = padDomain(0, 1, 0.10);            // recall is a fraction in [0,1]
     const box = { x: PAD_L, y: PAD_T, w: plotW, h: plotH };
-    const sx = (vx) => box.x + (vx - dx.min) / dx.span * box.w;
+    const sx = (vx) => box.x + (xpos(vx) - dx.min) / dx.span * box.w;
     const sy = (vy) => box.y + box.h - (vy - dy.min) / dy.span * box.h;
 
     // the cost-legend gets its OWN line, well below the x-axis title (which lives at box.h+36) —
@@ -103,12 +111,18 @@ export const mountRecallCurve = defineWidget({
     const line = el('polyline', { points: '', class: 'rc-line', fill: 'none' }, svg);
 
     // ── points (+ recall value label + faint cost annotation), one group per sweep entry ──
+    // A recall PLATEAU (consecutive points at the same recall — e.g. ef 2,4,8,16 all 1.0; nprobe 3,4,5
+    // all 1.0) stacks identical value labels on the flat top of the curve. Label only the FIRST point
+    // of each plateau; the per-point COST annotation below (which does differ) stays on every point, so
+    // each dot still has a readout. (Suppress when this point's recall equals the previous point's.)
     const ptEls = sweep.map((p, i) => {
       const cx = sx(knobs[i]), cy = sy(recalls[i]);
       const g = el('g', { class: 'rc-pt is-hidden' }, svg);
       el('circle', { cx, cy, r: 6, class: 'rc-dot' + (recalls[i] >= 1 ? ' is-perfect' : '') }, g);
-      // recall value above the point
-      el('text', { x: cx, y: cy - 11, class: 'rc-rlbl', 'text-anchor': 'middle' }, g).textContent = recalls[i].toFixed(recalls[i] === Math.round(recalls[i]) ? 1 : 4);
+      // recall value above the point — only on the first point of a plateau
+      if (i === 0 || recalls[i] !== recalls[i - 1]) {
+        el('text', { x: cx, y: cy - 11, class: 'rc-rlbl', 'text-anchor': 'middle' }, g).textContent = recalls[i].toFixed(recalls[i] === Math.round(recalls[i]) ? 1 : 4);
+      }
       // cost annotation below the point (the work this recall costs)
       el('text', { x: cx, y: cy + 20, class: 'rc-clbl', 'text-anchor': 'middle' }, g).textContent = `${costs[i]}`;
       return g;

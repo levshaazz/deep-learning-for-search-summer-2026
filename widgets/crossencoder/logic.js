@@ -10,11 +10,13 @@
    to the doc token it attends to most (its arg-max), with the remaining links faint — so the picture is
    readable, and the FULL distribution lives in the step-2 heatmap (numbers inside aligned cells).
 
-   Steps (maxStep = 3):
+   Steps (maxStep = 4):
      0  → the joint input row: [CLS] q… [SEP] d… [SEP].                          caption s0
      1  → each query token's strongest link to a doc token (across the [SEP]).   caption s1
      2  → the q×d attention heatmap (rows q, cols d; rows sum to 1).             caption s2
-     3  → [CLS] → w·cls + b = logit → sigmoid → one relevance score.            caption s3 */
+     3  → [CLS] → w·cls + b = logit → sigmoid → one relevance score.            caption s3
+     4  → the SAME head on a keyword-sharing distractor → a LOW score: the Judge
+          discriminates (σ(2.4)=0.917 vs σ(−1.1)=0.250) where the Scout blurs.   caption s4 */
 import { defineWidget, fmt } from '../_widget-base.js';
 import { frameHeightFor } from '../_plot-util.js';
 
@@ -22,7 +24,7 @@ export const mountCrossencoder = defineWidget({
   id: 'crossencoder',
   rootClass: 'ce-root',
   exportName: 'mountCrossencoder',
-  maxStep: 3,
+  maxStep: 4,
   render({ host, data, labels, el }) {
     const toy = data.toy || {};
     const qTokens = toy.qTokens || [];
@@ -33,6 +35,12 @@ export const mountCrossencoder = defineWidget({
     const b = typeof toy.b === 'number' ? toy.b : 0;
     const logitRel = typeof toy.logitRel === 'number' ? toy.logitRel : 0;
     const scoreRel = typeof toy.scoreRel === 'number' ? toy.scoreRel : 0;
+    // the distractor/negation case (the Judge's edge): same head, a [CLS] that points the other way →
+    // a low score. Present in data/l7-crossencoder.json; only DRAWN at step 4 (the discrimination beat).
+    const clsNeg = toy.clsNeg || [];
+    const hasNeg = clsNeg.length > 0;
+    const logitNeg = typeof toy.logitNeg === 'number' ? toy.logitNeg : 0;
+    const scoreNeg = typeof toy.scoreNeg === 'number' ? toy.scoreNeg : 0;
 
     const CLS = labels.clsLabel || '[CLS]';
     const SEP = labels.sepLabel || '[SEP]';
@@ -75,16 +83,23 @@ export const mountCrossencoder = defineWidget({
     const dIdx = dTokens.map((_, i) => 1 + qTokens.length + 1 + i);
 
     // ── STEP 1: ONE bold link per query token to its strongest doc token; the rest faint ──
+    // OVERLAP-FIX (§1.3 "arrows became a mess"): give EACH query row its own vertical apex lane so the
+    // faint non-max links of different source rows no longer pile into one ~26px band with near-identical
+    // apexes. Lane = LANE0 + i·LANE_H; within a lane the apex still rises with the weight (wv) so the
+    // strongest link of a row dips deepest. The whole fan stays inside the arc band (arcTop … hmTop).
     layer('cross', 1);
     const arcTop = rowY + chipH;
+    const nQ = qTokens.length || 1;
+    const LANE0 = 16, LANE_H = Math.max(14, Math.min(20, (66 - LANE0) / nQ));
     qTokens.forEach((_, i) => {
       const row = attn[i] || [];
       let best = 0; row.forEach((v, j) => { if (v > (row[best] || 0)) best = j; });
+      const lane = arcTop + LANE0 + i * LANE_H;
       dTokens.forEach((_, j) => {
         const wv = row[j] || 0;
         const isMax = j === best;
         const x1 = chipCx[qIdx[i]], x2 = chipCx[dIdx[j]];
-        const dip = arcTop + 24 + wv * 26;
+        const dip = lane + wv * 12;
         add('cross', el('path', {
           d: `M ${x1.toFixed(1)} ${arcTop} Q ${((x1 + x2) / 2).toFixed(1)} ${dip.toFixed(1)} ${x2.toFixed(1)} ${arcTop}`,
           class: 'ce-link' + (isMax ? ' ce-link-max' : ''), fill: 'none',
@@ -134,7 +149,26 @@ export const mountCrossencoder = defineWidget({
     add('head', el('text', { x: PAD + 14, y: hT + 67, class: 'ce-headnote' }, svg))
       .textContent = labels.headNote || 'one logit per (q, d) pair — uncacheable';
 
-    const H = frameHeightFor(hT + 74, 10);
+    // ── STEP 4: the discrimination — the SAME head on a keyword-sharing distractor → a LOW score ──
+    // The relevant pair scored σ(2.4)=0.917; the distractor [CLS] points the other way → σ(−1.1)=0.250.
+    // This is the Judge's edge over the Scout: one head, two pairs, a wide gap. (data: clsNeg/…Neg)
+    let bottomY = hT + 74;
+    if (hasNeg) {
+      layer('disc', 4);
+      const dT = hT + 74 + 12;
+      add('disc', el('text', { x: PAD, y: dT - 2, class: 'ce-head' }, svg))
+        .textContent = labels.discHead || 'the Judge discriminates — same head, a distractor pair';
+      const boxY = dT + 8;
+      add('disc', el('rect', { x: PAD, y: boxY, width: W - 2 * PAD, height: 56, rx: 9, class: 'ce-callbox' }, svg));
+      add('disc', el('text', { x: PAD + 14, y: boxY + 23, class: 'ce-headline' }, svg))
+        .textContent = '[CLS] = ' + arr(clsNeg) + ' · w·[CLS] + b = ' + num(logitNeg);
+      add('disc', el('text', { x: PAD + 14, y: boxY + 46, class: 'ce-headline2 ce-headline2-neg' }, svg))
+        .textContent = (labels.scoreLabel || 'σ(logit)') + ' = ' + num3(scoreNeg) + '   '
+          + (labels.discGap || '≪ ' + num3(scoreRel) + ' (the relevant pair)');
+      bottomY = boxY + 56;
+    }
+
+    const H = frameHeightFor(bottomY, 10);
     svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
     return function update(k) {

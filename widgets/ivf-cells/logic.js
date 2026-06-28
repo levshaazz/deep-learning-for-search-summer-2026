@@ -49,12 +49,15 @@ function renderToy({ host, data, labels, el }) {
     const rank = toy.cellRankByDist || cents.map((_, i) => i);
     const probe = toy.probe || {};
 
-    const W = 480, PAD = 22, plotH = 270;
+    const W = 480, PAD = 22, plotH = 270, topPad = 44;   // top pad 28→44: a member-mean cell bounding
+    // circle (radius reaches the farthest member + 16) can extend ABOVE the plot box — c2's circle
+    // was overrunning the top by ~18px in the Book. 44px of headroom keeps the topmost cell inside the
+    // viewBox (mirrors the toy2 path's topPad fix). H grows with box.y, so the bottom readout still fits.
     const xs = pts.map((p) => p[0]).concat(cents.map((c) => c[0]), q[0]);
     const ys = pts.map((p) => p[1]).concat(cents.map((c) => c[1]), q[1]);
     const dx = padDomain(Math.min(...xs), Math.max(...xs), 0.14);
     const dy = padDomain(Math.min(...ys), Math.max(...ys), 0.16);
-    const box = { x: PAD, y: 28, w: W - 2 * PAD, h: plotH };
+    const box = { x: PAD, y: topPad, w: W - 2 * PAD, h: plotH };
     const sx = (vx) => box.x + (vx - dx.min) / dx.span * box.w;
     const sy = (vy) => box.y + box.h - (vy - dy.min) / dy.span * box.h;
 
@@ -158,13 +161,21 @@ function renderToy2({ host, data, labels, el }) {
   const H = frameHeightFor(readTop + 2 * readRow, 12);
   const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'wgt-svg iv-svg', role: 'img', 'aria-label': labels.alt || '' }, host);
 
-  // ── cell regions: a dashed bounding circle per cell (over its members + its centroid) ──
+  // ── cell regions: ONE circle per cell, centred on the CENTROID (not the member-mean) with radius =
+  //    HALF the distance to the nearest other centroid. Voronoi cells are a PARTITION, so the regions
+  //    must NOT overlap: two such circles are at most tangent (the nearest pair just touch; farther
+  //    pairs leave a gap), which reads as a clean partition instead of member-mean bounding circles
+  //    that blended in the corners and made cell membership ambiguous. Capped so a lone/distant
+  //    centroid doesn't draw a huge disc. ──
+  const centScr = cents.map((c) => ({ x: sx(c[0]), y: sy(c[1]) }));
   const cellRegion = cents.map((c, ci) => {
-    const members = pts.filter((_, i) => assign[i] === ci).concat([c]);
-    const mx = members.reduce((a, p) => a + sx(p[0]), 0) / members.length;
-    const my = members.reduce((a, p) => a + sy(p[1]), 0) / members.length;
-    const r = Math.max(24, ...members.map((p) => Math.hypot(sx(p[0]) - mx, sy(p[1]) - my))) + 14;
-    return el('circle', { cx: mx, cy: my, r, class: 'iv-cell ' + cls(ci) }, svg);
+    let nearest = Infinity;
+    centScr.forEach((o, oi) => {
+      if (oi === ci) return;
+      nearest = Math.min(nearest, Math.hypot(centScr[ci].x - o.x, centScr[ci].y - o.y));
+    });
+    const r = Math.min(72, Math.max(22, (isFinite(nearest) ? nearest : 80) * 0.5));
+    return el('circle', { cx: centScr[ci].x, cy: centScr[ci].y, r, class: 'iv-cell ' + cls(ci) }, svg);
   });
 
   // ── points coloured by cell; true-NN points get a ring ──

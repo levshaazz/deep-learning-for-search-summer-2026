@@ -51,12 +51,40 @@ export const mountRagControlFlow = defineWidget({
     const layer = (name, from) => (layers[name] = { from, nodes: [] });
     const add = (name, node) => { layers[name].nodes.push(node); return node; };
 
+    // wrap a string into ≤maxChars greedy-by-word lines so the full action text fits a node box
+    // (we WRAP rather than slice — 'web search' vs 'query rewrite' is the teaching contrast and
+    // must survive; slicing at 27 chars used to cut exactly that distinguishing tail).
+    function wrapLines(s, maxChars) {
+      const words = String(s || '').split(/\s+/);
+      const lines = [];
+      let cur = '';
+      for (const w of words) {
+        if (!cur) { cur = w; continue; }
+        if ((cur + ' ' + w).length <= maxChars) cur += ' ' + w;
+        else { lines.push(cur); cur = w; }
+      }
+      if (cur) lines.push(cur);
+      return lines;
+    }
+
     // ── primitive shapes ──
     function box(name, x, y, w, h, txt, cls) {
       const g = el('g', { class: 'rcf-node' }, svg);
       add(name, g);
       el('rect', { x: x - w / 2, y: y - h / 2, width: w, height: h, rx: 8, class: 'rcf-box ' + (cls || '') }, g);
       el('text', { x, y: y + 4, class: 'rcf-boxtxt', 'text-anchor': 'middle' }, g).textContent = txt;
+      return { x, y, w, h, g };
+    }
+    // a box whose text is WRAPPED onto centred lines (for the multi-word action boxes)
+    function boxWrap(name, x, y, w, h, txt, cls, maxChars) {
+      const g = el('g', { class: 'rcf-node' }, svg);
+      add(name, g);
+      el('rect', { x: x - w / 2, y: y - h / 2, width: w, height: h, rx: 8, class: 'rcf-box ' + (cls || '') }, g);
+      const lines = wrapLines(txt, maxChars || 24);
+      const lh = 13, startY = y - ((lines.length - 1) * lh) / 2 + 4;
+      lines.forEach((ln, i) => {
+        el('text', { x, y: startY + i * lh, class: 'rcf-boxtxt', 'text-anchor': 'middle' }, g).textContent = ln;
+      });
       return { x, y, w, h, g };
     }
     function diamond(name, x, y, w, h, txt, cls) {
@@ -106,18 +134,18 @@ export const mountRagControlFlow = defineWidget({
       return n;
     });
 
-    // STEP 2: each branch's action box
+    // STEP 2: each branch's action box — text WRAPPED (not sliced) so each branch's full
+    // 'keep / +web-search / discard→rewrite' verdict stays legible (the teaching contrast).
     layer('actions', 2);
-    const actY = 256;
+    const actY = 262, actH = 56;
     grades.forEach((g, i) => {
       const a = acts[g] || '';
-      const txt = a.length > 30 ? a.slice(0, 27) + '…' : a;
-      const n = box('actions', colX[i], actY, 158, 44, txt, gradeCls[g] || '');
+      const n = boxWrap('actions', colX[i], actY, 162, actH, a, gradeCls[g] || '', 24);
       arrow('actions', gradeNodes[i].x, bot(gradeNodes[i]), n.x, top(n));
     });
 
     // ════════════════ self-RAG row (bottom half) ════════════════
-    const srTtlY = actY + 56;
+    const srTtlY = actY + actH / 2 + 30;
     layer('selfrag', 3);
     add('selfrag', el('text', { x: 14, y: srTtlY, class: 'rcf-secttl' }, svg))
       .textContent = labels.selfRagTitle || 'self-RAG · reflection-token gates';

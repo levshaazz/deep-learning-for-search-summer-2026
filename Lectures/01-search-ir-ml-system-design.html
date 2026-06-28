@@ -438,7 +438,7 @@ Tip: press <strong>T</strong> for the toolbar, <strong>O</strong> for the slide 
           </div>
           <p class="viz-caption">Filtering says yes/no; ranking says <em>how good, and in what order</em> — which matches how users read top-down.</p>
 
-          <aside class="slide-notes">The pedagogical payoff of graded relevance: if there are degrees of "good", a yes/no filter is lossy. Users read top-down and rarely past the first few results, so the order is the product. This is the bridge to ranking metrics — \(\text{nDCG}@10\) rewards putting grade-4 above grade-2 — and it sets up the quiz at the end of Part 01.</aside>
+          <aside class="slide-notes">The pedagogical payoff of graded relevance: if there are degrees of "good", a yes/no filter is lossy. Users read top-down and rarely past the first few results, so the order is the product. This is the bridge to ranking metrics — \(\text{nDCG}@10\) rewards putting grade-4 above grade-2 — and it sets up the quiz at the end of Part 01. <strong>Making the arrow concrete:</strong> \(\text{DCG}@k = \sum_{i=1}^{k} \frac{2^{g_i}-1}{\log_2(i+1)}\), where \(g_i\) is the grade at rank \(i\); the gain \(2^{g_i}-1\) is divided by a position discount \(\log_2(i+1)\). Normalise by the ideal ordering: \(\text{nDCG}@k = \text{DCG}@k / \text{IDCG}@k \in [0,1]\). Worked example: a grade-4 doc gives gain \(2^4-1=15\); at rank 1 it contributes \(15/\log_2 2 = 15\), but at rank 2 only \(15/\log_2 3 \approx 9.46\) — that drop is exactly the "discount by position" the deck claims.</aside>
         </section>
 
         <!-- ============================================
@@ -495,7 +495,7 @@ Tip: press <strong>T</strong> for the toolbar, <strong>O</strong> for the slide 
         <!-- ============================================
              12 · TWO-COL · search vs recommendation
              ============================================ -->
-        <section class="slide" data-type="two-col" data-screen-label="13 Two-column · Search vs Recsys">
+        <section class="slide" data-type="two-col" data-screen-label="13 Two-column · Search vs recsys">
           <div class="slide-header">
             <h2>Search ≈ recommendation</h2>
             <span class="slide-kicker">PULL vs PUSH — a continuum</span>
@@ -528,7 +528,7 @@ Tip: press <strong>T</strong> for the toolbar, <strong>O</strong> for the slide 
             One continuum: explicit → implicit, with "you may also like" in the middle. Architecturally they <strong>converge</strong> — both run a candidate-generation → ranking cascade; recsys just swaps the query embedding for a user-context embedding.
           </p>
 
-          <aside class="slide-notes">Old-deck line: "all of that is search plus a little RecSys — which are almost the same." The deep point is architectural convergence: the same cascade serves both, so everything you learn about ranking transfers. Recsys is search where the query is implicit. This is why the production blueprint later in the deck is drawn for "search/recsys" interchangeably.</aside>
+          <aside class="slide-notes">Old-deck line: "all of that is search plus a little recsys — which are almost the same." The deep point is architectural convergence: the same cascade serves both, so everything you learn about ranking transfers. Recsys is search where the query is implicit. This is why the production blueprint later in the deck is drawn for "search/recsys" interchangeably.</aside>
         </section>
 
         <!-- ============================================
@@ -877,7 +877,7 @@ Tip: press <strong>T</strong> for the toolbar, <strong>O</strong> for the slide 
             <button data-step-act="next" aria-label="Next step">→</button>
           </div>
 
-          <aside class="slide-notes">Step through it slowly — this is the concrete payoff of the previous definition. Emphasise step 5: the intersection is a linear merge of two <em>sorted</em> lists, which is why postings are kept sorted. With more terms you intersect shortest-first to minimise work. This worked example is the seed of BM25 scoring next lecture: \(\mathrm{tf}\) and \(\mathrm{df}\) are already in the postings.</aside>
+          <aside class="slide-notes">Step through it slowly — this is the concrete payoff of the previous definition. Emphasise step 5: the intersection is a linear merge of two <em>sorted</em> lists, which is why postings are kept sorted. With more terms you intersect shortest-first to minimise work. This worked example is the seed of BM25 scoring in Lecture 03: \(\mathrm{tf}\) and \(\mathrm{df}\) are already in the postings.</aside>
         </section>
 
         <!-- ============================================
@@ -955,6 +955,7 @@ Tip: press <strong>T</strong> for the toolbar, <strong>O</strong> for the slide 
                 <div class="callout-body">
                   <strong>The hard ceiling is first-stage recall</strong>
                   <p>Whatever the retrieval stage (Stage 0) drops, no re-ranker — even a perfect one — can recover.</p>
+                  <p class="small muted">Precisely: \(\text{recall@}10\) of the served list \(\le \text{recall@}N\) of the retrieved set, where \(N\) is the retrieval depth (e.g. 1000). A re-ranker reorders the \(N\) candidates; it cannot inject a document that was never in the set.</p>
                 </div>
               </div>
               <p>Loss that happens at retrieval is <em>permanent</em>. Invest in first-stage recall (and hybrid retrieval) before you tune the re-ranker.</p>
@@ -1178,10 +1179,10 @@ Tip: press <strong>T</strong> for the toolbar, <strong>O</strong> for the slide 
                   Eye-tracking (the "Golden Triangle", popularized by Enquiro 2005; peer-reviewed backing <strong>Granka, Joachims &amp; Gay 2004</strong>) shows attention concentrates top-left. The #1 organic result earns ~32–33% of clicks <strong>largely because it is #1</strong>, not because it is best. So raw clicks are <strong>biased training data</strong>: a naive learning-to-rank model learns "predict what was already on top" and freezes the incumbents in place. Fix: model the bias explicitly — unbiased LTR with inverse-propensity weighting (we return to this in Part 03).
                   <p class="misc-anchor">
                     <strong>Worked simulation</strong> · grounded in <code>_research/data/position_bias.py</code>.
-                    Cascade examination model from <strong>Craswell et al. 2008</strong> (<em>"An Experimental Comparison of Click Position-Bias Models"</em>): examination probability \( p_r \propto 1/r^{\gamma} \), the rank-dependent decay that turns equal relevance into unequal clicks. The <strong>clicks ≠ relevance</strong> framing — that clicks reveal <em>relative</em> not absolute relevance — is the contribution of <strong>Joachims, Granka et al. 2005</strong> (<em>"Accurately Interpreting Clickthrough Data as Implicit Feedback"</em>); the ~32% rank-1 share is the Enquiro 2005 "golden triangle" eye-tracking number that anchors \( \gamma = 0.94 \) here.
+                    Cascade examination model from <strong>Craswell et al. 2008</strong> (<em>"An Experimental Comparison of Click Position-Bias Models"</em>): examination probability \( p_r \propto 1/r^{\gamma} \), the rank-dependent decay that turns equal relevance into unequal clicks. The <strong>clicks ≠ relevance</strong> framing — that clicks reveal <em>relative</em> not absolute relevance — is the contribution of <strong>Joachims, Granka et al. 2005</strong> (<em>"Accurately Interpreting Clickthrough Data as Implicit Feedback"</em>); \( \gamma = 0.94 \) is chosen so rank-1 ≈ 32%, a rank-1 CTR level repeatedly reported in click-log studies (e.g. AOL-log analyses, industry CTR curves); the Enquiro 2005 "golden triangle" is the eye-tracking study behind the qualitative <em>attention concentrates top-left</em> claim, not the click percentage itself.
                     <br>Under that model, with <em>equal</em> true relevance for the top-10: rank 1 = <strong>32.3%</strong>, rank 2 = 16.8%, rank 3 = 11.5%, … top-3 together <strong>60.6%</strong>.
                     <br>So a click on rank-1 carries nearly <strong>3× (2.8×)</strong> the weight of a click on rank-3, even when the docs are <em>equally</em> good — that is the bias to undo.
-                    <br>Train LTR on raw clicks and you bake the ranking <em>into</em> the model; IPW reweights each click by \( 1/p_r \) to recover an unbiased estimate of true relevance.
+                    <br>Train LTR on raw clicks and you bake the ranking <em>into</em> the model; IPW reweights each click by \( 1/p_r \) to recover an unbiased estimate of true relevance. The catch: this is unbiased only if the propensities \( p_r \) are right, and \( 1/p_r \) explodes for low-examination (deep) ranks — so production systems clip the propensities or jointly learn examination + relevance.
                   </p>
                 </div>
               </div>
@@ -1190,7 +1191,7 @@ Tip: press <strong>T</strong> for the toolbar, <strong>O</strong> for the slide 
               <img src="assets/img/L1/L1-29-position-bias.png?v=1" alt="A golden-triangle click heatmap feeding a loop: click #1, logs say #1 is best, rank it #1 again" />
             </figure>
           </div>
-          <aside class="slide-notes">This is the bridge between the IR half and the systems half. Position bias means the feedback you collect is contaminated by the very ranking that produced it — a feedback loop. Training naively on clicks bakes in a rich-get-richer dynamic. The fix (IPW / unbiased LTR) shows up again on the feedback-loops slide in Part 03; flag it now so it lands later. Grounded illustration in <code>_research/data/position_bias.py</code> (cascade examination model from Craswell et al. 2008, γ≈0.94 fit to the ~32% rank-1 share from Enquiro 2005's "golden triangle"; the "clicks ≠ relevance" framing is Joachims, Granka et al. 2005): under EQUAL relevance, rank-1 still takes 32% of clicks and the top-3 take ~61% — pure position bias, explicitly modelled (not a proprietary log).</aside>
+          <aside class="slide-notes">This is the bridge between the IR half and the systems half. Position bias means the feedback you collect is contaminated by the very ranking that produced it — a feedback loop. Training naively on clicks bakes in a rich-get-richer dynamic. The fix (IPW / unbiased LTR) shows up again on the feedback-loops slide in Part 03; flag it now so it lands later. Grounded illustration in <code>_research/data/position_bias.py</code> (cascade examination model from Craswell et al. 2008, γ≈0.94 fit so rank-1 ≈ 32% — a CTR level reported in click-log studies, with Enquiro 2005's "golden triangle" supplying only the qualitative attention-concentration picture; the "clicks ≠ relevance" framing is Joachims, Granka et al. 2005): under EQUAL relevance, rank-1 still takes 32% of clicks and the top-3 take ~61% — pure position bias, explicitly modelled (not a proprietary log).</aside>
         </section>
 
         <!-- ============================================
@@ -1319,7 +1320,7 @@ Tip: press <strong>T</strong> for the toolbar, <strong>O</strong> for the slide 
                 <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">serving infrastructure · resource management</span></li>
                 <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">monitoring · process &amp; tooling</span></li>
               </ul>
-              <p class="small muted">"Only a small fraction of real-world ML systems is ML code."</p>
+              <p class="small muted">"Only a small fraction of a real-world ML system is ML code."</p>
             </div>
           </div>
 
@@ -1705,7 +1706,7 @@ Tip: press <strong>T</strong> for the toolbar, <strong>O</strong> for the slide 
             </div>
             <div class="twocol-col">
               <h3>The fixes</h3>
-              <p><strong>Unbiased LTR:</strong> inverse-propensity-weight clicks by examination probability (Joachims) — or model examination vs relevance directly.</p>
+              <p><strong>Unbiased LTR:</strong> inverse-propensity-weight clicks by examination probability (Joachims) — or model examination vs relevance directly. <span class="muted">Caveat: \(1/p_r\) is unbiased only if the propensities are right and the variance is controlled — it blows up at low-examination ranks, so clip propensities or jointly learn examination + relevance.</span></p>
               <p><strong>Exploration:</strong> \(\varepsilon\)-greedy / bandits to gather feedback on unshown items.</p>
               <p><strong>Context features:</strong> time, device — not pure interaction history.</p>
             </div>
@@ -1967,19 +1968,19 @@ Tip: press <strong>T</strong> for the toolbar, <strong>O</strong> for the slide 
             </thead>
             <tbody>
               <tr>
-                <td>ANN retrieval (millions → ~100)</td>
+                <td>ANN retrieval (\(\sim 10^{9} \to \sim 10^{3}\))</td>
                 <td class="cell-good">~10ms</td>
                 <td class="cell-meh">sets the recall ceiling</td>
-                <td>~99.99% reduction</td>
+                <td>~99.9999% reduction</td>
               </tr>
               <tr>
-                <td>Light re-ranker (MiniLM, 100→20)</td>
+                <td>Light re-ranker (MiniLM, \(\sim 10^{3} \to \sim 10^{2}\))</td>
                 <td class="cell-meh">~60ms</td>
                 <td class="cell-good">+5–15 \(\text{nDCG}@10\)</td>
                 <td>distilled: 70–90% of gain at 30–50% cost</td>
               </tr>
               <tr>
-                <td>Heavy re-ranker (top-20→5)</td>
+                <td>Heavy re-ranker (\(\sim 10^{2} \to \sim 10\))</td>
                 <td class="cell-bad">~+200ms</td>
                 <td class="cell-good">finalises the order</td>
                 <td>only on a tiny shortlist</td>
@@ -1988,7 +1989,7 @@ Tip: press <strong>T</strong> for the toolbar, <strong>O</strong> for the slide 
           </table>
 
           <p class="small muted center mt-3">
-            Candidate-set size and per-stage model complexity are the two dials. Halving the candidate set (100 → 50) roughly halves cost for a tiny relevance loss — that is the trade you tune.
+            Candidate-set size and per-stage model complexity are the two dials. Halving a candidate set (e.g. \(10^{2} \to 50\)) roughly halves cost for a tiny relevance loss — that is the trade you tune.
           </p>
 
           <aside class="slide-notes">This reframes the Part 02 cascade as an explicit engineering decision rather than an IR abstraction. The numbers matter: a distilled 60–120M-parameter re-ranker recovers most of the relevance gain at a fraction of the cost — usually the right default. The two tunable dials are candidate-set size and model complexity per stage; you spend your latency budget where it buys the most \(\text{nDCG}\) per millisecond.</aside>

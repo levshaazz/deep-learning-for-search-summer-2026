@@ -11,9 +11,9 @@ import { defineWidget } from '../_widget-base.js';
 export const mountPosBiasCurve = defineWidget({
   id: 'pos-bias-curve',
   rootClass: 'pb-root',
-  maxStep: 3,
+  maxStep: 4,
   render({ host, data, labels, el }) {
-    const ranks = data.ranks, MAX = 3, W = 480, H = 300;
+    const ranks = data.ranks, MAX = 4, W = 480, H = 300;
     const box = { x: 44, y: 24, w: W - 64, h: H - 64 };
     const maxShare = Math.max(...ranks.map((r) => r.clickShare)) * 1.1;
 
@@ -41,13 +41,27 @@ export const mountPosBiasCurve = defineWidget({
     const layers = {};
     const layer = (n, from) => (layers[n] = { from, nodes: [] });
     const add = (n, node) => { layers[n].nodes.push(node); return node; };
-    layer('top1', 1); layer('top3', 2); layer('good', 3);
+    // step 3 (flat) inserts the "true relevance = equal" reference BEFORE Goodhart (now step 4),
+    // so the Goodhart label lands on a picture (the gap clicks-vs-flat) instead of empty axes.
+    layer('top1', 1); layer('top3', 2); layer('flat', 3); layer('good', 4);
     const t1 = add('top1', el('text', { x: bars[0].getAttribute('x'), y: box.y + 4, class: 'pb-tag pb-top1' }, svg));
     t1.textContent = `${data.top1Pct}%`;
     t1.setAttribute('x', Number(bars[0].getAttribute('x')) + bw / 2);
     t1.setAttribute('text-anchor', 'middle');
     const t3 = add('top3', el('text', { x: box.x + box.w - 6, y: box.y + 18, class: 'pb-tag pb-top3', 'text-anchor': 'end' }, svg));
     t3.textContent = `top-3 = ${data.top3Pct}%`;
+
+    // STEP 3 — the flat "true relevance" line: if all results are equally relevant, an honest click
+    // signal would be UNIFORM, i.e. each rank gets an equal 1/N share. Drawn across every bar so the
+    // gap between this flat truth and the skewed bars IS the position bias a click-trained model chases.
+    const equalShare = 1 / ranks.length;                 // data-driven (N ranks from data), e.g. 0.10
+    const flatY = box.y + box.h - (equalShare / maxShare) * box.h;
+    add('flat', el('line', { x1: box.x, y1: flatY, x2: box.x + box.w, y2: flatY, class: 'pb-flat' }, svg));
+    // label end-anchored at the right edge, just ABOVE the flat line — sits over the short tail bars
+    // (ranks ~9-10), clear of the bar-0 head on the left and of the top-right top-3/Goodhart tags.
+    const fl = add('flat', el('text', { x: box.x + box.w - 4, y: flatY - 6, class: 'pb-tag pb-flatlbl', 'text-anchor': 'end' }, svg));
+    fl.textContent = labels.flat || `true relevance = equal (${Math.round(equalShare * 100)}%)`;
+
     const gd = add('good', el('text', { x: box.x + box.w - 6, y: box.y + 38, class: 'pb-tag pb-good', 'text-anchor': 'end' }, svg));
     gd.textContent = labels.goodhart || 'optimise this → reward position, not relevance';
 

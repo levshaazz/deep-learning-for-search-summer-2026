@@ -3,7 +3,7 @@
       heading: { en: 'The Knights hold the sphere', ru: 'Рыцари удерживают сферу', tt: 'Рыцарьлар сфераны тота' },
       img: 'L2/L2-70-first-contact-callback.png',
       imgAlt: {
-        en: 'Serega and the alien shake hands; the cloud of question marks is replaced by one shared vector arrow.',
+        en: 'Séréga and the alien shake hands; the cloud of question marks is replaced by one shared vector arrow.',
         ru: 'Серёга и инопланетянин жмут руки; облако вопросительных знаков заменено одной общей стрелкой-вектором.',
         tt: 'Серёга белән чит планеталы кул кысыша; сорау билгеләре болыты бер уртак вектор-ук белән алыштырылган.',
       },

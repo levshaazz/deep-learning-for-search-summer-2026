@@ -13,17 +13,26 @@
    Built on the shared widgets/_widget-base.js factory (wgt-root/wgt-fade host, caption/counter
    scaffold, the setStep clamp + host.dataset.step, esc()). render() builds the panel scaffold and
    returns an update(k) that re-draws the three regions for step k:
-     • corpus   — one row per word: word^freq  →  its current token chips (after this merge),
+     • corpus   — one row per word: word^freq  →  its current token chips,
      • tally    — the adjacent-pair frequency table, winner row highlighted, ties tagged,
      • merge    — the chosen rule  left + right → joined  (count), the working spelled out.
-   maxStep = 4 (five merges, steps 0..4). */
+
+   PHASE MODEL (audit #0): each of the five merges is WATCHED in two sub-states so the algorithm
+   reads as a running loop, not a sequence of finished results. step k → mergeIdx = ⌊k/2⌋, and
+   phase = k % 2:
+     • phase A (count)  — corpus still in tokensBefore, the pair tally drawn with NO winner
+                          highlight + NO merge rule ("count the pairs"),
+     • phase B (merge)  — the winner is flagged, the merge rule + working appear, and the corpus
+                          swaps to tokensAfter ("merge → re-tokenize"). The pick visibly causes
+                          the re-split.
+   maxStep = 9 (five merges × two phases, steps 0..9). */
 import { defineWidget, esc } from '../_widget-base.js';
 
 export const mountBpeSteps = defineWidget({
   id: 'bpe-steps',
   rootClass: 'bps-root',
   exportName: 'mountBpeSteps',
-  maxStep: 4,
+  maxStep: 9,
   render({ host, data, labels }) {
     const steps = data.steps || [];
     const eow = data.eow || '</w>';
@@ -78,11 +87,15 @@ export const mountBpeSteps = defineWidget({
       return c;
     };
 
-    // draw the corpus rows for one step, marking which chips are the merged token
-    function drawCorpus(st) {
+    // draw the corpus rows for one step. In the COUNT phase (before=true) the corpus is still in
+    // its pre-merge tokenization with nothing highlighted; in the MERGE phase it swaps to the
+    // re-tokenized state with the just-merged piece accented — so the pick visibly re-splits.
+    function drawCorpus(st, before) {
       corpusBody.innerHTML = '';
-      const rows = st.tokensAfter || st.tokensBefore || [];
-      const winnerJoined = st.winner ? st.winner.joined : null;
+      const rows = before
+        ? (st.tokensBefore || st.tokensAfter || [])
+        : (st.tokensAfter || st.tokensBefore || []);
+      const winnerJoined = before ? null : (st.winner ? st.winner.joined : null);
       rows.forEach((entry) => {
         const row = document.createElement('div');
         row.className = 'bps-word-row';
@@ -102,14 +115,17 @@ export const mountBpeSteps = defineWidget({
       });
     }
 
-    // draw the pair-frequency table for one step, highlighting the winner + tie rows
-    function drawTally(st) {
+    // draw the pair-frequency table for one step. In the COUNT phase (showWinner=false) the bars
+    // are shown with NO winner highlight and NO tags — the reader just reads the counts. In the
+    // MERGE phase the max row lights up + tie rows are tagged, so the pick is a visible event.
+    function drawTally(st, showWinner) {
       tallyBody.innerHTML = '';
       const tieSet = new Set(st.tie || []);
       (st.tally || []).forEach((p) => {
+        const isWin = showWinner && p.isWinner;
         const r = document.createElement('div');
-        r.className = 'bps-pair-row' + (p.isWinner ? ' is-winner' : '');
-        const isTie = tieSet.has(p.joined) && !p.isWinner;
+        r.className = 'bps-pair-row' + (isWin ? ' is-winner' : '');
+        const isTie = showWinner && tieSet.has(p.joined) && !p.isWinner;
         if (isTie) r.classList.add('is-tie');
         const pairCell = document.createElement('span');
         pairCell.className = 'bps-pair';
@@ -132,8 +148,18 @@ export const mountBpeSteps = defineWidget({
         r.appendChild(cnt);
         const tag = document.createElement('span');
         tag.className = 'bps-tag';
-        if (p.isWinner) { tag.textContent = labels.winnerTag || 'max'; tag.classList.add('bps-tag--win'); }
-        else if (isTie) { tag.textContent = labels.tieTag || 'tie'; tag.classList.add('bps-tag--tie'); }
+        if (isWin) {
+          // Honest tie semantics (audit #2): if the winner is ITSELF part of the tie, say so —
+          // it was not the lone maximum, it was one of several equal maxima broken by rule order.
+          const winnerTied = tieSet.has(p.joined);
+          tag.textContent = winnerTied
+            ? (labels.winnerTieTag || 'max·tie-break')
+            : (labels.winnerTag || 'max');
+          tag.classList.add('bps-tag--win');
+        } else if (isTie) {
+          tag.textContent = labels.tieTag || 'tie';
+          tag.classList.add('bps-tag--tie');
+        }
         r.appendChild(tag);
         tallyBody.appendChild(r);
       });
@@ -168,13 +194,26 @@ export const mountBpeSteps = defineWidget({
       }
     }
 
-    // per-step update (factory clamps k to [0,maxStep] and owns the scrolly caption/counter)
+    // per-step update (factory clamps k to [0,maxStep] and owns the scrolly caption/counter).
+    // Two phases per merge: even k = COUNT (read the tally), odd k = MERGE (pick + re-tokenize).
     return function update(k) {
-      const st = steps[k] || steps[steps.length - 1];
+      const mergeIdx = Math.min(steps.length - 1, Math.floor(k / 2));
+      const isMergePhase = (k % 2) === 1;          // odd step → the merge half of this merge
+      const st = steps[mergeIdx] || steps[steps.length - 1];
       if (!st) return;
-      drawCorpus(st);
-      drawTally(st);
-      drawMerge(st);
+      drawCorpus(st, !isMergePhase);               // count phase shows tokensBefore (no highlight)
+      drawTally(st, isMergePhase);                 // winner/tie tags appear only in the merge phase
+      if (isMergePhase) {
+        drawMerge(st);
+      } else {
+        // COUNT phase: the merge region is not yet decided — show a one-line prompt so the region
+        // never collapses to empty, and the "pick → merge" only happens on the next step.
+        mergeBody.innerHTML = '';
+        const hint = document.createElement('div');
+        hint.className = 'bps-merge-hint';
+        hint.textContent = labels.countHint || 'Pick the max next →';
+        mergeBody.appendChild(hint);
+      }
     };
   },
 });

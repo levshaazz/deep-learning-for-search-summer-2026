@@ -36,7 +36,39 @@ export const mountBm25Calc = defineWidget({
     const box = { x: 48, y: 24, w: W - 64, h: 210 };
     const rowH = box.h / docs.length;
     const bw = rowH - 8;
-    const maxScore = Math.max(...docs.map(scoreOf)) * 1.12 || 1;
+
+    // ── partial scores: the bars GROW as each BM25 factor is layered on, instead of staying flat
+    // until one terminal jump. Every value below is recomputed from data fields (idf, tf, k1, b,
+    // len, avgdl) — nothing invented; the step-3 partial equals the published final score, so the
+    // step-4 re-sort moves no bar's width. (REFERENCE_IMPL: matches captions s1 idf · s2 saturation
+    // · s3 length-norm · s4 ranking.)
+    const k1 = data.k1 != null ? data.k1 : 1.5;
+    // step 1 — idf "presence": sum the idf of every query term that occurs in the doc (tf > 0).
+    const idfPresence = (d) => d.terms.reduce((s, t) => s + (t.tf > 0 ? t.idf : 0), 0);
+    // step 2 — + tf saturation, length-norm switched OFF (b = 0 ⇒ denom = tf + k1):
+    //   Σ idf · tf·(k1+1) / (tf + k1). For tf-idf mode this degenerates to Σ idf·tf = tfidfScore.
+    const satScore = (d) => {
+      if (tfidf) return scoreOf(d); // plain tf-idf: no saturation, partial = full tf-idf score
+      return d.terms.reduce((s, t) => {
+        if (t.tf <= 0) return s;
+        return s + t.idf * (t.tf * (k1 + 1)) / (t.tf + k1);
+      }, 0);
+    };
+    // step 3 — + length normalisation: the published final score (bm25Score / tfidfScore).
+    const fullScore = (d) => scoreOf(d);
+    // score for a given step: 0/1 → idf-presence base, 2 → saturation, ≥3 → full.
+    const partialScore = (d, step) => {
+      if (step <= 1) return idfPresence(d);
+      if (step === 2) return satScore(d);
+      return fullScore(d);
+    };
+
+    // y-scale spans the LARGEST value any bar reaches across all steps, so growth never clips frame.
+    let scaleMax = 0;
+    docs.forEach((d) => {
+      scaleMax = Math.max(scaleMax, idfPresence(d), satScore(d), fullScore(d));
+    });
+    const maxScore = (scaleMax * 1.12) || 1;
 
     el('line', { x1: box.x, y1: box.y, x2: box.x, y2: box.y + box.h, class: 'bm-axis' }, svg);
     el('text', { x: box.x, y: box.y + box.h + 18, class: 'bm-axlbl' }, svg)
@@ -92,17 +124,20 @@ export const mountBm25Calc = defineWidget({
     // per-step update (factory clamps k to [0,maxStep] and owns caption/counter)
     return function update(k) {
       const final = k >= MAX;
+      const scored = k >= 1; // step 0 = flat "unscored candidates"; steps 1-4 show real partials.
       rows.forEach((r) => {
-        // step 4: re-layout into ranking order, show real heights + values, highlight winner.
+        // bars grow with each factor: step 1 idf-presence → 2 +saturation → 3 +length-norm → 4 sort.
+        // Re-layout into ranking order only at the final step; widths already reach the full score at
+        // step 3, so the sort moves no bar's width — only its row position + winner highlight.
         const rank = final ? ranking.indexOf(r.d.id) : docs.indexOf(r.d);
         const targetY = box.y + rank * rowH + 4;
         r.g.setAttribute('transform', `translate(0 ${targetY - r.y0})`);
-        const v = final ? scoreOf(r.d) : flat;
+        const v = scored ? partialScore(r.d, k) : flat;
         r.rect.setAttribute('width', sx(v));
-        r.rect.classList.toggle('is-scored', final);
+        r.rect.classList.toggle('is-scored', scored);
         r.rect.classList.toggle('is-winner', final && r.d.id === ranking[0]);
         r.val.setAttribute('x', box.x + sx(v) + 6);
-        r.val.textContent = final ? fmt(scoreOf(r.d)) : '';
+        r.val.textContent = scored ? fmt(v) : '';
         r.val.classList.toggle('is-winner', final && r.d.id === ranking[0]);
       });
 

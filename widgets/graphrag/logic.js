@@ -12,12 +12,15 @@
    i18n `labels` (en+ru+tt). Built on _widget-base.js + _plot-util.js. GREEN marks ONLY the answer node +
    the winning multi-hop path; RED marks the failed single-hop. Nothing is fully lit at step 0.
 
-   Steps (maxStep = 4):
+   Steps (maxStep = 5):
      0 → the question + the three source docs (d1/d2/d3) as small cards; entity nodes placed, edges faint. s0
      1 → single-hop attempt: light the best single doc (d1) red — it names the founder but no field → recall 0. s1
-     2 → the extracted edges appear (the graph forms) — entities linked by the relations from the triples. s2
-     3 → traverse the 2-hop path (Acme Corp → Dana Reyes → computer science) green → answer node, recall 1. s3
-     4 → a 'real' badge: llama3.1:8b extracted N triples and traversed to the derived answer.            s4 */
+     2 → the PATH edges/nodes appear first (Acme Corp → Dana Reyes → computer science) — the chain that
+         answers the question, extracted from d1+d2.                                                     s2
+     3 → the remaining CONTEXT edges/nodes fill in (headquartered_in, studied_at, located_in) — the rest
+         of the graph the extractor lifted.                                                              s3
+     4 → traverse the 2-hop path green → answer node, recall 1.                                          s4
+     5 → a 'real' badge: llama3.1:8b extracted N triples and traversed to the derived answer.            s5 */
 import { defineWidget } from '../_widget-base.js';
 import { frameHeightFor } from '../_plot-util.js';
 
@@ -25,7 +28,7 @@ export const mountGraphrag = defineWidget({
   id: 'graphrag',
   rootClass: 'gr-root',
   exportName: 'mountGraphrag',
-  maxStep: 4,
+  maxStep: 5,
   render({ host, data, labels, el }) {
     const d = data || {};
     const docs = d.docs || [];
@@ -210,25 +213,31 @@ export const mountGraphrag = defineWidget({
       });
       recSingle.classList.toggle('is-hidden', k < 1);
 
-      // step 2 — the extracted edges + nodes APPEAR (the graph forms). They are genuinely revealed
-      // here (is-hidden before step 2), so the step-progression gate sees a real reveal, not an
-      // opacity tween of already-present marks.
-      const graphOn = k >= 2;
+      // step 2 — the PATH edges/nodes appear first (the chain that answers the question); step 3 — the
+      // remaining CONTEXT edges/nodes fill in. They are genuinely revealed (is-hidden before their step),
+      // so the step-progression gate sees a real per-step reveal, not an opacity tween of present marks.
+      const graphOn = k >= 2;                 // any graph element is on once we start building
       svg.classList.toggle('gr-graph-on', graphOn);
-      edgeEls.forEach((e) => e.g.classList.toggle('is-hidden', !graphOn));
-      Object.keys(nodeEls).forEach((name) => nodeEls[name].classList.toggle('is-hidden', !graphOn));
+      edgeEls.forEach((e) => {
+        const shown = onPath(e) ? k >= 2 : k >= 3;   // path edges at step 2, context edges at step 3
+        e.g.classList.toggle('is-hidden', !shown);
+      });
+      Object.keys(nodeEls).forEach((name) => {
+        const shown = pathNodes.has(name) ? k >= 2 : k >= 3; // path nodes at step 2, context nodes at 3
+        nodeEls[name].classList.toggle('is-hidden', !shown);
+      });
 
-      // step 3 — traverse the 2-hop path green; light the answer node; show multi-hop recall 1.
-      const traversed = k >= 3;
+      // step 4 — traverse the 2-hop path green; light the answer node; show multi-hop recall 1.
+      const traversed = k >= 4;
       edgeEls.forEach((e) => e.g.classList.toggle('is-win', traversed && onPath(e)));
       Object.keys(nodeEls).forEach((name) => {
         nodeEls[name].classList.toggle('is-on-path', traversed && pathNodes.has(name));
         nodeEls[name].classList.toggle('is-answer-lit', traversed && name === answerNode);
       });
-      recMulti.classList.toggle('is-hidden', k < 3);
+      recMulti.classList.toggle('is-hidden', k < 4);
 
-      // step 4 — the real-run badge.
-      badge.classList.toggle('is-hidden', k < 4);
+      // step 5 — the real-run badge.
+      badge.classList.toggle('is-hidden', k < 5);
     };
   },
 });

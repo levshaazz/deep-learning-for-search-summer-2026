@@ -215,7 +215,7 @@
     <span class="slide-kicker">objectives · compute the scores by hand</span>
   </div>
   <ul class="obj-list">
-    <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong>Compute RAGAS faithfulness</strong> — supported claims over total claims (3/4 = 0.75) — and explain why one hallucinated sentence drops the score a full quarter.</span></li>
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong>Compute RAGAS faithfulness</strong> — supported claims over total claims (3/4 = 0.75) — and explain why, here with four claims, one hallucinated sentence drops the score a full quarter (1/N in general).</span></li>
     <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong>Compute answer relevance</strong> — the mean cosine of reverse-engineered questions to the original (mean[0.92, 0.88, 0.31] = 0.7033) — and read the drift.</span></li>
     <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong>Compute context precision &amp; recall</strong> — ranking-aware precision ((1 + 2/3)/2 = 0.8333) and ground-truth coverage (2/3 = 0.6667) — the two sides of retrieval.</span></li>
     <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong>Score a rubric like an LLM judge</strong> — average per-criterion scores (A = 4.0 vs B = 2.6667) and call the pointwise winner.</span></li>
@@ -382,7 +382,7 @@
     "mRec": "context recall",
     "s0": "No gold answer here — only the question, the retrieved contexts, and a generated answer broken into atomic claims. Three are supported by the contexts; one (“William Harvey, 1628”) is fluent but unsupported — a hallucination. RAGAS scores generation without a reference answer.",
     "s1": "Faithfulness = supported claims / total claims = 3/4 = 0.75. It catches the hallucinated claim directly: one unsupported sentence drops the score a full quarter. This is the metric that grades “did the answer stay grounded in what we retrieved?”",
-    "s2": "Answer relevance reverse-engineers questions from the answer and measures their mean cosine to the original question (mean[0.92, 0.88, 0.31] = 0.7033). The drifting third question — born of the hallucinated claim — drags the mean down. It grades “does the answer actually address the question?”",
+    "s2": "Answer relevance reverse-engineers questions from the answer and measures their mean cosine to the original question (mean[0.92, 0.88, 0.31] = 0.7033). The drifting third question — born of the hallucinated claim — drags the mean down. It grades “does the answer actually address the question?” — reading only the question and the answer, never the context, so it is blind to grounding (the mirror of faithfulness).",
     "s3": "Context precision asks whether the relevant chunks sit near the top of what was retrieved: Σ precision@k over the relevant ranks, divided by the relevant count = (1 + 2/3)/2 = 0.8333. Relevant items at ranks 1 and 3, with noise between, cost some precision. It grades the retriever's ranking.",
     "s4": "Context recall asks the opposite: of the ground-truth claims, how many are actually present in the retrieved context? 2 of 3 = 0.6667 — the third truth (“diastole refills the heart”) was never retrieved. Together the four metrics decompose RAG quality into generation faithfulness, relevance, and both sides of retrieval."
   }
@@ -394,7 +394,7 @@
 <section class="slide" data-type="formula" data-screen-label="12 Faithfulness, by hand">
   <div class="slide-header">
     <h2>Faithfulness, by hand</h2>
-    <span class="slide-kicker">supported claims &divide; total claims · one hallucination costs a quarter</span>
+    <span class="slide-kicker">supported claims &divide; total claims · here, with 4 claims, one hallucination costs a quarter (1/N in general)</span>
   </div>
   <div class="formula-stage">
     $$ \text{faithfulness} = \frac{\#\{\text{claims supported by the context}\}}{\#\{\text{claims in the answer}\}} $$
@@ -404,7 +404,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:28cqh; --fig-w:30%;">
     <img src="assets/img/L11/L11-03-faithfulness-claims.png?v=1" alt="RAGdoll the Oracle's answer split into four claim-cards; three carry a checkmark traced by a thread back to a retrieved passage, while the fourth — the William Harvey 1628 claim — floats with a red cross and no thread; Séréga, in his green tübetey, tallies three of four." />
   </div>
-  <p class="small muted center mt-2">Break the answer into atomic claims, then ask of each: is it entailed by a retrieved passage? Three of four are; the fluent &ldquo;William Harvey, 1628&rdquo; is not — nothing we retrieved says it. <strong>One unsupported sentence drops the score a full quarter.</strong> This is the metric that catches hallucination directly.</p>
+  <p class="small muted center mt-2">Break the answer into atomic claims, then ask of each: is it entailed by a retrieved passage? Three of four are; the fluent &ldquo;William Harvey, 1628&rdquo; is not — nothing we retrieved says it. <strong>Here, with four claims, one unsupported sentence drops the score a full quarter (1/N in general).</strong> This is the metric that catches hallucination directly.</p>
   <aside class="slide-notes">faithfulness by-hand. l11-ragas: supportedClaims 3 / answerClaimCount 4 = 0.75 (gated). The Harvey claim is the planted hallucination. Lesson: faithfulness = grounding; it is the direct hallucination detector.</aside>
 </section>
 <section class="slide" data-type="formula" data-screen-label="13 Answer relevance, by hand">
@@ -417,7 +417,7 @@
     $$ \cos\text{ to original } q:\quad [\,0.92,\ 0.88,\ 0.31\,] $$
     $$ \text{answer relevance} = \operatorname{mean}[0.92, 0.88, 0.31] = \frac{2.11}{3} = \mathbf{0.7033} $$
   </div>
-  <p class="small muted center mt-2">Generate the questions the answer <em>could</em> be answering, embed them, and average their cosine to the real question. The first two paraphrases stay on-topic (0.92, 0.88); the third — born of the hallucinated Harvey claim — drifts to 0.31 and drags the mean down. <strong>Relevance measures &ldquo;does the answer address the question?&rdquo;, not whether it is true.</strong></p>
+  <p class="small muted center mt-2">Generate the questions the answer <em>could</em> be answering, embed them, and average their cosine to the real question. The first two paraphrases stay on-topic (0.92, 0.88); the third — born of the hallucinated Harvey claim — drifts to 0.31 and drags the mean down. <strong>Relevance measures &ldquo;does the answer address the question?&rdquo;, not whether it is true.</strong> It reads only the question and the answer &mdash; never the retrieved context &mdash; so it is blind to grounding; and RAGAS additionally penalises noncommittal answers (an evasive &ldquo;I don&rsquo;t know&rdquo; yields off-topic reverse-questions).</p>
   <aside class="slide-notes">answer-relevance by-hand. l11-ragas.reverseQuestionCos [0.92,0.88,0.31]; mean = 0.7033 (gated answerRelevance). The drifting third reverse-question is caused by the hallucinated claim. Relevance ≠ faithfulness: an answer can be on-topic but unfaithful, or faithful but off-topic.</aside>
 </section>
 <section class="slide" data-type="formula" data-screen-label="14 Context precision, by hand">
@@ -687,7 +687,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:28cqh; --fig-w:30%;">
     <img src="assets/img/L11/L11-09-position-bias.png?v=1" alt="Two identically good answers sit in slots 1 and 2 on the judge's verdict board; Goodhart the Trickster, bare-headed and grinning, tilts the scale toward slot 1 with his fishing-hook while Séréga, in his green tübetey, points out the two answers are tied." />
   </div>
-  <p class="small muted center mt-2">We froze a real judge (llama3.1:8b, temp 0, seed 42) and fed it genuine ties. It anchored to whichever answer sat in <strong>slot 1</strong> two times out of three (0.6667) — a coin that lands heads because of <em>where</em> the answer was printed, not what it said. The same judge is <strong>perfect (1.0)</strong> when one answer is clearly better. The bias hides exactly where it matters most: the close calls.</p>
+  <p class="small muted center mt-2">We froze a real judge (llama3.1:8b, temp 0, seed 42) and fed it genuine ties. It anchored to whichever answer sat in <strong>slot 1</strong> two times out of three (0.6667) — a coin that lands heads because of <em>where</em> the answer was printed, not what it said. The same judge is <strong>perfect (1.0)</strong> when one answer is clearly better. The bias hides exactly where it matters most: the close calls. Position, verbosity and self-enhancement bias were named and measured by <strong>Zheng et al. (MT-Bench, 2023)</strong>; we re-measure them here on a small open judge.</p>
   <aside class="slide-notes">position-bias, measured. l11-judge.real: positionFollowRateTie 0.6667 (4/6 ties anchored to slot 1), accuracyClear 1.0 (6/6) — both gated. Real frozen llama3.1:8b. The bias only bites on ties (the close calls); when quality is clear it's accurate. Mitigation (swap order) on the mitigations slide.</aside>
 </section>
 <section class="slide" data-type="formula" data-screen-label="28 Verbosity bias, measured">
@@ -991,7 +991,7 @@
         "wrong": "< 0.3"
       },
       "actions": {
-        "correct": "use retrieved context as-is",
+        "correct": "refine (knowledge-strip filter) then use",
         "ambiguous": "combine retrieved + corrective web search",
         "wrong": "discard, fall back to web search / query rewrite"
       },
@@ -1009,7 +1009,7 @@
     }
   },
   "labels": {
-    "alt": "A directed decision graph: CRAG retrieves, grades each document in a diamond as correct, ambiguous, or wrong, and branches to three actions (use as-is, combine with web search, or discard and fall back to web search); below, self-RAG strings four reflection-token decision diamonds (Retrieve, IsRel, IsSup, IsUse) into a chain ending in a grounded answer.",
+    "alt": "A directed decision graph: CRAG retrieves, grades each document in a diamond as correct, ambiguous, or wrong, and branches to three actions (refine then use, combine with web search, or discard and fall back to web search); below, self-RAG strings four reflection-token decision diamonds (Retrieve, IsRel, IsSup, IsUse) into a chain ending in a grounded answer.",
     "cragTitle": "CRAG · grade the retrieval, then act",
     "selfRagTitle": "self-RAG · reflection-token gates",
     "retrieve": "retrieve",
@@ -1021,13 +1021,13 @@
     "answer": "grounded answer",
     "s0": "Naive RAG retrieves once and trusts whatever comes back. Self-correcting RAG adds a gate. CRAG first retrieves, then runs a lightweight retrieval evaluator that GRADES each document — a decision diamond with toy score thresholds.",
     "s1": "The grade falls into three buckets by score: correct (≥ 0.7), ambiguous (0.3 .. 0.7), or wrong (< 0.3). Each is a labelled branch out of the diamond — the same retrieval, three possible verdicts.",
-    "s2": "Now act on the verdict. correct → use the retrieved context as-is. ambiguous → combine it with a corrective web search. wrong → discard it and fall back to web search or a query rewrite. The pipeline repairs its own bad retrievals.",
+    "s2": "Now act on the verdict. correct → refine then use: even here CRAG runs its decompose-recompose knowledge-strip filter to keep only the relevant strips, not raw passthrough. ambiguous → combine it with a corrective web search. wrong → discard it and fall back to web search or a query rewrite. The pipeline repairs its own bad retrievals.",
     "s3": "Self-RAG goes further: it trains the model to emit reflection tokens as it generates. Retrieve? decides whether retrieval is even needed; IsRel asks if a retrieved passage is relevant; IsSup asks if the claim is supported by it. Each is a gate in the chain.",
     "s4": "The last gate, IsUse, scores how useful the overall response is (1..5). Only a response that clears every reflection gate becomes the grounded answer — the model critiques itself before it commits, instead of trusting one retrieval blindly."
   }
 }
   </script>
-  <p class="viz-caption">CRAG grades each retrieval correct / ambiguous / wrong and branches &mdash; use as-is, web-augment, or discard &amp; rewrite. The same loop we built in L10 (rag-control-flow), now the agent's self-correction step. The judging from Acts 1&ndash;3 became control flow.</p>
+  <p class="viz-caption">CRAG grades each retrieval correct / ambiguous / wrong and branches &mdash; refine &amp; use, web-augment, or discard &amp; rewrite. The same loop we built in L10 (rag-control-flow), now the agent's self-correction step. The judging from Acts 1&ndash;3 became control flow.</p>
   <aside class="slide-notes">CRAG callback (REUSES rag-control-flow + l10-selfrag, mounted exactly as L10's 46-crag). Steps 0–2 = CRAG (cite arXiv:2401.15884); steps 3–4 = self-RAG (cite arXiv:2310.11511). The L10 self-correcting loop returns as the agent's grading step — evaluation moved inside the pipeline. Thresholds 0.7/0.3 are single-decimal + in widget-data → coverage-safe.</aside>
 </section>
 <section class="slide" data-type="two-col" data-screen-label="41 Adaptive-RAG">

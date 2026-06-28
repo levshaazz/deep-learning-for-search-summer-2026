@@ -633,7 +633,7 @@
     <tbody>
       <tr><td><strong>fixed-size</strong></td><td>every N tokens, hard boundaries (optionally with overlap)</td><td>cheapest</td><td>uniform text, fast baseline; pair with overlap to soften boundaries</td></tr>
       <tr><td><strong>recursive</strong></td><td>split on a separator hierarchy (¶ → sentence → word) until each piece fits N</td><td>cheap</td><td>structured prose / markdown / code where natural boundaries matter</td></tr>
-      <tr><td><strong>semantic</strong></td><td>embed sentences, start a new chunk where adjacent-sentence similarity drops</td><td>moderate (one embed pass)</td><td>topic-shifting docs where fixed cuts split ideas</td></tr>
+      <tr><td><strong>semantic</strong></td><td>embed sentences, start a new chunk where adjacent-sentence similarity drops below a breakpoint threshold (often a percentile of the distance distribution — the key knob: chunk count vs coherence)</td><td>moderate (one embed pass)</td><td>topic-shifting docs where fixed cuts split ideas</td></tr>
       <tr><td class="cell-good"><strong>late-chunking</strong></td><td>embed ALL tokens of the long doc first, chunk AFTER the transformer (before pooling)</td><td>needs a long-context encoder; training-free</td><td>when chunk embeddings must keep full-document context</td></tr>
     </tbody>
   </table>
@@ -705,7 +705,7 @@
   <script class="widget-data" type="application/json">
 {
   "data": {
-    "_doc": "RAPTOR — recursive abstractive tree. Cluster + summarize leaf chunks into higher nodes, recurse to a root: 8 leaf chunks → 3 mid summaries → 1 root, depth 3. Retrieval can pull from ANY level (a high node answers a broad question; a leaf answers a detail). Sarthi et al. 2024 (arXiv:2401.18059).",
+    "_doc": "RAPTOR — recursive abstractive tree. Cluster + summarize leaf chunks into higher nodes, recurse to a root: 8 leaf chunks → 3 mid summaries → 1 root, depth 3. The 8→3 fan-in is a hard-partition TOY; the paper clusters SOFTLY (Gaussian mixtures over UMAP-reduced embeddings), so a chunk may belong to several clusters and feed several summaries. Retrieval can pull from ANY level (a high node answers a broad question; a leaf answers a detail) — the default 'collapsed tree' mode pools all levels into one flat index. Sarthi et al. 2024 (arXiv:2401.18059).",
     "_source": "_research/gen_l10.py (static, descriptive): tree shape is a toy illustration; cites arXiv:2401.18059.",
     "tree": {
       "levels": [
@@ -737,7 +737,7 @@
 }
   </script>
   <p class="viz-caption">8 leaf chunks → 3 cluster summaries → 1 root, depth 3. Retrieval can pull from any level — the root answers a broad question, a leaf answers a detail. One index serves both zoom levels (Sarthi et al., ICLR 2024).</p>
-  <aside class="slide-notes">RAPTOR walkthrough (raptor-tree, l10-raptor). 8→3→1, depth 3 (integers → coverage-safe). Cite arXiv:2401.18059. Built bottom-up; retrieve at any level. Closes Act 1's indexing arc.</aside>
+  <aside class="slide-notes">RAPTOR walkthrough (raptor-tree, l10-raptor). 8→3→1, depth 3 (integers → coverage-safe). Cite arXiv:2401.18059. Built bottom-up; retrieve at any level. NB: the 8→3 fan-in is a hard-partition TOY — the paper actually clusters SOFTLY via Gaussian mixture models over UMAP-reduced embeddings, so one chunk can feed several parent summaries (overlapping clusters). Retrieval default is the "collapsed tree": pool every node across all levels and retrieve by similarity (taught above as the flat all-levels index). Closes Act 1's indexing arc.</aside>
 </section>
 <section class="slide" data-type="divider" data-screen-label="24 Divider · Query translation">
   <div class="divider-content">
@@ -924,6 +924,7 @@
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Why it works:</strong> an answer-shaped paragraph lives in the same region of embedding space as the real answers. Searching with it closes the vocabulary gap — the hypothetical's <em>shape</em> matters more than its factual accuracy.</span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Precise Zero-shot Dense Retrieval:</strong> Gao, Ma, Lin &amp; Callan (ACL 2023) showed it lifts retrieval with <em>no relevance labels</em> — the LLM supplies the missing query-document bridge.</span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Cost &amp; risk:</strong> one extra LLM call per query, and a confidently-wrong hypothetical can mislead retrieval — pair it with a retriever that still ranks the true doc highly.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>When it fails:</strong> the lift assumes the LLM can place the answer in roughly the right topical region. For rare entities, fresh facts, or domains the model never saw, the hypothetical is <em>topically</em> off — not just factually wrong — and HyDE can rank the true doc <em>lower</em> than the bare query (Gao et al. 2023). Shape helps only when the model can guess the right neighbourhood.</span></li>
       </ul>
     </div>
   </div>

@@ -3,18 +3,18 @@
       heading: { en: 'First Contact', ru: 'Первый контакт', tt: 'Беренче контакт' },
       img: 'L2/L2-06-first-contact.png',
       imgAlt: {
-        en: 'Serega and an alien face each other across a cloud of question marks — no shared symbols.',
+        en: 'Séréga and an alien face each other across a cloud of question marks — no shared symbols.',
         ru: 'Серёга и инопланетянин стоят друг против друга в облаке вопросительных знаков — нет общих символов.',
         tt: 'Серёга белән чит планеталы сорау билгеләре болыты эчендә бер-берсенә каршы торалар — уртак символлар юк.',
       },
       imgCaption: {
         en: 'An alien, and not one shared letter. Step one: agree on an alphabet. Step two: learn when two phrases mean the same thing.',
-        ru: 'Инопланетянин — и ни одной общей буквы. Шаг первый: договориться об алфавите. Шаг второй: научиться понимать, когда две фразы об одном.',
+        ru: 'Инопланетянин — и ни одной общей буквы. Шаг первый: договориться об алфавите. Шаг второй: научиться понимать, когда две фразы означают одно и то же.',
         tt: 'Чит планеталы — һәм бер генә дә уртак хәреф юк. Беренче адым: алфавит турында килешү. Икенче адым: ике фраза бер үк нәрсә турында булганын аеру.',
       },
       body: {
         en: [
-          "I'm Serega, and I've got a problem. There's an alien on my screen, and it won't stop talking. The translator spits out symbols. Are two of its phrases saying the same thing, or completely different things? I genuinely cannot tell.",
+          "I'm Séréga, and I've got a problem. There's an alien on my screen, and it won't stop talking. The translator spits out symbols. Are two of its phrases saying the same thing, or completely different things? I genuinely cannot tell.",
           "Here's the thing about meaning: a machine never gets to touch it directly. It only ever sees *strings* — sequences of characters with no built-in sense of which are alike. And strings are stubborn. A grey pixel halfway between black and white is a perfectly real, meaningful colour; you can interpolate it. But there is no word halfway between *cat* and *dog*. Symbols are **discrete** — they share no inherent ruler. \"Cat\" and \"car\" differ by one letter and mean wildly different things; \"couch\" and \"sofa\" share no letters and mean the same thing. You cannot read closeness off the spelling.",
           "So the mission splits into two jobs, and they have to happen in that order. First, **turn the alien's text into something countable** — numbers a machine can hold. Then, on top of those numbers, **manufacture a notion of distance** so the machine can finally judge: are these two meanings close, or far? Get Data, then Measure. Buckle up — we're going to build both halves from scratch.",
         ],
