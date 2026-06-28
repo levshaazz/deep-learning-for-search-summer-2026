@@ -379,7 +379,7 @@ def main():
         },
         "beir": {
             "metric": "nDCG@10", "split": "BEIR avg (18 datasets, zero-shot)",
-            "BM25": 0.43, "denseDPR": 0.38, "ColBERTv2": 0.50,
+            "BM25": 0.43, "denseDPR": 0.35, "ColBERTv2": 0.50,
             "source": "Thakur et al. 2021 (BEIR): BM25 avg nDCG@10 ≈0.43, a strong zero-shot baseline that many dense models fail to beat"
         }
     }
