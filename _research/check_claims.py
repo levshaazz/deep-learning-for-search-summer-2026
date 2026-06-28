@@ -1223,8 +1223,17 @@ COVERAGE_BASELINE = {
     # P+ (0.42) + Boltzmann weights (0.35/0.53) as VISIBLE text, now gated GLOBALLY — those values ALSO cover
     # a few shared numbers in L3-L6 (e.g. 0.82/0.62/0.18/0.05 cosines), so their un-gated counts dropped:
     # deck:L3 49->46, L4 33->30, L5 44->42, L6 25->24; book:L3 12->10, L4 18->16, L5 11->10, L6 6->5. Stronger.
-    "deck:L0": 0, "deck:L1": 1, "deck:L2": 6, "deck:L3": 46, "deck:L4": 30, "deck:L5": 42, "deck:L6": 24,
-    "book:L0": 0, "book:L1": 0, "book:L2": 8,  "book:L3": 10, "book:L4": 16, "book:L5": 10, "book:L6": 5,
+    # RE-BASELINED after the BEIR dense-DPR correction 0.38→0.35 (2026-06, Thakur et al. 2021 canonical DPR
+    # BEIR avg nDCG@10): denseDPR is no longer a gated 0.38, so a few earlier units' INDEPENDENT 0.38s that
+    # were only INCIDENTALLY covered by that value lose their cover — these are NOT new numbers and are
+    # unrelated to BEIR: deck:L6 24→25 + book:L6 5→6 (LayerNorm worked example, variance \(0.38\to1\),
+    # l6 beat climb-block-geo); deck:L12 0→2 + book:L12 0→2 (CLIP contrastive-gap cosine, mismatched pairs
+    # near \(0.38\), l12 beats clip-matrix/clip-topk, EN+RU surfaces). The new gated BEIR value 0.35 is
+    # already gated elsewhere (L13 Boltzmann weight), so nothing regressed; the bump only re-grandfathers
+    # pre-existing correct numbers whose accidental cover moved. Strictly: the BEIR number is now pinned to 0.35.
+    "deck:L0": 0, "deck:L1": 1, "deck:L2": 6, "deck:L3": 46, "deck:L4": 30, "deck:L5": 42, "deck:L6": 25,
+    "book:L0": 0, "book:L1": 0, "book:L2": 8,  "book:L3": 10, "book:L4": 16, "book:L5": 10, "book:L6": 6,
+    "deck:L12": 2, "book:L12": 2,
 }
 _COV_DEC   = re.compile(r'(?<![\d.,])\d+[.,]\d{2,}(?!\d)')# grounded signature: a decimal (dot OR RU comma), ≥2 fractional digits
 _COV_ARXIV = re.compile(r'^\d{4}[.,]\d{4,}$')             # arXiv id (e.g. 1901.04085) — not data
