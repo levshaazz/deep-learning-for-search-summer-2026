@@ -170,6 +170,36 @@ jobs:
   # ───────────────────────── BROWSER GATES (Playwright) ─────────────────────────
   browser:
     runs-on: ubuntu-latest
+    # The heavy Playwright gates run in 3 PARALLEL buckets (fail-fast:false) so the
+    # wall-clock is the slowest single bucket (~slide-viz) instead of the SUM of all
+    # gates (~28min → ~12min). Every gate runs in exactly ONE bucket — full coverage
+    # preserved; the setup below (build, Playwright) is shared (cached) across buckets.
+    strategy:
+      fail-fast: false
+      matrix:
+        bucket:
+          - name: viz
+            gates: |
+              node slide-viz-gate.mjs --strict
+              node slide-viz-gate.mjs --selftest
+          - name: probe
+            gates: |
+              node viz-probe-gate.mjs
+              node viz-probe-gate.mjs --selftest
+              node wbw-check.mjs
+              node wbw-check.mjs --selftest
+              node widget-render-check.mjs
+              node widget-render-check.mjs --selftest
+          - name: layout
+            gates: |
+              node responsive-gate.mjs
+              node responsive-gate.mjs --selftest
+              node parity-gate.mjs
+              node parity-gate.mjs --selftest
+              node composition-gate.mjs
+              node composition-gate.mjs --selftest
+              node readability-gate.mjs
+              node readability-gate.mjs --selftest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -201,76 +231,12 @@ jobs:
         working-directory: _audit
         run: npm install --no-audit --no-fund && npx playwright install --with-deps chromium
 
-      # G8 — the Book reads on phone/tablet (no horizontal overflow).
-      - name: G8 responsive
+      # Run THIS bucket's gates (see strategy.matrix.bucket above). GitHub's default
+      # bash runs with `set -eo pipefail`, so any HARD-failing gate fails the bucket.
+      # gate → bucket mapping (full coverage — no gate dropped):
+      #   viz    → G9 slide-viz (--strict)
+      #   probe  → G13 viz-probe · G11 wbw-check · G10 widget-render-check
+      #   layout → G8 responsive · G18 parity · G19 composition · G20 readability
+      - name: Browser gates · ${{ matrix.bucket.name }}
         working-directory: _audit
-        run: node responsive-gate.mjs
-      - name: G8 responsive self-test
-        working-directory: _audit
-        run: node responsive-gate.mjs --selftest
-
-      # G9 — slide visual defects the box-size gates are blind to (step-progression, label overlap /
-      #       out-of-bounds in the SVG, near-identical colours). Auto-globs every stepped deck slide.
-      - name: G9 slide-viz
-        working-directory: _audit
-        run: node slide-viz-gate.mjs --strict
-      - name: G9 slide-viz self-test
-        working-directory: _audit
-        run: node slide-viz-gate.mjs --selftest
-
-      # G10 — every Book scroll-step widget mounts + steps WITHOUT a runtime error, and matches its
-      #        committed paint-signature baseline (HARD-fails on visual drift; re-frozen via --update-baseline).
-      - name: G10 widget-render-check
-        working-directory: _audit
-        run: node widget-render-check.mjs
-      - name: G10 widget-render-check self-test
-        working-directory: _audit
-        run: node widget-render-check.mjs --selftest
-
-      # G11 — word-by-word gate over the shipped decks (Lectures/NN-*.html, rebuilt above): engine
-      #        registered every slide, 0 pageerrors, 0 console errors, KaTeX typeset, pre-flight clean.
-      - name: G11 wbw-check (shipped decks)
-        working-directory: _audit
-        run: node wbw-check.mjs
-      - name: G11 wbw-check self-test
-        working-directory: _audit
-        run: node wbw-check.mjs --selftest
-
-      # G13 — dynamic-illustration probe: drives EVERY step of EVERY published deck slide (EN+RU) and
-      #        HARD-fails on a COLLAPSED figure image, a BROKEN/failed plate, an OFF-SLIDE element, or
-      #        BILINGUAL DOUBLING (overlaps + sub-16px text are reported as WARN). Caught the L8 RU
-      #        divider collapse + L11 climb-widget overflow that the step-0 visual gate missed.
-      - name: G13 viz-probe-gate
-        working-directory: _audit
-        run: node viz-probe-gate.mjs
-      - name: G13 viz-probe-gate self-test
-        working-directory: _audit
-        run: node viz-probe-gate.mjs --selftest
-
-      # G18 — lecture-parity: a deck must match L10-L12 depth (>=45 slides, no walls of text,
-      #        objectives + references present). Kills the "short and shallow" deep-dive class.
-      - name: G18 parity-gate (depth)
-        working-directory: _audit
-        run: node parity-gate.mjs
-      - name: G18 parity-gate self-test
-        working-directory: _audit
-        run: node parity-gate.mjs --selftest
-
-      # G19 — composition: render every slide; HARD-fail if HTML content overflows/clips the
-      #        1920x1080 frame (the "composition breaks / text spills out" class slide-viz misses).
-      - name: G19 composition-gate (frame overflow)
-        working-directory: _audit
-        run: node composition-gate.mjs
-      - name: G19 composition-gate self-test
-        working-directory: _audit
-        run: node composition-gate.mjs --selftest
-
-      # G20 — readability/scale: HARD-fail if any PROSE text (decks + book) is authored below the
-      #        legibility floor (deck 11px / book 12px raw). The "масштаб" guard — figures excluded
-      #        (G9/G13 own those). Pairs with G13's severe-label-overlap promotion ("наложения").
-      - name: G20 readability-gate (prose scale floor)
-        working-directory: _audit
-        run: node readability-gate.mjs
-      - name: G20 readability-gate self-test
-        working-directory: _audit
-        run: node readability-gate.mjs --selftest
+        run: ${{ matrix.bucket.gates }}
