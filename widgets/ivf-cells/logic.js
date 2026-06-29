@@ -202,8 +202,11 @@ function renderToy2({ host, data, labels, el }) {
   const readHead = el('text', { x: PAD, y: readTop, class: 'iv-readhead' }, svg);
   const readSub = el('text', { x: PAD, y: readTop + readRow, class: 'iv-readhead' }, svg);
 
-  // mark found / missed given the sweep entry for an nprobe value
-  function applyStep(s) {
+  // mark found / missed given the sweep entry for an nprobe value. `prev` (the previous sweep entry,
+  // if any) lets us surface a "wasted probe" annotation: when recall did NOT improve over the last
+  // step but more points were scanned, the extra probe is pure work — make that cost visually salient
+  // (the diminishing-returns lesson) instead of letting two near-identical steps read as redundant.
+  function applyStep(s, prev) {
     const cells = s.cellsProbed || rank.slice(0, s.nprobe);
     const found = s.found || [];
     cellRegion.forEach((c, ci) => {
@@ -218,11 +221,22 @@ function renderToy2({ host, data, labels, el }) {
         g.classList.toggle('is-missed', !found.includes(i));
       }
     });
+    // A probe that scanned MORE points without raising recall is PURE extra work: the cell(s) added
+    // since the previous step caught no new true-NN. Mark exactly those newly-added cells `is-wasted`
+    // (a muted, hatched look) so each diminishing-returns step lights a DIFFERENT cell as "+work, +0
+    // recall" — the two consecutive recall-1.0 steps now read as distinct wasted-probe beats, not a
+    // redundant repeat. The read-out line is left untouched (it is near the 11px width budget already;
+    // the cost is shown on the figure, not as extra text that could overflow in RU/TT).
+    const noGain = prev && s.recall === prev.recall && s.pointsScanned > prev.pointsScanned;
+    const prevCells = (prev && (prev.cellsProbed || rank.slice(0, prev.nprobe))) || [];
+    cellRegion.forEach((c, ci) => {
+      c.classList.toggle('is-wasted', noGain && cells.includes(ci) && !prevCells.includes(ci));
+    });
     readHead.textContent = `nprobe = ${s.nprobe} · ${labels.probed || 'probe cells'} {${cells.map((c) => 'c' + c).join(', ')}}`;
     readSub.textContent = `${labels.scanned || 'points scanned'} ${s.pointsScanned} · ${labels.found || 'found'} ${found.length}/${trueNN.length} · recall@${k} = ${s.recall}`;
   }
   function clearProbe(head, sub) {
-    cellRegion.forEach((c) => c.classList.remove('is-probed', 'is-dim'));
+    cellRegion.forEach((c) => c.classList.remove('is-probed', 'is-dim', 'is-wasted'));
     ptEl.forEach((g) => g.classList.remove('is-dim', 'is-found', 'is-missed'));
     readHead.textContent = head || '';
     readSub.textContent = sub || '';
@@ -237,7 +251,7 @@ function renderToy2({ host, data, labels, el }) {
         `${labels.trueNNlbl || 'true nearest neighbours'} (k=${k}): ${trueNN.length} ${labels.ringed || 'ringed'}`);
     } else {
       const idx = Math.min(kk - 2, sweep.length - 1);   // kk=2 → sweep[0] (nprobe 1) … kk=6 → sweep[4] (nprobe 5)
-      if (sweep[idx]) applyStep(sweep[idx]);
+      if (sweep[idx]) applyStep(sweep[idx], idx > 0 ? sweep[idx - 1] : null);
     }
   };
 }

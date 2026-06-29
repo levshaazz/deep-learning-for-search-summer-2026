@@ -115,10 +115,14 @@ export const mountResidualStream = defineWidget({
         // value fill: width ∝ |value| within the column (min 2px so a near-zero dim still shows);
         // colour is SOLID and sign-coded (accent = +, warm = −) so the bar reads at a glance.
         const fw = faint ? cellW : Math.max(2, (Math.abs(v) / maxAbs) * cellW);
-        el('rect', { x: gx, y: cy, width: fw, height: cellH, rx: 1.5,
+        const cell = el('rect', { x: gx, y: cy, width: fw, height: cellH, rx: 1.5,
           fill: faint ? 'var(--ink-4, #9CA3AF)'
             : (v < 0 ? 'var(--warm, #E8743B)' : 'var(--accent, #2A6FDB)'),
           stroke: 'none' }, g);
+        // per-cell exact value as a hover <title> (cf. positional-enc): the bar WIDTH stays the at-a-
+        // glance cue, but the precise number is recoverable so a viewer can verify the cell-level ADD
+        // without the digit-smear that re-printing them inside a 16px cell caused (M1).
+        if (!faint) el('title', {}, cell).textContent = 'dim ' + i + ' = ' + num(v, 2);
       });
       add(parentLayer, g);
       return g;
@@ -213,8 +217,10 @@ export const mountResidualStream = defineWidget({
       }
     });
 
-    // size the box to the deepest drawn content (skip-label sits lowest)
-    const deepest = laneY + glyphH / 2 + 26 + 14;
+    // size the box to the deepest drawn content (skip-label sits lowest). skipY = laneY + glyphH/2 + 26;
+    // the label baseline is skipY + 12. Reserve a FIXED 18px below skipY (was 14) so the 8px label keeps
+    // clear descenders + a small gap even if the label font is bumped or a longer string is set (M3).
+    const deepest = laneY + glyphH / 2 + 26 + 18;
     const H = frameHeightFor(deepest, 12);
     svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 

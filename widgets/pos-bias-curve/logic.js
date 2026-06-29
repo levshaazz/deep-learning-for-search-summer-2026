@@ -62,8 +62,21 @@ export const mountPosBiasCurve = defineWidget({
     const fl = add('flat', el('text', { x: box.x + box.w - 4, y: flatY - 6, class: 'pb-tag pb-flatlbl', 'text-anchor': 'end' }, svg));
     fl.textContent = labels.flat || `true relevance = equal (${Math.round(equalShare * 100)}%)`;
 
-    const gd = add('good', el('text', { x: box.x + box.w - 6, y: box.y + 38, class: 'pb-tag pb-good', 'text-anchor': 'end' }, svg));
-    gd.textContent = labels.goodhart || 'optimise this → reward position, not relevance';
+    // Goodhart label, end-anchored top-right. Long RU/TT strings (~55 chars) on one line would
+    // run left far enough to reach the y-axis "clicks" label at x=2 — so wrap onto two tspan lines
+    // split at the "→" arrow (present in en/ru/tt), keeping each line short of the left margin. (audit #0)
+    const goodTxt = labels.goodhart || 'optimise this → reward position, not relevance';
+    const goodX = box.x + box.w - 6;
+    const gd = add('good', el('text', { x: goodX, y: box.y + 34, class: 'pb-tag pb-good', 'text-anchor': 'end' }, svg));
+    const arrowAt = goodTxt.indexOf('→');
+    if (arrowAt > 0) {
+      const head = goodTxt.slice(0, arrowAt + 1).trim();   // "optimise this →"
+      const tail = goodTxt.slice(arrowAt + 1).trim();       // "reward position, not relevance"
+      el('tspan', { x: goodX, dy: 0 }, gd).textContent = head;
+      el('tspan', { x: goodX, dy: 15 }, gd).textContent = tail;
+    } else {
+      gd.textContent = goodTxt;
+    }
 
     // per-step update (factory clamps k to [0,maxStep] and owns caption/counter)
     return function update(k) {

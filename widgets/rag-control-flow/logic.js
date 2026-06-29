@@ -152,7 +152,10 @@ export const mountRagControlFlow = defineWidget({
 
     // STEP 3: the first three reflection diamonds in a left→right chain
     const diaY = srTtlY + 46;
-    const diaXs = tokens.map((_, i) => 60 + i * ((W - 120) / Math.max(1, tokens.length - 1)));
+    // inset the chain to start at 70 / end at W-70 so the outer diamonds (half-width 48) keep
+    // ≥22px margin to the frame edge — guards against a wider localized token clipping the viewBox.
+    const diaInset = 70;
+    const diaXs = tokens.map((_, i) => diaInset + i * ((W - 2 * diaInset) / Math.max(1, tokens.length - 1)));
     const tokGate = selfRag.gates || {};
     const diaNodes = [];
     tokens.forEach((t, i) => {

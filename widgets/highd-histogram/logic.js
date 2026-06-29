@@ -45,8 +45,12 @@ export const mountHighdHistogram = defineWidget({
       .textContent = (labels.xaxis || 'distance / mean →');
 
     const bars = centers.map((c) => el('rect', { x: sx(c) - bw / 2, width: bw, y: sy(0), height: 0, class: 'hd-bar' }, svg));
-    const dLbl = el('text', { x: box.x + 6, y: box.y + 20, class: 'hd-dim' }, svg);
-    const cvLbl = el('text', { x: box.x + 6, y: box.y + 40, class: 'hd-cv' }, svg);
+    // d / cv readout pinned to the TOP-RIGHT corner, end-anchored (audit: overlap). At low d (e.g.
+    // d=2, cv≈0.478) the distribution is broad and tall on the LEFT half, so the old top-left anchor
+    // could sit on the leftmost bars; the high-distance bins on the right stay sparse/empty at every
+    // step (and the spike collapses to centre as d grows), so the top-right stays clear throughout.
+    const dLbl = el('text', { x: box.x + box.w - 6, y: box.y + 20, class: 'hd-dim', 'text-anchor': 'end' }, svg);
+    const cvLbl = el('text', { x: box.x + box.w - 6, y: box.y + 40, class: 'hd-cv', 'text-anchor': 'end' }, svg);
 
     // per-step update (factory clamps k to [0,maxStep] and owns caption/counter)
     return function update(k) {

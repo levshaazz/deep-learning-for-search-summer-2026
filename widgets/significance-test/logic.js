@@ -17,6 +17,7 @@
    caption/counter scaffold, the setStep clamp + host.dataset.step, the el()/svg() namespaced SVG
    builder and the window.mountSignificanceTest registration; render() only draws the strip + readout. */
 import { defineWidget } from '../_widget-base.js';
+import { frameHeightFor } from '../_plot-util.js';
 
 // local formatters — kept inside this module (distinct from the factory fmt's toFixed(6)).
 const f4 = (x) => x.toFixed(4);                          // 0.0397, 0.0676, CI ends
@@ -43,8 +44,8 @@ export const mountSignificanceTest = defineWidget({
     const nNeg = diffs.filter((d) => d < 0).length;      // 4
     const real = ci[0] > 0 && tt.p < 0.05 && perm.p < 0.05; // CI excludes 0 AND p<0.05
 
-    const W = 480, H = 432;
-    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'wgt-svg sig-svg',
+    const W = 480;              // height is self-fit (frameHeightFor) at the end, after the deepest line
+    const svg = el('svg', { class: 'wgt-svg sig-svg',
       role: 'img', 'aria-label': labels.alt || '' }, host);
 
     // ── strip plot: one bar per query, signed around a zero baseline ──────────────────────────────
@@ -76,11 +77,17 @@ export const mountSignificanceTest = defineWidget({
       return { rect, cx, d, up };
     });
 
-    // win-side labels (which direction is which system)
-    el('text', { x: box.x, y: box.y + 4, class: 'sig-side sig-up-t', 'text-anchor': 'start' }, svg)
-      .textContent = `▲ ${labels.winB || 'B wins'} (${nPos})`;
-    el('text', { x: box.x, y: box.y + box.h - 2, class: 'sig-side sig-down-t', 'text-anchor': 'start' }, svg)
-      .textContent = `▼ ${labels.winA || 'A wins'} (${nNeg})`;
+    // win-side labels (which direction is which system). Each sits on a small semi-opaque background
+    // plate so that even a future diff vector whose leftmost bar reaches the global max can't let a
+    // tall bar punch through the glyphs — the plate keeps the label legible over any bar.
+    const sideLabel = (y, cls, text) => {
+      const tx = box.x;
+      const w = (text.length * 6.0) + 8;                    // ~6px/char at 10px mono + padding
+      el('rect', { x: tx - 3, y: y - 9, width: w, height: 14, rx: 3, class: 'sig-side-bg' }, svg);
+      el('text', { x: tx, y, class: cls, 'text-anchor': 'start' }, svg).textContent = text;
+    };
+    sideLabel(box.y + 4, 'sig-side sig-up-t', `▲ ${labels.winB || 'B wins'} (${nPos})`);
+    sideLabel(box.y + box.h - 2, 'sig-side sig-down-t', `▼ ${labels.winA || 'A wins'} (${nNeg})`);
 
     // mean-difference line + label (the average gap the whole test is about). The label sits in a
     // dedicated lane ABOVE the strip (between the title and the plot top), end-anchored and clear of
@@ -127,6 +134,11 @@ export const mountSignificanceTest = defineWidget({
       real ? (labels.verdictReal || 'All p < 0.05, and the CI excludes 0 — the win is real, not noise.')
            : (labels.verdictNoise || 'Could be luck — hold.'));
     void v;
+
+    // Size the viewBox to the DEEPEST drawn line (the verdict call at py + 46) so a longer translated
+    // verdict string or an added staged line can never clip the bottom frame edge.
+    const H = frameHeightFor(py + 46);
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
     // per-step update (factory clamps k to [0,maxStep] and owns caption/counter).
     return function update(k) {

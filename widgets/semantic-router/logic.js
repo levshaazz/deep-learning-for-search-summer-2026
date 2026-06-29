@@ -103,9 +103,11 @@ export const mountSemanticRouter = defineWidget({
       return lines;
     }
     const cardW = W - 2 * PAD, cardGap = 12, codeLH = 15;
-    // the card grows to hold every wrapped code line (1 line → 58px, 2 lines → 73px, …)
-    function card(cy, title, nlText, codeLines) {
-      const cardH = 42 + codeLines.length * codeLH;
+  // the card grows to hold every wrapped code line (1 line → 65px, 2 lines → 80px, …)
+  function card(cy, title, nlText, codeLines) {
+    // base 50 (was 42) + one line-height per wrapped code line keeps ≥13px below the last code
+    // baseline to the rounded card bottom, so 11px SQL/JSON descenders never kiss the corner.
+    const cardH = 50 + codeLines.length * codeLH;
       add('construct', el('rect', { x: PAD, y: cy, width: cardW, height: cardH, rx: 9, class: 'sr-card' }, svg));
       add('construct', el('text', { x: PAD + 12, y: cy + 18, class: 'sr-cardttl' }, svg)).textContent = title;
       add('construct', el('text', { x: PAD + 12, y: cy + 35, class: 'sr-cardnl' }, svg)).textContent = '“' + nlText + '”';

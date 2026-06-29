@@ -17,11 +17,14 @@
    window.mountCosineCompute registration; render() below only draws the figure layers and returns
    the per-step update.
 
-   Steps (maxStep = 3):
+   Steps (maxStep = 4):
      0  → vectors a, b as coordinate lists.                                            caption s0
      1  → dot product term-by-term: 1·10 + 1·10 = 20.                                  caption s1
-     2  → the two norms: ‖a‖ = √(1²+1²) = √2 ≈ 1.41, ‖b‖ = √200 ≈ 14.14, product = 20. caption s2
-     3  → the ratio: cos θ = 20 / (√2·√200) = 20/20 = 1.0, same direction → 1.0.       caption s3 */
+     2  → the two norms: ‖a‖ = √(1²+1²) = √2 ≈ 1.41, ‖b‖ = √200 ≈ 14.14.               caption s2
+     3  → the product cancellation on its own: √2·√200 = √400 = 20.                    caption s3
+     4  → the ratio: cos θ = 20 / (√2·√200) = 20/20 = 1.0, same direction → 1.0.       caption s4
+   (audit: step 2 used to bundle the two norms AND the √400=20 cancellation in one frame; the
+   "irrational radicals cancel to an integer" beat now lands on its own at step 3.) */
 import { defineWidget, esc } from '../_widget-base.js';
 
 // √-as-text helper: render a number's square root exactly when it is a perfect square (√4 → "2"),
@@ -39,7 +42,7 @@ function approx(x, d = 2) {
 export const mountCosineCompute = defineWidget({
   id: 'cosine-compute',
   rootClass: 'cc-root',
-  maxStep: 3,
+  maxStep: 4,
   render({ host, data, labels }) {
     // primary worked pair from data/l2-cosine.json (same-dir: a=(1,1), b=(10,10)).
     const pair = data.pairs.find((p) => p.id === data.primary) || data.pairs[0];
@@ -183,16 +186,18 @@ export const mountCosineCompute = defineWidget({
 
     // per-step update (factory clamps k to [0,maxStep] and owns caption/counter).
     return function update(k) {
-      // cumulative reveal: vectors always; dot from 1; norms from 2; ratio from 3.
+      // cumulative reveal: vectors always; dot from 1; the two norms from 2; the √400=20
+      // product-cancellation line from 3 (its own beat); the ratio from 4.
       dotBlk.r.classList.toggle('is-hidden', k < 1);
       normBlk.r.classList.toggle('is-hidden', k < 2);
-      ratioBlk.r.classList.toggle('is-hidden', k < 3);
+      prodLine.classList.toggle('is-hidden', k < 3);
+      ratioBlk.r.classList.toggle('is-hidden', k < 4);
       // dim the upstream pieces once they've been consumed into the ratio.
       vecRow.classList.toggle('is-faded', k >= 1);
-      dotBlk.r.classList.toggle('is-faded', k >= 3);
-      normBlk.r.classList.toggle('is-faded', k >= 3);
+      dotBlk.r.classList.toggle('is-faded', k >= 4);
+      normBlk.r.classList.toggle('is-faded', k >= 4);
       // pop the cosine result when it lands.
-      ratioBlk.r.classList.toggle('is-final', k >= 3);
+      ratioBlk.r.classList.toggle('is-final', k >= 4);
     };
   },
 });

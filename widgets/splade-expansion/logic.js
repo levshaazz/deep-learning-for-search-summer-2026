@@ -100,7 +100,9 @@ export const mountSpladeExpansion = defineWidget({
       .textContent = 'log(1+ReLU)';
 
     // ── sparse-dot readout (step 3): the shared-term products and their sum → the score ──
-    const dotY = box.y + box.h + 52;
+    // +64 (not +52) so the '+ expansion' tag at box.h+38 keeps a clear gap above the dot box's top
+    // edge — robust to the longer RU/TT tag glyphs ('+ расширение'). frameHeightFor below absorbs it.
+    const dotY = box.y + box.h + 64;
     add('dot', el('rect', { x: PAD, y: dotY, width: W - 2 * PAD, height: 60, rx: 9, class: 'sx-dotbox' }, svg));
     // products only (the q·d expansion is shown by the bars) so the line stays inside the frame.
     add('dot', el('text', { x: PAD + 12, y: dotY + 24, class: 'sx-dotline' }, svg))

@@ -185,7 +185,15 @@ function renderToy2({ host, data, labels, el }) {
   const ysBase = nodes.map((n) => n[1]);
   const dyB = padDomain(Math.min(...ysBase), Math.max(...ysBase), 0.16);
   const syBase = (vy) => l0Top + bandH - (vy - dyB.min) / dyB.span * bandH;
-  const syHub = () => l1Top + bandH * 0.5;     // hubs centred in the upper band
+  // hubs get a small vertical spread inside the upper band (their base-y mapped into a COMPRESSED
+  // sub-range, 0.30..0.70 of the band) so the layer reads as a sparse graph occupying its band,
+  // not a single rail. With only b2,b7 the spread is ~16px over the full width → the L1 edge b2-b7
+  // stays horizontal-ish, as intended.
+  const syHub = (vy) => {
+    if (vy == null) return l1Top + bandH * 0.5;        // fallback: band centre
+    const frac = (vy - dyB.min) / dyB.span;            // 0..1 within the shared y-domain
+    return l1Top + bandH * (0.70 - frac * 0.40);       // higher data-y → higher in the band
+  };
 
   const panelTop = l0Top + bandH + 26, panelRow = 20;
   const H = frameHeightFor(panelTop + 4 * panelRow, 12);
@@ -211,7 +219,7 @@ function renderToy2({ host, data, labels, el }) {
   // ── hub-layer (L1) edges (long-range) ──
   const hubEdgeEl = {};
   (L1.edges || []).forEach(([i, j]) => {
-    const ln = el('line', { x1: sx(nodes[i][0]), y1: syHub(), x2: sx(nodes[j][0]), y2: syHub(), class: 'hg-edge hg-edge-hub' }, svg);
+    const ln = el('line', { x1: sx(nodes[i][0]), y1: syHub(nodes[i][1]), x2: sx(nodes[j][0]), y2: syHub(nodes[j][1]), class: 'hg-edge hg-edge-hub' }, svg);
     hubEdgeEl[i + '-' + j] = ln; hubEdgeEl[j + '-' + i] = ln;
   });
   // ── descend connectors: dashed L-elbow from each hub node down to its base twin. A STRAIGHT drop at
@@ -221,7 +229,7 @@ function renderToy2({ host, data, labels, el }) {
   //    re-enters a node circle. ──
   const baseScreen = nodes.map((n) => ({ x: sx(n[0]), y: syBase(n[1]) }));
   (L1.members || []).forEach((i) => {
-    const hx = sx(nodes[i][0]), hy = syHub();
+    const hx = sx(nodes[i][0]), hy = syHub(nodes[i][1]);
     const tx = sx(nodes[i][0]), ty = syBase(nodes[i][1]);
     // is any OTHER base node inside the straight corridor (x within ±16, y strictly between hub & twin)?
     const blocked = baseScreen.some((p, j) => j !== i && Math.abs(p.x - hx) < 16 && p.y > hy + 4 && p.y < ty - 4);
@@ -253,8 +261,8 @@ function renderToy2({ host, data, labels, el }) {
   const hubNodeEl = {};
   (L1.members || []).forEach((i) => {
     const g = el('g', { class: 'hg-node hg-hub', 'data-i': i }, svg);
-    el('circle', { cx: sx(nodes[i][0]), cy: syHub(), r: 10, class: 'hg-dot' }, g);
-    el('text', { x: sx(nodes[i][0]), y: syHub() + 4, class: 'hg-nlbl', 'text-anchor': 'middle' }, g).textContent = names[i];
+    el('circle', { cx: sx(nodes[i][0]), cy: syHub(nodes[i][1]), r: 10, class: 'hg-dot' }, g);
+    el('text', { x: sx(nodes[i][0]), y: syHub(nodes[i][1]) + 4, class: 'hg-nlbl', 'text-anchor': 'middle' }, g).textContent = names[i];
     hubNodeEl[i] = g;
   });
 
@@ -297,7 +305,7 @@ function renderToy2({ host, data, labels, el }) {
     }
   }
   const focusBase = (name) => { const i = idxOf(name); if (i >= 0) protoBase.focus(baseNodeEl[i], [], { cx: sx(nodes[i][0]), cy: syBase(nodes[i][1]), r: 17 }); };
-  const focusHub = (name) => { const i = idxOf(name); if (hubNodeEl[i]) protoHub.focus(hubNodeEl[i], [], { cx: sx(nodes[i][0]), cy: syHub(), r: 17 }); };
+  const focusHub = (name) => { const i = idxOf(name); if (hubNodeEl[i]) protoHub.focus(hubNodeEl[i], [], { cx: sx(nodes[i][0]), cy: syHub(nodes[i][1]), r: 17 }); };
 
   // format a hop's neighbour list, marking the chosen move
   const hopLines = (hop) => (hop && hop.neighbors ? hop.neighbors.map((nb) =>

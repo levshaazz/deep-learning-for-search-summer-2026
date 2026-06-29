@@ -14,7 +14,8 @@
 
    Steps (maxStep = 3):
      0  → the grid frame + the formula; the heatmap is faded in as the canvas.        caption s0
-     1  → reveal it position by position (row by row): each position gets a code.      caption s1
+     1  → reveal the positions: step 0 seeds row 0 alone, step 1 un-fades ALL rows at once
+            (a one-shot reveal, not a per-row sweep) so the full position×dim code is present. caption s1
      2  → read it dimension by dimension (column by column): low dims fast, high slow. caption s2
      3  → the takeaway band: fixed, not learned; values in [-1, 1].                    caption s3 */
 import { defineWidget, fmt } from '../_widget-base.js';

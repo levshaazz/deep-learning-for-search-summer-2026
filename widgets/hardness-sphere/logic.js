@@ -70,7 +70,7 @@ export const mountHardnessSphere = defineWidget({
     // ── the points: d⁺ + n₁..n₅ on the arc, with a tidy right-side legend (one row each) ──
     const items = [{ id: 'd⁺', cosQ: pos.cosQ, pos: true },
       ...lineup.map((n) => ({ id: n.id, label: n.label, cosQ: n.cosQ, band: n.band, isFalse: n.isFalse }))];
-    const legX = ox + R + 70, legTop = 40, legRowH = 30, legBarMax = W - PAD - (legX + 92);
+    const legX = ox + R + 70, legTop = 40, legRowH = 30, legBarMax = W - PAD - (legX + 112);
     const dots = [], falseMarks = [], bars = [], wvals = [];
     items.forEach((it, i) => {
       // one colour CLASS for all true negatives (hardness is read off the wedge bands + arc angle,
@@ -122,7 +122,7 @@ export const mountHardnessSphere = defineWidget({
         lineup.forEach((n, j) => {
           const i = j + 1;                                     // legend row index (d⁺ is row 0)
           const w = (Wt.weights && Wt.weights[j]) || 0;
-          if (bars[i]) bars[i].setAttribute('width', Math.max(2, ((W - PAD - ((ox + R + 70) + 92))) * w));
+          if (bars[i]) bars[i].setAttribute('width', Math.max(2, ((W - PAD - ((ox + R + 70) + 112))) * w));
           if (wvals[i]) wvals[i].textContent = f2(w);
         });
       }

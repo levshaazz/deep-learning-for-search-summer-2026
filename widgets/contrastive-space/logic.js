@@ -74,13 +74,26 @@ export const mountContrastiveSpace = defineWidget({
     [Rmin, Rmax].forEach((r) => add('scatter', el('circle',
       { cx: cx0, cy: cy0, r, class: 'cs-arc', fill: 'none' }, svg)));
 
-    // even angular fan AROUND the anchor (full 360°, started a touch off vertical so no ray is dead
-    // horizontal/vertical), one ray per item; radius from the cosine. The dots scatter across the
-    // whole disc rather than huddling in one corner.
-    const N = items.length;
-    const ang0 = -Math.PI / 2 + 0.32;             // first ray near the top, slightly rotated
-    const placed = items.map((it, i) => {
-      const ang = ang0 + (i / N) * 2 * Math.PI;    // even fan over the full circle
+    // angular fan AROUND the anchor, but GROUPED BY KIND so the gestalt "positives cluster / negatives
+    // scatter" is carried SPATIALLY (not by colour+radius alone): positives fan across the TOP
+    // hemisphere, negatives across the BOTTOM hemisphere. Radius still = closeness (high cos → near).
+    // Each kind gets an even sub-fan inside its half, inset from the horizontal axis so no ray is dead
+    // horizontal and the two groups never interleave. Pull (up) / push (down) arrows then read as one
+    // coherent "this cluster in, that cluster out".
+    const posItems = items.filter((it) => it.kind === 'pos');
+    const negItems = items.filter((it) => it.kind === 'neg');
+    // angle along a half: spread n items across [a0, a1], centred (so a lone item sits mid-arc).
+    const fanAngle = (idx, n, a0, a1) => (n <= 1 ? (a0 + a1) / 2 : a0 + (idx / (n - 1)) * (a1 - a0));
+    const angOf = (it) => {
+      if (it.kind === 'pos') {                      // TOP hemisphere: angles in (-π, 0), inset 0.35
+        const i = posItems.indexOf(it);
+        return fanAngle(i, posItems.length, -Math.PI + 0.35, -0.35);
+      }
+      const i = negItems.indexOf(it);               // BOTTOM hemisphere: angles in (0, π), inset 0.35
+      return fanAngle(i, negItems.length, 0.35, Math.PI - 0.35);
+    };
+    const placed = items.map((it) => {
+      const ang = angOf(it);
       const r = Rmin + (1 - Math.max(0, Math.min(1, it.cos))) * (Rmax - Rmin);
       const px = cx0 + r * Math.cos(ang);
       const py = cy0 + r * Math.sin(ang);
@@ -121,6 +134,10 @@ export const mountContrastiveSpace = defineWidget({
     // anchor+relaxation pattern.
     const CHARW = 6.3, LBL_H = 14, GAP = 5, DOT_R = 6;
     const lblText = (w) => String(w);
+    // the legend chip's fixed bounds (drawn later in the top-right of the scatter band) — declared HERE
+    // so the relaxation pass can treat it as a static obstacle and never relax a label underneath it.
+    const legW = 120, legH = 34, legX = W - PAD - legW, legY = scTop;
+    const legBox = { x: legX, y: legY, w: legW, h: legH, cx: legX + legW / 2, cy: legY + legH / 2 };
     // build label seeds: anchor first, then each neighbour.
     const seeds = [];
     seeds.push({ word: anchor, ref: { dx: cx0, dy: cy0 }, ux: 0, uy: 1, off: 24, cls: 'cs-anchor-lbl svg-halo',
@@ -183,6 +200,16 @@ export const mountContrastiveSpace = defineWidget({
             else          a.cx += (a.cx <= d.dx ? -1 : 1) * (ox + 0.4);
           }
         }
+        // label vs the LEGEND chip — treat its fixed rectangle as an obstacle so no label (now that
+        // positives fan into the TOP hemisphere where the legend lives) gets relaxed underneath it.
+        {
+          const ox = a.w / 2 + legBox.w / 2 + GAP - Math.abs(a.cx - legBox.cx);
+          const oy = a.h / 2 + legBox.h / 2 + GAP - Math.abs(a.cy - legBox.cy);
+          if (ox > 0 && oy > 0) {
+            if (oy <= ox) a.cy += (a.cy <= legBox.cy ? -1 : 1) * (oy + 0.4);
+            else          a.cx += (a.cx <= legBox.cx ? -1 : 1) * (ox + 0.4);
+          }
+        }
         // label vs every arrow SEGMENT — push the label box off the closest point on each arrow shaft
         // (covers the whole shaft + tip, not just the midpoint) so no shaft runs under a label. The
         // clearance pad is widened (4→8) to also clear the rendered ARROWHEAD (a 6×6 marker that
@@ -222,9 +249,9 @@ export const mountContrastiveSpace = defineWidget({
         .textContent = a.word;
     });
 
-    // a legend chip in a corner that the labels were already repelled toward the centre away from.
-    const legW = 120, legX = W - PAD - legW, legY = scTop;
-    add('scatter', el('rect', { x: legX, y: legY, width: legW, height: 34, rx: 6,
+    // a legend chip in the top-right corner — its bounds (legW/legX/legY/legH) were declared above and
+    // fed into the label-relaxation pass as an obstacle, so no label is relaxed underneath it.
+    add('scatter', el('rect', { x: legX, y: legY, width: legW, height: legH, rx: 6,
       class: 'cs-legbox' }, svg));
     add('scatter', el('circle', { cx: legX + 12, cy: legY + 11, r: 5, class: 'cs-pt cs-pos' }, svg));
     add('scatter', el('text', { x: legX + 22, y: legY + 15, class: 'cs-leglbl' }, svg))

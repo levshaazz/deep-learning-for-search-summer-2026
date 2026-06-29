@@ -71,13 +71,20 @@ export const mountCrossencoder = defineWidget({
     const gap = 4, rowY = 28, chipH = 28;
     const chipW = (W - 2 * PAD - (nChips - 1) * gap) / nChips;
     const chipCx = [];
+    // COMPOSITION-FIX: tokens are data-driven (qTokens/dTokens); a longer doc/query list shrinks chipW and a
+    // wide token ('[CLS]'/'[SEP]' or a long word) would spill its chip. Clamp any token whose estimated width
+    // (~6.5px/glyph at the ce-tok-txt size) exceeds the inner chip to textLength = chipW-6 (spacingAndGlyphs),
+    // condensing it INSIDE the chip; short tokens that already fit are left untouched.
+    const chipInner = chipW - 6;
     seq.forEach((s, i) => {
       const x = PAD + i * (chipW + gap);
       chipCx.push(x + chipW / 2);
       add('joint', el('rect', { x, y: rowY, width: chipW, height: chipH, rx: 6,
         class: `ce-tok ce-tok-${s.role}` }, svg));
-      add('joint', el('text', { x: x + chipW / 2, y: rowY + 19, class: `ce-tok-txt ce-tok-txt-${s.role}`,
-        'text-anchor': 'middle' }, svg)).textContent = s.t;
+      const tAttrs = { x: x + chipW / 2, y: rowY + 19, class: `ce-tok-txt ce-tok-txt-${s.role}`,
+        'text-anchor': 'middle' };
+      if (String(s.t).length * 6.5 > chipInner) { tAttrs.textLength = chipInner; tAttrs.lengthAdjust = 'spacingAndGlyphs'; }
+      add('joint', el('text', tAttrs, svg)).textContent = s.t;
     });
     const qIdx = qTokens.map((_, i) => 1 + i);
     const dIdx = dTokens.map((_, i) => 1 + qTokens.length + 1 + i);

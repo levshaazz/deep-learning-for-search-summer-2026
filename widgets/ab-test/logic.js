@@ -14,6 +14,7 @@
    the caption/counter scaffold, the setStep clamp + host.dataset.step, the el()/svg() namespaced
    SVG builder and the window.mountAbTest registration; render() only draws bars + readout. */
 import { defineWidget } from '../_widget-base.js';
+import { frameHeightFor } from '../_plot-util.js';
 
 // local formatters — keep inside this module (distinct from the factory fmt's toFixed(6)).
 const pct = (x, d = 1) => (Math.round(x * 100 * 10 ** d) / 10 ** d).toString() + '%';
@@ -28,8 +29,8 @@ export const mountAbTest = defineWidget({
   render({ host, data, labels, el }) {
     const t = data.abTest;
     const A = t.control, B = t.treatment;
-    const W = 480, H = 426;     // +22 over the old 404 to fit the third z-test line (SE shown explicitly)
-    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'wgt-svg ab-svg',
+    const W = 480;              // height is self-fit (frameHeightFor) at the end, after the deepest line
+    const svg = el('svg', { class: 'wgt-svg ab-svg',
       role: 'img', 'aria-label': labels.alt || '' }, host);
 
     // ── plot box + two bars (control A, variant B) ────────────────────────────────────────────
@@ -107,6 +108,11 @@ export const mountAbTest = defineWidget({
     // a small badge on B's bar at the verdict (✓ when significant)
     const badge = el('text', { x: bars[1].cx, y: bars[1].y0 + 26, class: 'ab-badge is-hidden', 'text-anchor': 'middle' }, svg);
     badge.textContent = sig ? '✓' : '?';
+
+    // Size the viewBox to the DEEPEST drawn line (the verdict call at panel.y + 110) so a longer
+    // translated verdict string or an added staged line can never clip the bottom frame edge.
+    const H = frameHeightFor(panel.y + 110);
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
     // per-step update (factory clamps k to [0,maxStep] and owns caption/counter)
     return function update(k) {
