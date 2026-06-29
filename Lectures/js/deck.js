@@ -32,6 +32,18 @@
 
     function norm(k) { return k.length === 1 ? k.toLowerCase() : k; }
 
+    /* Layout-independent fallback: derive the Latin char from the PHYSICAL key
+       (e.code) so single-letter / digit shortcuts (T, F, …) also fire on a
+       non-Latin keyboard layout — on a Russian layout e.key is 'е' for the T
+       key and never matches a 't' binding, but e.code stays 'KeyT'. Returns ''
+       for non letter/digit codes so named keys keep matching on e.key only. */
+    function codeChar(e) {
+      const c = e.code || '';
+      if (/^Key[A-Z]$/.test(c)) return c.slice(3).toLowerCase();   // KeyT -> t
+      if (/^Digit[0-9]$/.test(c)) return c.slice(5);               // Digit5 -> 5
+      return '';
+    }
+
     function register(key, handler, opts) {
       opts = opts || {};
       const keys = new Set((Array.isArray(key) ? key : [key]).map(norm));
@@ -39,7 +51,8 @@
     }
 
     function matches(b, e) {
-      if (!b.keys.has(norm(e.key))) return false;
+      const cc = codeChar(e);
+      if (!b.keys.has(norm(e.key)) && !(cc && b.keys.has(cc))) return false;
       /* Shift discrimination: if a binding declares opts.shift, honor it. For
          single-char letter bindings without an explicit shift opt, treat
          Shift-variants as the same key (e.key is already case-folded by norm)
