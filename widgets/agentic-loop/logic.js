@@ -57,7 +57,7 @@ export const mountAgenticLoop = defineWidget({
 
     // ── the 2-hop question ────────────────────────────────────────────────────
     el('text', { x: PAD, y: qTop - 12, class: 'al-qhead' }, svg).textContent = labels.qHead || '';
-    el('text', { x: PAD, y: qTop + 4, class: 'al-qtext' }, svg).textContent = trunc(react.question, 60);
+    el('text', { x: PAD, y: qTop + 4, class: 'al-qtext' }, svg).textContent = trunc(react.question, 46);
 
     // ── recall@1 readout (climbs 0 → 1) ───────────────────────────────────────
     const recG = el('g', { class: 'al-recall' }, svg);

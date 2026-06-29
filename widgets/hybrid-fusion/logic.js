@@ -30,8 +30,9 @@ export const mountHybridFusion = defineWidget({
     const order = fused.map((d) => d.id);
     const byId = Object.fromEntries(fused.map((d) => [d.id, d]));
     const top = fused[0] || null;                    // the consensus winner (D2)
-    const recip = (rank) => 1 / (k + rank);
-    const fmt6 = (n) => (typeof n === 'number' ? n.toFixed(6) : '');
+    // display the facts-gated 'score' field (4-dp, data/l8-hybrid.json) — not a re-rounded recompute,
+    // so a future data edit to 'score' shows up and the on-screen precision matches the data source.
+    const fmtScore = (n) => (typeof n === 'number' ? n.toFixed(4) : '');
 
     const W = 640, PAD = 16, COLGAP = 18;
     const colW = (W - 2 * PAD - 2 * COLGAP) / 3;
@@ -57,12 +58,17 @@ export const mountHybridFusion = defineWidget({
         const rect = add(lname, el('rect', { x, y: cy, width: colW, height: chipH, rx: 7, class: 'hf-chip hf-chip-' + role }, svg));
         add(lname, el('text', { x: x + 14, y: cy + 22, class: 'hf-docid' }, svg)).textContent = esc(id);
         if (withScore) {
-          // fused column: position IS the rank, so the right slot shows the summed RRF score instead.
+          // fused column: position IS the rank, so the right slot shows the summed RRF score instead —
+          // the gated 'score' field straight from the data (4-dp), not a 6-dp recompute.
           add('fused', el('text', { x: x + colW - 14, y: cy + 22, class: 'hf-score', 'text-anchor': 'end' }, svg))
-            .textContent = fmt6(byId[id] ? recip(byId[id].rSparse) + recip(byId[id].rDense) : 0);
+            .textContent = byId[id] ? fmtScore(byId[id].score) : '';
         } else {
           add(lname, el('text', { x: x + colW - 14, y: cy + 22, class: 'hf-rank', 'text-anchor': 'end' }, svg))
             .textContent = '#' + (i + 1);
+          // step 1: EVERY input doc shows its reciprocal-rank vote 1/(k+rank) under its id, so the fused
+          // Σ at step 2 is visibly the sum of marks the viewer saw (not only the winner's two votes).
+          add('votes', el('text', { x: x + 14, y: cy + 44, class: 'hf-vote' }, svg))
+            .textContent = `1/(${k}+${i + 1})`;
         }
         chips[id] = { rect, i };
       });
@@ -73,14 +79,9 @@ export const mountHybridFusion = defineWidget({
     const dChips = column('inputs', colX[1], 'dense', 'headDense', dense, false);
     const fChips = column('fused', colX[2], 'fused', 'headFused', order, true);
 
-    // step 1: the consensus winner's reciprocal-rank votes appear in both input columns (and light up).
-    if (top) {
-      const s = sChips[top.id], d = dChips[top.id];
-      if (s) add('votes', el('text', { x: colX[0] + colW / 2, y: chipY(s.i) + 44, class: 'hf-vote', 'text-anchor': 'middle' }, svg))
-        .textContent = `1/(${k}+${top.rSparse})`;
-      if (d) add('votes', el('text', { x: colX[1] + colW / 2, y: chipY(d.i) + 44, class: 'hf-vote', 'text-anchor': 'middle' }, svg))
-        .textContent = `1/(${k}+${top.rDense})`;
-    }
+    // step 1: every input doc's reciprocal-rank vote is now drawn per-chip inside column() above, so the
+    // fused Σ at step 2 sums marks the viewer actually saw. The consensus winner's chips still light up
+    // (is-lit) in update() to single it out.
 
     // step 3: a "falls" marker beside the sparse favourite (D1) in the fused column.
     const sparseTop = sparse[0];                     // D1 — sparse #1

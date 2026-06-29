@@ -83,10 +83,13 @@ export const mountLtrLambda = defineWidget({
     add('lambda', el('rect', { x: PAD, y: ly, width: W - 2 * PAD, height: 38, rx: 9, class: 'll-lambdabox' }, svg));
     add('lambda', el('text', { x: PAD + 12, y: ly + 25, class: 'll-lambdaline' }, svg))
       .textContent = `λ = gradient · ${labels.deltaLabel || 'ΔnDCG'} = ${num4(grad)} · ${num4(nd.deltaNdcg)} = ${num4(lam)}`;
-    // force arrows beside the two bars: i rises, j sinks (length scaled, just a visual cue)
-    if (barEnd.i) add('lambda', el('line', { x1: barEnd.i.x + 64, y1: barEnd.i.y + 28, x2: barEnd.i.x + 64, y2: barEnd.i.y - 6,
+    // force arrows beside the two bars: i rises, j sinks (length scaled, just a visual cue).
+    // Anchored to a FIXED column beyond the full-track end (bx+bw+40), not barEnd.x+64, so the arrow
+    // never floats into the data-driven 's = …' value label however long the bar or the score string.
+    const forceX = bx + bw + 40;
+    if (barEnd.i) add('lambda', el('line', { x1: forceX, y1: barEnd.i.y + 28, x2: forceX, y2: barEnd.i.y - 6,
       class: 'll-force', 'marker-end': 'url(#ll-up)' }, svg));
-    if (barEnd.j) add('lambda', el('line', { x1: barEnd.j.x + 64, y1: barEnd.j.y + 2, x2: barEnd.j.x + 64, y2: barEnd.j.y + 36,
+    if (barEnd.j) add('lambda', el('line', { x1: forceX, y1: barEnd.j.y + 2, x2: forceX, y2: barEnd.j.y + 36,
       class: 'll-force', 'marker-end': 'url(#ll-dn)' }, svg));
 
     const H = frameHeightFor(ly + 38, 12);

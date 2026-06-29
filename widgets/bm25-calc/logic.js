@@ -19,7 +19,7 @@ export const mountBm25Calc = defineWidget({
   exportName: 'mountBm25Calc',
   maxStep: 4,
   render({ host, data, labels, el }) {
-    const MAX = 4, W = 480, H = 440;
+    const MAX = 4, W = 480, H = 390;
     const tfidf = labels.mode === 'tfidf';
     const scoreOf = (d) => (tfidf ? d.tfidfScore : d.bm25Score);
     const ranking = tfidf ? data.tfidfRanking : data.bm25Ranking;
@@ -72,7 +72,7 @@ export const mountBm25Calc = defineWidget({
 
     el('line', { x1: box.x, y1: box.y, x2: box.x, y2: box.y + box.h, class: 'bm-axis' }, svg);
     el('text', { x: box.x, y: box.y + box.h + 18, class: 'bm-axlbl' }, svg)
-      .textContent = labels.xaxis || (tfidf ? 'TF-IDF score →' : 'BM25 score →');
+      .textContent = (tfidf ? labels.txaxis : labels.xaxis) || (tfidf ? 'TF-IDF score →' : 'BM25 score →');
 
     // baseline neutral score (steps 0–3) = a flat placeholder so bars read as "candidates, unscored".
     const flat = maxScore * 0.28;
@@ -91,7 +91,10 @@ export const mountBm25Calc = defineWidget({
     });
 
     // ── annotation panel (below the chart) — each layer = headline + sub-line, stacked ───────────
-    const panel = { x: box.x, y: box.y + box.h + 30, w: box.w };
+    // panel.y sits +44 below the chart bottom (was +30) so the x-axis label baseline
+    // (box.y+box.h+18) keeps clear of the idf head; H trimmed to 390 so the stacked
+    // annotation (last sub at panel.y+96 = 374) reads centred, not bottom-crammed.
+    const panel = { x: box.x, y: box.y + box.h + 44, w: box.w };
     const layers = {};
     const layer = (name, from) => (layers[name] = { from, nodes: [] });
     const add = (name, n) => { layers[name].nodes.push(n); return n; };
@@ -136,7 +139,14 @@ export const mountBm25Calc = defineWidget({
         r.rect.setAttribute('width', sx(v));
         r.rect.classList.toggle('is-scored', scored);
         r.rect.classList.toggle('is-winner', final && r.d.id === ranking[0]);
-        r.val.setAttribute('x', box.x + sx(v) + 6);
+        // value label: normally sits just past the bar end (start-anchored). If the bar
+        // reaches within ~50px of the right frame edge, flip it INSIDE the bar (end-anchored)
+        // so a wide/winner value never clips the W-wide viewBox.
+        const barEnd = box.x + sx(v);
+        const inside = scored && barEnd > W - 50;
+        r.val.setAttribute('x', inside ? barEnd - 6 : barEnd + 6);
+        r.val.setAttribute('text-anchor', inside ? 'end' : 'start');
+        r.val.classList.toggle('is-inside', inside);
         r.val.textContent = scored ? fmt(v) : '';
         r.val.classList.toggle('is-winner', final && r.d.id === ranking[0]);
       });

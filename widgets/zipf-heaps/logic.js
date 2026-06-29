@@ -94,7 +94,7 @@ export const mountZipfHeaps = defineWidget({
     cp.forEach((p, i) => add('heaps', el('circle', { cx: Hp.sx(hx[i]), cy: Hp.sy(hy[i]), r: 3.5, class: 'zh-dot zh-dot-h' }, svg)));
     const beq = add('heaps', el('text', { x: hb.x + 8, y: hb.y + 20, class: 'zh-eq' }, svg));
     beq.textContent = `V = K·N^β,  β ≈ ${data.heaps.beta.toFixed(2)}`;
-    const bsub = add('heaps', el('text', { x: hb.x + 8, y: hb.y + 38, class: 'zh-sub' }, svg));
+    const bsub = add('heaps', el('text', { x: hb.x + 8, y: hb.y + 42, class: 'zh-sub' }, svg));
     bsub.textContent = `V = ${data.vTypes.toLocaleString('en-US')} types,  R² = ${data.heaps.r2.toFixed(3)}`;
 
     // per-step update (factory clamps k to [0,maxStep] and owns caption/counter)

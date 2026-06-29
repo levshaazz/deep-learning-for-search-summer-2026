@@ -156,6 +156,13 @@ export const mountAttentionE2e = defineWidget({
     // three matrices Q | K | V across the width
     const triW = matW(dk);
     const triGap = (W - 2 * PAD_L - 3 * triW) / 2;
+    // budget guard (non-fatal): the three Q|K|V matrices fit EXACTLY at d_k=4. A future d_k>4 or a
+    // wider LBL/CELL would make 3·triW exceed the usable width and silently clip the right matrix off
+    // the viewBox — warn (don't throw, to keep the offline render + gates green) so an editor widens W.
+    if (triGap < 6 && typeof console !== 'undefined') {
+      console.warn('[attention-e2e] Q|K|V triptych too wide for W=' + W + ' (triW=' + triW +
+        ', triGap=' + triGap.toFixed(1) + '); widen W or shrink CELL/LBL to avoid clipping.');
+    }
     const xs = [PAD_L, PAD_L + triW + triGap, PAD_L + 2 * (triW + triGap)];
     const matTop = cursorY + 12;        // leave room for the per-matrix caption above
     [['Q', Q], ['K', K], ['V', V]].forEach(([nm, m], i) => {
@@ -179,7 +186,9 @@ export const mountAttentionE2e = defineWidget({
     heading('scores', labels.scoresHead || 'scores = Q · Kᵀ', 30);   // extra room for col headers
     colHeaders('scores', PAD_L + LBL, cursorY - 8);
     matrix('scores', scores, PAD_L, cursorY, { rowLabels: tokens });
-    add('scores', el('text', { x: PAD_L + matW(n) + 20, y: cursorY + 1.5 * STEP,
+    // divtag sits just right of the 3×3 scores matrix; +24 (was +20) keeps a clear gutter from the
+    // matrix's right edge (the scores grid has only 3 narrow columns, so there is ample room to W).
+    add('scores', el('text', { x: PAD_L + matW(n) + 24, y: cursorY + 1.5 * STEP,
       class: 'ae-divtag' }, svg)).textContent = '÷ √d_k = ' + num(sqrtdk);
     cursorY += n * STEP - GAP + 20;
 

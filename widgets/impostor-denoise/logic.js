@@ -56,7 +56,11 @@ export const mountImpostorDenoise = defineWidget({
     const marker = (c, lbl, cls, up) => {
       const x = cx(c), y = axY;
       add('axis', el('circle', { cx: x, cy: y, r: 6, class: 'imd-dot ' + cls }, svg));
-      add('axis', el('text', { x, y: up ? y - 12 : y + 18, class: 'imd-mklbl ' + cls, 'text-anchor': 'middle' }, svg))
+      // Right-anchor (and nudge left off the dot) for markers crowding the right frame edge (c≥0.95),
+      // so 'd⁺ 1.00' stays inside the viewBox even in the narrow book column. Others stay centred.
+      const edge = c >= 0.95;
+      add('axis', el('text', { x: edge ? x - 8 : x, y: up ? y - 12 : y + 18,
+        class: 'imd-mklbl ' + cls, 'text-anchor': edge ? 'end' : 'middle' }, svg))
         .textContent = lbl + ' ' + f2(c);
       return x;
     };

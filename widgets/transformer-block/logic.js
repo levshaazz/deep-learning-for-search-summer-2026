@@ -97,6 +97,12 @@ export const mountTransformerBlock = defineWidget({
       add(name, el('path', { d, class: 'tb-resid', fill: 'none', 'marker-end': 'url(#tb-arrow)' }, svg));
       add(name, el('text', { x: RES_X + 6, y: (yStart + yEnd) / 2, class: 'tb-resid-lbl' }, svg))
         .textContent = labels.residual || 'skip';
+      // a small ⊕ on the re-entry segment makes the residual ADD (x + sublayer(x)) VISIBLE in the block
+      // view — the addition was previously only NAMED ("Add & Norm") here and shown numerically in the
+      // separate residual-stream widget. Sits at the midpoint of the horizontal merge arrow, clear of
+      // the box label (centred at CX) and the vertical rail / "skip" label (at RES_X).
+      add(name, el('text', { x: (COLX + COLW + RES_X) / 2, y: yEnd - 5, class: 'tb-resid-add',
+        'text-anchor': 'middle' }, svg)).textContent = '⊕';
     }
 
     // ── STEP 0: input row ─────────────────────────────────────────────────────

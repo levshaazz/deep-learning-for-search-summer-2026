@@ -104,14 +104,17 @@ export const mountInBatchNegatives = defineWidget({
       add('mark', el('rect', { x: gx + i * STEP - 2, y: gy + i * STEP - 2, width: CELL + 4, height: CELL + 4,
         rx: 7, class: 'ibn-ring', fill: 'none' }, svg));
     }
-    const legY = gy + gridH + 22;
+    // OVERLAP-FIX: stack the two legend rows VERTICALLY (was a fixed PAD+270 second-swatch offset that the
+    // longer RU/TT strings — "вне диагонали = негативы из батча (бесплатно)" — overran into the second chip).
+    // A 20px row pitch keeps both single-language lines clear at any locale; no measured layout needed.
+    const legY = gy + gridH + 20, legRow = 20;
     add('mark', el('rect', { x: PAD, y: legY - 11, width: 14, height: 14, rx: 3, class: 'ibn-cell ibn-pos' }, svg))
       .setAttribute('fill', 'var(--warm, #E8743B)');
     add('mark', el('text', { x: PAD + 20, y: legY, class: 'ibn-legtxt' }, svg))
       .textContent = labels.posLabel || 'diagonal = the positive (q_i, d_i)';
-    add('mark', el('rect', { x: PAD + 270, y: legY - 11, width: 14, height: 14, rx: 3, class: 'ibn-cell ibn-neg' }, svg))
+    add('mark', el('rect', { x: PAD, y: legY - 11 + legRow, width: 14, height: 14, rx: 3, class: 'ibn-cell ibn-neg' }, svg))
       .setAttribute('fill', 'var(--accent-soft, #DCE8F8)');
-    add('mark', el('text', { x: PAD + 294, y: legY, class: 'ibn-legtxt' }, svg))
+    add('mark', el('text', { x: PAD + 20, y: legY + legRow, class: 'ibn-legtxt' }, svg))
       .textContent = labels.negLabel || 'off-diagonal = in-batch negatives (free)';
 
     // ── STEP 3: per-row softmax(sims/τ) = the InfoNCE target → the loss ──
@@ -130,7 +133,8 @@ export const mountInBatchNegatives = defineWidget({
     add('nce', el('text', { x: panelX, y: gy + gridH + 6, class: 'ibn-loss' }, svg))
       .textContent = (labels.lossLine || 'L = −Σ log P⁺') + '   (τ = ' + tau + ')';
 
-    const H = frameHeightFor(gy + gridH + 34, 8);
+    // deepest content is now the stacked legend's second row (legY + legRow + descender), below the loss line
+    const H = frameHeightFor(gy + gridH + 44, 8);
     svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
     return function update(k) {

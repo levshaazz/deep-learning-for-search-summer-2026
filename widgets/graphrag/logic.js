@@ -95,7 +95,10 @@ export const mountGraphrag = defineWidget({
       // if line1 also overflows, truncate it with an ellipsis (don't silently drop words).
       const words = String(doc.text || '').split(/\s+/).filter(Boolean);
       const lines = ['', ''];
-      const cap = 22;
+      // cap = max chars per wrapped line. gr-doc-txt is 12px sans (~6.5px/char); the card inner width is
+      // docW(168)-16 = 152px → ~23 chars fit, so cap=20 keeps both wrapped lines provably inside the card
+      // with margin to spare even for a long single word, regardless of locale.
+      const cap = 20;
       let li = 0;
       for (let wi = 0; wi < words.length; wi++) {
         const w = words[wi];
@@ -144,7 +147,11 @@ export const mountGraphrag = defineWidget({
     // AUTO-LAYOUT (the placeLabels idea applied to edge-midpoint labels): relax any two relation
     // labels that overlap horizontally apart in y, so an overprint cannot be authored even when two
     // edges route their offset labels close (e.g. 'studied at' vs 'located in'). Pure number relaxation.
-    const GMINGAP = 15, GCHARW = 5.6;
+    // GCHARW = per-char advance estimate for the 12px-mono gr-edge-lbl (raised from 5.6 to match the
+    // real glyph width, so the horizontal-overlap test doesn't under-fire on wide relation strings);
+    // GMINGAP = the vertical separation enforced between two overlapping labels (a full ~line of the 12px
+    // font), so adjacent relation labels keep clear of each other.
+    const GMINGAP = 18, GCHARW = 6.5;
     for (let it = 0; it < 80; it++) {
       for (let i = 0; i < edgeEls.length; i++) for (let j = i + 1; j < edgeEls.length; j++) {
         const A = edgeEls[i], B = edgeEls[j];

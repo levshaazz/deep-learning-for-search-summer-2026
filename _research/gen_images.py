@@ -156,9 +156,9 @@ JOBS = [
      "lettered title bar."),
     ("L3", "L3/L3-12-postings-compression.png", "16:9", True,
      "a long star-map scroll being folded and compressed like an accordion: the unfolded LEFT half "
-     "shows star IDs strung out with big empty space between them ('7 … 12 … 13 … 99'); a "
+     "shows star IDs strung out with big empty space between them ('3 … 8 … 12 … 30'); a "
      "warm-orange arrow and a hand crank push them through a little press so the RIGHT half stores "
-     "only the gaps between neighbouring stars ('+7 +5 +1 +86'), the scroll now squeezed to a "
+     "only the gaps between neighbouring stars ('+3 +5 +4 +18'), the scroll now squeezed to a "
      "fraction of the width. Hand-lettered 'store the gaps, not the stars'. Serega turning the "
      "press crank, tiny satisfied smile. GREEN appears NOWHERE except Serega's own skullcap — the "
      "scroll, press, and numbers are black ink + warm-orange only, no green anywhere else. Tight, "

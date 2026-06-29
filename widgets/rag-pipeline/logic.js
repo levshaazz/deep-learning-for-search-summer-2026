@@ -108,12 +108,20 @@ export const mountRagPipeline = defineWidget({
     const add = (name, node) => { layers[name].nodes.push(node); return node; };
 
     // a pipeline box + its label; arrow to the previous box in the same half.
+    // COMPOSITION-FIX: at N=9 a box is ~69px; longer RU/TT stage names ('переранжирует', 'генерирует')
+    // would spill past the box edge into a neighbour. Clamp any label whose estimated width (~7px/glyph
+    // at the .rag-boxtxt size) exceeds the inner box to textLength = boxW-8 with spacingAndGlyphs, so it
+    // condenses INSIDE the box. Short EN labels (≤ the budget) are untouched — no textLength is set.
+    const INNER = boxW - 8;
     function drawBox(name, i) {
       const id = seq[i], x = boxX(i);
       add(name, el('rect', { x, y: ROWY, width: boxW, height: BOXH, rx: 9,
         class: 'rag-box rag-' + roleOf(id) }, svg));
-      add(name, el('text', { x: cx(i), y: ROWY + BOXH / 2 + 5, class: 'rag-boxtxt rag-boxtxt-' + roleOf(id),
-        'text-anchor': 'middle' }, svg)).textContent = txt(id);
+      const label = txt(id);
+      const attrs = { x: cx(i), y: ROWY + BOXH / 2 + 5, class: 'rag-boxtxt rag-boxtxt-' + roleOf(id),
+        'text-anchor': 'middle' };
+      if (label.length * 7 > INNER) { attrs.textLength = INNER; attrs.lengthAdjust = 'spacingAndGlyphs'; }
+      add(name, el('text', attrs, svg)).textContent = label;
     }
     function arrowBetween(name, i) {                 // arrow from box i-1 → box i (same half)
       add(name, el('line', { x1: boxX(i) - GAP + 1, y1: ROWY + BOXH / 2, x2: boxX(i) - 2, y2: ROWY + BOXH / 2,

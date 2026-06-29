@@ -114,7 +114,9 @@ export const mountClipMatrix = defineWidget({
     const mismatched = Math.max(0, Math.min(1, Number(d.mismatchedMeanCos) || 0));
     const gapG = el('g', { class: 'clm-bars is-hidden' }, svg);
     const mkBar = (y, val, lblKey, dflt, hi) => {
-      el('text', { x: barLabelX, y: y - 4, class: 'clm-barlbl' }, gapG).textContent = labels[lblKey] || dflt;
+      // label sits on its own row above the bar; y-7 (not y-4) keeps a clear gap above the 16px track so
+      // a long locale label (e.g. 'everything else (off-diagonal)') can't graze the bar it sits over.
+      el('text', { x: barLabelX, y: y - 7, class: 'clm-barlbl' }, gapG).textContent = labels[lblKey] || dflt;
       el('rect', { x: barX, y, width: barW, height: 16, rx: 4, class: 'clm-track' }, gapG);
       el('rect', { x: barX, y, width: Math.max(2, Math.round(barW * val)), height: 16, rx: 4,
                    class: 'clm-fill' + (hi ? ' is-hi' : ' is-lo') }, gapG);

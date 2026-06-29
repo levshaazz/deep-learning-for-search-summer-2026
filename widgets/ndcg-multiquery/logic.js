@@ -27,7 +27,7 @@ export const mountNdcgMultiquery = defineWidget({
   id: 'ndcg-multiquery',
   rootClass: 'mq-root',
   exportName: 'mountNdcgMultiquery',
-  maxStep: 3,
+  maxStep: 4,
   render({ host, data, labels, el }) {
     const W = 480;
     // derive each query's hits from its relevance vector — RR/AP are RECOMPUTED, not trusted literals,
@@ -90,7 +90,11 @@ export const mountNdcgMultiquery = defineWidget({
       const ry = y + cell + 24;
       const rrTxt = el('text', { x: strip.x + gutter, y: ry, class: 'mq-rr is-hidden' }, g);
       rrTxt.textContent = `RR = 1/${q.firstRank} = ${f4(q.rr)}`;
-      const apTxt = el('text', { x: strip.x + gutter, y: ry + 18, class: 'mq-ap is-hidden' }, g);
+      // Long AP sums (5+ addends) get a smaller font so the joined precision sum can never run past
+      // the right frame edge for a future many-hit query; today's ≤4-hit queries stay at 12px unchanged.
+      const apLong = q.hits.length > 4;
+      const apTxt = el('text', { x: strip.x + gutter, y: ry + 18,
+        class: 'mq-ap' + (apLong ? ' mq-ap-sm' : '') + ' is-hidden' }, g);
       apTxt.textContent = q.hits.length > 1
         ? `AP = (${q.hits.map((h) => f2(h.precision)).join(' + ')}) / ${q.hits.length} = ${f4(q.ap)}`
         : `AP = ${f4(q.ap)}`;
@@ -101,16 +105,21 @@ export const mountNdcgMultiquery = defineWidget({
     const lastRy = rowRefs[rowRefs.length - 1].ry + 18;
     const panelY = lastRy + 34;
     const px = strip.x;
-    const avgLayer = [];
-    const addAvg = (n) => { avgLayer.push(n); return n; };
+    // The averaging panel reveals in TWO beats so each mean is its own moment:
+    //   step 3 — divider + the MRR average (over the step-1 reciprocal ranks)
+    //   step 4 — the MAP average (over the step-2 average precisions) + the "neither query" lesson
+    const mrrLayer = [];   // shown at k >= 3
+    const mapLayer = [];   // shown at k >= 4
+    const addMrr = (n) => { mrrLayer.push(n); return n; };
+    const addMap = (n) => { mapLayer.push(n); return n; };
 
-    addAvg(el('line', { x1: px, y1: panelY - 18, x2: px + strip.w - 8, y2: panelY - 18,
+    addMrr(el('line', { x1: px, y1: panelY - 18, x2: px + strip.w - 8, y2: panelY - 18,
       class: 'mq-divider' }, svg));
-    addAvg(el('text', { x: px, y: panelY, class: 'mq-avg-h mq-mrr-h' }, svg))
+    addMrr(el('text', { x: px, y: panelY, class: 'mq-avg-h mq-mrr-h' }, svg))
       .textContent = `MRR = (${f4(queries[0].rr)} + ${f4(queries[1].rr)}) / 2 = ${f4(mrr)}`;
-    addAvg(el('text', { x: px, y: panelY + 26, class: 'mq-avg-h mq-map-h' }, svg))
+    addMap(el('text', { x: px, y: panelY + 26, class: 'mq-avg-h mq-map-h' }, svg))
       .textContent = `MAP = (${f4(queries[0].ap)} + ${f4(queries[1].ap)}) / 2 = ${f4(map)}`;
-    addAvg(el('text', { x: px, y: panelY + 50, class: 'mq-lesson' }, svg))
+    addMap(el('text', { x: px, y: panelY + 50, class: 'mq-lesson' }, svg))
       .textContent = labels.lesson || 'Neither matches a single query — that is the point of a mean.';
 
     // Size the viewBox to the DEEPEST drawn line so the averaging block can never spill past the box.
@@ -130,7 +139,8 @@ export const mountNdcgMultiquery = defineWidget({
         row.rrTxt.classList.toggle('is-hidden', k < 1);
         row.apTxt.classList.toggle('is-hidden', k < 2);
       });
-      for (const node of avgLayer) node.classList.toggle('is-hidden', k < 3);
+      for (const node of mrrLayer) node.classList.toggle('is-hidden', k < 3);
+      for (const node of mapLayer) node.classList.toggle('is-hidden', k < 4);
     };
   },
 });

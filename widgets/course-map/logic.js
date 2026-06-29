@@ -33,12 +33,27 @@ export const mountCourseMap = defineWidget({
   exportName: 'mountCourseMap',
   maxStep: STOPS.length, // step 0 = whole map; 1..4 light each stop
   render({ host, labels, el }) {
-    const W = 700, H = 250;
+    // H hugs the content stack [leg(top ≈39) … ship(descender ≈182)] with symmetric
+    // top/bottom padding (≈39px each) so the map sits vertically centred in its frame
+    // instead of floating top-light when the SVG scales into a slide/book region.
+    const W = 700, H = 221;
     const cy = 96, xs = [100, 267, 433, 600];
     const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'wgt-svg cm-svg', role: 'img', 'aria-label': labels.alt || '' }, host);
 
     // route line
     el('line', { x1: xs[0], y1: cy, x2: xs[STOPS.length - 1], y2: cy, class: 'cm-route' }, svg);
+
+    // Stops are evenly spaced 167px apart; centred labels must stay inside ~SLOT px or
+    // they'd collide with the neighbouring stop's label. cm-leg/cm-terr/cm-num are short
+    // fixed strings; cm-terr (14px serif) and cm-ship (11px mono) take per-lecture / RU+TT
+    // text that can overrun. Budget the slot and, only when a string exceeds it, pin
+    // textLength so it shrink-to-fits instead of running under the neighbour (no clip, no
+    // collision). Current locked strings are all under budget → rendered unchanged.
+    const SLOT = 156; // ≤167px pitch, leaves an inter-label gutter
+    const setText = (node, str, budget) => {
+      node.textContent = str;
+      if (str && str.length > budget) { node.setAttribute('textLength', SLOT); node.setAttribute('lengthAdjust', 'spacingAndGlyphs'); }
+    };
 
     const nodes = STOPS.map((id, i) => {
       const g = el('g', { class: 'cm-stop', 'data-stop': id }, svg);
@@ -46,10 +61,10 @@ export const mountCourseMap = defineWidget({
       el('text', { x: xs[i], y: cy + 6, class: 'cm-num', 'text-anchor': 'middle' }, g).textContent = i + 1;
       // spine leg (above)
       el('text', { x: xs[i], y: cy - 46, class: 'cm-leg', 'text-anchor': 'middle' }, g).textContent = labels['leg' + i] || id;
-      // territory (below)
-      el('text', { x: xs[i], y: cy + 58, class: 'cm-terr', 'text-anchor': 'middle' }, g).textContent = labels['terr' + i] || '';
-      // ship subsystem (below, smaller)
-      el('text', { x: xs[i], y: cy + 78, class: 'cm-ship', 'text-anchor': 'middle' }, g).textContent = labels['ship' + i] || '';
+      // territory (below) — ~22 serif-char slot budget
+      setText(el('text', { x: xs[i], y: cy + 58, class: 'cm-terr', 'text-anchor': 'middle' }, g), labels['terr' + i] || '', 22);
+      // ship subsystem (below, smaller) — ~24 mono-char slot budget
+      setText(el('text', { x: xs[i], y: cy + 78, class: 'cm-ship', 'text-anchor': 'middle' }, g), labels['ship' + i] || '', 24);
       return g;
     });
 
