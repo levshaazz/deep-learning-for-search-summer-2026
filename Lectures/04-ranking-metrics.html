@@ -476,7 +476,7 @@
               </p>
             </div>
           </div>
-          <aside class="slide-notes">This is the subtle trap of reusing a test collection. Within the pool, "unjudged = non-relevant" is fine. But a brand-new system — say, a dense retriever that ranks documents nobody pooled — surfaces relevant docs that were never judged, and the standard convention scores them as wrong. The system gets punished precisely for being different and good. bpref and condensed-list metrics restrict scoring to judged documents, removing the penalty. Buckley and Voorhees introduced bpref for exactly this reason.</aside>
+          <aside class="slide-notes">This is the subtle trap of reusing a test collection. Within the pool, "unjudged = non-relevant" is fine. But a brand-new system — say, a dense retriever that ranks documents nobody pooled — surfaces relevant docs that were never judged, and the standard convention scores them as wrong. The system gets punished precisely for being different and good. bpref and condensed-list metrics restrict scoring to judged documents, removing the penalty. Buckley and Voorhees introduced bpref for exactly this reason. Modern pooled collections also use inferred-AP estimators (infAP / statAP, Yilmaz and Aslam) that estimate the metric under sampled judgments.</aside>
         </section>
 
         <!-- ============================================ 15 · FORMULA · inter-annotator agreement (kappa) ============================================ -->
@@ -493,7 +493,7 @@
             <div class="var-block"><div class="var-symbol">\(p_e\)</div><div class="var-desc"><strong>Chance</strong><br />agreement expected from label rates alone</div></div>
             <div class="var-block"><div class="var-symbol">\(\kappa\)</div><div class="var-desc"><strong>Agreement</strong><br />\(1\) perfect, \(0\) chance, \(<0\) worse</div></div>
           </div>
-          <p class="small muted mt-3 center">Rule of thumb: \(\kappa>0.6\) substantial, \(>0.8\) near-gold. Many judges → <strong>Fleiss' \(\kappa\)</strong>. Low \(\kappa\) means your "ground truth" is noisy and caps the metric's resolution.</p>
+          <p class="small muted mt-3 center">Rule of thumb: \(\kappa>0.6\) substantial, \(>0.8\) near-gold. Many judges → <strong>Fleiss' \(\kappa\)</strong>. Low \(\kappa\) means your "ground truth" is noisy and caps the metric's resolution. <strong>Beware the prevalence paradox:</strong> when one label dominates (most pooled docs are non-relevant), \(p_e\) is high and \(\kappa\) can look low despite near-perfect agreement — report raw agreement alongside \(\kappa\).</p>
           <aside class="slide-notes">Ground truth is not handed down from heaven — humans disagree, especially on borderline relevance. Cohen's kappa corrects raw agreement for the agreement you'd get by chance: subtract chance, normalise by the room left above chance. Above 0.6 is usually called substantial, above 0.8 near-gold; Fleiss generalises to more than two judges. The practical lesson: if your annotators only weakly agree, your labels are noisy, and no metric can resolve system differences finer than that noise. Measure agreement before you trust the qrels.</aside>
         </section>
 
@@ -625,7 +625,7 @@
             <h2>\(\mathrm{Precision}@k\) and \(\mathrm{Recall}@k\), step by step</h2>
             <span class="slide-kicker">pattern \([0,1,0,1,0,1,0,1]\) · 4 relevant total</span>
           </div>
-          <p class="small muted mt-2">Watch \(\mathrm{Recall}@k\) climb to \(1\) while \(\mathrm{Precision}@k\) drifts as \(k\) grows.</p>
+          <p class="small muted mt-2">Watch \(\mathrm{Recall}@k\) climb to \(1\) while \(\mathrm{Precision}@k\) rises only modestly as \(k\) grows.</p>
           <div class="walk-flow">
             <div class="walk-step" data-step="1" data-color="violet">
               <div class="walk-num">01</div>
@@ -653,7 +653,7 @@
             <span class="step-counter">4/4</span>
             <button data-step-act="next" aria-label="Next step">→</button>
           </div>
-          <aside class="slide-notes">Walk it one row at a time, reading numerator/denominator aloud. Precision drifts 0 → 0.333 → 0.4 → 0.5 — it never gets high because the relevant docs are diluted by hockey docs at every odd rank. Recall marches 0 → 0.25 → 0.5 → 1.0: by rank 8 we have found all four relevant docs. The two metrics disagree on purpose; that disagreement is exactly why we report both at chosen cutoffs — and why the tradeoff curve on the next slide matters.</aside>
+          <aside class="slide-notes">Walk it one row at a time, reading numerator/denominator aloud. Precision rises 0 → 0.333 → 0.4 → 0.5 — it never gets high because the relevant docs are diluted by hockey docs at every odd rank. Recall marches 0 → 0.25 → 0.5 → 1.0: by rank 8 we have found all four relevant docs. The two metrics disagree on purpose; that disagreement is exactly why we report both at chosen cutoffs — and why the tradeoff curve on the next slide matters.</aside>
         </section>
 
         <!-- ============================================ 22 · VIZ · PR tradeoff & F ============================================ -->
@@ -786,7 +786,7 @@
             <div class="var-block"><div class="var-symbol">\(\mathrm{rel}_k=1\)</div><div class="var-desc"><strong>Hit ranks</strong><br />sum \(\mathrm{Precision}@k\) only where a relevant doc lands</div></div>
             <div class="var-block"><div class="var-symbol">\(\mathrm{AP}\)</div><div class="var-desc"><strong>Average precision</strong><br />\(\approx\) area under the PR curve; MAP averages it</div></div>
           </div>
-          <p class="small muted mt-3 center">AP looks at <em>every</em> rank where a relevant doc appears, so it rewards ranking relevant docs higher. <strong>GMAP</strong> uses the geometric mean — emphasising hard queries.</p>
+          <p class="small muted mt-3 center">AP looks at <em>every</em> rank where a relevant doc appears, so it rewards ranking relevant docs higher. AP equals the area under the PR curve <em>once precision is interpolated</em>; the hit-average we compute is the standard discretisation of that area. <strong>GMAP</strong> uses the geometric mean — emphasising hard queries.</p>
           <aside class="slide-notes">MAP is the workhorse of binary-relevance IR. Average Precision evaluates Precision@k at each rank where a relevant document actually sits, then averages those values over the number of relevant docs — which is, to a good approximation, the area under the precision-recall curve. Because precision is higher when hits are near the top, AP rewards surfacing relevant docs early. MAP is AP averaged over queries arithmetically; GMAP uses the geometric mean, which weights improvements on already-hard queries more heavily. Next, the per-hit table and a second query so MAP differs from AP.</aside>
         </section>
 
@@ -1086,7 +1086,7 @@
               <h3>Cutoff matters</h3>
               <ul class="obj-list">
                 <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>nDCG@10</strong> (web default) vs full nDCG — report the \(k\).</span></li>
-                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">IDCG must use the same \(k\), or the ratio breaks.</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">IDCG must use the same \(k\), or the ratio breaks. \(\mathrm{IDCG}@k\) ranks the top \(\min(R,k)\) graded docs ideally — truncate the ideal list to \(k\). Forgetting this is the #1 nDCG bug (yields nDCG\(>1\) or deflated scores).</span></li>
                 <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">Few relevant docs → \(\mathrm{IDCG}\) tiny → nDCG <em>jumpy</em> across queries.</span></li>
               </ul>
             </div>
@@ -1505,6 +1505,7 @@
               <ul class="obj-list">
                 <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">CTR up but <strong>latency</strong> up, or <strong>revenue</strong> down? Watch guardrails, not just the target.</span></li>
                 <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">CTR can rise from <em>clickbait</em> — pair it with dwell / conversion.</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">Randomise by <strong>user</strong>, not session — repeated sessions from one user are correlated, so a naive per-session \(z\)-test understates variance; cluster / bootstrap by user or the \(p\)-value is overconfident.</span></li>
               </ul>
             </div>
             <div class="twocol-col">

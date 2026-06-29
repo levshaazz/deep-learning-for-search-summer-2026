@@ -277,7 +277,7 @@
   </div>
   <div class="def-card">
     <span class="def-tag"><span lang="ru">Таксономия</span><span lang="en">Taxonomy</span></span>
-    <div class="def-term"><span lang="ru">Ранний пулинг · каждый слой · позднее взаимодействие</span><span lang="en">Early-pool · every-layer · late interaction</span></div>
+    <div class="def-term"><span lang="ru">Ранний пулинг · каждый слой · позднее взаимодействие</span><span lang="en">Early-pool · every-layer · late-interaction</span></div>
     <div class="def-body">
       <ul class="obj-list">
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong><span lang="ru">Ранний пулинг (би-энкодер, L7)</span><span lang="en">Early-pool (bi-encoder, L7)</span></strong> — <span lang="ru">сворачиваем в один вектор <em>до</em> сравнения. Дёшево, можно кэшировать — но детали потеряны.</span><span lang="en">collapse to one vector <em>before</em> comparing. Cheap, cacheable — but detail is lost.</span></span></li>
@@ -441,7 +441,7 @@
     <div class="def-body">
       <ul class="obj-list">
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong><span lang="ru">Обесшумленный надзор</span><span lang="en">Denoised supervision</span></strong> — <span lang="ru">дистилляция из кросс-энкодера + жёсткие негативы (отсылка L7) чистят обучающий сигнал.</span><span lang="en">distil from a cross-encoder + hard negatives (callback L7) clean the training signal.</span></span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong><span lang="ru">Остаточное сжатие</span><span lang="en">Residual compression</span></strong> — <span lang="ru">центроид + маленький остаток: \(20\)–\(36\) байт/вектор против \(256\) (16-бит наивно) → сжатие \(6\)–\(10\times\).</span><span lang="en">a centroid + a tiny residual: \(20\)–\(36\) bytes/vector vs \(256\) (naive 16-bit) → \(6\)–\(10\times\) compression.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong><span lang="ru">Остаточное сжатие</span><span lang="en">Residual compression</span></strong> — <span lang="ru">центроид + маленький остаток: \(20\)–\(36\) байт/вектор против \(256\) (16-бит наивно) → сжатие \(6\)–\(10\times\). Это \(6\)–\(10\times\) — против полноразмерного 16-битного хранилища (\(256\) Б/вектор), отдельная база сравнения от 24-мерного индекса слайда 15: сокращения <em>не</em> перемножаются.</span><span lang="en">a centroid + a tiny residual: \(20\)–\(36\) bytes/vector vs \(256\) (naive 16-bit) → \(6\)–\(10\times\) compression. This \(6\)–\(10\times\) is vs a full-dimension 16-bit store (\(256\) B/vec), a separate baseline from slide 15's 24-dim index — the reductions are <em>not</em> multiplied together.</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Качество растёт: MS MARCO MRR@10 \(= 39.7\) (шкала 0–100; цит.: Santhanam и др., 2022).</span><span lang="en">Quality climbs: MS MARCO MRR@10 \(= 39.7\) (on a 0–100 scale; cited: Santhanam et al., 2022).</span></span></li>
       </ul>
     </div>
@@ -594,7 +594,7 @@
     $$ w_{\text{river}} = \log(3.0) = \mathbf{1.0986}, \qquad w_{\text{flood}} = \log(3.5) = \mathbf{1.2528} $$
     $$ w_{\text{bank}} = \log(1.5) = \mathbf{0.4055}, \qquad w_{\text{water}} = \log(2.2) = \mathbf{0.7885} \;\; (\textbf{expansion}) $$
   </div>
-  <p class="small muted center mt-2"><span lang="ru">Запрос — «river flood», но положительный вес получают и <strong>bank</strong> \((0.4055)\), и <strong>water</strong> \((0.7885)\) — это термины <em>расширения</em>: их не вводили, но модель их зажгла. «water» — самый яркий из новых.</span><span lang="en">The query is "river flood", yet both <strong>bank</strong> \((0.4055)\) and <strong>water</strong> \((0.7885)\) get positive weight — these are <em>expansion</em> terms: never typed, but the model lit them up. "water" is the brightest newcomer.</span></p>
+  <p class="small muted center mt-2"><span lang="ru">Запрос — «river flood», но положительный вес получают и <strong>bank</strong> \((0.4055)\), и <strong>water</strong> \((0.7885)\) — это термины <em>расширения</em>: их не вводили, но модель их зажгла. «water» — самый яркий из новых. Здесь каждый термин порождён одной входной позицией, так что пулинг по позициям (сумма / max) тривиален; при нескольких позициях их вклады \(\log(1+\mathrm{ReLU})\) сложили бы (оригинал) или взяли по max (v2).</span><span lang="en">The query is "river flood", yet both <strong>bank</strong> \((0.4055)\) and <strong>water</strong> \((0.7885)\) get positive weight — these are <em>expansion</em> terms: never typed, but the model lit them up. "water" is the brightest newcomer. Here each term is produced by a single input position, so the position-pool (sum / max) is trivial; with multiple positions you would sum (original) or max (v2) their \(\log(1+\mathrm{ReLU})\) contributions.</span></p>
   <aside class="slide-notes">By-hand weights: log(3.0)=1.0986, log(3.5)=1.2528, log(1.5)=0.4055, log(2.2)=0.7885. bank+water are expansion (positive weight, non-literal). Gated vs data/l8-splade.json. Note: "bank" is a query token in the ColBERT example (slides 11–13); here it's a learned expansion term — different roles, independent toy vocabularies.</aside>
 </section>
 
@@ -821,7 +821,7 @@
       <tr><td>convex</td><td><span lang="ru">\(\alpha\cdot\text{плотн} + (1-\alpha)\cdot\text{разреж}\)</span><span lang="en">\(\alpha\cdot\text{dense} + (1-\alpha)\cdot\text{sparse}\)</span></td><td><span lang="ru">нужно настраивать \(\alpha\)</span><span lang="en">must tune \(\alpha\)</span></td></tr>
     </tbody>
   </table>
-  <p class="small muted center mt-2"><span lang="ru">RRF устойчив, потому что игнорирует величину оценок — нужны лишь ранги. Комбинации по оценкам могут быть точнее, но требуют калибровки несравнимых шкал.</span><span lang="en">RRF is robust because it ignores score magnitudes — it needs only ranks. Score combinations can be sharper but require calibrating incomparable scales.</span></p>
+  <p class="small muted center mt-2"><span lang="ru">RRF устойчив, потому что игнорирует величину оценок — нужны лишь ранги. Комбинации по оценкам могут быть точнее, но требуют калибровки несравнимых шкал: BM25 не ограничен сверху (может достигать десятков), а косинус лежит в \([-1,1]\) — сложи их «как есть», и BM25 полностью забьёт плотную оценку; ровно этот разрыв шкал делает ранговый RRF безопасным выбором по умолчанию.</span><span lang="en">RRF is robust because it ignores score magnitudes — it needs only ranks. Score combinations can be sharper but require calibrating incomparable scales: BM25 is unbounded above (it can reach the tens) while cosine sits in \([-1,1]\) — add them raw and BM25 swamps the dense score entirely; that scale gap is exactly why rank-based RRF is the safe default.</span></p>
   <aside class="slide-notes">RRF (rank-based, no calibration) vs min-max / z-score / convex (need calibration). No gated numbers (α, [0,1] are not data).</aside>
 </section>
 
@@ -1029,12 +1029,12 @@
     <div class="def-body">
       <ul class="obj-list">
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Возьми силы \(\lambda\) из LambdaRank и подставь их как градиенты в <strong>градиентный бустинг деревьев</strong> (MART).</span><span lang="en">Take the \(\lambda\) forces from LambdaRank and feed them as gradients into <strong>gradient-boosted trees</strong> (MART).</span></span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Так получается <strong>LambdaMART</strong> — рабочая лошадка классического Learning to Rank; выиграла <strong>Yahoo! Learning to Rank Challenge 2010</strong>.</span><span lang="en">The result is <strong>LambdaMART</strong> — the workhorse of classic Learning to Rank; it won the <strong>Yahoo! Learning to Rank Challenge 2010</strong>.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Так получается <strong>LambdaMART</strong> — рабочая лошадка классического Learning to Rank; ансамбль на основе LambdaMART выиграл <strong>Yahoo! Learning to Rank Challenge 2010</strong>.</span><span lang="en">The result is <strong>LambdaMART</strong> — the workhorse of classic Learning to Rank; a LambdaMART-based ensemble won the <strong>Yahoo! Learning to Rank Challenge 2010</strong>.</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Мост из L7 оплачен:</strong> RankNet → LambdaRank → LambdaMART, ровно как обещали.</span><span lang="en"><strong>The L7 bridge is paid in full:</strong> RankNet → LambdaRank → LambdaMART, exactly as promised.</span></span></li>
       </ul>
     </div>
   </div>
-  <aside class="slide-notes">LambdaMART: λ inside GBRT; won Yahoo! 2010 (cited). Pays off the L7 promise (32-pointwise-pairwise-listwise, beat 20). 2010 is int → free.</aside>
+  <aside class="slide-notes">LambdaMART: λ inside GBRT; LambdaMART-based ensemble won Yahoo! 2010 (cited). Pays off the L7 promise (32-pointwise-pairwise-listwise, beat 20). 2010 is int → free.</aside>
 </section>
 
 <section class="slide" data-type="definition" data-screen-label="49 Features for the Captain">
@@ -1227,7 +1227,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:56cqh; --fig-w:52%;">
     <img src="assets/img/L8/L8-05-the-host-marches.png?v=1" alt="The united, ordered host under the one banner marches toward a horizon where faint jump-gates and a road lead off-frame — the bridge to L9 ANN and L10 RAG." />
   </div>
-  <p class="viz-caption"><span lang="ru"><strong>Альянс собран:</strong> разрежённые и плотные армии — под одним знаменем (гибрид), ColBERT даёт богатый потокенный взгляд, а капитан (LambdaMART) наводит порядок. Дальше — <strong>L9</strong> (ANN: PLAID/HNSW делают ColBERT и гибрид сублинейными) и <strong>L10</strong> (RAG). «The Alliance».</span><span lang="en"><strong>The Alliance is assembled:</strong> sparse and dense armies under one banner (hybrid), ColBERT for a rich per-token read, and the captain (LambdaMART) bringing order. Next — <strong>L9</strong> (ANN: PLAID/HNSW make ColBERT and hybrid sublinear) and <strong>L10</strong> (RAG). "The Alliance."</span></p>
+  <p class="viz-caption"><span lang="ru"><strong>Альянс собран:</strong> разрежённые и плотные армии — под одним знаменем (гибрид), ColBERT даёт богатый потокенный взгляд, а капитан (LambdaMART) строит войско. Дальше — <strong>L9</strong> (ANN: PLAID/HNSW делают ColBERT и гибрид сублинейными) и <strong>L10</strong> (RAG). «The Alliance».</span><span lang="en"><strong>The Alliance is assembled:</strong> sparse and dense armies under one banner (hybrid), ColBERT for a rich per-token read, and the captain (LambdaMART) bringing order. Next — <strong>L9</strong> (ANN: PLAID/HNSW make ColBERT and hybrid sublinear) and <strong>L10</strong> (RAG). "The Alliance."</span></p>
   <aside class="slide-notes">Final payoff. Catchphrase "The Alliance" closes. Bridges out: L9 (ANN), L10 (RAG). The Standard-Bearer's banner united and ordered the host.</aside>
 </section>
 

@@ -1086,7 +1086,7 @@
           <div class="e2e-twin">
             <div class="e2e-panel e2e-math-panel">
               <div class="panel-head">Rule applied</div>
-              <div class="e2e-step" data-step="0"><div class="step-formula">$$\operatorname{idf}(\texttt{space}) = \ln\!\frac{8}{4} \approx 0.6931$$</div><p class="step-caption">Same idf for every document, since \(df\) is a corpus property.</p></div>
+              <div class="e2e-step" data-step="0"><div class="step-formula">$$\operatorname{idf}(\texttt{space}) = \ln\!\frac{8}{4} \approx 0.6931$$</div><p class="step-caption">Same idf for every document, since \(df\) is a corpus property. <em>(Here the bare \(\log N/df\); for \(df=4,N=8\) it coincidentally equals the smoothed idf \(=\ln 2\).)</em></p></div>
               <div class="e2e-step" data-step="1"><div class="step-formula">$$w(\texttt{space},d) = tf \cdot 0.6931$$</div><p class="step-caption"><strong>Linear in tf.</strong> Two occurrences score exactly twice one occurrence.</p></div>
               <div class="e2e-step" data-step="2"><div class="step-formula">$$\text{D3, } tf=3 \;\Rightarrow\; 3 \times 0.6931 \approx 2.08$$</div><p class="step-caption"><strong>Problem.</strong> Pure repetition keeps winning &mdash; no diminishing return, no length penalty.</p></div>
             </div>
@@ -1330,7 +1330,7 @@
             <div class="var-block"><div class="var-symbol">\(\mathrm{len}(q)\)</div><div class="var-desc"><strong>Query length</strong></div></div>
             <div class="var-block"><div class="var-symbol">\(\tfrac{\mathrm{avgdl}-\mathrm{len}}{\mathrm{avgdl}+\mathrm{len}}\)</div><div class="var-desc"><strong>Short-doc bonus</strong><br /> &gt;0 if shorter than avg</div></div>
           </div>
-          <p class="small muted center mt-3">An <em>additive</em> correction favoring shorter documents, scaled by query length. Tried during the Okapi TREC experiments &mdash; and, as we'll see, eventually <strong>dropped</strong>.</p>
+          <p class="small muted center mt-3">A <em>single additive per-document term</em> (outside the \(\Sigma\) over query terms) favoring shorter documents, scaled by query length &mdash; so setting \(K_2=0\) removes it cleanly without touching the per-term saturating&middot;idf factor that survives as BM25. Tried during the Okapi TREC experiments &mdash; and, as we'll see, eventually <strong>dropped</strong>.</p>
           <aside class="slide-notes">A piece of the history most modern accounts skip. During the Okapi TREC experiments, the authors added a separate additive term G that gives shorter documents a small bonus proportional to query length. It looked principled and was carried in the candidate formula. The reason to show it is the engineering lesson on the next slide: they tried it, measured it, and found its best setting was to switch it off. Keeping the dead branch visible makes the point that BM25 is the survivor of many experiments, not a clean derivation.</aside>
         </section>
 
@@ -1559,7 +1559,7 @@
               <text x="130" y="108" font-family="var(--font-mono)" font-size="22" fill="var(--ink-3)">ceiling \(\propto k_1+1\)</text>
             </svg>
           </div>
-          <p class="viz-caption">From \(f=1\) to \(f=2\) adds a lot; from \(f=9\) to \(f=10\) almost nothing. TF-IDF climbs linearly forever; BM25 is concave toward \(k_1+1\). Smaller \(k_1\) saturates sooner &mdash; a whole family of curves.</p>
+          <p class="viz-caption">From \(f=1\) to \(f=2\) adds a lot; from \(f=9\) to \(f=10\) almost nothing. TF-IDF climbs linearly forever; BM25 is concave toward \(k_1+1\). Smaller \(k_1\) saturates sooner &mdash; a whole family of curves. Length normalization moves the curve right (more occurrences needed to climb), but the asymptotic ceiling stays \(k_1+1\) regardless of document length.</p>
           <aside class="slide-notes">A picture of saturation. TF-IDF is a straight line through the origin — the hundredth occurrence is worth the same as the first. BM25 is concave and bounded, rising steeply for the first few occurrences then flattening toward a ceiling proportional to k1 plus one. The parameter k1 selects a curve from a family: smaller k1 saturates sooner, larger k1 stays linear longer. This matches intuition — once a document is clearly about a topic, more repetitions tell you little — and it is the single most important difference between the two scorers.</aside>
         </section>
 
@@ -1917,7 +1917,7 @@
             </div>
             <div class="walk-step" data-step="4" data-final="true">
               <div class="walk-num">&rarr;</div>
-              <div class="walk-content"><div class="walk-label">\(k\)-sensitivity</div><div class="walk-detail">Fused order <code>D6 D3 D2 D7 D0 D5 D4 D1</code>. Larger \(k\) flattens the discount (more democratic); smaller \(k\) sharpens the top. Weighted RRF scales each ranker's term.</div></div>
+              <div class="walk-content"><div class="walk-label">\(k\)-sensitivity</div><div class="walk-detail">Fused order <code>D6 D3 D2 D7 D0 D5 D4 D1</code>. D2 and D7 are an exact tie at 0.031498 &mdash; their displayed order is a deterministic tie-break (e.g. by docID), not a preference. Larger \(k\) flattens the discount (more democratic); smaller \(k\) sharpens the top. Weighted RRF scales each ranker's term.</div></div>
               <div class="walk-state">fused</div>
             </div>
           </div>
@@ -1951,7 +1951,7 @@
               <h3>When fusion fails</h3>
               <ul class="obj-list">
                 <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">All rankers share the <em>same</em> blind spot &rarr; fusing adds nothing.</span></li>
-                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">One ranker is far stronger &rarr; the weak ones add noise; weight or drop them.</span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">One ranker is far stronger &rarr; the weak ones add noise; weight or drop them. Because RRF uses only ranks, a ranker that is highly confident on a few queries loses that signal &mdash; weighted RRF or score-aware fusion recovers it.</span></li>
                 <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text">Highly correlated lists &rarr; diversity, not redundancy, is what helps.</span></li>
               </ul>
             </div>

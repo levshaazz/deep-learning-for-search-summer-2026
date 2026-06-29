@@ -1,6 +1,6 @@
     {
       id: 'turn-distributional', kind: 'prose',
-      heading: { en: 'The company a word keeps', ru: 'Компания, которую водит слово', tt: 'Сүз йөрткән иптәшләр' },
+      heading: { en: 'The company a word keeps', ru: 'По компании, которую водит слово', tt: 'Сүз йөрткән иптәшләр' },
       body: {
         en: [
           "So where do the coordinates come from? Not from a dictionary, not from hand-labelling — from a single, deep observation made by the linguist J. R. Firth in 1957, and it's worth quoting straight: *\"You shall know a word by the company it keeps.\"* This is the **distributional hypothesis**, and once you see it you can't unsee it: a word's meaning is the distribution of *contexts* it appears in.",

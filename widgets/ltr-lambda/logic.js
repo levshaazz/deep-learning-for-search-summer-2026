@@ -74,9 +74,9 @@ export const mountLtrLambda = defineWidget({
     const ny = py + 64;
     add('ndcg', el('rect', { x: PAD, y: ny, width: W - 2 * PAD, height: 52, rx: 9, class: 'll-box' }, svg));
     add('ndcg', el('text', { x: PAD + 12, y: ny + 22, class: 'll-line' }, svg))
-      .textContent = `current order [j, i]:  nDCG = ${num4(nd.current)}  →  swap to [i, j]:  nDCG = ${num1(nd.afterSwap)}`;
+      .textContent = `order [j, i]: nDCG = ${num4(nd.current)} → swap [i, j]: nDCG = ${num4(nd.afterSwap)}`;
     add('ndcg', el('text', { x: PAD + 12, y: ny + 43, class: 'll-line2' }, svg))
-      .textContent = `${labels.deltaLabel || 'ΔnDCG'} = ${num1(nd.afterSwap)} − ${num4(nd.current)} = ${num4(nd.deltaNdcg)}`;
+      .textContent = `${labels.deltaLabel || 'ΔnDCG'} = ${num4(nd.afterSwap)} − ${num4(nd.current)} = ${num4(nd.deltaNdcg)}`;
 
     // ── STEP 3: λ = gradient · ΔnDCG as a force (i pushed up, j pushed down) ──
     const ly = ny + 68;

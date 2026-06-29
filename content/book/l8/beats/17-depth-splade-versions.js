@@ -8,7 +8,7 @@
         ],
         ru: [
           "Семейство улучшалось шагами. Оригинальный **SPLADE** (Formal, Piwowarski & Clinchant, SIGIR 2021) использовал **sum**-пулинг. Статья **SPLADE v2** (препринт arXiv 2021, где присоединяется Lassance) перешла на **max**-пулинг: **SPLADE-max** достигает MS MARCO MRR@10 \\(34{,}0\\), а с дистилляцией (**DistilSPLADE-max**) — \\(36{,}8\\). **SPLADE++** (статья SIGIR 2022, «From Distillation to Hard Negative Sampling») добавил жёсткие негативы, достигнув \\(38{,}0\\) и BEIR nDCG@10 \\(50{,}7\\).",
-          "Две детали, которые стоит не путать: пулинг версионно-зависим (sum в оригинале, max с v2), и «SPLADE v2» — это *препринт*, а публикация SIGIR'22 — это SPLADE++.",
+          "Две детали, которые стоит не путать: пулинг зависит от версии (sum в оригинале, max начиная с v2), и «SPLADE v2» — это *препринт*, а публикация SIGIR'22 — это SPLADE++.",
         ],
         tt: [
           "Гаилә адымлап яхшырды. Оригиналь **SPLADE** (Formal, Piwowarski & Clinchant, SIGIR 2021) **sum**-пулинг кулланды. **SPLADE v2** мәкаләсе (2021 arXiv препринты, анда Lassance кушыла) **max**-пулингка күчте: **SPLADE-max** MS MARCO MRR@10 \\(34{,}0\\) га җитә, ә дистилляция белән (**DistilSPLADE-max**) — \\(36{,}8\\) гә. **SPLADE++** (SIGIR 2022 мәкаләсе, «From Distillation to Hard Negative Sampling») каты негативлар өстәде, \\(38{,}0\\) гә һәм BEIR nDCG@10 \\(50{,}7\\) гә җитте.",
