@@ -41,6 +41,15 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Persist the content-addressed WebP cache so unchanged plates are never
+      # re-encoded (optimize-images.mjs → .cache/webp). Key on the PNG sources;
+      # restore-keys rolls the cache forward when only some images change.
+      - name: Cache optimized images (WebP)
+        uses: actions/cache@v4
+        with:
+          path: .cache/webp
+          key: webp-${{ hashFiles('Lectures/assets/img/**/*.png') }}
+          restore-keys: webp-
       - name: Build (astro build + copy decks)
         run: npm run build
       - uses: actions/upload-pages-artifact@v3

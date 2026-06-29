@@ -14,7 +14,9 @@
 // Runs after copy-static + astro build (both decks and book pages reference the
 // single shared image dir docs/Lectures/assets/img). Idempotent: a second run
 // finds no PNGs left and no .png refs to rewrite.
-import { readdir, readFile, writeFile, stat, unlink } from 'node:fs/promises';
+import { readdir, readFile, writeFile, stat, unlink, mkdir, copyFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
@@ -24,6 +26,12 @@ const DOCS = join(ROOT, 'docs');
 const IMG_DIR = join(DOCS, 'Lectures', 'assets', 'img');
 const QUALITY = 88;
 const MAX_DIM = 1920;
+// Content-addressed WebP cache: keyed on the PNG bytes + quality + max-dim, so an
+// unchanged plate is NEVER re-encoded. Persisted across CI runs via actions/cache
+// (.cache/webp) — turns the ~180-image conversion (~6s local / ~15-25s on a 2-core
+// runner) into near-instant copyFile()s whenever the source images didn't change.
+// Gitignored; the encode is deterministic so a hit is byte-identical to a cold run.
+const CACHE_DIR = join(ROOT, '.cache', 'webp');
 
 async function walk(dir, keep) {
   const out = [];
@@ -56,20 +64,32 @@ async function main() {
   // Each task returns its byte sizes; we total afterwards (a shared `x += await …`
   // would lose updates across concurrent workers — the read happens before the await).
   const pngs = await walk(IMG_DIR, (p) => p.endsWith('.png'));
+  await mkdir(CACHE_DIR, { recursive: true });
   const sizes = await mapLimit(pngs, 8, async (png) => {
-    const b = (await stat(png)).size;
+    const buf = await readFile(png);
+    const b = buf.length;
     const webp = png.replace(/\.png$/, '.webp');
-    await sharp(png)
-      .resize({ width: MAX_DIM, height: MAX_DIM, fit: 'inside', withoutEnlargement: true })
-      .webp({ quality: QUALITY })
-      .toFile(webp);
-    const a = (await stat(webp)).size;
+    const cached = join(CACHE_DIR, createHash('sha1').update(buf).digest('hex') + `-q${QUALITY}-d${MAX_DIM}.webp`);
+    let a, hit = false;
+    if (existsSync(cached)) {
+      await copyFile(cached, webp);            // cache hit — skip the sharp re-encode
+      a = (await stat(cached)).size;
+      hit = true;
+    } else {
+      await sharp(buf)
+        .resize({ width: MAX_DIM, height: MAX_DIM, fit: 'inside', withoutEnlargement: true })
+        .webp({ quality: QUALITY })
+        .toFile(webp);
+      a = (await stat(webp)).size;
+      await copyFile(webp, cached);            // populate the cache for next run
+    }
     await unlink(png);
-    return { b, a };
+    return { b, a, hit };
   });
   const before = sizes.reduce((s, x) => s + x.b, 0);
   const after = sizes.reduce((s, x) => s + x.a, 0);
-  console.log(`[optimize-images] ${pngs.length} PNG → WebP   ${mb(before)} → ${mb(after)}   (q${QUALITY}, ≤${MAX_DIM}px longest side)`);
+  const hits = sizes.filter((x) => x.hit).length;
+  console.log(`[optimize-images] ${pngs.length} PNG → WebP   ${mb(before)} → ${mb(after)}   (q${QUALITY}, ≤${MAX_DIM}px; ${hits} cached, ${pngs.length - hits} encoded)`);
 
   // 2 — Rewrite assets/img/…png references in the built HTML → .webp (keeps ?v=… query).
   const htmls = await walk(DOCS, (p) => p.endsWith('.html'));
