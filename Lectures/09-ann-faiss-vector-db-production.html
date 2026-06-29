@@ -184,7 +184,7 @@
   </div>
   <ol class="agenda-list">
     <li><strong>The death of linear scan</strong> — \(O(N\cdot d)\) cost <em>and</em> high-dimensional distance concentration (the Wraith). Why exact kNN can't fly the galaxy.</li>
-    <li><strong>Metrics</strong> — L2 vs cosine vs inner product on the <em>same</em> vectors; the same pair, three different top-1. The metric choice <em>is</em> a modelling choice.</li>
+    <li><strong>Metrics</strong> — L2 vs cosine vs inner product on the <em>same</em> vectors; the same pair, three different top-1. The metric choice <em>is</em> a modeling choice.</li>
     <li><strong>HNSW</strong> — a navigable small-world graph you <em>walk</em> to the query (greedy descent; the \(O(\log N)\) win; the ef / M knobs).</li>
     <li><strong>IVF</strong> — carve space into Voronoi cells; probe only the nearest (recall vs nprobe).</li>
     <li><strong>PQ</strong> — fold each vector to a handful of codebook bytes (32 → 4; ADC; the memory↔recall dial).</li>
@@ -257,7 +257,7 @@
     $$ d=10:\ \mathrm{cv}=\tfrac{0.2451}{1.2688}=\mathbf{0.1932};\qquad d=100:\ \mathrm{cv}=\tfrac{0.2445}{4.0620}=\mathbf{0.0602} $$
     $$ d=1000:\ \mathrm{cv}=\tfrac{0.2410}{12.9023}=\mathbf{0.0187} \;\Longrightarrow\; \text{near}\approx\text{far} $$
   </div>
-  <p class="small muted center mt-2">The spread \(\sigma\) barely moves; the mean \(\mu\) keeps growing, so the <strong>coefficient of variation collapses</strong> \(0.4784 \to 0.0187\). At \(d=1000\) every pair of points is almost the same distance apart — "the nearest" stops meaning anything, so exact nearest-neighbour becomes both fragile and expensive — the case for <em>approximate</em> search (next). Note this is not escaped by switching metric — cosine concentrates too (pairwise cosines shrink like \(1/\sqrt d\) toward orthogonality); we rank by angle for <em>semantic</em> reasons, not because angle is immune. The \(\mathrm{cv}=\sigma/\mu\) here is one lens on the same phenomenon the Book measures with the classic Beyer–Goldstein–Ramakrishnan–Shaft (1999) relative contrast \((d_{\max}-d_{\min})/d_{\min}\to 0\).</p>
+  <p class="small muted center mt-2">The spread \(\sigma\) barely moves; the mean \(\mu\) keeps growing, so the <strong>coefficient of variation collapses</strong> \(0.4784 \to 0.0187\). At \(d=1000\) every pair of points is almost the same distance apart — "the nearest" stops meaning anything, so exact nearest-neighbour becomes both fragile and expensive — the case for <em>approximate</em> search (next). Note this is not escaped by switching metric — cosine concentrates too (pairwise cosines shrink like \(1/\sqrt d\) toward orthogonality); we rank by angle for <em>semantic</em> reasons, not because angle is immune. The \(\mathrm{cv}=\sigma/\mu\) here is a <em>related</em> diagnostic — not identical — to the classic Beyer–Goldstein–Ramakrishnan–Shaft (1999) relative contrast \((d_{\max}-d_{\min})/d_{\min}\to 0\) the Book uses: cv is a population spread ratio, relative contrast an extreme-order-statistic ratio, but both collapse for the same reason — spread grows like \(\sqrt d\) while scale grows like \(d\).</p>
   <aside class="slide-notes">Distance-concentration by hand. 300 uniform-random points in [0,1]^d (seed 0). cv = std/mean of the pairwise Euclidean distances: 0.4784 (d=2) → 0.1932 (d=10) → 0.0602 (d=100) → 0.0187 (d=1000). All four μ/σ/cv triples are verbatim from data/l2-highd.json dims. The std stays ≈0.24 while μ grows from 0.52 to 12.90, so cv → 0. This is the geometric half of why exact NN dies; the next slide shows the histogram collapse.</aside>
 </section>
 <section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="08 Viz · Distance concentration">
@@ -306,7 +306,7 @@
 <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="11 Walkthrough · Ranking disagreement">
   <div class="slide-header">
     <h2>Same vectors, different top-1</h2>
-    <span class="slide-kicker">why the metric is a modelling choice, not a detail</span>
+    <span class="slide-kicker">why the metric is a modeling choice, not a detail</span>
   </div>
   <p class="small muted mt-2">Query \(q=[2,2,0,0]\) against \(d_1=[2,1,0,0]\), \(d_2=[3,3,0,0]\), \(d_3=[7,4,0,0]\). Watch each metric crown a <em>different</em> winner.</p>
   <div class="walk-flow">
@@ -386,7 +386,7 @@
     <div class="thm-statement small muted mt-2">Caveat: this is the <em>empirical / expected</em> complexity Malkov–Yashunin report, not a worst-case guarantee. The \(O(1)\)-hops-per-layer step assumes the graph stays navigable (the small-world property), which is unproven for general data — adversarial or strongly clustered inputs can degrade greedy search toward linear. Read the box as a heuristic derivation, not a closed proof.</div>
   </div>
 
-  <p class="small muted center mt-2">Malkov &amp; Yashunin (IEEE TPAMI 2018) — the layered small-world graph turns a linear scan into a logarithmic walk.</p>
+  <p class="small muted center mt-2">Malkov &amp; Yashunin (arXiv 2016; IEEE TPAMI 2020) — the layered small-world graph turns a linear scan into a logarithmic walk.</p>
   <aside class="slide-notes">O(log N) theorem thm-card (statement + proof). Layers keep a 1/m fraction each → ≈log_m N layers; O(1) expected hops per layer (small-world property) → O(1) summed over log_m N layers = O(log N). M sets the per-node degree m: more edges → denser → higher recall, more memory. Cited Malkov & Yashunin TPAMI 2018 (arXiv:1603.09320), matching data/l9-bench.json hnsw.complexity 'O(log N) search'. No invented decimals — purely asymptotic.</aside>
 </section>
 <section class="slide" data-type="archflow" data-max-step="3" data-current-step="0" data-screen-label="15 Climb · HNSW">
@@ -960,7 +960,7 @@
     <div class="def-body">
       <p>Split each vector into \(m\) <strong>subvectors</strong> and quantize each <em>independently</em> with its own little codebook of \(k\) centroids. A full vector's code is the tuple of \(m\) sub-codes — one point in the <strong>Cartesian product</strong> of the \(m\) subspaces.</p>
       <p>The payoff is combinatorial: you <em>store</em> only \(m\cdot k\) centroids, but the code can represent \(k^m\) distinct reconstructions. With \(m=8,\ k=256\): store \(8\times 256 = 2048\) centroids, address \(256^{8}\approx 1.8\times 10^{19}\) points.</p>
-      <p class="small muted">A single flat codebook covering that many regions would need \(k^m\) centroids — impossible to train or store. Splitting into a product of subspaces is what makes the compression affordable.</p>
+      <p class="small muted">Each of the \(m\cdot k\) centroids lives in only \(d/m\) dims, so the codebook itself costs just \(k\cdot d\) floats — no more than a single flat \(k\)-centroid codebook — yet it tiles \(k^m\) regions. A single flat codebook covering that many regions would need \(k^m\) centroids — impossible to train or store. Splitting into a product of subspaces is what makes the compression affordable.</p>
     </div>
   </div>
   <div class="viz-frame fig-fit" style="--fig-max:42cqh; --fig-w:34%;">
@@ -1074,7 +1074,7 @@
   <script class="widget-data" type="application/json">
 {"data": {"adcWorked": {"D": 8, "m": 4, "dStar": 2, "k": 4, "query": [2, 1, 0, 3, 4, 2, 1, 0], "subqueries": [[2, 1], [0, 3], [4, 2], [1, 0]], "codebooks": [[[2, 1], [0, 0], [3, 2], [1, 3]], [[0, 3], [2, 2], [4, 1], [1, 0]], [[4, 2], [1, 1], [2, 3], [0, 4]], [[1, 0], [3, 3], [0, 2], [2, 1]]], "adcTable": [[0, 5, 2, 5], [0, 5, 20, 10], [0, 10, 5, 20], [0, 13, 5, 2]], "dbVector": [3, 3, 0, 4, 1, 4, 4, 3], "dbSubvectors": [[3, 3], [0, 4], [1, 4], [4, 3]], "codes": [2, 0, 3, 1], "reconstructed": [3, 2, 0, 3, 0, 4, 3, 3], "adcDistance": 35, "exactDistance": 37}}, "labels": {"variant": "adc", "role": "img", "alt": "A 4x4 ADC distance table; tracing the db vector codes [2,0,3,1] sums to ADC distance 35, versus the exact distance 37 — the quantization error is 2.", "adcTableHead": "ADC distance table — squared sub-distances", "adcSubspace": "subspace", "adcStart": "one squared sub-distance per (subspace, centroid); trace the stored codes [2, 0, 3, 1] →", "adcSum": "sum of looked-up cells", "adcVs": "vs", "adcExact": "exact", "adcErr": "quantization error"}}
   </script>
-  <p class="viz-caption">Split the query into \(m=4\) subqueries and precompute an \(m\times k\) table of squared sub-distances. A database vector stored as codes \([2,0,3,1]\) costs \(\hat d^2=\sum_j \textrm{table}[j][\textrm{code}_j]=2+0+20+13=\mathbf{35}\) — four lookups, no full-vector math. The exact distance is \(37\); the gap of \(2\) is the quantization error.</p>
+  <p class="viz-caption">Split the query into \(m=4\) subqueries and precompute an \(m\times k\) table of squared sub-distances. A database vector stored as codes \([2,0,3,1]\) costs \(\hat d^2=\sum_j \textrm{table}[j][\textrm{code}_j]=2+0+20+13=\mathbf{35}\) — four lookups, no full-vector math. The exact distance is \(37\); the gap of \(2\) is the quantization error. ADC is asymmetric and biased: it measures distance to the per-subspace reconstruction, so these errors accumulate across the \(m\) subspaces — that accumulation is exactly what caps recall near \(0.7\) and what OPQ (the rotation in the production factory string) reduces.</p>
   <aside class="slide-notes">pq-quantize variant 'adc', maxStep 3 (one subspace row traced per step). ADC formula d̂²=Σ_j d(q_j, c_{j,code_j})². Codes [2,0,3,1] → table[0][2]=2, table[1][0]=0, table[2][3]=20, table[3][1]=13 → ADC=35 vs exactDistance=37, gap 2 = the quantization error. All numbers verbatim from data/l9-pq.json adcWorked. The point of PQ: near-exact distance computed cheaply from table lookups on the codes.</aside>
 </section>
 <section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="36 Viz · PQ memory across configs">
@@ -1609,9 +1609,9 @@ idx.nprobe = 16        # the recall<->work dial, set at query time</code></pre>
       <span class="ref-body">
         <span class="ref-authors">Malkov, Yu. &amp; Yashunin, D.</span> ·
         <span class="ref-title"><a href="https://arxiv.org/abs/1603.09320" target="_blank" rel="noopener">Efficient and robust approximate NN search using HNSW graphs</a></span> ·
-        <span class="ref-venue">IEEE TPAMI</span>
+        <span class="ref-venue">arXiv 2016 · IEEE TPAMI</span>
       </span>
-      <span class="ref-year">2018</span>
+      <span class="ref-year">2020</span>
     </li>
     <li>
       <span class="ref-body">

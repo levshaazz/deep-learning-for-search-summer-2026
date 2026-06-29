@@ -5,7 +5,7 @@
       imgAlt: {
         en: 'Captain Serega at a spaceship console, pointing through a viewport at the Galaxy of Information whose stars are made of 1s, 0s and documents.',
         ru: 'Капитан Серёга за пультом корабля показывает в иллюминатор на Галактику Информации, чьи звёзды сделаны из единиц, нулей и документов.',
-        tt: 'Капитан Серёга корабль пульты артында иллюминатор аша Мәгълүмат Галактикасына күрсәтә, аның йолдызлары берәмлекләрдән, нульләрдән һәм документлардан ясалган.',
+        tt: 'Капитан Серёга корабль пульты артында иллюминатор аша Мәгълүмат Галактикасына күрсәтә, аның йолдызлары берләрдән, нульләрдән һәм документлардан ясалган.',
       },
       imgCaption: {
         en: 'The mission is search: one flight across a galaxy whose stars are documents.',

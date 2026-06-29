@@ -174,8 +174,8 @@ function renderToy2({ host, data, labels, el }) {
 
   // ── frame geometry: two horizontal bands. The data x-range is shared (so hub nodes sit above their
   //    base twins); each band gets its own y sub-range. ──
-  const W = 480, PAD_L = 22, PAD_T = 26;
-  const plotW = W - 2 * PAD_L;
+  const W = 520, PAD_L = 22, PAD_T = 26;        // widened from 480 → 520: the right cluster (b6..b11)
+  const plotW = W - 2 * PAD_L;                  // packs 6 nodes; the extra width spreads them apart
   const bandH = 120, bandGap = 30;             // L1 band on top, L0 band below
   const l1Top = PAD_T, l0Top = PAD_T + bandH + bandGap;
   const xs = nodes.map((n) => n[0]).concat(q[0]);
@@ -214,15 +214,38 @@ function renderToy2({ host, data, labels, el }) {
     const ln = el('line', { x1: sx(nodes[i][0]), y1: syHub(), x2: sx(nodes[j][0]), y2: syHub(), class: 'hg-edge hg-edge-hub' }, svg);
     hubEdgeEl[i + '-' + j] = ln; hubEdgeEl[j + '-' + i] = ln;
   });
-  // ── descend connectors: dashed line from each hub node down to its base twin ──
+  // ── descend connectors: dashed L-elbow from each hub node down to its base twin. A STRAIGHT drop at
+  //    the node's own x can pierce an intervening base node that shares that x (e.g. b2's column also
+  //    holds b4) — so when the vertical corridor is blocked we jog the long vertical segment sideways
+  //    to a clear x, then jog back into the base twin. The elbow stays in the empty mid-gap so it never
+  //    re-enters a node circle. ──
+  const baseScreen = nodes.map((n) => ({ x: sx(n[0]), y: syBase(n[1]) }));
   (L1.members || []).forEach((i) => {
-    el('line', { x1: sx(nodes[i][0]), y1: syHub(), x2: sx(nodes[i][0]), y2: syBase(nodes[i][1]), class: 'hg-descend' }, svg);
+    const hx = sx(nodes[i][0]), hy = syHub();
+    const tx = sx(nodes[i][0]), ty = syBase(nodes[i][1]);
+    // is any OTHER base node inside the straight corridor (x within ±16, y strictly between hub & twin)?
+    const blocked = baseScreen.some((p, j) => j !== i && Math.abs(p.x - hx) < 16 && p.y > hy + 4 && p.y < ty - 4);
+    if (!blocked) {
+      el('line', { x1: hx, y1: hy, x2: tx, y2: ty, class: 'hg-descend' }, svg);
+    } else {
+      // jog the long vertical segment to a clear lane: pick the side with more empty room, then a
+      // single x that no base node sits near (scan outward from the column in the chosen direction).
+      const dir = hx < plotW * 0.5 + PAD_L ? 1 : -1;   // jog toward the page interior / the big mid-gap
+      let lane = hx + dir * 24;
+      for (let g = 0; g < 8; g++) {
+        const clear = baseScreen.every((p) => Math.abs(p.x - lane) > 18);
+        if (clear) break;
+        lane += dir * 14;
+      }
+      const yMid = hy + 18;                       // drop a little below the hub, then jog across
+      el('path', { d: `M${hx} ${hy} V${yMid} H${lane} V${ty} H${tx}`, class: 'hg-descend' }, svg);
+    }
   });
 
   // ── base nodes (every node) ──
   const baseNodeEl = nodes.map((n, i) => {
     const g = el('g', { class: 'hg-node', 'data-i': i }, svg);
-    el('circle', { cx: sx(n[0]), cy: syBase(n[1]), r: 12, class: 'hg-dot' }, g);
+    el('circle', { cx: sx(n[0]), cy: syBase(n[1]), r: 10, class: 'hg-dot' }, g);
     el('text', { x: sx(n[0]), y: syBase(n[1]) + 4, class: 'hg-nlbl', 'text-anchor': 'middle' }, g).textContent = names[i];
     return g;
   });
@@ -230,7 +253,7 @@ function renderToy2({ host, data, labels, el }) {
   const hubNodeEl = {};
   (L1.members || []).forEach((i) => {
     const g = el('g', { class: 'hg-node hg-hub', 'data-i': i }, svg);
-    el('circle', { cx: sx(nodes[i][0]), cy: syHub(), r: 12, class: 'hg-dot' }, g);
+    el('circle', { cx: sx(nodes[i][0]), cy: syHub(), r: 10, class: 'hg-dot' }, g);
     el('text', { x: sx(nodes[i][0]), y: syHub() + 4, class: 'hg-nlbl', 'text-anchor': 'middle' }, g).textContent = names[i];
     hubNodeEl[i] = g;
   });

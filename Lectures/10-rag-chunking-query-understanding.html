@@ -655,6 +655,7 @@
             <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Fixes:</strong> naïve chunking embeds each chunk <em>alone</em> → "it" / "the company" loses its referent.</span></li>
             <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Trick:</strong> attention saw the whole document, so every token vector is contextualized — pooling keeps it. No overlap-vs-context tradeoff.</span></li>
             <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Training-free:</strong> reuses any long-context embedder — just invert cut-then-embed (Günther et al., 2024).</span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Limit:</strong> the tradeoff vanishes only <em>within</em> the encoder's context window — a document longer than it must still be macro-split (the paper's "long late chunking" re-introduces a bounded overlap between macro-windows).</span></li>
           </ul>
         </div>
       </div>
@@ -690,7 +691,7 @@
       <ul class="obj-list">
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Why:</strong> what reads best for <em>retrieval</em> (a tight summary that matches a query) is not what reads best for <em>generation</em> (the full passage with the details). So split them: index the summary, store a pointer to the raw chunk.</span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Examples:</strong> summary-indexing, "parent-document" retrieval (match a small chunk, return its larger parent), and hypothetical-question indexing.</span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Callback (L8):</strong> ColBERT's per-token vectors are <em>also</em> a multi-representation index — many vectors per document instead of one. Same instinct, learned end-to-end. <em>(We taught it in L8; here it's one of several.)</em></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Callback (L8):</strong> ColBERT is a related but <em>distinct</em> idea — a multi-<em>vector</em> index: many vectors of the <em>same</em> text, not (as here) indexing a derived view and returning the original. <em>(We taught it in L8; here it's one of several.)</em></span></li>
       </ul>
     </div>
   </div>
@@ -883,7 +884,7 @@
   }
 }
   </script>
-  <p class="viz-caption">The true doc sits at rank 8 (recall@5=0, RR=0.125). HyDE embeds a hypothetical answer → rank 2 (recall@5=1, RR=0.5). Multi-query, on a separate 5-relevant gold-set, lifts recall@5 0.4→0.8.</p>
+  <p class="viz-caption">The true doc sits at rank 8 (recall@5=0, RR=0.125). HyDE embeds a hypothetical answer → rank 2 (recall@5=1, RR=0.5). Multi-query, on a separate 5-relevant gold-set, lifts recall@5 0.4→0.8 in this toy (4 of 5 found — one phrasing still misses the last gold doc).</p>
   <aside class="slide-notes">climb-queryrewrite widget (query-rewrite). Two recall senses on two gold-sets, never blended.</aside>
 </section>
 <section class="slide" data-type="formula" data-screen-label="28 Multi-query recall, by hand">
@@ -895,7 +896,7 @@
     $$ \text{recall@5} = \frac{|\text{gold} \cap \text{found}|}{|\text{gold}|}, \qquad |\text{gold}| = 5 $$
     $$ \text{single query: } 2/5 \Rightarrow \mathbf{0.4} \qquad \text{union of 3 paraphrases: } 4/5 \Rightarrow \mathbf{0.8} $$
   </div>
-  <p class="small muted center mt-2">The bare query finds 2 of the 5 relevant docs; three paraphrases together cover 4 of 5. The union doubles recall <em>without touching the retriever</em> — it just asks the same question several ways. (This is its own gold-set, never blended with HyDE's single-true-doc count.)</p>
+  <p class="small muted center mt-2">The bare query finds 2 of the 5 relevant docs; three paraphrases together cover 4 of 5 — one phrasing still misses the last gold doc. The union lifts recall <em>without touching the retriever</em> — it just asks the same question several ways. The lift is diversity-dependent with fast diminishing returns, and the extra candidates compete for the token budget, so this 0.4→0.8 is a toy, not a guaranteed doubling. (This is its own gold-set, never blended with HyDE's single-true-doc count.)</p>
   <aside class="slide-notes">multi-query union recall by-hand. l10-rewrite.multiQuery: single 2/5 = 0.4 → union 4/5 = 0.8 (both gated, anchored 2/5⇒0.4 and 4/5⇒0.8). Separate 5-relevant gold-set — never blended with HyDE's binary recall.</aside>
 </section>
 <section class="slide" data-type="formula" data-screen-label="29 HyDE, by hand">
@@ -1289,7 +1290,7 @@ WHERE indexed_at >= date_trunc(
     <span class="step-counter">0/4</span>
     <button data-step-act="next" aria-label="Next step">&rarr;</button>
   </div>
-  <aside class="slide-notes">cross-encoder re-rank e2e (l10-rerank). Bi-encoder order d1 d3 d4 d2 d5 buries the only graded-relevant doc (d2, gain 3) at rank 4; the cross-encoder re-scores the SAME 5 → d2 d4 d1 d3 d5, lifting d2 to rank 1. nDCG@5 0.4935 → 1.0, MRR 0.3333 → 1.0 (exact before-values kept in notes — 0.4935/0.3333 are not in the coverage pool, so only the perfect 1.0 is shown on-slide). You pay the cross-encoder on k candidates only, not the whole corpus. Callback L7 (the Judges).</aside>
+  <aside class="slide-notes">cross-encoder re-rank e2e (l10-rerank). Bi-encoder order d1 d3 d4 d2 d5 buries the only graded-relevant doc (d2, gain 3) at rank 4; the cross-encoder re-scores the SAME 5 → d2 d4 d1 d3 d5, lifting d2 to rank 1. nDCG@5 0.4935 → 1.0, MRR 0.3333 → 1.0 (exact before-values kept in notes — 0.4935/0.3333 are not in the coverage pool, so only the perfect 1.0 is shown on-slide). You pay the cross-encoder on k candidates only, not the whole corpus. But the cross-encoder is itself a fallible model — on hard pairs it can DEMOTE the right doc, and it adds k forward-pass latency; the gate is recall (it can only reorder what the bi-encoder surfaced) AND re-ranker quality. Callback L7 (the Judges).</aside>
 </section>
 <section class="slide" data-type="formula" data-screen-label="45 Re-rank, by hand">
   <div class="slide-header">

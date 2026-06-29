@@ -430,7 +430,7 @@
     $$ \text{ranks: } \underbrace{c_1}_{\text{rel}},\ \underbrace{c_2}_{\text{noise}},\ \underbrace{c_3}_{\text{rel}},\ \underbrace{c_4}_{\text{noise}} \quad\Rightarrow\quad \text{p@1}=\tfrac{1}{1}=1,\ \ \text{p@3}=\tfrac{2}{3} $$
     $$ \text{context precision} = \frac{1 + \tfrac{2}{3}}{2} = \mathbf{0.8333} $$
   </div>
-  <p class="small muted center mt-2">Walk the retrieved list; at each <em>relevant</em> rank, take precision@k (how clean the top-k is so far), then average over the relevant items. The first relevant chunk sits at rank 1 (perfect), but the second is buried under noise at rank 3 (only 2/3 clean). <strong>Relevant-but-low-ranked passages cost precision</strong> — this grades the retriever's ordering.</p>
+  <p class="small muted center mt-2">Walk the retrieved list; at each <em>relevant</em> rank, take precision@k (how clean the top-k is so far), then average over the relevant items. The first relevant chunk sits at rank 1 (perfect), but the second is buried under noise at rank 3 (only 2/3 clean). <strong>Relevant-but-low-ranked passages cost precision</strong> — this grades the retriever's ordering. (Here <em>#relevant = 2</em> = the relevant chunks that actually appear in the retrieved list; chunks never retrieved are recall's problem, not precision's.)</p>
   <aside class="slide-notes">context-precision by-hand. l11-ragas.precisionAtK: relevant at ranks 1 (p@1=1) and 3 (p@3=0.6667), 2 relevant total → (1 + 2/3)/2 = 0.8333 (gated contextPrecision). Noise at rank 2 between the relevants is what costs precision. Ranking-aware, like MAP from L1.</aside>
 </section>
 <section class="slide" data-type="formula" data-screen-label="15 Context recall, by hand">
@@ -478,7 +478,7 @@
     <div class="misc-label">What students think</div>
     <p class="misc-statement">&ldquo;RAGAS gives reference-free numbers, so the scores are objective ground truth — if faithfulness is 0.75, that is simply how faithful the answer is.&rdquo;</p>
     <button class="misc-reveal-btn" type="button">Reveal truth</button>
-    <div class="misc-truth">Every RAGAS metric is computed <em>by an LLM</em>: a model decides which claims are &ldquo;supported,&rdquo; generates the reverse-engineered questions, and judges relevance. The fractions are crisp, but the judgments behind them inherit the model's mistakes and biases. RAGAS is a fast, cheap, <strong>repeatable proxy</strong> — excellent for tracking regressions and comparing systems — but it is <em>not</em> a reference. Calibrate it against human labels on a sample, and never report a single decimal as if it were measured with a ruler. The decomposition is the real gift; the absolute number is a proxy.</div>
+    <div class="misc-truth">Every RAGAS metric is computed <em>by an LLM</em>: a model decides which claims are &ldquo;supported,&rdquo; generates the reverse-engineered questions, and judges relevance. The fractions are crisp, but the judgments behind them inherit the model's mistakes and biases. RAGAS is a fast, cheap, <strong>repeatable proxy</strong> — excellent for tracking regressions and comparing systems — but it is <em>not</em> a reference. The score also depends on the decomposition: a different judge model (or temperature) splits the answer into different claims, so faithfulness is not comparable across judge backends — fix the judge model and version before tracking it over time. Calibrate it against human labels on a sample, and never report a single decimal as if it were measured with a ruler. The decomposition is the real gift; the absolute number is a proxy.</div>
   </div>
   <p class="small muted center mt-2">Reference-free does not mean judgment-free. The same caveat is about to bite much harder when we let a model grade whole answers head-to-head.</p>
   <aside class="slide-notes">ragas-boundaries misconception. RAGAS metrics are LLM-computed (claim entailment, reverse-question generation, relevance scoring) — fast/cheap/repeatable proxy, not ground truth; calibrate vs human labels. Foreshadows the LLM-as-judge biases (and Goodhart) in Act 2/3.</aside>
@@ -605,7 +605,7 @@
     <tbody>
       <tr><td><strong>pointwise</strong></td><td>&ldquo;score this answer 1&ndash;5&rdquo;</td><td>one absolute number per answer; cheap</td><td>the scale drifts run-to-run</td><td>tracking one system over time</td></tr>
       <tr><td class="cell-good"><strong>pairwise</strong></td><td>&ldquo;which is better, A or B?&rdquo;</td><td>no shared scale to drift; more reliable</td><td>O(n&sup2;) comparisons to rank many</td><td>comparing two candidate systems</td></tr>
-      <tr><td><strong>reference-free</strong></td><td>judge from question + context only</td><td>no gold answer needed; scales</td><td>can't catch subtle factual gaps</td><td>open-ended generation, no key</td></tr>
+      <tr><td><strong>reference-free</strong></td><td>judge from question + answer (+ retrieved context)</td><td>no gold answer needed; runs at scale</td><td>can't catch subtle factual gaps</td><td>open-ended generation, no key</td></tr>
       <tr><td><strong>reference-based</strong></td><td>judge against a gold answer</td><td>catches missing/wrong facts</td><td>needs an expensive reference set</td><td>a curated benchmark exists</td></tr>
     </tbody>
   </table>
@@ -879,7 +879,7 @@
     $$ \text{recall@1 by step} = [\,0,\ 0,\ 1\,] $$
     $$ \text{step 0 (lookup founder): } 0 \quad\to\quad \text{step 1 (still no education): } 0 \quad\to\quad \text{step 2 (founder} \to \text{study): } \mathbf{1} $$
   </div>
-  <p class="small muted center mt-2">Track whether the top-1 retrieval holds the answer at each step. The first lookup returns the <em>founder's name</em> — useful, but not what was asked, so recall@1 stays <strong>0</strong>. Only after feeding that name into the second lookup does the answer appear: recall@1 jumps to <strong>1</strong>. <strong>A single shot stops at step 0 (recall 0); the loop closes the chain.</strong></p>
+  <p class="small muted center mt-2">Track whether the top-1 retrieval holds the answer at each step. The first lookup returns the <em>founder's name</em> — useful, but not what was asked, so recall@1 stays <strong>0</strong>. Only after feeding that name into the second lookup does the answer appear: recall@1 jumps to <strong>1</strong>. <strong>A single shot stops at step 0 (recall 0); the loop closes the chain.</strong> But the loop can also fail: a wrong first lookup poisons every later hop, and with no self-grading ReAct can loop forever or hallucinate an Observation — exactly the failure mode Self-RAG/CRAG add a grader to catch.</p>
   <aside class="slide-notes">react-recall by-hand. l11-agentic.react.recallByStep [0,0,1] (gated), hops 2, solved true. recall@1 stays 0 until the bridging fact (founder name) feeds hop 2 — a single-shot retriever would stop at recall 0. The arithmetic behind the agentic-loop climb.</aside>
 </section>
 <section class="slide" data-type="two-col" data-screen-label="37 ReAct, formally">

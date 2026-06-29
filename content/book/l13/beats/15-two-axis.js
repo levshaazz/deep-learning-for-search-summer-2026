@@ -15,7 +15,7 @@
       body: {
         en: [
           "The impostor exposes a confusion the field carried for years. *Hardness* is one axis — \\(\\cos(q, d^-)\\), how close a candidate sits to the query. But danger lives on a **second, orthogonal axis** — \\(\\cos(d^-, d^+)\\), how close it sits to the *positive*.",
-          "A worthy hard negative is close to the query and far from the positive: push it freely. An impostor is close to the query *and* close to the positive: push it and the positive comes along. On a query-only view the two look identical — same hardness, opposite truth. You cannot tell them apart without the second axis, or a label.",
+          "A worthy hard negative is close to the query and far from the positive: push it freely. An impostor is close to the query *and* close to the positive: push it and the positive comes along. From a query-only view the two look identical — same hardness, opposite truth. You cannot tell them apart without the second axis, or a label.",
         ],
         ru: [
           "Самозванец обнажает путаницу, которую поле несло годами. *Сложность* — одна ось, \\(\\cos(q, d^-)\\): насколько близко кандидат к запросу. Но опасность живёт на **второй, ортогональной оси**, \\(\\cos(d^-, d^+)\\): насколько близко он к *позитиву*.",
