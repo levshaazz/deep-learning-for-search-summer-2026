@@ -74,6 +74,15 @@ jobs:
           python-version: '3.12'
       - run: npm ci
 
+      # Persist the content-addressed WebP cache (optimize-images.mjs → .cache/webp) so unchanged
+      # plates are never re-encoded — turns the ~180-image conversion into near-instant copies.
+      - name: Cache optimized images (WebP)
+        uses: actions/cache@v4
+        with:
+          path: .cache/webp
+          key: webp-${{ hashFiles('Lectures/assets/img/**/*.png') }}
+          restore-keys: webp-
+
       # Build assembles BOTH the Book chapters (content/book/lN.js) and the decks (Lectures/NN-*.html)
       # from their fragments, then renders the site. Both are BUILD OUTPUT (gitignored), reassembled
       # byte-identically from their tracked fragments. Every gate below runs AFTER this step.
@@ -168,6 +177,14 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+
+      # Persist the content-addressed WebP cache (optimize-images.mjs → .cache/webp).
+      - name: Cache optimized images (WebP)
+        uses: actions/cache@v4
+        with:
+          path: .cache/webp
+          key: webp-${{ hashFiles('Lectures/assets/img/**/*.png') }}
+          restore-keys: webp-
 
       - name: Build site (assemble chapters + decks + render)
         run: npm run build
