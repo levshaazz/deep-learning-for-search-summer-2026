@@ -846,7 +846,51 @@
         </section>
 
         <!-- ============================================ 20 · THEOREM · why divide by root d_k (T6: misconception → variance proposition + proof) ============================================ -->
-        <section class="slide" data-type="theorem" data-screen-label="23 The root d_k variance theorem">
+        <!-- ============================================ 20b · TABLE · three attention-mask families (who attends to whom) ============================================ -->
+<section class="slide" data-type="table" data-screen-label="22b Attention-mask families">
+          <div class="slide-header">
+            <h2><span lang="ru">Кому позволено смотреть на кого</span><span lang="en">Who is allowed to look at whom</span></h2>
+            <span class="slide-kicker"><span lang="ru">одна треугольная маска делит мир Transformer надвое</span><span lang="en">one triangular mask splits the Transformer world in two</span></span>
+          </div>
+          <p class="small muted center" style="margin-bottom:var(--sp-2)"><span lang="ru">Self-attention <em>может</em> дать каждому токену видеть любой — но <em>стоит</em> ли всегда? Маска перед softmax решает, и из неё вытекают <strong>три семейства</strong>.</span><span lang="en">Self-attention <em>can</em> let every token see every other — but <em>should</em> it always? The mask before the softmax decides, and from it fall <strong>three families</strong>.</span></p>
+          <table class="cmp-table">
+            <thead><tr>
+              <th></th>
+              <th><span lang="ru">Только энкодер</span><span lang="en">Encoder-only</span></th>
+              <th><span lang="ru">Только декодер</span><span lang="en">Decoder-only</span></th>
+              <th><span lang="ru">Энкодер–декодер</span><span lang="en">Encoder–decoder</span></th>
+            </tr></thead>
+            <tbody>
+              <tr>
+                <td><span lang="ru">маска</span><span lang="en">mask</span></td>
+                <td class="cell-good"><span lang="ru"><strong>двунаправленная</strong> — полный квадрат</span><span lang="en"><strong>bidirectional</strong> — full square</span></td>
+                <td><span lang="ru"><strong>каузальная</strong> — нижний треугольник, будущее в \(-\infty\)</span><span lang="en"><strong>causal</strong> — lower triangle, future set to \(-\infty\)</span></td>
+                <td><span lang="ru">энкодер двунаправлен; декодер каузален + <em>кросс-внимание</em></span><span lang="en">encoder bidirectional; decoder causal + <em>cross-attention</em></span></td>
+              </tr>
+              <tr>
+                <td><span lang="ru">токен видит</span><span lang="en">a token sees</span></td>
+                <td><span lang="ru">весь вход, слева и справа</span><span lang="en">the whole input, left and right</span></td>
+                <td><span lang="ru">только себя и прошлое</span><span lang="en">only itself and the past</span></td>
+                <td><span lang="ru">источник целиком; цель — лишь прошлое</span><span lang="en">all of the source; the target only backwards</span></td>
+              </tr>
+              <tr>
+                <td><span lang="ru">пример</span><span lang="en">example model</span></td>
+                <td><span lang="ru">BERT</span><span lang="en">BERT</span></td>
+                <td><span lang="ru">GPT, Llama</span><span lang="en">GPT, Llama</span></td>
+                <td><span lang="ru">T5</span><span lang="en">T5</span></td>
+              </tr>
+              <tr>
+                <td><span lang="ru">для чего хорош</span><span lang="en">good for</span></td>
+                <td class="cell-good"><span lang="ru"><strong>понимание / поиск</strong> — эмбеддинги</span><span lang="en"><strong>understanding / search</strong> — embeddings</span></td>
+                <td><span lang="ru">генерация по одному токену</span><span lang="en">generation, one token at a time</span></td>
+                <td><span lang="ru">перевод / seq-to-seq</span><span lang="en">translation / seq-to-seq</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="small muted center mt-2"><span lang="ru">Та же механика — разница лишь в треугольной шторе над будущим. Поиск твёрдо в лагере энкодеров (BERT-style).</span><span lang="en">Same machinery — the only difference is a triangular curtain over the future. Search sits firmly in the encoder camp (BERT-style).</span></p>
+          <aside class="slide-notes">Self-attention lets every token see every other token — but should it always? That single question, answered by the mask placed before the softmax, splits the Transformer world into three architecture families. Encoder-only models like BERT use a bidirectional mask — a full square — so each token reads the whole input both ways; this is what you want for understanding and search, and it is exactly why dense retrievers are BERT-style encoders. Decoder-only models like GPT and Llama wear a causal mask: every score from a token to a later token is set to minus infinity before the softmax, so a token may attend only to itself and the past — never the future it has not generated yet — which is what makes one-token-at-a-time generation honest. Encoder-decoder models like T5 do both: a bidirectional encoder reads the full source, and a causal decoder generates the target while cross-attending back to the encoder — the cross-attention we forward-referenced on the previous slide. One triangular mask is the whole difference between reading and writing; search lives firmly in the encoder camp.</aside>
+        </section>
+<section class="slide" data-type="theorem" data-screen-label="23 The root d_k variance theorem">
           <div class="slide-header">
             <h2><span lang="ru">Почему \(\sqrt{d_k}\): дисперсия скоров растёт \(\propto d_k\)</span><span lang="en">Why \(\sqrt{d_k}\): score variance grows \(\propto d_k\)</span></h2>
             <span class="slide-kicker"><span lang="ru">не косметика — это предложение с доказательством</span><span lang="en">not cosmetic — a proposition with a proof</span></span>
