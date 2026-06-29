@@ -1515,6 +1515,24 @@ async function main() {
   if (!deckTargets.length) { console.log('[slide-viz] discovery returned 0 deck slides — falling back to curated DECK_TARGETS'); deckTargets = DECK_TARGETS; bookTargets = bookBuilt ? BOOK_TARGETS : []; }
   console.log(`[slide-viz] targets: ${deckTargets.length} deck slides + ${bookTargets.length} book widgets (HARD-gated under --strict)\n`);
 
+  // --shard i/n : partition the per-deck + per-chapter RENDERING across n parallel CI jobs
+  // (round-robin by deck/chapter index) so the gate's wall-clock drops to ~1/n. The static
+  // color-contract scan still runs in EVERY shard (it's a fast source scan, not a render),
+  // preserving full contract coverage per shard; --selftest exits earlier and is unaffected.
+  // Shards 1..n together cover EXACTLY the decks/chapters of an unsharded run — none dropped or doubled.
+  const shardIdx = argv.indexOf('--shard');
+  if (shardIdx >= 0 && /^\d+\/\d+$/.test(argv[shardIdx + 1] || '')) {
+    const [si1, sn] = argv[shardIdx + 1].split('/').map(Number);
+    const si = si1 - 1;
+    const deckOrder = [...new Set(deckTargets.map((t) => t.deck))];
+    const keepDeck = new Set(deckOrder.filter((_, k) => k % sn === si));
+    deckTargets = deckTargets.filter((t) => keepDeck.has(t.deck));
+    const chOrder = [...new Set(bookTargets.map((t) => t.chapter))];
+    const keepCh = new Set(chOrder.filter((_, k) => k % sn === si));
+    bookTargets = bookTargets.filter((t) => keepCh.has(t.chapter));
+    console.log(`[slide-viz] --shard ${si1}/${sn}: this shard renders ${keepDeck.size} deck(s) + ${keepCh.size} chapter(s)\n`);
+  }
+
   const results = [];
   let totalHard = 0, totalWarn = 0;
   const out = [];
