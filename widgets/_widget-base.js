@@ -90,6 +90,14 @@ export function defineWidget({ id, maxStep, render, rootClass, exportName, fade 
     const ctx = { host, data, labels, el: svgEl, svg: svgEl, esc, fmt, maxStep: MAX, ...rest };
     const update = render(ctx);
 
+    // Accessibility: every figure should expose a text alternative. SVG widgets set role/aria-label
+    // on their own <svg>; DOM-only figures (no [role="img"] descendant) get it on the host here,
+    // sourced from the trilingual i18n `alt` key (falls back gracefully if absent).
+    if (labels && labels.alt && !host.querySelector('[role="img"]')) {
+      host.setAttribute('role', 'img');
+      host.setAttribute('aria-label', labels.alt);
+    }
+
     // Caption + counter scaffold — appended AFTER the figure layers, unless the widget renders
     // its own (scaffold:false), in which case the factory leaves all caption/counter DOM to it.
     let cap = null, counter = null;

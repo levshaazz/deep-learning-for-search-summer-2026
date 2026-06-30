@@ -3,7 +3,7 @@
       heading: { en: 'One vector forgets', ru: 'Один вектор забывает', tt: 'Бер вектор оныта' },
       body: {
         en: [
-          "Recall the Scout from Lecture 7: a bi-encoder pools an entire document into **one** vector. That is fast and cacheable, but a single vector is a blurry average — a rare word or an exact phrase drowns in the mean. The evidence is in the BEIR benchmark: out of domain, robust **BM25** reaches nDCG@10 \\(0.43\\) while the dense **DPR** only \\(0.35\\). One pooled vector is not the whole story.",
+          "Recall the Scout from Lecture 7: a bi-encoder pools an entire document into **one** vector. That is fast and cacheable, but a single vector is a blurry average — a rare word or an exact phrase drowns in the mean. The evidence is in the BEIR benchmark: out of domain, robust **BM25** reaches nDCG@10 \\(0.43\\) while the dense **DPR** only \\(0.23\\). One pooled vector is not the whole story.",
           "So what if we refused to pool? What if we kept a vector **per token** and let the query interact with the document at the token level? That is *late interaction*, and the model that does it is ColBERT.",
         ],
         ru: [

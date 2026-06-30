@@ -106,7 +106,7 @@ BIENC    = load(DATA, "l7-biencoder.json")      # toy dot/cos (0.8165/0) + real 
 CROSSENC = load(DATA, "l7-crossencoder.json")   # toy logit→σ (0.9168/0.2497) + real distractor (Judge 0.9998 vs 0.1159, Scout 0.8434 vs 0.6875)
 CASCADE  = load(DATA, "l7-cascade.json")         # stages 10⁶→10³→10; BM25 nDCG 0.6766 → reranked 0.9558 (real cross-encoder on the L4 8-doc set)
 MSMARCO  = load(DATA, "l7-msmarco.json")         # frozen MS MARCO subset: retrieve MRR@10 0.5482 → rerank 0.6732 (rerank helps)
-BENCH7   = load(DATA, "l7-bench.json")           # CITED reranker benchmarks: small cross-encoder MRR@10 (L6 39.01 vs L12 39.02); LLM-reranker nDCG@10 (gpt-4 75.59, RankZephyr 78.16)
+BENCH7   = load(DATA, "l7-bench.json")           # CITED reranker benchmarks: small cross-encoder MRR@10 (L6 39.01 vs L12 39.02); LLM-reranker nDCG@10 (gpt-4 75.59, RankZephyr 74.20 matched BM25 top-100)
 
 # ── L8 (The Alliance: late interaction / ColBERT · learned sparse / SPLADE · hybrid · Learning to Rank).
 #    toy = stdlib-reproducible (gen_l8.py); real = frozen ColBERT/SPLADE (gen_l8_real.py, fail-soft);

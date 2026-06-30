@@ -190,7 +190,13 @@ function renderToy2({ host, data, labels, el }) {
   cents.forEach((c, ci) => {
     const cx = sx(c[0]), cy = sy(c[1]);
     el('path', { d: `M${cx} ${cy - 8} L${cx + 8} ${cy} L${cx} ${cy + 8} L${cx - 8} ${cy} Z`, class: 'iv-cent ' + cls(ci) }, svg);
-    el('text', { x: cx, y: cy - 12, class: 'iv-clbl', 'text-anchor': 'middle' }, svg).textContent = 'c' + ci;
+    // label sits above by default; if this centroid is nearly coincident with the query marker
+    // (e.g. toy2's c0 at [4,4] vs query [5,5]), flip it below-left so the 'c0' text and the ★ stay legible.
+    const nearQ = Math.abs(cx - sx(q[0])) < 22 && Math.abs(cy - sy(q[1])) < 22;
+    el('text', {
+      x: nearQ ? cx - 13 : cx, y: nearQ ? cy + 20 : cy - 12,
+      class: 'iv-clbl', 'text-anchor': nearQ ? 'end' : 'middle',
+    }, svg).textContent = 'c' + ci;
   });
 
   // ── query marker (★) ──

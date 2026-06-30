@@ -82,7 +82,7 @@ export const mountPagerankPower = defineWidget({
     const svg = s('svg', {
       viewBox: '0 -34 420 226', width: '100%', class: 'wgt-svg pr-svg',
       role: 'img',
-      'aria-label': 'Three-page link graph: A points to B, B points to C, C points to A and B, so B has two in-links and is the authority.',
+      'aria-label': (labels && labels.alt) || 'Three-page link graph: A points to B, B points to C, C points to A and B, so B has two in-links and is the authority.',
     }, gWrap);
     const defs = s('defs', null, svg);
     const mk = (id, fill) => {
