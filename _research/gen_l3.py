@@ -375,12 +375,12 @@ def main():
         "msmarco": {
             "metric": "MRR@10", "split": "MS MARCO passage dev",
             "BM25": 0.187, "denseDPR": 0.330, "ColBERT": 0.360,
-            "source": "Nguyen et al. 2016 (MS MARCO); BM25 baseline ≈0.187 MRR@10 (official Anserini/pyserini); DPR Karpukhin et al. 2020; ColBERT Khattab & Zaharia 2020"
+            "source": "Nguyen et al. 2016 (MS MARCO); BM25 ≈0.187 MRR@10 (official Anserini/pyserini); dense MS MARCO dev MRR@10 ≈0.33 from later DPR-style reproductions (RocketQA, Qu et al. 2021 / pyserini) — the original DPR paper (Karpukhin 2020) does not evaluate MS MARCO; ColBERT Khattab & Zaharia 2020"
         },
         "beir": {
             "metric": "nDCG@10", "split": "BEIR avg (18 datasets, zero-shot)",
-            "BM25": 0.43, "denseDPR": 0.35, "ColBERTv2": 0.50,
-            "source": "Thakur et al. 2021 (BEIR): BM25 avg nDCG@10 ≈0.43, a strong zero-shot baseline that many dense models fail to beat"
+            "BM25": 0.43, "denseDPR": 0.23, "ColBERTv2": 0.50,
+            "source": "Thakur et al. 2021 (BEIR), avg nDCG@10 over 18 zero-shot datasets: BM25 ≈0.43; original DPR (Karpukhin 2020 NQ checkpoint) only ≈0.23 (−47.7% vs BM25, the worst generalization in the paper); ColBERTv2 (Santhanam et al. 2022) ≈0.50 over its 13 reported BEIR sets"
         }
     }
 
@@ -435,6 +435,14 @@ def main():
         "_source": prov, "k": RRF_K,
         "lists": {"bm25": bm25_rank, "cosine": cosine_rank},
         "fused": fused, "order": [f["id"] for f in fused],
+    })
+
+    write_json(DATA / "l3-keywords.json", {
+        "_doc": "Live unsupervised keyphrase extraction (slide 37): the top TF-IDF terms of corpus doc D2 over "
+                "the 8-doc vocab. idf is the BM25-smoothed form ln(1+(N-df+0.5)/(df+0.5)) (slide 32) so the "
+                "weights carry straight into BM25; tfidf = tf * idf. Ranking: shuttle > crew/lost/maybe > better.",
+        "_source": prov, "doc": kw_doc, "N": N,
+        "terms": kw_terms,
     })
 
     # ── NEW FILES ───────────────────────────────────────────────────────────────────────────────────

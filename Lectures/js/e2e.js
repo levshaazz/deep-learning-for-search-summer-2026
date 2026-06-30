@@ -126,7 +126,16 @@
           return r && cur >= r.from && cur <= r.to;
         });
         const nameEl = owner ? owner.querySelector('.arch-name') : null;
-        stageName.textContent = nameEl ? nameEl.textContent.trim() : '';
+        // .arch-name holds BOTH <span lang="ru"> and <span lang="en"> (CSS hides the
+        // inactive one), so .textContent would concatenate them ("скорыscores").
+        // Read only the active-language span.
+        let nm = '';
+        if (nameEl) {
+          const lang = document.documentElement.getAttribute('data-lang') || 'en';
+          const span = nameEl.querySelector('[lang="' + lang + '"]') || nameEl.querySelector('[lang="en"]');
+          nm = (span || nameEl).textContent.trim();
+        }
+        stageName.textContent = nm;
       }
       /* Stepper buttons */
       if (stepperPrev) stepperPrev.disabled = cur <= 0;

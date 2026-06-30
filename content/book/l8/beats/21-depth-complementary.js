@@ -3,7 +3,7 @@
       heading: { en: 'Neither army wins alone', ru: 'Ни одна армия не побеждает одна', tt: 'Берсе дә ялгыз җиңми' },
       body: {
         en: [
-          "Why fuse at all? Because the two armies are genuinely complementary. On the zero-shot BEIR benchmark, robust **BM25** holds nDCG@10 \\(0.43\\) while dense **DPR** trails at \\(0.35\\) — yet on in-domain MS MARCO the order flips and dense wins easily. Lexical retrieval catches exact terms, rare words, and IDs; dense retrieval catches paraphrase and synonymy. Neither dominates everywhere.",
+          "Why fuse at all? Because the two armies are genuinely complementary. On the zero-shot BEIR benchmark, robust **BM25** holds nDCG@10 \\(0.43\\) while dense **DPR** trails at \\(0.23\\) — yet on in-domain MS MARCO the order flips and dense wins easily. Lexical retrieval catches exact terms, rare words, and IDs; dense retrieval catches paraphrase and synonymy. Neither dominates everywhere.",
           "That is the textbook case for fusion: when two systems make *different* mistakes, combining them recovers documents each alone would miss. The question is only how to combine rankings whose scores you cannot compare.",
         ],
         ru: [

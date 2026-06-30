@@ -168,8 +168,8 @@ def main():
         },
         "llmRerankers": {
             "metric": "nDCG@10 (TREC DL19, reranking the BM25 top-100)",
-            "bm25": 50.58, "monoT5_3b": 71.83, "gpt35": 65.80, "gpt4": 75.59, "rankZephyr": 78.16,
-            "source": "RankGPT Sun et al. 2023 Table 1 (arXiv 2304.09542); RankZephyr Pradeep et al. 2023 (arXiv 2312.02724)",
+            "bm25": 50.58, "monoT5_3b": 71.83, "gpt35": 65.80, "gpt4": 75.59, "rankZephyr": 74.20,
+            "source": "RankGPT Sun et al. 2023 Table 1 (arXiv 2304.09542); RankZephyr Pradeep et al. 2023 (arXiv 2312.02724) — all rows rerank the SAME BM25 top-100 for an apples-to-apples comparison: RankZephyr ≈74.2 here (its higher ~78 comes from a stronger SPLADE++ first stage, NOT comparable to the BM25-top-100 column)",
         },
     }
     write_json(DATA / "l7-bench.json", bench)
