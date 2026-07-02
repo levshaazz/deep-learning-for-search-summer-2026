@@ -1,0 +1,115 @@
+<section class="slide" data-type="archflow" data-max-step="5" data-current-step="0" data-screen-label="12 Archflow · attention по шагам">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Attention-слой по шагам</span>
+      <span lang="en">Building the attention layer</span>
+    </h2>
+    <span class="slide-kicker">Archflow · vector reveal</span>
+  </div>
+
+  <div class="af-stage">
+    <div class="af-canvas">
+      <!-- Edges are DECLARATIVE: the engine routes each arrow between
+           the referenced nodes' anchors (no hand coords). -->
+      <div class="af-edge" data-from-node="af-img" data-to-node="af-x" data-from="1" data-from-anchor="bottom" data-to-anchor="top"></div>
+      <div class="af-edge" data-from-node="af-x" data-to-node="af-q" data-from="2" data-from-anchor="right" data-to-anchor="left"></div>
+      <div class="af-edge" data-from-node="af-x" data-to-node="af-k" data-from="2" data-from-anchor="right" data-to-anchor="left"></div>
+      <div class="af-edge" data-from-node="af-x" data-to-node="af-v" data-from="2" data-from-anchor="right" data-to-anchor="left"></div>
+      <div class="af-edge" data-from-node="af-q" data-to-node="af-e" data-from="3" data-from-anchor="right" data-to-anchor="left"></div>
+      <div class="af-edge" data-from-node="af-k" data-to-node="af-e" data-from="3" data-from-anchor="right" data-to-anchor="left"></div>
+      <div class="af-edge" data-from-node="af-e" data-to-node="af-a" data-from="4" data-from-anchor="right" data-to-anchor="left"></div>
+      <div class="af-edge" data-from-node="af-a" data-to-node="af-y" data-from="5" data-from-anchor="right" data-to-anchor="left"></div>
+      <div class="af-edge" data-from-node="af-v" data-to-node="af-y" data-from="5" data-from-anchor="right" data-to-anchor="left"></div>
+
+      <!-- IMAGE node — a REAL image as a diagram node (here a tiny
+           self-contained data-URI; swap src for your PNG / feature-map). -->
+      <div class="af-node" id="af-img" data-role="image" data-from="1" style="left:5%;top:18%">
+        <img alt="Сырое входное изображение — рукописная цифра 7×7 px, превращается в эмбеддинги X"
+             src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='84'%20height='84'%20viewBox='0%200%207%207'%3E%3Crect%20width='7'%20height='7'%20fill='%23EFEAD9'/%3E%3Cg%20fill='%231E2330'%3E%3Crect%20x='1'%20y='1'%20width='4'%20height='1'/%3E%3Crect%20x='4'%20y='2'%20width='1'%20height='1'/%3E%3Crect%20x='3'%20y='3'%20width='1'%20height='1'/%3E%3Crect%20x='2'%20y='4'%20width='1'%20height='2'/%3E%3C/g%3E%3C/svg%3E">
+        <div class="af-imgcap">raw input</div>
+      </div>
+
+      <!-- INPUT matrix X (3 token row-vectors) -->
+      <div class="af-node af-matrix" id="af-x" data-role="input" data-from="1" data-focus="1" style="--cols:1;left:5%;top:50%">
+        <span class="af-cell">\(X_1\)</span><span class="af-cell">\(X_2\)</span><span class="af-cell">\(X_3\)</span>
+      </div>
+      <div class="af-label" data-from="1" style="left:5%;top:71%">\(X\!\in\!\mathbb{R}^{T\times d}\)</div>
+
+      <!-- Q, K, V matrices (each XW_*) -->
+      <div class="af-node af-matrix" id="af-q" data-role="query" data-from="2" data-focus="2" style="--cols:1;left:21%;top:22%">
+        <span class="af-cell">\(Q_1\)</span><span class="af-cell">\(Q_2\)</span><span class="af-cell">\(Q_3\)</span>
+      </div>
+      <div class="af-node af-matrix" id="af-k" data-role="key" data-from="2" data-focus="2" style="--cols:1;left:21%;top:50%">
+        <span class="af-cell">\(K_1\)</span><span class="af-cell">\(K_2\)</span><span class="af-cell">\(K_3\)</span>
+      </div>
+      <div class="af-node af-matrix" id="af-v" data-role="value" data-from="2" data-focus="2" style="--cols:1;left:21%;top:78%">
+        <span class="af-cell">\(V_1\)</span><span class="af-cell">\(V_2\)</span><span class="af-cell">\(V_3\)</span>
+      </div>
+
+      <!-- SCORE matrix E = QKᵀ/√d (3×3) -->
+      <div class="af-label" data-from="3" style="left:45%;top:12%">\(E=QK^\top/\sqrt{d_k}\)</div>
+      <div class="af-node af-matrix" id="af-e" data-role="score" data-from="3" data-focus="3" style="left:45%;top:42%">
+        <span class="af-cell">\(E_{11}\)</span><span class="af-cell">\(E_{12}\)</span><span class="af-cell">\(E_{13}\)</span>
+        <span class="af-cell">\(E_{21}\)</span><span class="af-cell">\(E_{22}\)</span><span class="af-cell">\(E_{23}\)</span>
+        <span class="af-cell">\(E_{31}\)</span><span class="af-cell">\(E_{32}\)</span><span class="af-cell">\(E_{33}\)</span>
+      </div>
+
+      <!-- WEIGHT matrix A = softmax(E) row-wise (first row highlighted) -->
+      <div class="af-label" data-from="4" style="left:70%;top:12%">\(A=\mathrm{softmax}_{\text{row}}(E)\)</div>
+      <div class="af-node af-matrix" id="af-a" data-role="weight" data-from="4" data-focus="4" style="left:70%;top:42%">
+        <span class="af-cell is-rowhi">\(A_{11}\)</span><span class="af-cell is-rowhi">\(A_{12}\)</span><span class="af-cell is-rowhi">\(A_{13}\)</span>
+        <span class="af-cell">\(A_{21}\)</span><span class="af-cell">\(A_{22}\)</span><span class="af-cell">\(A_{23}\)</span>
+        <span class="af-cell">\(A_{31}\)</span><span class="af-cell">\(A_{32}\)</span><span class="af-cell">\(A_{33}\)</span>
+      </div>
+      <div class="af-label" data-from="4" style="left:70%;top:72%">\(\textstyle\sum_j A_{1j}=1\)</div>
+
+      <!-- OUTPUT matrix Y = AV -->
+      <div class="af-node af-matrix" id="af-y" data-role="output" data-from="5" data-focus="5" style="--cols:1;left:93%;top:50%">
+        <span class="af-cell">\(Y_1\)</span><span class="af-cell">\(Y_2\)</span><span class="af-cell">\(Y_3\)</span>
+      </div>
+
+      <div class="af-focus"></div>
+    </div>
+
+    <div class="af-panel">
+      <div class="af-note is-current" data-step="0" data-label="overview">
+        <div class="af-formula">$$\mathrm{Attention}(Q,K,V)=\mathrm{softmax}\!\left(\tfrac{QK^\top}{\sqrt{d_k}}\right)V$$</div>
+        <p><span lang="ru">Соберём attention-слой по шагам. Жмите <kbd>→</kbd>.</span><span lang="en">Let's assemble the attention layer step by step. Press <kbd>→</kbd>.</span></p>
+      </div>
+      <div class="af-note" data-step="1" data-label="inputs">
+        <div class="af-note-head"><span lang="ru">Входы</span><span lang="en">Inputs</span></div>
+        <div class="af-formula">$$X \in \mathbb{R}^{T \times d}$$</div>
+        <p><span lang="ru">Сырой вход (картинка/текст) → <strong>T</strong> токенов, каждый — вектор размерности <strong>d</strong>.</span><span lang="en">Raw input (image/text) → <strong>T</strong> tokens, each a vector of dimension <strong>d</strong>.</span></p>
+      </div>
+      <div class="af-note" data-step="2" data-label="projections">
+        <div class="af-note-head"><span lang="ru">Проекции</span><span lang="en">Projections</span></div>
+        <div class="af-formula">$$Q=XW_Q,\ \ K=XW_K,\ \ V=XW_V$$</div>
+        <p><span lang="ru">Три обучаемые матрицы дают <strong>запросы</strong>, <strong>ключи</strong> и <strong>значения</strong>.</span><span lang="en">Three learned matrices give <strong>queries</strong>, <strong>keys</strong> and <strong>values</strong>.</span></p>
+      </div>
+      <div class="af-note" data-step="3" data-label="scores">
+        <div class="af-note-head"><span lang="ru">Скоры внимания</span><span lang="en">Attention scores</span></div>
+        <div class="af-formula">$$E_{ij}=\dfrac{Q_i\cdot K_j}{\sqrt{d_k}}$$</div>
+        <p><span lang="ru">Каждая ячейка \(E_{ij}\) — похожесть запроса \(i\) с ключом \(j\) (scaled dot-product). Матрица \(T\times T\).</span><span lang="en">Each cell \(E_{ij}\) — similarity of query \(i\) with key \(j\) (scaled dot-product). A \(T\times T\) matrix.</span></p>
+      </div>
+      <div class="af-note" data-step="4" data-label="weights">
+        <div class="af-note-head"><span lang="ru">Веса внимания</span><span lang="en">Attention weights</span></div>
+        <div class="af-formula">$$A_{ij}=\dfrac{e^{E_{ij}}}{\sum_{k} e^{E_{ik}}}$$</div>
+        <p><span lang="ru">Softmax <strong>по строкам</strong>: каждая строка \(E\) → распределение внимания, \(\sum_j A_{ij}=1\) (подсвечена строка&nbsp;1).</span><span lang="en">Softmax <strong>over rows</strong>: each row of \(E\) → an attention distribution, \(\sum_j A_{ij}=1\) (row&nbsp;1 highlighted).</span></p>
+      </div>
+      <div class="af-note" data-step="5" data-label="output">
+        <div class="af-note-head"><span lang="ru">Выход</span><span lang="en">Output</span></div>
+        <div class="af-formula">$$Y_i=\sum_j A_{ij}\,V_j$$</div>
+        <p><span lang="ru">Каждый выход \(Y_i\) — взвешенная сумма значений \(V_j\) по весам строки \(A_{i\cdot}\).</span><span lang="en">Each output \(Y_i\) — a weighted sum of values \(V_j\) using row \(A_{i\cdot}\).</span></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-controls">
+    <button data-step-act="prev" aria-label="Previous step">←</button>
+    <span class="step-counter">0/5</span>
+    <button data-step-act="next" aria-label="Next step">→</button>
+  </div>
+
+  <aside class="slide-notes">Тип <strong>archflow</strong> — векторная альтернатива «последовательности PNG». Диаграмма нарисована один раз; узлы/стрелки раскрываются по <kbd>→</kbd>, рамка-фокус ведёт к текущему элементу, правая панель синхронно показывает формулу (KaTeX) и двуязычную подпись. Геометрия выверена аудитом — не менять раскладку.</aside>
+</section>
+

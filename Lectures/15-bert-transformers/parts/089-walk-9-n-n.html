@@ -1,0 +1,76 @@
+<section class="slide" data-type="walkthrough" data-max-step="3" data-current-step="0" data-screen-label="88 Walk · Пример 9 — память n×n">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Память матрицы скоров \(n\times n\)</span>
+      <span lang="en">Memory of the \(n\times n\) score matrix</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">Пример 9 · fp16, на голову</span>
+      <span lang="en">Example 9 · fp16, per head</span>
+    </span>
+  </div>
+
+  <p class="small muted mt-2">
+    <span lang="ru">Матрица скоров \(E=QK^\top\) имеет размер \(n\times n\); в fp16 это \(2n^2\) байт <em>на голову</em>. Возьмём \(n=512/4\text{k}/32\text{k}\) и \(h=12\) голов.</span>
+    <span lang="en">The score matrix \(E=QK^\top\) is \(n\times n\); in fp16 that is \(2n^2\) bytes <em>per head</em>. Take \(n=512/4\text{k}/32\text{k}\) and \(h=12\) heads.</span>
+  </p>
+
+  <div class="walk-flow">
+
+    <div class="walk-step" data-step="1" data-color="violet">
+      <div class="walk-num">01</div>
+      <div class="walk-content">
+        <div class="walk-label">
+          <span lang="ru">Короткий контекст</span>
+          <span lang="en">Short context</span>
+        </div>
+        <div class="walk-detail">
+          <span lang="ru">\(n=512\): \(2\cdot512^2=0.52\) МБ на голову; \(\times12\) голов \(=6.3\) МБ. Почти бесплатно.</span>
+          <span lang="en">\(n=512\): \(2\cdot512^2=0.52\) MB per head; \(\times12\) heads \(=6.3\) MB. Almost free.</span>
+        </div>
+      </div>
+      <div class="walk-state">0.52 MB · ×12 = 6.3 MB</div>
+    </div>
+
+    <div class="walk-step" data-step="2" data-color="amber">
+      <div class="walk-num">02</div>
+      <div class="walk-content">
+        <div class="walk-label">
+          <span lang="ru">Длинный контекст</span>
+          <span lang="en">Long context</span>
+        </div>
+        <div class="walk-detail">
+          <span lang="ru">\(n=4\text{k}\): \(33.6\) МБ на голову; \(\times12=403\) МБ. Рост в \(64\times\) при \(8\times\) длине — квадратично.</span>
+          <span lang="en">\(n=4\text{k}\): \(33.6\) MB per head; \(\times12=403\) MB. A \(64\times\) jump for \(8\times\) length — quadratic.</span>
+        </div>
+      </div>
+      <div class="walk-state">33.6 MB · ×12 = 403 MB</div>
+    </div>
+
+    <div class="walk-step" data-step="3" data-final="true">
+      <div class="walk-num">→</div>
+      <div class="walk-content">
+        <div class="walk-label">
+          <span lang="ru">Очень длинный контекст — стена</span>
+          <span lang="en">Very long context — the wall</span>
+        </div>
+        <div class="walk-detail">
+          <span lang="ru">\(n=32\text{k}\): \(2.15\) ГБ на голову; \(\times12=25.8\) ГБ — только под скоры одного слоя. Это и есть \(O(n^2)\)-стена. FlashAttention / линейное → память \(O(n)\).</span>
+          <span lang="en">\(n=32\text{k}\): \(2.15\) GB per head; \(\times12=25.8\) GB — just for one layer's scores. This is the \(O(n^2)\) wall. FlashAttention / linear → \(O(n)\) memory.</span>
+        </div>
+      </div>
+      <div class="walk-state">2.15 GB · ×12 = 25.8 GB</div>
+    </div>
+
+  </div>
+
+  <div class="step-controls">
+    <button data-step-act="prev" aria-label="Previous step">←</button>
+    <span class="step-counter">0/3</span>
+    <button data-step-act="next" aria-label="Next step">→</button>
+  </div>
+
+  <aside class="slide-notes">Пример 9. Числа: n=512 → 0.52 МБ/голова, n=4k → 33.6 МБ/голова, n=32k → 2.15 ГБ/голова; ×12 голов = 6.3 МБ / 403 МБ / 25.8 ГБ. Память растёт квадратично по длине. Узкое место — именно материализация матрицы n×n в HBM, а не FLOPs.</aside>
+</section>
+
+<!-- 89 · DEFINITION · FlashAttention -->

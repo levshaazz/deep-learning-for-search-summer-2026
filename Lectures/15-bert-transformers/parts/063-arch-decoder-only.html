@@ -1,0 +1,69 @@
+<section class="slide" data-type="arch" data-screen-label="62 Arch · decoder-only блок">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Decoder-only блок</span>
+              <span lang="en">Decoder-only block</span>
+            </h2>
+            <span class="slide-kicker">
+              <span lang="ru">masked-attn → FFN → проекция в \(|V|\)</span>
+              <span lang="en">masked-attn → FFN → projection to \(|V|\)</span>
+            </span>
+          </div>
+
+          <div class="arch-diagram">
+            <div class="arch-node" data-color="violet">
+              <div class="arch-icon">x</div>
+              <div class="arch-name">
+                <span lang="ru">Вход + PE</span><span lang="en">Input + PE</span>
+              </div>
+              <div class="arch-shape">\((T, d)\)</div>
+            </div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node" data-color="amber">
+              <div class="arch-icon">M</div>
+              <div class="arch-name">
+                <span lang="ru">Masked self-attn</span><span lang="en">Masked self-attn</span>
+              </div>
+              <div class="arch-shape">
+                <span lang="ru">causal \(-\infty\)</span><span lang="en">causal \(-\infty\)</span>
+              </div>
+            </div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node" data-color="cyan">
+              <div class="arch-icon">FFN</div>
+              <div class="arch-name">
+                <span lang="ru">FFN + Add&amp;Norm</span><span lang="en">FFN + Add&amp;Norm</span>
+              </div>
+              <div class="arch-shape">\(\times L\)</div>
+            </div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node" data-color="green">
+              <div class="arch-icon">W</div>
+              <div class="arch-name">
+                <span lang="ru">Проекция в словарь</span><span lang="en">Vocab projection</span>
+              </div>
+              <div class="arch-shape">\((T, |V|)\)</div>
+            </div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node" data-color="green">
+              <div class="arch-icon">p</div>
+              <div class="arch-name">
+                <span lang="ru">softmax</span><span lang="en">softmax</span>
+              </div>
+              <div class="arch-shape">
+                <span lang="ru">\(p(x_t \mid x_{&lt;t})\)</span><span lang="en">\(p(x_t \mid x_{&lt;t})\)</span>
+              </div>
+            </div>
+          </div>
+
+          <p class="small muted mt-4 center">
+            <span lang="ru"><strong>Weight tying:</strong> входная матрица эмбеддингов = выходная проекция в \(|V|\) (одни веса, экономия параметров).</span>
+            <span lang="en"><strong>Weight tying:</strong> the input embedding matrix = the output projection to \(|V|\) (shared weights, parameter saving).</span>
+          </p>
+          <aside class="slide-notes">Decoder-only блок: только masked self-attn (нет cross-attention — её нет в decoder-only, только в enc-dec). Стек ×L, затем линейная проекция в |V| и softmax. Weight tying: вход-эмбеддинги и выходная матрица — одни веса.</aside>
+        </section>
+
+        <!-- ============================================
+             63 · DERIVATION · causal-маска = авторегрессия
+             ============================================ -->
+        

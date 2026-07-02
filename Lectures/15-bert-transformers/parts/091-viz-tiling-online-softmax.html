@@ -1,0 +1,43 @@
+<section class="slide" data-type="viz" data-screen-label="90 Viz · tiling + online softmax">
+          <div class="slide-header">
+    <h2>
+      <span lang="ru">Тайлинг по блокам + online softmax</span>
+      <span lang="en">Block tiling + online softmax</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">Без \(n\times n\) в HBM</span>
+      <span lang="en">No \(n\times n\) in HBM</span>
+    </span>
+  </div>
+          <div class="viz-frame">
+            <div style="display:flex;align-items:center;justify-content:center;gap:2.5em;flex-wrap:wrap;padding:1em">
+              <div style="text-align:center">
+                <div class="small muted" style="margin-bottom:.5em"><span lang="ru">Наивно: матрица \(n\times n\)</span><span lang="en">Naive: \(n\times n\) matrix</span></div>
+                <div style="display:grid;grid-template-columns:repeat(4,46px);grid-auto-rows:46px;gap:3px;margin:0 auto;width:max-content"><div style="background:rgba(239,68,68,.45);border-radius:3px"></div><div style="background:rgba(239,68,68,.45);border-radius:3px"></div><div style="background:rgba(239,68,68,.45);border-radius:3px"></div><div style="background:rgba(239,68,68,.45);border-radius:3px"></div><div style="background:rgba(239,68,68,.45);border-radius:3px"></div><div style="background:rgba(239,68,68,.45);border-radius:3px"></div><div style="background:rgba(239,68,68,.45);border-radius:3px"></div><div style="background:rgba(239,68,68,.45);border-radius:3px"></div><div style="background:rgba(239,68,68,.45);border-radius:3px"></div><div style="background:rgba(239,68,68,.45);border-radius:3px"></div><div style="background:rgba(239,68,68,.45);border-radius:3px"></div><div style="background:rgba(239,68,68,.45);border-radius:3px"></div><div style="background:rgba(239,68,68,.45);border-radius:3px"></div><div style="background:rgba(239,68,68,.45);border-radius:3px"></div><div style="background:rgba(239,68,68,.45);border-radius:3px"></div><div style="background:rgba(239,68,68,.45);border-radius:3px"></div></div>
+                <div style="margin-top:.5em">\(E=QK^\top\)</div>
+                <div class="small" style="color:#dc2626;margin-top:.3em"><span lang="ru">целиком в HBM &rarr; \(O(n^2)\) памяти</span><span lang="en">all in HBM &rarr; \(O(n^2)\) memory</span></div>
+              </div>
+              <div style="font-size:2.2em;color:var(--ink)">&rarr;</div>
+              <div style="text-align:center">
+                <div class="small muted" style="margin-bottom:.5em"><span lang="ru">FlashAttention: блоки в SRAM</span><span lang="en">FlashAttention: blocks in SRAM</span></div>
+                <div style="display:flex;align-items:center;gap:1.2em;justify-content:center">
+                  <div style="display:grid;grid-template-columns:repeat(2,64px);grid-auto-rows:64px;gap:6px"><div style="background:rgba(6,182,212,.85);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700">\(Q_iK_j^\top\)</div><div style="background:rgba(124,58,237,.14);border:1px dashed rgba(124,58,237,.4);border-radius:8px"></div><div style="background:rgba(124,58,237,.14);border:1px dashed rgba(124,58,237,.4);border-radius:8px"></div><div style="background:rgba(124,58,237,.14);border:1px dashed rgba(124,58,237,.4);border-radius:8px"></div></div>
+                  <div style="font-size:1.6em;color:#10b981">&rarr;</div>
+                  <div style="background:rgba(16,185,129,.12);border:2px solid #10b981;border-radius:10px;padding:.8em 1em;max-width:200px">
+                    <div style="font-weight:700;color:#047857">\(m,\ \ell,\ O\)</div>
+                    <div class="small muted"><span lang="ru">online softmax: бегущие \(\max\) и сумма</span><span lang="en">online softmax: running \(\max\) &amp; sum</span></div>
+                  </div>
+                </div>
+                <div class="small" style="color:#0e7490;margin-top:.5em"><span lang="ru">по одному блоку &rarr; \(O(n)\) памяти</span><span lang="en">block-by-block &rarr; \(O(n)\) memory</span></div>
+              </div>
+            </div>
+          </div>
+          <p class="viz-caption">
+    <span lang="ru">Вместо одной большой матрицы \(n\times n\) (слева, \(O(n^2)\)) считаем по блокам в быстрой SRAM (справа), обновляя бегущие \(\max\) и сумму — online softmax даёт <strong>тот же</strong> результат при памяти \(O(n)\).</span>
+    <span lang="en">Instead of one big \(n\times n\) matrix (left, \(O(n^2)\)) we compute tile by tile in fast SRAM (right), updating a running \(\max\) and sum — the online softmax gives the <strong>same</strong> result with \(O(n)\) memory.</span>
+  </p>
+
+          <aside class="slide-notes">Viz для FlashAttention. Слева — наивная материализация всей матрицы n×n в HBM (красный, O(n²)). Справа — тайлинг: блоки Q,K,V обрабатываются по одному в SRAM (cyan), а online softmax (зелёный аккумулятор m, ℓ, O) хранит бегущий максимум и сумму. Итог идентичен обычному attention, память O(n).</aside>
+        </section>
+
+<!-- 91 · DEFINITION · linear / sparse -->

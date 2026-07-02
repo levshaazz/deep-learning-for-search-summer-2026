@@ -1,0 +1,76 @@
+<section class="slide" data-type="walkthrough" data-max-step="3" data-current-step="0" data-screen-label="61 Walk · Пример 6 — causal-attention">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Пример 6 — causal-attention</span>
+              <span lang="en">Example 6 — causal attention</span>
+            </h2>
+            <span class="slide-kicker">
+              <span lang="ru">Разбор · query = \(t_2\)</span>
+              <span lang="en">Worked example · query = \(t_2\)</span>
+            </span>
+          </div>
+
+          <p class="small muted mt-2">
+            <span lang="ru">Три токена, query — <span class="term">\(t_2\)</span>, сырые скоры \((0,\,2,\,3)\) по \((t_1,t_2,t_3)\). Сравним без маски и с causal-маской.</span>
+            <span lang="en">Three tokens, query is <span class="term">\(t_2\)</span>, raw scores \((0,\,2,\,3)\) over \((t_1,t_2,t_3)\). Compare no-mask vs causal mask.</span>
+          </p>
+
+          <div class="walk-flow">
+            <div class="walk-step" data-step="1" data-color="cyan">
+              <div class="walk-num">01</div>
+              <div class="walk-content">
+                <div class="walk-label">
+                  <span lang="ru">Без маски — будущее доминирует</span>
+                  <span lang="en">No mask — the future dominates</span>
+                </div>
+                <div class="walk-detail">
+                  <span lang="ru"><code>softmax(0, 2, 3) = (0.035, 0.259, 0.705)</code>. Токен \(t_3\) (будущее!) забирает 70% веса — это утечка.</span>
+                  <span lang="en"><code>softmax(0, 2, 3) = (0.035, 0.259, 0.705)</code>. Token \(t_3\) (the future!) takes 70% of the weight — a leak.</span>
+                </div>
+              </div>
+              <div class="walk-state">(0.035, 0.259, 0.705)</div>
+            </div>
+
+            <div class="walk-step" data-step="2" data-color="amber">
+              <div class="walk-num">02</div>
+              <div class="walk-content">
+                <div class="walk-label">
+                  <span lang="ru">Ставим causal-маску</span>
+                  <span lang="en">Apply the causal mask</span>
+                </div>
+                <div class="walk-detail">
+                  <span lang="ru">Query \(t_2\) видит только \(t_1, t_2\). Скор \(t_3\) → \(-\infty\). Остаются \((0,\,2)\).</span>
+                  <span lang="en">Query \(t_2\) sees only \(t_1, t_2\). The \(t_3\) score → \(-\infty\). What remains is \((0,\,2)\).</span>
+                </div>
+              </div>
+              <div class="walk-state">(0, 2, −∞)</div>
+            </div>
+
+            <div class="walk-step" data-step="3" data-final="true">
+              <div class="walk-num">→</div>
+              <div class="walk-content">
+                <div class="walk-label">
+                  <span lang="ru">Softmax по разрешённым позициям</span>
+                  <span lang="en">Softmax over allowed positions</span>
+                </div>
+                <div class="walk-detail">
+                  <span lang="ru"><code>softmax(0, 2) = (0.119, 0.881)</code>, вес \(t_3 = 0\). Будущее исключено — авторегрессия сохранена.</span>
+                  <span lang="en"><code>softmax(0, 2) = (0.119, 0.881)</code>, weight of \(t_3 = 0\). The future is excluded — autoregression preserved.</span>
+                </div>
+              </div>
+              <div class="walk-state">(0.119, 0.881, 0)</div>
+            </div>
+          </div>
+
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">←</button>
+            <span class="step-counter">0/3</span>
+            <button data-step-act="next" aria-label="Next step">→</button>
+          </div>
+          <aside class="slide-notes">Пример 6. Числа байт-в-байт из board-numbers.md: no-mask softmax(0,2,3)=(0.035,0.259,0.705); causal softmax(0,2)=(0.119,0.881), вес t3=0. Обе суммы = 1.000. Маска применяется ДО softmax, поэтому −∞ → вес 0.</aside>
+        </section>
+
+        <!-- ============================================
+             62 · ARCH · decoder-only блок
+             ============================================ -->
+        

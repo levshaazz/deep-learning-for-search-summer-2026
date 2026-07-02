@@ -1,0 +1,80 @@
+<section class="slide" data-type="archflow" data-max-step="3" data-current-step="0" data-screen-label="97 Archflow · RLHF 3 стадии">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">RLHF в три стадии</span>
+      <span lang="en">RLHF in three stages</span>
+    </h2>
+    <span class="slide-kicker">SFT → Reward Model → PPO</span>
+  </div>
+
+  <div class="af-stage">
+    <div class="af-canvas">
+      <!-- EDGES (explicit anchors, left→right) -->
+      <div class="af-edge" data-from-node="af-base" data-to-node="af-sft" data-from="1" data-from-anchor="right" data-to-anchor="left"></div>
+      <div class="af-edge" data-from-node="af-sft" data-to-node="af-rm" data-from="2" data-from-anchor="right" data-to-anchor="left"></div>
+      <div class="af-edge" data-from-node="af-rm" data-to-node="af-ppo" data-from="3" data-from-anchor="right" data-to-anchor="left"></div>
+      <div class="af-edge" data-from-node="af-sft" data-to-node="af-ppo" data-from="3" data-from-anchor="bottom" data-to-anchor="bottom"></div>
+
+      <!-- NODES -->
+      <div class="af-node" id="af-base" data-role="input" data-from="0" data-focus="0" style="left:10%;top:42%">
+        <span lang="ru">Base LM</span><span lang="en">Base LM</span>
+      </div>
+      <div class="af-label" data-from="0" style="left:10%;top:62%">
+        <span lang="ru">предобучен</span><span lang="en">pretrained</span>
+      </div>
+
+      <div class="af-node" id="af-sft" data-role="query" data-from="1" data-focus="1" style="left:35%;top:42%">
+        <span lang="ru">SFT</span><span lang="en">SFT</span>
+      </div>
+      <div class="af-label" data-from="1" style="left:35%;top:64%">
+        <span lang="ru">демонстрации</span><span lang="en">demonstrations</span>
+      </div>
+
+      <div class="af-node" id="af-rm" data-role="score" data-from="2" data-focus="2" style="left:62%;top:42%">
+        <span lang="ru">Reward Model</span><span lang="en">Reward Model</span>
+      </div>
+      <div class="af-label" data-from="2" style="left:62%;top:64%">\(r_\phi(x,y)\)</div>
+
+      <div class="af-node" id="af-ppo" data-role="output" data-from="3" data-focus="3" style="left:88%;top:42%">
+        <span lang="ru">RL · PPO</span><span lang="en">RL · PPO</span>
+      </div>
+      <div class="af-label" data-from="3" style="left:88%;top:64%">
+        <span lang="ru">+ KL к SFT</span><span lang="en">+ KL to SFT</span>
+      </div>
+
+      <div class="af-focus"></div>
+    </div>
+
+    <div class="af-panel">
+      <div class="af-note is-current" data-step="0" data-label="overview">
+        <div class="af-formula">$$\text{Base LM}\ \to\ \text{SFT}\ \to\ \text{RM}\ \to\ \text{PPO}$$</div>
+        <p><span lang="ru">RLHF — это <strong>три стадии</strong> поверх предобученной LM. Жмите <kbd>→</kbd>.</span><span lang="en">RLHF is <strong>three stages</strong> on top of a pretrained LM. Press <kbd>→</kbd>.</span></p>
+      </div>
+      <div class="af-note" data-step="1" data-label="sft">
+        <div class="af-note-head"><span lang="ru">1 · SFT</span><span lang="en">1 · SFT</span></div>
+        <div class="af-formula">$$\max_\theta\ \mathbb{E}_{(x,y)\sim D}\big[\log \pi_\theta(y\mid x)\big]$$</div>
+        <p><span lang="ru"><strong>Supervised fine-tuning</strong> на демонстрациях «инструкция → ответ». Модель учится формату ответа.</span><span lang="en"><strong>Supervised fine-tuning</strong> on instruction → response demonstrations. The model learns the answer format.</span></p>
+      </div>
+      <div class="af-note" data-step="2" data-label="rm">
+        <div class="af-note-head"><span lang="ru">2 · Reward Model</span><span lang="en">2 · Reward Model</span></div>
+        <div class="af-formula">$$r_\phi(x,y)\ \ \text{из}\ \ y_w \succ y_l$$</div>
+        <p><span lang="ru"><strong>Reward Model</strong> учится на <em>сравнениях</em> людей (какой ответ лучше) и выдаёт скаляр-награду. RM <strong>≠</strong> финальная модель.</span><span lang="en">The <strong>Reward Model</strong> trains on human <em>comparisons</em> (which answer is better) and outputs a scalar reward. RM <strong>≠</strong> the final model.</span></p>
+      </div>
+      <div class="af-note" data-step="3" data-label="ppo">
+        <div class="af-note-head"><span lang="ru">3 · RL · PPO</span><span lang="en">3 · RL · PPO</span></div>
+        <div class="af-formula">$$\max_\theta\ \mathbb{E}\big[r_\phi(x,y)\big]-\beta\,\mathrm{KL}\!\big(\pi_\theta\,\|\,\pi_{\text{SFT}}\big)$$</div>
+        <p><span lang="ru"><strong>PPO</strong> оптимизирует политику-LM под награду RM с <strong>KL-штрафом</strong> к SFT — чтобы не «уезжать» и не reward-hack'ить.</span><span lang="en"><strong>PPO</strong> optimizes the policy LM against the RM reward with a <strong>KL penalty</strong> to SFT — to avoid drifting and reward hacking.</span></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-controls">
+    <button data-step-act="prev" aria-label="Previous step">←</button>
+    <span class="step-counter">0/3</span>
+    <button data-step-act="next" aria-label="Next step">→</button>
+  </div>
+
+  <aside class="slide-notes">RLHF (InstructGPT, Ouyang 2022) — 3 стадии: (1) SFT на демонстрациях; (2) Reward Model на человеческих сравнениях (скаляр-награда, RM ≠ финальная модель); (3) RL/PPO — оптимизация политики-LM под RM с KL-штрафом к SFT (защита от reward hacking). Простой left→right flow, анкоры явные.</aside>
+</section>
+
+<!-- 98 · DEFINITION · Reward Model -->

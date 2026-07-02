@@ -1664,6 +1664,88 @@ JOBS = [
      "(the student) who takes it up to re-ink their own questions; the Lexical Gremlin now steps aside, and the "
      "archive doors stand open. Earned, generous send-off. Black ink + course-blue + a warm-orange quill-glow; "
      "Serega's green tübetey is the ONLY green. No lettered title bar. Fills ≥85% width."),
+
+    # ---- L15 "The Loom of Attention" (BERT & other Transformers — from attention to RLHF). Metaphor:
+    #      Serega is a WEAVER at a great loom; words are threads; attention is where every thread crosses
+    #      every other. Reused cast cameo: Tokenosaurus (sub-word threads), the Lexical Gremlin (old literal
+    #      matcher). Serega in EVERY plate → satisfies the image-gate (>=40% + hero + final). ----
+    ("L15", "L15/L15-00-the-loom.png", "16:9", True,
+     "HERO. Serega the weaver stands at a great wooden LOOM, warm-orange warp-threads strung across it, a "
+     "fabric of meaning half-woven where every thread crosses every other; at the frayed left edge ONE old "
+     "overloaded single thread is straining and snapping (the RNN bottleneck it replaces). Air of calm craft "
+     "and quiet power, a small proud smile. CRITICAL — draw NO boxed title, NO framed caption card, and NO "
+     "hand-lettered character-name banner anywhere (absolutely NO 'Serega the Weaver' label box at the top or "
+     "anywhere else): the ONLY hand-lettered words permitted in the whole image are the four short scene tags "
+     "'loom', 'warp-threads', 'fabric of meaning', and 'RNN bottleneck', each floating beside the thing it "
+     "names. Black ink + course-blue loom + thin warm-orange threads; Serega's green tübetey is the ONLY "
+     "green. No lettered title bar, no header strip. Fills ≥85% width."),
+    ("L15", "L15/L15-01-attention-table.png", "4:3", True,
+     "words drawn as little thread-SPOOLS arranged around a round table; thin lines of DIFFERENT thickness "
+     "connect each spool to all the others (weights), a few links clearly bolder than the rest. Serega leans "
+     "in tuning the strongest link with one finger. Hand-lettered tags 'query' beside one spool, 'keys' along "
+     "the links. Black ink + course-blue spools + thin warm-orange links; Serega's green tübetey the ONLY "
+     "green. No lettered title bar. Fills ≥80% width."),
+    ("L15", "L15/L15-02-self-attention.png", "4:3", True,
+     "the SAME single row of word-thread-spools reaching across to one another (self-attention): one "
+     "ambiguous spool hand-lettered 'bank' glows and leans toward river-word-spools on one try and toward "
+     "money-word-spools on another, its meaning coloured by whichever neighbours it pulls toward. Serega "
+     "watches, delighted at the context. Black ink + course-blue + a thin warm-orange lean-line; Serega's "
+     "green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L15", "L15/L15-03-multi-head.png", "4:3", True,
+     "several SMALL looms lined up side by side, each weaving a DIFFERENT pattern from the same set of "
+     "threads (one a tidy grid, one a diagonal, one a loose weave) — the attention 'heads'. Serega walks the "
+     "row overseeing, then gathers the finished strips to sew into one. Black ink + course-blue looms + thin "
+     "warm-orange thread accents; Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L15", "L15/L15-04-transformer-block.png", "4:3", True,
+     "the loom MACHINE as one repeating powerful unit: an attention shuttle up top, a little feed-forward "
+     "GEARBOX below it, a curved residual BYPASS-LOOP carrying the original thread straight around, and a "
+     "round tension-GAUGE (LayerNorm) keeping the weave even; the whole unit stamped 'x N' to show it stacks. "
+     "Serega the mechanic stands beside it, oil-rag in hand. Black ink + course-blue machine + one warm-orange "
+     "gauge-needle; Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L15", "L15/L15-05-bert-bidirectional.png", "4:3", True,
+     "Serega MENDING a small hole in a finished piece of cloth, reading the threads from BOTH sides of the "
+     "gap at once (bidirectional) to know what colour to fill in — a little masked-out square patch hand-"
+     "lettered 'mask'. Arrows come in from the LEFT and the RIGHT into the hole. Black ink + course-blue cloth "
+     "+ a thin warm-orange fill-thread; Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L15", "L15/L15-06-pretrain-finetune.png", "4:3", True,
+     "one HUGE heavy bolt of woven cloth on a stand (woven once, expensively — 'pretrain'), and beside it "
+     "Serega quickly TAILORING a small neat garment cut from that same bolt ('fine-tune'), scissors and pins "
+     "in hand, a satisfied grin. A thin warm-orange thread runs from the big bolt to the little garment. Black "
+     "ink + course-blue; Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L15", "L15/L15-07-decoder-forward.png", "4:3", True,
+     "Serega weaving FORWARD one thread at a time along a strip, with a CURTAIN drawn across the loom hiding "
+     "all the threads AHEAD of his hands (the causal mask) so he can only use what is already woven behind "
+     "him; he reaches for the next thread without peeking. Hand-lettered tag 'next'. Black ink + course-blue "
+     "loom + warm-orange curtain-cord; Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L15", "L15/L15-08-gpt-scale.png", "4:3", True,
+     "the same forward loom grown ENORMOUS, towering over a tiny Serega at its base; at the top just a FEW "
+     "example rows are shown ('few-shot'), and the giant loom continues the pattern by itself down the whole "
+     "bolt with no one touching it (in-context learning). Serega looks up, small and amazed. Black ink + "
+     "course-blue giant loom + a thin warm-orange 'seen only a few' bracket; Serega's green tübetey the ONLY "
+     "green. No lettered title bar. Fills ≥80% width."),
+    ("L15", "L15/L15-09-three-families.png", "4:3", True,
+     "three looms in a row, each behaving differently, with a short hand-lettered tag under each: one reads a "
+     "whole finished cloth at once ('encoder'), one writes a strip forward thread by thread ('decoder'), one "
+     "reads an input cloth then weaves a new output ('enc-dec'). Serega presents them with an open hand. Black "
+     "ink + course-blue looms + thin warm-orange tag-underlines; Serega's green tübetey the ONLY green. No "
+     "lettered title bar. Fills ≥80% width."),
+    ("L15", "L15/L15-10-efficient-attention.png", "4:3", True,
+     "an ENORMOUS run of cloth far too long to cross every thread with every other; instead Serega weaves it "
+     "in tidy separate WINDOWS / blocks, with just a few long warm-orange SKIP-threads jumping between distant "
+     "blocks. A tiny hand-lettered 'n²' crossed out beside a giant tangle, next to a neat blocked weave. Black "
+     "ink + course-blue blocks + thin warm-orange skip-threads; Serega's green tübetey the ONLY green. No "
+     "lettered title bar. Fills ≥80% width."),
+    ("L15", "L15/L15-11-rlhf.png", "4:3", True,
+     "Serega the master weaver ADJUSTING the finished pattern to please a CUSTOMER trying the garment on in "
+     "front of a mirror (human preference); Serega turns a small round reward-DIAL and re-threads a row to "
+     "match the customer's happy nod. Hand-lettered tag 'reward'. Black ink + course-blue + one warm-orange "
+     "dial-mark; Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L15", "L15/L15-12-the-whole-loom.png", "16:9", True,
+     "FINAL. Serega steps back and gestures proudly at one finished TAPESTRY that weaves the whole journey "
+     "left to right: a frayed single-thread edge (RNN) → a dense all-crossing weave (attention) → a machine "
+     "panel (the Transformer block) → two woven scenes, one reading and one writing forward (BERT / GPT) → a "
+     "refined decorative border (RLHF). Earned, warm, generous send-off. Black ink + course-blue + thin "
+     "warm-orange thread highlights; Serega's green tübetey is the ONLY green. No lettered title bar. Fills ≥85% width."),
 ]
 
 H = {"Authorization": f"Bearer {API_KEY}"}

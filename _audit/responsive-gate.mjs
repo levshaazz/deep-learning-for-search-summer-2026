@@ -36,7 +36,10 @@ function discoverPages() {
 function pageChecks() {
   const de = document.documentElement;
   const overflow = de.scrollWidth - de.clientWidth;            // >0 → horizontal scroll
-  const figs = [...document.querySelectorAll('.wgt-svg, .wgt-panel, .cs-svg')];
+  // .wgt-svg/.wgt-panel/.cs-svg = interactive/scrolly figures; .beat-figure = a Book prose beat's
+  // illustration plate (a prose+plate chapter like L15 has no widgets but MUST still lay its plates out
+  // within the viewport). Counting plates here STRENGTHENS coverage (their responsiveness is now checked).
+  const figs = [...document.querySelectorAll('.wgt-svg, .wgt-panel, .cs-svg, .beat-figure')];
   const figBox = figs.map((f) => f.getBoundingClientRect());
   const figOk = figBox.length > 0 && figBox.every((b) => b.width > 0 && b.right <= window.innerWidth + 1);
   // any element wider than the viewport?
