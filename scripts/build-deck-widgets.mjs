@@ -33,7 +33,8 @@ const DECK_WIDGETS = ['course-map',
   'chunking-demo', 'query-rewrite', 'query-tree', 'raptor-tree', 'semantic-router', 'rag-control-flow',  // L10 "The Oracle" deck-mounted figures (rag-pipeline already listed)
   'ragas-metrics', 'llm-judge', 'agentic-loop',          // L11 "Judging the Oracle" deck-mounted figures
   'graphrag', 'clip-matrix',                             // L12 "The Deep Field" deck-mounted figures (rag-control-flow reused for CRAG/self-RAG callback)
-  'infonce-calc', 'hardness-sphere', 'mining-comparator', 'impostor-denoise'];  // L13 "The Crucible of Negatives" deck-mounted figures
+  'infonce-calc', 'hardness-sphere', 'mining-comparator', 'impostor-denoise',  // L13 "The Crucible of Negatives" deck-mounted figures
+  'hyde-embed', 'query-rewriter', 'rrf-fusion'];  // L14 "The Artificer's Quill" deck-mounted figures (rrf-fusion reused from L3)
 
 for (const id of DECK_WIDGETS) {
   await build({
@@ -75,6 +76,9 @@ const mountRule =
   '.slide .widget-mount[data-widget="hardness-sphere"]    { max-width: min(1160px, 62cqw); }\n' +
   '.slide .widget-mount[data-widget="mining-comparator"]  { max-width: min(1120px, 60cqw); }\n' +
   '.slide .widget-mount[data-widget="impostor-denoise"]   { max-width: min(1160px, 62cqw); }\n' +
+  '.slide .widget-mount[data-widget="hyde-embed"]         { max-width: min(1120px, 62cqw); }\n' +
+  '.slide .widget-mount[data-widget="query-rewriter"]     { max-width: min(1200px, 66cqw); }\n' +
+  '.slide .widget-mount[data-widget="rrf-fusion"]         { max-width: min(1120px, 60cqw); }\n' +
   // the cascade is HTML (not an autoscaling SVG): bump its type + bar height DECK-ONLY so it reads big on
   // 1920 without enlarging it in the narrower Book column.
   // size via calc(var(--fz-…)*k) so the font-gate sees an on-scale token (raw px/rem literals would HARD-fail it)

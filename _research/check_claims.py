@@ -160,6 +160,11 @@ BENCH12    = load(DATA, "l12-bench.json")    # CITED: GraphRAG (2404.16130), CLI
 NEG13      = load(DATA, "l13-negatives.json") # toy recall@10: in-batch .645 → +undenoised .411 (drops) → +denoised .783 (RocketQA inversion, 20 seeds)
 BENCH13    = load(DATA, "l13-bench.json")     # CITED: DPR Table 3 (2004.04906), RocketQA ablation (2010.08191), ANCE (2007.00808), STAR/ADORE, TAS-B
 
+# ── L14 "The Artificer's Quill" (deep-dive #2) — query rewriting & decomposition. toy = stdlib
+#    (gen_l14.py: set-overlap cosines, fully re-derivable from concept bags); bench = cited paper numbers. ──
+REWRITE14  = load(DATA, "l14-rewrite.json")   # toy vocab gap: gold rank 4→1 (raw→HyDE, cos 0.22→0.63), RM3 4→3 (ceiling); RRF [3,1,2] k=60 → 0.0484 > 0.0164; step-back cos 0.0→0.57; compose p^3 0.729
+BENCH14    = load(DATA, "l14-bench.json")     # CITED: HyDE (2212.10496), Query2doc +3–15% (2303.07678), Step-Back (2310.06117), Least-to-Most SCAN 99.7 vs 16.2 CoT (2205.10625), RRF k=60, RM3, GAR, Doc2Query
+
 # frozen run-once Ollama artifacts (REAL measured numbers; provenance recomputes the data/ "real" blocks from these)
 def load_research(name):
     try:
@@ -544,7 +549,7 @@ def claims():
              anchor=r"\b(32\.3)\s*%", must=True),
         dict(id="top-3 %",   deck="L1", value=CLICK["top3Pct"], tol=0.2,
              anchor=r"\b(60\.6)\b", must=True),
-    ] + l3_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims() + l11_deck_claims() + l12_deck_claims() + l13_deck_claims()
+    ] + l3_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims() + l11_deck_claims() + l12_deck_claims() + l13_deck_claims() + l14_deck_claims()
 
 # ── [C] BOOK CLAIMS: the built Book PROSE must show the same flagship numbers as data/ ───────────
 # The Book restates the decks' worked examples in its own prose/KaTeX, so the deck anchors do NOT
@@ -1241,9 +1246,14 @@ COVERAGE_BASELINE = {
     # near \(0.38\), l12 beats clip-matrix/clip-topk, EN+RU surfaces). The new gated BEIR value 0.35 is
     # already gated elsewhere (L13 Boltzmann weight), so nothing regressed; the bump only re-grandfathers
     # pre-existing correct numbers whose accidental cover moved. Strictly: the BEIR number is now pinned to 0.35.
-    "deck:L0": 0, "deck:L1": 1, "deck:L2": 6, "deck:L3": 46, "deck:L4": 30, "deck:L5": 42, "deck:L6": 25,
-    "book:L0": 0, "book:L1": 0, "book:L2": 8,  "book:L3": 10, "book:L4": 16, "book:L5": 10, "book:L6": 6,
+    # deck:L3/L4/L5 + book:L3/L4 TIGHTENED (2026-07) — the new l14_deck_claims() gate values (0.45/0.28/0.57/…)
+    # coincide with a few previously-grandfathered un-gated numbers on those surfaces, so the global gated set
+    # now covers them; ratchet the baselines down to the residual counts (the coverage-guard's own suggestion).
+    "deck:L0": 0, "deck:L1": 1, "deck:L2": 6, "deck:L3": 41, "deck:L4": 27, "deck:L5": 39, "deck:L6": 25,
+    "book:L0": 0, "book:L1": 0, "book:L2": 8,  "book:L3": 9,  "book:L4": 15, "book:L5": 10, "book:L6": 6,
     "deck:L12": 2, "book:L12": 2,
+    # deck:L14 "The Artificer's Quill" — all displayed toy numbers are now gated in l14_deck_claims() → 0.
+    "deck:L14": 0,
 }
 _COV_DEC   = re.compile(r'(?<![\d.,])\d+[.,]\d{2,}(?!\d)')# grounded signature: a decimal (dot OR RU comma), ≥2 fractional digits
 _COV_ARXIV = re.compile(r'^\d{4}[.,]\d{4,}$')             # arXiv id (e.g. 1901.04085) — not data
@@ -2225,6 +2235,103 @@ def l11_book_claims():
     ]
 
 
+# ── [C] L14 "The Artificer's Quill" deck: the query-rewriting toy numbers shown as visible prose/math,
+#    each gated to its data source (l14-rewrite.json) so deck==data and the coverage-guard stays at 0. ──
+def l14_deck_claims():
+    R = REWRITE14; T = R["techniques"]; SB = R["stepBack"]; MQ = R["multiQueryRRF"]; DC = R["decomposition"]
+    C = lambda id, value, anchor, tol=0.01: dict(id=id, deck="L14", value=value, tol=tol, anchor=anchor, must=True)
+    n = lambda s: r"(?<![\d.])(" + s + r")(?!\d)"     # a standalone decimal (not a fragment of a longer number)
+    return [
+        C("L14 raw cosGold",         T["raw"]["cosGold"],        n(r"0\.22")),   # trap outranks gold on the raw query
+        C("L14 raw cosTrap",         T["raw"]["cosTrap"],        n(r"0\.45")),
+        C("L14 rm3 cosGold",         T["rm3"]["cosGold"],        n(r"0\.28")),   # RM3 helps (4→3) but hits its ceiling
+        C("L14 hyde cosGold",        T["hyde"]["cosGold"],       n(r"0\.63")),   # the cosine jump 0.22→0.63
+        C("L14 hyde cosTrap",        T["hyde"]["cosTrap"],       n(r"0\.16")),
+        C("L14 stepback cosGeneric", SB["cosGenericPrinciple"],  n(r"0\.57")),   # generic query retrieves the principle
+        C("L14 rrf gold",            MQ["rrfGold"],              n(r"0\.0484"), 0.002),  # RRF consensus
+        C("L14 rrf singleHit",       MQ["rrfSingleHitRank1"],    n(r"0\.0164"), 0.002),  # a single rank-1 hit
+        C("L14 compose p^n",         DC["composeSuccess"],       n(r"0\.73")),   # error propagation 0.9^3 = 0.729
+    ]
+
+
+def provenance_l14(report):
+    """[P] L14 toy-recompute (gen_l14.py, stdlib): the query-rewriting toy is fully re-derivable from the
+    stored concept bags — set-overlap cosines, ranks (RR=1/rank), the RRF sum (k=60), and the
+    error-propagation p^n — plus the load-bearing ordering invariants (the raw query fails because the
+    lexical trap outranks the gold; HyDE lifts the gold to rank 1; raw > rm3 > hyde by rank; step-back
+    lifts the principle; RRF consensus beats a single hit). Guards drift before the deck's [C] claims land."""
+    W, B = REWRITE14, BENCH14
+    checks, flags = [], []
+    def need(cond, name):
+        if not cond:
+            flags.append(name)
+            report.append(("HARD", f"provenance-L14({name}): structural invariant broken"))
+
+    corpus = W["corpus"]
+    def cosb(a, b):
+        A, Bs = set(a), set(b)
+        return 0.0 if not A or not Bs else len(A & Bs) / math.sqrt(len(A) * len(Bs))
+    def ranked(qbag):
+        return sorted(((did, cosb(qbag, bag)) for did, bag in corpus.items()), key=lambda kv: (-kv[1], kv[0]))
+    def rank_of(qbag, doc):
+        return next((i for i, (did, _) in enumerate(ranked(qbag), 1) if did == doc), len(corpus) + 1)
+
+    gold, trap, prin = W["goldDocId"], W["trapDocId"], W["principleDocId"]
+    T = W["techniques"]
+
+    # ── cosines recomputed from the concept bags (like L10 retrievalMath) ──
+    checks.append(("raw.cosGold == cos(q,gold)", T["raw"]["cosGold"], round(cosb(W["queryBag"], corpus[gold]), 4), 1e-4))
+    checks.append(("raw.cosTrap == cos(q,trap)", T["raw"]["cosTrap"], round(cosb(W["queryBag"], corpus[trap]), 4), 1e-4))
+    checks.append(("hyde.cosGold == cos(h,gold)", T["hyde"]["cosGold"], round(cosb(T["hyde"]["hypotheticalBag"], corpus[gold]), 4), 1e-4))
+    checks.append(("hyde.cosTrap == cos(h,trap)", T["hyde"]["cosTrap"], round(cosb(T["hyde"]["hypotheticalBag"], corpus[trap]), 4), 1e-4))
+    checks.append(("rm3.cosGold == cos(q',gold)", T["rm3"]["cosGold"], round(cosb(T["rm3"]["expandedBag"], corpus[gold]), 4), 1e-4))
+
+    # ── ranks (RR = 1/rank) + rankedList == cosine order ──
+    for key, bag in (("raw", W["queryBag"]), ("rm3", T["rm3"]["expandedBag"]), ("hyde", T["hyde"]["hypotheticalBag"])):
+        checks.append((f"{key}.goldRank == rank(gold)", T[key]["goldRank"], rank_of(bag, gold), 0))
+        checks.append((f"{key}.rr == 1/rank", T[key]["rr"], round(1.0 / T[key]["goldRank"], 4), 1e-4))
+        need([d for d, _ in ranked(bag)] == T[key]["rankedList"], f"{key} rankedList == cosine order")
+    checks.append(("raw.trapRank == rank(trap)", T["raw"]["trapRank"], rank_of(W["queryBag"], trap), 0))
+
+    # ── step-back cosines (specific matches no principle; generic does) ──
+    sb = W["stepBack"]
+    checks.append(("stepBack.cosSpecific == cos(qsb,principle)", sb["cosSpecificPrinciple"], round(cosb(sb["specificBag"], corpus[prin]), 4), 1e-4))
+    checks.append(("stepBack.cosGeneric == cos(qgen,principle)", sb["cosGenericPrinciple"], round(cosb(sb["genericBag"], corpus[prin]), 4), 1e-4))
+
+    # ── RRF (k=60): Σ 1/(k+r); a single rank-1 hit ──
+    mq = W["multiQueryRRF"]; k = mq["k"]
+    checks.append(("rrf.gold == Σ 1/(k+r)", mq["rrfGold"], round(sum(1.0 / (k + r) for r in mq["paraphraseGoldRanks"]), 4), 1e-4))
+    checks.append(("rrf.singleHit == 1/(k+1)", mq["rrfSingleHitRank1"], round(1.0 / (k + 1), 4), 1e-4))
+    for i, r in enumerate(mq["paraphraseGoldRanks"]):
+        checks.append((f"rrf.term[{i}] == 1/(k+{r})", mq["rrfTerms"][i], round(1.0 / (k + r), 4), 1e-4))
+
+    # ── decomposition error propagation p^n ──
+    D = W["decomposition"]
+    checks.append(("decomp.compose == p^n", D["composeSuccess"], round(D["perHopSuccess"] ** D["hops"], 4), 1e-4))
+    need(all(r == 1 for r in D["recallSub"]), "decomp each sub found (recallSub all 1)")
+    need(D["recallJoint"] == 0, "decomp joint retrieval fails (recallJoint 0) ⇒ decomposition recovers all")
+
+    # ── the load-bearing ordering invariants (the three-gaps pedagogy; BAMs) ──
+    need(T["raw"]["cosTrap"] > T["raw"]["cosGold"], "raw query fails: trap outranks gold on surface words (vocab gap)")
+    need(T["raw"]["goldRank"] >= 3, "gold is buried under the raw query")
+    need(T["hyde"]["goldRank"] == 1, "HyDE lifts gold to rank 1")
+    need(T["raw"]["goldRank"] > T["rm3"]["goldRank"] > T["hyde"]["goldRank"], "ordering raw > rm3 > hyde by rank (RM3 helps but ceiling)")
+    need(sb["cosGenericPrinciple"] > sb["cosSpecificPrinciple"], "step-back: generic retrieves the principle better than specific")
+    need(mq["rrfGold"] > mq["rrfSingleHitRank1"], "RRF consensus beats a single top-1 hit")
+
+    # ── bench provenance: cited rows carry a source; the least-to-most 16.2 is the CoT column (SF-5) ──
+    need(B.get("cited") is True, "l14-bench marked cited")
+    need("chain-of-thought" in B["leastToMost"]["note"].lower(), "least-to-most 16.2 pinned as the chain-of-thought baseline column")
+
+    bad = 0
+    for name, a, b, tol in checks:
+        if abs(a - b) > tol:
+            bad += 1
+            report.append(("HARD", f"provenance-L14({name}): data/ disagree/invariant broken — {a} vs {b}"))
+    if not bad and not flags:
+        report.append(("OK", f"provenance-L14: {len(checks)} recompute + structural invariants consistent ✓"))
+
+
 def main():
     text = {k: p.read_text() for k, p in DECKS.items()}
     book = load_book()                              # built Book HTML (empty if docs/ not built)
@@ -2242,6 +2349,7 @@ def main():
     provenance_l10(report)                           # [P] L10 toy-recompute (RAG kMax/chunking containment/rewrite RR+recall)
     provenance_l11(report)                           # [P] L11 toy-recompute (RAGAS metrics/judge rubric+Goodhart flip/agentic) + REAL judge rates
     provenance_l12(report)                           # [P] L12 toy-recompute (GraphRAG multi-hop/CLIP cosine matrix) + REAL hallucination demo
+    provenance_l14(report)                           # [P] L14 toy-recompute (query-rewrite cosines/ranks/RR + RRF k=60 + step-back + p^n; deep-dive #2)
     for c in claims():                              # [C] deck == data/
         report.append(check_claim(c, text[c["deck"]]))
     if book:                                        # [C] Book == data/ (the Book restates the flagship numbers)
@@ -2673,10 +2781,16 @@ def selftest():
     print("[selftest:prov-L12-ethics]", next((m for s, m in repL12c if s == "HARD"), "provenance-L12 ethics: NO FLAG"))
     okL12 = okL12a and okL12b and okL12c
 
+    # New L14 [P]: query-rewrite recompute — a wrong RRF sum must flag (deep-dive #2).
+    repL14 = []; sv = REWRITE14["multiQueryRRF"]["rrfGold"]; REWRITE14["multiQueryRRF"]["rrfGold"] = 0.9999
+    provenance_l14(repL14); REWRITE14["multiQueryRRF"]["rrfGold"] = sv
+    okL14 = any(s == "HARD" and "provenance-L14(rrf.gold" in m for s, m in repL14)
+    print("[selftest:prov-L14-rrf]", next((m for s, m in repL14 if s == "HARD"), "provenance-L14 rrf: NO FLAG"))
+
     ok = (okD and okA and okP and okL3 and okL4 and okP2 and okL5 and okL6 and okP3 and okP4
           and okGX and okTK and okTS and okP5 and okP6 and okP7 and okP8 and okP9
           and okW and okU and okS and okT47 and okPE and okCX and okBK and okBW and okNCE and okCov
-          and okL7c and okL7p and okL8 and okL9 and okL10 and okL9X and okL10X and okL11L12X and okL11 and okL12)
+          and okL7c and okL7p and okL8 and okL9 and okL10 and okL9X and okL10X and okL11L12X and okL11 and okL12 and okL14)
     print("[selftest]", "PASS — claim-drift + bad-arithmetic + provenance-drift + L3/L4 + L5/L6 + L5-GloVe/t-SNE + L2-tokenizers + enrichment-trajectory + l6-contextual cross-file + L6-InfoNCE-bars (data + deck) + Book-prose deck & cross-file + coverage-guard ratchet (incl. data-only pins) + L7 BAM + L8 four cross-pillar BAMs + L9 (HNSW/IVF + metrics/ADC/codebook/highd/HNSW-toy2/IVF-toy2) + L10 (chunk/rewrite + budget/cos4/RRF/rerank/routing/RAPTOR) + L11 (RAGAS/Goodhart-flip/verbosity) + L12 (GraphRAG/CLIP/hallucination) BAMs all fire"
           if ok else "FAIL — a check is blind!")
     return 0 if ok else 1

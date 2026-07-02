@@ -1596,6 +1596,74 @@ JOBS = [
      "landing tucking one clue-card into the pouch. Serega points along the chain of hops. One short label "
      "'Joey Multi-Hop'. Black ink + course-blue + a warm-orange hop-arc; Serega's green tübetey is the ONLY "
      "green; Joey is bare-headed with no green."),
+
+    # ---- L14 "The Artificer's Quill" (advanced query rewriting & decomposition). Metaphor: Serega is the
+    #      Artificer; the enchanted Quill rewrites the captain's rough question. Antagonist: the Lexical
+    #      Gremlin (vocabulary mismatch). Cameos: Sir Cosine (geometry), Goodhart (the metric). ----
+    ("L14", "L14/L14-00-the-quill.png", "16:9", True,
+     "HERO. Serega the Artificer sits at a writing desk holding a glowing ENCHANTED QUILL, re-inking a rough "
+     "scroll-question into a cleaner one that the archive can actually read; behind him tall archive shelves, "
+     "and a small Lexical Gremlin peeks warily from a shelf. Air of craft and quiet power. Black ink + "
+     "course-blue + a warm-orange quill-glow; Serega's green tübetey is the ONLY green. No lettered title bar. "
+     "Fills ≥85% width."),
+    ("L14", "L14/L14-01-gremlin-door.png", "4:3", True,
+     "The Lexical Gremlin — a small ink-outlined gatekeeper creature — guards the archive door and turns away a "
+     "scroll whose WORDS do not match the words carved on the shelves, even though the true answer sits just "
+     "inside. Serega watches, realising the query must be reworded, not the archive. Black ink + course-blue "
+     "door + a warm-orange rejected-scroll; Serega's green tübetey is the ONLY green. No lettered title bar."),
+    ("L14", "L14/L14-02-old-quill.png", "4:3", True,
+     "The OLD quill: Serega holds a plain grey feather that can only copy words it already sees, re-tracing "
+     "terms from a small stack of just-retrieved scrolls — it cannot invent the missing word, and a faint "
+     "dashed line shows it drifting back onto its own first pass (the classical pseudo-relevance-feedback "
+     "ceiling). Black ink + course-blue scrolls + a warm-orange dashed drift; Serega's green tübetey is the "
+     "ONLY green. No lettered title bar."),
+    ("L14", "L14/L14-03-hyde-hypothetical.png", "4:3", True,
+     "HyDE: with the enchanted quill Serega drafts a HYPOTHETICAL answer-scroll — the answer he wishes he had — "
+     "written in the archive's own technical wording, then folds it into a glowing lens to search with. The "
+     "drafted answer, not the question, becomes the key. Black ink + course-blue + a warm-orange answer-glow; "
+     "Serega's green tübetey is the ONLY green. No lettered title bar."),
+    ("L14", "L14/L14-04-two-spaces.png", "4:3", True,
+     "Sir Cosine (a courtly compass-and-protractor figure) shows Serega two regions on a unit circle: a "
+     "QUESTION-space where the raw query sits stranded near a decoy, and a DOCUMENT-space where the drafted "
+     "pseudo-answer lands right beside the true scroll. An arrow shows the nearest neighbour flipping from "
+     "decoy to gold. Black ink + course-blue arcs + a warm-orange flip-arrow; Serega's green tübetey is the "
+     "ONLY green; Sir Cosine is bare-headed with no green. No lettered title bar."),
+    ("L14", "L14/L14-05-step-back-ladder.png", "4:3", True,
+     "STEP-BACK: Serega climbs a tall ladder up from a hyper-specific little question card at the bottom to a "
+     "broad PRINCIPLE inscribed on a high shelf, retrieves the principle, then points back down to answer the "
+     "specific — 'climb to retrieve, descend to answer'. Black ink + course-blue ladder + a warm-orange "
+     "principle-glow; Serega's green tübetey is the ONLY green. No lettered title bar."),
+    ("L14", "L14/L14-06-many-casts.png", "16:9", True,
+     "MULTI-QUERY: Serega casts FIVE differently-worded fishing lines from one question into the archive-sea, "
+     "each phrased line hooking a different relevant scroll — many wordings hedge the Gremlin's word-matching. "
+     "Black ink + course-blue water + warm-orange lines; Serega's green tübetey is the ONLY green. No lettered "
+     "title bar."),
+    ("L14", "L14/L14-07-rrf-consensus.png", "4:3", True,
+     "RRF fusion: three separate ranked columns of scrolls flow together, and the ONE scroll that several "
+     "columns agree on near the top rises to the crown of a merged list, outranking a scroll that only a "
+     "single column loved — consensus wins. Serega tallies the reciprocal ranks. Black ink + course-blue "
+     "columns + a warm-orange winning-scroll; Serega's green tübetey is the ONLY green. No lettered title bar."),
+    ("L14", "L14/L14-08-split-scroll.png", "4:3", True,
+     "DECOMPOSITION: Serega snips one long compound scroll-question into three tidy atomic sub-question strips, "
+     "sending each to fetch its own answer-scroll from a different shelf, then gathers them to compose the "
+     "final reply. Black ink + course-blue shelves + warm-orange snip-line; Serega's green tübetey is the ONLY "
+     "green. No lettered title bar."),
+    ("L14", "L14/L14-09-quill-learns.png", "4:3", True,
+     "The TRAINABLE quill (Rewrite-Retrieve-Read): the enchanted quill sharpens its OWN nib on a small "
+     "whetstone as a warm-orange reward-arrow loops back from a good final answer — the quill learning to "
+     "rewrite better. Serega nods, an apprentice-turned-master. Black ink + course-blue + a warm-orange reward "
+     "loop; Serega's green tübetey is the ONLY green. No lettered title bar."),
+    ("L14", "L14/L14-10-the-tax.png", "4:3", True,
+     "THE TAX: a small ledger-and-coin scene — every rewrite costs an extra LLM-call coin — with Goodhart, the "
+     "sly metric-gaming trickster, peeking over a recall gauge and tempting a verbose, padded rewrite. Serega "
+     "weighs the cost against the gain, choosing to pay only for the gap he has. Black ink + course-blue ledger "
+     "+ warm-orange coins; Serega's green tübetey is the ONLY green; Goodhart is bare-headed with no green. No "
+     "lettered title bar."),
+    ("L14", "L14/L14-11-captain-takes-quill.png", "16:9", True,
+     "FINAL. Serega lays the enchanted Quill down on the desk and, with a warm nod, hands it to the captain "
+     "(the student) who takes it up to re-ink their own questions; the Lexical Gremlin now steps aside, and the "
+     "archive doors stand open. Earned, generous send-off. Black ink + course-blue + a warm-orange quill-glow; "
+     "Serega's green tübetey is the ONLY green. No lettered title bar. Fills ≥85% width."),
 ]
 
 H = {"Authorization": f"Bearer {API_KEY}"}
