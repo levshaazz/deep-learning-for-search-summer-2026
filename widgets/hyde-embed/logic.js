@@ -56,11 +56,11 @@ export const mountHydeEmbed = defineWidget({
       txt(name, x(c), ly, 'hyde-mlbl ' + cls, 'middle', `${label} · ${f2(c)}`);
     }
 
-    // top axis title
+    // top axis title (declare the layer BEFORE adding to it)
+    layer('title', 0);
     txt('title', W / 2, 26, 'hyde-title', 'middle', labels.axisLabel || 'cosine to the query');
 
     // RAW row (from step 0; markers from step 1)
-    layer('title', 0);
     layer('rawAxis', 0); axis('rawAxis', rawY, true);
     txt('rawAxis', AX0, rawY - 26, 'hyde-row', 'start', labels.rawRow || 'raw query');
     layer('rawMark', 1);
