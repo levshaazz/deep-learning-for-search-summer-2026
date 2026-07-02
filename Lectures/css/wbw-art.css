@@ -48,7 +48,7 @@
 /* --- corner cameo: small decorative Serega, never interactive --- */
 .cameo {
   position: absolute;
-  width: clamp(110px, 11vw, 168px);
+  width: clamp(150px, 13vw, 208px);       /* bump: cameos were too small/faint to read (2026-07) */
   height: auto;
   pointer-events: none;
   opacity: .96;
@@ -448,6 +448,41 @@ hr.wbw-rule {
   box-shadow: 4px 5px 0 rgba(20, 24, 31, .10);
 }
 .def-card .def-term { font-family: 'Patrick Hand', var(--font-serif); }
+
+/* =========================================================
+   CARD READABILITY FIX (2026-07) — def-cards used OUTSIDE data-type="definition"
+   (on two-col / viz / default slides) previously fell back to an UNSTYLED .def-tag
+   (tiny, hugging the hand-drawn top-left border) and a default-size formula. Give
+   every def-card enough padding to clear its wobbly border, a legible block header,
+   and a bigger formula. The definition-slide rules (specificity 0,3,0) still win
+   where they apply, so single-term definition slides are untouched. Reversible.
+   ========================================================= */
+.def-card { padding: clamp(1.3rem, 1.6vw, 2.1rem) clamp(1.6rem, 2vw, 2.6rem); position: relative; }
+.def-card .def-tag {
+  display: block;
+  font-size: var(--fz-lead, 1.3rem);
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: .03em;
+  color: var(--accent-ink, #1B4FA0);
+  margin: 0 0 clamp(0.7rem, 1vw, 1.1rem);
+}
+.def-card .def-term { font-size: var(--fz-h3, 1.6rem); line-height: 1.3; }
+.def-card .def-term .katex { font-size: var(--fz-h2, 2.2rem); }  /* KaTeX display formulas read far too small in cards */
+.def-card .def-body { font-size: var(--fz-lead, 1.25rem); line-height: 1.5; }
+/* symbol legend under a formula: "where q = the query, d⁺ = the positive passage, τ = temperature". */
+.def-where {
+  font-size: var(--fz-body, 1.15rem);
+  line-height: 1.55;
+  color: var(--ink-2);
+  margin: clamp(0.55rem, 0.9vw, 1rem) 0 0;
+}
+.def-where b, .def-where strong { font-family: 'Patrick Hand', var(--font-mono); font-weight: 700; color: var(--ink); }
+
+/* corner cameo (decorative) must not sit on top of body text: give the nearest bottom text block a
+   right gutter the width of the .br cameo, and let a hero image on default slides show a bit larger. */
+.slide:has(> .cameo.br) .obj-list > li:last-child,
+.slide:has(> .cameo.br) > p.lead:last-of-type { padding-right: clamp(160px, 14vw, 230px); }
 /* callouts get the sketch box too, keeping their kind-colour accent */
 .callout {
   border-radius: 240px 16px 220px 14px / 14px 220px 16px 240px;

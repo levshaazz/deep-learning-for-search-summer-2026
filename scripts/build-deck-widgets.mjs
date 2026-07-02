@@ -64,7 +64,7 @@ copyFileSync(join(ROOT, 'widgets', 'deck-adapter.js'), join(JS, 'deck-adapter.js
 // the 1920×1080 .slides size-container (autofit.css). Per-widget overrides because aspect ratios differ:
 // the bi/cross figures are ~1.5:1 (tall-ish), the cascade is content-tall, the RAG pipeline is wide-short.
 const mountRule =
-  '.slide .widget-mount { max-width: min(1180px, 64cqw); margin: 0 auto; }\n' +
+  '.slide .widget-mount { max-width: min(1460px, 78cqw); margin: 0 auto; }\n' +
   // the spine map is wide-short (700×250 ≈ 2.8:1): let it run wide so the four stops read big.
   '.slide .widget-mount[data-widget="course-map"]         { max-width: min(1320px, 72cqw); }\n' +
   '.slide .widget-mount[data-widget="biencoder"]          { max-width: min(1180px, 64cqw); }\n' +
@@ -72,10 +72,10 @@ const mountRule =
   '.slide .widget-mount[data-widget="neural-cascade"]     { max-width: min(1200px, 64cqw); }\n' +
   '.slide .widget-mount[data-widget="in-batch-negatives"] { max-width: min(1040px, 58cqw); }\n' +
   '.slide .widget-mount[data-widget="rag-pipeline"]       { max-width: min(1480px, 80cqw); }\n' +
-  '.slide .widget-mount[data-widget="infonce-calc"]       { max-width: min(1100px, 60cqw); }\n' +
-  '.slide .widget-mount[data-widget="hardness-sphere"]    { max-width: min(1160px, 62cqw); }\n' +
-  '.slide .widget-mount[data-widget="mining-comparator"]  { max-width: min(1120px, 60cqw); }\n' +
-  '.slide .widget-mount[data-widget="impostor-denoise"]   { max-width: min(1160px, 62cqw); }\n' +
+  '.slide .widget-mount[data-widget="infonce-calc"]       { max-width: min(1520px, 80cqw); }\n' +
+  '.slide .widget-mount[data-widget="hardness-sphere"]    { max-width: min(1520px, 80cqw); }\n' +
+  '.slide .widget-mount[data-widget="mining-comparator"]  { max-width: min(1500px, 79cqw); }\n' +
+  '.slide .widget-mount[data-widget="impostor-denoise"]   { max-width: min(1520px, 80cqw); }\n' +
   '.slide .widget-mount[data-widget="hyde-embed"]         { max-width: min(1120px, 62cqw); }\n' +
   '.slide .widget-mount[data-widget="query-rewriter"]     { max-width: min(1200px, 66cqw); }\n' +
   '.slide .widget-mount[data-widget="rrf-fusion"]         { max-width: min(1120px, 60cqw); }\n' +
