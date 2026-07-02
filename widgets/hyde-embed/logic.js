@@ -25,7 +25,7 @@ export const mountHydeEmbed = defineWidget({
     const rawY = 112, hydeY = 214;
     const x = (c) => AX0 + Math.max(0, Math.min(1, c)) * AXW;
 
-    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'hyde-svg',
+    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'hyde-svg wgt-svg',
       role: labels.role || 'img', 'aria-label': labels.alt || '' }, host);
 
     // cumulative-reveal layer bookkeeping (same pattern as cosine-sphere)

@@ -16,6 +16,7 @@ export const mountQueryRewriter = defineWidget({
   rootClass: 'qrw-root',
   maxStep: 3,
   render({ host, data, labels, esc, fmt }) {
+    host.classList.add('wgt-panel');   // the responsive-gate's laid-out-figure hook (always-visible container)
     const T = data.techniques || {};
     const gold = data.goldDocId, trap = data.trapDocId;
     const corpus = data.corpus || {};
