@@ -354,6 +354,7 @@
   <div class="def-card">
     <span class="def-tag">Definition</span>
     <div class="def-term">HNSW<span class="term-en">Hierarchical Navigable Small World</span></div>
+    <p class="def-where">where <b>N</b> = the number of indexed points, so <b>O(log N)</b> = search cost growing only logarithmically with corpus size.</p>
     <div class="def-body">
       <p>A multi-layer proximity graph that you <strong>greedily walk</strong> toward the query. It stacks three ideas:</p>
       <p><strong>Skip-list</strong> — a sorted list with express lanes above it, so search skips long stretches in \(O(\log N)\). <strong>NSW</strong> (Navigable Small World) — connect each point to a few near neighbours <em>plus</em> a few long-range links, so any node is a short greedy walk from any other. <strong>HNSW</strong> — give the small-world graph the skip-list's <em>layers</em>: sparse long-range hubs on top, dense neighbourhoods at the base.</p>
@@ -705,6 +706,7 @@
   <div class="def-card">
     <span class="def-tag">Applicability</span>
     <div class="def-term">HNSW<span class="term-en">the in-memory, low-latency default</span></div>
+    <p class="def-where">where <b>N</b> = the number of indexed vectors, <b>M</b> = the number of graph edges kept per node.</p>
     <div class="def-body">
       <p><strong>Reach for it when:</strong> you need the lowest query latency at high recall, the index fits in RAM, and inserts arrive incrementally (no batch retrain). \(O(\log N)\) search, recall tuned live via <code>efSearch</code>.</p>
       <p><strong>The costs:</strong> high build time, and memory \(=\) the raw vectors <em>plus</em> the graph (\(\approx M\) edges per node) — it stores everything uncompressed.</p>
@@ -732,6 +734,7 @@
   <div class="def-card">
     <span class="def-tag">Definition</span>
     <div class="def-term">IVF<span class="term-en">Inverted File index</span></div>
+    <p class="def-where">where <b>nprobe</b> = the number of cells scanned per query, <b>N</b> = the total number of database vectors, <b>nlist</b> = the number of Voronoi cells (centroids), <b>d</b> = the vector dimensionality.</p>
     <div class="def-body">
       <p>Run \(k\)-means to pick <strong>nlist</strong> centroids, carving the space into Voronoi <strong>cells</strong>. The <strong>coarse quantizer</strong> maps any vector to its nearest centroid; every database vector is filed under its cell — <em>once, offline</em>. (Same inverted-list idea as the L3 postings index — but the "term" is a centroid.)</p>
       <p>At query time, find the <strong>nprobe</strong> cells whose centroids are nearest the query and scan only those — not all \(N\) vectors. Search cost \(\approx O(\textrm{nprobe}\cdot \tfrac{N}{\textrm{nlist}}\cdot d)\).</p>
@@ -957,6 +960,7 @@
   <div class="def-card">
     <span class="def-tag">Definition</span>
     <div class="def-term">PQ<span class="term-en">Product Quantization</span></div>
+    <p class="def-where">where <b>m</b> = the number of subvectors, <b>k</b> = the centroids per sub-codebook, <b>d</b> = the full vector dimensionality (so each subvector has <b>d/m</b> dims).</p>
     <div class="def-body">
       <p>Split each vector into \(m\) <strong>subvectors</strong> and quantize each <em>independently</em> with its own little codebook of \(k\) centroids. A full vector's code is the tuple of \(m\) sub-codes — one point in the <strong>Cartesian product</strong> of the \(m\) subspaces.</p>
       <p>The payoff is combinatorial: you <em>store</em> only \(m\cdot k\) centroids, but the code can represent \(k^m\) distinct reconstructions. With \(m=8,\ k=256\): store \(8\times 256 = 2048\) centroids, address \(256^{8}\approx 1.8\times 10^{19}\) points.</p>

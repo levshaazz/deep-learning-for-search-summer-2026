@@ -401,6 +401,7 @@
     $$ \text{4 claims: pumps blood }\checkmark,\ \text{contracts }\checkmark,\ \text{systole ejects }\checkmark,\ \text{Harvey 1628 }\times $$
     $$ \text{faithfulness} = \frac{3}{4} = \mathbf{0.75} $$
   </div>
+  <p class="def-where">where <b>#{&middot;}</b> = the count of items in a set (supported claims over total claims), <b>N</b> = the number of atomic claims in the answer (here 4), so one unsupported claim costs <b>1/N</b>.</p>
   <div class="viz-frame fig-fit" style="--fig-max:28cqh; --fig-w:30%;">
     <img src="assets/img/L11/L11-03-faithfulness-claims.png?v=1" alt="RAGdoll the Oracle's answer split into four claim-cards; three carry a checkmark traced by a thread back to a retrieved passage, while the fourth — the William Harvey 1628 claim — floats with a red cross and no thread; Séréga, in his green tübetey, tallies three of four." />
   </div>
@@ -417,6 +418,7 @@
     $$ \cos\text{ to original } q:\quad [\,0.92,\ 0.88,\ 0.31\,] $$
     $$ \text{answer relevance} = \operatorname{mean}[0.92, 0.88, 0.31] = \frac{2.11}{3} = \mathbf{0.7033} $$
   </div>
+  <p class="def-where">where <b>q</b> = the original question, <b>q&#771;<sub>i</sub></b> = the i-th question reverse-engineered from the answer, <b>n</b> = the number of such reverse-questions, <b>cos</b> = cosine similarity between their embeddings.</p>
   <p class="small muted center mt-2">Generate the questions the answer <em>could</em> be answering, embed them, and average their cosine to the real question. The first two paraphrases stay on-topic (0.92, 0.88); the third — born of the hallucinated Harvey claim — drifts to 0.31 and drags the mean down. <strong>Relevance measures &ldquo;does the answer address the question?&rdquo;, not whether it is true.</strong> It reads only the question and the answer &mdash; never the retrieved context &mdash; so it is blind to grounding; and RAGAS additionally penalises noncommittal answers (an evasive &ldquo;I don&rsquo;t know&rdquo; yields off-topic reverse-questions).</p>
   <aside class="slide-notes">answer-relevance by-hand. l11-ragas.reverseQuestionCos [0.92,0.88,0.31]; mean = 0.7033 (gated answerRelevance). The drifting third reverse-question is caused by the hallucinated claim. Relevance ≠ faithfulness: an answer can be on-topic but unfaithful, or faithful but off-topic.</aside>
 </section>
@@ -430,6 +432,7 @@
     $$ \text{ranks: } \underbrace{c_1}_{\text{rel}},\ \underbrace{c_2}_{\text{noise}},\ \underbrace{c_3}_{\text{rel}},\ \underbrace{c_4}_{\text{noise}} \quad\Rightarrow\quad \text{p@1}=\tfrac{1}{1}=1,\ \ \text{p@3}=\tfrac{2}{3} $$
     $$ \text{context precision} = \frac{1 + \tfrac{2}{3}}{2} = \mathbf{0.8333} $$
   </div>
+  <p class="def-where">where <b>k</b> = a rank in the retrieved list, <b>rel<sub>k</sub></b> = the chunk at rank <b>k</b> is relevant, <b>precision@k</b> = the fraction of the top-<b>k</b> that is relevant, <b>#relevant</b> = the number of relevant chunks that appear in the list.</p>
   <p class="small muted center mt-2">Walk the retrieved list; at each <em>relevant</em> rank, take precision@k (how clean the top-k is so far), then average over the relevant items. The first relevant chunk sits at rank 1 (perfect), but the second is buried under noise at rank 3 (only 2/3 clean). <strong>Relevant-but-low-ranked passages cost precision</strong> — this grades the retriever's ordering. (Here <em>#relevant = 2</em> = the relevant chunks that actually appear in the retrieved list; chunks never retrieved are recall's problem, not precision's.)</p>
   <aside class="slide-notes">context-precision by-hand. l11-ragas.precisionAtK: relevant at ranks 1 (p@1=1) and 3 (p@3=0.6667), 2 relevant total → (1 + 2/3)/2 = 0.8333 (gated contextPrecision). Noise at rank 2 between the relevants is what costs precision. Ranking-aware, like MAP from L1.</aside>
 </section>
@@ -586,6 +589,7 @@
     $$ A = \operatorname{mean}[5, 4, 3] = \frac{12}{3} = \mathbf{4.0} \qquad B = \operatorname{mean}[4, 2, 2] = \frac{8}{3} = \mathbf{2.6667} $$
     $$ A\ (4.0) \;>\; B\ (2.6667) \;\Rightarrow\; \text{pairwise winner} = \mathbf{A} $$
   </div>
+  <p class="def-where">where <b>x</b> = one answer being scored, <b>score(x)</b> = its pointwise score, the mean of the three 1&ndash;5 rubric criteria (<b>relevance</b>, <b>grounding</b>, <b>completeness</b>); <b>A</b>, <b>B</b> = the two candidate answers.</p>
   <p class="small muted center mt-2">Each answer is judged <em>alone</em>, criterion by criterion, then averaged. A is strong across the board (5/4/3); B trails on grounding and completeness (4/2/2). The pointwise gap (4.0 vs 2.6667) and the side-by-side <strong>pairwise</strong> verdict agree: A wins. Clean and decisive — which is exactly why we are about to distrust it.</p>
   <aside class="slide-notes">pointwise by-hand. l11-judge.answers: A mean[5,4,3]=4.0, B mean[4,2,2]=2.6667; pairwiseWinner A (all gated). Pointwise = judge each alone; pairwise = side-by-side. They agree here. The "too clean" feeling is the setup for the bias slides.</aside>
 </section>
