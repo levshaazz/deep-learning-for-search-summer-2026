@@ -1,0 +1,32 @@
+<section class="slide" data-type="definition" data-screen-label="89 Definition · FlashAttention">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Точное внимание без матрицы \(n\times n\)</span>
+      <span lang="en">Exact attention without the \(n\times n\) matrix</span>
+    </h2>
+    <span class="slide-kicker">FlashAttention · Dao 2022</span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">
+      <span lang="ru">Определение</span>
+      <span lang="en">Definition</span>
+    </span>
+    <div class="def-term">
+      <span lang="ru">FlashAttention</span>
+      <span lang="en">FlashAttention</span>
+      <span class="term-en">IO-aware exact attention</span>
+    </div>
+    <div class="def-body">
+      <p lang="ru"><strong>Точное</strong> softmax-attention (бит-в-бит то же, что обычное), но <em>IO-aware</em>: вычисляется блоками — <strong>тайлинг</strong> Q, K, V по SRAM и <strong>online softmax</strong>, так что матрица \(n\times n\) <strong>никогда не пишется в HBM</strong>.</p>
+      <p lang="en"><strong>Exact</strong> softmax attention (bit-for-bit the same as standard), but <em>IO-aware</em>: computed in blocks — <strong>tiling</strong> Q, K, V through SRAM with an <strong>online softmax</strong>, so the \(n\times n\) matrix is <strong>never written to HBM</strong>.</p>
+      <p class="math-display math-big">$$\text{память: } O(n^2)\ \longrightarrow\ O(n)$$</p>
+      <p class="small muted">
+        <span lang="ru">Выигрыш — по <strong>памяти и IO</strong> (меньше обращений к HBM), не по формуле. Это <strong>НЕ</strong> аппроксимация и <strong>НЕ</strong> линейное внимание. FlashAttention-2 — дальнейшая оптимизация.</span>
+        <span lang="en">The gain is in <strong>memory and IO</strong> (fewer HBM accesses), not the formula. It is <strong>NOT</strong> an approximation and <strong>NOT</strong> linear attention. FlashAttention-2 optimizes further.</span>
+      </p>
+    </div>
+  </div>
+  <aside class="slide-notes">Ключевой факт: FlashAttention = ТОЧНОЕ внимание. Считается та же softmax-attention; экономия — память/IO за счёт тайлинга и online-softmax, n×n не материализуется в HBM. Не путать с линейным/разреженным вниманием, которые приближают softmax.</aside>
+</section>
+
+<!-- 90 · VIZ · tiling + online softmax -->

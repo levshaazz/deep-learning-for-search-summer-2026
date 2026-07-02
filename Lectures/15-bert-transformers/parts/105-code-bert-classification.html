@@ -1,0 +1,41 @@
+<section class="slide" data-type="code" data-screen-label="104 Code · BERT classification">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Классификация на BERT</span>
+      <span lang="en">Classification with BERT</span>
+    </h2>
+    <span class="slide-kicker">Python · HuggingFace</span>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">Python · bert_classify.py</span>
+      <span class="badge" data-color="accent">transformers</span>
+    </div>
+    <pre><code class="language-python">from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import torch
+
+name = "bert-base-uncased"
+tokenizer = AutoTokenizer.from_pretrained(name)             # WordPiece
+model = AutoModelForSequenceClassification.from_pretrained(name, num_labels=2)
+
+text = "This movie was absolutely wonderful!"
+inputs = tokenizer(text, return_tensors="pt",
+                   truncation=True, max_length=512)         # BERT context = 512
+
+with torch.no_grad():
+    logits = model(**inputs).logits                         # uses the [CLS] head
+    probs = torch.softmax(logits, dim=-1)
+
+pred = probs.argmax(-1).item()                              # 0 / 1</code></pre>
+  </div>
+
+  <p class="small muted mt-3">
+    <span lang="ru">Голова классификации сидит на <span class="term">[CLS]</span>; контекст BERT — 512 токенов; токенизация — WordPiece. Альтернатива <span class="term">[CLS]</span> — mean-pooling по токенам.</span>
+    <span lang="en">The classification head sits on <span class="term">[CLS]</span>; BERT context is 512 tokens; tokenization is WordPiece. An alternative to <span class="term">[CLS]</span> is mean-pooling over tokens.</span>
+  </p>
+
+  <aside class="slide-notes">Code BERT: AutoTokenizer + AutoModelForSequenceClassification, max_length=512, голова на [CLS], softmax по логитам. Подводные камни: 512-контекст, WordPiece, [CLS] vs mean-pooling.</aside>
+</section>
+
+<!-- 105 · CODE · GPT generation -->

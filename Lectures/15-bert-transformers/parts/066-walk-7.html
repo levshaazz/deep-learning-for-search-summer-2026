@@ -1,0 +1,76 @@
+<section class="slide" data-type="walkthrough" data-max-step="3" data-current-step="0" data-screen-label="65 Walk · Пример 7 — авторегрессия">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Пример 7 — авторегрессия + KV-cache</span>
+              <span lang="en">Example 7 — autoregression + KV-cache</span>
+            </h2>
+            <span class="slide-kicker">
+              <span lang="ru">Разбор · greedy · vocab \(\{a,b,c\}\)</span>
+              <span lang="en">Worked example · greedy · vocab \(\{a,b,c\}\)</span>
+            </span>
+          </div>
+
+          <p class="small muted mt-2">
+            <span lang="ru">Словарь \(\{a,b,c\}\), жадная генерация двух токенов. Логиты заданы; берём argmax.</span>
+            <span lang="en">Vocabulary \(\{a,b,c\}\), greedy generation of two tokens. Logits given; take the argmax.</span>
+          </p>
+
+          <div class="walk-flow">
+            <div class="walk-step" data-step="1" data-color="cyan">
+              <div class="walk-num">01</div>
+              <div class="walk-content">
+                <div class="walk-label">
+                  <span lang="ru">Шаг 1 — первый токен</span>
+                  <span lang="en">Step 1 — first token</span>
+                </div>
+                <div class="walk-detail">
+                  <span lang="ru"><code>softmax(2, 0, 1) = (0.665, 0.090, 0.245)</code> → argmax — «a». Дописываем «a».</span>
+                  <span lang="en"><code>softmax(2, 0, 1) = (0.665, 0.090, 0.245)</code> → argmax is «a». Append «a».</span>
+                </div>
+              </div>
+              <div class="walk-state">→ «a»</div>
+            </div>
+
+            <div class="walk-step" data-step="2" data-color="amber">
+              <div class="walk-num">02</div>
+              <div class="walk-content">
+                <div class="walk-label">
+                  <span lang="ru">Шаг 2 — переиспользуем кэш</span>
+                  <span lang="en">Step 2 — reuse the cache</span>
+                </div>
+                <div class="walk-detail">
+                  <span lang="ru">Контекст — «a». \(K,V\) для «a» уже в кэше — <strong>не пересчитываем</strong>; считаем \(Q,K,V\) только для нового шага.</span>
+                  <span lang="en">Context is «a». \(K,V\) for «a» are already cached — <strong>not recomputed</strong>; we compute \(Q,K,V\) only for the new step.</span>
+                </div>
+              </div>
+              <div class="walk-state">cache: K,V(«a»)</div>
+            </div>
+
+            <div class="walk-step" data-step="3" data-final="true">
+              <div class="walk-num">→</div>
+              <div class="walk-content">
+                <div class="walk-label">
+                  <span lang="ru">Шаг 2 — второй токен → итог</span>
+                  <span lang="en">Step 2 — second token → result</span>
+                </div>
+                <div class="walk-detail">
+                  <span lang="ru"><code>softmax(0, 3, 1) = (0.042, 0.844, 0.114)</code> → argmax — «b». Итог: <strong>«a b»</strong>.</span>
+                  <span lang="en"><code>softmax(0, 3, 1) = (0.042, 0.844, 0.114)</code> → argmax is «b». Result: <strong>«a b»</strong>.</span>
+                </div>
+              </div>
+              <div class="walk-state">«a b»</div>
+            </div>
+          </div>
+
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">←</button>
+            <span class="step-counter">0/3</span>
+            <button data-step-act="next" aria-label="Next step">→</button>
+          </div>
+          <aside class="slide-notes">Пример 7. Числа из board-numbers.md: step1 softmax(2,0,1)=(0.665,0.090,0.245)→«a»; step2 softmax(0,3,1)=(0.042,0.844,0.114)→«b». Итог «a b». KV-cache: K,V для «a» переиспользуются на шаге 2, не пересчитываются. Обе суммы = 1.000.</aside>
+        </section>
+
+        <!-- ============================================
+             66 · MISCONCEPTION · decoder
+             ============================================ -->
+        

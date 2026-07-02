@@ -1,0 +1,24 @@
+    {
+      id: 'multi-head', kind: 'prose',
+      heading: { en: "Several small looms, one set of threads", ru: "Несколько маленьких станков, одни и те же нити", tt: "Берничә кечкенә станок, шул ук җепләр" },
+      img: 'L15/L15-03-multi-head.png', imgPos: 'right',
+      imgAlt: { en: "Séréga in his green tübetey stands amid several small looms in a row, each weaving a different pattern — one a lattice of grammar, one a looping thread of coreference — all drawing from the same bundle of coloured threads, then merging into one wide cloth under a final comb labelled W_O.", ru: "Серёга в зелёной тюбетейке стоит среди ряда маленьких станков, каждый ткёт свой узор — один решётку грамматики, другой петли кореференции, — но все берут нити из одного пучка и сходятся в одно широкое полотно под финальным гребнем W_O.", tt: "Яшел түбәтәйле Серёга берничә кечкенә станок арасында тора, һәрберсе үз бизәген тукый — берсе грамматика челтәрен, икенчесе coreference элмәкләрен — әмма барысы да бер бәйләм җептән ала һәм соңгы тарак W_O астында бер киң тукымага кушыла." },
+      imgCaption: { en: "**Many heads, one cloth** — split the threads, weave in parallel, comb back together.", ru: "**Много голов — одно полотно** — раздели нити, тки параллельно, сведи гребнем обратно.", tt: "**Күп head, бер тукыма** — җепләрне бүл, параллель тук, тарак белән кире җый." },
+      body: {
+        en: [
+          "One loom, one weaver, one obsession — that is how I began. But watch a single head at the loom: it locks onto *one* kind of crossing. Maybe it follows grammar, tying each verb back to its subject. Ask that same head to also track who *she* refers to three threads back, and it fumbles — one pair of hands cannot chase two patterns at once.",
+          "So I do the honest thing: I set up *several small looms* side by side, and I hand each the very same threads. These are the **heads**. One head weaves syntax, another weaves coreference, another just binds neighbours close — each is free to hunt a different relation, in its own little subspace. I split \\(d_{\\text{model}}\\) across \\(h\\) heads, so each works in \\(d_k = d_{\\text{model}}/h\\) coordinates — and the total labour never grows, I merely divide it.",
+          "When every loom has done its narrow, beautiful work, I lay their strips of cloth edge to edge — that is the *concat* — and pass them through one last comb, \\(W_O\\), which blends the separate patterns into a single fabric. Without that final comb the heads would stay strangers; with it, syntax and meaning are woven into one cloth.",
+        ],
+        ru: [
+          "Один станок, один ткач, одна страсть — так я начинал. Но присмотрись к одной голове за станком: она цепляется за *один* вид пересечений. Пусть следит за грамматикой, привязывая каждый глагол к его подлежащему. Попроси её заодно понять, к кому относится *она* тремя нитями назад, — и голова путается: одной паре рук не угнаться за двумя узорами сразу.",
+          "Поэтому я поступаю честно: ставлю рядом *несколько маленьких станков* и подаю каждому одни и те же нити. Это и есть **головы**. Одна ткёт синтаксис, другая — кореференцию, третья просто держит соседей ближе; каждая вольна искать своё отношение, в своём подпространстве. Я делю \\(d_{\\text{model}}\\) между \\(h\\) головами, и каждая работает в \\(d_k = d_{\\text{model}}/h\\) координатах — суммарная стоимость не растёт, я лишь делю её.",
+          "Когда все станки закончили свою узкую, красивую работу, я укладываю полоски ткани встык — это и есть *конкатенация* — и провожу их через последний гребень \\(W_O\\), который смешивает отдельные узоры в единое полотно. Без этого гребня головы остались бы чужими; с ним синтаксис и смысл сотканы в одну ткань.",
+        ],
+        tt: [
+          "Бер станок, бер тукучы, бер дәрт — мин шулай башладым. Әмма станок артындагы бер head'ка кара: ул *бер* төрле кисешүгә генә ябыша. Әйдә ул грамматиканы күзәтсен, һәр фигыльне үз ия'сенә бәйләп. Шул ук head'тан өч җеп артта *ул* кемгә карый икәнен дә аңларга куш — ул буталып кала: бер пар кул ике төрле бизәкне бер үк вакытта куып җитә алмый.",
+          "Шуңа күрә мин намуслы эш итәм: янәшә *берничә кечкенә станок* куям да һәрберсенә шул ук җепләрне бирәм. Менә болар — **head**'лар. Берсе синтаксис тукый, икенчесе — coreference, өченчесе күршеләрне якын тота гына; һәрберсе үз subspace'ында үз мөнәсәбәтен эзләргә ирекле. Мин \\(d_{\\text{model}}\\)'ны \\(h\\) head арасында бүләм, һәм һәркайсы \\(d_k = d_{\\text{model}}/h\\) координатада эшли — гомуми хак үсми, мин аны бары тик бүләм генә.",
+          "Барлык станоклар да үзләренең тар, матур эшен бетергәч, тукыма кисәкләрен якын-якын салам — бу *concat* — һәм аларны соңгы тарак \\(W_O\\) аша үткәрәм: ул аерым бизәкләрне бер тукымага кушып җибәрә. Бу соңгы таракcыз head'лар чит-ят булып калыр иде; аның белән синтаксис һәм мәгънә бер тукымага үрелә.",
+        ],
+      },
+    },

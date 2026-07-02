@@ -1,0 +1,36 @@
+<section class="slide" data-type="definition" data-screen-label="63 Derivation · causal-маска = авторегрессия">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Почему треугольная маска = авторегрессия</span>
+              <span lang="en">Why a triangular mask = autoregression</span>
+            </h2>
+            <span class="slide-kicker">Step by step</span>
+          </div>
+
+          <div class="walk-flow">
+            <div class="deriv-row" style="display:flex;flex-direction:column;gap:18px">
+              <div class="def-body" style="border-left:4px solid #7c3aed;padding-left:18px">
+                <p lang="ru"><strong>1.</strong> Хотим обучать модель на \(p(x_t \mid x_{&lt;t})\) — каждый токен по строго прошлому контексту.</p>
+                <p lang="en"><strong>1.</strong> We want to train on \(p(x_t \mid x_{&lt;t})\) — each token from its strictly past context.</p>
+              </div>
+              <div class="def-body" style="border-left:4px solid #06b6d4;padding-left:18px">
+                <p lang="ru"><strong>2.</strong> Если в self-attention позиция \(i\) видит \(j>i\), то предсказание \(x_{i+1}\) уже «знает» ответ — обучение тривиально и неверно.</p>
+                <p lang="en"><strong>2.</strong> If position \(i\) attends to \(j>i\), the prediction of \(x_{i+1}\) already "knows" the answer — training is trivial and wrong.</p>
+              </div>
+              <div class="def-body" style="border-left:4px solid #f59e0b;padding-left:18px">
+                <p lang="ru"><strong>3.</strong> Добавляем \(M_{ij}=-\infty\) при \(j>i\) <em>до</em> softmax → \(\mathrm{softmax}\) даёт вес \(0\) на все будущие позиции.</p>
+                <p lang="en"><strong>3.</strong> Add \(M_{ij}=-\infty\) for \(j>i\) <em>before</em> softmax → \(\mathrm{softmax}\) assigns weight \(0\) to all future positions.</p>
+              </div>
+              <div class="def-body" style="border-left:4px solid #10b981;padding-left:18px">
+                <p lang="ru"><strong>4.</strong> Значит выход позиции \(i\) — функция только от \(x_{\le i}\). Все \(T\) предсказаний считаются <strong>параллельно</strong> за один проход, но каждое уважает \(x_{&lt;t}\) — ровно авторегрессионная факторизация \(p(x)=\prod_t p(x_t\mid x_{&lt;t})\). \(\square\)</p>
+                <p lang="en"><strong>4.</strong> So position \(i\)'s output is a function of only \(x_{\le i}\). All \(T\) predictions compute <strong>in parallel</strong> in one pass, yet each respects \(x_{&lt;t}\) — exactly the autoregressive factorization \(p(x)=\prod_t p(x_t\mid x_{&lt;t})\). \(\square\)</p>
+              </div>
+            </div>
+          </div>
+          <aside class="slide-notes">Вывод: треугольная маска делает выход каждой позиции зависимым только от прошлого, что и есть p(x_t | x_<t). Бонус: при teacher forcing все T предсказаний считаются за один проход параллельно — без маски это было бы невозможно сделать корректно.</aside>
+        </section>
+
+        <!-- ============================================
+             64 · DEFINITION · KV-cache
+             ============================================ -->
+        

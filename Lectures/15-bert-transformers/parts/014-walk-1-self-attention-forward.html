@@ -1,0 +1,90 @@
+<section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="13 Walk · Пример 1 — self-attention forward">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Пример 1 — self-attention forward</span>
+      <span lang="en">Example 1 — self-attention forward</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">Разбор · 3 токена, \(d_k=4\)</span>
+      <span lang="en">Worked example · 3 tokens, \(d_k=4\)</span>
+    </span>
+  </div>
+
+  <p class="small muted mt-2">
+    <span lang="ru">Три токена, \(d_k=4\) (значит \(\sqrt{d_k}=2\)), запрос — токен&nbsp;1. Значения \(V_1=(1,0),\,V_2=(0,1),\,V_3=(1,1)\). Пройдём forward пошагово.</span>
+    <span lang="en">Three tokens, \(d_k=4\) (so \(\sqrt{d_k}=2\)), query is token&nbsp;1. Values \(V_1=(1,0),\,V_2=(0,1),\,V_3=(1,1)\). Walk the forward pass.</span>
+  </p>
+
+  <div class="walk-flow">
+
+    <div class="walk-step" data-step="1" data-color="violet">
+      <div class="walk-num">01</div>
+      <div class="walk-content">
+        <div class="walk-label">
+          <span lang="ru">Скоры запроса 1</span>
+          <span lang="en">Scores for query 1</span>
+        </div>
+        <div class="walk-detail">
+          <span lang="ru">Масштабированные \(E_{1j}=Q_1\!\cdot\!K_j/\sqrt{d_k}\) подобраны так, что токен&nbsp;3 — явный победитель.</span>
+          <span lang="en">Scaled \(E_{1j}=Q_1\!\cdot\!K_j/\sqrt{d_k}\) are designed so token&nbsp;3 is the clear winner.</span>
+        </div>
+      </div>
+      <div class="walk-state">\(E_1=(1,0,3)\)</div>
+    </div>
+
+    <div class="walk-step" data-step="2" data-color="cyan">
+      <div class="walk-num">02</div>
+      <div class="walk-content">
+        <div class="walk-label">
+          <span lang="ru">Softmax по строке</span>
+          <span lang="en">Softmax over the row</span>
+        </div>
+        <div class="walk-detail">
+          <span lang="ru">\(A_1=\mathrm{softmax}(1,0,3)\). Сумма весов \(=1.000\); токен&nbsp;3 получает основную массу.</span>
+          <span lang="en">\(A_1=\mathrm{softmax}(1,0,3)\). Weights sum to \(1.000\); token&nbsp;3 takes the bulk.</span>
+        </div>
+      </div>
+      <div class="walk-state">\(A_1=(0.114,\,0.042,\,0.844)\)</div>
+    </div>
+
+    <div class="walk-step" data-step="3" data-color="amber">
+      <div class="walk-num">03</div>
+      <div class="walk-content">
+        <div class="walk-label">
+          <span lang="ru">Взвешиваем значения</span>
+          <span lang="en">Weight the values</span>
+        </div>
+        <div class="walk-detail">
+          <span lang="ru">\(Y_1=\sum_j A_{1j}V_j\): берём 0.114·(1,0) + 0.042·(0,1) + 0.844·(1,1).</span>
+          <span lang="en">\(Y_1=\sum_j A_{1j}V_j\): take 0.114·(1,0) + 0.042·(0,1) + 0.844·(1,1).</span>
+        </div>
+      </div>
+      <div class="walk-state">\(0.114\,V_1+0.042\,V_2+0.844\,V_3\)</div>
+    </div>
+
+    <div class="walk-step" data-step="4" data-final="true">
+      <div class="walk-num">→</div>
+      <div class="walk-content">
+        <div class="walk-label">
+          <span lang="ru">Выход токена 1</span>
+          <span lang="en">Output of token 1</span>
+        </div>
+        <div class="walk-detail">
+          <span lang="ru">\(Y_1=(0.958,\,0.886)\) — контекстный вектор, смещённый к \(V_3\) (самый релевантный токен).</span>
+          <span lang="en">\(Y_1=(0.958,\,0.886)\) — a context vector pulled toward \(V_3\) (the most relevant token).</span>
+        </div>
+      </div>
+      <div class="walk-state">\(Y_1=(0.958,\,0.886)\)</div>
+    </div>
+
+  </div>
+
+  <div class="step-controls">
+    <button data-step-act="prev" aria-label="Previous step">←</button>
+    <span class="step-counter">0/4</span>
+    <button data-step-act="next" aria-label="Next step">→</button>
+  </div>
+
+  <aside class="slide-notes">Числа Ex1 (board-numbers): scores (1,0,3) → A=(0.114,0.042,0.844), сумма 1.000 → Y1=(0.958,0.886). Q/K/V подобраны так, что токен 3 — единственный явный победитель, без вырожденных совпадений.</aside>
+</section>
+

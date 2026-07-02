@@ -1,0 +1,79 @@
+<section class="slide" data-type="walkthrough" data-max-step="3" data-current-step="0" data-screen-label="38 Walk · Пример 5 — MLM forward">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Пример 5 — MLM-предсказание на числах</span>
+              <span lang="en">Example 5 — MLM prediction by hand</span>
+            </h2>
+            <span class="slide-kicker">
+              <span lang="ru">Разбор · «the cat \([MASK]\) on the mat»</span>
+              <span lang="en">Worked example · &ldquo;the cat \([MASK]\) on the mat&rdquo;</span>
+            </span>
+          </div>
+
+          <p class="small muted mt-2">
+            <span lang="ru">Маскируем третий токен. Голова MLM выдаёт логиты над тремя кандидатами <span class="term">{sat, ran, is}</span>. Пройдём softmax → top-1 пошагово.</span>
+            <span lang="en">Mask the third token. The MLM head outputs logits over three candidates <span class="term">{sat, ran, is}</span>. Walk softmax → top-1 step by step.</span>
+          </p>
+
+          <div class="walk-flow">
+
+            <div class="walk-step" data-step="1" data-color="violet">
+              <div class="walk-num">01</div>
+              <div class="walk-content">
+                <div class="walk-label">
+                  <span lang="ru">Вход с маской</span>
+                  <span lang="en">Masked input</span>
+                </div>
+                <div class="walk-detail">
+                  <span lang="ru">Предложение <code>the cat [MASK] on the mat</code>. Энкодер строит контекстный вектор позиции маски, видя <em>и</em> «cat» слева, <em>и</em> «on the mat» справа.</span>
+                  <span lang="en">Sentence <code>the cat [MASK] on the mat</code>. The encoder builds the masked position's contextual vector, seeing <em>both</em> &ldquo;cat&rdquo; on the left and &ldquo;on the mat&rdquo; on the right.</span>
+                </div>
+              </div>
+              <div class="walk-state">[MASK] @ 3</div>
+            </div>
+
+            <div class="walk-step" data-step="2" data-color="cyan">
+              <div class="walk-num">02</div>
+              <div class="walk-content">
+                <div class="walk-label">
+                  <span lang="ru">Логиты MLM-головы</span>
+                  <span lang="en">MLM-head logits</span>
+                </div>
+                <div class="walk-detail">
+                  <span lang="ru">Линейная голова поверх позиции маски проецирует в словарь. Для трёх кандидатов: <code>z(sat, ran, is) = (3, 1, 0)</code>.</span>
+                  <span lang="en">A linear head over the masked position projects into the vocabulary. For the three candidates: <code>z(sat, ran, is) = (3, 1, 0)</code>.</span>
+                </div>
+              </div>
+              <div class="walk-state">z = (3, 1, 0)</div>
+            </div>
+
+            <div class="walk-step" data-step="3" data-final="true">
+              <div class="walk-num">→</div>
+              <div class="walk-content">
+                <div class="walk-label">
+                  <span lang="ru">softmax → top-1</span>
+                  <span lang="en">softmax → top-1</span>
+                </div>
+                <div class="walk-detail">
+                  <span lang="ru"><code>softmax(3,1,0) = (0.844, 0.114, 0.042)</code> (Σ = 1.000). Argmax → <strong>«sat»</strong>. Модель восстановила глагол по двустороннему контексту.</span>
+                  <span lang="en"><code>softmax(3,1,0) = (0.844, 0.114, 0.042)</code> (Σ = 1.000). Argmax → <strong>&ldquo;sat&rdquo;</strong>. The model recovered the verb from two-sided context.</span>
+                </div>
+              </div>
+              <div class="walk-state">sat · 0.844</div>
+            </div>
+
+          </div>
+
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">←</button>
+            <span class="step-counter">0/3</span>
+            <button data-step-act="next" aria-label="Next step">→</button>
+          </div>
+
+          <aside class="slide-notes">Числа сверены в Python: softmax(3,1,0) = (0.844, 0.114, 0.042), сумма ровно 1.000, top-1 «sat». Подчеркните, что предсказание опирается на ОБЕ стороны контекста — это и есть практический смысл «bidirectional». При обучении лосс — cross-entropy только по замаскированным позициям.</aside>
+        </section>
+
+        <!-- ============================================
+             39 · MISCONCEPTION · bidirectional
+             ============================================ -->
+        

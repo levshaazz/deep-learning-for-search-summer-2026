@@ -1,0 +1,62 @@
+<section class="slide" data-type="arch" data-screen-label="44 Arch · fine-tuning heads">
+          <div class="slide-header">
+            <h2>
+              <span lang="ru">Головы дообучения</span>
+              <span lang="en">Fine-tuning heads</span>
+            </h2>
+            <span class="slide-kicker">
+              <span lang="ru">\([CLS]\) → класс · span → QA</span>
+              <span lang="en">\([CLS]\) → class · span → QA</span>
+            </span>
+          </div>
+
+          <div class="arch-diagram">
+            <div class="arch-node" data-color="violet">
+              <div class="arch-icon">In</div>
+              <div class="arch-name">
+                <span lang="ru">Токены + \([CLS]\)/\([SEP]\)</span><span lang="en">Tokens + \([CLS]\)/\([SEP]\)</span>
+              </div>
+              <div class="arch-shape">WordPiece</div>
+            </div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node" data-color="cyan">
+              <div class="arch-icon">BERT</div>
+              <div class="arch-name">
+                <span lang="ru">Энкодер (предобучен)</span><span lang="en">Encoder (pretrained)</span>
+              </div>
+              <div class="arch-shape">\(H \in \mathbb{R}^{T\times d}\)</div>
+            </div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node" data-color="amber">
+              <div class="arch-icon">Head</div>
+              <div class="arch-name">
+                <span lang="ru">Лёгкая голова</span><span lang="en">Light head</span>
+              </div>
+              <div class="arch-shape">
+                <span lang="ru">линейный слой</span><span lang="en">linear layer</span>
+              </div>
+            </div>
+            <div class="arch-arrow"></div>
+            <div class="arch-node" data-color="green">
+              <div class="arch-icon">Out</div>
+              <div class="arch-name">
+                <span lang="ru">Класс / span</span><span lang="en">Class / span</span>
+              </div>
+              <div class="arch-shape">
+                <span lang="ru">метка / EM·F1</span><span lang="en">label / EM·F1</span>
+              </div>
+            </div>
+          </div>
+
+          <p class="small muted mt-4 center">
+            <span lang="ru"><strong>Классификация:</strong> вектор <span class="term">\([CLS]\)</span> → линейный слой → softmax по классам (SST-2, MNLI…). <strong>QA (SQuAD):</strong> две span-головы предсказывают позиции начала и конца ответа над токенами контекста. База обычно дообучается целиком вместе с головой.</span>
+            <span lang="en"><strong>Classification:</strong> the <span class="term">\([CLS]\)</span> vector → linear layer → softmax over classes (SST-2, MNLI…). <strong>QA (SQuAD):</strong> two span heads predict the start and end positions of the answer over the context tokens. The base is usually fine-tuned end-to-end with the head.</span>
+          </p>
+
+          <aside class="slide-notes">Главный приём: поверх замороженного или (чаще) дообучаемого BERT добавляется минимальная голова. \([CLS]\)-голова — один линейный слой для классификации; span-головы для SQuAD — два линейных классификатора по позициям (start/end). Метрики SQuAD — Exact Match и F1; их детально на слайде 46.</aside>
+        </section>
+
+        <!-- ============================================
+             45 · TABLE · GLUE / SuperGLUE / SQuAD
+             ============================================ -->
+        

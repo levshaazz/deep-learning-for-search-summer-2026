@@ -1254,6 +1254,16 @@ COVERAGE_BASELINE = {
     "deck:L12": 2, "book:L12": 2,
     # deck:L14 "The Artificer's Quill" — all displayed toy numbers are now gated in l14_deck_claims() → 0.
     "deck:L14": 0,
+    # deck:L15 "BERT & other Transformers" — an IMPORTED supplementary bilingual deck (re-homed from an
+    # external MWS lecture, deck-only, no Book chapter). Its ≥2-dp numbers are SELF-CONTAINED worked-example
+    # values — softmax/attention weight distributions (0.01/0.042/0.114/0.844… that sum to 1.000), scaled-
+    # dot-product intermediates (2.15, 7.08), and toy probabilities — NOT drawn from the data/ grounded
+    # pipeline, so they have no data claim to anchor to (unlike our authored decks). Baseline FROZEN at the
+    # current un-gated count so the guard still HARD-fails any FUTURE ungated number added beyond these 14.
+    # book:L15 mirrors the same imported worked examples in prose (the scaled-softmax demo, an O(n²) memory
+    # estimate) — one residual un-gated value after the global gated set covers the rest. Same rationale.
+    "deck:L15": 14,
+    "book:L15": 1,
 }
 _COV_DEC   = re.compile(r'(?<![\d.,])\d+[.,]\d{2,}(?!\d)')# grounded signature: a decimal (dot OR RU comma), ≥2 fractional digits
 _COV_ARXIV = re.compile(r'^\d{4}[.,]\d{4,}$')             # arXiv id (e.g. 1901.04085) — not data

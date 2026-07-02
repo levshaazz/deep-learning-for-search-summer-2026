@@ -1,0 +1,49 @@
+<section class="slide" data-type="code" data-screen-label="105 Code · GPT generation">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Генерация на GPT</span>
+      <span lang="en">Generation with GPT</span>
+    </h2>
+    <span class="slide-kicker">Python · HuggingFace</span>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">Python · gpt_generate.py</span>
+      <span class="badge" data-color="accent">transformers</span>
+    </div>
+    <pre><code class="language-python">from transformers import AutoTokenizer, AutoModelForCausalLM
+
+name = "gpt2"
+tokenizer = AutoTokenizer.from_pretrained(name)             # byte-level BPE
+model = AutoModelForCausalLM.from_pretrained(name)          # decoder-only, causal mask
+
+prompt = "In a distant galaxy,"
+inputs = tokenizer(prompt, return_tensors="pt")
+
+out = model.generate(
+    **inputs,
+    max_new_tokens=60,
+    do_sample=True,        # stochastic decoding (off -> greedy/beam)
+    temperature=0.8,       # T<1 sharper, T>1 softer
+    top_k=50,              # keep 50 most likely tokens
+    top_p=0.95,            # nucleus: smallest set with mass >= 0.95
+    num_beams=1,           # >1 -> beam search (deterministic)
+)
+print(tokenizer.decode(out[0], skip_special_tokens=True))</code></pre>
+  </div>
+
+  <p class="small muted mt-3">
+    <span lang="ru">Декодер-only с causal-маской; токенизация — byte-level BPE (не WordPiece). KV-cache включён по умолчанию; для длинного контекста — <span class="term">attn_implementation="flash_attention_2"</span>.</span>
+    <span lang="en">Decoder-only with a causal mask; tokenization is byte-level BPE (not WordPiece). KV-cache is on by default; for long context use <span class="term">attn_implementation="flash_attention_2"</span>.</span>
+  </p>
+
+  <aside class="slide-notes">Code GPT: AutoModelForCausalLM + model.generate(do_sample, temperature, top_k, top_p, num_beams, max_new_tokens). BPE-токенизация, causal-маска, KV-cache по умолчанию, FlashAttention через attn_implementation.</aside>
+</section>
+
+<!-- ============================================
+     §14 · ИТОГИ
+     slides 106–111
+     ============================================ -->
+
+<!-- 106 · DIVIDER 14 -->
