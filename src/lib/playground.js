@@ -53,6 +53,7 @@ export const GROUPS = [
   { id: '11', title: { en: 'L11 · Judging the Oracle — RAG eval & agentic', ru: 'L11 · Судим Оракула — оценка RAG и агентность', tt: 'L11 · Оракулны хөкем итү — RAG бәяләү һәм агентлык' } },
   { id: '12', title: { en: 'L12 · The Deep Field — advanced & multimodal RAG', ru: 'L12 · Глубокое поле — продвинутый и мультимодальный RAG', tt: 'L12 · Тирән кыр — алга киткән һәм мультимодаль RAG' } },
   { id: '13', title: { en: 'L13 · The Crucible of Negatives (deep-dive)', ru: 'L13 · Горнило негативов (углублённо)', tt: 'L13 · Негативлар горны (тирән чуму)' } },
+  { id: '14', title: { en: 'L14 · The Artificer’s Quill — query rewriting (deep-dive)', ru: 'L14 · Перо Артефактора — переписывание запросов (углублённо)', tt: 'L14 · Артефактор Каләме — сорауларны язу (тирән чуму)' } },
 ];
 const EXTRAS = { id: 'extras', title: { en: 'More demos', ru: 'Другие демо', tt: 'Башка демолар' } };
 
@@ -91,6 +92,7 @@ const TOPIC_OF = {
   'pagerank-power': 'retrieval',
   'postings-compression': 'retrieval',
   'rrf-fusion': 'retrieval',
+  'query-rewriter': 'retrieval',
   // Embeddings & geometry
   'cosine-compute': 'embeddings',
   'cosine-sphere': 'embeddings',
@@ -99,6 +101,7 @@ const TOPIC_OF = {
   'glove-cooccur': 'embeddings',
   'skipgram-net': 'embeddings',
   'contrastive-space': 'embeddings',
+  'hyde-embed': 'embeddings',
   // Dimensionality reduction
   'highd-histogram': 'dimred',
   'dimred-projection': 'dimred',

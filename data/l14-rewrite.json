@@ -1,0 +1,252 @@
+{
+  "_doc": "MEASURED on a CONSTRUCTED, vocabulary-mismatched espresso corpus (6 passages), cosine = set-overlap over a small concept vocabulary. Demonstrates the THREE gaps: (vocabulary) raw query buries GOLD d1 at rank 4 because the lexical TRAP d4 shares {sour,taste} \u2014 RM3 helps to rank 3 but cannot invent 'under-extraction'; HyDE lifts d1 to rank 1 (cos 0.2236->0.6325); (specificity) step-back retrieves the principle d5 (cos 0.0->0.5669); (compositionality) a 3-hop compound query, compose success p^n = 0.729. Reproduces the ORDERING, not MS-MARCO magnitudes; the corpus is constructed to be demonstrable, not discovered.",
+  "_source": "_research/gen_l14.py (toy, stdlib): cos=|A n B|/sqrt(|A||B|); RR=1/rank; RRF=sum 1/(k+r), k=60.",
+  "measured": true,
+  "query": "why does my espresso taste sour and watery?",
+  "queryBag": [
+    "espresso",
+    "sour",
+    "watery",
+    "taste"
+  ],
+  "goldDocId": "d1",
+  "trapDocId": "d4",
+  "principleDocId": "d5",
+  "corpus": {
+    "d1": [
+      "underextraction",
+      "channeling",
+      "sour",
+      "weak",
+      "shot"
+    ],
+    "d2": [
+      "coarse",
+      "grind",
+      "espresso",
+      "bitter",
+      "taste",
+      "extraction"
+    ],
+    "d3": [
+      "tamping",
+      "wdt",
+      "channeling",
+      "espresso",
+      "watery"
+    ],
+    "d4": [
+      "sour",
+      "candy",
+      "citric",
+      "taste",
+      "sweet"
+    ],
+    "d5": [
+      "extraction",
+      "grind",
+      "temperature",
+      "pressure",
+      "contacttime",
+      "factors",
+      "sourness"
+    ],
+    "d6": [
+      "longer",
+      "shot",
+      "contacttime",
+      "extraction",
+      "watery"
+    ]
+  },
+  "techniques": {
+    "raw": {
+      "goldRank": 4,
+      "cosGold": 0.2236,
+      "cosTrap": 0.4472,
+      "trapRank": 2,
+      "rr": 0.25,
+      "llmCalls": 0,
+      "rankedList": [
+        "d3",
+        "d4",
+        "d2",
+        "d1",
+        "d6",
+        "d5"
+      ]
+    },
+    "rm3": {
+      "goldRank": 3,
+      "cosGold": 0.2828,
+      "rr": 0.3333,
+      "llmCalls": 0,
+      "feedbackDocs": [
+        "d3",
+        "d4"
+      ],
+      "addedTerms": [
+        "tamping",
+        "wdt",
+        "channeling",
+        "candy",
+        "citric",
+        "sweet"
+      ],
+      "expandedBag": [
+        "espresso",
+        "sour",
+        "watery",
+        "taste",
+        "tamping",
+        "wdt",
+        "channeling",
+        "candy",
+        "citric",
+        "sweet"
+      ],
+      "ceilingNote": "gained 'channeling' but NOT 'underextraction' (absent from the top pass); also drifts toward the trap's terms \u2014 the classical PRF ceiling.",
+      "rankedList": [
+        "d3",
+        "d4",
+        "d1",
+        "d2",
+        "d6",
+        "d5"
+      ]
+    },
+    "hyde": {
+      "goldRank": 1,
+      "cosGold": 0.6325,
+      "cosTrap": 0.1581,
+      "rr": 1.0,
+      "llmCalls": 1,
+      "hypotheticalDoc": "Sour, watery espresso is usually under-extraction: water channels through low-resistance paths in a coarse or unevenly-ground puck, so it never extracts, leaving a weak, sour shot.",
+      "hypotheticalBag": [
+        "sour",
+        "watery",
+        "espresso",
+        "underextraction",
+        "channeling",
+        "coarse",
+        "grind",
+        "weak"
+      ],
+      "rankedList": [
+        "d1",
+        "d3",
+        "d2",
+        "d4",
+        "d6",
+        "d5"
+      ]
+    }
+  },
+  "cosineJump": {
+    "gold": [
+      0.2236,
+      0.6325
+    ],
+    "trap": [
+      0.4472,
+      0.1581
+    ],
+    "_note": "the lecture's central visual (S17): raw query -> HyDE pseudo-doc."
+  },
+  "stepBack": {
+    "specific": "why did my 18g dose in a 58mm basket pull a 22-second sour shot?",
+    "generic": "what governs espresso extraction and sourness?",
+    "principleDocId": "d5",
+    "specificBag": [
+      "espresso",
+      "dose18g",
+      "basket58mm",
+      "seconds22",
+      "sour",
+      "shot"
+    ],
+    "genericBag": [
+      "espresso",
+      "extraction",
+      "sourness",
+      "factors"
+    ],
+    "cosSpecificPrinciple": 0.0,
+    "cosGenericPrinciple": 0.5669,
+    "principleRankSpecific": 6,
+    "principleRankGeneric": 1,
+    "_note": "climb to retrieve (generic), descend to answer (specific)."
+  },
+  "multiQueryRRF": {
+    "k": 60,
+    "paraphraseGoldRanks": [
+      3,
+      1,
+      2
+    ],
+    "paraphraseGoldRanks_note": "DESIGN-INPUT scenario (chosen to tell the consensus story); the RRF score below is COMPUTED from it.",
+    "rrfGold": 0.0484,
+    "rrfSingleHitRank1": 0.0164,
+    "rrfTerms": [
+      0.0159,
+      0.0164,
+      0.0161
+    ],
+    "measuredUnionHasGold": 1.0,
+    "_note": "gold at ranks [3,1,2] -> 1/63+1/61+1/62 = 0.0484 beats a single rank-1 hit 1/61 = 0.0164"
+  },
+  "decomposition": {
+    "query": "is a finer grind or a longer shot better for reducing sourness, and which changes extraction more?",
+    "subQuestions": [
+      "does a finer grind reduce sourness?",
+      "does a longer shot reduce sourness?",
+      "which changes extraction more, grind or shot length?"
+    ],
+    "subDocIds": [
+      "d2",
+      "d6",
+      "d5"
+    ],
+    "recallSub": [
+      1,
+      1,
+      1
+    ],
+    "recallJoint": 0,
+    "perHopSuccess": 0.9,
+    "hops": 3,
+    "composeSuccess": 0.729,
+    "_note": "each sub-answer sits in its own chunk (recallSub all 1); no single chunk holds all three (recallJoint 0). But compose success = p^n = 0.9^3 = 0.729 \u2014 a wrong hop propagates."
+  },
+  "robustness": {
+    "seeds": 20,
+    "orderingHoldFraction": {
+      "raw>rm3": 0.65,
+      "rm3>hyde": 0.95,
+      "raw>hyde": 0.95,
+      "trap_beats_gold_raw": 0.9
+    },
+    "rrBand": {
+      "raw": {
+        "mean": 0.284,
+        "std": 0.166
+      },
+      "rm3": {
+        "mean": 0.329,
+        "std": 0.166
+      },
+      "hyde": {
+        "mean": 1.0,
+        "std": 0.0
+      }
+    },
+    "_note": "over 20 seeds jittering the corpus bags: fraction where each ordering invariant still holds (1.0 = knife-edge-free)."
+  },
+  "config": {
+    "seeds": 20,
+    "rrfK": 60,
+    "perHopP": 0.9,
+    "hops": 3,
+    "cosine": "set-overlap |A n B|/sqrt(|A||B|)"
+  }
+}
