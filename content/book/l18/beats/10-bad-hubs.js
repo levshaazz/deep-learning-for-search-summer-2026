@@ -1,0 +1,21 @@
+    {
+      id: 'bad-hubs', kind: 'prose',
+      heading: { en: "Every road leads there — and it's the wrong town", ru: "Все дороги ведут туда — а город не тот", tt: "Барлык юллар шунда илтә — ә шәһәр ялгыш" },
+      body: {
+        en: [
+          "Not every hub is a villain. A hub that *truly* means many things — a great capital that honestly trades with every province — has earned its roads. The danger is the **bad hub**: a town every traveller's compass points to, yet whose meaning has nothing to do with most of the people who arrive. It is close to everyone because it sits near the centroid; and it is *wrong* for almost everyone because its meaning mismatches theirs.",
+          "Watch what a bad hub does from my drafting table. In kNN it lands in the neighbour-list of hundreds of towns, and in each one it casts a vote — so it hands its own **wrong label to hundreds at once**, a single confident lie copied all across the map. The same poison seeps into retrieval: a handful of hub-passages surface for almost *every* query, no matter what was asked. Even a classifier trained on these neighbourhoods inherits the error.",
+          "And the honest answer? It is usually an **anti-hub** — a quiet, correct little town out in the margin that appears in *nobody's* neighbour list: unreachable, its recall simply lost. So the map fails twice over — the loud wrong town is retrieved for everyone, the quiet right town for no one. That asymmetry, a few over-visited liars against a crowd of never-visited truth-tellers, is precisely what makes hubness dangerous — and why my next tollgate, **CSLS**, exists.",
+        ],
+        ru: [
+          "Не всякий хаб — злодей. Хаб, который и вправду значит многое, — большая столица, честно торгующая с каждой провинцией, — свои дороги заслужил. Опасен **плохой хаб**: город, на который указывает компас каждого путника, но чьё значение не имеет ничего общего с большинством до него добравшихся. Он близок ко всем — потому что сидит у самого центроида; и он *неверен* почти для всех — потому что смысл его не совпадает с их смыслом.",
+          "Смотри с моего чертёжного стола, что творит плохой хаб. В kNN он попадает в список соседей у сотен городов и в каждом отдаёт голос — а значит, вручает свою **ложную метку сразу сотням**: одна уверенная ложь, скопированная по всей карте. Тот же яд просачивается в retrieval: горстка хаб-пассажей всплывает почти на *любой* запрос, о чём бы ни спросили. Даже классификатор, обученный на таких окрестностях, наследует ошибку.",
+          "А честный ответ? Он обычно **анти-хаб** — тихий, верный городок на отшибе, которого нет *ни в чьём* списке соседей: недостижимый, его recall попросту потерян. Карта промахивается дважды — громкий неверный город достаётся всем, тихий верный — никому. Именно эта асимметрия, горстка захоженных лжецов против толпы незахоженных правдивцев, и делает hubness опасной — ради неё и придуман мой следующий сбор, **CSLS**.",
+        ],
+        tt: [
+          "Һәр hub явыз түгел. Чыннан да күп нәрсә аңлаткан hub — һәр өлкә белән намуслы сәүдә иткән зур башкала — үз юлларын хаклы рәвештә яулаган. Куркынычы — **начар hub**: һәр юлаучының компасы күрсәткән шәһәр, ләкин аның мәгънәсе аңа килеп җиткәннәрнең күбесе белән бер уртаклыгы да юк. Ул һәркемгә якын — чөнки centroid янында утыра; һәм ул диярлек һәркем өчен *ялгыш* — чөнки мәгънәсе туры килми.",
+          "Начар hub нәрсә эшли — минем сызым өстәлемнән кара. kNN'да ул йөзләрчә шәһәрнең күрше исемлегенә керә һәм һәрберсендә тавыш бирә — димәк, үзенең **ялган label'ын берьюлы йөзләргә** тапшыра: бөтен карта буйлап күчерелгән бер ышанычлы ялган. Шул ук агу retrieval'га да сеңә: нинди генә сорау бирелсә дә, бер уч hub-пассаж диярлек *һәр* запроста калкып чыга. Хәтта мондый тирәлекләрдә өйрәтелгән classifier да хатаны мирас итеп ала.",
+          "Ә намуслы җавап? Ул гадәттә **анти-hub** — читтә утырган тыныч, дөрес кечкенә шәһәр, *беркемнең дә* күрше исемлегендә юк: аңа барып җитеп булмый, аның recall'ы гади генә югалган. Карта ике тапкыр яңылыша — шаулы ялгыш шәһәр һәркемгә эләгә, тыныч дөрес шәһәр — беркемгә дә. Нәкъ менә шушы асимметрия, бер уч йөрелгән ялганчы каршында йөрелмәгән дөресчеләр толпасы, hubness'ны куркыныч итә — минем киләсе җыем, **CSLS**, шуның хакына бар.",
+        ],
+      },
+    },

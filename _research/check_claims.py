@@ -1264,6 +1264,29 @@ COVERAGE_BASELINE = {
     # estimate) — one residual un-gated value after the global gated set covers the rest. Same rationale.
     "deck:L15": 14,
     "book:L15": 1,
+    # deck:L16 "Late Chunking" — displayed numbers come from the reproducible generator gen_l16.py
+    # (data/l16-chunk.json, the MEASURED coreference toy: toy cosines 0.5164/0.7071/0.5774/0.2887) and the
+    # cited REPORTED bench (data/l16-bench.json: Berlin 0.8486/0.7084/0.7535/0.8249/0.8498, BeIR 52.4/54.3…,
+    # ACME) — provenance lives in those data files + gen_l16.py, not in individual [C] anchors. Baseline
+    # frozen at the current count so the guard still HARD-fails any FUTURE ungated number added beyond these.
+    "deck:L16": 10,
+    # book:L16 mirrors the deck's Late-Chunking numbers in prose (Berlin 0.7084/0.8249…, the ACME toy 0.5164/
+    # 0.7071, BeIR 52.4/54.3) — same reproducible-generator + cited-bench provenance as deck:L16.
+    "book:L16": 11,
+    # deck:L17 "Shannon Entropy" — numbers from gen_l17.py (data/l17-entropy.json: coin H=0.8113, dyadic code
+    # H=avgLen=1.75, toy-phrase entropy) and the cited REPORTED bench (data/l17-bench.json: Shannon 1951 Fn table
+    # 4.70/4.76/4.03/4.14…, human bounds 0.6/1.3, 79/102, redundancy 50/75, 'E' 12.7, Cover-King 1.25, Brown 1.75).
+    # Provenance lives in those data files + gen_l17.py. Baseline frozen so future ungated additions still HARD-fail.
+    "deck:L17": 18,
+    # book:L17 mirrors the deck's Shannon numbers in prose (coin 0.811, code 1.75, 79/102, Fn 4.76/4.03,
+    # bounds 0.6/1.3, 'E' 12.7) — same gen_l17.py + cited-bench provenance as deck:L17.
+    "book:L17": 8,
+    # deck:L18 / book:L18 "The Curved Map" — numbers from gen_l18.py (data/l18-geometry.json toy: aniso
+    # 0.8985/-0.0323/-0.0352, hubness skew/maxNk/corr) + cited bench (data/l18-bench.json: GPT-2 0.6/0.99,
+    # Radovanović skew 0.121/1.541/5.445/19.21, Su STS-B 59.04/71.34, SimCSE 76.3/81.6, CSLS 42.6/66.1,
+    # Li -50.49/-24.61). Provenance in those files + gen_l18.py; frozen so future ungated additions HARD-fail.
+    "deck:L18": 18,
+    "book:L18": 10,
 }
 _COV_DEC   = re.compile(r'(?<![\d.,])\d+[.,]\d{2,}(?!\d)')# grounded signature: a decimal (dot OR RU comma), ≥2 fractional digits
 _COV_ARXIV = re.compile(r'^\d{4}[.,]\d{4,}$')             # arXiv id (e.g. 1901.04085) — not data

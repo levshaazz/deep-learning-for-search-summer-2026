@@ -1,0 +1,53 @@
+<section class="slide" data-type="table" data-screen-label="37 Two lates · opposite cost">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Одно слово «late», два разных счёта</span>
+      <span lang="en">Same word &ldquo;late&rdquo;, two opposite bills</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">где приземляется стоимость — запрос против индексации</span>
+      <span lang="en">where the cost lands — query time vs index time</span>
+    </span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th><span lang="ru">Свойство</span><span lang="en">Property</span></th>
+        <th><span lang="ru">Late <em>interaction</em> (ColBERT, L8)</span><span lang="en">Late <em>interaction</em> (ColBERT, L8)</span></th>
+        <th><span lang="ru">Late <em>chunking</em> (сегодня)</span><span lang="en">Late <em>chunking</em> (today)</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span lang="ru">Что хранится</span><span lang="en">What is stored</span></td>
+        <td class="cell-bad"><span lang="ru">мульти-вектор — по одному на токен</span><span lang="en">multi-vector — one per token</span></td>
+        <td class="cell-good"><span lang="ru">один вектор на чанк</span><span lang="en">one vector per chunk</span></td>
+      </tr>
+      <tr>
+        <td><span lang="ru">Что откладывается</span><span lang="en">What is deferred</span></td>
+        <td><span lang="ru">сравнение (interaction)</span><span lang="en">the interaction</span></td>
+        <td><span lang="ru">пулинг чанка</span><span lang="en">the chunk pooling</span></td>
+      </tr>
+      <tr>
+        <td><span lang="ru">Где платишь</span><span lang="en">Where you pay</span></td>
+        <td class="cell-bad"><span lang="ru">при <strong>запросе</strong> — MaxSim по токенам</span><span lang="en">at <strong>query</strong> time — MaxSim over tokens</span></td>
+        <td class="cell-good"><span lang="ru">при <strong>индексации</strong> — пулинг один раз</span><span lang="en">at <strong>index</strong> time — pool once</span></td>
+      </tr>
+      <tr>
+        <td><span lang="ru">Размер индекса</span><span lang="en">Index size</span></td>
+        <td class="cell-bad"><span lang="ru">большой — \(N_{\text{ток}}\times d\)</span><span lang="en">large — \(N_{\text{tok}}\times d\)</span></td>
+        <td class="cell-good"><span lang="ru">обычный — \(M_{\text{чанк}}\times d\)</span><span lang="en">normal — \(M_{\text{chunk}}\times d\)</span></td>
+      </tr>
+      <tr>
+        <td><span lang="ru">Стоимость запроса</span><span lang="en">Query cost</span></td>
+        <td class="cell-bad"><span lang="ru">тяжёлая — токен-уровневый MaxSim</span><span lang="en">heavy — token-level MaxSim</span></td>
+        <td class="cell-good"><span lang="ru">как у naive — одно скалярное произв. на чанк</span><span lang="en">same as naive — one dot per chunk</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-4">
+    <span lang="ru">Один префикс, зеркальные профили: ColBERT платит <strong>за каждый запрос навсегда</strong>; late chunking платит <strong>один раз при индексации</strong> и на запросе бесплатен.</span>
+    <span lang="en">One prefix, mirror-image profiles: ColBERT pays <strong>per query, forever</strong>; late chunking pays <strong>once at indexing</strong> and is free at query time.</span>
+  </p>
+  <aside class="slide-notes">Ядро акта: «late» в обоих названиях, но стоимость зеркальна. ColBERT (late interaction) — мульти-вектор на токен, большой индекс, MaxSim платится каждым запросом. Late chunking — один вектор на чанк, обычный индекс, пулинг платится один раз при индексации, запрос идентичен naive (одно скалярное произведение на чанк). Ось — где приземляется стоимость.</aside>
+</section>

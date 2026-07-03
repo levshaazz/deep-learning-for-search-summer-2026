@@ -1,0 +1,21 @@
+    {
+      id: 'why-works', kind: 'prose',
+      heading: { en: "By the time I pick up the ruler, every 'it' already knows it means Berlin", ru: "К тому моменту, как я беру линейку, каждое «оно» уже знает, что оно — про Berlin", tt: "Линейканы кулга алганда, һәр «ул» инде үзенең Berlin турында икәнен белә" },
+      body: {
+        en: [
+          "Here is the whole trick, and it is quieter than you'd expect. When I read the book cover to cover *before* I cut, full-document attention lets the word **Berlin** reach forward across every page and press a little of itself into each later *its*, each *the city*. By the time I pick up the ruler, those token vectors are no longer orphans — Berlin is already written inside them.",
+          "So the chunk *\"Its 3.85 million residents…\"* is not a naked pronoun waiting for a subject that got torn away; it carries its subject in its bones. That is coreference resolution — the thing we used to beg a large model to do by rewriting the text — and here it happens for free, as a side effect of attention. No LLM is asked a single question. The referent-free chunks that scored a dull 0.71 and 0.75 quietly climb to 0.82 and 0.85 (reported).",
+          "The deeper shift: every chunk-card is now *conditional*, not i.i.d. Naive chunking embeds each piece in isolation — independent, and identically blind to its neighbours. Late chunking makes each vector a \\( \\text{chunk} \\mid \\text{document} \\), aware of what came before it. Same model, same dimension, same index; the only thing I changed is that I let each card read the room before I filed it.",
+        ],
+        ru: [
+          "Вот и весь фокус — и он тише, чем можно ожидать. Когда я читаю книгу от корки до корки *прежде*, чем резать, self-attention по всему документу позволяет слову **Berlin** дотянуться вперёд через все страницы и вписать частицу себя в каждое последующее *его*, в каждое *город*. К тому моменту, как я беру линейку, эти token-векторы уже не сироты — Berlin в них уже записан.",
+          "И тогда чанк *«Его 3,85 миллиона жителей…»* — не голое местоимение, ждущее оторванного подлежащего; он несёт своё подлежащее в самой сердцевине. Это и есть разрешение кореференции — то, что раньше мы вымаливали у большой модели переписыванием текста, — а здесь оно случается бесплатно, как побочный эффект attention. Ни одного вопроса к LLM. Чанки без референта, набиравшие тусклые 0.71 и 0.75, тихо поднимаются до 0.82 и 0.85 (по отчётам).",
+          "Сдвиг глубже: каждая чанк-карточка теперь *условная*, а не i.i.d. Наивное чанкование кодирует каждый кусок в одиночестве — независимо и одинаково слепо к соседям. Late chunking делает каждый вектор \\( \\text{chunk} \\mid \\text{document} \\), знающим, что было до него. Та же модель, та же размерность, тот же index; я поменял лишь одно — дал карточке осмотреться, прежде чем убрать её в картотеку.",
+        ],
+        tt: [
+          "Менә бөтен хикмәт — һәм ул көтелгәннән дә тынычрак. Мин китапны кисәр алдыннан башыннан ахырына кадәр укыганда, тулы документ буенча self-attention **Berlin** сүзенә барлык битләр аша алга сузылып, һәр соңрак килгән *аның*га, һәр *шәһәр*гә үзеннән бер өлеш язып калдырырга мөмкинлек бирә. Линейканы кулга алганда, бу token-векторлар инде ятим түгел — Berlin аларга язылган булган.",
+          "Шулай итеп *«Аның 3,85 миллион кешесе…»* дигән chunk — өзеп алынган иясен көтеп торган ялангач алмашлык түгел; ул үз иясен нәкъ үзәгендә йөртә. Менә шушы coreference чишелеше — элек без аны текстны яңадан язып, зур моделдән ялварып сорый идек, — ә монда ул attention-ның янәшә нәтиҗәсе буларак бушлай була. LLM-нан бер сорау да соралмый. Референтсыз chunk-лар, тонык 0.71 һәм 0.75 җыйганнары, тыныч кына 0.82 һәм 0.85кә күтәреләләр (отчёт буенча).",
+          "Тирәнрәк үзгәреш: һәр chunk-карточка хәзер *шартлы* (conditional), i.i.d. түгел. Наив chunking һәр кисәкне ялгызлыкта кодлый — бәйсез һәм күршеләренә бертигез сукыр. Late chunking һәр векторны \\( \\text{chunk} \\mid \\text{document} \\) итә, аңа кадәр ни булганын белә торган. Шул ук model, шул ук үлчәм, шул ук index; мин бары тик бер нәрсәне генә үзгәрттем — карточкага картотекага салганчы тирә-якка күз салырга рөхсәт иттем.",
+        ],
+      },
+    },

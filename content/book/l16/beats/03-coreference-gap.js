@@ -1,0 +1,24 @@
+    {
+      id: 'coreference-gap', kind: 'prose',
+      heading: { en: "Tear out the page, and the sentence forgets whose it is", ru: "Вырви страницу — и фраза забудет, о ком она", tt: "Битне йолкып ал — һәм җөмлә кем турында икәнен онытыр" },
+      img: 'L16/L16-01-tear-first.png', imgPos: 'right',
+      imgAlt: { en: "Séréga has torn three pages loose from a book and handed them to three small clerks, each reading a lone page; the middle clerk stares baffled at a page that begins 'Its 3.85 million residents…', the subject word greyed out and gone, a puzzled '…whose?' bubble above his head, the torn pages drifting apart across the desk.", ru: "Séréга вырвал из книги три страницы и раздал троим клеркам, каждый читает свою одинокую страницу; средний растерянно смотрит на страницу «Его 3,85 млн жителей…», где слово-подлежащее выцвело и исчезло, а над ним пузырь «…чьи?»; вырванные страницы разлетаются по столу.", tt: "Séréga китаптан өч битне йолкып алып, өч кечкенә клеркка биргән, һәрберсе үзенең ялгыз битен укый; уртадагысы аптырап «Аның 3,85 млн кешесе…» дип башланган биткә карый, анда ия-сүз соргылтка сүнеп юкка чыккан, аның өстендә «…кемнеке?» дигән куык, ә йолкынган битләр өстәл буйлап таралыша." },
+      imgCaption: { en: "Read alone, *\"Its 3.85M residents…\"* no longer knows it means **Berlin** — so retrieval walks right past the answer.", ru: "В одиночку *«Его 3,85 млн жителей…»* уже не знает, что речь о **Берлине**, — и поиск проходит мимо ответа.", tt: "Ялгыз укылганда, *«Аның 3,85 млн кешесе…»* инде **Берлин** турында икәнен белми — эзләү җавап яныннан узып китә." },
+      body: {
+        en: [
+          "Let me show you the old way — the one I mean to cure you of. I tear the pages out of the book first, then hand each loose page to a clerk and tell him: *read only yours.* One clerk holds a page that begins, *\"Its 3.85 million residents…\"* He looks up, baffled — *whose* residents? The word that said **Berlin** was on a page I already tore away.",
+          "That amnesia costs us at retrieval time. Ask about Berlin, and the chunk that literally *names* Berlin answers loudest — reported cosine \\(0.8486\\). But the chunk that actually holds the fact, *\"Its 3.85 million residents…\"*, scores only \\(0.7084\\); *\"The city is also a state\"* reaches just \\(0.7535\\). The sentences that carry the answer rank *below* the one that merely says the name.",
+          "This is the coreference gap, and it is the whole trouble in a single line. *It*, *its*, *the city* — each such word is a promise that its subject lives nearby. Chunk-then-embed tears that neighbour away, then asks the orphaned chunk to speak for itself. It can't — so retrieval walks right past the very sentence that holds your answer.",
+        ],
+        ru: [
+          "Покажу старый способ — тот самый, от которого хочу вас отучить. Сначала я вырываю страницы из книги, потом раздаю их клеркам и говорю каждому: *читай только свою.* Один держит страницу, начинающуюся словами *«Его 3,85 миллиона жителей…»*, — и растерянно поднимает глаза: *чьи* жители? Слово **Берлин** осталось на странице, которую я уже вырвал.",
+          "Эта беспамятность дорого обходится при поиске. Спросите про Берлин — и громче всех отвечает тот chunk, где Берлин прямо *назван*: в замерах cosine \\(0.8486\\). А chunk, в котором и лежит сам факт, *«Его 3,85 млн жителей…»*, набирает лишь \\(0.7084\\); *«Город при этом ещё и отдельная земля»* — всего \\(0.7535\\). Фразы, несущие ответ, оказываются *ниже* той, что просто произносит имя.",
+          "Это и есть coreference gap — вся болезнь в одной строке. *Оно*, *его*, *город* — каждое такое слово обещает, что его подлежащее где-то рядом. Приём chunk-then-embed вырывает этого соседа, а потом просит осиротевший chunk говорить за себя. Не может — и поиск проходит мимо той самой фразы, в которой и лежит ваш ответ.",
+        ],
+        tt: [
+          "Иске ысулны күрсәтим — нәкъ шуннан сезне биздерергә телим. Башта китаптан битләрне йолкып алам, аннары һәр клеркка берәр бит биреп әйтәм: *үзеңнекен генә укы.* Берсе *«Аның 3,85 миллион кешесе…»* дип башланган битне тота һәм аптырап баш күтәрә: *кемнең* кешеләре? **Берлин** дигән сүз мин инде йолкып алган биттә калды.",
+          "Бу онытучанлык эзләгәндә кыйммәткә төшә. Берлин турында сорагыз — иң каты тавыш белән шул chunk җавап бирә, анда Берлин туры *аталган*: үлчәүләрдә cosine \\(0.8486\\). Ә асыл факт яткан chunk, *«Аның 3,85 млн кешесе…»*, ни бары \\(0.7084\\) җыя; *«Шәһәр шулай ук аерым җир»* — бары \\(0.7535\\). Җавапны күтәргән җөмләләр исемне генә әйткәненнән *түбәнрәк* кала.",
+          "Менә шушы — coreference gap, бөтен чир бер юлда. *Ул*, *аның*, *шәһәр* — андый һәр сүз үзенең иясе кайдадыр янәшәдә дип вәгъдә бирә. Chunk-then-embed ысулы шул күршене йолкып ала да, ятим калган chunk-тан үзе өчен сөйләвен сорый. Булдыра алмый — һәм эзләү нәкъ синең җавабың яткан җөмлә яныннан узып китә.",
+        ],
+      },
+    },
