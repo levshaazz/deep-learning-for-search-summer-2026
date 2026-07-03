@@ -1746,6 +1746,215 @@ JOBS = [
      "panel (the Transformer block) → two woven scenes, one reading and one writing forward (BERT / GPT) → a "
      "refined decorative border (RLHF). Earned, warm, generous send-off. Black ink + course-blue + thin "
      "warm-orange thread highlights; Serega's green tübetey is the ONLY green. No lettered title bar. Fills ≥85% width."),
+
+    # ---- L16 "Late Chunking" (contextual chunk embeddings for long docs). Metaphor: naive chunking = tear
+    #      the pages out first then read each alone (a page loses WHO it is about); late chunking = read the
+    #      whole book first, THEN mark the chunk boundaries so every card remembers the subject. Cameo: Chunk
+    #      Norris (the L10 chunking mascot) whose over-eager slicing this corrects. Serega in every plate. ----
+    ("L16", "L16/L16-00-read-first.png", "16:9", True,
+     "HERO. Serega sits reading one whole thick BOOK cover to cover, a calm thought-bubble absorbing the "
+     "entire story; a ruler rests across the open spine ready to MARK chunk boundaries only AFTER he has read "
+     "it all. On the desk, three tidy index-cards wait. Air of patient craft. Hand-lettered tag 'read the "
+     "whole book first'. Black ink + course-blue + one thin warm-orange thread of story running through the "
+     "pages; Serega's green tübetey is the ONLY green. No lettered title bar. Fills ≥85% width."),
+    ("L16", "L16/L16-01-tear-first.png", "4:3", True,
+     "NAIVE chunking. Serega has TORN three pages out of a book and handed them to three little helpers who "
+     "each read only their lone page. The middle helper stares baffled at a page reading 'Its 3.85 M "
+     "residents...' with the word that says WHO (the subject) greyed-out and absent — a puzzled '...whose?' "
+     "speech bubble over his head. The torn pages drift apart. Black ink + course-blue; the missing referent "
+     "word faint grey; Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L16", "L16/L16-02-chunk-norris.png", "4:3", True,
+     "Chunk Norris (the recurring karate-master chunking mascot, course-blue gi and belt, tidy ink moustache) "
+     "mid roundhouse-kick chopping a long scroll into equal chunks that fly apart on clean cut-lines; Serega "
+     "stands beside him holding up one hand 'wait — read it first', gently correcting the over-eager slicing. "
+     "One warm-orange motion-arc on the kick. Chunk Norris is BARE-HEADED (no green); Serega's green tübetey "
+     "the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L16", "L16/L16-03-read-then-mark.png", "4:3", True,
+     "LATE chunking. Serega has read the whole book, and the word 'Berlin' glows and THREADS forward through "
+     "the text with a warm-orange line into the later pronoun 'Its' and 'the city' (binding the referent). "
+     "NOW he lays a ruler across the pages and marks chunk boundaries — the pages stay bound, each remembers "
+     "'Berlin'. Hand-lettered tag 'mark the pages last'. Black ink + course-blue + one warm-orange binding "
+     "thread; Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L16", "L16/L16-04-the-lift.png", "4:3", True,
+     "the coreference LIFT. One index-card labelled 'Its 3.85M residents' sits on a little vertical dial; when "
+     "Serega reads the whole book first, the card's needle JUMPS up from a dull reading '0.71' to a bright "
+     "'0.85'. Two short hand-lettered numbers '0.71' (grey, low) and '0.85' (warm-orange, high). Serega points "
+     "proudly. Black ink + course-blue + one warm-orange high-mark; Serega's green tübetey the ONLY green. No "
+     "lettered title bar. Fills ≥80% width."),
+    ("L16", "L16/L16-05-mean-pool.png", "4:3", True,
+     "MEAN POOLING a chunk. A row of little token-vector arrows inside one bracketed chunk are gathered and "
+     "AVERAGED by Serega into a single tidy card-vector (a funnel or an averaging-scale merging many small "
+     "arrows into one). Hand-lettered tag 'one vector per chunk'. Black ink + course-blue arrows + one "
+     "warm-orange resulting arrow; Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L16", "L16/L16-06-two-lates.png", "4:3", True,
+     "THE TWO LATES, side by side. LEFT: late INTERACTION (ColBERT) — a passage kept as a fistful of many "
+     "per-WORD sticky-notes, an expensive many-armed handshake at query time. RIGHT: late CHUNKING — Serega "
+     "holds ONE tidy index-card per passage, cheap and free at query time. A small balance-scale between them "
+     "tips 'query-time cost' vs 'index-time cost'. Hand-lettered 'interaction' / 'chunking'. Black ink + "
+     "course-blue + thin warm-orange; Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L16", "L16/L16-07-vs-llm.png", "4:3", True,
+     "late chunking vs the LLM way. LEFT: a costly robot/LLM stamps an extra CONTEXT paragraph onto each chunk "
+     "(a paid extra step, little coin symbols). RIGHT: Serega gets the SAME result for free just by reading "
+     "the whole book first — a thumbs-up, no coins. A small '=' between their two output-cards showing equal "
+     "quality. Hand-lettered 'LLM prepend' / 'late chunking · free'. Black ink + course-blue + one warm-orange "
+     "accent; Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L16", "L16/L16-08-drop-in.png", "4:3", True,
+     "DROP-IN. Serega slots his tidy chunk-cards into the SAME existing filing cabinet / vector index he "
+     "already had — nothing downstream changes (same drawers, same size). A little 'same index, same query "
+     "cost' hand-lettered tag. Calm, satisfied. Black ink + course-blue cabinet + one warm-orange card; "
+     "Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L16", "L16/L16-09-needle-fail.png", "4:3", True,
+     "the FAILURE case. A giant book of 8000 pages of pure nonsense-scribbles with ONE secret passphrase page "
+     "hidden inside; when Serega reads the whole thing first, the secret gets SMEARED into the surrounding "
+     "gibberish (its card goes muddy). Here he'd have been better off tearing out the one page — a wry shrug. "
+     "Hand-lettered 'needle in a haystack'. Black ink + course-blue + faint warm-orange smear; Serega's green "
+     "tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L16", "L16/L16-10-evidence.png", "4:3", True,
+     "the EVIDENCE, understated. A small honest bar-chart on an easel where the 'late' bar edges just above "
+     "the 'naive' bar (a modest but real lift), Serega beside it tapping the small gap with a pointer and a "
+     "level-headed nod — 'small, but free'. Hand-lettered 'naive' / 'late'. Black ink + course-blue bars + "
+     "one warm-orange top-cap on the late bar; Serega's green tübetey the ONLY green. No lettered title bar. "
+     "Fills ≥80% width."),
+    ("L16", "L16/L16-11-the-whole-book.png", "16:9", True,
+     "FINAL. Serega stands proudly beside the whole intact BOOK and a neat fanned row of index-cards, each "
+     "card faintly glowing with the story it remembers (the warm-orange thread still linking them back to the "
+     "book). Earned, warm send-off; a small takeaway feel of 'change WHEN you pool, not the model'. Black ink "
+     "+ course-blue + thin warm-orange memory-threads; Serega's green tübetey is the ONLY green. No lettered "
+     "title bar. Fills ≥85% width."),
+
+    # ---- L17 "Shannon Entropy" (the entropy of language; strong historical flavour). Metaphor: Serega as a
+    #      1948 Bell-Labs TELEGRAPH OPERATOR measuring SURPRISE on a bits gauge; a recurring red "entropy floor"
+    #      line = the hard limit. Props: brass telegraph key, Morse dots/dashes, chalkboard H = -Σ p log p. ----
+    ("L17", "L17/L17-00-telegraph.png", "16:9", True,
+     "HERO. Serega sits at a brass TELEGRAPH KEY in a tidy 1920s Bell key-room, tapping out Morse; above the "
+     "key a small round GAUGE labelled in little dot-marks reads 'bits'. He taps a single dot and a hand-"
+     "lettered tag reads 'E = a dot' beside it. Air of calm period craft. Black ink + course-blue brass key + "
+     "one thin warm-orange gauge-needle; Serega's green tübetey is the ONLY green. No lettered title bar. Fills ≥85% width."),
+    ("L17", "L17/L17-01-morse-e-dot.png", "4:3", True,
+     "Morse-code frequency coding. Serega sorts a printer's type-case, stacking the tall 'E' bin far higher "
+     "than the rest, and beside it a little key gives 'E' a single DOT while a rare 'Q' gets a long dash-heavy "
+     "code. Hand-lettered 'frequent → short'. Black ink + course-blue + one warm-orange dot; Serega's green "
+     "tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L17", "L17/L17-02-markov-onegin.png", "4:3", True,
+     "Markov's chain. Serega traces a chain of little linked beads labelled V and C (vowel / consonant) across "
+     "a page of Pushkin, each bead's next depending on the last; a small tally '43% V · 57% C'. Hand-lettered "
+     "'the next letter remembers the last'. Black ink + course-blue beads + one warm-orange link; Serega's "
+     "green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L17", "L17/L17-03-the-bit.png", "4:3", True,
+     "THE BIT. Serega flips one simple two-way LEVER / coin between 0 and 1 — the single yes/no unit of "
+     "information — a small '1 bit' tag beside it. Clean and minimal. Black ink + course-blue lever + one "
+     "warm-orange accent; Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L17", "L17/L17-04-surprise-meter.png", "4:3", True,
+     "THE SURPRISE METER. A strip of English letters feeds past Serega left to right; over it a big round "
+     "GAUGE reading in 'bits' — the needle barely twitches on the predictable letter after 't-h-_' (he calmly "
+     "guesses 'e') but SPIKES on a genuinely unpredictable letter. Hand-lettered 'surprise'. Black ink + "
+     "course-blue gauge + one warm-orange needle; Serega's green tübetey the ONLY green. No lettered title bar. "
+     "Fills ≥80% width."),
+    ("L17", "L17/L17-05-entropy-formula.png", "4:3", True,
+     "Serega at a small chalkboard writing H = −Σ p log p and, beside it, a tiny drawing of a fair COIN (1 "
+     "bit) and a fair DIE (≈2.585 bits) to anchor the scale. Thoughtful teacher pose, chalk in hand. Black ink "
+     "+ course-blue chalkboard + one warm-orange underline; Serega's green tübetey the ONLY green. No lettered "
+     "title bar. Fills ≥80% width."),
+    ("L17", "L17/L17-06-biased-coin.png", "4:3", True,
+     "a BIASED coin, worked. Serega holds a lopsided coin weighted toward tails; a little needle-gauge beside "
+     "it reads below the '1 bit' mark — hand-lettered '0.81 bits'. He grins: the skew is exploitable. Black "
+     "ink + course-blue coin + one warm-orange gauge-mark; Serega's green tübetey the ONLY green. No lettered "
+     "title bar. Fills ≥80% width."),
+    ("L17", "L17/L17-07-guessing-game.png", "4:3", True,
+     "SHANNON'S GUESSING GAME. Serega, pencil in hand, guesses the next hidden letter of a covered sentence, "
+     "keeping a tally of guesses; most letters he gets on the first try (a row of little '1' tallies), a rare "
+     "one takes several. Hand-lettered '79 of 102 first try'. Black ink + course-blue + one warm-orange tally; "
+     "Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L17", "L17/L17-08-compression-floor.png", "4:3", True,
+     "the COMPRESSION FLOOR. Serega presses a fat book down through a press to a slim compressed strip, but "
+     "the press stops HARD at a solid red horizontal FLOOR line labelled 'H' — he cannot squeeze past it. "
+     "Hand-lettered 'entropy = the floor'. Black ink + course-blue press + the single red floor line (this red "
+     "line is allowed — it is a diagram rule, not a figure); Serega's green tübetey the ONLY green. No lettered "
+     "title bar. Fills ≥80% width."),
+    ("L17", "L17/L17-09-optimal-code.png", "4:3", True,
+     "the OPTIMAL CODE. Serega hangs four symbols A B C D on a little binary TREE — A on a short branch '0', D "
+     "on a long branch '111' — frequent symbols get short codes; a tag notes the average length equals the "
+     "entropy '1.75 = 1.75'. Black ink + course-blue tree + one warm-orange short-branch; Serega's green "
+     "tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L17", "L17/L17-10-serega-vs-lm.png", "4:3", True,
+     "THE BRIDGE. Split panel: LEFT 1951 Serega with pencil and guess-tallies; RIGHT a small modern neural-net "
+     "box predicting the next token — and BOTH read off the SAME 'bits per character' gauge whose needle "
+     "hovers just above a solid red floor line labelled 'H'. Hand-lettered 'cross-entropy'. Black ink + "
+     "course-blue + the red floor line; Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L17", "L17/L17-11-the-floor.png", "16:9", True,
+     "FINAL. Serega stands beside the big bits-per-character gauge, one hand resting on the solid red 'H — the "
+     "entropy of English' FLOOR line; the needle sits just above it, unable to dip under. A calm, wise send-"
+     "off — 'you can get close; you can't get under'. Black ink + course-blue gauge + the single red floor "
+     "line; Serega's green tübetey is the ONLY green. No lettered title bar. Fills ≥85% width."),
+
+    # ---- L18 "The Curved Map" (anisotropy & hubness). Metaphor: Serega the CARTOGRAPHER of a warped world;
+    #      the embedding space is a distorted map projection (Mercator). Anisotropy = every town squashed into
+    #      one narrow wedge; whitening = re-project to an even grid; hubness = all-roads-to-Rome hub towns;
+    #      CSLS = a local-crowding toll. Serega in every plate; keep grid/towns non-green. ----
+    ("L18", "L18/L18-00-warped-map.png", "16:9", True,
+     "HERO. Serega the cartographer wrestles a round GLOBE flattening onto a badly-stretched flat MAP on his "
+     "drafting table, ruler and compass in hand; the map is visibly warped. He studies it, determined to fix "
+     "the projection. Hand-lettered 'the map is curved'. Black ink + course-blue map + thin warm-orange "
+     "meridians; Serega's green tübetey is the ONLY green. No lettered title bar. Fills ≥85% width."),
+    ("L18", "L18/L18-01-squashed-wedge.png", "4:3", True,
+     "ANISOTROPY. A bad Mercator squashes ALL the little town-dots (word vectors) into one thin narrow WEDGE "
+     "pointing the same direction, so every town looks close to every other. Serega holds a ruler labelled "
+     "'cosine' between two obviously-different towns and it reads a suspiciously high '0.99'. Hand-lettered "
+     "'strangers?'. Black ink + course-blue wedge of dots + one warm-orange ruler-mark; Serega's green tübetey "
+     "the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L18", "L18/L18-02-cone.png", "4:3", True,
+     "the CONE. The town-dots pile into a tight cone-shaped wedge emanating from a point; a faint dotted sphere "
+     "shows how much of the space they SHOULD fill but don't. Serega peers along the narrow cone with a "
+     "spyglass. Hand-lettered 'a narrow cone'. Black ink + course-blue cone; Serega's green tübetey the ONLY "
+     "green. No lettered title bar. Fills ≥80% width."),
+    ("L18", "L18/L18-03-frequency-directions.png", "4:3", True,
+     "the TOP directions encode FREQUENCY, not meaning. Serega finds that the biggest axes of his warped map "
+     "just sort towns by how COMMON their names are (a little 'the / of / a' pile on one big arrow) — not by "
+     "meaning; he prepares to snip that dominant arrow off. Hand-lettered 'drop the top axis'. Black ink + "
+     "course-blue arrows + one warm-orange snip; Serega's green tübetey the ONLY green. No lettered title bar. "
+     "Fills ≥80% width."),
+    ("L18", "L18/L18-04-reproject-grid.png", "4:3", True,
+     "WHITENING = re-project to an even grid. Serega, T-square in hand, re-grids the map: he slides the whole "
+     "sheet to center the towns on the origin, then un-stretches and un-shears the axes so the squashed wedge "
+     "POPS OPEN into a round, evenly-spread field of towns on a fresh square grid. Hand-lettered 'center → "
+     "whiten'. Black ink + course-blue grid + thin warm-orange axes; Serega's green tübetey the ONLY green. No "
+     "lettered title bar. Fills ≥80% width."),
+    ("L18", "L18/L18-05-honest-ruler.png", "4:3", True,
+     "the ruler now tells the TRUTH. On the freshly re-projected even map, Serega lays his 'cosine' ruler "
+     "between the two once-'0.99' strangers and it now reads a low, honest number — they ARE far apart. A "
+     "small before/after inset of the ruler. Hand-lettered 'honest distance'. Black ink + course-blue + one "
+     "warm-orange ruler-mark; Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L18", "L18/L18-06-contrastive.png", "4:3", True,
+     "build isotropy IN. Serega pulls matching towns TOGETHER (a short warm-orange tether between a positive "
+     "pair) while pushing everything else evenly APART across the whole round field — the contrastive way to "
+     "get an even map from the start. Hand-lettered 'align + spread'. Black ink + course-blue towns + one "
+     "warm-orange tether; Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L18", "L18/L18-07-rome-hub.png", "4:3", True,
+     "HUBNESS = all roads lead to Rome. One over-crowded HUB town sits dead-center with a traffic-jam of "
+     "arrows pointing INTO it from every direction (drawn with a fat ring to show 'everyone's neighbour'); "
+     "Serega looks on, arms folded. Hand-lettered 'a hub'. Black ink + course-blue roads + one warm-orange "
+     "hub-ring; Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L18", "L18/L18-08-anti-hubs.png", "4:3", True,
+     "the ANTI-HUBS. Off in the map's corners, a few lonely town-dots sit with cobwebbed, untravelled roads — "
+     "no one's neighbour, never visited; Serega points at one with a lantern, concerned it can't be found. "
+     "Hand-lettered 'never retrieved'. Black ink + course-blue + faint warm-orange cobweb; Serega's green "
+     "tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L18", "L18/L18-09-crowding-tax.png", "4:3", True,
+     "CSLS = the crowding tax. Serega stamps a '−r' TOLL on the gates of the crowded hub town (measuring how "
+     "busy its own neighbourhood is), while the quiet anti-hub towns finally get fresh roads out to them. "
+     "Popularity no longer counts as closeness. Hand-lettered 'local-crowding tax'. Black ink + course-blue + "
+     "one warm-orange toll-stamp; Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L18", "L18/L18-10-two-fixes.png", "4:3", True,
+     "TWO complementary fixes. LEFT: Serega re-projecting the grid (fixes the CONE). RIGHT: Serega stamping "
+     "the crowding toll (fixes the NEIGHBOUR graph). A small '+' between them — you often need both. Hand-"
+     "lettered 'whiten' / 'CSLS'. Black ink + course-blue + thin warm-orange; Serega's green tübetey the ONLY "
+     "green. No lettered title bar. Fills ≥80% width."),
+    ("L18", "L18/L18-11-even-map.png", "16:9", True,
+     "FINAL. Serega stands proud on the freshly re-projected, evenly-gridded MAP, ruler in hand, the once-"
+     "crowded hub now just one town among many spread honestly across the sheet; every road tells the truth. "
+     "Earned, warm send-off — 'straight-line distance lies on a curved map; so straighten the map'. Black ink "
+     "+ course-blue even grid + thin warm-orange meridians; Serega's green tübetey is the ONLY green. No "
+     "lettered title bar. Fills ≥85% width."),
 ]
 
 H = {"Authorization": f"Bearer {API_KEY}"}

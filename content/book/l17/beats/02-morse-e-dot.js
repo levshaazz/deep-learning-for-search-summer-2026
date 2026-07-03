@@ -1,0 +1,24 @@
+    {
+      id: 'morse-e-dot', kind: 'prose',
+      heading: { en: "The dot they gave to E", ru: "Точка, которую отдали букве E", tt: "E хәрефенә бирелгән нокта" },
+      img: 'L17/L17-01-morse-e-dot.png', imgPos: 'right',
+      imgAlt: { en: "Séréga in a green tübetey leans over a printer's wooden type-case; its 'E' compartment is worn down to bare wood from constant use and brimming with metal slugs, while the rare-letter bins sit almost untouched. On the desk beside him a telegraph key taps out a single glowing dot, and a brass surprise-gauge waits in the shadow behind him.", ru: "Séréга в зелёной тюбетейке склонился над деревянной наборной кассой типографии: ячейка с буквой «E» протёрта до голого дерева от постоянного разбора и полна литер, а ящички редких букв почти нетронуты. На столе рядом телеграфный ключ выстукивает одну светящуюся точку, а в тени позади ждёт латунный датчик удивления.", tt: "Séréga яшел түбәтәйдә типографиянең агач хәреф кассасы өстенә иелгән: «E» хәрефе оясы даими кулланудан ялангач агачка кадәр туздырылган һәм литералар белән тулы, ә сирәк хәрефләр тартмачыклары диярлек кагылмаган. Яндагы өстәлдә телеграф ачкычы бер яктырган нокта чиртеп тора, ә артта, күләгәдә, бакыр гаҗәпләнү үлчәгече көтеп тора." },
+      imgCaption: { en: "**E** is one letter in eight — so it earns a single dot.", ru: "**E** — одна буква из восьми, потому и получает одну точку.", tt: "**E** — сигез хәрефнең берсе, шуңа күрә бер нокта ала." },
+      body: {
+        en: [
+          "I sit at my telegraph key in 1948 with a needle that twitches at every surprise — but before anyone could *measure* surprise, someone had to make a single letter into a thing you could count. A hundred years before me, two men did exactly that: Samuel Morse and his partner Alfred Vail.",
+          "They did not count in their heads. They walked into a printer's shop and opened the type-cases of a newspaper — the little wooden compartments of cast-metal letters. Whichever letter the printer stocked the most of was the letter English leaned on the hardest. 'E' — about one letter in eight (near 12.7% by later tallies). So to the commonest letter they handed the shortest possible signal: a single dot. Rarer letters earned longer strings. Frequent → short.",
+          "They had no theory and no formula. Yet by hand they built the very rule a whole science would prove much later: spend your shortest codes on your commonest symbols. Huffman would write it down exactly in 1952 — Morse and Vail had done it a century early, just by counting type. That is the moment information became a *quantity* — something you could weigh right there in the room.",
+        ],
+        ru: [
+          "Сижу у телеграфного ключа в 1948-м, и стрелка вздрагивает на каждой неожиданности — но прежде чем удивление стало можно *измерить*, кто-то должен был сделать одну букву тем, что можно сосчитать. За сто лет до меня это сделали двое: Сэмюэл Морзе и его напарник Альфред Вейл.",
+          "Считали они не в уме. Они зашли в типографию и открыли наборные кассы газеты — те деревянные ячейки с литыми литерами. Какой литеры у наборщика запасено больше всего, ту букву английский язык и любит сильнее прочих. «E» — примерно одна буква из восьми (около 12.7% по позднейшим подсчётам). И самой частой букве они отдали самый короткий сигнал: одну точку. Буквам пореже достались строки подлиннее. Часто → коротко.",
+          "Ни теории, ни формулы у них не было. Но руками они собрали то самое правило, которое целая наука докажет много позже: самые короткие коды трать на самые частые символы. Хаффман запишет это строго в 1952-м — а Морзе с Вейлом сделали то же на век раньше, просто пересчитав литеры. Вот тот миг, когда информация стала *величиной* — тем, что можно взвесить прямо здесь, в комнате.",
+        ],
+        tt: [
+          "1948 елда телеграф ачкычы янында утырам, ә тел-угы һәр көтелмәгәнлектән калтырый — әмма гаҗәпләнүне *үлчәп* булганчы, кемдер бер хәрефне санап була торган нәрсәгә әйләндерергә тиеш иде. Миннән йөз ел элек моны икәү эшләде: Сэмюэл Морзе һәм аның иптәше Альфред Вейл.",
+          "Алар башларында санамады. Типографиягә кереп, газетаның хәреф кассаларын — коелган литералар салынган агач ояларны — ачтылар. Наборщикта нинди литера күбрәк запаслы, инглиз теле шул хәрефне иң яратканы. «E» — якынча сигез хәрефнең берсе (соңрак исәпләүләр буенча 12.7% тирәсе). Иң еш очрый торган хәрефкә алар иң кыска сигналны бирде: бер нокта. Сирәгрәк хәрефләргә озынрак тезмәләр эләкте. Еш → кыска.",
+          "Аларда теория да, формула да юк иде. Ләкин куллары белән алар бөтен бер фән соңыннан исбатлаячак кагыйдәне җыйды: иң кыска кодларны иң еш символларга сарыф ит. Хаффман моны 1952-дә төгәл язып куяр — ә Морзе белән Вейл шул ук эшне бер гасыр элегрәк, гади генә литераларны санап башкарган иде. Менә шул мизгелдә мәгълүмат *зурлыкка* әйләнде — бүлмәдә үк үлчәп була торган нәрсәгә.",
+        ],
+      },
+    },

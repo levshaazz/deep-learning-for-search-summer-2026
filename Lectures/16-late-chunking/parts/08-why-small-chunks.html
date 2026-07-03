@@ -1,0 +1,58 @@
+<section class="slide" data-type="two-col" data-screen-label="08 Why small chunks">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Почему RAG хочет <em>маленькие</em> чанки</span>
+      <span lang="en">Why RAG wants <em>small</em> chunks</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">коллапс длины · один вектор на длинный текст всё усредняет</span>
+      <span lang="en">length collapse · one vector over a long text averages everything</span>
+    </span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag">
+          <span lang="ru">Определение · коллапс длины</span>
+          <span lang="en">Definition · length collapse</span>
+        </span>
+        <div class="def-term">
+          <span lang="ru">Один эмбеддинг длинного документа = среднее по всем токенам: локальная деталь тонет в доминирующей теме.</span>
+          <span lang="en">One embedding of a long document is a mean over all tokens: local detail drowns in the dominant topic.</span>
+        </div>
+        <div class="def-body">
+          $$ e_{\text{doc}} \;=\; \frac{1}{n}\sum_{j=1}^{n} \vartheta_j $$
+          <p class="def-where">
+            <span lang="ru">где <b>ϑ<sub>j</sub></b> — вектор токена <em>j</em>, <b>n</b> — длина документа. Чем больше <b>n</b>, тем сильнее сглаживается ответ на узкий вопрос.</span>
+            <span lang="en">where <b>ϑ<sub>j</sub></b> = the vector of token <em>j</em>, <b>n</b> = document length. The larger <b>n</b>, the more a narrow answer is smoothed away.</span>
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="twocol-col">
+      <table class="cmp-table">
+        <thead>
+          <tr>
+            <th><span lang="ru">гранулярность</span><span lang="en">granularity</span></th>
+            <th><span lang="ru">поиск</span><span lang="en">retrieval</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span lang="ru">один вектор на весь документ</span><span lang="en">one vector over the whole doc</span></td>
+            <td class="cell-bad"><span lang="ru">пере-сжат</span><span lang="en">over-compressed</span></td>
+          </tr>
+          <tr>
+            <td><span lang="ru">нарезка на 512-токенные чанки</span><span lang="en">split into 512-token chunks</span></td>
+            <td class="cell-good">+24.47%<span lang="ru"> отн. nDCG</span><span lang="en"> rel. nDCG</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="small muted center mt-2">
+        <span lang="ru">Нарезка длинного документа поднимает поиск на <strong>+24.47%</strong> отн. nDCG — <em>reported (Günther et al. 2024)</em>. Короткие сегменты ищутся лучше. Отсюда правило: чанкуй.</span>
+        <span lang="en">Chunking a long document lifts retrieval by <strong>+24.47%</strong> rel. nDCG — <em>reported (Günther et al. 2024)</em>. Short segments retrieve better. Hence the rule: chunk.</span>
+      </p>
+    </div>
+  </div>
+  <aside class="slide-notes">Motivation for small chunks: a single vector over a long doc mean-pools n token vectors, so a narrow answer is averaged into the dominant topic (length collapse). Reported (Günther et al. 2024, Table 5): chunking a long doc into 512-token segments gives +24.47% relative nDCG vs one long vector. Short segments retrieve better — this is why RAG chunks, and it sets up the tension with context.</aside>
+</section>

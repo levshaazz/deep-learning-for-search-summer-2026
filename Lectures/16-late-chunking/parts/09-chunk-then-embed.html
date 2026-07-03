@@ -1,0 +1,51 @@
+<section class="slide" data-type="two-col" data-screen-label="09 Chunk-then-embed">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Наивный конвейер: сначала режем, потом кодируем</span>
+      <span lang="en">The naive pipeline: chunk first, then embed</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">каждый чанк кодируется В ОДИНОЧКУ</span>
+      <span lang="en">each chunk is embedded ALONE</span>
+    </span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag">
+          <span lang="ru">Три шага · chunk → embed → store</span>
+          <span lang="en">Three steps · chunk → embed → store</span>
+        </span>
+        <div class="def-body">
+          <ul class="obj-list">
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">1</span><span class="obj-text"><span lang="ru"><strong>Режем</strong> документ на чанки \(c_1,\dots,c_m\) (Чанк Норрис рубит свиток).</span><span lang="en"><strong>Split</strong> the document into chunks \(c_1,\dots,c_m\) (Chunk Norris chops the scroll).</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">2</span><span class="obj-text"><span lang="ru"><strong>Кодируем каждый чанк отдельно</strong> — энкодер видит только его токены.</span><span lang="en"><strong>Embed each chunk on its own</strong> — the encoder sees only its tokens.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">3</span><span class="obj-text"><span lang="ru"><strong>Храним</strong> по одному вектору на чанк в индексе.</span><span lang="en"><strong>Store</strong> one vector per chunk in the index.</span></span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag">
+          <span lang="ru">Что кодирует наивный чанк</span>
+          <span lang="en">What the naive chunk encodes</span>
+        </span>
+        <div class="def-term">
+          $$ e_i \;=\; \operatorname{pool}\big(\operatorname{Enc}(c_i)\big) $$
+        </div>
+        <div class="def-body">
+          <p class="def-where">
+            <span lang="ru">где <b>Enc</b> кодирует <em>только</em> токены чанка \(c_i\); окно внимания = один чанк.</span>
+            <span lang="en">where <b>Enc</b> encodes <em>only</em> the tokens of chunk \(c_i\); the attention window = one chunk.</span>
+          </p>
+          <p>
+            <span lang="ru">Ни один токен \(c_i\) не может <em>attend</em> к токену за его границей — межчанковый контекст <strong>разорван до кодирования</strong>.</span>
+            <span lang="en">No token in \(c_i\) can attend to a token past its boundary — cross-chunk context is <strong>severed before encoding</strong>.</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <aside class="slide-notes">The naive chunk-then-embed pipeline: split → embed EACH chunk independently → store one vector per chunk. Key defect: e_i = pool(Enc(c_i)) runs the encoder over one chunk in isolation, so the attention window is a single chunk and no token can attend past its boundary. Cross-chunk context is destroyed before the encoder ever runs — that is what late chunking will fix by reordering the two operations.</aside>
+</section>

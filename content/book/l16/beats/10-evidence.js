@@ -1,0 +1,24 @@
+    {
+      id: 'evidence', kind: 'prose',
+      heading: { en: "A small win, paid for with nothing", ru: "Маленький выигрыш — и даром", tt: "Кечкенә откыш — һәм бушлай" },
+      img: 'L16/L16-10-evidence.png', imgPos: 'left',
+      imgAlt: { en: "Séréga at his reading desk holds up a modest paper ledger with two columns of scores — a naive column and a late-chunking column — the late column just a hair higher, a tiny '+1.5' circled at the bottom; his green tübetey is the only spot of colour in the frame.", ru: "Séréга у читального стола держит скромный бумажный счёт с двумя столбцами баллов — наивным и столбцом late chunking; столбец late лишь на волосок выше, внизу обведено крошечное «+1.5»; зелёная тюбетейка — единственное пятно цвета в кадре.", tt: "Séréga уку өстәле янында ике баганлы баллар язылган кечкенә кәгазь хисап тота — naive багана һәм late chunking баганасы; late баганасы бары чәч бөртеге кадәр генә биегрәк, аста кечкенә «+1.5» әйләндереп алынган; яшел түбәтәй — кадрдагы бердәнбер төс тамгасы." },
+      imgCaption: { en: "**A whisker, for free.** Averaged across models and datasets, late chunking nudges nDCG@10 up about a point and a half — modest, but training-free and free at query time.", ru: "**Волосок — и даром.** Усреднённо по моделям и датасетам late chunking поднимает nDCG@10 примерно на полтора пункта — скромно, зато без обучения и бесплатно на запросе.", tt: "**Чәч бөртеге — һәм бушлай.** Модельләр һәм datasetлар буенча уртачалап, late chunking nDCG@10'ны якынча ярты-ике пунктка күтәрә — тыйнак, ләкин өйрәтүсез һәм сорауда бушлай." },
+      body: {
+        en: [
+          "Now the honest part. I lay the benchmark on my desk — BeIR, scored by nDCG@10, averaged over three embedding models and four datasets — and I read the two columns side by side. Sentence chunks: \\( 52.4 \\to 54.3 \\). Fixed 256-token chunks: \\( 52.2 \\to 54.0 \\). Late chunking wins in every column, but it wins by a *whisker* — call it a point and a half.",
+          "Where does that whisker come from? Look at the largest cell: NFCorpus, a corpus thick with *the-city*-style back-references, climbs \\( 23.5 \\to 30.0 \\). That is where reading-the-whole-book-first truly bites — where chunks lean on a subject named pages away. On flatter, self-contained corpora the lift is smaller, sometimes barely there. I will not sell you a revolution.",
+          "But read the price tag, not just the gain. That point and a half costs *nothing*: no new training, no bigger vectors, no extra call when a query arrives — you changed only *when* you pool, not which model you run. A small win, handed to you for free, is still a win worth taking.",
+        ],
+        ru: [
+          "Теперь — честно. Кладу бенчмарк на стол — BeIR, метрика nDCG@10, усреднённая по трём embedding-моделям и четырём датасетам, — и читаю два столбца рядом. Разбиение по предложениям: \\( 52.4 \\to 54.3 \\). Фиксированные чанки по 256 токенов: \\( 52.2 \\to 54.0 \\). Late chunking выигрывает в каждом столбце — но выигрывает на *волосок*, полтора пункта, не больше.",
+          "Откуда этот волосок? Посмотри на самую крупную клетку: NFCorpus — корпус, густо набитый отсылками вроде «этот город», — поднимается \\( 23.5 \\to 30.0 \\). Вот где «сначала прочти всю книгу» по-настоящему кусается: где чанк опирается на подлежащее, названное страницами раньше. На более плоских, самодостаточных корпусах прибавка меньше, порой едва заметна. Революцию я тебе не продам.",
+          "Но читай ценник, а не только выигрыш. Эти полтора пункта стоят *ноль*: ни нового обучения, ни векторов побольше, ни лишнего вызова, когда приходит запрос, — ты поменял лишь *когда* усредняешь, а не какую модель гоняешь. Маленький выигрыш, отданный даром, — всё равно выигрыш, который стоит взять.",
+        ],
+        tt: [
+          "Хәзер — намуслы өлеше. Benchmark'ны өстәлгә куям — BeIR, nDCG@10 метрикасы, өч embedding модель һәм дүрт dataset буенча уртачаланган, — һәм ике баганны янәшә укыйм. Җөмләләргә бүлү: \\( 52.4 \\to 54.3 \\). 256 token'лы фиксацияле chunk'лар: \\( 52.2 \\to 54.0 \\). Late chunking һәр баганда җиңә — ләкин *чәч бөртеге* кадәр генә, ярты-ике пункт, күбрәк түгел.",
+          "Бу чәч бөртеге кайдан? Иң зур күзәнәккә кара: NFCorpus — «бу шәһәр» кебек кире-сылтамаларга тыгыз тулган корпус — \\( 23.5 \\to 30.0 \\)'гә күтәрелә. Менә кайда «башта бөтен китапны укы» чын-чынлап тешли: chunk битләр элек аталган иягә таянган җирдә. Тигезрәк, үзе-җитәрлек корпусларда өстәмә кечерәк, кайчак чак кына сизелә. Мин сиңа революция сатмыйм.",
+          "Ләкин отышны гына түгел, бәя ярлыгын да укы. Бу ярты-ике пункт *нуль* тора: яңа өйрәтү дә, зуррак векторлар да, сорау килгәндә артык чакыру да юк — син бары *кайчан* уртачалаганыңны үзгәрттең, кайсы модельне куганыңны түгел. Бушлай бирелгән кечкенә отыш — барыбер алырга торган отыш.",
+        ],
+      },
+    },

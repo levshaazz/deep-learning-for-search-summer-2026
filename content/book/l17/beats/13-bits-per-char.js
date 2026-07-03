@@ -1,0 +1,21 @@
+    {
+      id: 'bits-per-char', kind: 'prose',
+      heading: { en: "My 1951 pencil and the neural net read the same gauge", ru: "Мой карандаш 1951-го и нейросеть смотрят на один датчик", tt: "Минем 1951 карандашым һәм нейросеть бер үк үлчәгечкә карый" },
+      body: {
+        en: [
+          "I once measured the entropy of English the only way I could in 1951: by hand. A pencil, a slip of paper, and a native speaker guessing the next letter until it fell — my \\(F_n\\), the guessing game. Slow, human, faintly ridiculous. But the number that came out — *about one bit per letter* — was never a measure of the guesser. It measured the *source*. Anyone, or anything, that predicts the next symbol is reading the very same gauge.",
+          "In 1992 Brown and his colleagues at IBM turned the crank with a *machine* — a word-trigram model over a mountain of text — and reported an upper bound of **1.75 bits per character** (Brown et al., 1992). Same quantity, a new hand on the dial: *bits-per-character*, \"bpc\" in the papers, is my \\(F_n\\) with the human guesser swapped for an algorithm. Today's neural nets press the needle further still, down toward the **~1.0-bit floor** I first sketched with a pencil.",
+          "But watch the red line — the Source Coding Theorem holds it fast. A better model shoves the needle *closer* to the floor; it can never shove it *under*. That is the quiet marvel of this beat: my 1951 pencil and a modern transformer are reading the **same dial**, in the same unit, and both come to rest against the same wall. The gauge outlived the telegraph room — it always did belong to the language, not to me.",
+        ],
+        ru: [
+          "В 1951-м я измерял энтропию английского единственным доступным способом — вручную. Карандаш, листок и носитель языка, угадывающий следующую букву, пока не попадёт: моё \\(F_n\\), та самая игра в угадайку. Медленно, по-человечески, чуть смешно. Но число, что выпадало — *около одного бита на букву* — мерило вовсе не угадывающего. Оно мерило *источник*. Кто угодно и что угодно, предсказывая следующий символ, смотрит на ту же самую шкалу.",
+          "В 1992-м Браун с коллегами из IBM крутанули ту же ручку *машиной* — словесной триграммной моделью по горе текста — и отчитались о верхней оценке в **1,75 бита на символ** (Brown et al., 1992). Та же величина, новая рука на стрелке: *bits-per-character*, «bpc» в статьях, — это моё \\(F_n\\), где человека-угадывателя сменил алгоритм. Нынешние нейросети жмут стрелку ещё дальше, к тому самому **порогу ~1,0 бита**, что я впервые набросал карандашом.",
+          "Но следи за красной чертой — теорема кодирования источника держит её намертво. Модель получше подвигает стрелку *ближе* к порогу; загнать её *под* порог нельзя. В этом и тихое чудо этого такта: мой карандаш 1951 года и современный трансформер смотрят на **один и тот же циферблат**, в одних единицах, и оба упираются в одну и ту же стену. Шкала пережила телеграфную комнату — она всегда принадлежала языку, а не мне.",
+        ],
+        tt: [
+          "1951-дә мин инглиз энтропиясен бердәнбер мөмкин ысул белән — кул белән — үлчәдем. Карандаш, кәгазь кисәге һәм киләсе хәрефне тапканчы юраучы туган телле кеше: минем \\(F_n\\), шул ук юрау уены. Әкрен, кешечә, бераз көлке. Ләкин килеп чыккан сан — *хәреф саен якынча бер бит* — юраучыны түгел, *чыганакны* үлчәде. Киләсе символны юраган теләсә кем яки теләсә нәрсә нәкъ шул ук үлчәгечкә карый.",
+          "1992-дә Браун IBM'дагы хезмәттәшләре белән шул ук тоткычны *машина* белән борды — текст тавы буенча сүз-триграмма моделе — һәм символга **1,75 бит** өске бәя турында хәбәр итте (Brown et al., 1992). Шул ук зурлык, угта яңа кул: *bits-per-character*, статьяларда «bpc», — бу минем \\(F_n\\), кеше-юраучы урынына алгоритм куелган. Бүгенге нейросетьләр угны тагын да этә — мин карандаш белән беренче тапкыр сызган **~1,0 бит идәненә** таба.",
+          "Ләкин кызыл сызыкка күз сал — чыганакны кодлау теоремасы аны нык тота. Яхшырак модель угны идәнгә *якынрак* этә; аны идән *астына* этеп булмый. Менә шушы такттагы тыныч могҗиза: минем 1951 карандашым һәм хәзерге трансформер **бер үк циферблатка**, бер үк берәмлектә карыйлар, һәм икесе дә бер үк стенага барып төртеләләр. Үлчәгеч телеграф бүлмәсеннән дә озаграк яшәде — ул һәрвакыт телгә караган, миңа түгел.",
+        ],
+      },
+    },
