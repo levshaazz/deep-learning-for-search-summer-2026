@@ -15,7 +15,7 @@ three climbs:
     pointwise rubric mean over 3 criteria; pairwise winner = argmax mean (A 4.0 > B 2.6667).
     GOODHART (gateable): over-weighting 'completeness' (×2) flips the winner — the honest-better answer A
     (mean 4.3333) loses to the verbose-worse answer C (length-biased 4.25 > 4.0). The score becomes a target.
-  AGENTIC: a toy 2-hop ReAct trace whose recall climbs 0→0→1 as the second hop retrieves the missing fact;
+  AGENTIC: a toy 2-hop ReAct trace whose recall climbs 0→1→1 as the second hop retrieves the missing fact;
     Self-RAG reflection tokens + CRAG grades are the L10 callbacks.
 
 REAL numbers (frozen, measured): the LLM-as-judge biases + the ReAct trace come from a REAL llama3.1:8b run
@@ -164,7 +164,7 @@ def build_judge():
 
 # ════════════════ AGENTIC (toy ReAct/Self-RAG/CRAG) + REAL ReAct trace ════════════════
 def build_agentic():
-    # toy 2-hop ReAct: recall@1 of the final fact climbs 0 → 0 → 1 as the 2nd hop lands the missing fact
+    # toy 2-hop ReAct: recall@1 of the final fact climbs 0 → 1 → 1 as the 2nd hop (step 1) lands the missing fact
     toy_react = {
         "question": "What did the founder of Acme Corp study?",
         "steps": [
@@ -175,7 +175,7 @@ def build_agentic():
             {"step": 2, "thought": "I can answer now.", "action": "finish[computer science at MIT]",
              "observation": None, "recallAt1": 1},
         ],
-        "recallByStep": [0, 0, 1], "hops": 2, "solved": True,
+        "recallByStep": [0, 1, 1], "hops": 2, "solved": True,
     }
     self_rag = {  # callback to L10 self-RAG
         "reflectionTokens": ["Retrieve", "IsRel", "IsSup", "IsUse"],

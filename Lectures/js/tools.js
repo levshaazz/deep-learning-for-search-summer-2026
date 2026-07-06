@@ -453,8 +453,15 @@
             if (!h) return '';
             // Replace any <br ...> (even with attributes like data-om-id) with a space,
             // then strip all other tags.
-            const txt = h.innerHTML.replace(/<br[^>]*>/gi, ' ').replace(/<[^>]+>/g, '');
-            return txt.replace(/\s+/g, ' ').trim();
+            const raw = h.innerHTML.replace(/<br[^>]*>/gi, ' ').replace(/<[^>]+>/g, '');
+            // innerHTML re-serializes U+00A0 as the entity "&nbsp;" (and "&" as
+            // "&amp;"). Decode those back to characters BEFORE the label is handed
+            // to escapeHtml downstream — otherwise "&nbsp;" gets re-escaped to
+            // "&amp;nbsp;" and renders as a literal "&NBSP;" in the breadcrumb.
+            const ta = document.createElement('textarea');
+            ta.innerHTML = raw;
+            // Collapse ASCII whitespace runs but keep U+00A0 (non-breaking) intact.
+            return ta.value.replace(/[^\S\u00A0]+/g, ' ').trim();
           };
           return { ru: get('ru'), en: get('en') };
         }
