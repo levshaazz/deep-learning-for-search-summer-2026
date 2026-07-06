@@ -57,9 +57,9 @@ export const ui = {
       tt: 'Курс лабораториясе · һәр интерактив фигура ирекле режимда · адым / сөйрәп күчерү / җибәрү · лекция яки тема буенча фильтр',
     },
     playgroundIntro: {
-      en: 'This is the lab. Each card is one of the course’s ~35 interactive figures, freed from the scrolling story — step through it, scrub the slider, or press play to watch the algorithm run. The figures are the same ones that appear in the Book; here you drive them yourself.',
-      ru: 'Это лаборатория. Каждая карточка — одна из ~35 интерактивных фигур курса, освобождённая от скролл-истории — пройди по шагам, перемотай ползунок или нажми play, чтобы увидеть работу алгоритма. Это те же фигуры, что в Книге; здесь ты управляешь ими сам.',
-      tt: 'Бу — лаборатория. Һәр карта — курсның ~35 интерактив фигурасыннан берсе, скролл-хикәядән аерылган — адымлап уз, йөгерткечне (слайдерны) сөйрә, яки алгоритм эшләвен күрер өчен play бас. Болар — Китаптагы шул үк фигуралар; биредә аларга үзең идарә итәсең.',
+      en: 'This is the lab. Each card is one of the course’s 60+ interactive figures, freed from the scrolling story — step through it, scrub the slider, or press play to watch the algorithm run. The figures are the same ones that appear in the Book; here you drive them yourself.',
+      ru: 'Это лаборатория. Каждая карточка — одна из 60+ интерактивных фигур курса, освобождённая от скролл-истории — пройди по шагам, перемотай ползунок или нажми play, чтобы увидеть работу алгоритма. Это те же фигуры, что в Книге; здесь ты управляешь ими сам.',
+      tt: 'Бу — лаборатория. Һәр карта — курсның 60+ интерактив фигурасыннан берсе, скролл-хикәядән аерылган — адымлап уз, йөгерткечне (слайдерны) сөйрә, яки алгоритм эшләвен күрер өчен play бас. Болар — Китаптагы шул үк фигуралар; биредә аларга үзең идарә итәсең.',
     },
     book: { en: 'The Book', ru: 'Книга', tt: 'Китап' },
     bookKicker: {
