@@ -825,7 +825,7 @@
         { "step": 1, "thought": "Now find what Dana Reyes studied.", "action": "lookup[Dana Reyes]", "observation": "Dana Reyes studied computer science at MIT.", "recallAt1": 1 },
         { "step": 2, "thought": "I can answer now.", "action": "finish[computer science at MIT]", "observation": null, "recallAt1": 1 }
       ],
-      "recallByStep": [0, 0, 1],
+      "recallByStep": [0, 1, 1],
       "hops": 2,
       "solved": true
     },
@@ -880,11 +880,11 @@
     <span class="slide-kicker">the bridging fact only arrives on hop 2</span>
   </div>
   <div class="formula-stage">
-    $$ \text{recall@1 by step} = [\,0,\ 0,\ 1\,] $$
-    $$ \text{step 0 (lookup founder): } 0 \quad\to\quad \text{step 1 (still no education): } 0 \quad\to\quad \text{step 2 (founder} \to \text{study): } \mathbf{1} $$
+    $$ \text{recall@1 by step} = [\,0,\ 1,\ 1\,] $$
+    $$ \text{step 0 (lookup founder): } 0 \quad\to\quad \text{step 1 (lookup study): } \mathbf{1} \quad\to\quad \text{step 2 (finish): } 1 $$
   </div>
   <p class="small muted center mt-2">Track whether the top-1 retrieval holds the answer at each step. The first lookup returns the <em>founder's name</em> — useful, but not what was asked, so recall@1 stays <strong>0</strong>. Only after feeding that name into the second lookup does the answer appear: recall@1 jumps to <strong>1</strong>. <strong>A single shot stops at step 0 (recall 0); the loop closes the chain.</strong> But the loop can also fail: a wrong first lookup poisons every later hop, and with no self-grading ReAct can loop forever or hallucinate an Observation — exactly the failure mode Self-RAG/CRAG add a grader to catch.</p>
-  <aside class="slide-notes">react-recall by-hand. l11-agentic.react.recallByStep [0,0,1] (gated), hops 2, solved true. recall@1 stays 0 until the bridging fact (founder name) feeds hop 2 — a single-shot retriever would stop at recall 0. The arithmetic behind the agentic-loop climb.</aside>
+  <aside class="slide-notes">react-recall by-hand. l11-agentic.react.recallByStep [0,1,1] (gated), hops 2, solved true. recall@1 is 0 for the first lookup (founder name), then jumps to 1 on hop 2 (step 1) when the study fact lands — a single-shot retriever would stop at recall 0. The arithmetic behind the agentic-loop climb.</aside>
 </section>
 <section class="slide" data-type="two-col" data-screen-label="37 ReAct, formally">
   <div class="slide-header">

@@ -1275,8 +1275,10 @@ COVERAGE_BASELINE = {
     "book:L16": 11,
     # deck:L17 "Shannon Entropy" — numbers from gen_l17.py (data/l17-entropy.json: coin H=0.8113, dyadic code
     # H=avgLen=1.75, toy-phrase entropy) and the cited REPORTED bench (data/l17-bench.json: Shannon 1951 Fn table
-    # 4.70/4.76/4.03/4.14…, human bounds 0.6/1.3, 79/102, redundancy 50/75, 'E' 12.7, Cover-King 1.25, Brown 1.75).
-    # Provenance lives in those data files + gen_l17.py. Baseline frozen so future ungated additions still HARD-fail.
+    # 4.70/4.76/4.03/4.14…, human bounds 0.6/1.3, 79/102, redundancy 50/75, 'E' 12.7, Cover-King 1.3, Brown 1.75).
+    # Count net-unchanged at 18: slide 33's worked cross-entropy adds KL=0.1887 (+1; data/l17-entropy.json coin.klQ —
+    # a wrong fair-coin q pays H(p,q)=1.0>H(p)=0.8113, perplexity 2 vs floor ≈1.75), while Cover-King 1.25→1.3 drops a
+    # 2-dp literal (−1). Provenance lives in those data files + gen_l17.py. Frozen so future ungated additions HARD-fail.
     "deck:L17": 18,
     # book:L17 mirrors the deck's Shannon numbers in prose (coin 0.811, code 1.75, 79/102, Fn 4.76/4.03,
     # bounds 0.6/1.3, 'E' 12.7) — same gen_l17.py + cited-bench provenance as deck:L17.
@@ -1861,8 +1863,9 @@ def provenance_l11(report):
         need(real["faithfulnessCaughtPlanted"] == bool(art["faithfulness"]["caughtPlanted"]), "judge.real faithfulness caught matches artifact")
     need(real["verbosityPreferenceRate"] >= 0.5, "judge.real verbosity bias ≥ 0.5 (the judge rewards length — Goodhart, measured)")
 
-    # ── Agentic: toy ReAct recall climbs 0→0→1; the REAL trace solved the 2-hop ──
-    need(AG["react"]["recallByStep"] == [0, 0, 1], "agentic toy ReAct recall climbs 0→0→1 across 2 hops (BAM)")
+    # ── Agentic: toy ReAct recall climbs 0→1→1 (answer lands on hop 2 = step 1); the REAL trace solved the 2-hop ──
+    need(AG["react"]["recallByStep"] == [0, 1, 1], "agentic toy ReAct recall climbs 0→1→1 across 2 hops (BAM)")
+    need(AG["react"]["recallByStep"] == [s["recallAt1"] for s in AG["react"]["steps"]], "agentic recallByStep matches per-step recallAt1 (internal consistency)")
     art2 = load_research("l11_ollama_react.json")
     if art2:
         need(AG["real"]["solved"] == bool(art2.get("solved")), "agentic.real solved matches artifact")
