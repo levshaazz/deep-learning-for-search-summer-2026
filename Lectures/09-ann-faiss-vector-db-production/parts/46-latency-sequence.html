@@ -46,7 +46,7 @@
       <div class="seq-budget-row" data-step="5"><span>cache/log</span><span class="seq-b-lat">2ms</span></div>
       <div class="seq-budget-row" data-step="6"><span>response</span><span class="seq-b-lat">4ms</span></div>
       <div class="seq-budget-total"><span>total</span><span class="seq-b-lat" data-seq-total>0</span></div>
-      <p class="small muted mt-3">Total <strong>89ms</strong> — comfortably under 200. The <em>cache + log</em> hop is fire-and-forget (async), so its +2ms is off the user-facing critical path and is shown here only for completeness; the response returns after step 4. An <em>exact</em> scan of 10⁶×768-d would cost ~520ms for the search hop alone. ANN turns that 520 into 12; quantization keeps the index in RAM; caching makes repeats nearly free. Alert on \(p_{99}\), not \(p_{50}\).</p>
+      <p class="small muted mt-3">Total <strong>89ms</strong> — but this sum is <em>one representative path</em>, a median-ish <strong>\(p_{50}\)</strong>, not the tail. The SLA is written on <strong>\(p_{99}\)</strong>: queuing, GC pauses and cold caches lift the 99th-percentile request well above this median, and the ~110ms of headroom to 200ms is what absorbs that tail. The <em>cache + log</em> hop is fire-and-forget (async), so its +2ms is off the user-facing critical path and is shown here only for completeness; the response returns after step 4. An <em>exact</em> scan of 10⁶×768-d would cost ~520ms for the search hop alone. ANN turns that 520 into 12; quantization keeps the index in RAM; caching makes repeats nearly free. Budget the median here; alert on \(p_{99}\), not \(p_{50}\).</p>
     </div>
   </div>
 
@@ -56,5 +56,5 @@
     <button data-step-act="next" aria-label="Next step">→</button>
   </div>
 
-  <aside class="slide-notes">climb-latency (sequence slide-type reused from L1 §49). Budget sums to 89ms < 200 SLA (the JS computes the running total). Per-hop ms are representative; the SUM is the gated exact computation (provenance_l9: total==Σlat, total<sla). The L7/L8 cross-encoder cascade now sits behind ANN. exactScan ≈520ms; cache hit ≈5ms.</aside>
+  <aside class="slide-notes">climb-latency (sequence slide-type reused from L1 §49). Budget sums to 89ms for one representative path — a median-ish p50, NOT the tail; the SLA is written on p99 (queuing/GC/cold caches push the tail above the median, and the headroom to 200ms absorbs it). The JS computes the running total. Per-hop ms are representative; the SUM is the gated exact computation (provenance_l9: total==Σlat, total<sla). The L7/L8 cross-encoder cascade now sits behind ANN. exactScan ≈520ms; cache hit ≈5ms.</aside>
 </section>
