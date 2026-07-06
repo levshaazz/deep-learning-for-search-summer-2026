@@ -36,59 +36,67 @@ export const AREA_ORDER = [
 
 export const AREA_LABELS = {
   'classical-ir': {
-    title: { en: 'Classical IR', ru: 'Классический IR' },
+    title: { en: 'Classical IR', ru: 'Классический IR', tt: 'Классик IR' },
     kicker: {
       en: 'Probabilistic lineage, term weighting, fusion & link authority — the road to BM25.',
       ru: 'Вероятностная линия, взвешивание термов, фьюжн и ссылочный авторитет — путь к BM25.',
+      tt: 'Ихтималлык нәселе, термнарны үлчәү, кушу һәм сылтама абруе — BM25’ка юл.',
     },
   },
   eval: {
-    title: { en: 'Evaluation & online experimentation', ru: 'Оценивание и онлайн-эксперименты' },
+    title: { en: 'Evaluation & online experimentation', ru: 'Оценивание и онлайн-эксперименты', tt: 'Бәяләү һәм онлайн экспериментлар' },
     kicker: {
       en: 'Ranking metrics, test collections, significance, click bias & A/B testing.',
       ru: 'Метрики ранжирования, тест-коллекции, значимость, click-смещение и A/B-тесты.',
+      tt: 'Ранжлау метрикалары, тест-коллекцияләр, мөһимлек, клик-янтаю һәм A/B тестлау.',
     },
   },
   'system-design': {
-    title: { en: 'Search as system design', ru: 'Поиск как проектирование системы' },
+    title: { en: 'Search as system design', ru: 'Поиск как проектирование системы', tt: 'Эзләү система дизайны буларак' },
     kicker: {
       en: 'Why a model is not a system: the vocabulary gap, query intent, technical debt.',
       ru: 'Почему модель — это не система: разрыв словаря, намерение запроса, техдолг.',
+      tt: 'Ни өчен модель — система түгел: сүзлек аермасы, сорау максаты, техник бурыч.',
     },
   },
   'nlp-embeddings': {
-    title: { en: 'NLP, tokenization & embedding geometry', ru: 'NLP, токенизация и геометрия эмбеддингов' },
+    title: { en: 'NLP, tokenization & embedding geometry', ru: 'NLP, токенизация и геометрия эмбеддингов', tt: 'NLP, токенлаштыру һәм эмбеддинг геометриясе' },
     kicker: {
       en: 'Subword tokenizers, word & contextual embeddings, and high-dimensional geometry.',
       ru: 'Под-словные токенизаторы, словные и контекстные эмбеддинги, геометрия высоких размерностей.',
+      tt: 'Сүзасты токенлаштыргычлар, сүз һәм контекст эмбеддинглары, югары үлчәмле геометрия.',
     },
   },
   'neural-ranking': {
-    title: { en: 'Neural ranking & dense/sparse retrieval', ru: 'Нейронное ранжирование и плотный/разреженный поиск' },
+    title: { en: 'Neural ranking & dense/sparse retrieval', ru: 'Нейронное ранжирование и плотный/разреженный поиск', tt: 'Нейрон ранжлау һәм тыгыз/сирәк эзләү' },
     kicker: {
       en: 'Bi-encoders, late interaction, learned sparse retrieval and learning-to-rank.',
       ru: 'Би-энкодеры, поздняя интеракция, обученно-разреженный поиск и learning-to-rank.',
+      tt: 'Би-энкодерлар, соңгы үзара тәэсир, өйрәнелгән сирәк эзләү һәм learning-to-rank.',
     },
   },
   ann: {
-    title: { en: 'ANN, vector indexing & quantization', ru: 'ANN, векторное индексирование и квантование' },
+    title: { en: 'ANN, vector indexing & quantization', ru: 'ANN, векторное индексирование и квантование', tt: 'ANN, вектор индекслау һәм квантлау' },
     kicker: {
       en: 'Graph indexes, product quantization and the engineering of billion-scale search.',
       ru: 'Графовые индексы, продуктовое квантование и инженерия поиска по миллиардам.',
+      tt: 'Граф индекслары, продукт квантлау һәм миллиард масштаблы эзләү инженериясе.',
     },
   },
   rag: {
-    title: { en: 'RAG, generation & multimodal retrieval', ru: 'RAG, генерация и мультимодальный поиск' },
+    title: { en: 'RAG, generation & multimodal retrieval', ru: 'RAG, генерация и мультимодальный поиск', tt: 'RAG, генерация һәм мультимодаль эзләү' },
     kicker: {
       en: 'Retrieval-augmented generation, its evaluation, agentic & multimodal variants.',
       ru: 'Поиск-дополненная генерация, её оценка, агентные и мультимодальные варианты.',
+      tt: 'Эзләү белән баетылган генерация, аны бәяләү, агент һәм мультимодаль вариантлар.',
     },
   },
   textbook: {
-    title: { en: 'Textbooks & course reading', ru: 'Учебники и литература курса' },
+    title: { en: 'Textbooks & course reading', ru: 'Учебники и литература курса', tt: 'Дәреслекләр һәм курс әдәбияты' },
     kicker: {
       en: 'The book-length references the syllabus reading list is built from.',
       ru: 'Книжные источники, на которых построен список литературы программы.',
+      tt: 'Программа әдәбияты исемлеге нигезләнгән китап күләмендәге чыганаклар.',
     },
   },
 };
@@ -124,9 +132,11 @@ export const papersMeta = {
   intro: {
     en: 'Every work cited anywhere in the course — papers, textbooks and tools — with a real canonical link (arXiv, DOI or publisher) and a short note on why it earns its place. Grouped by area, ordered the way the course meets them. This is the bibliography the lectures, the Book and the syllabus reading list all draw from.',
     ru: 'Каждая работа, цитируемая где-либо в курсе — статьи, учебники и инструменты — с реальной канонической ссылкой (arXiv, DOI или издатель) и короткой заметкой, почему она здесь. Сгруппированы по областям в том порядке, в котором курс с ними встречается. Это библиография, из которой берут лекции, Книга и список литературы программы.',
+    tt: 'Курста кайдадыр китерелгән һәр хезмәт — мәкаләләр, дәреслекләр һәм кораллар — чын каноник сылтама (arXiv, DOI яки нәшер итүче) һәм ни өчен ул биредә икәнлеге турында кыска искәрмә белән. Өлкәләр буенча төркемләнгән, курс алар белән очрашкан тәртиптә. Бу — лекцияләр, Китап һәм программаның әдәбият исемлеге алган библиография.',
   },
   count: {
     en: 'works',
     ru: 'работ',
+    tt: 'хезмәт',
   },
 };

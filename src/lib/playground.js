@@ -68,7 +68,11 @@ export const TOPICS = [
   { id: 'embeddings',   title: { en: 'Embeddings & geometry', ru: 'Эмбеддинги и геометрия', tt: 'Эмбеддинглар һәм геометрия' } },
   { id: 'dimred',       title: { en: 'Dimensionality reduction', ru: 'Снижение размерности', tt: 'Үлчәмлелекне киметү' } },
   { id: 'transformers', title: { en: 'Attention & Transformers', ru: 'Внимание и трансформеры', tt: 'Игътибар һәм трансформерлар' } },
+  { id: 'neural-ranking', title: { en: 'Neural ranking & late interaction', ru: 'Нейронное ранжирование и позднее взаимодействие', tt: 'Нейрон ранжлау һәм соңгы үзара тәэсир' } },
+  { id: 'ann',          title: { en: 'ANN & vector search', ru: 'ANN и векторный поиск', tt: 'ANN һәм вектор эзләү' } },
+  { id: 'negatives',    title: { en: 'Contrastive learning & hard negatives', ru: 'Контрастное обучение и сложные негативы', tt: 'Контрастив өйрәнү һәм катлаулы негативлар' } },
   { id: 'evaluation',   title: { en: 'Evaluation & metrics', ru: 'Оценивание и метрики', tt: 'Бәяләү һәм метрикалар' } },
+  { id: 'rag',          title: { en: 'RAG, agents & multimodal', ru: 'RAG, агенты и мультимодальность', tt: 'RAG, агентлар һәм мультимодальлек' } },
 ];
 // The resilient catch-all: any widget id NOT in TOPIC_OF (incl. every future widget) lands here, so
 // no demo is ever dropped from the grid or the topic facet.
@@ -122,6 +126,39 @@ const TOPIC_OF = {
   'ndcg-multiquery': 'evaluation',
   'ranking-metrics': 'evaluation',
   'significance-test': 'evaluation',
+  'ragas-metrics': 'evaluation',
+  'llm-judge': 'evaluation',
+  'metric-compare': 'evaluation',
+  // Neural ranking & late interaction
+  'biencoder': 'neural-ranking',
+  'crossencoder': 'neural-ranking',
+  'colbert-maxsim': 'neural-ranking',
+  'splade-expansion': 'neural-ranking',
+  'hybrid-fusion': 'neural-ranking',
+  'ltr-lambda': 'neural-ranking',
+  'neural-cascade': 'neural-ranking',
+  // ANN & vector search
+  'hnsw-graph': 'ann',
+  'ivf-cells': 'ann',
+  'pq-quantize': 'ann',
+  'recall-curve': 'ann',
+  // Contrastive learning & hard negatives
+  'hardness-sphere': 'negatives',
+  'impostor-denoise': 'negatives',
+  'in-batch-negatives': 'negatives',
+  'infonce-calc': 'negatives',
+  'mining-comparator': 'negatives',
+  // RAG, agents & multimodal
+  'rag-pipeline': 'rag',
+  'chunking-demo': 'rag',
+  'query-rewrite': 'rag',
+  'query-tree': 'rag',
+  'semantic-router': 'rag',
+  'agentic-loop': 'rag',
+  'rag-control-flow': 'rag',
+  'raptor-tree': 'rag',
+  'graphrag': 'rag',
+  'clip-matrix': 'rag',
 };
 
 // Resolve a widget's primary topic id; unknown → 'other' (resilient catch-all, never dropped).
