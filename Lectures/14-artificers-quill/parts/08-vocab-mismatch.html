@@ -7,12 +7,12 @@
     <div class="twocol-col">
       <div class="def-card">
         <span class="def-tag">Definition &middot; vocabulary mismatch</span>
-        <div class="def-term">A relevant document need not contain any query term &mdash; and colloquial phrasing under-matches even a dense encoder.</div>
+        <div class="def-term">A relevant document may share few (or no) query terms &mdash; and even the words it <em>does</em> share can match an off-topic passage more strongly.</div>
         <div class="def-body">
-          <p>Formally, relevance lives in <em>meaning</em>, but the score reads <em>surface form</em>:</p>
-          $$ q = \{\text{sour, watery, espresso}\},\quad d_{\text{gold}} = \{\text{under-extraction, channeling}\} $$
-          $$ q \cap d_{\text{gold}} = \varnothing \;\Rightarrow\; \text{no lexical bridge} $$
-          <p class="def-where">where <b>q</b> = the set of query terms, <b>d<sub>gold</sub></b> = the terms of the truly-relevant passage, <b>&cap;</b> = shared terms, <b>&empty;</b> = the empty set (no overlap).</p>
+          <p>Formally, relevance lives in <em>meaning</em>, but the score reads <em>surface form</em> &mdash; a thin, generic overlap can lose to a thicker off-topic one:</p>
+          $$ q = \{\text{espresso, sour, watery, taste}\} $$
+          $$ q \cap d_{\text{gold}} = \{\text{sour}\} \;\subsetneq\; q \cap d_{\text{trap}} = \{\text{sour, taste}\} \;\Rightarrow\; \text{trap outranks gold} $$
+          <p class="def-where">where <b>q</b> = the query terms, <b>d<sub>gold</sub></b> = the truly-relevant passage, <b>d<sub>trap</sub></b> = an off-topic passage that shares <em>more</em> surface words, <b>&cap;</b> = shared terms. The gold shares only the generic word <em>sour</em>; the trap shares <em>sour</em> and <em>taste</em>, so raw surface overlap ranks the trap above the gold.</p>
         </div>
       </div>
     </div>
@@ -20,12 +20,12 @@
       <table class="cmp-table">
         <thead><tr><th>the query&rsquo;s surface words vs&hellip;</th><th>cos to q</th></tr></thead>
         <tbody>
-          <tr><td><strong>d4 TRAP</strong> &mdash; &ldquo;sour candy, citric, sweet&rdquo;</td><td class="cell-bad">0.45</td></tr>
-          <tr><td><strong>d1 GOLD</strong> &mdash; &ldquo;under-extraction, channeling&rdquo;</td><td class="cell-good">0.22</td></tr>
+          <tr><td><strong>d4 TRAP</strong> &mdash; &ldquo;sour, candy, citric, taste, sweet&rdquo;</td><td class="cell-bad">0.45</td></tr>
+          <tr><td><strong>d1 GOLD</strong> &mdash; &ldquo;under-extraction, channeling, sour&rdquo;</td><td class="cell-good">0.22</td></tr>
         </tbody>
       </table>
-      <p class="small muted center mt-2">The query shares the word <em>sour</em> with a candy blog &mdash; so the <strong>trap outranks the gold</strong>. The answer is in the corpus; the words just don&rsquo;t line up.</p>
+      <p class="small muted center mt-2">The gold shares only <em>sour</em> with the query; the candy-blog trap shares <em>sour</em> and <em>taste</em> &mdash; so the <strong>trap outranks the gold</strong>. The answer is in the corpus; the words just don&rsquo;t line up.</p>
     </div>
   </div>
-  <aside class="slide-notes">Vocabulary mismatch, formally: a relevant doc need not share any query term, and colloquial phrasing under-matches even dense encoders. On the toy q∩d_gold=∅; the trap d4 shares the surface word "sour" (cos 0.45) and outranks the gold d1 (cos 0.22). The Lexical Gremlin passes only word-matching queries.</aside>
+  <aside class="slide-notes">Vocabulary mismatch, formally: a relevant doc may share few or no query terms, and colloquial phrasing under-matches even dense encoders. On the toy q∩d_gold={sour} — one generic word — while the trap d4 shares {sour, taste}, so the trap (cos 0.45) outranks the gold d1 (cos 0.22): a thin overlap loses to a thicker off-topic one. The Lexical Gremlin passes only word-matching queries.</aside>
 </section>

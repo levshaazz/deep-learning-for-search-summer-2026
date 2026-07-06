@@ -29,6 +29,13 @@ def measure():
     # 1) biased coin — H < 1 bit means the skew is exploitable
     coin_p = 0.25
     coin_H = H([coin_p, 1 - coin_p])                       # 0.8113
+    #    worked cross-entropy: model the biased coin with a WRONG fair-coin q=(1/2,1/2).
+    #    H(p,q) = -Σ p log2 q = 1.0 bit (both -log2 0.5 = 1); KL = H(p,q)-H(p); PPL = 2^H.
+    coin_q = 0.5
+    coin_Hq = round(-(coin_p * math.log2(coin_q) + (1 - coin_p) * math.log2(1 - coin_q)), 4)  # 1.0
+    coin_kl = round(coin_Hq - coin_H, 4)                    # 0.1887 — the wrong-model tax
+    coin_ppl_q = round(2 ** coin_Hq, 4)                    # 2.0 — effective branches under q
+    coin_ppl_floor = round(2 ** coin_H, 4)                 # 1.7547 — the entropy floor's perplexity
 
     # 2) dyadic 4-symbol source: A=1/2, B=1/4, C=1/8, D=1/8. Optimal prefix code (A=0, B=10, C=110, D=111)
     #    has average length EXACTLY equal to the entropy — the Source Coding Theorem made concrete.
@@ -53,7 +60,13 @@ def measure():
     return {
         "_doc": "COMPUTED by hand on tiny distributions (stdlib math.log2). Deck-displayable, reproducible. "
                 "Generator: _research/gen_l17.py.",
-        "coin": {"pHeads": coin_p, "H": coin_H, "_note": "biased coin, H<1 bit ⇒ the skew is exploitable"},
+        "coin": {
+            "pHeads": coin_p, "H": coin_H,
+            "modelQ": coin_q, "crossEntropyQ": coin_Hq, "klQ": coin_kl,
+            "pplQ": coin_ppl_q, "pplFloor": coin_ppl_floor,
+            "_note": "biased coin, H<1 bit ⇒ the skew is exploitable; a wrong fair-coin q pays "
+                     "H(p,q)=1.0 bit (KL tax 0.1887), perplexity 2.0 vs the floor 1.7548",
+        },
         "source4": {
             "probs": probs, "code": code, "H": src_H, "avgCodeLen": avg_len,
             "achievesEntropy": bool(abs(src_H - avg_len) < 1e-9),
@@ -97,7 +110,7 @@ def bench():
         },
         "estimates": {
             "_doc": "Later machine/gambling estimates of the entropy of English.",
-            "coverKing1978": 1.25,   # gambling estimate, bits/char
+            "coverKing1978": 1.3,   # gambling estimate ≈1.3 bits/char (Cover & King 1978, abstract)
             "brown1992Upper": 1.75,  # word-trigram cross-entropy upper bound, bits/char
             "eFrequencyPct": 12.7,   # 'E' is the most frequent English letter (Morse single dot)
         },
