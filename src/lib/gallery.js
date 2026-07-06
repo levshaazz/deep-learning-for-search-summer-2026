@@ -685,4 +685,119 @@ export const scenes = [
         tt: 'лаеклы көндәшләр тарафыннан чарланган: нәтиҗәлелек тар катлаулы ләкин намуслы полосада яши. Самозванец һәм искергән өрәкләр җиңелде; Серёга үткен, чын кырлы клинок күтәрә. Күпер → тирән чуму №4, Бөгелгән Карта.' } },
     ],
   },
+  {
+    id: 'L14',
+    title: { en: 'Lecture 14 — The Artificer’s Quill', ru: 'Лекция 14 — Перо Артефактора', tt: 'Лекция 14 — Артефактор Каләме' },
+    href: (lang, localizedPath) => localizedPath(lang, 'book/14'),
+    items: [
+      { img: '/Lectures/assets/img/L14/L14-01-gremlin-door.png', concept: {
+        en: 'the Lexical Gremlin guards the archive door — he passes only queries whose words match the shelves. The answer may be right there, in different words, and still be turned away: the vocabulary mismatch.',
+        ru: 'Лексический Гремлин сторожит дверь архива — пропускает лишь запросы, чьи слова совпадают с полками. Ответ может быть тут же, другими словами, и всё равно не пройдёт: несовпадение словаря.',
+        tt: 'Лексик Гремлин архив ишеген саклый — сүзләре киштәләргә туры килгән сорауларны гына үткәрә. Җавап шунда ук, башка сүзләр белән булырга мөмкин, ләкин барыбер үткәрелмәс: сүзлек туры килмәве.' } },
+      { img: '/Lectures/assets/img/L14/L14-03-hyde-hypothetical.png', concept: {
+        en: 'HyDE: draft a hypothetical answer in the archive’s own wording, then embed that draft — the fake answer lives in document-space and lands where the raw question never could.',
+        ru: 'HyDE: набросай гипотетический ответ на языке самого архива, затем эмбедь этот черновик — поддельный ответ живёт в пространстве документов и попадает туда, куда сырой вопрос никогда бы не смог.',
+        tt: 'HyDE: гипотетик җавапны архивның үз телендә яз, аннары шул караламаны эмбеддла — ясалма җавап документлар киңлегендә яши һәм чи сорау беркайчан җитә алмаган җиргә төшә.' } },
+      { img: '/Lectures/assets/img/L14/L14-05-step-back-ladder.png', concept: {
+        en: 'step-back: when a query is too specific to match anything, climb the ladder to the governing principle, retrieve that, then descend to answer.',
+        ru: 'step-back: когда запрос слишком конкретен, чтобы хоть что-то найти, поднимись по лестнице к управляющему принципу, найди его, затем спустись к ответу.',
+        tt: 'step-back: сорау берни табу өчен артык конкрет булганда, идарә итүче принципка баскычтан күтәрел, аны тап, аннары җавапка төш.' } },
+      { img: '/Lectures/assets/img/L14/L14-11-captain-takes-quill.png', concept: {
+        en: 'one rule for the whole toolbox: change the query, not the retriever. Séréga sets down the Quill and hands it to the captain.',
+        ru: 'одно правило на весь инструментарий: меняй запрос, а не ретривер. Серёга кладёт Перо и передаёт его капитану.',
+        tt: 'бөтен кораллар өчен бер кагыйдә: ретриверны түгел, сорауны үзгәрт. Серёга Каләмне куя һәм аны капитанга тапшыра.' } },
+    ],
+  },
+  {
+    id: 'L15',
+    title: { en: 'Lecture 15 — BERT & other Transformers', ru: 'Лекция 15 — BERT и другие трансформеры', tt: 'Лекция 15 — BERT һәм башка трансформерлар' },
+    href: (lang, localizedPath) => localizedPath(lang, 'book/15'),
+    items: [
+      { img: '/Lectures/assets/img/L15/L15-02-self-attention.png', concept: {
+        en: 'self-attention: every token looks at every other and mixes in what matters — the one operation the whole Transformer is built from.',
+        ru: 'самовнимание: каждый токен смотрит на все остальные и подмешивает важное — единственная операция, из которой собран весь трансформер.',
+        tt: 'үз-үзеңә игътибар: һәр токен башка бөтенесенә карый һәм мөһимне кушып ала — бөтен трансформер шуннан җыелган бердәнбер операция.' } },
+      { img: '/Lectures/assets/img/L15/L15-05-bert-bidirectional.png', concept: {
+        en: 'BERT reads both ways at once: mask a word and predict it from the left AND right context — bidirectional encoding, the backbone of dense retrieval.',
+        ru: 'BERT читает сразу в обе стороны: замаскируй слово и предскажи его по левому И правому контексту — двунаправленное кодирование, хребет плотного поиска.',
+        tt: 'BERT бер үк вакытта ике якка да укый: сүзне яшер һәм аны сул ҺӘМ уң контексттан юра — ике юнәлешле кодлау, тыгыз эзләүнең умырткасы.' } },
+      { img: '/Lectures/assets/img/L15/L15-06-pretrain-finetune.png', concept: {
+        en: 'pretrain once, fine-tune many: one expensive self-supervised phase amortizes over many cheap task heads — why BERT was practical.',
+        ru: 'предобучи один раз, дообучай много: одна дорогая самообучаемая фаза амортизируется на множество дешёвых задачных голов — почему BERT оказался практичным.',
+        tt: 'бер тапкыр предобуч, күп тапкыр дообуч: бер кыйммәтле үзкүзәтүле фаза күп арзан бурыч башлары буенча амортизацияләнә — BERT ни өчен практик булган.' } },
+      { img: '/Lectures/assets/img/L15/L15-11-rlhf.png', concept: {
+        en: 'from attention to RLHF: align a model with human preference — reward the answers people prefer, and steer the generator toward them.',
+        ru: 'от внимания до RLHF: вырави модель по человеческим предпочтениям — награждай ответы, которые люди предпочитают, и веди генератор к ним.',
+        tt: 'игътибардан RLHF’ка: моделне кеше өстенлекләре буенча тигезлә — кешеләр өстен күргән җаваптарны бүләклә, генераторны аларга таба борь.' } },
+    ],
+  },
+  {
+    id: 'L16',
+    title: { en: 'Lecture 16 — Late Chunking', ru: 'Лекция 16 — Late Chunking', tt: 'Лекция 16 — Late Chunking' },
+    href: (lang, localizedPath) => localizedPath(lang, 'book/16'),
+    items: [
+      { img: '/Lectures/assets/img/L16/L16-01-tear-first.png', concept: {
+        en: 'chunk-then-embed tears the document first: each piece is embedded alone, so a chunk whose subject is a pronoun (“it”) loses what “it” refers to.',
+        ru: '«нарежь-потом-эмбедь» сначала рвёт документ: каждый кусок эмбедится в одиночку, так что чанк, чьё подлежащее — местоимение («it»), теряет то, на что «it» ссылается.',
+        tt: '«кис-аннары-эмбеддла» башта документны ерта: һәр кисәк ялгыз эмбеддлана, шуңа подлежащиесе алмашлык («it») булган чанк «it» нәрсәгә ишарә иткәнне югалта.' } },
+      { img: '/Lectures/assets/img/L16/L16-03-read-then-mark.png', concept: {
+        en: 'late chunking reads the whole document first: full-document attention writes context into every token, THEN pools into chunks — no extra generation call.',
+        ru: 'late chunking сначала читает весь документ: полнодокументное внимание вписывает контекст в каждый токен, ЗАТЕМ пулит в чанки — без единого доп. вызова генерации.',
+        tt: 'late chunking башта бөтен документны укый: тулы документ игътибары контекстны һәр токенга яза, АННАРЫ чанкларга пуллый — бер өстәмә генерация чакыруы да юк.' } },
+      { img: '/Lectures/assets/img/L16/L16-07-vs-llm.png', concept: {
+        en: 'as good as the LLM method for free: late chunking matches Contextual Retrieval’s quality without the one LLM call per chunk it costs.',
+        ru: 'не хуже LLM-метода — и даром: late chunking сравнивается по качеству с Contextual Retrieval без одного LLM-вызова на чанк, которого тот стоит.',
+        tt: 'LLM ысулыннан ким түгел — һәм бушка: late chunking сыйфат буенча Contextual Retrieval белән тиңләшә, ул сораган һәр чанкка бер LLM чакыруыннан башка.' } },
+      { img: '/Lectures/assets/img/L16/L16-08-drop-in.png', concept: {
+        en: 'a free drop-in default: if your model is long-context with mean pooling, turn it on — only indexing pays more, query-time cost is unchanged.',
+        ru: 'бесплатный drop-in по умолчанию: если модель длинноконтекстная с mean-pooling — включай; дороже только индексация, стоимость запроса не меняется.',
+        tt: 'бушлай drop-in килешү: модель озын контекстлы һәм mean-pooling булса — кабыз; кыйммәтрәге бары индексация, сорау бәясе үзгәрми.' } },
+    ],
+  },
+  {
+    id: 'L17',
+    title: { en: 'Lecture 17 — Shannon Entropy', ru: 'Лекция 17 — Энтропия Шеннона', tt: 'Лекция 17 — Шеннон энтропиясе' },
+    href: (lang, localizedPath) => localizedPath(lang, 'book/17'),
+    items: [
+      { img: '/Lectures/assets/img/L17/L17-00-telegraph.png', concept: {
+        en: '1948: Shannon asks how much a message really carries. On the telegraph wire, information is surprise — and surprise can be measured in bits.',
+        ru: '1948: Шеннон спрашивает, сколько сообщение несёт на самом деле. На телеграфном проводе информация — это неожиданность, а неожиданность измерима в битах.',
+        tt: '1948: Shannon хәбәр чынлыкта күпме йөртә дип сорый. Телеграф чыбыгында мәгълүмат — көтелмәгәнлек, ә көтелмәгәнлекне bit’ларда үлчәп була.' } },
+      { img: '/Lectures/assets/img/L17/L17-04-surprise-meter.png', concept: {
+        en: 'entropy is the average surprise: a symbol you expected costs almost nothing; a rare one spikes the needle. H = −Σ p·log p.',
+        ru: 'энтропия — это средняя неожиданность: ожидаемый символ стоит почти ничего; редкий бьёт по стрелке. H = −Σ p·log p.',
+        tt: 'энтропия — уртача көтелмәгәнлек: көткән символ диярлек берни тормый; сирәге угны сикертә. H = −Σ p·log p.' } },
+      { img: '/Lectures/assets/img/L17/L17-07-guessing-game.png', concept: {
+        en: 'the guessing game: reveal English one letter at a time and a reader guesses four in five — the language already told them. Printed English lands near ~1 bit/letter.',
+        ru: 'игра в угадайку: открывай английский по букве — и читатель угадывает четыре из пяти: язык уже всё сказал. Печатный английский оседает у ~1 бита на букву.',
+        tt: 'юрау уены: инглизне берәмләп ач — укучы биштән дүртне юрый: тел инде барысын әйткән. Басма инглиз ~1 bit/хәрефтә утыра.' } },
+      { img: '/Lectures/assets/img/L17/L17-11-the-floor.png', concept: {
+        en: 'the entropy floor: no clever code goes under H(p). Cross-entropy is the bits you actually pay, and a language-model loss is exactly that — approaching but never crossing the red line.',
+        ru: 'энтропийный пол: никакой хитрый код не опустится ниже H(p). Кросс-энтропия — это биты, которые ты реально платишь, а лосс языковой модели — ровно это: он подходит к красной черте, но не переходит её.',
+        tt: 'энтропия идәне: бернинди хәйләкәр код H(p)дан түбән төшмәс. Кросс-энтропия — син чынлап түли торган bit’лар, ә тел моделе лоссы — нәкъ шул: кызыл сызыкка якыная, ләкин аны кичми.' } },
+    ],
+  },
+  {
+    id: 'L18',
+    title: { en: 'Lecture 18 — The Curved Map', ru: 'Лекция 18 — Кривая карта', tt: 'Лекция 18 — Кәкре карта' },
+    href: (lang, localizedPath) => localizedPath(lang, 'book/18'),
+    items: [
+      { img: '/Lectures/assets/img/L18/L18-00-warped-map.png', concept: {
+        en: 'the map of meaning is curved: embeddings don’t fill the sphere evenly. Two distortions — anisotropy and hubness — quietly break naïve cosine search.',
+        ru: 'карта смысла искривлена: эмбеддинги не заполняют сферу равномерно. Два искажения — анизотропия и хабность — тихо ломают наивный косинусный поиск.',
+        tt: 'мәгънә картасы бөгелгән: эмбеддинглар сфераны тигез тутырмый. Ике бозылу — анизотропия һәм hubness — беркатлы косинус эзләвен тыныч кына ватә.' } },
+      { img: '/Lectures/assets/img/L18/L18-02-cone.png', concept: {
+        en: 'anisotropy: vectors crowd into a narrow cone, so everything looks similar to everything — the score range collapses and a bi-encoder rates it all high.',
+        ru: 'анизотропия: векторы теснятся в узком конусе, так что всё похоже на всё — диапазон оценки схлопывается, и би-энкодер ставит всему высокий балл.',
+        tt: 'анизотропия: векторлар тар конуска кысыла, шуңа барысы да барысына охшаш — балл диапазоны сыгыла, би-энкодер барысына да югары балл куя.' } },
+      { img: '/Lectures/assets/img/L18/L18-07-rome-hub.png', concept: {
+        en: 'hubness: in high dimension a few points become hubs that appear in everyone’s neighbour list, while anti-hubs are found by no one — a curse of dimensionality.',
+        ru: 'хабность: в высокой размерности горстка точек становится хабами, попадающими в списки соседей всех подряд, тогда как анти-хабы не находит никто — проклятие размерности.',
+        tt: 'hubness: югары үлчәмлелектә берничә нокта hub’ка әйләнә, барысының да күрше исемлегенә эләгә, ә анти-hub’ларны беркем дә тапмый — үлчәмлелек ләгънәте.' } },
+      { img: '/Lectures/assets/img/L18/L18-11-even-map.png', concept: {
+        en: 'the fix flattens the map: whitening and contrastive training spread the vectors back out, so cosine means what it should again.',
+        ru: 'лечение выпрямляет карту: whitening и контрастное обучение снова разводят векторы, так что косинус опять значит то, что должен.',
+        tt: 'дәвалау картаны турайта: whitening һәм контрастив өйрәнү векторларны яңадан җәя, шуңа косинус тагын тиеш булганны аңлата.' } },
+    ],
+  },
 ];
