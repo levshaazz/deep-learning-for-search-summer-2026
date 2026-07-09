@@ -10,6 +10,13 @@ export function getStaticPaths() {
 const { lang } = Astro.params;
 const showFallbackNotice = lang === 'tt';
 const total = Object.keys(papers).length;
+
+// Lowercased haystack for client-side search: authors + title + venue + year + the why-note
+// (language-neutral fields + the current locale's prose).
+const haystack = (p) => [
+  p.authorsShort || (p.authors || []).join(' '),
+  p.title, p.venue, p.year, t(p.why, lang),
+].filter(Boolean).join(' ').toLowerCase();
 ---
 <BaseLayout lang={lang} page="papers" title={t(ui.nav.papers, lang)}>
   <div class="wrap">
@@ -18,16 +25,30 @@ const total = Object.keys(papers).length;
       <div class="kicker">{t(ui.sections.papersKicker, lang)}</div>
       {showFallbackNotice && <p class="notice">{t(ui.translationInProgress, lang)}</p>}
       <p class="lead">{t(M.intro, lang)}</p>
-      <p class="count">{total} {t(M.count, lang)}</p>
     </section>
 
+    <div class="ptoolbar">
+      <div class="pt-row">
+        <input id="psearch" class="psearch" type="search" autocomplete="off"
+               placeholder={t(M.ui.search, lang)} aria-label={t(M.ui.search, lang)} />
+        <span class="pcount"><b id="pshown">{total}</b> {t(M.ui.of, lang)} {total} {t(M.count, lang)}</span>
+        <button id="preset" class="preset" type="button" hidden>{t(M.ui.reset, lang)}</button>
+      </div>
+      <div class="pchips" role="group">
+        <button class="pchip active" data-area="" type="button">{t(M.ui.all, lang)}</button>
+        {sections.map((sec) => (
+          <button class="pchip" data-area={sec.area} type="button">{t(sec.label, lang)}</button>
+        ))}
+      </div>
+    </div>
+
     {sections.map((sec) => (
-      <section class="block refs" id={sec.area}>
+      <section class="block refs" id={sec.area} data-area={sec.area}>
         <h3>{t(sec.label, lang)}</h3>
         {sec.kicker && <div class="kicker">{t(sec.kicker, lang)}</div>}
         <ul class="paper-list">
           {sec.items.map((p) => (
-            <li class="paper" id={p.id}>
+            <li class="paper" id={p.id} data-area={sec.area} data-search={haystack(p)}>
               <div class="paper-cite">
                 <span class="authors">{p.authorsShort || (p.authors || []).join(', ')}</span>
                 {p.year ? <span class="year"> ({p.year})</span> : null}
@@ -41,48 +62,110 @@ const total = Object.keys(papers).length;
         </ul>
       </section>
     ))}
+
+    <p id="pnone" class="pnone" hidden>{t(M.ui.none, lang)}</p>
   </div>
 
   <style>
     .lead { font-size: var(--fz-lead); color: var(--ink-2); max-width: var(--ws-measure); }
-    .count {
-      font-family: var(--font-mono); font-size: var(--fz-tiny); letter-spacing: 1.5px;
-      text-transform: uppercase; color: var(--ink-3); margin: var(--ws-2) 0 0;
+
+    /* ── Toolbar: sticky search + area chips + live count ──────────── */
+    .ptoolbar {
+      position: sticky; top: 0; z-index: 20; background: var(--bg);
+      display: flex; flex-direction: column; gap: var(--ws-2);
+      padding: var(--ws-2) 0; margin: var(--ws-2) 0 var(--ws-3);
+      border-bottom: var(--hairline) solid var(--rule);
     }
+    .pt-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ws-2); }
+    .psearch {
+      flex: 1 1 260px; min-width: 200px; max-width: 400px;
+      padding: 8px 14px; border: var(--hairline) solid var(--rule); border-radius: 999px;
+      background: var(--bg); color: var(--ink); font: inherit; font-size: var(--fz-small);
+    }
+    .psearch:focus { outline: none; border-color: var(--accent); }
+    .pcount { font-family: var(--font-mono); font-size: var(--fz-tiny); letter-spacing: .5px;
+      text-transform: uppercase; color: var(--ink-2); }
+    .pcount b { color: var(--ink); }
+    .preset {
+      background: none; border: none; cursor: pointer; color: var(--accent); font: inherit;
+      font-size: var(--fz-tiny); text-transform: uppercase; letter-spacing: 1px; font-family: var(--font-mono);
+    }
+    .preset:hover { text-decoration: underline; }
+    .pchips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .pchip {
+      padding: 5px 12px; border: var(--hairline) solid var(--rule); border-radius: 999px;
+      background: var(--bg); color: var(--ink-2); font: inherit; font-size: var(--fz-small);
+      cursor: pointer; transition: background .12s, color .12s, border-color .12s;
+    }
+    .pchip:hover { border-color: var(--accent); }
+    .pchip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
     section.refs h3 {
       font-family: var(--font-serif); font-size: var(--fz-h3); font-weight: 600;
       margin: 0 0 6px; color: var(--ink); line-height: 1.2;
     }
-
     .paper-list { list-style: none; margin: var(--ws-3) 0 0; padding: 0; display: grid; gap: var(--ws-3); }
-
     li.paper {
       background: var(--bg-card); border: var(--hairline) solid var(--rule-strong);
       border-radius: var(--r-md); padding: var(--ws-3);
-      /* min-width:0 lets the long title wrap instead of forcing horizontal overflow at 390px */
       min-width: 0; overflow-wrap: anywhere;
     }
     li.paper:target { border-color: var(--accent); box-shadow: var(--shadow-sm); }
+    .paper[hidden], .refs[hidden] { display: none !important; }
 
     .paper-cite { font-size: var(--fz-small); line-height: 1.5; color: var(--ink-2); }
     .paper-cite .authors { color: var(--ink); font-weight: 600; }
     .paper-cite .year { color: var(--ink-2); }
     .paper-cite .sep { color: var(--ink-3); }
-    .paper-cite .title {
-      color: var(--accent); font-weight: 600; text-decoration: none;
-      /* break very long titles/URLs rather than overflow the card on narrow screens */
-      overflow-wrap: anywhere;
-    }
+    .paper-cite .title { color: var(--accent); font-weight: 600; text-decoration: none; overflow-wrap: anywhere; }
     .paper-cite .title:hover { text-decoration: underline; }
-    .paper-cite .venue {
-      font-family: var(--font-mono); font-size: var(--fz-tiny); color: var(--ink-3);
-    }
-
+    .paper-cite .venue { font-family: var(--font-mono); font-size: var(--fz-tiny); color: var(--ink-3); }
     .why { margin: var(--ws-2) 0 0; color: var(--ink-2); font-size: var(--fz-small); line-height: 1.6; max-width: var(--ws-measure); }
+    .pnone { color: var(--ink-2); }
 
     @media (max-width: 480px) {
       li.paper { padding: var(--ws-2); }
+      .psearch { max-width: none; }
     }
   </style>
+
+  <script>
+    (() => {
+      const search = document.getElementById('psearch');
+      if (!search) return;
+      const chips = [...document.querySelectorAll('.pchip')];
+      const papers = [...document.querySelectorAll('.paper')];
+      const secs = [...document.querySelectorAll('.refs')];
+      const shown = document.getElementById('pshown');
+      const reset = document.getElementById('preset');
+      const none = document.getElementById('pnone');
+      let area = '';
+
+      function matches(li) {
+        if (area && li.dataset.area !== area) return false;
+        const q = search.value.trim().toLowerCase();
+        if (q && !li.dataset.search.includes(q)) return false;
+        return true;
+      }
+      function update() {
+        let n = 0;
+        papers.forEach((li) => { const v = matches(li); li.hidden = !v; if (v) n++; });
+        secs.forEach((sec) => {
+          sec.hidden = ![...sec.querySelectorAll('.paper')].some((li) => !li.hidden);
+        });
+        shown.textContent = n;
+        none.hidden = n > 0;
+        reset.hidden = !(area || search.value.trim());
+      }
+      search.addEventListener('input', update);
+      chips.forEach((c) => c.addEventListener('click', () => {
+        area = c.dataset.area; chips.forEach((x) => x.classList.toggle('active', x === c)); update();
+      }));
+      reset.addEventListener('click', () => {
+        area = ''; search.value = '';
+        chips.forEach((c) => c.classList.toggle('active', c.dataset.area === ''));
+        update();
+      });
+    })();
+  </script>
 </BaseLayout>
