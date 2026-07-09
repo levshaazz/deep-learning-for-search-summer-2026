@@ -19,14 +19,14 @@
 // Shared front-matter, rendered once on the index page.
 export const galleryMeta = {
   intro: {
-    en: 'A navigable visual glossary for the course. The Bestiary collects the recurring cast — Serega and the creatures that personify a single idea each. The Scenes are the metaphor and hero illustrations, grouped by lecture. Every image carries a short concept caption tying it to what it teaches, and a link to the chapter where it lives.',
-    ru: 'Навигируемый визуальный глоссарий курса. Бестиарий собирает повторяющихся персонажей — Серёгу и существ, каждое из которых олицетворяет одну идею. Сцены — это метафоры и hero-иллюстрации, сгруппированные по лекциям. У каждой картинки короткая подпись-концепт, связывающая её с тем, чему она учит, и ссылка на главу, где она живёт.',
-    tt: 'Курсның навигацияле визуаль глоссарие. Бестиарий кабатланучы персонажларны җыя — Серёганы һәм һәрберсе бер генә идеяне гәүдәләндергән затларны. Сценалар — лекцияләр буенча төркемләнгән метафоралар һәм hero-иллюстрацияләр. Һәр рәсемдә аны нәрсәгә өйрәткәне белән бәйләгән кыска концепт-аннотация һәм ул яшәгән бүлеккә сылтама бар.',
+    en: 'A visual glossary of the course. Browse the metaphor art by lecture, meet the recurring cast in the Bestiary — or search a concept to jump straight to its picture. Every image links to the chapter that teaches it.',
+    ru: 'Визуальный глоссарий курса. Листайте арт по лекциям, знакомьтесь с повторяющимися персонажами в Бестиарии — или найдите концепт поиском, чтобы сразу перейти к картинке. Каждая картинка ведёт в главу, где её учат.',
+    tt: 'Курсның визуаль глоссарие. Артны лекцияләр буенча карагыз, Бестиарийда кабатланучы персонажлар белән танышыгыз — яки концептны эзләп, туры аның рәсеменә күчегез. Һәр рәсем аны өйрәткән бүлеккә алып бара.',
   },
   topic: {
-    en: 'Hand-drawn, Wait-But-Why style — one idea per picture, one accent colour, no gradients. The art is the mnemonic: meet the creature, remember the concept.',
-    ru: 'Рисунки в стиле Wait But Why — одна идея на картинку, один акцентный цвет, без градиентов. Арт — это мнемоника: познакомься с существом, запомни концепт.',
-    tt: 'Wait But Why стилендә кулдан ясалган рәсемнәр — һәр рәсемгә бер идея, бер акцент төс, градиентларсыз. Арт — ул мнемоника: зат белән таныш, концептны исеңдә калдыр.',
+    en: 'Hand-drawn, Wait-But-Why style: one idea per picture, one accent colour. The art is the mnemonic — meet the creature, remember the concept.',
+    ru: 'Рисунки в стиле Wait But Why: одна идея на картинку, один акцентный цвет. Арт — это мнемоника: познакомься с существом, запомни концепт.',
+    tt: 'Wait But Why стилендә: һәр рәсемгә бер идея, бер акцент төс. Арт — ул мнемоника: зат белән таныш, концептны исеңдә калдыр.',
   },
   // Section headings for the two top-level groups.
   bestiary: {
@@ -40,6 +40,21 @@ export const galleryMeta = {
   scenesHeading: { en: 'Scenes — by lecture', ru: 'Сцены — по лекциям', tt: 'Сценалар — лекцияләр буенча' },
   appearsIn: { en: 'appears in', ru: 'встречается в', tt: 'очрый' },
   taughtIn: { en: 'taught in', ru: 'изучается в', tt: 'өйрәнелә' },
+  // Toolbar UI (search + filter chips + result state). Trilingual; page falls back via t().
+  ui: {
+    search: { en: 'Search a concept…', ru: 'Поиск по концепту…', tt: 'Концепт буенча эзләү…' },
+    all: { en: 'All', ru: 'Все', tt: 'Барысы' },
+    typeCast: { en: 'Bestiary', ru: 'Бестиарий', tt: 'Бестиарий' },
+    typeScene: { en: 'Scenes', ru: 'Сцены', tt: 'Сценалар' },
+    allLectures: { en: 'All lectures', ru: 'Все лекции', tt: 'Барлык лекцияләр' },
+    found: { en: 'found', ru: 'найдено', tt: 'табылды' },
+    none: {
+      en: 'Nothing matches — try another word.',
+      ru: 'Ничего не найдено — попробуйте другое слово.',
+      tt: 'Туры килгәне юк — башка сүз кулланып карагыз.',
+    },
+    reset: { en: 'reset', ru: 'сбросить', tt: 'ташлау' },
+  },
 };
 
 // ── Bestiary: the recurring cast (Serega + the seven creatures) ──────────────
