@@ -25,6 +25,15 @@ const chapter = CHAPTERS[id];
 const lec = course.lectures.find((l) => l.id === id);
 const showFallbackNotice = lang === 'tt';
 
+// Prev/next chapter for the pager (chapterIds is the ordered id list; auto-derived).
+const chapIdx = chapterIds.indexOf(id);
+const prevId = chapIdx > 0 ? chapterIds[chapIdx - 1] : null;
+const nextId = chapIdx < chapterIds.length - 1 ? chapterIds[chapIdx + 1] : null;
+const chapTitle = (cid) => {
+  const l = course.lectures.find((x) => x.id === cid);
+  return l ? t(l.title, lang) : (CHAPTERS[cid]?.catchphrase || cid);
+};
+
 // Resolve every beat for this locale; build the client payload (scrolly beats only).
 const beats = chapter.beats.map((b) => {
   if (b.kind !== 'scrolly') return b;
@@ -122,6 +131,15 @@ const katexAuto = withBase('/Lectures/vendor/katex/auto-render.min.js');
       <h1>{t(lec.title, lang)}</h1>
       {showFallbackNotice && <p class="notice">{t(ui.translationInProgress, lang)}</p>}
       {lec.deckFile && <p class="book-xref"><a href={withBase('/' + lec.deckFile)}>{t(ui.labels.openSlides, lang)} →</a></p>}
+      <nav class="chap-nav" aria-label="chapter navigation">
+        {prevId
+          ? <a class="chap-arrow" href={localizedPath(lang, 'book/' + prevId)} rel="prev" title={chapTitle(prevId)}>← {prevId}</a>
+          : <span class="chap-arrow is-off" aria-hidden="true">←</span>}
+        <span class="chap-pos">{chapIdx + 1} / {chapterIds.length}</span>
+        {nextId
+          ? <a class="chap-arrow" href={localizedPath(lang, 'book/' + nextId)} rel="next" title={chapTitle(nextId)}>{nextId} →</a>
+          : <span class="chap-arrow is-off" aria-hidden="true">→</span>}
+      </nav>
     </header>
 
     {beats.map((b) => b.kind === 'prose' ? (
@@ -152,6 +170,20 @@ const katexAuto = withBase('/Lectures/vendor/katex/auto-render.min.js');
     ))}
 
     <footer class="book-foot wrap">
+      <nav class="chap-pager" aria-label="chapter navigation">
+        {prevId
+          ? <a class="pager-card pager-card--prev" href={localizedPath(lang, 'book/' + prevId)} rel="prev">
+              <span class="pager-dir">←</span>
+              <span class="pager-meta"><span class="pager-id">{prevId}</span><span class="pager-title">{chapTitle(prevId)}</span></span>
+            </a>
+          : <span class="pager-card is-empty" aria-hidden="true"></span>}
+        {nextId
+          ? <a class="pager-card pager-card--next" href={localizedPath(lang, 'book/' + nextId)} rel="next">
+              <span class="pager-meta"><span class="pager-id">{nextId}</span><span class="pager-title">{chapTitle(nextId)}</span></span>
+              <span class="pager-dir">→</span>
+            </a>
+          : <span class="pager-card is-empty" aria-hidden="true"></span>}
+      </nav>
       <p class="book-xref"><a href={localizedPath(lang)}>← {t(ui.sections.lectures, lang)}</a></p>
     </footer>
   </article>
@@ -312,6 +344,43 @@ const katexAuto = withBase('/Lectures/vendor/katex/auto-render.min.js');
       .scrolly-graphic { position: sticky; top: 0; min-height: 0; padding: var(--ws-2) 0;
         background: var(--bg); z-index: 5; box-shadow: 0 6px 12px -8px rgba(0,0,0,.25); }
       .scroll-step { min-height: 70vh; }
+    }
+
+    /* ── Chapter navigation: compact pager (header) + card pager (footer) ── */
+    .chap-nav {
+      display: flex; align-items: center; gap: var(--ws-2); margin-top: var(--ws-2);
+      font-family: var(--font-mono); font-size: var(--fz-tiny);
+    }
+    .chap-arrow {
+      color: var(--accent); font-weight: 600; letter-spacing: 1px; text-decoration: none;
+      padding: 3px 10px; border: var(--hairline) solid var(--rule); border-radius: 999px;
+    }
+    .chap-arrow:hover { border-color: var(--accent); }
+    .chap-arrow.is-off { color: var(--ink-3); border-style: dashed; pointer-events: none; opacity: .55; }
+    .chap-pos { color: var(--ink-3); letter-spacing: 1px; }
+
+    .chap-pager {
+      display: grid; grid-template-columns: 1fr 1fr; gap: var(--ws-3);
+      margin: var(--ws-4) 0 var(--ws-3);
+    }
+    .pager-card {
+      display: flex; align-items: center; gap: var(--ws-2);
+      border: var(--hairline) solid var(--rule); border-radius: var(--r-md, 12px);
+      padding: var(--ws-2) var(--ws-3); text-decoration: none; color: var(--ink);
+      transition: border-color .12s, transform .12s, box-shadow .12s; min-width: 0;
+    }
+    .pager-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.08); }
+    .pager-card--next { justify-content: flex-end; text-align: right; }
+    .pager-card.is-empty { border: none; pointer-events: none; }
+    .pager-dir { font-family: var(--font-mono); font-size: var(--fz-h3); color: var(--accent); flex: 0 0 auto; }
+    .pager-meta { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+    .pager-id { font-family: var(--font-mono); font-size: var(--fz-tiny); font-weight: 700; letter-spacing: 1px; color: var(--accent); }
+    .pager-title {
+      font-family: var(--font-serif); font-size: var(--fz-small); font-weight: 600; line-height: 1.25;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    @media (max-width: 520px) {
+      .pager-title { -webkit-line-clamp: 1; }
     }
   </style>
 </BaseLayout>

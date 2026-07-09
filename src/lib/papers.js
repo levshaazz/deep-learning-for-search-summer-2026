@@ -139,4 +139,12 @@ export const papersMeta = {
     ru: 'работ',
     tt: 'хезмәт',
   },
+  // Toolbar UI (search + area chips + result state). Trilingual; page falls back via t().
+  ui: {
+    search: { en: 'Search author, title or note…', ru: 'Поиск по автору, названию или заметке…', tt: 'Автор, исем яки искәрмә буенча эзләү…' },
+    all: { en: 'All', ru: 'Все', tt: 'Барысы' },
+    of: { en: 'of', ru: 'из', tt: 'дан' },
+    none: { en: 'No works match — try another word.', ru: 'Ничего не найдено — попробуйте другое слово.', tt: 'Туры килгәне юк — башка сүз кулланып карагыз.' },
+    reset: { en: 'reset', ru: 'сбросить', tt: 'ташлау' },
+  },
 };
