@@ -10,11 +10,33 @@ export function getStaticPaths() {
 const { lang } = Astro.params;
 const showFallbackNotice = lang === 'tt';
 
-// Resolve a manifest href (a (lang, localizedPath) => string fn) for this locale.
 const resolveHref = (h) => h(lang, localizedPath);
+const appearsIn = t(M.appearsIn, lang);
+const taughtIn = t(M.taughtIn, lang);
+
+// Self-contained, localized items — each carries everything the lightbox and the
+// search results need, so a "set" is just an array of items. Only the ~36 cover
+// thumbnails load up front; full illustrations load on demand.
+const bestiaryItems = cast.map((c) => ({
+  img: withBase(c.img), concept: t(c.concept, lang), name: t(c.name, lang),
+  lecture: c.lecture, href: resolveHref(c.href), label: appearsIn, type: 'cast',
+}));
+const lectureGroups = scenes.map((g) => ({
+  id: g.id, title: t(g.title, lang), href: resolveHref(g.href), label: taughtIn,
+  items: g.items.map((it) => ({
+    img: withBase(it.img), concept: t(it.concept, lang),
+    lecture: g.id, href: resolveHref(g.href), label: taughtIn, type: 'scene',
+  })),
+}));
+const galleryData = {
+  bestiary: bestiaryItems,
+  lectures: lectureGroups,
+  all: [...bestiaryItems, ...lectureGroups.flatMap((g) => g.items)],
+  labels: { found: t(M.ui.found, lang) },
+};
 ---
 <BaseLayout lang={lang} page="gallery" title={t(ui.nav.gallery, lang)}>
-  <div class="wrap">
+  <div class="wrap gallery-page">
     <section class="block">
       <h2>{t(ui.sections.gallery, lang)}</h2>
       <div class="kicker">{t(ui.sections.galleryKicker, lang)}</div>
@@ -23,87 +45,352 @@ const resolveHref = (h) => h(lang, localizedPath);
       <p class="topic"><strong>{t(M.topic, lang)}</strong></p>
     </section>
 
-    <section class="block">
-      <h3>{t(M.bestiary.heading, lang)}</h3>
-      <p class="lead">{t(M.bestiary.lead, lang)}</p>
-      <div class="cards gallery">
-        {cast.map((c) => (
-          <figure class="card gcard">
-            <div class="viz-frame">
-              <img src={withBase(c.img)} alt={t(c.name, lang) + ' — ' + t(c.concept, lang)} loading="lazy" decoding="async" />
-            </div>
-            <figcaption>
-              <h4>{t(c.name, lang)}</h4>
-              <p>{t(c.concept, lang)}</p>
-              <a class="open" href={resolveHref(c.href)}>{t(M.appearsIn, lang)}: {c.lecture} →</a>
-            </figcaption>
-          </figure>
+    <div class="gtoolbar">
+      <div class="gt-row">
+        <input id="gsearch" class="gsearch" type="search" autocomplete="off"
+               placeholder={t(M.ui.search, lang)} aria-label={t(M.ui.search, lang)} />
+        <div class="gchips" role="group">
+          <button class="chip active" data-type="all" type="button">{t(M.ui.all, lang)}</button>
+          <button class="chip" data-type="cast" type="button">{t(M.ui.typeCast, lang)}</button>
+          <button class="chip" data-type="scene" type="button">{t(M.ui.typeScene, lang)}</button>
+        </div>
+      </div>
+      <div class="glec" role="group" aria-label="lecture">
+        <button class="lchip active" data-lec-chip="" type="button">{t(M.ui.allLectures, lang)}</button>
+        {scenes.map((g) => (
+          <button class="lchip" data-lec-chip={g.id} type="button" title={t(g.title, lang)}>{g.id}</button>
         ))}
       </div>
-    </section>
+    </div>
 
-    <section class="block scenes">
-      <h3>{t(M.scenesHeading, lang)}</h3>
-      {scenes.map((g) => (
-        <div class="scene-group">
-          <h4 class="scene-title">{t(g.title, lang)}</h4>
-          <div class="cards gallery">
-            {g.items.map((it) => (
-              <figure class="card gcard">
-                <div class="viz-frame">
-                  <img src={withBase(it.img)} alt={t(it.concept, lang)} loading="lazy" decoding="async" />
-                </div>
-                <figcaption>
-                  <p>{t(it.concept, lang)}</p>
-                  <a class="open" href={resolveHref(g.href)}>{t(M.taughtIn, lang)}: {g.id} →</a>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
+    <!-- Default view: the map (Scenes first — the primary browse; Bestiary below) -->
+    <div id="gmap">
+      <section class="block">
+        <h3>{t(M.scenesHeading, lang)}</h3>
+        <div class="lec-tiles">
+          {scenes.map((g, i) => (
+            <button class="lec-tile" data-lec={i} type="button">
+              <span class="lec-hero"><img src={withBase(g.items[0].img)} alt="" loading="lazy" decoding="async" /></span>
+              <span class="lec-meta">
+                <span class="lec-id">{g.id}</span>
+                <span class="lec-title">{t(g.title, lang)}</span>
+              </span>
+              <span class="lec-count">{g.items.length} <span aria-hidden="true">▸</span></span>
+            </button>
+          ))}
         </div>
-      ))}
-    </section>
+      </section>
+
+      <section class="block gsep">
+        <h3>{t(M.bestiary.heading, lang)} <span class="count-pill">{cast.length}</span></h3>
+        <p class="lead">{t(M.bestiary.lead, lang)}</p>
+        <div class="cast-row">
+          {cast.map((c, i) => (
+            <button class="cast-chip" data-cast={i} type="button" title={t(c.concept, lang)}>
+              <span class="cast-thumb"><img src={withBase(c.img)} alt="" loading="lazy" decoding="async" /></span>
+              <span class="cast-name">{t(c.name, lang)}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+    </div>
+
+    <!-- Filtered view: flat results (built by JS) -->
+    <div id="gresults" hidden>
+      <p class="rbar"><span id="rcount" class="rcount"></span>
+        <button id="rreset" class="rreset" type="button">{t(M.ui.reset, lang)}</button></p>
+      <div id="rgrid" class="rgrid"></div>
+      <p id="rnone" class="rnone" hidden>{t(M.ui.none, lang)}</p>
+    </div>
+  </div>
+
+  <script type="application/json" id="gallery-data" set:html={JSON.stringify(galleryData)}></script>
+
+  <div id="lightbox" class="lightbox" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="lb-panel">
+      <button class="lb-close" type="button" aria-label="Close">×</button>
+      <div class="lb-stage">
+        <button class="lb-nav lb-prev" type="button" aria-label="Previous">‹</button>
+        <div class="lb-frame"><img class="lb-img" src="" alt="" /></div>
+        <button class="lb-nav lb-next" type="button" aria-label="Next">›</button>
+      </div>
+      <div class="lb-info">
+        <h4 class="lb-name"></h4>
+        <p class="lb-cap"></p>
+        <div class="lb-foot"><a class="lb-link" href=""></a><span class="lb-count"></span></div>
+      </div>
+    </div>
   </div>
 
   <style>
     .lead { font-size: var(--fz-lead); color: var(--ink-2); max-width: var(--ws-measure); }
-    .topic { max-width: var(--ws-measure); }
-    .block p { max-width: var(--ws-measure); }
-
-    /* gallery grid: a touch wider min so the figures breathe; never overflows. */
-    .cards.gallery { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
-
-    figure.card.gcard {
-      display: flex; flex-direction: column; margin: 0; padding: var(--ws-3);
-      overflow: hidden;
+    .topic, .block p { max-width: var(--ws-measure); }
+    h3 { display: flex; align-items: baseline; gap: var(--ws-2); }
+    .count-pill {
+      font-family: var(--font-mono); font-size: var(--fz-tiny); font-weight: 600;
+      color: var(--warm-ink); border: var(--hairline) solid var(--rule);
+      border-radius: 999px; padding: 1px 8px; letter-spacing: .5px;
     }
-    /* white canvas in both themes (the off-white art reads correctly on it) */
-    .gcard .viz-frame {
+
+    /* ── Toolbar: sticky search + filter chips + lecture select ────── */
+    .gtoolbar {
+      position: sticky; top: 0; z-index: 20; background: var(--bg);
+      display: flex; flex-direction: column; gap: var(--ws-2);
+      padding: var(--ws-2) 0; margin: var(--ws-2) 0 var(--ws-3);
+      border-bottom: var(--hairline) solid var(--rule);
+    }
+    .gt-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ws-2); }
+    .glec { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+    .lchip {
+      padding: 4px 10px; border: var(--hairline) solid var(--rule); border-radius: 999px;
+      background: var(--bg); color: var(--ink-2); font-family: var(--font-mono); font-size: var(--fz-tiny);
+      font-weight: 600; cursor: pointer; transition: background .12s, color .12s, border-color .12s;
+    }
+    .lchip:hover { border-color: var(--accent); }
+    .lchip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .gsearch {
+      flex: 1 1 240px; min-width: 200px; max-width: 360px;
+      padding: 8px 14px; border: var(--hairline) solid var(--rule); border-radius: 999px;
+      background: var(--bg); color: var(--ink); font: inherit; font-size: var(--fz-small);
+    }
+    .gsearch:focus { outline: none; border-color: var(--accent); }
+    .gchips { display: flex; gap: 6px; }
+    .chip {
+      padding: 6px 13px; border: var(--hairline) solid var(--rule); border-radius: 999px;
+      background: var(--bg); color: var(--ink-2); font: inherit; font-size: var(--fz-small);
+      cursor: pointer; transition: background .12s, color .12s, border-color .12s;
+    }
+    .chip:hover { border-color: var(--accent); }
+    .chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    /* ── Bestiary chip row ─────────────────────────────────────────── */
+    .cast-row { display: flex; flex-wrap: wrap; gap: var(--ws-2); margin-top: var(--ws-2); }
+    .cast-chip {
+      display: flex; align-items: center; gap: 8px; cursor: pointer;
+      background: var(--bg); border: var(--hairline) solid var(--rule);
+      border-radius: 999px; padding: 4px 12px 4px 4px; color: var(--ink);
+      font: inherit; transition: border-color .12s, transform .12s;
+    }
+    .cast-chip:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .cast-thumb {
+      width: 34px; height: 34px; border-radius: 999px; overflow: hidden;
+      background: #fff; flex: 0 0 auto; display: flex; align-items: center; justify-content: center;
+    }
+    .cast-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .cast-name { font-size: var(--fz-small); font-weight: 600; }
+
+    /* ── Lecture tiles (the map) ───────────────────────────────────── */
+    .gsep { border-top: 1px solid var(--rule); margin-top: var(--ws-4); padding-top: var(--ws-3); }
+    .lec-tiles {
+      display: grid; gap: var(--ws-3); margin-top: var(--ws-3);
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+    }
+    .lec-tile {
+      display: flex; flex-direction: column; text-align: left; cursor: pointer;
+      background: var(--bg); border: var(--hairline) solid var(--rule);
+      border-radius: var(--r-sm); overflow: hidden; padding: 0; color: var(--ink);
+      font: inherit; transition: border-color .12s, transform .12s, box-shadow .12s;
+    }
+    .lec-tile:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.08); }
+    .lec-hero { background: #fff; aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; }
+    .lec-hero img { width: 100%; height: 100%; object-fit: contain; }
+    .lec-meta { display: flex; flex-direction: column; gap: 2px; padding: var(--ws-2) var(--ws-3) 0; }
+    .lec-id {
+      font-family: var(--font-mono); font-size: var(--fz-tiny); font-weight: 700;
+      letter-spacing: 1px; color: var(--accent);
+    }
+    .lec-title {
+      font-family: var(--font-serif); font-size: var(--fz-small); font-weight: 600; line-height: 1.25;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .lec-count {
+      align-self: flex-end; margin: 6px var(--ws-3) var(--ws-2); margin-top: auto;
+      font-family: var(--font-mono); font-size: var(--fz-tiny); font-weight: 600; color: var(--ink-2);
+    }
+
+    /* ── Search results (flat grid) ────────────────────────────────── */
+    .rbar { display: flex; align-items: baseline; gap: var(--ws-2); margin: 0 0 var(--ws-3); }
+    .rcount { font-family: var(--font-mono); font-size: var(--fz-small); color: var(--ink-2); }
+    .rreset { background: none; border: none; cursor: pointer; color: var(--accent);
+      font: inherit; font-size: var(--fz-tiny); text-transform: uppercase; letter-spacing: 1px;
+      font-family: var(--font-mono); }
+    .rreset:hover { text-decoration: underline; }
+    .rnone { color: var(--ink-2); }
+    .rgrid {
+      display: grid; gap: var(--ws-3);
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+    }
+    .rcard { display: flex; flex-direction: column; margin: 0; padding: var(--ws-3); cursor: pointer;
+      border: var(--hairline) solid var(--rule); border-radius: var(--r-sm); background: var(--bg);
+      transition: border-color .12s, transform .12s; }
+    .rcard:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .rcard .viz-frame {
       background: #fff; border: var(--hairline) solid var(--rule); border-radius: var(--r-sm);
       aspect-ratio: 16 / 9; overflow: hidden; display: flex; align-items: center; justify-content: center;
     }
-    .gcard .viz-frame img {
-      width: 100%; height: 100%; max-width: 100%; object-fit: contain; display: block;
+    .rcard .viz-frame img { width: 100%; height: 100%; object-fit: contain; }
+    .rcard figcaption { display: flex; flex-direction: column; gap: 4px; padding-top: var(--ws-2); }
+    .rcard h4 { font-family: var(--font-serif); font-size: var(--fz-h3); margin: 0; line-height: 1.2; }
+    .rcard p {
+      margin: 0; color: var(--ink-2); font-size: var(--fz-small); max-width: none;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
     }
-    .gcard figcaption { display: flex; flex-direction: column; gap: 6px; padding-top: var(--ws-2); }
-    .gcard h4 {
-      font-family: var(--font-serif); font-size: var(--fz-h3); font-weight: 600;
-      margin: 0; color: var(--ink); line-height: 1.2;
+    .rcard .rlec {
+      margin-top: auto; padding-top: var(--ws-2); color: var(--accent); font-size: var(--fz-tiny);
+      font-weight: 600; font-family: var(--font-mono); letter-spacing: 1px; text-transform: uppercase;
     }
-    .gcard figcaption p { margin: 0; color: var(--ink-2); font-size: var(--fz-small); max-width: none; }
-    .gcard .open {
-      margin-top: auto; color: var(--accent); font-size: var(--fz-tiny); font-weight: 600;
-      font-family: var(--font-mono); letter-spacing: 1px; text-transform: uppercase;
-      padding-top: var(--ws-2); text-decoration: none;
-    }
-    .gcard .open:hover { text-decoration: underline; }
 
-    .scene-group { margin-top: var(--ws-4); }
-    .scene-title {
-      font-family: var(--font-mono); font-size: var(--fz-small); letter-spacing: 1px;
-      color: var(--warm-ink); margin: 0 0 var(--ws-3); padding-bottom: 6px;
-      border-bottom: var(--hairline) solid var(--rule);
+    /* ── Lightbox ──────────────────────────────────────────────────── */
+    .lightbox {
+      position: fixed; inset: 0; z-index: 200; display: none;
+      background: rgba(10, 12, 16, .82); padding: var(--ws-3);
+      align-items: center; justify-content: center;
     }
-    .scenes { border-top: 1px solid var(--rule); }
+    .lightbox.open { display: flex; }
+    .lb-panel {
+      background: var(--bg); border-radius: 12px; width: min(920px, 100%);
+      max-height: 92vh; display: flex; flex-direction: column; overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,.4); position: relative;
+    }
+    .lb-close {
+      position: absolute; top: 8px; right: 10px; z-index: 3; cursor: pointer;
+      width: 34px; height: 34px; border-radius: 999px; border: none;
+      background: rgba(0,0,0,.06); color: var(--ink); font-size: 22px; line-height: 1;
+    }
+    .lb-close:hover { background: rgba(0,0,0,.12); }
+    .lb-stage { position: relative; display: flex; align-items: center; background: #fff; }
+    .lb-frame { flex: 1 1 auto; aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .lb-frame img { max-width: 100%; max-height: 62vh; object-fit: contain; }
+    .lb-nav {
+      position: absolute; top: 50%; transform: translateY(-50%); cursor: pointer;
+      width: 42px; height: 42px; border-radius: 999px; border: none; z-index: 2;
+      background: rgba(0,0,0,.45); color: #fff; font-size: 26px; line-height: 1;
+    }
+    .lb-nav:hover { background: rgba(0,0,0,.7); }
+    .lb-prev { left: 10px; } .lb-next { right: 10px; }
+    .lb-info { padding: var(--ws-3); overflow-y: auto; }
+    .lb-name { font-family: var(--font-serif); font-size: var(--fz-h3); margin: 0 0 6px; }
+    .lb-name:empty { display: none; }
+    .lb-cap { margin: 0; color: var(--ink-2); font-size: var(--fz-small); max-width: var(--ws-measure); }
+    .lb-foot { display: flex; justify-content: space-between; align-items: center; margin-top: var(--ws-2); gap: var(--ws-2); }
+    .lb-link {
+      color: var(--accent); font-size: var(--fz-tiny); font-weight: 600;
+      font-family: var(--font-mono); letter-spacing: 1px; text-transform: uppercase; text-decoration: none;
+    }
+    .lb-link:hover { text-decoration: underline; }
+    .lb-count { font-family: var(--font-mono); font-size: var(--fz-tiny); color: var(--ink-2); }
+
+    @media (max-width: 520px) {
+      .lb-nav { width: 36px; height: 36px; font-size: 22px; }
+      .lb-frame img { max-height: 46vh; }
+      .gsearch { max-width: none; }
+    }
   </style>
+
+  <script>
+    (() => {
+      const el = document.getElementById('gallery-data');
+      if (!el) return;
+      const data = JSON.parse(el.textContent);
+      const $ = (s) => document.querySelector(s);
+
+      // ── Lightbox (works on any array of items) ──
+      const lb = $('#lightbox');
+      const lbImg = lb.querySelector('.lb-img');
+      const lbName = lb.querySelector('.lb-name');
+      const lbCap = lb.querySelector('.lb-cap');
+      const lbLink = lb.querySelector('.lb-link');
+      const lbCount = lb.querySelector('.lb-count');
+      let items = null, idx = 0;
+      function render() {
+        const it = items[idx];
+        lbImg.src = it.img; lbImg.alt = it.concept || it.name || '';
+        lbName.textContent = it.name || '';
+        lbCap.textContent = it.concept || '';
+        lbLink.textContent = it.label + ': ' + it.lecture + ' →';
+        lbLink.href = it.href;
+        lbCount.textContent = (idx + 1) + ' / ' + items.length;
+      }
+      function openSet(arr, i) {
+        items = arr; idx = i; render();
+        lb.classList.add('open'); lb.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+      }
+      function close() {
+        lb.classList.remove('open'); lb.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = ''; lbImg.src = '';
+      }
+      function move(d) { idx = (idx + d + items.length) % items.length; render(); }
+      lb.querySelector('.lb-prev').addEventListener('click', () => move(-1));
+      lb.querySelector('.lb-next').addEventListener('click', () => move(1));
+      lb.querySelector('.lb-close').addEventListener('click', close);
+      lb.addEventListener('click', (e) => { if (e.target === lb) close(); });
+      document.addEventListener('keydown', (e) => {
+        if (!lb.classList.contains('open')) return;
+        if (e.key === 'Escape') close();
+        else if (e.key === 'ArrowLeft') move(-1);
+        else if (e.key === 'ArrowRight') move(1);
+      });
+
+      // ── Map: tiles + chips open their set ──
+      document.querySelectorAll('[data-lec]').forEach((t) =>
+        t.addEventListener('click', () => openSet(data.lectures[+t.dataset.lec].items, 0)));
+      document.querySelectorAll('[data-cast]').forEach((t) =>
+        t.addEventListener('click', () => openSet(data.bestiary, +t.dataset.cast)));
+
+      // ── Search + filter chips + lecture select ──
+      const search = $('#gsearch');
+      const chips = [...document.querySelectorAll('.gchips .chip')];
+      const lchips = [...document.querySelectorAll('.lchip')];
+      const map = $('#gmap'), results = $('#gresults');
+      const grid = $('#rgrid'), count = $('#rcount'), none = $('#rnone');
+      let fType = 'all', fLec = '';
+
+      const active = () => search.value.trim() || fType !== 'all' || fLec;
+      function matches(it) {
+        if (fType !== 'all' && it.type !== fType) return false;
+        if (fLec && it.lecture !== fLec) return false;
+        const q = search.value.trim().toLowerCase();
+        if (q && !((it.concept + ' ' + (it.name || '') + ' ' + it.lecture).toLowerCase().includes(q)))
+          return false;
+        return true;
+      }
+      function card(it, i, res) {
+        const fig = document.createElement('figure'); fig.className = 'rcard';
+        const frame = document.createElement('div'); frame.className = 'viz-frame';
+        const img = document.createElement('img'); img.loading = 'lazy'; img.src = it.img; img.alt = '';
+        frame.appendChild(img); fig.appendChild(frame);
+        const cap = document.createElement('figcaption');
+        if (it.name) { const h = document.createElement('h4'); h.textContent = it.name; cap.appendChild(h); }
+        const p = document.createElement('p'); p.textContent = it.concept; cap.appendChild(p);
+        const s = document.createElement('span'); s.className = 'rlec';
+        s.textContent = it.label + ': ' + it.lecture + ' →'; cap.appendChild(s);
+        fig.appendChild(cap);
+        fig.addEventListener('click', () => openSet(res, i));
+        return fig;
+      }
+      function update() {
+        if (!active()) { map.hidden = false; results.hidden = true; return; }
+        const res = data.all.filter(matches);
+        map.hidden = true; results.hidden = false;
+        count.textContent = res.length + ' ' + data.labels.found;
+        none.hidden = res.length > 0;
+        grid.textContent = '';
+        res.forEach((it, i) => grid.appendChild(card(it, i, res)));
+      }
+      function reset() {
+        search.value = ''; fType = 'all'; fLec = '';
+        chips.forEach((c) => c.classList.toggle('active', c.dataset.type === 'all'));
+        lchips.forEach((c) => c.classList.toggle('active', c.dataset.lecChip === ''));
+        update();
+      }
+      search.addEventListener('input', update);
+      chips.forEach((c) => c.addEventListener('click', () => {
+        fType = c.dataset.type; chips.forEach((x) => x.classList.toggle('active', x === c)); update();
+      }));
+      lchips.forEach((c) => c.addEventListener('click', () => {
+        fLec = c.dataset.lecChip; lchips.forEach((x) => x.classList.toggle('active', x === c)); update();
+      }));
+      $('#rreset').addEventListener('click', reset);
+    })();
+  </script>
 </BaseLayout>
