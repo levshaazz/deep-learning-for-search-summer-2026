@@ -457,7 +457,7 @@
     <div class="def-body">
       <ul class="obj-list">
         <li class="obj-item"><span class="obj-check" aria-hidden="true">1</span><span class="obj-text"><strong>Extract</strong> &mdash; an LLM reads each chunk and emits <em>(head, relation, tail)</em> triples (our llama3.1:8b ran exactly this, returning 7 triples from 3 docs).</span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">2</span><span class="obj-text"><strong>Resolve</strong> &mdash; merge co-referent mentions into one node, so edges from different documents actually connect (in a real corpus you&rsquo;d fold &ldquo;Dana&rdquo;, &ldquo;Dana&nbsp;Reyes&rdquo;, &ldquo;the founder&rdquo; together &mdash; our clean toy already uses one surface form, so it needs no resolution).</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">2</span><span class="obj-text"><strong>Resolve</strong> &mdash; merge co-referent mentions into one node, so edges from different documents actually connect (in a real corpus you&rsquo;d fold &ldquo;Dana&rdquo;, &ldquo;Dana&nbsp;Reyes&rdquo;, &ldquo;the founder&rdquo; together &mdash; our clean toy already uses one surface form).</span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">3</span><span class="obj-text"><strong>Build &amp; cluster</strong> &mdash; assemble the graph, detect communities, and pre-summarise each (the global-search step). This is the cost the boundaries slide warned about &mdash; paid once, amortised over every query.</span></li>
       </ul>
     </div>
@@ -516,13 +516,13 @@
   </div>
   <div class="def-card">
     <span class="def-tag">Applicability · don't reach for a graph by default</span>
-    <div class="def-term">GraphRAG pays off on <strong>relational, multi-hop</strong> answers &mdash; at the price of an extraction-and-indexing pipeline kept current as the corpus changes.</div>
+    <div class="def-term">GraphRAG pays off on <strong>relational, multi-hop</strong> answers &mdash; at the price of an extraction-and-indexing pipeline.</div>
     <div class="def-body">
       <ul class="obj-list">
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong>Reach for it when</strong> &mdash; facts chain across documents (multi-hop), or corpus-wide &ldquo;main themes?&rdquo; questions.</span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">&times;</span><span class="obj-text"><strong>Skip it when</strong> &mdash; the answer is in one passage. Naive RAG (L10) is cheaper and already correct.</span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">&times;</span><span class="obj-text"><strong>Extraction is noisy</strong> &mdash; relations get named inconsistently (our real run emitted both &ldquo;studied at&rdquo; and &ldquo;studied&rdquo;), edges are missed or hallucinated, and entity resolution can split or merge the wrong nodes; a broken edge breaks the walk. Graph <em>quality</em>, not just freshness, gates GraphRAG.</span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><strong>The costs</strong> &mdash; corpus-wide extraction (LLM calls), graph storage, <em>staleness</em> on updates. Start flat; earn the graph.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong>Reach for it when</strong> &mdash; facts chain across documents (multi-hop), or corpus-wide theme questions.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&times;</span><span class="obj-text"><strong>Skip it when</strong> &mdash; the answer is in one passage. Naive RAG (L10) is cheaper.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&times;</span><span class="obj-text"><strong>Extraction is noisy</strong> &mdash; relations get named inconsistently, edges missed or hallucinated. Graph <em>quality</em>, not just freshness, gates GraphRAG.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><strong>The costs</strong> &mdash; corpus-wide extraction, graph storage, <em>staleness</em>. Start flat; earn the graph.</span></li>
       </ul>
     </div>
   </div>
@@ -723,10 +723,10 @@
         <div class="def-term">Render each document <em>page</em> as an image, embed it with a <strong>vision-language model</strong> into patch-level vectors, and retrieve with <strong>late interaction</strong> &mdash; ColBERT's MaxSim (L8), now over image patches.</div>
         <div class="def-body">
           <ul class="obj-list">
-            <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Fixes:</strong> the classic pipeline is OCR &rarr; layout parse &rarr; chunk &rarr; embed &mdash; brittle on tables, figures and scans. ColPali skips it: the page <em>is</em> the input.</span></li>
-            <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Trick:</strong> a query token attends to the most similar image patch (MaxSim). The figure, the table cell, the stamp &mdash; all retrievable without ever transcribing them.</span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Fixes:</strong> the classic pipeline is OCR &rarr; layout parse &rarr; chunk &rarr; embed &mdash; brittle on tables and scans. ColPali skips it: the page <em>is</em> the input.</span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Trick:</strong> a query token attends to the most similar image patch (MaxSim). The figure, the table cell, the stamp &mdash; all retrievable without transcription.</span></li>
             <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Callback:</strong> it is L8's late-interaction (Sir&nbsp;Cosine measuring per-patch) fused with L12's shared image&ndash;text space &mdash; the two frontiers meet (Faysse et al., 2024).</span></li>
-            <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Cost:</strong> late interaction keeps <em>one vector per image patch</em> (hundreds&ndash;to&ndash;over-a-thousand per page), so the index is one&ndash;two orders of magnitude larger than a single CLIP page vector, and MaxSim scores every query-patch &times; page-patch pair per candidate &mdash; the same multi-vector storage/latency tax as ColBERT in L8, now charged <em>per page</em>.</span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Cost:</strong> late interaction keeps <em>one vector per image patch</em> (hundreds&ndash;to&ndash;over-a-thousand per page), so the index is one&ndash;two orders of magnitude larger than a single CLIP page vector &mdash; ColBERT's multi-vector tax (L8), now <em>per page</em>.</span></li>
           </ul>
         </div>
       </div>
@@ -774,8 +774,8 @@
           <ul class="obj-list">
             <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong>Reach for it when</strong> &mdash; the corpus is visual or you need text&harr;image search; ColPali when layout matters.</span></li>
             <li class="obj-item"><span class="obj-check" aria-hidden="true">&times;</span><span class="obj-text"><strong>Mind the limits</strong> &mdash; fine detail (counting, exact text, rare concepts) is weak; real matrices noisier than our 3/3.</span></li>
-            <li class="obj-item"><span class="obj-check" aria-hidden="true">&times;</span><span class="obj-text"><strong>Modality gap</strong> &mdash; image and text embeddings sit in offset regions of the shared space, so cross-modal cosines run lower and less calibrated than within-modality ones; tune the retrieval cutoff per modality, don't reuse a text-search threshold (it's why the toy's 0.9944 matched cosines look unrealistically high).</span></li>
-            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><strong>The catch ahead</strong> &mdash; a model that sees and answers can also confabulate; its pairs carry bias. Power &rarr; responsibility.</span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&times;</span><span class="obj-text"><strong>Modality gap</strong> &mdash; image and text embeddings sit in offset regions, so cross-modal cosines run lower; tune the cutoff per modality (it's why the toy's 0.9944 cosines look unrealistically high).</span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><strong>The catch ahead</strong> &mdash; a model that sees and answers can also confabulate. Power &rarr; responsibility.</span></li>
           </ul>
         </div>
       </div>
@@ -954,12 +954,12 @@
   </div>
   <div class="def-card">
     <span class="def-tag">Callback · faithfulness (L11) as a safety control</span>
-    <div class="def-term">L11 <em>measured</em> faithfulness &mdash; the fraction of claims supported by context. Here the same metric is a <strong>guardrail</strong> against the hallucination harm.</div>
+    <div class="def-term">L11 <em>measured</em> faithfulness &mdash; the fraction of claims supported by context; here it is a <strong>guardrail</strong>.</div>
     <div class="def-body">
       <ul class="obj-list">
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Faithfulness vs relevance</strong> &mdash; relevance: right passages? faithfulness: answer stayed <em>true</em> to them? Quasar-9 is exactly this failure.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Faithfulness vs relevance</strong> &mdash; relevance: right passages? faithfulness: answer stayed <em>true</em> to them?</span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Wire it in</strong> &mdash; a faithfulness check (LLM-judge / NLI) before display; below threshold, abstain.</span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Why a gate at all</strong> &mdash; grounding <em>reduces</em> but never <em>removes</em> hallucination: a grounded model can still ignore the context, over-claim past it, or mis-cite. That residual unfaithfulness is the whole reason L11's check runs <em>after</em> retrieval, not instead of it.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Why a gate at all</strong> &mdash; grounding <em>reduces</em> but never <em>removes</em> hallucination; that residual gap is why L11's check runs <em>after</em> retrieval.</span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>The thread</strong> &mdash; L11 taught us to judge the Oracle; L12 says we are <em>obliged</em> to.</span></li>
       </ul>
     </div>

@@ -30,6 +30,13 @@
      (scale wanted < 0.5 floor) is reported separately as an ERROR via
      data-auto-fit-clipped below. */
   const FIT_WARN = 0.65;
+  /* The "too dense → split" nudge applies only to PROSE slides. Figure/diagram/refs types
+     (viz/archflow/arch/e2e/walkthrough/refs/…) fit-scale by design — their small text is
+     labels or a bibliography, not body prose — so a low auto-fit there is not a defect.
+     (Matches _audit/legibility-gate.mjs G22's prose scope.) A CLIPPED slide is still an
+     error for every type, since content actually cut off is always wrong. */
+  const PROSE_TYPES = new Set(['two-col', 'table', 'definition', 'formula', 'default',
+    'misconception', 'theorem', 'quote', 'derivation', 'code', 'sequence', 'funnel']);
 
   document.addEventListener('deck:ready', () => {
     setTimeout(runChecks, 800);
@@ -284,7 +291,7 @@
         });
       } else {
         const fit = parseFloat(slide.dataset.autoFit);
-        if (Number.isFinite(fit) && fit < FIT_WARN) {
+        if (Number.isFinite(fit) && fit < FIT_WARN && PROSE_TYPES.has(slide.dataset.type)) {
           issues.push({
             sev: 'warn', slide: label,
             msg: `auto-fit ${fit.toFixed(2)}× — контент плотный (текст ~${Math.round(38 * fit)}px); подумайте о разбиении`,
