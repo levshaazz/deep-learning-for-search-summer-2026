@@ -54,6 +54,9 @@ export const galleryMeta = {
       tt: 'Туры килгәне юк — башка сүз кулланып карагыз.',
     },
     reset: { en: 'reset', ru: 'сбросить', tt: 'ташлау' },
+    filterByType: { en: 'Filter by image type', ru: 'Фильтр по типу', tt: 'Тип буенча фильтр' },
+    filterByLecture: { en: 'Filter by lecture', ru: 'Фильтр по лекции', tt: 'Лекция буенча фильтр' },
+    viewer: { en: 'Image viewer', ru: 'Просмотр изображения', tt: 'Рәсем карау' },
   },
 };
 
