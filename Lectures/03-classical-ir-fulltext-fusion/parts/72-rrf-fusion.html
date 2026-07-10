@@ -1,29 +1,29 @@
 <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="72 RRF fusion">
           <div class="slide-header">
-            <h2>Reciprocal Rank Fusion</h2>
+            <h2><span lang="ru">Слияние по обратным рангам (RRF)</span><span lang="en">Reciprocal Rank Fusion</span></h2>
             <span class="slide-kicker">\(\mathrm{RRF}(d)=\sum_r \frac{1}{k+\mathrm{rank}_r(d)}\), \(k=60\)</span>
           </div>
-          <p class="small muted mt-2">BM25: <code>D6 D3 D7 D2 D5 D0 D4 D1</code>. Cosine: <code>D6 D3 D2 D7 D0 D4 D5 D1</code>. Rank-based &mdash; no scores compared.</p>
+          <p class="small muted mt-2"><span lang="ru">BM25: <code>D6 D3 D7 D2 D5 D0 D4 D1</code>. Косинус: <code>D6 D3 D2 D7 D0 D4 D5 D1</code>. По рангам &mdash; оценки не сравниваются.</span><span lang="en">BM25: <code>D6 D3 D7 D2 D5 D0 D4 D1</code>. Cosine: <code>D6 D3 D2 D7 D0 D4 D5 D1</code>. Rank-based &mdash; no scores compared.</span></p>
           <div class="walk-flow">
             <div class="walk-step" data-step="1" data-color="violet">
               <div class="walk-num">01</div>
-              <div class="walk-content"><div class="walk-label">D6 &mdash; rank 1 in both</div><div class="walk-detail">\(\frac{1}{60+1}+\frac{1}{60+1} = 0.016393+0.016393 = \mathbf{0.032787}\) &mdash; the highest fused score here.</div></div>
+              <div class="walk-content"><div class="walk-label"><span lang="ru">D6 &mdash; ранг 1 в обоих</span><span lang="en">D6 &mdash; rank 1 in both</span></div><div class="walk-detail">\(\frac{1}{60+1}+\frac{1}{60+1} = 0.016393+0.016393 = \mathbf{0.032787}\) &mdash; <span lang="ru">здесь наивысшая слитая оценка.</span><span lang="en">the highest fused score here.</span></div></div>
               <div class="walk-state">0.032787</div>
             </div>
             <div class="walk-step" data-step="2" data-color="amber">
               <div class="walk-num">02</div>
-              <div class="walk-content"><div class="walk-label">D3 &mdash; rank 2 in both</div><div class="walk-detail">\(\frac{1}{62}+\frac{1}{62} = 0.032258\). Liked by both rankers, stays near the top.</div></div>
+              <div class="walk-content"><div class="walk-label"><span lang="ru">D3 &mdash; ранг 2 в обоих</span><span lang="en">D3 &mdash; rank 2 in both</span></div><div class="walk-detail">\(\frac{1}{62}+\frac{1}{62} = 0.032258\). <span lang="ru">Нравится обоим ранжировщикам, держится у вершины.</span><span lang="en">Liked by both rankers, stays near the top.</span></div></div>
               <div class="walk-state">0.032258</div>
             </div>
             <div class="walk-step" data-step="3" data-color="cyan">
               <div class="walk-num">03</div>
-              <div class="walk-content"><div class="walk-label">D2 vs D7 &mdash; disagreement</div><div class="walk-detail">D2 is rank 4 (BM25) / 3 (cosine): \(\frac{1}{60+4}+\frac{1}{60+3}=0.015625+0.015873=\mathbf{0.031498}\). D7 is rank 3 / 4: \(\frac{1}{63}+\frac{1}{64}\) &mdash; the same two reciprocals, swapped &rarr; identical sum. Fusion smooths the swap.</div></div>
-              <div class="walk-state">tie 0.031498</div>
+              <div class="walk-content"><div class="walk-label"><span lang="ru">D2 против D7 &mdash; расхождение</span><span lang="en">D2 vs D7 &mdash; disagreement</span></div><div class="walk-detail"><span lang="ru">D2 &mdash; ранг 4 (BM25) / 3 (косинус):</span><span lang="en">D2 is rank 4 (BM25) / 3 (cosine):</span> \(\frac{1}{60+4}+\frac{1}{60+3}=0.015625+0.015873=\mathbf{0.031498}\). <span lang="ru">D7 &mdash; ранг 3 / 4:</span><span lang="en">D7 is rank 3 / 4:</span> \(\frac{1}{63}+\frac{1}{64}\) &mdash; <span lang="ru">те же две обратные величины, переставлены &rarr; та же сумма. Слияние сглаживает перестановку.</span><span lang="en">the same two reciprocals, swapped &rarr; identical sum. Fusion smooths the swap.</span></div></div>
+              <div class="walk-state"><span lang="ru">ничья 0.031498</span><span lang="en">tie 0.031498</span></div>
             </div>
             <div class="walk-step" data-step="4" data-final="true">
               <div class="walk-num">&rarr;</div>
-              <div class="walk-content"><div class="walk-label">\(k\)-sensitivity</div><div class="walk-detail">Fused order <code>D6 D3 D2 D7 D0 D5 D4 D1</code>. D2 and D7 are an exact tie at 0.031498 &mdash; their displayed order is a deterministic tie-break (e.g. by docID), not a preference. Larger \(k\) flattens the discount (more democratic); smaller \(k\) sharpens the top. Weighted RRF scales each ranker's term.</div></div>
-              <div class="walk-state">fused</div>
+              <div class="walk-content"><div class="walk-label"><span lang="ru">Чувствительность к \(k\)</span><span lang="en">\(k\)-sensitivity</span></div><div class="walk-detail"><span lang="ru">Слитый порядок <code>D6 D3 D2 D7 D0 D5 D4 D1</code>. D2 и D7 — точная ничья на 0.031498 &mdash; их порядок в выводе задан детерминированным правилом разрешения ничьих (напр. по docID), а не предпочтением. Больший \(k\) сглаживает скидку (демократичнее); меньший \(k\) заостряет вершину. Взвешенный RRF масштабирует вклад каждого ранжировщика.</span><span lang="en">Fused order <code>D6 D3 D2 D7 D0 D5 D4 D1</code>. D2 and D7 are an exact tie at 0.031498 &mdash; their displayed order is a deterministic tie-break (e.g. by docID), not a preference. Larger \(k\) flattens the discount (more democratic); smaller \(k\) sharpens the top. Weighted RRF scales each ranker's term.</span></div></div>
+              <div class="walk-state"><span lang="ru">слито</span><span lang="en">fused</span></div>
             </div>
           </div>
           <div class="step-controls">

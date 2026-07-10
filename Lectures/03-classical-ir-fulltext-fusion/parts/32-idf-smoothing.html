@@ -1,27 +1,27 @@
 <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="32 IDF smoothing">
           <div class="slide-header">
-            <h2>IDF: failure, then fix</h2>
-            <span class="slide-kicker">zero-division &rarr; smoothing &rarr; BM25 form</span>
+            <h2><span lang="ru">IDF: сбой, затем починка</span><span lang="en">IDF: failure, then fix</span></h2>
+            <span class="slide-kicker"><span lang="ru">деление на ноль &rarr; сглаживание &rarr; форма BM25</span><span lang="en">zero-division &rarr; smoothing &rarr; BM25 form</span></span>
           </div>
           <div class="walk-flow">
             <div class="walk-step" data-step="1" data-color="violet">
               <div class="walk-num">01</div>
-              <div class="walk-content"><div class="walk-label">The naive form breaks</div><div class="walk-detail">\(\log\frac{N}{df}\): if a query term is <strong>unseen</strong> (\(df=0\)) we divide by zero. Even \(df=N\) gives exactly 0 &mdash; brittle at the edges.</div></div>
+              <div class="walk-content"><div class="walk-label"><span lang="ru">Наивная форма ломается</span><span lang="en">The naive form breaks</span></div><div class="walk-detail"><span lang="ru">\(\log\frac{N}{df}\): если терм запроса <strong>не встречался</strong> (\(df=0\)), мы делим на ноль. Даже \(df=N\) даёт ровно 0 &mdash; хрупко на краях.</span><span lang="en">\(\log\frac{N}{df}\): if a query term is <strong>unseen</strong> (\(df=0\)) we divide by zero. Even \(df=N\) gives exactly 0 &mdash; brittle at the edges.</span></div></div>
               <div class="walk-state">\(df=0\) ✗</div>
             </div>
             <div class="walk-step" data-step="2" data-color="amber">
               <div class="walk-num">02</div>
-              <div class="walk-content"><div class="walk-label">Add-half smoothing</div><div class="walk-detail">\(\log\frac{N-df+0.5}{df+0.5}\): the \(+0.5\) terms keep the ratio finite and well-behaved. This is the RSJ / probabilistic form.</div></div>
+              <div class="walk-content"><div class="walk-label"><span lang="ru">Сглаживание +0.5</span><span lang="en">Add-half smoothing</span></div><div class="walk-detail"><span lang="ru">\(\log\frac{N-df+0.5}{df+0.5}\): слагаемые \(+0.5\) удерживают отношение конечным и хорошо ведущим себя. Это форма RSJ / вероятностная.</span><span lang="en">\(\log\frac{N-df+0.5}{df+0.5}\): the \(+0.5\) terms keep the ratio finite and well-behaved. This is the RSJ / probabilistic form.</span></div></div>
               <div class="walk-state">\(+0.5\)</div>
             </div>
             <div class="walk-step" data-step="3" data-color="cyan">
               <div class="walk-num">03</div>
-              <div class="walk-content"><div class="walk-label">Can it go negative?</div><div class="walk-detail">If \(df>N/2\) the ratio drops below 1 and the log goes negative. Lucene adds \(+1\) inside the log to clamp it: \(\log\!\big(\frac{N-df+0.5}{df+0.5}+1\big)\).</div></div>
-              <div class="walk-state">\(+1\) clamp</div>
+              <div class="walk-content"><div class="walk-label"><span lang="ru">Может ли стать отрицательным?</span><span lang="en">Can it go negative?</span></div><div class="walk-detail"><span lang="ru">Если \(df>N/2\), отношение падает ниже 1 и логарифм становится отрицательным. Lucene добавляет \(+1\) внутри логарифма, чтобы зажать его: \(\log\!\big(\frac{N-df+0.5}{df+0.5}+1\big)\).</span><span lang="en">If \(df>N/2\) the ratio drops below 1 and the log goes negative. Lucene adds \(+1\) inside the log to clamp it: \(\log\!\big(\frac{N-df+0.5}{df+0.5}+1\big)\).</span></div></div>
+              <div class="walk-state">\(+1\) <span lang="ru">зажим</span><span lang="en">clamp</span></div>
             </div>
             <div class="walk-step" data-step="4" data-final="true">
               <div class="walk-num">&rarr;</div>
-              <div class="walk-content"><div class="walk-label">The form we use &mdash; substituted</div><div class="walk-detail">\(\operatorname{idf}(t)=\ln\!\big(1+\frac{N-df+0.5}{df+0.5}\big)\). On our corpus \(N=3\), \(df(\texttt{cat})=3\), \(df(\texttt{dog})=2\):<br><span class="katex-line">\(\operatorname{idf}(\texttt{cat})=\ln\!\big(1+\frac{3-3+0.5}{3+0.5}\big)=\ln(1.1429)=0.1335\)</span><br><span class="katex-line">\(\operatorname{idf}(\texttt{dog})=\ln\!\big(1+\frac{3-2+0.5}{2+0.5}\big)=\ln(1.6000)=0.4700\)</span></div></div>
+              <div class="walk-content"><div class="walk-label"><span lang="ru">Форма, которую мы используем &mdash; с подстановкой</span><span lang="en">The form we use &mdash; substituted</span></div><div class="walk-detail"><span lang="ru">\(\operatorname{idf}(t)=\ln\!\big(1+\frac{N-df+0.5}{df+0.5}\big)\). На нашем корпусе \(N=3\), \(df(\texttt{cat})=3\), \(df(\texttt{dog})=2\):</span><span lang="en">\(\operatorname{idf}(t)=\ln\!\big(1+\frac{N-df+0.5}{df+0.5}\big)\). On our corpus \(N=3\), \(df(\texttt{cat})=3\), \(df(\texttt{dog})=2\):</span><br><span class="katex-line">\(\operatorname{idf}(\texttt{cat})=\ln\!\big(1+\frac{3-3+0.5}{3+0.5}\big)=\ln(1.1429)=0.1335\)</span><br><span class="katex-line">\(\operatorname{idf}(\texttt{dog})=\ln\!\big(1+\frac{3-2+0.5}{2+0.5}\big)=\ln(1.6000)=0.4700\)</span></div></div>
               <div class="walk-state">cat 0.13 · dog 0.47</div>
             </div>
           </div>

@@ -1,34 +1,34 @@
 <section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="17 Compression">
           <div class="slide-header">
-            <h2>Postings compression: gaps + variable-byte</h2>
-            <span class="slide-kicker">E2E · docIDs <code>[3, 8, 12, 30]</code></span>
+            <h2><span lang="ru">Сжатие вхождений: гэпы + переменнобайтовое кодирование</span><span lang="en">Postings compression: gaps + variable-byte</span></h2>
+            <span class="slide-kicker"><span lang="ru">E2E · docID </span><span lang="en">E2E · docIDs </span><code>[3, 8, 12, 30]</code></span>
           </div>
           <div class="e2e-arch">
-            <div class="e2e-arch-block" data-role="project" data-step-range="0" data-tooltip="Raw sorted docIDs stored as 32-bit ints."><div class="arch-name">docIDs</div><div class="arch-shape">16 bytes</div></div>
+            <div class="e2e-arch-block" data-role="project" data-step-range="0" data-tooltip="Raw sorted docIDs stored as 32-bit ints."><div class="arch-name"><span lang="ru">docID</span><span lang="en">docIDs</span></div><div class="arch-shape"><span lang="ru">16 байт</span><span lang="en">16 bytes</span></div></div>
             <div class="e2e-arch-arrow" data-step-range="0..1"></div>
-            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="1" data-tooltip="Store successive differences instead of absolute IDs."><div class="arch-name">gaps (delta)</div><div class="arch-shape">small ints</div></div>
+            <div class="e2e-arch-block" data-role="nonlinear" data-step-range="1" data-tooltip="Store successive differences instead of absolute IDs."><div class="arch-name"><span lang="ru">гэпы (delta)</span><span lang="en">gaps (delta)</span></div><div class="arch-shape"><span lang="ru">малые целые</span><span lang="en">small ints</span></div></div>
             <div class="e2e-arch-arrow" data-step-range="1..2"></div>
-            <div class="e2e-arch-block" data-role="reduce" data-step-range="2" data-tooltip="Each small gap fits in one varbyte."><div class="arch-name">varbyte</div><div class="arch-shape">4 bytes</div></div>
-            <div class="e2e-arch-legend"><span class="leg" data-role="project">raw</span><span class="leg" data-role="nonlinear">transform</span><span class="leg" data-role="reduce">encoded</span></div>
+            <div class="e2e-arch-block" data-role="reduce" data-step-range="2" data-tooltip="Each small gap fits in one varbyte."><div class="arch-name">varbyte</div><div class="arch-shape"><span lang="ru">4 байта</span><span lang="en">4 bytes</span></div></div>
+            <div class="e2e-arch-legend"><span class="leg" data-role="project"><span lang="ru">сырые</span><span lang="en">raw</span></span><span class="leg" data-role="nonlinear"><span lang="ru">преобразование</span><span lang="en">transform</span></span><span class="leg" data-role="reduce"><span lang="ru">закодировано</span><span lang="en">encoded</span></span></div>
           </div>
           <div class="e2e-twin">
             <div class="e2e-panel e2e-math-panel">
-              <div class="panel-head">What happens</div>
-              <div class="e2e-step" data-step="0"><div class="step-formula">$$\texttt{[3, 8, 12, 30]} \;\Rightarrow\; 4 \times 4 = 16 \text{ bytes}$$</div><p class="step-caption">Naive: four 32-bit integers. Postings lists dominate index size, so every byte counts.</p></div>
-              <div class="e2e-step" data-step="1"><div class="step-formula">$$\text{gaps} = [3,\;8{-}3,\;12{-}8,\;30{-}12] = [3, 5, 4, 18]$$</div><p class="step-caption"><strong>Delta encoding.</strong> Sorted IDs &rarr; store differences. Gaps are small because postings are dense.</p></div>
-              <div class="e2e-step" data-step="2"><div class="step-formula">$$1\text{ byte} = \underbrace{1}_{\text{cont.}} + \underbrace{7}_{\text{data}} \text{ bits} \Rightarrow 0\text{–}127;\quad \max(\text{gaps})=18 < 128$$</div><p class="step-caption"><strong>Variable-byte.</strong> One continuation bit + 7 data bits per byte holds \(0\)–\(127\); every gap \(\le 18 < 128\) &rarr; <strong>1 byte each</strong> = 4 bytes. \(16 \to 4\) = <strong>4&times;</strong>.</p></div>
+              <div class="panel-head"><span lang="ru">Что происходит</span><span lang="en">What happens</span></div>
+              <div class="e2e-step" data-step="0"><div class="step-formula">$$\texttt{[3, 8, 12, 30]} \;\Rightarrow\; 4 \times 4 = 16 \text{ bytes}$$</div><p class="step-caption"><span lang="ru">Наивно: четыре 32-битных целых. Списки вхождений доминируют в размере индекса, поэтому каждый байт на счету.</span><span lang="en">Naive: four 32-bit integers. Postings lists dominate index size, so every byte counts.</span></p></div>
+              <div class="e2e-step" data-step="1"><div class="step-formula">$$\text{gaps} = [3,\;8{-}3,\;12{-}8,\;30{-}12] = [3, 5, 4, 18]$$</div><p class="step-caption"><span lang="ru"><strong>Дельта-кодирование.</strong> Отсортированные ID &rarr; храним разности. Гэпы малы, потому что вхождения плотные.</span><span lang="en"><strong>Delta encoding.</strong> Sorted IDs &rarr; store differences. Gaps are small because postings are dense.</span></p></div>
+              <div class="e2e-step" data-step="2"><div class="step-formula">$$1\text{ byte} = \underbrace{1}_{\text{cont.}} + \underbrace{7}_{\text{data}} \text{ bits} \Rightarrow 0\text{–}127;\quad \max(\text{gaps})=18 < 128$$</div><p class="step-caption"><span lang="ru"><strong>Переменнобайтовое.</strong> Один бит продолжения + 7 бит данных на байт вмещают </span><span lang="en"><strong>Variable-byte.</strong> One continuation bit + 7 data bits per byte holds </span>\(0\)–\(127\)<span lang="ru">; каждый гэп </span><span lang="en">; every gap </span>\(\le 18 < 128\)<span lang="ru"> &rarr; <strong>по 1 байту</strong> = 4 байта. </span><span lang="en"> &rarr; <strong>1 byte each</strong> = 4 bytes. </span>\(16 \to 4\)<span lang="ru"> = <strong>4&times;</strong>.</span><span lang="en"> = <strong>4&times;</strong>.</span></p></div>
             </div>
             <div class="e2e-panel e2e-example-panel">
-              <div class="panel-head">Byte budget</div>
+              <div class="panel-head"><span lang="ru">Бюджет байтов</span><span lang="en">Byte budget</span></div>
               <div class="e2e-step" data-step="0"><div class="step-calc-row"><span class="matrix-label"><code>naive = 16 bytes</code></span></div></div>
-              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label"><code>gaps [3, 5, 4, 18]</code></span></div><p class="step-caption tiny">all &lt; 128.</p></div>
-              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label is-highlight"><code>varbyte = 4 bytes &rarr; 4&times;</code></span></div><p class="step-caption tiny">smaller index &rarr; fits in cache &rarr; less IO.</p></div>
+              <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label"><code>gaps [3, 5, 4, 18]</code></span></div><p class="step-caption tiny"><span lang="ru">все &lt; 128.</span><span lang="en">all &lt; 128.</span></p></div>
+              <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label is-highlight"><code>varbyte = 4 bytes &rarr; 4&times;</code></span></div><p class="step-caption tiny"><span lang="ru">меньший индекс &rarr; помещается в кэш &rarr; меньше IO.</span><span lang="en">smaller index &rarr; fits in cache &rarr; less IO.</span></p></div>
             </div>
           </div>
           <div class="e2e-stepper">
-            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">&larr;</button><div class="e2e-counter"><span class="e2e-counter-label">step</span><span data-counter-val>0 / 3</span></div><button type="button" class="step-btn" data-step-act="next">&rarr;</button></div>
-            <span class="e2e-stage-name">overview</span>
-            <button type="button" class="e2e-toggle">Theory only</button>
+            <div class="step-cluster"><button type="button" class="step-btn" data-step-act="prev">&larr;</button><div class="e2e-counter"><span class="e2e-counter-label"><span lang="ru">шаг</span><span lang="en">step</span></span><span data-counter-val>0 / 3</span></div><button type="button" class="step-btn" data-step-act="next">&rarr;</button></div>
+            <span class="e2e-stage-name"><span lang="ru">обзор</span><span lang="en">overview</span></span>
+            <button type="button" class="e2e-toggle"><span lang="ru">Только теория</span><span lang="en">Theory only</span></button>
           </div>
           <aside class="slide-notes">Exact from the compression JSON. Storing four docIDs as 32-bit ints is 16 bytes. Because postings are sorted, we store gaps instead: 3, 5, 4, 18. Every gap is below 128, so variable-byte coding — seven data bits plus a continuation bit per byte — uses one byte each, four bytes total, a four-times reduction. Why bother: postings dominate index size, and a smaller index stays in cache and cuts IO, which is the real bottleneck at query time. Modern engines use fancier codecs (PForDelta, Simple-9, Roaring) but the gap-then-encode idea is the same.</aside>
         </section>
