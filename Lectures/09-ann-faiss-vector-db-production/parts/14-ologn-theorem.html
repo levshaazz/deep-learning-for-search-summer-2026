@@ -7,18 +7,18 @@
   <div class="thm-card" data-kind="theorem">
     <div class="thm-label">Proposition · logarithmic search</div>
     <div class="thm-statement">
-      On an HNSW graph over \(N\) points where each layer keeps a \(1/m\) fraction of the one below (so there are \(\approx \log_m N\) layers) and greedy search does \(O(1)\) expected work per layer, the expected number of distance evaluations to reach the nearest neighbour is \(O(\log N)\) — exponentially cheaper than the \(O(N\cdot d)\) brute-force scan.
+      On an HNSW graph over \(N\) points where each layer keeps a \(1/m\) fraction of the one below (\(\approx \log_m N\) layers) and greedy search does \(O(1)\) expected work per layer, the expected distance evaluations to reach the nearest neighbour is \(O(\log N)\) — far cheaper than the \(O(N\cdot d)\) brute-force scan.
     </div>
   </div>
 
   <div class="thm-card" data-kind="proof">
     <div class="thm-label">Proof sketch</div>
     <div class="thm-statement">
-      Build layers by keeping each point on the next layer up with probability \(1/m\). The expected layer count is the largest \(\ell\) with a non-empty layer: \(\mathbb{E}[\text{layers}]\approx\log_m N\). At the top layer (a handful of hub nodes) greedy search reaches the locally-nearest hub in \(O(1)\) hops. Descending one layer, the graph is denser by a factor \(m\), but small-world connectivity keeps the <em>expected</em> hops to the next locally-nearest node \(O(1)\) again. Summing \(O(1)\) work over \(\log_m N\) layers gives a geometric-style total \(\sum_{\ell}O(1)=O(\log_m N)=O(\log N)\). The construction parameter \(M\) (edges per node) sets \(m\); larger \(M\) means denser layers, higher recall, more memory. \(\blacksquare\)
+      Keep each point on the next layer up with probability \(1/m\). The expected layer count is \(\mathbb{E}[\text{layers}]\approx\log_m N\). At the top, greedy search reaches the locally-nearest hub in \(O(1)\) hops. One layer down, the graph is denser by a factor \(m\), but small-world connectivity keeps the <em>expected</em> hops \(O(1)\) again. Summing \(O(1)\) over \(\log_m N\) layers gives \(\sum_{\ell}O(1)=O(\log_m N)=O(\log N)\). The parameter \(M\) sets \(m\); larger \(M\), denser layers, higher recall, more memory. \(\blacksquare\)
     </div>
-    <div class="thm-statement small muted mt-2">Caveat: this is the <em>empirical / expected</em> complexity Malkov–Yashunin report, not a worst-case guarantee. The \(O(1)\)-hops-per-layer step assumes the graph stays navigable (the small-world property), which is unproven for general data — adversarial or strongly clustered inputs can degrade greedy search toward linear. Read the box as a heuristic derivation, not a closed proof.</div>
+    <div class="thm-statement small muted mt-2">Caveat: this is the <em>empirical / expected</em> complexity, not a worst-case guarantee. The \(O(1)\)-hops-per-layer step assumes the graph stays navigable, unproven for general data — adversarial or clustered inputs can degrade greedy search toward linear.</div>
   </div>
 
-  <p class="small muted center mt-2">Malkov &amp; Yashunin (arXiv 2016; IEEE TPAMI 2020) — the layered small-world graph turns a linear scan into a logarithmic walk.</p>
+  <p class="small muted center mt-2">Malkov &amp; Yashunin (arXiv 2016; IEEE TPAMI 2020).</p>
   <aside class="slide-notes">O(log N) theorem thm-card (statement + proof). Layers keep a 1/m fraction each → ≈log_m N layers; O(1) expected hops per layer (small-world property) → O(1) summed over log_m N layers = O(log N). M sets the per-node degree m: more edges → denser → higher recall, more memory. Cited Malkov & Yashunin TPAMI 2018 (arXiv:1603.09320), matching data/l9-bench.json hnsw.complexity 'O(log N) search'. No invented decimals — purely asymptotic.</aside>
 </section>

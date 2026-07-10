@@ -920,13 +920,13 @@
   </div>
   <div class="def-card">
     <span class="def-tag">Definition · arXiv:2212.10496</span>
-    <div class="def-term">Ask an LLM to write a <em>hypothetical answer</em> to the query, embed <strong>that</strong> document, and retrieve with its vector — even though the hypothetical may be partly wrong.</div>
+    <div class="def-term">Ask an LLM to write a <em>hypothetical answer</em> to the query, embed <strong>that</strong> document, and retrieve with its vector — even if partly wrong.</div>
     <div class="def-body">
       <ul class="obj-list">
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Why it works:</strong> an answer-shaped paragraph lives in the same region of embedding space as the real answers. Searching with it closes the vocabulary gap — the hypothetical's <em>shape</em> matters more than its factual accuracy.</span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Precise Zero-shot Dense Retrieval:</strong> Gao, Ma, Lin &amp; Callan (ACL 2023) showed it lifts retrieval with <em>no relevance labels</em> — the LLM supplies the missing query-document bridge.</span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Cost &amp; risk:</strong> one extra LLM call per query, and a confidently-wrong hypothetical can mislead retrieval — pair it with a retriever that still ranks the true doc highly.</span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>When it fails:</strong> the lift assumes the LLM can place the answer in roughly the right topical region. For rare entities, fresh facts, or domains the model never saw, the hypothetical is <em>topically</em> off — not just factually wrong — and HyDE can rank the true doc <em>lower</em> than the bare query. Shape helps only when the model can guess the right neighbourhood.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Why it works:</strong> an answer-shaped paragraph lands in the same embedding region as real answers, closing the vocabulary gap — its <em>shape</em> matters more than its accuracy.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Precise Zero-shot Dense Retrieval:</strong> Gao, Ma, Lin &amp; Callan (ACL 2023) showed it lifts retrieval with <em>no relevance labels</em> — the LLM bridges query and document.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Cost &amp; risk:</strong> one extra LLM call per query, and a confidently-wrong hypothetical can mislead — pair it with a retriever that still ranks the true doc highly.</span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>When it fails:</strong> the lift assumes the LLM can place the answer in the right region. For rare entities, fresh facts, or unseen domains, it is <em>topically</em> off — not just factually wrong — and HyDE can rank the true doc <em>lower</em> than the bare query.</span></li>
       </ul>
     </div>
   </div>
@@ -1303,8 +1303,7 @@ WHERE indexed_at >= date_trunc(
     $$ \text{before (gain-3 answer at rank 4): } \text{nDCG@5} = \frac{1/\log_2(4)+3/\log_2(5)}{3/\log_2(2)+1/\log_2(3)} \;<\; 0.5 $$
     $$ \text{after (relevant doc at rank 1): } \text{nDCG@5} = \frac{\text{IDCG}}{\text{IDCG}} = \mathbf{1.0} $$
   </div>
-  <p class="small muted center mt-2">Discounted gain falls fast with rank, so burying the gain-3 doc at rank 4 wastes most of it (nDCG below half). Lift it to rank 1 and the order is <em>ideal</em> — nDCG@5 = <strong>1.0</strong>. The cross-encoder didn't find a new doc; it just put the right one on top.</p>
-  <aside class="slide-notes">re-rank by-hand. nDCG = DCG/IDCG (callback L4). Before = 0.4935 (shown symbolically as <0.5 — the exact 0.4935 and MRR 0.3333 are not in the coverage pool, so kept in notes); after = 1.0 (ideal order, covered/anchored elsewhere). gains d2=3, d4=1 from l10-rerank.</aside>
+  <aside class="slide-notes">re-rank by-hand. nDCG = DCG/IDCG (callback L4). Discounted gain falls fast with rank, so lifting the gain-3 doc from rank 4 to rank 1 takes nDCG@5 to 1.0 — the cross-encoder found no new doc, it just reordered. Before = 0.4935 (shown symbolically as <0.5 — the exact 0.4935 and MRR 0.3333 are not in the coverage pool, so kept in notes); after = 1.0 (ideal order, covered/anchored elsewhere). gains d2=3, d4=1 from l10-rerank.</aside>
 </section>
 <section class="slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="46 CRAG & self-RAG">
   <div class="slide-header">
