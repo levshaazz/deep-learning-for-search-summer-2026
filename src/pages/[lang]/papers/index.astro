@@ -34,10 +34,10 @@ const haystack = (p) => [
         <span class="pcount"><b id="pshown">{total}</b> {t(M.ui.of, lang)} {total} {t(M.count, lang)}</span>
         <button id="preset" class="preset" type="button" hidden>{t(M.ui.reset, lang)}</button>
       </div>
-      <div class="pchips" role="group">
-        <button class="pchip active" data-area="" type="button">{t(M.ui.all, lang)}</button>
+      <div class="pchips" role="group" aria-label={t(M.ui.filterByArea, lang)}>
+        <button class="pchip active" data-area="" type="button" aria-pressed="true">{t(M.ui.all, lang)}</button>
         {sections.map((sec) => (
-          <button class="pchip" data-area={sec.area} type="button">{t(sec.label, lang)}</button>
+          <button class="pchip" data-area={sec.area} type="button" aria-pressed="false">{t(sec.label, lang)}</button>
         ))}
       </div>
     </div>
@@ -83,6 +83,7 @@ const haystack = (p) => [
       background: var(--bg); color: var(--ink); font: inherit; font-size: var(--fz-small);
     }
     .psearch:focus { outline: none; border-color: var(--accent); }
+    .psearch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .pcount { font-family: var(--font-mono); font-size: var(--fz-tiny); letter-spacing: .5px;
       text-transform: uppercase; color: var(--ink-2); }
     .pcount b { color: var(--ink); }
@@ -158,12 +159,13 @@ const haystack = (p) => [
         reset.hidden = !(area || search.value.trim());
       }
       search.addEventListener('input', update);
-      chips.forEach((c) => c.addEventListener('click', () => {
-        area = c.dataset.area; chips.forEach((x) => x.classList.toggle('active', x === c)); update();
-      }));
+      const setActive = (c) => chips.forEach((x) => {
+        const on = x === c; x.classList.toggle('active', on); x.setAttribute('aria-pressed', on);
+      });
+      chips.forEach((c) => c.addEventListener('click', () => { area = c.dataset.area; setActive(c); update(); }));
       reset.addEventListener('click', () => {
         area = ''; search.value = '';
-        chips.forEach((c) => c.classList.toggle('active', c.dataset.area === ''));
+        setActive(chips.find((c) => c.dataset.area === ''));
         update();
       });
     })();

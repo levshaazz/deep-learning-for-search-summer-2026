@@ -49,16 +49,16 @@ const galleryData = {
       <div class="gt-row">
         <input id="gsearch" class="gsearch" type="search" autocomplete="off"
                placeholder={t(M.ui.search, lang)} aria-label={t(M.ui.search, lang)} />
-        <div class="gchips" role="group">
-          <button class="chip active" data-type="all" type="button">{t(M.ui.all, lang)}</button>
-          <button class="chip" data-type="cast" type="button">{t(M.ui.typeCast, lang)}</button>
-          <button class="chip" data-type="scene" type="button">{t(M.ui.typeScene, lang)}</button>
+        <div class="gchips" role="group" aria-label={t(M.ui.filterByType, lang)}>
+          <button class="chip active" data-type="all" type="button" aria-pressed="true">{t(M.ui.all, lang)}</button>
+          <button class="chip" data-type="cast" type="button" aria-pressed="false">{t(M.ui.typeCast, lang)}</button>
+          <button class="chip" data-type="scene" type="button" aria-pressed="false">{t(M.ui.typeScene, lang)}</button>
         </div>
       </div>
-      <div class="glec" role="group" aria-label="lecture">
-        <button class="lchip active" data-lec-chip="" type="button">{t(M.ui.allLectures, lang)}</button>
+      <div class="glec" role="group" aria-label={t(M.ui.filterByLecture, lang)}>
+        <button class="lchip active" data-lec-chip="" type="button" aria-pressed="true">{t(M.ui.allLectures, lang)}</button>
         {scenes.map((g) => (
-          <button class="lchip" data-lec-chip={g.id} type="button" title={t(g.title, lang)}>{g.id}</button>
+          <button class="lchip" data-lec-chip={g.id} type="button" aria-pressed="false" title={t(g.title, lang)}>{g.id}</button>
         ))}
       </div>
     </div>
@@ -106,7 +106,7 @@ const galleryData = {
 
   <script type="application/json" id="gallery-data" set:html={JSON.stringify(galleryData)}></script>
 
-  <div id="lightbox" class="lightbox" aria-hidden="true" role="dialog" aria-modal="true">
+  <div id="lightbox" class="lightbox" aria-hidden="true" role="dialog" aria-modal="true" aria-label={t(M.ui.viewer, lang)}>
     <div class="lb-panel">
       <button class="lb-close" type="button" aria-label="Close">×</button>
       <div class="lb-stage">
@@ -154,6 +154,7 @@ const galleryData = {
       background: var(--bg); color: var(--ink); font: inherit; font-size: var(--fz-small);
     }
     .gsearch:focus { outline: none; border-color: var(--accent); }
+    .gsearch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .gchips { display: flex; gap: 6px; }
     .chip {
       padding: 6px 13px; border: var(--hairline) solid var(--rule); border-radius: 999px;
@@ -310,14 +311,18 @@ const galleryData = {
         lbLink.href = it.href;
         lbCount.textContent = (idx + 1) + ' / ' + items.length;
       }
+      let lastFocus = null;
       function openSet(arr, i) {
+        lastFocus = document.activeElement;   // remember trigger, restore on close (WCAG 2.4.3)
         items = arr; idx = i; render();
         lb.classList.add('open'); lb.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
+        lb.querySelector('.lb-close').focus();
       }
       function close() {
         lb.classList.remove('open'); lb.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = ''; lbImg.src = '';
+        if (lastFocus && lastFocus.focus) lastFocus.focus();
       }
       function move(d) { idx = (idx + d + items.length) % items.length; render(); }
       lb.querySelector('.lb-prev').addEventListener('click', () => move(-1));
@@ -326,9 +331,16 @@ const galleryData = {
       lb.addEventListener('click', (e) => { if (e.target === lb) close(); });
       document.addEventListener('keydown', (e) => {
         if (!lb.classList.contains('open')) return;
-        if (e.key === 'Escape') close();
-        else if (e.key === 'ArrowLeft') move(-1);
-        else if (e.key === 'ArrowRight') move(1);
+        if (e.key === 'Escape') { close(); return; }
+        if (e.key === 'ArrowLeft') { move(-1); return; }
+        if (e.key === 'ArrowRight') { move(1); return; }
+        if (e.key === 'Tab') {   // trap focus inside the dialog
+          const f = [...lb.querySelectorAll('button, a[href]')].filter((el) => el.offsetParent !== null);
+          if (!f.length) return;
+          const first = f[0], last = f[f.length - 1];
+          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        }
       });
 
       // ── Map: tiles + chips open their set ──
@@ -365,7 +377,13 @@ const galleryData = {
         const s = document.createElement('span'); s.className = 'rlec';
         s.textContent = it.label + ': ' + it.lecture + ' →'; cap.appendChild(s);
         fig.appendChild(cap);
-        fig.addEventListener('click', () => openSet(res, i));
+        fig.setAttribute('role', 'button'); fig.tabIndex = 0;
+        fig.setAttribute('aria-label', (it.name ? it.name + ' — ' : '') + it.concept);
+        const open = () => openSet(res, i);
+        fig.addEventListener('click', open);
+        fig.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+        });
         return fig;
       }
       function update() {
@@ -377,18 +395,21 @@ const galleryData = {
         grid.textContent = '';
         res.forEach((it, i) => grid.appendChild(card(it, i, res)));
       }
+      const mark = (list, isOn) => list.forEach((x) => {
+        const on = isOn(x); x.classList.toggle('active', on); x.setAttribute('aria-pressed', on);
+      });
       function reset() {
         search.value = ''; fType = 'all'; fLec = '';
-        chips.forEach((c) => c.classList.toggle('active', c.dataset.type === 'all'));
-        lchips.forEach((c) => c.classList.toggle('active', c.dataset.lecChip === ''));
+        mark(chips, (c) => c.dataset.type === 'all');
+        mark(lchips, (c) => c.dataset.lecChip === '');
         update();
       }
       search.addEventListener('input', update);
       chips.forEach((c) => c.addEventListener('click', () => {
-        fType = c.dataset.type; chips.forEach((x) => x.classList.toggle('active', x === c)); update();
+        fType = c.dataset.type; mark(chips, (x) => x === c); update();
       }));
       lchips.forEach((c) => c.addEventListener('click', () => {
-        fLec = c.dataset.lecChip; lchips.forEach((x) => x.classList.toggle('active', x === c)); update();
+        fLec = c.dataset.lecChip; mark(lchips, (x) => x === c); update();
       }));
       $('#rreset').addEventListener('click', reset);
     })();

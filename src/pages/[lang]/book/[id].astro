@@ -5,6 +5,7 @@ import { ui } from '../../../i18n/ui.js';
 import { course } from '../../../lib/course.js';
 import { WIDGET_META, DATA } from '../../../lib/widgets.js';
 import { chapterById, chapterIds } from '../../../lib/chapters.js';
+import { toolkitFor, TOOLKIT_UI as TK } from '../../../lib/toolkit.js';
 
 // Book chapters are auto-discovered in src/lib/chapters.js — adding content/book/lN.js needs ZERO edits here.
 const CHAPTERS = chapterById;
@@ -33,6 +34,22 @@ const chapTitle = (cid) => {
   const l = course.lectures.find((x) => x.id === cid);
   return l ? t(l.title, lang) : (CHAPTERS[cid]?.catchphrase || cid);
 };
+
+// Distinct, localized names for the two chapter-nav landmarks (top compact + bottom cards) —
+// two <nav>s need UNIQUE accessible names (axe: landmark-unique). Local object, not i18n/ui.js,
+// so it needs no gate registration (same pattern as the *Meta.ui strings).
+const navLabels = {
+  compact: { en: 'Chapter navigation', ru: 'Навигация по главам', tt: 'Бүлекләр буенча навигация' },
+  cards: {
+    en: 'Chapter navigation — previous and next chapter',
+    ru: 'Навигация по главам — предыдущая и следующая',
+    tt: 'Бүлекләр навигациясе — алдагы һәм киләсе',
+  },
+};
+
+// The per-lecture toolkit (slides · interactive figures · assignment · papers) for the footer panel.
+const tk = toolkitFor(id);
+const tkHasContent = !!(tk.lec?.deckFile || tk.figures.length || tk.assignment || tk.areas.length);
 
 // Resolve every beat for this locale; build the client payload (scrolly beats only).
 const beats = chapter.beats.map((b) => {
@@ -131,7 +148,7 @@ const katexAuto = withBase('/Lectures/vendor/katex/auto-render.min.js');
       <h1>{t(lec.title, lang)}</h1>
       {showFallbackNotice && <p class="notice">{t(ui.translationInProgress, lang)}</p>}
       {lec.deckFile && <p class="book-xref"><a href={withBase('/' + lec.deckFile)}>{t(ui.labels.openSlides, lang)} →</a></p>}
-      <nav class="chap-nav" aria-label="chapter navigation">
+      <nav class="chap-nav" aria-label={t(navLabels.compact, lang)}>
         {prevId
           ? <a class="chap-arrow" href={localizedPath(lang, 'book/' + prevId)} rel="prev" title={chapTitle(prevId)}>← {prevId}</a>
           : <span class="chap-arrow is-off" aria-hidden="true">←</span>}
@@ -170,7 +187,7 @@ const katexAuto = withBase('/Lectures/vendor/katex/auto-render.min.js');
     ))}
 
     <footer class="book-foot wrap">
-      <nav class="chap-pager" aria-label="chapter navigation">
+      <nav class="chap-pager" aria-label={t(navLabels.cards, lang)}>
         {prevId
           ? <a class="pager-card pager-card--prev" href={localizedPath(lang, 'book/' + prevId)} rel="prev">
               <span class="pager-dir">←</span>
@@ -184,6 +201,52 @@ const katexAuto = withBase('/Lectures/vendor/katex/auto-render.min.js');
             </a>
           : <span class="pager-card is-empty" aria-hidden="true"></span>}
       </nav>
+
+      {tkHasContent && (
+        <aside class="lec-toolkit" aria-labelledby="tk-h">
+          <div class="tk-head">
+            <h3 id="tk-h">{t(TK.heading, lang)}</h3>
+            <p class="tk-sub">{t(TK.sub, lang)}</p>
+          </div>
+          <div class="tk-grid">
+            {tk.lec?.deckFile && (
+              <div class="tk-cell">
+                <span class="tk-label">{t(TK.slides, lang)}</span>
+                <a class="tk-link" href={withBase('/' + tk.lec.deckFile)}>{t(TK.openSlides, lang)} →</a>
+              </div>
+            )}
+            {tk.figures.length > 0 && (
+              <div class="tk-cell">
+                <span class="tk-label">{t(TK.figures, lang)}</span>
+                <ul class="tk-list">
+                  {tk.figures.map((f) => (
+                    <li><a href={localizedPath(lang, 'playground') + '#demo-' + f.id}>{t(f.title, lang)}</a></li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {tk.assignment && (
+              <div class="tk-cell">
+                <span class="tk-label">{t(TK.assignment, lang)}</span>
+                <a class="tk-link" href={localizedPath(lang, 'assignments/' + tk.assignment.slug)}>
+                  {t(tk.assignment.title, lang)} →
+                </a>
+              </div>
+            )}
+            {tk.areas.length > 0 && (
+              <div class="tk-cell">
+                <span class="tk-label">{t(TK.papers, lang)}</span>
+                <ul class="tk-list">
+                  {tk.areas.map((a) => (
+                    <li><a href={localizedPath(lang, 'papers') + '#' + a.area}>{t(a.label, lang)} →</a></li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </aside>
+      )}
+
       <p class="book-xref"><a href={localizedPath(lang)}>← {t(ui.sections.lectures, lang)}</a></p>
     </footer>
   </article>
@@ -382,5 +445,33 @@ const katexAuto = withBase('/Lectures/vendor/katex/auto-render.min.js');
     @media (max-width: 520px) {
       .pager-title { -webkit-line-clamp: 1; }
     }
+
+    /* ── Lecture toolkit — footer panel: slides · figures · assignment · papers ──── */
+    .lec-toolkit {
+      margin-top: var(--ws-5); padding: var(--ws-4);
+      border: var(--hairline) solid var(--rule-strong); border-radius: var(--r-md);
+      background: var(--bg-card);
+    }
+    .tk-head { margin-bottom: var(--ws-3); }
+    .lec-toolkit h3 {
+      font-family: var(--font-serif); font-size: var(--fz-h3); font-weight: 600;
+      margin: 0; line-height: 1.2; color: var(--ink);
+    }
+    .tk-sub { margin: 2px 0 0; color: var(--ink-2); font-size: var(--fz-small); }
+    .tk-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--ws-3);
+    }
+    .tk-cell { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .tk-label {
+      font-family: var(--font-mono); font-size: var(--fz-tiny); letter-spacing: .5px;
+      text-transform: uppercase; color: var(--ink-3);
+    }
+    .tk-link, .tk-list a {
+      color: var(--accent); font-weight: 600; font-size: var(--fz-small);
+      text-decoration: none; overflow-wrap: anywhere;
+    }
+    .tk-link:hover, .tk-list a:hover { text-decoration: underline; }
+    .tk-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
   </style>
 </BaseLayout>

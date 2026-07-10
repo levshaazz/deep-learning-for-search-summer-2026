@@ -16,6 +16,7 @@ export const ui = {
     gallery: { en: 'Gallery', ru: 'Галерея', tt: 'Галерея' },
     playground: { en: 'Playground', ru: 'Площадка', tt: 'Мәйдан' },
     papers: { en: 'Papers', ru: 'Статьи', tt: 'Мәкаләләр' },
+    glossary: { en: 'Glossary', ru: 'Глоссарий', tt: 'Сүзлек' },
     midterm: { en: 'Midterm', ru: 'Мидтерм', tt: 'Аралык имтиханы' },
   },
 
@@ -49,6 +50,12 @@ export const ui = {
       en: 'The course bibliography · every cited work · grouped by area · with a real link and why it is here',
       ru: 'Библиография курса · каждая цитируемая работа · сгруппирована по областям · с реальной ссылкой и пояснением',
       tt: 'Курс библиографиясе · һәр китерелгән хезмәт · өлкәләр буенча төркемләнгән · реаль сылтама һәм ни өчен кирәклеге белән',
+    },
+    glossary: { en: 'Glossary — the term index', ru: 'Глоссарий — индекс терминов', tt: 'Сүзлек — терминнар индексы' },
+    glossaryKicker: {
+      en: 'Every core concept · a one-line definition · and the lecture where it is taught · search or filter by lecture',
+      ru: 'Каждое ключевое понятие · определение в одну строку · и лекция, где оно преподаётся · поиск или фильтр по лекции',
+      tt: 'Һәр төп төшенчә · бер юллык билгеләмә · һәм ул укытыла торган лекция · эзләү яки лекция буенча фильтр',
     },
     playground: { en: 'Playground — drive the algorithms', ru: 'Площадка — управляй алгоритмами', tt: 'Мәйдан — алгоритмнарга идарә ит' },
     playgroundKicker: {

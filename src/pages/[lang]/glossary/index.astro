@@ -1,0 +1,174 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { LOCALES, t, localizedPath } from '../../../i18n/locales.js';
+import { ui } from '../../../i18n/ui.js';
+import { course } from '../../../lib/course.js';
+import { terms, glossaryMeta as M, lecturesWithTerms } from '../../../lib/glossary.js';
+
+export function getStaticPaths() {
+  return LOCALES.map((l) => ({ params: { lang: l } }));
+}
+const { lang } = Astro.params;
+const showFallbackNotice = lang === 'tt';
+const total = terms.length;
+
+const lecTitle = (id) => {
+  const l = course.lectures.find((x) => x.id === id);
+  return l ? t(l.title, lang) : id;
+};
+// Terms grouped by lecture, in course order — each group is one "where taught" section.
+const groups = lecturesWithTerms.map((lec) => ({
+  lec,
+  title: lecTitle(lec),
+  items: terms.filter((tm) => tm.lec === lec),
+}));
+// Lowercased haystack for client search: term + definition in the current locale.
+const hay = (tm) => [t(tm.term, lang), t(tm.def, lang)].join(' ').toLowerCase();
+---
+<BaseLayout lang={lang} page="glossary" title={t(ui.nav.glossary, lang)}>
+  <div class="wrap">
+    <section class="block">
+      <h2>{t(ui.sections.glossary, lang)}</h2>
+      <div class="kicker">{t(ui.sections.glossaryKicker, lang)}</div>
+      {showFallbackNotice && <p class="notice">{t(ui.translationInProgress, lang)}</p>}
+      <p class="lead">{t(M.intro, lang)}</p>
+    </section>
+
+    <div class="gltoolbar">
+      <div class="glt-row">
+        <input id="glsearch" class="glsearch" type="search" autocomplete="off"
+               placeholder={t(M.ui.search, lang)} aria-label={t(M.ui.search, lang)} />
+        <span class="glcount"><b id="glshown">{total}</b> {t(M.ui.of, lang)} {total} {t(M.ui.count, lang)}</span>
+        <button id="glreset" class="glreset" type="button" hidden>{t(M.ui.reset, lang)}</button>
+      </div>
+      <div class="glchips" role="group" aria-label={t(M.ui.filterByLecture, lang)}>
+        <button class="glchip active" data-lec="" type="button" aria-pressed="true">{t(M.ui.all, lang)}</button>
+        {lecturesWithTerms.map((lec) => (
+          <button class="glchip" data-lec={lec} type="button" aria-pressed="false" title={lecTitle(lec)}>L{lec}</button>
+        ))}
+      </div>
+    </div>
+
+    {groups.map((g) => (
+      <section class="block gloss-group" id={`lec-${g.lec}`} data-lec={g.lec}>
+        <h3>
+          <a href={localizedPath(lang, 'book/' + g.lec)}>
+            <span class="gloss-lecid">L{g.lec}</span> {g.title}
+          </a>
+        </h3>
+        <dl class="gloss-list">
+          {g.items.map((tm) => (
+            <div class="gloss-item" id={tm.id} data-lec={g.lec} data-search={hay(tm)}>
+              <dt class="gloss-term">{t(tm.term, lang)}</dt>
+              <dd class="gloss-def">{t(tm.def, lang)}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    ))}
+
+    <p id="glnone" class="glnone" hidden>{t(M.ui.none, lang)}</p>
+  </div>
+
+  <style>
+    .lead { font-size: var(--fz-lead); color: var(--ink-2); max-width: var(--ws-measure); }
+
+    /* ── Toolbar: sticky search + lecture chips + live count ──────────── */
+    .gltoolbar {
+      position: sticky; top: 0; z-index: 20; background: var(--bg);
+      display: flex; flex-direction: column; gap: var(--ws-2);
+      padding: var(--ws-2) 0; margin: var(--ws-2) 0 var(--ws-3);
+      border-bottom: var(--hairline) solid var(--rule);
+    }
+    .glt-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ws-2); }
+    .glsearch {
+      flex: 1 1 260px; min-width: 200px; max-width: 400px;
+      padding: 8px 14px; border: var(--hairline) solid var(--rule); border-radius: 999px;
+      background: var(--bg); color: var(--ink); font: inherit; font-size: var(--fz-small);
+    }
+    .glsearch:focus { outline: none; border-color: var(--accent); }
+    .glsearch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .glcount { font-family: var(--font-mono); font-size: var(--fz-tiny); letter-spacing: .5px;
+      text-transform: uppercase; color: var(--ink-2); }
+    .glcount b { color: var(--ink); }
+    .glreset {
+      background: none; border: none; cursor: pointer; color: var(--accent); font: inherit;
+      font-size: var(--fz-tiny); text-transform: uppercase; letter-spacing: 1px; font-family: var(--font-mono);
+    }
+    .glreset:hover { text-decoration: underline; }
+    .glchips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .glchip {
+      padding: 5px 11px; border: var(--hairline) solid var(--rule); border-radius: 999px;
+      background: var(--bg); color: var(--ink-2); font: inherit; font-size: var(--fz-small);
+      font-family: var(--font-mono); cursor: pointer; transition: background .12s, color .12s, border-color .12s;
+    }
+    .glchip:hover { border-color: var(--accent); }
+    .glchip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    .gloss-group h3 {
+      font-family: var(--font-serif); font-size: var(--fz-h3); font-weight: 600;
+      margin: 0 0 var(--ws-3); line-height: 1.2;
+    }
+    .gloss-group h3 a { color: var(--ink); text-decoration: none; }
+    .gloss-group h3 a:hover { color: var(--accent); }
+    .gloss-lecid { font-family: var(--font-mono); font-size: var(--fz-small); font-weight: 700;
+      letter-spacing: 1px; color: var(--accent); }
+
+    .gloss-list { margin: 0; padding: 0; display: grid; gap: var(--ws-2); }
+    .gloss-item {
+      display: grid; grid-template-columns: minmax(160px, 240px) 1fr; gap: var(--ws-3);
+      padding: var(--ws-2) 0; border-top: var(--hairline) solid var(--rule);
+      min-width: 0; overflow-wrap: anywhere;
+    }
+    .gloss-item:target { background: var(--accent-soft); border-radius: var(--r-sm); padding-left: var(--ws-2); padding-right: var(--ws-2); }
+    .gloss-item[hidden], .gloss-group[hidden] { display: none !important; }
+    .gloss-term { font-weight: 700; color: var(--ink); font-size: var(--fz-small); margin: 0; }
+    .gloss-def { margin: 0; color: var(--ink-2); font-size: var(--fz-small); line-height: 1.55; }
+    .glnone { color: var(--ink-2); }
+
+    @media (max-width: 560px) {
+      .gloss-item { grid-template-columns: 1fr; gap: 3px; }
+      .glsearch { max-width: none; }
+    }
+  </style>
+
+  <script>
+    (() => {
+      const search = document.getElementById('glsearch');
+      if (!search) return;
+      const chips = [...document.querySelectorAll('.glchip')];
+      const items = [...document.querySelectorAll('.gloss-item')];
+      const groups = [...document.querySelectorAll('.gloss-group')];
+      const shown = document.getElementById('glshown');
+      const reset = document.getElementById('glreset');
+      const none = document.getElementById('glnone');
+      let lec = '';
+
+      const matches = (el) => {
+        if (lec && el.dataset.lec !== lec) return false;
+        const q = search.value.trim().toLowerCase();
+        return !q || el.dataset.search.includes(q);
+      };
+      const setPressed = (c) => chips.forEach((x) => {
+        const on = x === c; x.classList.toggle('active', on); x.setAttribute('aria-pressed', on);
+      });
+      function update() {
+        let n = 0;
+        items.forEach((el) => { const v = matches(el); el.hidden = !v; if (v) n++; });
+        groups.forEach((g) => {
+          g.hidden = ![...g.querySelectorAll('.gloss-item')].some((el) => !el.hidden);
+        });
+        shown.textContent = n;
+        none.hidden = n > 0;
+        reset.hidden = !(lec || search.value.trim());
+      }
+      search.addEventListener('input', update);
+      chips.forEach((c) => c.addEventListener('click', () => { lec = c.dataset.lec; setPressed(c); update(); }));
+      reset.addEventListener('click', () => {
+        lec = ''; search.value = '';
+        setPressed(chips.find((c) => c.dataset.lec === ''));
+        update();
+      });
+    })();
+  </script>
+</BaseLayout>

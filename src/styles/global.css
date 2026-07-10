@@ -23,6 +23,10 @@ a:hover { text-decoration: underline; }
 
 img { max-width: 100%; display: block; }
 
+/* Keyboard focus ring — one consistent, visible indicator on every interactive control
+   (WCAG 2.4.7). :focus-visible so a mouse click stays quiet but Tab/arrow keys light up. */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
 .wrap { max-width: var(--ws-page); margin: 0 auto; padding: 0 var(--ws-4); }
 
 .skip-link {
@@ -154,4 +158,51 @@ ul.reading { margin: 0; padding-left: 20px; color: var(--ink-2); font-size: var(
 @media (max-width: 600px) {
   .topbar { flex-wrap: wrap; }
   .meta { gap: var(--ws-3); }
+}
+
+/* ── Print: syllabus / schedule / assignments (and every page) on paper ──────
+   Strip interactive chrome (nav, theme + language toggles, sticky search/filter
+   toolbars, pagers), flatten to black-on-white, spell out external links, and keep
+   rows / cards / list items from splitting across page breaks. Raw #fff/#000 are
+   used deliberately — theme tokens must NOT win on paper; no :root here (token-gate
+   G2 [A] forbids re-declaring tokens outside the single source). */
+@media print {
+  html, body { background: #fff !important; color: #000 !important; }
+
+  /* Interactive chrome that makes no sense on paper */
+  .skip-link,
+  .site-header,
+  .site-footer,
+  #theme-toggle,
+  .langswitch,
+  .gtoolbar, .ptoolbar, .pg-toolbar,   /* gallery / papers / playground toolbars */
+  .chap-nav, .chap-pager,              /* book chapter pagers */
+  .lightbox { display: none !important; }
+
+  main#main { padding: 0 !important; }
+  .wrap { max-width: none !important; padding: 0 !important; }
+
+  /* Flat, ink-frugal surfaces — no shadows, no card fills, hairline rules only */
+  * { box-shadow: none !important; text-shadow: none !important; }
+  .card, li.paper, .block, section, figure, table {
+    background: #fff !important; border-color: #999 !important;
+  }
+  a { color: #000 !important; text-decoration: underline; }
+
+  /* Spell out external targets so a printed page keeps its links.
+     Skip internal (#…) anchors and mailto:, which read as noise on paper. */
+  a[href^="http"]::after {
+    content: " \003C" attr(href) "\003E";
+    font-family: var(--font-mono); font-size: 0.82em; color: #444; word-break: break-all;
+  }
+  a[href^="#"]::after, a[href^="mailto:"]::after { content: ""; }
+
+  /* Never split a coherent unit across a page break */
+  tr, li, figure, .card, .paper, .lec-tile, .row, .milestone, .beat, dt, dd {
+    break-inside: avoid; page-break-inside: avoid;
+  }
+  h1, h2, h3 { break-after: avoid; page-break-after: avoid; }
+  img { max-width: 100% !important; }
+
+  @page { margin: 1.6cm; }
 }

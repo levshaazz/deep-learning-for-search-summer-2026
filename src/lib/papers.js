@@ -146,5 +146,6 @@ export const papersMeta = {
     of: { en: 'of', ru: 'из', tt: 'дан' },
     none: { en: 'No works match — try another word.', ru: 'Ничего не найдено — попробуйте другое слово.', tt: 'Туры килгәне юк — башка сүз кулланып карагыз.' },
     reset: { en: 'reset', ru: 'сбросить', tt: 'ташлау' },
+    filterByArea: { en: 'Filter by research area', ru: 'Фильтр по области', tt: 'Өлкә буенча фильтр' },
   },
 };
