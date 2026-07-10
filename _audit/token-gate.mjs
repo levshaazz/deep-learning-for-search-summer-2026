@@ -133,6 +133,19 @@ function run() {
   for (const m of drift.mismatches)
     report.push(`[D] ${m.file}:${m.line} var(${m.name}, ${m.fallback}) drifts — token=${m.canon} (fallback renders a DIFFERENT hue when token absent)`);
   console.log(`[token] ${drift.checked} --c-* fallbacks ${drift.mismatches.length ? `(${drift.mismatches.length} DRIFTED)` : 'consistent'} vs ${SOURCE}`);
+  // [E] def-card PROSE legibility floor. The card prose (.def-body/.def-where/.def-tag) is styled with
+  // Book tokens (--fz-*) that are UNDEFINED in decks, so the var() FALLBACK is the deck size. A fallback
+  // below 1.25rem (20px) ships tiny prose that no other gate sees (readability floors at 11px). Guard it.
+  const PROSE_FLOOR_REM = 1.25;
+  const wbw = 'Lectures/css/wbw-art.css';
+  const wbwCss = stripComments(readFileSync(join(ROOT, wbw), 'utf8'));
+  let eChecked = 0;
+  for (const m of wbwCss.matchAll(/\.def-(body|where|tag)\s*\{[^}]*?font-size:\s*var\(\s*--fz-[\w-]+\s*,\s*([\d.]+)rem\s*\)/g)) {
+    eChecked++;
+    if (parseFloat(m[2]) < PROSE_FLOOR_REM)
+      report.push(`[E] ${wbw} .def-${m[1]} font-size fallback ${m[2]}rem < ${PROSE_FLOOR_REM}rem — undefined --fz-* means this fallback IS the deck size; def-card prose renders <20px`);
+  }
+  console.log(`[token] def-card prose fallbacks: ${eChecked} checked, floor ${PROSE_FLOOR_REM}rem`);
   for (const r of report) console.log(`  ✗ ${r}`);
   console.log(`\n[token] HARD(rogue-root/diverged/hue-drift)=${report.length}`);
   return report.length ? 1 : 0;

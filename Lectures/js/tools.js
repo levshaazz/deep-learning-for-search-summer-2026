@@ -458,10 +458,8 @@
             // "&amp;"). Decode those back to characters BEFORE the label is handed
             // to escapeHtml downstream — otherwise "&nbsp;" gets re-escaped to
             // "&amp;nbsp;" and renders as a literal "&NBSP;" in the breadcrumb.
-            const ta = document.createElement('textarea');
-            ta.innerHTML = raw;
             // Collapse ASCII whitespace runs but keep U+00A0 (non-breaking) intact.
-            return ta.value.replace(/[^\S\u00A0]+/g, ' ').trim();
+            return decodeEntities(raw).replace(/[^\S\u00A0]+/g, ' ').trim();
           };
           return { ru: get('ru'), en: get('en') };
         }
@@ -507,6 +505,15 @@
     return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
+  // Decode HTML entities via a <textarea> round-trip (e.g. "&amp;" → "&",
+  // "&nbsp;" → U+00A0). innerHTML re-serializes such characters as entities;
+  // this turns them back into real characters so they don't render literally.
+  function decodeEntities(s) {
+    const ta = document.createElement('textarea');
+    ta.innerHTML = String(s);
+    return ta.value;
+  }
+
   /* ---------------- Document title ---------------- */
   function syncDocTitle() {
     /* Pull the deck's title from the title slide's h1 (preferring the
@@ -515,12 +522,15 @@
     if (!titleSlide) return;
     const lang = prefs.lang || 'ru';
     const span = titleSlide.querySelector(`[lang="${lang}"]`) || titleSlide;
-    // Replace any <br> with a space so multi-line titles read correctly.
-    const txt = span.innerHTML
-      .replace(/<br[^>]*>/gi, ' ')
-      .replace(/<[^>]+>/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
+    // Replace any <br> with a space so multi-line titles read correctly, strip
+    // tags, then decode entities BEFORE the final whitespace collapse — else a
+    // title with "&" or a non-breaking space shows literally as "&amp;"/"&nbsp;"
+    // in the browser tab (same class the breadcrumb path solves via textarea).
+    const txt = decodeEntities(
+      span.innerHTML
+        .replace(/<br[^>]*>/gi, ' ')
+        .replace(/<[^>]+>/g, '')
+    ).replace(/\s+/g, ' ').trim();
     if (!txt) return;
     const slides = document.querySelector('.slides');
     const course = slides ?
