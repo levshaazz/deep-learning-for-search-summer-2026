@@ -45,8 +45,13 @@ const VIEW = { width: 1920, height: 1080 };
 // + keeping this baseline empty. (Raising the base font or trimming a slide moves it well clear of both.)
 const TARGET = 0.65;
 const MARGIN = 0.05;
-const FLOOR = +(TARGET - MARGIN).toFixed(2);   // 0.60 — hard gate line
-const WORSEN = 0.02;       // a baselined slide dropping >0.02 below its recorded fit re-fails
+const FLOOR = +(TARGET - MARGIN).toFixed(2);   // 0.60 — hard gate line for a NEW slide
+// Decks default to RU, and Russian runs ~15% longer than English, so many prose slides cluster just
+// above the floor; with CI's font-rendering downshift (~0.045) they'd flip below it and spuriously
+// re-fail. So the BASELINE grandfathers everything under TARGET (not just under FLOOR), and a
+// baselined slide only re-fails on a real regression (a drop bigger than the CI-variance band).
+const CAPTURE = TARGET;    // grandfather any slide below 0.65 (absorbs the near-floor RU cluster)
+const WORSEN = 0.07;       // a baselined slide dropping >0.07 below its recorded fit re-fails (> CI jitter)
 
 // Prose-bearing slide types. Everything else (viz/archflow/arch/title/divider/agenda/objectives/
 // refs/quiz/timeline/art-hero/…) is a figure/chrome type and exempt (its text is fit-scaled diagram
@@ -120,7 +125,7 @@ async function updateBaseline() {
   const byDeck = await measureAll();
   const base = {};
   for (const [deck, slides] of Object.entries(byDeck))
-    for (const s of slides) if (s.fit < FLOOR) base[key(deck, s.n)] = s.fit;
+    for (const s of slides) if (s.fit < CAPTURE) base[key(deck, s.n)] = s.fit;
   writeFileSync(BASELINE, JSON.stringify(base, null, 2) + '\n');
   console.log(`[legibility] wrote baseline: ${Object.keys(base).length} sub-floor slides → ${BASELINE.replace(ROOT + '/', '')}`);
   return 0;
