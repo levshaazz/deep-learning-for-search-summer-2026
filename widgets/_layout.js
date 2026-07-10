@@ -138,7 +138,11 @@ export function placeLabels(anchors, rect, opts = {}) {
 
   const L = (anchors || []).map((a) => {
     const right = (a.side === 'right') || (a.side == null && a.x <= rect.x + rect.w * 0.6);
-    const w = String(a.text == null ? '' : a.text).length * charW;
+    // Estimated label width for the de-collision test. Latin stays at charW (so EN-mode positions —
+    // and the viz baselines — are byte-identical); Cyrillic glyphs are ~1.25× wider, which the old
+    // flat `length*charW` under-counted, letting RU labels wrongly skip the overlap check and collide.
+    const w = String(a.text == null ? '' : a.text).split('').reduce(
+      (sum, ch) => sum + (/[А-Яа-яЁё]/.test(ch) ? charW * 1.25 : charW), 0);
     return { x: a.x, y: a.y, text: a.text, w, right, lx: a.x + (right ? dx : -dx), ly: a.y + 4 };
   });
 
