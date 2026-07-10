@@ -2064,7 +2064,7 @@ def l10_deck_claims():
         # ── query decomposition: each sub-answer found (recall per sub [1,1]) but joint retrieval recall 0 ──
         C("L10 deck decomp joint", dc["recallJoint"], r"recall on one joint retrieval = (\d+)", tol=1e-9),
         # ── RAPTOR tree: 8 leaf chunks → 3 cluster summaries → 1 root (viz-caption) ──
-        C("L10 deck raptor leaf", lv[0]["n"], r"viz-caption\">(\d+) leaf chunks (?:&rarr;|→) 3 cluster", tol=1e-9),
+        C("L10 deck raptor leaf", lv[0]["n"], r"(\d+) leaf chunks (?:&rarr;|→) 3 cluster", tol=1e-9),  # unanchored: bilingual <span> wrap now sits between viz-caption"> and the digit
         C("L10 deck raptor mid",  lv[1]["n"], r"leaf chunks (?:&rarr;|→) (\d+) cluster summaries", tol=1e-9),
         C("L10 deck raptor root", lv[2]["n"], r"cluster summaries (?:&rarr;|→) (\d+) root", tol=1e-9),
         # ── query rewrite: RR 0.125 → 0.5, multi-query recall@5 0.4 → 0.8 (the by-hand slides, kept) ──

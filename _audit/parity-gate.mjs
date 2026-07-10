@@ -25,7 +25,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DECKDIR = join(ROOT, 'Lectures');
 
 const SLIDE_FLOOR = 45;     // a deep-dive must be the deepest deck, not the shallowest
-const MEDIAN_CEIL = 1150;   // wall-of-text ceiling (L6, the densest real lecture, sits at 982)
+const MEDIAN_CEIL = 1150;   // wall-of-text ceiling (single-language; densest real lecture sits well under)
+const MAX_PARA = 900;       // a single <p> over this many one-language chars is a wall the median hides
 // documented exceptions (deck filename → { slides?, why }); the intro is short by design.
 const OVERRIDES = {
   '00-introduction.html': { slides: 18, why: 'course intro — short by design (briefing, not a topic lecture)' },
@@ -34,9 +35,20 @@ const OVERRIDES = {
 const median = (a) => { if (!a.length) return 0; const s = [...a].sort((x, y) => x - y); const m = s.length >> 1;
   return s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2); };
 
-function visibleChars(slideHtml) {
-  const noNotes = slideHtml.replace(/<aside class="slide-notes"[\s\S]*?<\/aside>/g, ' ');
-  return noNotes.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().length;
+// Decks are bilingual: <span lang="ru">…</span><span lang="en">…</span>. Count ONE language so the
+// measure reflects what a reader sees, not RU+EN doubled — else translating a deck spuriously
+// doubles its char counts. Strip the RU spans (keep EN + untagged); speaker notes are excluded too.
+const stripLangDupes = (html) => html
+  .replace(/<aside class="slide-notes"[\s\S]*?<\/aside>/g, ' ')
+  .replace(/<span lang="ru">[\s\S]*?<\/span>/g, ' ');
+const textLen = (html) => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().length;
+
+function visibleChars(slideHtml) { return textLen(stripLangDupes(slideHtml)); }
+
+// The longest single <p> on a slide, one language — a wall the median smooths over.
+function maxParaChars(slideHtml) {
+  const paras = stripLangDupes(slideHtml).match(/<p\b[\s\S]*?<\/p>/g) || [];
+  return paras.reduce((mx, p) => Math.max(mx, textLen(p)), 0);
 }
 
 // pure core: given (filename, html) → HARD findings. Testable offline with a fixture string.
@@ -50,6 +62,11 @@ export function auditDeck(file, html) {
   const med = median(slides.map(visibleChars));
   if (med > MEDIAN_CEIL)
     out.push(`WALL OF TEXT: median ${med} visible chars/slide > ${MEDIAN_CEIL} — break ideas across more slides`);
+  // A single fat paragraph on an otherwise-sparse slide hides from the median — catch it directly.
+  let worst = 0, worstLabel = '';
+  slides.forEach((s) => { const n = maxParaChars(s); if (n > worst) { worst = n; worstLabel = (s.match(/data-screen-label="([^"]+)"/) || [])[1] || ''; } });
+  if (worst > MAX_PARA)
+    out.push(`WALL PARAGRAPH: "${worstLabel}" has a single <p> of ${worst} one-language chars > ${MAX_PARA} — split into cards/lists`);
   if (!/objective/.test(labels)) out.push('NO OBJECTIVES slide — every lecture states what you will be able to do');
   if (!/reference|refs/.test(labels)) out.push('NO REFERENCES slide — every lecture cites its sources');
   return out;
