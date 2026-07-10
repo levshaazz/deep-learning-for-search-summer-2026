@@ -328,6 +328,14 @@
       notes.forEach(n => { max = Math.max(max, parseInt(n.dataset.step, 10) || 0); });
       slide.dataset.maxStep = String(max);
     }
+    /* Author aid: reveal-eligible nodes that never gate on a step >= 1 (authored
+       without data-from, or all data-from="0") make the staged reveal a no-op —
+       everything shows at once. Warn ONCE per such slide (init runs once). */
+    if (revealEls.length && !revealEls.some(el => (parseInt(el.dataset.from, 10) || 0) >= 1)) {
+      const heading = slide.querySelector('h1, h2, [data-af-title]');
+      const slideLabel = slide.id || (heading && heading.textContent.trim()) || slide.dataset.type || 'archflow';
+      console.warn('[archflow] ' + slideLabel + ': reveal nodes present but none has data-from>=1 — staged reveal is a no-op');
+    }
     if (!slide.dataset.currentStep) slide.dataset.currentStep = '0';
     const stepName = slide.querySelector('[data-af-stage-name]');
 

@@ -27,7 +27,8 @@
   function readPayload(slide) {
     var el = slide.querySelector('script.widget-data[type="application/json"]');
     if (!el) return {};
-    try { return JSON.parse(el.textContent); } catch (e) { return {}; }
+    try { return JSON.parse(el.textContent); }
+    catch (e) { console.error('[deck-adapter] widget-data JSON parse failed:', e && e.message, '·', (el.textContent || '').slice(0, 80)); return {}; }
   }
 
   function hook(mountEl) {
@@ -38,6 +39,7 @@
     var mountFn = window[mountName(id)];
     var payload = readPayload(slide);
     var fig = null;
+    var mountErrLogged = false;
 
     // Current deck language ('en' | 'ru' | …) from the <html> data-lang/lang the toolbar flips.
     function curLang() {
@@ -47,7 +49,10 @@
 
     function ensure() {
       if (fig) return true;
-      if (typeof mountFn !== 'function') return false;
+      if (typeof mountFn !== 'function') {
+        if (!mountErrLogged) { mountErrLogged = true; console.error('[deck-adapter] no mount function for widget "' + id + '" (expected window.' + mountName(id) + ')'); }
+        return false;
+      }
       // Trilingual payloads: an optional `i18n` bundle ({en:{…},ru:{…},tt:{…}} of FLAT label maps,
       // mirroring the widget's widgets/<id>/i18n.json) localizes the labels the widget GENERATES
       // (stage names, captions) — which the deck's [lang]-span toggle can't reach. We resolve the

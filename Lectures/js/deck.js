@@ -477,6 +477,24 @@
      while still catching the real cases (the b-dial overflows by hundreds of
      px). */
   const FITBOX_SLACK = 10;
+  /* Flag the owning slide that a LOCAL per-element fitter (fitToBox / fitContainer)
+     hit the FITBOX_FLOOR (0.7×) and is CLIPPING the remainder inside its box. The
+     slide-level global fit (autoFitSlide) never fires for this case — the box grows
+     to fit its own content, only its INTERNAL content overflows the fixed box — so
+     without this flag the clip is completely invisible (no data-auto-fit-clipped, no
+     visible shrink). Mirrors autoFitSlide's data-auto-fit-clipped. Records the LOWEST
+     wanted scale across the slide's boxes in data-fit-clip-scale. SET-ONLY: the flag
+     is cleared once per pass at the top of fitElementsIn() so several boxes on one
+     slide don't race to clear each other's mark. */
+  function markFitClipped(el, wanted) {
+    const slide = el.closest && el.closest('.slide');
+    if (!slide) return;
+    slide.dataset.fitClipped = 'true';
+    const prev = parseFloat(slide.dataset.fitClipScale);
+    if (!Number.isFinite(prev) || wanted < prev) {
+      slide.dataset.fitClipScale = wanted.toFixed(3);
+    }
+  }
   function fitToBox(el) {
     if (!el || el.dataset.fitBox === 'off') return;
     // Clear prior fit so we re-measure intrinsic size.
@@ -497,6 +515,11 @@
     el.style.transformOrigin = 'top center';
     el.style.transform = `scale(${s})`;
     el.dataset.fitScale = s.toFixed(3);
+    /* Wanted below the floor → scaling stopped at FITBOX_FLOOR and the remainder
+       is CLIPPED inside this (often overflow:hidden) box — silently, because the
+       slide-level global autoFitSlide never fires here. Flag the owning slide so
+       pre-flight raises a visible ERROR (see markFitClipped). */
+    if (raw < FITBOX_FLOOR) markFitClipped(el, raw);
   }
 
   /* -------------------------------------------------------------------------
@@ -599,6 +622,9 @@
     host.style.width = (100 / s) + '%';
     host.style.height = (natH * s) + 'px';
     el.dataset.fitScale = s.toFixed(3);
+    /* Below the floor → the container's overflow is CLIPPED at FITBOX_FLOOR; flag
+       the owning slide (see fitToBox / autoFitSlide) so pre-flight surfaces it. */
+    if (raw < FITBOX_FLOOR) markFitClipped(el, raw);
   }
 
   /* Run the per-element fit on every opt-in `.fit-box` plus the auto-targeted
@@ -608,6 +634,13 @@
      dense box no longer drags the whole slide into the global shrink. */
   function fitElementsIn(slide) {
     if (!slide) return;
+    /* Recompute local-fit clipping fresh each pass: clear the slide-level flag
+       BEFORE the per-element fitters run, so a box that no longer clips (content
+       edited, step changed, fonts/KaTeX settled) drops the flag. The fitters only
+       ever SET it — never clear — so several boxes on one slide can't race to
+       clear each other. Mirrors how autoFitSlide clears data-auto-fit-clipped. */
+    delete slide.dataset.fitClipped;
+    delete slide.dataset.fitClipScale;
     slide.querySelectorAll('.fit-box, .formula-stage, .step-formula').forEach(fitToBox);
     /* Container fits are scoped to the slide TYPE whose layout is the simple
        top-anchored body flow fitContainer's slide-relative maths assume

@@ -299,6 +299,20 @@
         }
       }
 
+      /* Local fit-box clipping — a per-element fitter (fitToBox / fitContainer in
+         deck.js) hit its 0.7× floor and is CLIPPING the remainder inside its (often
+         overflow:hidden) box, while the slide-level global auto-fit never fired. This
+         stays invisible without a flag: deck.js sets data-fit-clipped on the slide; we surface it
+         here as a WARN (known debt across ~41 slides — being remediated), escalating to an ERROR
+         only for a SEVERE clip (<0.5×, where most of the box content is cut). */
+      if (slide.dataset.fitClipped === 'true') {
+        const wanted = parseFloat(slide.dataset.fitClipScale);
+        issues.push({
+          sev: 'warn', slide: label,
+          msg: `контент обрезан локальным fit-box ниже 0.7×${Number.isFinite(wanted) ? ` (требуется ${wanted.toFixed(2)}×)` : ''} — часть не видна; уменьшите содержимое${Number.isFinite(wanted) && wanted < 0.5 ? ' (СИЛЬНОЕ обрезание)' : ''}`,
+        });
+      }
+
       /* Missing language pair — the template rule is one
          <span lang="ru"> + one <span lang="en"> side by side. A lecturer
          who writes only one language gets content that silently vanishes
@@ -378,6 +392,35 @@
           }
         });
       }
+
+      /* Widget mounts (deck-adapter) — surface the two silent failure modes the
+         adapter itself now logs: an un-parseable inlined widget-data payload (the
+         widget silently gets empty {} data), and a missing mount global (the
+         widget's classic bundle didn't load / never assigned window.mount<Id>, so
+         nothing mounts). Mirrors deck-adapter.js's mountName() so the lecturer sees
+         these in the overlay, not only in DevTools. */
+      slide.querySelectorAll('.widget-mount[data-widget]').forEach((mount) => {
+        const wid = mount.getAttribute('data-widget');
+        const dataEl = slide.querySelector('script.widget-data[type="application/json"]');
+        if (dataEl) {
+          try { JSON.parse(dataEl.textContent); }
+          catch (e) {
+            issues.push({
+              sev: 'warn', slide: label,
+              msg: `widget «${wid}»: инлайновый widget-data не парсится как JSON (${String(e.message).slice(0, 40)}) — виджет получит пустые данные`,
+            });
+          }
+        }
+        /* mountName(): "cosine-sphere" → "mountCosineSphere" (see deck-adapter.js). */
+        const mountGlobal = 'mount' + String(wid).split('-')
+          .map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join('');
+        if (typeof window[mountGlobal] !== 'function') {
+          issues.push({
+            sev: 'info', slide: label,
+            msg: `widget «${wid}»: mount-функция window.${mountGlobal} отсутствует на момент проверки — виджет может не смонтироваться`,
+          });
+        }
+      });
 
       /* Speaker notes presence — informational */
       if (!slide.querySelector('aside.slide-notes, aside[data-notes], aside[data-notes-for-step]')) {
