@@ -375,7 +375,7 @@
           <p class="viz-caption"><span lang="ru">Запрос и документ кодируются <strong>порознь</strong> в одно пространство; оценка&nbsp;&mdash; косинус. Обе башни обучены в одно пространство, поэтому \(q\) и \(d\) сравнимы; башня документа не видит запрос и работает <strong>офлайн</strong>&nbsp;&mdash; её векторы кэшируются (callback L2: косинус&nbsp;&mdash; линейка сэра Косинуса; L5: слова имеют координаты).</span><span lang="en">Query and document are encoded <strong>separately</strong> into one space; the score is a cosine. Both towers are trained into one space, so \(q\) and \(d\) are comparable; the document tower never sees the query and runs <strong>offline</strong> &mdash; its vectors are cached (callback L2: cosine is Sir Cosine&rsquo;s ruler; L5: words have coordinates).</span></p>
           <aside class="slide-notes">The architecture, redrawn. Two towers, the query encoder and the document encoder, map their inputs into one shared embedding space — and because they are trained into that one space (a single siamese encoder for SBERT, or two separately-weighted ones for DPR), a query vector and a document vector are directly comparable. The score is the cosine between the two output vectors, Sir Cosine's ruler from Lecture 2. The crucial asymmetry: the document tower never sees the query, so it runs offline, once, and its vectors are cached — that is what the label d-cached marks. The next slides mount the live widget and then compute the score by hand.</aside>
         </section>
-        <section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="12 Two towers, one space">
+        <section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="12 Two towers, one space">
           <div class="slide-header">
             <h2><span lang="ru">Две башни, одно пространство</span><span lang="en">Two towers, one space</span></h2>
             <span class="slide-kicker"><span lang="ru">прямой проход; сэр Косинус читает угол</span><span lang="en">the forward pass; Sir Cosine reads the angle</span></span>
@@ -714,7 +714,7 @@
           </div>
           <aside class="slide-notes">The construction, token by token. Start with CLS, append the query tokens, a SEP, the document tokens, and a final SEP. CLS is a summary slot; its final-layer vector becomes the score. The SEP markers tell the model where the query ends and the document begins. Crucially, all of these sit in one sequence, so attention can connect any query token to any document token — the next slide shows that interaction live.</aside>
         </section>
-        <section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="27 Tokens talk across [SEP]">
+        <section class="slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="27 Tokens talk across [SEP]">
           <div class="slide-header">
             <h2><span lang="ru">Токены говорят через [SEP]</span><span lang="en">Tokens talk across [SEP]</span></h2>
             <span class="slide-kicker"><span lang="ru">кросс-внимание q&times;d &rarr; [CLS] &rarr; логит &rarr; оценка</span><span lang="en">q&times;d cross-attention &rarr; [CLS] &rarr; logit &rarr; score</span></span>
@@ -895,7 +895,7 @@
           </div>
           <aside class="slide-notes">The loss behind every modern retriever, and a callback to Lecture 6. InfoNCE is a softmax over similarities: the numerator is the positive pair, the denominator sums the positive and all the negatives, divided by a temperature. Minimizing it pulls the query toward its true document and pushes it away from the rest — exactly DPR's negative log-likelihood of the positive. Two knobs matter. Temperature sharpens the distribution; a small tau makes hard negatives dominate. And batch size is a lever, because the negatives are largely the other documents in the batch — DPR's accuracy climbs with batch size, and E5 trains at a batch of thirty-two thousand to drown the positive in negatives. The next slide makes the in-batch trick visual.</aside>
         </section>
-        <section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="36 In-batch negatives">
+        <section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="36 In-batch negatives">
           <div class="slide-header">
             <h2><span lang="ru">Негативы из батча</span><span lang="en">In-batch negatives</span></h2>
             <span class="slide-kicker"><span lang="ru">диагональ&nbsp;&mdash; позитив; остальное в строке&nbsp;&mdash; бесплатные негативы</span><span lang="en">diagonal = positive; the rest of the row = free negatives</span></span>
@@ -1278,7 +1278,7 @@
           </div>
           <aside class="slide-notes">The last turn — from the cascade as an idea to the cascade as a product. Retrieve-then-rerank is the engine, but a real search or RAG system wraps it in a whole pipeline: ingest and chunk and embed and index offline, then retrieve and rerank and assemble and generate online. The next slides give the full pipeline as a live widget, the vector databases that store the index, the hybrid trick that makes retrieval robust, and a production checklist. This is where everything in the lecture lands in a shipping system.</aside>
         </section>
-        <section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="51 The full pipeline">
+        <section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="51 The full pipeline">
           <div class="slide-header">
             <h2><span lang="ru">Полный пайплайн</span><span lang="en">The full pipeline</span></h2>
             <span class="slide-kicker"><span lang="ru">offline сборка → online запрос → каскад → grounded-ответ</span><span lang="en">offline build → online query → cascade → grounded answer</span></span>
