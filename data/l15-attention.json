@@ -1,0 +1,173 @@
+{
+  "_doc": "COMPUTED by hand on tiny inputs (stdlib math.exp/sin/cos). Deck-displayable, reproducible. Generator: _research/gen_l15.py. Provenance for the L15 worked examples (self-attention, √dₖ, positional encoding, parameter count, causal mask, decoding, O(n²) memory).",
+  "attention": {
+    "dk": 4,
+    "sqrtDk": 2,
+    "scores": [
+      1,
+      0,
+      3
+    ],
+    "weights": [
+      0.114,
+      0.042,
+      0.844
+    ],
+    "weightSum": 1.0,
+    "values": [
+      [
+        1,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        1
+      ]
+    ],
+    "output": [
+      0.958,
+      0.886
+    ],
+    "_note": "Example 1: softmax(1,0,3)=(0.114,0.042,0.844) sum 1.000; Y1=(0.958,0.886) toward V3"
+  },
+  "sqrtScale": {
+    "dot": 6,
+    "unscaled": [
+      0.002,
+      0.002,
+      0.995
+    ],
+    "scaledScore": 3,
+    "scaled": [
+      0.045,
+      0.045,
+      0.909
+    ],
+    "_note": "same dot 6 → softmax(0,0,6)=(…,0.995) peaky vs ÷√4 → softmax(0,0,3)=(…,0.909) softer"
+  },
+  "posEnc": {
+    "d": 4,
+    "freqs": [
+      1.0,
+      0.01
+    ],
+    "pos0": [
+      0.0,
+      1.0,
+      0.0,
+      1.0
+    ],
+    "pos1": [
+      0.841,
+      0.54,
+      0.01,
+      1.0
+    ],
+    "_note": "PE d=4: pos0=(0,1,0,1); pos1=(sin1,cos1,sin.01,cos.01)=(0.841,0.540,0.010,1.000)"
+  },
+  "params": {
+    "d": 768,
+    "perBlock": 7077888,
+    "perBlockM": 7.08,
+    "blocks": 12,
+    "tokenEmb": 23440896,
+    "attnCoef": 4,
+    "ffnCoef": 8,
+    "blockCoef": 12,
+    "_note": "12·768²=7 077 888≈7.08M per block; 12 blocks + embeddings ≈ 110M (BERT-base)"
+  },
+  "causal": {
+    "scores": [
+      0,
+      2,
+      3
+    ],
+    "noMask": [
+      0.035,
+      0.259,
+      0.705
+    ],
+    "masked": [
+      0.119,
+      0.881
+    ],
+    "_note": "no-mask softmax(0,2,3)=(0.035,0.259,0.705) leaks future t3; causal softmax(0,2)=(0.119,0.881)"
+  },
+  "autoregr": {
+    "scores": [
+      0,
+      1,
+      2
+    ],
+    "next": [
+      0.09,
+      0.245,
+      0.665
+    ],
+    "_note": "next-token softmax(0,1,2)=(0.090,0.245,0.665)"
+  },
+  "decoding": {
+    "logits": [
+      2,
+      1,
+      0.5,
+      0,
+      -1
+    ],
+    "base": [
+      0.563,
+      0.207,
+      0.126,
+      0.076,
+      0.028
+    ],
+    "cumulative": [
+      0.563,
+      0.77,
+      0.896,
+      0.972,
+      1.0
+    ],
+    "topk2": [
+      0.731,
+      0.269
+    ],
+    "tempSharp": [
+      0.829,
+      0.112,
+      0.041,
+      0.015,
+      0.002
+    ],
+    "tempSoft": [
+      0.375,
+      0.227,
+      0.177,
+      0.138,
+      0.084
+    ],
+    "TSharp": 0.5,
+    "TSoft": 2.0,
+    "_note": "z=(2,1,0.5,0,-1) → base (0.563,0.207,0.126,0.076,0.028); top-k(2) (0.731,0.269); T=0.5 (0.829,…); T=2.0 (0.375,…)"
+  },
+  "memory": {
+    "heads": 12,
+    "n": [
+      512,
+      4096,
+      32768
+    ],
+    "mb512": 0.52,
+    "mb4k": 33.6,
+    "gb32k": 2.15,
+    "mb512x12": 6.2,
+    "mb4kx12": 403,
+    "gb32kx12": 25.8,
+    "_note": "fp16 2n² bytes/head: n=512→0.52MB, n=32k→2.15GB; ×12 heads → 6.3MB / 403MB / 25.8GB (O(n²))"
+  },
+  "uniform3": 0.333
+}

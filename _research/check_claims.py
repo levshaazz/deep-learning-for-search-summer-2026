@@ -165,6 +165,13 @@ BENCH13    = load(DATA, "l13-bench.json")     # CITED: DPR Table 3 (2004.04906),
 REWRITE14  = load(DATA, "l14-rewrite.json")   # toy vocab gap: gold rank 4→1 (raw→HyDE, cos 0.22→0.63), RM3 4→3 (ceiling); RRF [3,1,2] k=60 → 0.0484 > 0.0164; step-back cos 0.0→0.57; compose p^3 0.729
 BENCH14    = load(DATA, "l14-bench.json")     # CITED: HyDE (2212.10496), Query2doc +3–15% (2303.07678), Step-Back (2310.06117), Least-to-Most SCAN 99.7 vs 16.2 CoT (2205.10625), RRF k=60, RM3, GAR, Doc2Query
 
+# ── L15 "BERT & other Transformers" (supplementary) — toy = stdlib (gen_l15.py: self-attention softmax,
+#    √dₖ saturation, sinusoidal PE, 12d² params, causal mask, decoding strategies, O(n²) memory — fully
+#    re-derivable with math.exp/sin/cos); bench = cited paper numbers. Unlike siblings L16–L18 (baseline-
+#    frozen only), L15 is now FULLY gated: l15_deck_claims() pins every flagship worked value deck==data. ──
+ATTN15     = load(DATA, "l15-attention.json") # toy: softmax(1,0,3)=(0.114,0.042,0.844)→Y1=(0.958,0.886); √dₖ 0.995 vs 0.909; PE (0.841,0.540,0.010,1.000); 12·768²=7.08M/block; causal (0.035,0.259,0.705)/(0.119,0.881); decoding base+T; mem 0.52MB/2.15GB
+BENCH15    = load(DATA, "l15-bench.json")     # CITED: Transformer (vaswani-2017), BERT-base 110M / large 340M (devlin-2019), DistilBERT 40/60/97 (distilbert-2019), GPT-3 175B (gpt3-2020), RoBERTa/ALBERT/ELECTRA, T5/BART, FlashAttention
+
 # frozen run-once Ollama artifacts (REAL measured numbers; provenance recomputes the data/ "real" blocks from these)
 def load_research(name):
     try:
@@ -549,7 +556,7 @@ def claims():
              anchor=r"\b(32\.3)\s*%", must=True),
         dict(id="top-3 %",   deck="L1", value=CLICK["top3Pct"], tol=0.2,
              anchor=r"\b(60\.6)\b", must=True),
-    ] + l3_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims() + l11_deck_claims() + l12_deck_claims() + l13_deck_claims() + l14_deck_claims()
+    ] + l3_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims() + l11_deck_claims() + l12_deck_claims() + l13_deck_claims() + l14_deck_claims() + l15_deck_claims()
 
 # ── [C] BOOK CLAIMS: the built Book PROSE must show the same flagship numbers as data/ ───────────
 # The Book restates the decks' worked examples in its own prose/KaTeX, so the deck anchors do NOT
@@ -1249,21 +1256,24 @@ COVERAGE_BASELINE = {
     # deck:L3/L4/L5 + book:L3/L4 TIGHTENED (2026-07) — the new l14_deck_claims() gate values (0.45/0.28/0.57/…)
     # coincide with a few previously-grandfathered un-gated numbers on those surfaces, so the global gated set
     # now covers them; ratchet the baselines down to the residual counts (the coverage-guard's own suggestion).
-    "deck:L0": 0, "deck:L1": 1, "deck:L2": 6, "deck:L3": 41, "deck:L4": 27, "deck:L5": 39, "deck:L6": 25,
+    # deck:L5/L18 TIGHTENED (2026-07): the new l15_deck_claims() gated values coincide with a couple of
+    # previously-grandfathered un-gated numbers on those surfaces (softmax/temperature decimals reused), so
+    # the global gated set now covers them → ratchet down (strictly stronger; never raised).
+    "deck:L0": 0, "deck:L1": 1, "deck:L2": 6, "deck:L3": 41, "deck:L4": 27, "deck:L5": 37, "deck:L6": 25,
     "book:L0": 0, "book:L1": 0, "book:L2": 8,  "book:L3": 9,  "book:L4": 15, "book:L5": 10, "book:L6": 6,
     "deck:L12": 2, "book:L12": 2,
     # deck:L14 "The Artificer's Quill" — all displayed toy numbers are now gated in l14_deck_claims() → 0.
     "deck:L14": 0,
-    # deck:L15 "BERT & other Transformers" — an IMPORTED supplementary bilingual deck (re-homed from an
-    # external MWS lecture, deck-only, no Book chapter). Its ≥2-dp numbers are SELF-CONTAINED worked-example
-    # values — softmax/attention weight distributions (0.01/0.042/0.114/0.844… that sum to 1.000), scaled-
-    # dot-product intermediates (2.15, 7.08), and toy probabilities — NOT drawn from the data/ grounded
-    # pipeline, so they have no data claim to anchor to (unlike our authored decks). Baseline FROZEN at the
-    # current un-gated count so the guard still HARD-fails any FUTURE ungated number added beyond these 14.
-    # book:L15 mirrors the same imported worked examples in prose (the scaled-softmax demo, an O(n²) memory
-    # estimate) — one residual un-gated value after the global gated set covers the rest. Same rationale.
-    "deck:L15": 14,
-    "book:L15": 1,
+    # deck:L15 "BERT & other Transformers" — NOW FULLY GROUNDED (2026-07): the worked-example numbers are
+    # emitted by gen_l15.py (stdlib math.exp/sin/cos → data/l15-attention.json) and the reported benchmarks are
+    # cited in data/l15-bench.json (each `cite` a data/papers.json id). l15_deck_claims() pins EVERY displayed
+    # ≥2-dp value deck==data: softmax weights 0.114/0.042/0.844 → Y1 0.958/0.886, √dₖ 0.995 vs 0.909, PE
+    # 0.841/0.540/0.010, 12·768²=7.08M, causal 0.035/0.259/0.705 & 0.119/0.881, decoding base+cumulative
+    # (0.770/0.896/0.972)+top-k(0.731)+temperature(0.829/0.375), and O(n²) memory 0.52 MB / 2.15 GB. Un-gated
+    # count → 0 (was 14 "imported/self-contained"); book:L15 → 0 (the global gated set covers the one prose
+    # value). Any FUTURE ungated ≥2-dp number HARD-fails until gated. Goes beyond siblings L16–L18 (baseline-frozen).
+    "deck:L15": 0,
+    "book:L15": 0,
     # deck:L16 "Late Chunking" — displayed numbers come from the reproducible generator gen_l16.py
     # (data/l16-chunk.json, the MEASURED coreference toy: toy cosines 0.5164/0.7071/0.5774/0.2887) and the
     # cited REPORTED bench (data/l16-bench.json: Berlin 0.8486/0.7084/0.7535/0.8249/0.8498, BeIR 52.4/54.3…,
@@ -1287,7 +1297,7 @@ COVERAGE_BASELINE = {
     # 0.8985/-0.0323/-0.0352, hubness skew/maxNk/corr) + cited bench (data/l18-bench.json: GPT-2 0.6/0.99,
     # Radovanović skew 0.121/1.541/5.445/19.21, Su STS-B 59.04/71.34, SimCSE 76.3/81.6, CSLS 42.6/66.1,
     # Li -50.49/-24.61). Provenance in those files + gen_l18.py; frozen so future ungated additions HARD-fail.
-    "deck:L18": 18,
+    "deck:L18": 17,
     "book:L18": 10,
 }
 _COV_DEC   = re.compile(r'(?<![\d.,])\d+[.,]\d{2,}(?!\d)')# grounded signature: a decimal (dot OR RU comma), ≥2 fractional digits
@@ -2287,6 +2297,54 @@ def l14_deck_claims():
         C("L14 rrf gold",            MQ["rrfGold"],              n(r"0\.0484"), 0.002),  # RRF consensus
         C("L14 rrf singleHit",       MQ["rrfSingleHitRank1"],    n(r"0\.0164"), 0.002),  # a single rank-1 hit
         C("L14 compose p^n",         DC["composeSuccess"],       n(r"0\.73")),   # error propagation 0.9^3 = 0.729
+    ]
+
+
+# ── [C] L15 DECK CLAIMS: every flagship ≥2-dp worked value the L15 deck DISPLAYS == data/l15-attention.json.
+#    Unlike siblings L16–L18 (baseline-frozen only), L15's self-attention / √dₖ / positional-encoding /
+#    parameter-count / causal-mask / decoding / O(n²)-memory numbers are now GATED: gen_l15.py (stdlib
+#    math.exp/sin/cos) is the single source, so a drift in the deck OR the generator fails here. Values are
+#    read from data/ (never re-typed); anchors capture the KaTeX/plain worked-example display sites. ──
+def l15_deck_claims():
+    A, S, P, Pa, Cc, D, Mem = (ATTN15[k] for k in
+        ("attention", "sqrtScale", "posEnc", "params", "causal", "decoding", "memory"))
+    C = lambda id, value, anchor, tol=1e-3: dict(id=id, deck="L15", value=value, tol=tol, anchor=anchor, must=True)
+    return [
+        # Example 1 — self-attention forward: softmax(1,0,3) weights + context output Y1
+        C("L15 ex1 w0", A["weights"][0], r"A_1=\((0\.114),\\,0\.042,\\,0\.844\)"),
+        C("L15 ex1 w1", A["weights"][1], r"0\.114,\\,(0\.042),\\,0\.844"),
+        C("L15 ex1 w2", A["weights"][2], r"0\.042,\\,(0\.844)\)"),
+        C("L15 ex1 y0", A["output"][0],  r"Y_1=\((0\.958),\\,0\.886\)"),
+        C("L15 ex1 y1", A["output"][1],  r"0\.958,\\,(0\.886)\)"),
+        # √dₖ saturation — same dot 6: unscaled peaky 0.995 vs ÷√4 softer 0.909
+        C("L15 sqrt unscaled", S["unscaled"][2], r"0,0,6\)=\(0\.002,\\,0\.002,\\,(0\.995)"),
+        C("L15 sqrt scaled",   S["scaled"][2],   r"0,0,3\)=\(0\.045,\\,0\.045,\\,(0\.909)"),
+        C("L15 sqrt scaled a", S["scaled"][0],   r"0,0,3\)=\((0\.045),\\,0\.045"),
+        # Positional encoding pos=1: (sin 1, cos 1, sin .01, cos .01)
+        C("L15 pe sin1",  P["pos1"][0], r"\((0\.841),0\.540,0\.010"),
+        C("L15 pe cos1",  P["pos1"][1], r"0\.841,(0\.540),0\.010"),
+        C("L15 pe sin01", P["pos1"][2], r"0\.540,(0\.010),1\.000"),
+        # Block parameters: 12·768² = 7 077 888 ≈ 7.08M
+        C("L15 params/block", Pa["perBlockM"], r"\\approx (7\.08)\\text\{M\}"),
+        # Causal attention — no-mask future-leak vs causal mask
+        C("L15 causal nm0", Cc["noMask"][0], r"softmax\(0, 2, 3\) = \((0\.035), 0\.259, 0\.705\)"),
+        C("L15 causal nm1", Cc["noMask"][1], r"softmax\(0, 2, 3\) = \(0\.035, (0\.259), 0\.705\)"),
+        C("L15 causal nm2", Cc["noMask"][2], r"softmax\(0, 2, 3\) = \(0\.035, 0\.259, (0\.705)\)"),
+        C("L15 causal m0",  Cc["masked"][0], r"softmax\(0, 2\) = \((0\.119), 0\.881\)"),
+        C("L15 causal m1",  Cc["masked"][1], r"softmax\(0, 2\) = \(0\.119, (0\.881)\)"),
+        # Decoding — base softmax + top-k(2) renormalize + temperature reshape
+        C("L15 dec base0",  D["base"][0],      r"softmax\}\(z\)=\((0\.563),\\,0\.207"),
+        C("L15 dec base4",  D["base"][4],      r"0\.076,\\,(0\.028)\)"),
+        C("L15 dec topk2",  D["topk2"][0],     r"\\to \((0\.731),\\,0\.269\)"),
+        C("L15 dec Tsharp", D["tempSharp"][0], r"\((0\.829),\\,0\.112,\\,0\.041"),
+        C("L15 dec Tsoft",  D["tempSoft"][0],  r"\((0\.375),\\,0\.227,\\,0\.177"),
+        # descending cumulative mass (top-p) 0.563 → 0.770 → 0.896 → 0.972 → 1.000
+        C("L15 dec cum1", D["cumulative"][1], r"0\.563 \\to (0\.770)"),
+        C("L15 dec cum2", D["cumulative"][2], r"0\.770 \\to (0\.896)"),
+        C("L15 dec cum3", D["cumulative"][3], r"0\.896 \\to (0\.972)"),
+        # O(n²) score-matrix memory (fp16, per head): 0.52 MB (n=512), 2.15 GB (n=32k)
+        C("L15 mem 512", Mem["mb512"], r"(0\.52) MB"),
+        C("L15 mem 32k", Mem["gb32k"], r"(2\.15) GB"),
     ]
 
 
