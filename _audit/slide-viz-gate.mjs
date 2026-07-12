@@ -591,6 +591,31 @@ function extractPaintLiterals(src, kind /* 'html' | 'css' */) {
 // L5/L6 pair, so the off-token / off-contract literal contract is enforced across ALL 7 decks
 // (L0–L4 were token-cleaned to match — their title/logo bundler-thumbnail fills now paint with
 // var(--accent|--ink|--ink-3|--bg|--accent-soft, #fallback)). Adding L7 needs ZERO edit here.
+
+/* CHROME_JS — read the THEME'S OWN backing colours (page / card / inset) from the live :root.
+   A shape painted in one of these is a BACKING, not a data category, so two backings sharing a colour
+   is not a category confusion — it is the design working. This must be MEASURED, never guessed from
+   saturation: the very same --bg-inset token is a pale cream in the light theme (HSV sat 0.07 → reads
+   "neutral") and a warm dark grey in the dark theme (rgb(32,28,21) → HSV sat 0.34 → reads "chromatic").
+   That single proxy is why a theme-invariant figure was clean in one theme and HARD-failed in the other:
+   the gate was not measuring neutrality, it was measuring how dark the room was. */
+const CHROME_TOKENS = ['--bg', '--bg-card', '--bg-inset', '--bg-page', '--bg-soft', '--bg-subtle'];
+const CHROME_JS = `(() => {
+  const NAMES = ${JSON.stringify(CHROME_TOKENS)};
+  const d = document.createElement('div');
+  document.body.appendChild(d);
+  const out = [];
+  for (const n of NAMES) {
+    d.style.backgroundColor = '';
+    d.style.backgroundColor = 'var(' + n + ')';
+    const raw = getComputedStyle(d).backgroundColor;
+    const c = raw.match(/[0-9.]+/g);
+    if (!c || raw === 'rgba(0, 0, 0, 0)' || (c[3] !== undefined && +c[3] < 0.5)) continue;   // token absent
+    out.push({ r: +c[0], g: +c[1], b: +c[2], a: 1 });
+  }
+  d.remove();
+  return out;
+})()`;
 function contractScanFiles(rootDir) {
   const files = [];
   const lectDir = join(rootDir, 'Lectures');
@@ -838,6 +863,10 @@ function detectColor(steps, ctx) {
   // background luminance (root/frame) for the void/near-bg checks.
   const bg = best.bg || { r: 255, g: 255, b: 255, a: 1 };
   const bgLum = relLum(bg);
+  /* Is this fill one of the THEME'S OWN backing tokens (page / card / inset)? Measured from the live
+     :root at capture time, so it is theme-invariant — see CHROME_JS. A backing is not a data category. */
+  const chrome = best.chrome || [];
+  const isChrome = (c) => chrome.some((k) => deltaE(c, k) < 6);   // tight: it must BE the token, not merely near it
 
   // ── (a) void / near-background fills ──
   // isNamed: a shape carrying a data-role or a class beyond its bare tag is an intentional MARK (a data
@@ -901,7 +930,14 @@ function detectColor(steps, ctx) {
       // cream/pale tints that are chrome backings, told apart by content + borders) are NOT two data
       // categories painted the same hue. The A3 fixture's saturated blues (sat≈.61) clear this floor.
       const satMax = Math.max(hsvSat(a.c), hsvSat(b.c));
-      if (dE < ctx.TH.DELTA_E_MIN && rd < ctx.TH.RGB_MIN && satMax >= ctx.TH.COLLIDE_SAT_MIN) {
+      /* …but HSV saturation is a PROXY for "is this a data hue", and in the DARK theme it is a broken one:
+         --bg-card there is a warm dark grey, rgb(32,28,21), whose HSV saturation is 0.34 — over the floor.
+         So the very chrome backings the rule above exists to exempt were exempt in light and HARD-failed in
+         dark, on the same unchanged figure. Fix the measurement, not the figure: a fill that IS one of the
+         theme's own backing tokens is chrome in EITHER theme. Data hues (a cyan-soft box, a saturated blue)
+         match no chrome token and keep failing exactly as they did. */
+      const bothChrome = isChrome(a.c) && isChrome(b.c);
+      if (dE < ctx.TH.DELTA_E_MIN && rd < ctx.TH.RGB_MIN && satMax >= ctx.TH.COLLIDE_SAT_MIN && !bothChrome) {
         out.push({ cat: 'COLOR', sev: 'HARD', step: 0,
           msg: `colour collision: "${a.cat}" rgb(${a.c.r|0},${a.c.g|0},${a.c.b|0}) ≈ "${b.cat}" rgb(${b.c.r|0},${b.c.g|0},${b.c.b|0}) ΔE=${dE.toFixed(1)} (<${ctx.TH.DELTA_E_MIN}), RGBdist=${rd.toFixed(0)} — distinct categories, indistinguishable colour` });
       }
@@ -1031,6 +1067,7 @@ async function runDeckGroup(browser, deck, slideTargets, TH) {
             const c = getComputedStyle(document.querySelector('.slide.is-active')).backgroundColor.match(/[\d.]+/g) || [255, 255, 255];
             return { r: +c[0], g: +c[1], b: +c[2], a: c[3] === undefined ? 1 : +c[3] };
           });
+          cap.chrome = await page.evaluate(CHROME_JS);
           steps.push(cap);
         }
         r.themes[theme] = { meta, maxStep, steps, defects: analyze(steps, { TH }, meta.type) };
@@ -1086,6 +1123,7 @@ async function runBookChapter(browser, chapter, beats, TH) {
             const host = document.getElementById('fig-' + b);
             return window.__VIZCAP(host, opt);
           }, { b: beat, opt: TH });
+          cap.chrome = await page.evaluate(CHROME_JS);
           cap.bg = await page.evaluate((b) => {
             const host = document.getElementById('fig-' + b);
             let n = host, c = null;

@@ -92,7 +92,13 @@ async function measureAll(only = null) {
 }
 
 const loadBaseline = () => (existsSync(BASELINE) ? JSON.parse(readFileSync(BASELINE, 'utf8')) : {});
-const key = (deck, n) => `${deck}#${n}`;
+/* Key the grandfathered debt by the slide's SCREEN LABEL, not by its ordinal position.
+   It used to be `${deck}#${n}`, and that made the baseline punish the wrong thing: inserting one slide
+   into a deck renumbers every slide after it, so a dozen pieces of long-grandfathered debt suddenly
+   presented as NEW and the gate went red on a deck the change never touched. Screen labels are stable
+   under insertion by construction — that is exactly why an inserted slide is labelled `11a` and not
+   `12`. Debt should be identified by WHICH slide it is, never by where the slide happens to sit. */
+const key = (deck, label) => `${deck}#${label}`;
 
 async function run() {
   const R = makeReporter('legibility');
@@ -103,10 +109,10 @@ async function run() {
     for (const s of slides) {
       prose++;
       if (s.fit >= FLOOR) {
-        if (baseline[key(deck, s.n)] != null) ratchet.push(`${deck} s${s.n} now fit ${s.fit} — remove from baseline`);
+        if (baseline[key(deck, s.label)] != null) ratchet.push(`${deck} s${s.n} now fit ${s.fit} — remove from baseline`);
         continue;
       }
-      const base = baseline[key(deck, s.n)];
+      const base = baseline[key(deck, s.label)];
       if (base == null) {
         R.err(`${deck} · slide ${s.n} "${s.label}" [${s.type}] — auto-fit ${s.fit} < ${FLOOR} (content squished → too small in a hall) — NEW, trim/split`);
       } else if (s.fit < base - WORSEN) {
@@ -125,7 +131,7 @@ async function updateBaseline() {
   const byDeck = await measureAll();
   const base = {};
   for (const [deck, slides] of Object.entries(byDeck))
-    for (const s of slides) if (s.fit < CAPTURE) base[key(deck, s.n)] = s.fit;
+    for (const s of slides) if (s.fit < CAPTURE) base[key(deck, s.label)] = s.fit;
   writeFileSync(BASELINE, JSON.stringify(base, null, 2) + '\n');
   console.log(`[legibility] wrote baseline: ${Object.keys(base).length} sub-floor slides → ${BASELINE.replace(ROOT + '/', '')}`);
   return 0;

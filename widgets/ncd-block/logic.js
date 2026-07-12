@@ -191,7 +191,7 @@ export const mountNcdBlock = defineWidget({
         G.tagBox(gC, xAttn, yM + 67, tag, 'ncdb-tag ncd-onwire', 'ncdb-tag-txt');   // rides ON the weave, by design
         G.tagBox(gC, xOut - 76, 35, L('tagStack', '× L blocks → the model'), 'ncdb-stack', 'ncdb-stack-txt');
       }
-      G.text(g, W / 2, H - 6, L('legMap', 'wire = token vectors · ⊕ = residual add · ◎ = LayerNorm'), 'ncdb-legend');
+      G.legend(g, W / 2, H - 6, L('legMap', 'wire = token vectors · ⊕ = residual add · ◎ = LayerNorm'), 'ncdb-legend', W - 40);
       prev = step;
     };
   },

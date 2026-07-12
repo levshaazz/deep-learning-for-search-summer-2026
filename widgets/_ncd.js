@@ -93,11 +93,22 @@ export function glyphs(el) {
      in English), and it is pinned to one font-size (so raising 10px to 11px burst them all over again).
      Both defects shipped, twice. A box that MEASURES cannot be wrong about any language or any size.
 
-     Draws the text first, reads its real bbox, then inserts the rect BEHIND it. Requires the SVG to be
-     in the document — which it is, under every driver we have. */
+     Draws the text first, reads its real bbox, then inserts the rect BEHIND it.
+
+     IT IS NOT ENOUGH FOR THE SVG TO BE IN THE DOCUMENT — IT MUST BE RENDERED. Inside a display:none
+     subtree getBBox() returns {0,0,0,0}, so the box comes out padding-sized and pinned to the origin: a
+     26×12 rectangle in the figure's top-left corner, and it STAYS there, because nothing measures twice.
+     That is not a hypothetical — deck.js's fitAllSlides() strips is-active from every slide to re-measure
+     them one by one after the fonts land, and any figure that (re)draws in that window draws itself blind.
+     So refuse: a measurement that cannot be taken must not be silently rounded down to zero. The factory
+     already declines to paint a hidden host; this is the backstop for every other driver. */
   function tagBox(parent, cx, cy, s, boxCls, txtCls, padX = 9, padY = 5, anchor = 'middle') {
     const t = text(parent, cx, cy, s, txtCls, anchor);
     const b = t.getBBox();
+    if (String(s).trim() && b.width === 0) {
+      throw new Error(`_ncd.tagBox("${s}"): measured a 0-width box — the figure is being drawn inside a `
+        + `hidden subtree, where getBBox() lies. Every measured box would collapse onto the origin.`);
+    }
     const r = el('rect', { class: boxCls, x: b.x - padX, y: b.y - padY,
       width: b.width + padX * 2, height: b.height + padY * 2, rx: 5 }, parent);
     parent.insertBefore(r, t);      // behind the glyphs, never over them
@@ -122,16 +133,39 @@ export function glyphs(el) {
   // a dashed region making a broadcast axis concrete, with a corner tag
   function region(parent, x, y, w, h, tag, regionCls, tagCls, txtCls) {
     el('rect', { class: regionCls, x, y, width: w, height: h, rx: 14 }, parent);
-    // the tag rides ABOVE the border, and MEASURES itself (it used to guess chars × 6.3px and burst in
-    // Cyrillic; it also used to straddle the region's own stroke, which the detector reads as a collision)
-    const t = text(parent, x + 24, y - 6, tag, txtCls, 'start');
-    const b = t.getBBox();
-    const r = el('rect', { class: tagCls, x: b.x - 9, y: b.y - 4,
-      width: b.width + 18, height: b.height + 8, rx: 6 }, parent);
-    parent.insertBefore(r, t);
+    // The tag rides ABOVE the border and MEASURES itself — via tagBox, not a copy of it. It used to
+    // carry its own inline measure, which is how it quietly dodged tagBox's guard and kept collapsing
+    // onto the origin when it was drawn into a subtree that could not be measured. One measured box in
+    // the codebase, or the guard protects only the callers that happened to use it.
+    tagBox(parent, x + 24, y - 6, tag, tagCls, txtCls, 9, 4, 'start');
+  }
+  /* legend — the key line under a figure, WRAPPED BY MEASUREMENT.
+     It used to be one long <text> tuned by eye until it looked like it fit. That makes it a hostage to
+     font metrics: the same Russian string that sits comfortably inside the frame on macOS renders a few
+     px wider under CI's Linux Chromium and pokes out of it — a defect that is invisible on the machine
+     that authored it and HARD-fails on the machine that ships it. Legends are already written as items
+     joined by ' · ', so pack those items into lines that MEASURE under maxW, and stack them. */
+  function legend(parent, cx, y, s, cls, maxW, lh = 15) {
+    const items = String(s).split(' · ');
+    const probe = text(parent, -9999, -9999, '', cls);    // one throwaway, measured then discarded
+    const fits = (str) => { probe.textContent = str; return probe.getBBox().width <= maxW; };
+    const lines = [];
+    let cur = '';
+    for (const it of items) {
+      const next = cur ? `${cur} · ${it}` : it;
+      if (cur && !fits(next)) { lines.push(cur); cur = it; } else cur = next;
+    }
+    if (cur) lines.push(cur);
+    probe.remove();
+    // BOTTOM-ANCHORED: the last line lands on y and the wrap grows UPWARD, into the figure's own
+    // bottom margin. A legend sits a few px above the frame's edge by design, so growing downward
+    // would trade an overflowing line for an overflowing frame — the same defect, one step later.
+    const y0 = y - (lines.length - 1) * lh;
+    lines.forEach((ln, i) => text(parent, cx, y0 + i * lh, ln, cls));
+    return lines.length;
   }
   const fmt3 = (x) => (typeof x !== 'number' ? '' : Number.isInteger(x) ? String(x) : x.toFixed(3));
-  return { text, wire, path, chippedL, cup, tri, hexagon, pentagon, box, chips, weave, region, tagBox, fmt3 };
+  return { text, wire, path, chippedL, cup, tri, hexagon, pentagon, box, chips, weave, region, tagBox, legend, fmt3 };
 }
 
 /* shapeTable(obj) — the ONE place a widget names its axes.
