@@ -85,18 +85,17 @@ export function defineWidget({ id, maxStep, render, rootClass, exportName, fade 
     }
     host.innerHTML = '';
 
-    // Figure-specific layers (drawn by the widget). May return an update(step) callback.
-    // Extra mount args (e.g. pairId) are spread onto ctx so render() can read them.
-    const ctx = { host, data, labels, el: svgEl, svg: svgEl, esc, fmt, maxStep: MAX, ...rest };
-    const update = render(ctx);
+    /* THE LABEL MAP IS ONE OBJECT FOR THE WIDGET'S WHOLE LIFE — mutated in place on a language
+       switch, NEVER replaced. This shape is load-bearing: render() closes over `ctx.labels`, so
+       handing it a fresh object on a switch would leave every label render() drew frozen at the
+       language the widget booted in. That is exactly the bug this used to have — the deck flips
+       `data-lang`, the caption followed, and the figure silently did not. */
+    const base = { ...labels };            // non-step keys (alt/role/…) — they survive every swap
+    const active = labels;                 // === ctx.labels, BY IDENTITY. Do not reassign.
+    const i18nAll = (rest && rest.i18nAll && typeof rest.i18nAll === 'object') ? rest.i18nAll : null;
 
-    // Accessibility: every figure should expose a text alternative. SVG widgets set role/aria-label
-    // on their own <svg>; DOM-only figures (no [role="img"] descendant) get it on the host here,
-    // sourced from the trilingual i18n `alt` key (falls back gracefully if absent).
-    if (labels && labels.alt && !host.querySelector('[role="img"]')) {
-      host.setAttribute('role', 'img');
-      host.setAttribute('aria-label', labels.alt);
-    }
+    // Extra mount args (e.g. pairId) are spread onto ctx so render() can read them.
+    const ctx = { host, data, labels: active, el: svgEl, svg: svgEl, esc, fmt, maxStep: MAX, ...rest };
 
     // Caption + counter scaffold — appended AFTER the figure layers, unless the widget renders
     // its own (scaffold:false), in which case the factory leaves all caption/counter DOM to it.
@@ -104,25 +103,52 @@ export function defineWidget({ id, maxStep, render, rootClass, exportName, fade 
     if (scaffold) {
       cap = document.createElement('div');
       cap.className = 'wgt-caption';
-      host.appendChild(cap);
       counter = document.createElement('div');
       counter.className = 'wgt-counter';
-      host.appendChild(counter);
     }
 
-    // The active label map. Defaults to the (single-language) `labels` the driver passed. If the
-    // caller also handed us a trilingual bundle on ctx.i18nAll ({en:{…},ru:{…},tt:{…}} of FLAT
-    // s0/s1/… maps), we can swap it live on a language switch (TRICK 2) and lock to the tallest
-    // language (TRICK 1). Absent that bundle we degrade gracefully — see below.
-    const i18nAll = (rest && rest.i18nAll && typeof rest.i18nAll === 'object') ? rest.i18nAll : null;
-    let active = labels;
+    /* paint() draws the figure from scratch. It runs at mount AND on every language switch — not
+       just update(step) — because a widget draws its STATIC labels (axis names, box captions, the
+       ledger) in the render() body and only its per-step text inside update(). Swapping the map and
+       re-running update alone would repaint the moving half of the figure and leave the rest in the
+       boot language. Re-running render() is safe by construction: no widget's render() attaches a
+       global listener or appends outside `host` (nothing to duplicate, nothing to leak). */
+    /* A HIDDEN HOST CANNOT BE MEASURED, SO IT MUST NOT BE PAINTED. Inside a display:none subtree every
+       geometry API answers zero — getBBox(), getBoundingClientRect(), getComputedTextLength() — so a
+       figure that sizes anything by measuring (which is the whole point of the NCD tag boxes) draws
+       itself blind and pins its labels to the origin. It then NEVER re-measures, so the damage is
+       permanent and, because it depends on WHEN the paint happened, intermittent.
+       This is not hypothetical: deck.js's fitAllSlides() strips is-active from every slide to re-measure
+       them one at a time after the fonts land, and both repaint triggers below (fonts, language) fire
+       asynchronously — i.e. exactly into that window, or onto a slide the presenter has already left.
+       So: paint only into a rendered host, and remember the debt. setStep() settles it the moment the
+       host is shown — which the deck does on slide:enter and the Book on scroll, so nothing is ever lost. */
+    const rendered = () => host.getClientRects().length > 0;
+    let dirty = false;
+
+    let update = null;
+    function paint() {
+      if (!rendered()) { dirty = true; return; }   // measure nothing; owe a paint
+      dirty = false;
+      host.innerHTML = '';
+      update = render(ctx);
+      // Accessibility: every figure exposes a text alternative. SVG widgets set role/aria-label on
+      // their own <svg>; DOM-only figures (no [role="img"] descendant) get it on the host here.
+      if (active.alt && !host.querySelector('[role="img"]')) {
+        host.setAttribute('role', 'img');
+        host.setAttribute('aria-label', active.alt);
+      }
+      if (scaffold) { host.appendChild(cap); host.appendChild(counter); }
+    }
+    paint();
 
     let step = -1;
     function setStep(k) {
       k = Math.max(0, Math.min(MAX, k | 0));
-      const same = (k === step);
+      let same = (k === step);
       step = k;
       host.dataset.step = String(k);
+      if (dirty) { paint(); same = false; }        // settle a paint we owed a hidden host — it is visible now
       if (typeof update === 'function' && !same) update(k); // figure layers: only redraw on real move
       if (scaffold) {
         cap.textContent = active['s' + k] || '';
@@ -130,6 +156,24 @@ export function defineWidget({ id, maxStep, render, rootClass, exportName, fade 
       }
     }
     setStep(0);
+
+    /* REPAINT ONCE THE FONTS ARE SHAPED. A figure that sizes a box by MEASURING its label (getBBox)
+       is only correct if that label has been laid out in its real font. Mount before the webfont
+       arrives and getBBox returns a 0×0 box, so the box gets built around the ORIGIN: the label becomes
+       a tiny rectangle pinned to the figure's top-left corner — and it stays there, because nothing
+       ever measures again. The deck mounts a widget on slide:enter, which can easily beat the font.
+       It is intermittent by construction, which is exactly how it survives review: whoever looks, looks
+       a second too late, sees a correct figure, and moves on. (slide-viz caught it; my own eyes did not.)
+       So: if the fonts were not ready when we drew, draw again when they are. */
+    if (typeof document !== 'undefined' && document.fonts && document.fonts.status !== 'loaded') {
+      document.fonts.ready.then(() => {
+        const at = step;
+        paint();
+        step = -1;
+        setStep(at);
+        lockCaptionHeight();
+      });
+    }
 
     /* ── TRILINGUAL-UX ROBUSTNESS (both tricks live in the factory, so every widget inherits them) ──
        Vanilla, offline, dependency-free. Feature-detected: each piece no-ops when its precondition
@@ -162,9 +206,9 @@ export function defineWidget({ id, maxStep, render, rootClass, exportName, fade 
     /* TRICK 2 — re-render-on-language-switch. The Book mounts one page PER language (full reload), so
        this matters for surfaces that toggle in place: the deck flips document.documentElement's
        `data-lang` and lets CSS swap static [lang] spans — but text a widget GENERATES (its captions,
-       and labels its render() drew) won't follow. We watch that attribute and, if we were given a
-       trilingual bundle, swap to the new language's flat label map and re-run render + setStep at the
-       SAME step so generated text regenerates. With no bundle (or no in-place switch) it's a no-op. */
+       and every label its render() drew) won't follow. We watch that attribute and, if we were given
+       a trilingual bundle, mutate the label map IN PLACE and re-run render() at the SAME step, so the
+       whole figure regenerates. With no bundle (or no in-place switch) it's a no-op. */
     let obs = null;
     if (typeof MutationObserver === 'function' && typeof document !== 'undefined' && document.documentElement) {
       const rootEl = document.documentElement;
@@ -175,11 +219,15 @@ export function defineWidget({ id, maxStep, render, rootClass, exportName, fade 
         if (lang === curLang) return;
         curLang = lang;
         if (i18nAll && i18nAll[lang]) {
-          active = { ...labels, ...i18nAll[lang] }; // keep non-step keys (alt/role/…), swap step text
-          const at = step; step = -1;               // force setStep to repaint (update + caption) once
-          setStep(at);                              // regenerates render()'s labels AND the caption
+          // Mutate the object render() closed over. Replacing it would repaint nothing.
+          for (const k of Object.keys(active)) delete active[k];
+          Object.assign(active, base, i18nAll[lang]); // non-step keys survive; step text swaps
+          const at = step;
+          paint();                                    // redraw every label the figure owns
+          step = -1;                                  // force setStep to repaint caption + layers once
+          setStep(at);                                // …at the step the presenter was already on
         }
-        lockCaptionHeight();                         // re-pin for the new language's text lengths
+        lockCaptionHeight();                          // re-pin for the new language's text lengths
       });
       obs.observe(rootEl, { attributes: true, attributeFilter: ['data-lang', 'lang'] });
     }
