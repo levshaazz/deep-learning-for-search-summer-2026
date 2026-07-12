@@ -1,0 +1,27 @@
+<section class="slide" data-type="definition" data-screen-label="14d Notation · what it buys you">
+          <div class="slide-header">
+            <h2><span lang="ru">Лучший баг — тот, который никогда не падает</span><span lang="en">The best bug is the one that never crashes</span></h2>
+            <span class="slide-kicker"><span lang="ru">что покупает нотация · и зачем мы потратили на неё три слайда</span><span lang="en">what the notation buys · and why it was worth three slides</span></span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag"><span lang="ru">Отладка</span><span lang="en">Debugging</span></span>
+            <div class="def-term"><span lang="ru">Баг, сохраняющий форму</span><span lang="en">The shape-preserving bug</span><span class="term-en">\(n\times n \to n\times n\)</span></div>
+            <div class="def-body">
+              <p><span lang="ru">softmax, нормированный <strong>не по той оси</strong>, форму <em>сохраняет</em>: вошло \(n\times n\) — вышло \(n\times n\). Каждая проверка формы во всём стеке пройдёт. Ничего не упадёт. Модель просто выучит бессмыслицу — молча, за тысячи GPU-часов.</span><span lang="en">A softmax normalised <strong>over the wrong axis</strong> is <em>shape-preserving</em>: \(n\times n\) in, \(n\times n\) out. Every shape assertion in your stack passes. Nothing crashes. The model simply learns nonsense — silently, over thousands of GPU-hours.</span></p>
+              <p class="small muted"><span lang="ru">Единственное, что вам об этом скажет, — <strong>ориентация треугольника</strong>: раскрыт поперёк оси ключей (в единицу суммируется <em>строка</em>) или поперёк оси запросов (в единицу суммируется <em>столбец</em>). В формуле этого нет. На схеме это видно за секунду.</span><span lang="en">The only thing that can tell you is <strong>the orientation of the triangle</strong>: does it open across the key axis (a <em>row</em> sums to one) or across the query axis (a <em>column</em> sums to one)? The formula does not record it. The diagram shows it in a second.</span></p>
+            </div>
+          </div>
+          <table class="cmp-table">
+            <thead><tr><th><span lang="ru">Поломка</span><span lang="en">Breakage</span></th><th><span lang="ru">Падает?</span><span lang="en">Crashes?</span></th><th><span lang="ru">Что её ловит</span><span lang="en">What catches it</span></th></tr></thead>
+            <tbody>
+              <tr><td><span lang="ru">\(K\) не транспонирован</span><span lang="en">\(K\) is not transposed</span></td><td class="cell-good"><span lang="ru">да, сразу</span><span lang="en">yes, at once</span></td><td><span lang="ru">любая проверка формы (чаша не сходится)</span><span lang="en">any shape check (the cup does not close)</span></td></tr>
+              <tr><td><span lang="ru">softmax по неверной оси</span><span lang="en">softmax over the wrong axis</span></td><td class="cell-bad"><span lang="ru"><strong>нет, никогда</strong></span><span lang="en"><strong>no, never</strong></span></td><td><span lang="ru"><strong>только ориентация треугольника</strong></span><span lang="en"><strong>only the orientation of the triangle</strong></span></td></tr>
+              <tr><td><span lang="ru">головы так и не собрали</span><span lang="en">the heads were never merged</span></td><td class="cell-meh"><span lang="ru">да, но этажом позже</span><span lang="en">yes, but one floor later</span></td><td><span lang="ru">проверка формы в <em>следующем</em> блоке</span><span lang="en">a shape check in the <em>next</em> block</span></td></tr>
+            </tbody>
+          </table>
+          <p class="small muted center mt-2"><span lang="ru">Отсюда правило: отказ — это <strong>недостающий или повёрнутый глиф</strong>, а не загадка. Нотация выучена; дальше мы ею просто <em>пользуемся</em>.</span><span lang="en">Hence the rule: a failure is <strong>a missing or a turned glyph</strong>, not a mystery. The notation is learned; from here we simply <em>use</em> it.</span></p>
+          <aside class="slide-notes">Close the notation interlude by paying it off, because a tool has to earn its keep. Three ways to break attention. Forget to transpose K, and the contraction cup tries to join an axis of size four to an axis of size three — the wires do not meet, and any shape check anywhere catches it in a second. Forget to merge the heads back, and the block emits h by n by sixty-four where the next block expects n by seven sixty-eight — it crashes, just one floor later than you would like. But the second one is the reason we are here. Normalise the softmax over the query axis instead of the key axis, and the tensor is n by n going in and n by n coming out. Nothing changes shape. Every assertion in your stack passes, nothing crashes, no stack trace appears — and the model quietly learns nonsense, for as many GPU-hours as you are willing to pay for. The formula does not record which axis was normalised. The einsum string does not either. The only thing in the entire pipeline that can tell you is the orientation of that triangle: opened across the keys, a row sums to one; turned a quarter turn, a column sums to one. That is the trade we just made. Three slides of glyphs, in exchange for bugs that are visible instead of silent. From here on, we use the notation and do not talk about it again.</aside>
+        </section>
+
+        <!-- ============================================ 15 · FORMULA · the attention formula ============================================ -->
+        

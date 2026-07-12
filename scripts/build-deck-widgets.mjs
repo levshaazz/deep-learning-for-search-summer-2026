@@ -34,7 +34,8 @@ const DECK_WIDGETS = ['course-map',
   'ragas-metrics', 'llm-judge', 'agentic-loop',          // L11 "Judging the Oracle" deck-mounted figures
   'graphrag', 'clip-matrix',                             // L12 "The Deep Field" deck-mounted figures (rag-control-flow reused for CRAG/self-RAG callback)
   'infonce-calc', 'hardness-sphere', 'mining-comparator', 'impostor-denoise',  // L13 "The Crucible of Negatives" deck-mounted figures
-  'hyde-embed', 'query-rewriter', 'rrf-fusion'];  // L14 "The Artificer's Quill" deck-mounted figures (rrf-fusion reused from L3)
+  'hyde-embed', 'query-rewriter', 'rrf-fusion',  // L14 "The Artificer's Quill" deck-mounted figures (rrf-fusion reused from L3)
+  'ncd-einsum', 'ncd-attention'];                // L6 neural-circuit-diagram notation: the grammar proof (14c) + the n×n memory bill (22a)
 
 for (const id of DECK_WIDGETS) {
   await build({
@@ -79,6 +80,12 @@ const mountRule =
   '.slide .widget-mount[data-widget="hyde-embed"]         { max-width: min(1120px, 62cqw); }\n' +
   '.slide .widget-mount[data-widget="query-rewriter"]     { max-width: min(1200px, 66cqw); }\n' +
   '.slide .widget-mount[data-widget="rrf-fusion"]         { max-width: min(1120px, 60cqw); }\n' +
+  // NCD figures are 820-unit-wide viewBoxes flanked by a ~27% ledger (widgets/_base.css) — WIDER than the
+  // ~500-unit widgets above, and the ledger only stays BESIDE the diagram above a 1000px container query.
+  // So run them wide: at 1560px the SVG still gets ~1120px (an authored 11px label → ~15px effective) and
+  // the 820×292 / 820×344 boxes land at ~400 / ~470px tall — big inside the ~830px figure band, no overflow.
+  '.slide .widget-mount[data-widget="ncd-einsum"]         { max-width: min(1560px, 82cqw); }\n' +
+  '.slide .widget-mount[data-widget="ncd-attention"]      { max-width: min(1560px, 82cqw); }\n' +
   // the cascade is HTML (not an autoscaling SVG): bump its type + bar height DECK-ONLY so it reads big on
   // 1920 without enlarging it in the narrower Book column.
   // size via calc(var(--fz-…)*k) so the font-gate sees an on-scale token (raw px/rem literals would HARD-fail it)
@@ -87,6 +94,18 @@ const mountRule =
   '.slide .widget-mount[data-widget="neural-cascade"] .nc-name { font-size: calc(var(--fz-small, .9rem) * 1.7); }\n' +
   '.slide .widget-mount[data-widget="neural-cascade"] .nc-count{ font-size: calc(var(--fz-body, 1rem) * 1.7); }\n' +
   '.slide .widget-mount[data-widget="neural-cascade"] .nc-desc { font-size: calc(var(--fz-body, 1rem) * 1.05); max-width: 64ch; }\n' +
+  // The NCD LEDGER, deck-side. Two defects the Book never sees, both from the DECK's own cascade:
+  //  (a) the note is a <p>, so the deck's generic `.slide p { font-size: var(--fs-body) }` (38px) BEAT the
+  //      widget's own `.ncd-lg-note { var(--fz-tiny) }` on specificity. The note wrapped to ~745px tall in a
+  //      308px column, the ledger grew to 977px, `.slide-body` hit 1467px, and autofit SHRANK the whole slide
+  //      — so the diagram, the thing that matters, rendered small. Sizing the note gives the figure its height
+  //      back (measured: ledger 977px → ~450px, no autofit downscale).
+  //  (b) the widget's `--fz-*` tokens DO NOT EXIST in the deck (its scale is `--fs-*`), so the ledger rows and
+  //      header silently fell back to their .9rem/.8rem literals — 14.4px/12.8px, unreadable from a hall.
+  //      Re-anchor them to the deck's OWN scale token so they ride the deck's type ramp (never a raw px — G2b).
+  '.slide .widget-mount .ncd-lg-note { font-size: calc(var(--fs-small) * 0.72); }\n' +
+  '.slide .widget-mount .ncd-lg-row  { font-size: calc(var(--fs-small) * 0.62); }\n' +
+  '.slide .widget-mount .ncd-lg-h    { font-size: calc(var(--fs-small) * 0.50); }\n' +
   '.slide .widget-mount .wgt-caption, .slide .widget-mount .wgt-counter { display: none; }\n';
 const cssParts = [mountRule, readFileSync(join(ROOT, 'widgets', '_base.css'), 'utf8')];
 for (const id of DECK_WIDGETS) cssParts.push(readFileSync(join(ROOT, 'widgets', id, 'style.css'), 'utf8'));

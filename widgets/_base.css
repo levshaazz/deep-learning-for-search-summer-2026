@@ -27,10 +27,15 @@
 .ncd-stagewrap { container-type: inline-size; width: 100%; }
 .ncd-stage { display: flex; gap: var(--ws-2, 1rem); align-items: flex-start; width: 100%; }
 .ncd-stage > svg { flex: 1 1 auto; min-width: 0; }
-/* Narrow column (Book, a gallery card): the ledger drops BELOW the diagram instead of stealing the
-   width its labels need. A container query, not a media query — what matters is the space the widget
-   was given, not the size of the window. */
-@container (max-width: 680px) {
+/* The ledger drops BELOW the diagram whenever the widget has less than ~1000px to work with, instead of
+   stealing the 27% of width its labels need. A container query, not a media query — what matters is the
+   space the WIDGET was given, not the size of the window.
+   Why 1000 and not 680: an NCD figure is 800–880 user units wide, so its authored 11px label renders at
+   11 × (rendered ÷ viewBox). At the Book's full-bleed width (976px) with the ledger beside it the SVG
+   gets ~700px → 9.3px; with the ledger below it gets the full 976 → 13.1px. Vertical space is cheap in a
+   scrollytelling column and horizontal space is not. On a 1460px deck mount the ledger stays beside the
+   diagram, where it belongs. */
+@container (max-width: 1000px) {
   .ncd-stage { flex-direction: column; }
   .ncd-lg { flex: 1 1 auto; width: 100%; }
 }

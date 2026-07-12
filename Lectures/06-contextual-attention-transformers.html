@@ -390,6 +390,117 @@
           <aside class="slide-notes">The climb. We now turn the query-key-value metaphor into the one formula that runs every Transformer: attention equals softmax of Q K transpose over root d k, times V. We will build it on a tiny, fully worked example — three tokens, the cat sat, with a key dimension of four — and watch every number, from the raw scores through scaling, softmax, and the final weighted sum. These are the exact figures from today's data file, so you can reproduce each step on paper.</aside>
         </section>
 
+        <!-- ==== NOTATION INTERLUDE (14a–14d) · the neural circuit diagram: a TOOL, taught once, then used ==== -->
+        <!-- ============================================ 14a · MISCONCEPTION · why a formula is not enough ============================================ -->
+        <section class="slide" data-type="misconception" data-screen-label="14a Notation · why a formula is not enough">
+          <div class="slide-header">
+            <h2><span lang="ru">Формула не показывает цену</span><span lang="en">A formula does not show you the cost</span></h2>
+            <span class="slide-kicker"><span lang="ru">формула говорит, ЧТО считать — но не СКОЛЬКО это стоит</span><span lang="en">a formula says WHAT to compute — never what it COSTS</span></span>
+          </div>
+          <div class="misc-card">
+            <div class="misc-label"><span lang="ru">Что думают студенты</span><span lang="en">What students think</span></div>
+            <p class="misc-statement"><span lang="ru">&laquo;В формуле написано всё, что нужно знать об операции&raquo;.</span><span lang="en">&ldquo;The formula says everything there is to know about the operation.&rdquo;</span></p>
+            <button class="misc-reveal-btn" type="button"><span lang="ru">Показать правду</span><span lang="en">Reveal truth</span></button>
+            <div class="misc-truth"><span lang="ru">Нет. Формула говорит, <strong>что</strong> вычислить, но не говорит, <strong>сколько это стоит</strong> — и не может показать ошибку. Ось \(n\times n\) в записи \(\mathrm{softmax}(QK^\top/\sqrt{d_k})V\) <em>не написана нигде</em>: она рождается внутри \(QK^\top\), живёт через softmax и умирает при умножении на \(V\). Между рождением и смертью — весь счёт за память. По какой оси нормирует softmax, из формулы тоже не видно.</span><span lang="en">No. A formula tells you <strong>what</strong> to compute; it does not tell you <strong>what it costs</strong> — and it cannot show you a bug. The \(n\times n\) axis is <em>written nowhere</em> in \(\mathrm{softmax}(QK^\top/\sqrt{d_k})V\): it is born inside \(QK^\top\), survives the softmax, and dies against \(V\). Between its birth and its death sits the entire memory bill. Nor does the formula say which axis the softmax normalises over.</span>
+              <p class="misc-anchor"><strong><span lang="ru">Урок.</span><span lang="en">Lesson.</span></strong> <span lang="ru">Нужна запись, в которой ось <em>видна</em>. Это neural circuit diagram: провод — ось, глиф — операция над ней. Инструмент, а не тема: выучим за три слайда и дальше будем просто им пользоваться.</span><span lang="en">We need a notation in which the axis is <em>visible</em>. That is the neural circuit diagram: a wire is an axis, a glyph is an operation on it. A tool, not a topic: three slides to learn it, and then we simply use it.</span></p>
+            </div>
+          </div>
+          <aside class="slide-notes">Before the formula arrives, earn the notation. A formula is a recipe: it tells you what to compute, in what order. What it does not tell you is what the computation costs, and it cannot show you a bug. Look at softmax of Q K transpose over root d k, times V. Every symbol in it refers to a matrix you have — Q, K, V — and yet the object that dominates the memory of every Transformer you will ever train, the n by n score matrix, appears nowhere as a named thing. It is born the moment you write Q K transpose, it persists through the softmax, and it is destroyed the moment you multiply by V. That birth and death is invisible in the algebra. Worse: the formula does not even record which axis the softmax normalises over — and, as we will see in three slides, getting that wrong does not crash anything. So for the next three slides we learn a notation in which an axis is a thing you can point at: a wire. This is a tool, not a topic. We teach it once, briefly, and then simply use it for the rest of the course.</aside>
+        </section>
+
+        <!-- ============================================ 14b · TABLE · the glyph vocabulary ============================================ -->
+        <section class="slide" data-type="table" data-screen-label="14b Notation · the glyph vocabulary">
+          <div class="slide-header">
+            <h2><span lang="ru">Словарь: шесть глифов</span><span lang="en">The vocabulary: six glyphs</span></h2>
+            <span class="slide-kicker"><span lang="ru">провод — ось; глифы — что с ней делают · Abbott, 2024</span><span lang="en">a wire is an axis; glyphs act on it · Abbott, 2024</span></span>
+          </div>
+          <table class="cmp-table">
+            <thead><tr><th><span lang="ru">Глиф</span><span lang="en">Glyph</span></th><th><span lang="ru">Что это</span><span lang="en">What it is</span></th><th><span lang="ru">Что происходит с осью</span><span lang="en">What happens to the axis</span></th></tr></thead>
+            <tbody>
+              <tr><td><span lang="ru"><strong>провод</strong></span><span lang="en"><strong>wire</strong></span></td><td><span lang="ru">ось тензора</span><span lang="en">a tensor axis</span></td><td><span lang="ru">ось <strong>живёт</strong>; её имя — буква (\(n\), \(d\), \(h\))</span><span lang="en">the axis <strong>lives</strong>; its name is a letter (\(n\), \(d\), \(h\))</span></td></tr>
+              <tr><td><span lang="ru"><strong>чаша</strong> ∪</span><span lang="en"><strong>cup</strong> ∪</span></td><td><span lang="ru">стягивание (\(\Sigma\) по оси)</span><span lang="en">a contraction (\(\Sigma\) over an axis)</span></td><td class="cell-bad"><span lang="ru">ось <strong>умирает</strong> — здесь и только здесь</span><span lang="en">the axis <strong>dies</strong> — here and only here</span></td></tr>
+              <tr><td><span lang="ru"><strong>треугольник</strong> \(\sigma\)</span><span lang="en"><strong>triangle</strong> \(\sigma\)</span></td><td><span lang="ru">softmax</span><span lang="en">softmax</span></td><td class="cell-good"><span lang="ru">нормирует <strong>поперёк</strong> оси, не съедая её — форма не меняется</span><span lang="en">normalises <strong>across</strong> an axis without eating it — the shape is unchanged</span></td></tr>
+              <tr><td><span lang="ru"><strong>скошенный прямоугольник</strong></span><span lang="en"><strong>chipped rectangle</strong></span></td><td><span lang="ru">обучаемая линейная операция</span><span lang="en">a learned linear op</span></td><td><span lang="ru">ось <strong>меняет длину</strong>: \(m \to d\) (скос показывает, где вход)</span><span lang="en">the axis <strong>changes length</strong>: \(m \to d\) (the chip marks the input side)</span></td></tr>
+              <tr><td><span lang="ru"><strong>шестиугольник</strong></span><span lang="en"><strong>hexagon</strong></span></td><td><span lang="ru">переиндексация: срез, маска, top-k</span><span lang="en">a reindex: slice, mask, top-k</span></td><td><span lang="ru">ось <strong>остаётся</strong>, но её элементы переставлены или обрезаны</span><span lang="en">the axis <strong>survives</strong>, but its entries are permuted or cut</span></td></tr>
+              <tr><td><span lang="ru"><strong>пунктирная область</strong></span><span lang="en"><strong>dashed region</strong></span></td><td><span lang="ru">broadcast (голова, батч)</span><span lang="en">a broadcast (head, batch)</span></td><td class="cell-meh"><span lang="ru">ось <strong>оплетает</strong> всё внутри — и <strong>умножает</strong> его цену</span><span lang="en">the axis <strong>wraps</strong> everything inside — and <strong>multiplies</strong> its cost</span></td></tr>
+            </tbody>
+          </table>
+          <p class="small muted center mt-2"><span lang="ru">Одно правило на всю нотацию: <strong>следите за осью</strong>. Родилась — умерла — оплетена. Всё остальное — грамматика.</span><span lang="en">One rule for the whole notation: <strong>follow the axis</strong>. Born — killed — wrapped. Everything else is grammar.</span></p>
+          <aside class="slide-notes">The whole vocabulary on one card — six glyphs, and you never need a seventh. A wire is an axis of a tensor, and its name is a letter: n for tokens, d for the head dimension, h for heads. Everything else in the notation describes what is being done to a wire. A cup — the little u-shape where two wires meet and end — is a contraction: a sum over that axis, which is to say the axis dies there. That is the only glyph that kills an axis, which is why your eye should go to it first. A triangle marked sigma is a softmax: it normalises across an axis but does not consume it, so the shape that goes in is the shape that comes out — remember that, it is the trap on the fourth slide. A chipped rectangle is a learned linear map; the chipped corner tells you which side is the input, so the diagram never becomes ambiguous under reflection. A hexagon is a reindex — a slice, a mask, a top-k — the axis survives, but its entries have been permuted or cut. And a dashed region is a broadcast: an axis that wraps around everything drawn inside it, which is how heads and batches appear. Note the word wraps, and remember it costs: whatever is inside gets multiplied by the size of that axis.</aside>
+        </section>
+
+        <!-- ============================================ 14c · VIZ · the circuit IS the einsum ============================================ -->
+        <section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="14c Notation · the circuit IS the einsum">
+          <div class="slide-header">
+            <h2><span lang="ru">Схема — это и есть einsum</span><span lang="en">The circuit IS the einsum</span></h2>
+            <span class="slide-kicker"><span lang="ru">шаг (&larr;/&rarr;): индекс, который есть слева от стрелки и <em>нет</em> справа, — стянут</span><span lang="en">step (&larr;/&rarr;): an index that is on the left of the arrow and <em>not</em> on the right has been contracted</span></span>
+          </div>
+          <div class="widget-mount" data-widget="ncd-einsum"></div>
+          <script class="widget-data" type="application/json">
+{
+  "data": {},
+  "i18n": {
+    "ru": {
+      "alt": "Одно и то же стягивание, записанное тремя способами сразу: как схема, как строка индексов einsum и как формула со знаком суммы. Один индекс подсвечен во всех трёх панелях: буква d стоит слева от стрелки дважды и справа ни разу — это и есть чаша на схеме и сигма в формуле.",
+      "paneDiagram": "схема", "paneEinsum": "einsum", "paneFormula": "формула",
+      "cupEats": "чаша съедает d", "cupEatsM": "чаша съедает m", "acrossM": "поперёк m — но не съедает",
+      "same": "одно и то же утверждение",
+      "lgTitle": "индекс", "lgIn": "входы", "lgOut": "выход",
+      "lgSurvives": "повторился и выжил", "lgDies": "повторился и исчез", "lgFree": "свободный, выжил",
+      "lgTherefore": "значит", "lgCup": "чаша", "lgNoCup": "чаши нет", "lgShape": "значит форма",
+      "lgNormOver": "нормируем поперёк", "lgContracted": "стянуто", "lgNothing": "ничего",
+      "lgN0": "Читайте строку, а не картинку: d стоит СЛЕВА от стрелки дважды и СПРАВА — ни разу. Это и есть определение стягивания, целиком. Чаша на схеме и Σ в формуле — ещё два способа записать ровно это.",
+      "lgN1": "Буквы, которые СТОЯТ справа, — это провода, выходящие из схемы, и, прочитанные по порядку, они буквально и есть форма выхода. n×m. Строка индексов — не мнемоника для формы; она И ЕСТЬ форма.",
+      "lgN2": "softmax здесь белая ворона: он работает ПОПЕРЁК m, но не съедает его — вошло nm, вышло nm. Ни одна буква не исчезла, значит и чаши нет. Поэтому треугольник — отдельный глиф: он перевзвешивает ось, а не поедает её.",
+      "lgN3": "Второе стягивание — и то же правило: m повторяется слева, отсутствует справа, значит умирает в чаше. Внимание — это два стягивания с softmax между ними, и доказать это можно по одним только строкам индексов."
+    },
+    "en": {
+      "alt": "The same contraction written three ways at once: as a neural circuit diagram, as a PyTorch einsum subscript string, and as a formula with a summation sign. One index is highlighted across all three panes, so you can see that the letter d appears twice on the left of the einsum arrow and never on the right — which is precisely the cup in the diagram and the sigma in the formula.",
+      "paneDiagram": "the circuit", "paneEinsum": "the einsum", "paneFormula": "the formula",
+      "cupEats": "the cup eats d", "cupEatsM": "the cup eats m", "acrossM": "across m — not eaten",
+      "same": "the same statement",
+      "lgTitle": "the index", "lgIn": "inputs", "lgOut": "output",
+      "lgSurvives": "repeated, survives", "lgDies": "repeated, vanishes", "lgFree": "free, survives",
+      "lgTherefore": "therefore", "lgCup": "a cup", "lgNoCup": "no cup", "lgShape": "so the shape is",
+      "lgNormOver": "normalised across", "lgContracted": "contracted", "lgNothing": "nothing",
+      "lgN0": "Read the string, not the picture: d is on the LEFT of the arrow twice and on the RIGHT not at all. That is the entire definition of a contraction. The cup in the diagram and the Σ in the formula are two more ways of writing exactly that.",
+      "lgN1": "The letters that DO appear on the right are the wires that leave the circuit — and, read in order, they are literally the output shape. n×m. The subscript string is not a mnemonic for the shape; it IS the shape.",
+      "lgN2": "softmax is the odd one out: it works ACROSS m but does not consume it — nm goes in, nm comes out. No letter vanishes, so there is no cup. That is why the triangle is a different glyph: it re-weights an axis instead of eating it.",
+      "lgN3": "The second contraction, and the same rule: m is repeated on the left, missing on the right, so it dies at a cup. Attention is two contractions with a softmax wedged between them — and you can prove that from the subscript strings alone."
+    }
+  }
+}
+          </script>
+          <p class="viz-caption"><span lang="ru">Схема не <em>иллюстрирует</em> einsum — она <strong>и есть</strong> einsum. Индекс, который встречается во входах и отсутствует в выходе, <strong>стянут</strong>: это чаша на схеме, \(\Sigma\) в формуле и просто буква, которую вы не написали справа от стрелки. Поэтому нотацию можно <em>проверять</em>, а не только рассматривать.</span><span lang="en">The diagram does not <em>illustrate</em> the einsum — it <strong>is</strong> the einsum. An index that appears in the inputs and not in the output has been <strong>contracted</strong>: a cup in the diagram, a \(\Sigma\) in the formula, and a letter you simply did not write on the right of the arrow. That is what makes the notation checkable rather than decorative.</span></p>
+          <aside class="slide-notes">This is the slide that makes the notation worth its ten minutes. Three panes, one statement. Step zero: watch the letter d. In the einsum string it is on the left of the arrow twice — once in Q's n-d, once in K's m-d — and on the right it does not appear at all. That is the complete definition of a contraction, and it is exactly why the diagram has a cup there and the formula has a sigma there. The picture is not a picture of the einsum; the two are the same object written in different alphabets. Step one: the letters that survive on the right of the arrow are precisely the wires leaving the circuit, and read in order they are the output shape, n by m — so you never have to run the code to find out what came out. Step two is the exception that defines the triangle: softmax works across m but does not consume it, n by m goes in and n by m comes out, no letter vanishes, so there is no cup. Step three closes it: the second contraction, over m, obeys the same rule and gives the context. So attention is two contractions with a softmax wedged between them — and you can prove that from the subscript strings alone, without looking at a picture at all. That is checkability, and it is the whole reason we bothered.</aside>
+        </section>
+
+        <!-- ============================================ 14d · DEFINITION · what the notation buys ============================================ -->
+        <section class="slide" data-type="definition" data-screen-label="14d Notation · what it buys you">
+          <div class="slide-header">
+            <h2><span lang="ru">Лучший баг — тот, который никогда не падает</span><span lang="en">The best bug is the one that never crashes</span></h2>
+            <span class="slide-kicker"><span lang="ru">что покупает нотация · и зачем мы потратили на неё три слайда</span><span lang="en">what the notation buys · and why it was worth three slides</span></span>
+          </div>
+          <div class="def-card">
+            <span class="def-tag"><span lang="ru">Отладка</span><span lang="en">Debugging</span></span>
+            <div class="def-term"><span lang="ru">Баг, сохраняющий форму</span><span lang="en">The shape-preserving bug</span><span class="term-en">\(n\times n \to n\times n\)</span></div>
+            <div class="def-body">
+              <p><span lang="ru">softmax, нормированный <strong>не по той оси</strong>, форму <em>сохраняет</em>: вошло \(n\times n\) — вышло \(n\times n\). Каждая проверка формы во всём стеке пройдёт. Ничего не упадёт. Модель просто выучит бессмыслицу — молча, за тысячи GPU-часов.</span><span lang="en">A softmax normalised <strong>over the wrong axis</strong> is <em>shape-preserving</em>: \(n\times n\) in, \(n\times n\) out. Every shape assertion in your stack passes. Nothing crashes. The model simply learns nonsense — silently, over thousands of GPU-hours.</span></p>
+              <p class="small muted"><span lang="ru">Единственное, что вам об этом скажет, — <strong>ориентация треугольника</strong>: раскрыт поперёк оси ключей (в единицу суммируется <em>строка</em>) или поперёк оси запросов (в единицу суммируется <em>столбец</em>). В формуле этого нет. На схеме это видно за секунду.</span><span lang="en">The only thing that can tell you is <strong>the orientation of the triangle</strong>: does it open across the key axis (a <em>row</em> sums to one) or across the query axis (a <em>column</em> sums to one)? The formula does not record it. The diagram shows it in a second.</span></p>
+            </div>
+          </div>
+          <table class="cmp-table">
+            <thead><tr><th><span lang="ru">Поломка</span><span lang="en">Breakage</span></th><th><span lang="ru">Падает?</span><span lang="en">Crashes?</span></th><th><span lang="ru">Что её ловит</span><span lang="en">What catches it</span></th></tr></thead>
+            <tbody>
+              <tr><td><span lang="ru">\(K\) не транспонирован</span><span lang="en">\(K\) is not transposed</span></td><td class="cell-good"><span lang="ru">да, сразу</span><span lang="en">yes, at once</span></td><td><span lang="ru">любая проверка формы (чаша не сходится)</span><span lang="en">any shape check (the cup does not close)</span></td></tr>
+              <tr><td><span lang="ru">softmax по неверной оси</span><span lang="en">softmax over the wrong axis</span></td><td class="cell-bad"><span lang="ru"><strong>нет, никогда</strong></span><span lang="en"><strong>no, never</strong></span></td><td><span lang="ru"><strong>только ориентация треугольника</strong></span><span lang="en"><strong>only the orientation of the triangle</strong></span></td></tr>
+              <tr><td><span lang="ru">головы так и не собрали</span><span lang="en">the heads were never merged</span></td><td class="cell-meh"><span lang="ru">да, но этажом позже</span><span lang="en">yes, but one floor later</span></td><td><span lang="ru">проверка формы в <em>следующем</em> блоке</span><span lang="en">a shape check in the <em>next</em> block</span></td></tr>
+            </tbody>
+          </table>
+          <p class="small muted center mt-2"><span lang="ru">Отсюда правило: отказ — это <strong>недостающий или повёрнутый глиф</strong>, а не загадка. Нотация выучена; дальше мы ею просто <em>пользуемся</em>.</span><span lang="en">Hence the rule: a failure is <strong>a missing or a turned glyph</strong>, not a mystery. The notation is learned; from here we simply <em>use</em> it.</span></p>
+          <aside class="slide-notes">Close the notation interlude by paying it off, because a tool has to earn its keep. Three ways to break attention. Forget to transpose K, and the contraction cup tries to join an axis of size four to an axis of size three — the wires do not meet, and any shape check anywhere catches it in a second. Forget to merge the heads back, and the block emits h by n by sixty-four where the next block expects n by seven sixty-eight — it crashes, just one floor later than you would like. But the second one is the reason we are here. Normalise the softmax over the query axis instead of the key axis, and the tensor is n by n going in and n by n coming out. Nothing changes shape. Every assertion in your stack passes, nothing crashes, no stack trace appears — and the model quietly learns nonsense, for as many GPU-hours as you are willing to pay for. The formula does not record which axis was normalised. The einsum string does not either. The only thing in the entire pipeline that can tell you is the orientation of that triangle: opened across the keys, a row sums to one; turned a quarter turn, a column sums to one. That is the trade we just made. Three slides of glyphs, in exchange for bugs that are visible instead of silent. From here on, we use the notation and do not talk about it again.</aside>
+        </section>
+
         <!-- ============================================ 15 · FORMULA · the attention formula ============================================ -->
         <section class="slide" data-type="formula" data-screen-label="15 The attention formula">
           <div class="slide-header slide-header--flush">
@@ -950,6 +1061,80 @@
           </div>
           <p class="viz-caption"><span lang="ru">Матрица скоров \(QK^\top\) — это \(n\times n\): время растёт как \(O(n^2 d)\), а сама материализованная матрица скоров стоит \(O(n^2)\) памяти на голову — именно эту память убирает FlashAttention. При \(n=512\) это \({\sim}262\text{k}\) пар; при \(n=8\text{k}\) — \({\sim}67\text{M}\) — это и есть стена длинного контекста. Лечение: <strong>sparse</strong> (Longformer, BigBird — окно + глобальные токены), <strong>linear</strong> (Performer/Linear Attention — \(O(n)\)), <strong>FlashAttention</strong> (точное \(O(n^2)\), но IO-aware — не материализует матрицу).</span><span lang="en">The score matrix \(QK^\top\) is \(n\times n\): time grows as \(O(n^2 d)\), and the materialised score matrix itself costs \(O(n^2)\) memory per head — that memory is the wall FlashAttention removes. At \(n=512\) that is \({\sim}262\text{k}\) pairs; at \(n=8\text{k}\) it is \({\sim}67\text{M}\) — the long-context wall. Fixes: <strong>sparse</strong> (Longformer, BigBird — windows + global tokens), <strong>linear</strong> (Performer / Linear Attention — \(O(n)\)), <strong>FlashAttention</strong> (exact \(O(n^2)\) but IO-aware — never materialises the matrix).</span></p>
           <aside class="slide-notes">The one real cost of attention, and the reason long context is hard. The score matrix Q K transpose is n by n, where n is the sequence length, so both the compute and, crucially, the memory to hold that matrix grow as n squared times the dimension. At five hundred and twelve tokens that is about a quarter of a million pairs; at eight thousand tokens it is sixty-seven million — the curve in red. The dashed blue line is the linear ideal we wish we had. Three families of fixes exist. Sparse attention — Longformer and BigBird — restricts each token to a local window plus a few global tokens, so the matrix becomes mostly empty. Linear attention — the Performer and friends — rewrites the softmax with a kernel feature map so the cost drops to order n. And FlashAttention keeps the exact quadratic computation but is IO-aware: it never writes the full n by n matrix to slow memory, tiling the work in fast on-chip memory, which gives a large constant-factor speedup and is what most modern stacks actually use. For retrieval we usually cap sequence length, so the wall is felt most in long-document and long-generation settings.</aside>
+        </section>
+
+        <!-- ============================================ 22a · VIZ · the NCD ledger BILLS the n×n axis ============================================ -->
+        <section class="slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="22a NCD · watch the axis be born, then billed">
+          <div class="slide-header">
+            <h2><span lang="ru">Та же схема — и счёт за память</span><span lang="en">The same circuit — and the bill</span></h2>
+            <span class="slide-kicker"><span lang="ru">шаг (&larr;/&rarr;): чаша рождает n&times;n &rarr; softmax &rarr; контекст &rarr; счёт</span><span lang="en">step (&larr;/&rarr;): the cup births n&times;n &rarr; softmax &rarr; context &rarr; the bill</span></span>
+          </div>
+          <div class="widget-mount" data-widget="ncd-attention"></div>
+          <script class="widget-data" type="application/json">
+{
+  "data": {
+    "attention": {
+      "dk": 4, "sqrtDk": 2,
+      "scores": [1, 0, 3],
+      "weights": [0.114, 0.042, 0.844],
+      "values": [[1, 0], [0, 1], [1, 1]],
+      "output": [0.958, 0.886]
+    },
+    "sqrtScale": {
+      "dot": 6, "scaledScore": 3,
+      "unscaled": [0.002, 0.002, 0.995],
+      "scaled": [0.045, 0.045, 0.909]
+    },
+    "memory": {
+      "heads": 12,
+      "n": [512, 4096, 32768],
+      "mb512x12": 6.3, "mb4kx12": 403, "gb32kx12": 25.8
+    }
+  },
+  "i18n": {
+    "ru": {
+      "alt": "Масштабированное скалярное внимание в виде схемы: провода — оси тензора, прямоугольники — операции. Q·Kᵀ стягивает ось d в оценки и при этом создаёт ось n×n — это и есть квадратичная стоимость по памяти; softmax нормирует по оси ключей, а взвешенная сумма с V стягивает большую ось обратно в контекстный вектор. Оси голов и батча оплетают всю операцию и умножают ось n×n.",
+      "legMap": "провод = ось · прямоугольник = операция · оплётка = broadcast",
+      "legCf": "убери один прямоугольник — схема всё ещё считает, просто перестаёт учиться",
+      "lblIn": "токены", "lblScores": "оценки", "lblWeights": "внимание", "lblOut": "контекст",
+      "lblSoftmax": "softmax по ключам", "sumKeys": "Σ ключи", "blockCore": "одна голова",
+      "tagHead": "broadcast: h голов", "tagBatch": "broadcast: b батч",
+      "lgTitle": "оси и стоимость", "uMB": "МБ", "uGB": "ГБ",
+      "lgNoScale": "без ÷√dₖ", "lgWithScale": "с ÷√dₖ",
+      "workHead": "внутри треугольника:", "workDiv": "каждое ÷ Σ → веса выше",
+      "cfHead": "одно и то же скалярное произведение q·k = 6, две судьбы",
+      "cfNo": "без ÷√dₖ", "cfYes": "÷√dₖ = 2",
+      "cfVerBad": "почти one-hot → градиент ≈ 0", "cfVerOk": "мягко → градиент жив",
+      "lgN0": "Чаша стягивает d — и тем самым РОЖДАЕТ ось n×n. Эта ось и есть квадратичная стоимость.",
+      "lgN1": "softmax не меняет форму: n×n на входе, n×n на выходе.",
+      "lgN2": "Сумма по ключам стягивает n×n обратно в n×d. Большая ось родилась и умерла прямо здесь.",
+      "lgN3": "Оплётка умножает эту ось n×n на h. Это счёт за память, а не метафора.",
+      "lgN4": "Без масштаба softmax насыщается: 0.995 — это почти one-hot, и градиент гибнет."
+    },
+    "en": {
+      "alt": "Scaled dot-product attention drawn as a neural circuit diagram: wires are tensor axes, boxes are operations. Q·Kᵀ contracts the d axis into scores — and in doing so creates an n by n axis, which is exactly the quadratic memory cost; softmax normalises over the key axis, and a weighted sum with V contracts that big axis back down into the context vector. The head and batch axes are broadcasts woven around the whole operation, multiplying the n by n axis.",
+      "legMap": "wire = axis · box = operation · woven wire = broadcast",
+      "legCf": "delete one box and the circuit still runs — it just stops learning",
+      "lblIn": "tokens", "lblScores": "scores", "lblWeights": "attention", "lblOut": "context",
+      "lblSoftmax": "softmax over keys", "sumKeys": "Σ keys", "blockCore": "one head",
+      "tagHead": "broadcast: h heads", "tagBatch": "broadcast: b batch",
+      "lgTitle": "axes & cost", "uMB": "MB", "uGB": "GB",
+      "lgNoScale": "no ÷√dₖ", "lgWithScale": "with ÷√dₖ",
+      "workHead": "inside the triangle:", "workDiv": "each ÷ Σ → the weights above",
+      "cfHead": "the same dot product q·k = 6, two fates",
+      "cfNo": "no ÷√dₖ", "cfYes": "÷√dₖ = 2",
+      "cfVerBad": "one-hot → gradient ≈ 0", "cfVerOk": "soft → the gradient lives",
+      "lgN0": "The cup contracts d — and in doing so BIRTHS an n×n axis. That axis is the quadratic cost.",
+      "lgN1": "softmax does not change the shape: n×n in, n×n out.",
+      "lgN2": "The sum over keys contracts n×n back down to n×d. The big axis lived and died right here.",
+      "lgN3": "The weave multiplies that n×n axis by h. This is the memory bill, not a metaphor.",
+      "lgN4": "Without the scale, softmax saturates: 0.995 is all but one-hot, so the gradient dies."
+    }
+  }
+}
+          </script>
+          <p class="viz-caption"><span lang="ru">Кривая слева <em>утверждала</em> \(O(n^2)\) — схема её <strong>считает</strong>. Чаша стягивает \(d\) и тем самым <strong>рождает</strong> ось \(n\times n\); её оплетают головы; сводка выставляет счёт: 12 голов при \(n=512\) — 6.3 МБ, при 4096 — 403 МБ, при 32768 — <strong>25.8 ГБ</strong>. Форма схемы не менялась — менялось только \(n\).</span><span lang="en">The curve <em>asserted</em> \(O(n^2)\) — the circuit <strong>computes</strong> it. The cup contracts \(d\) and thereby <strong>births</strong> the \(n\times n\) axis; the head broadcast wraps it; the ledger bills it: 12 heads at \(n=512\) is 6.3 MB, at 4096 it is 403 MB, at 32768 it is <strong>25.8 GB</strong>. The picture never changed shape — only \(n\) did.</span></p>
+          <aside class="slide-notes">ncd-attention, five steps, and this is where the notation pays for itself. The previous slide drew a curve and asserted that attention is quadratic. This one computes it. Step zero: the token wire is projected into Q, K and V by three learned boxes, and Q and K meet at a cup. Watch the ledger on the right: the cup contracts d — the axis d dies there — but in the same instant an n by n axis is born. Nothing in the formula warns you about it, and that axis is the entire quadratic cost. Step one: the softmax triangle, opened across the key axis, and note what does not happen — the shape does not change, n by n in, n by n out. Softmax is free; the damage was done at the cup. Step two: V arrives, a second cup contracts the key axis, and the big matrix collapses back to a compact context. The whole life of the expensive axis is on one picture — born at the first cup, killed at the second. Step three is the bill. The head and batch axes are broadcasts, drawn as wires woven around the whole expression, and a weave multiplies whatever it wraps — which is the n by n axis. Twelve heads at five hundred and twelve tokens is six point three megabytes; at four thousand ninety-six it is four hundred and three megabytes; at thirty-two thousand seven hundred and sixty-eight it is twenty-five point eight gigabytes. The diagram never changed shape; only n did. That is what the wall on the previous slide actually feels like. Step four is a callback to the root d k theorem two slides back: delete the divide-by-root-d-k box and feed the same dot product, six, down both branches. Unscaled, the softmax returns nought point nine nine five — all but one-hot, a saturated softmax, a vanishing gradient, a layer that has stopped learning. Scaled, it returns a soft nought point nine zero nine. The circuit still runs without that box; it simply never learns. The failure is a missing glyph, not a mystery — which is exactly what we promised the notation would buy.</aside>
         </section>
 
         <!-- ============================================ BEAT 6 · climb-multihead ============================================ -->
@@ -2150,6 +2335,7 @@
             <li><span class="ref-body"><span class="ref-authors">He, K., Zhang, X., Ren, S. &amp; Sun, J.</span> · <span class="ref-title"><a href="https://arxiv.org/abs/1512.03385" target="_blank" rel="noopener">Deep Residual Learning for Image Recognition (residual connections)</a></span> · <span class="ref-venue">CVPR</span></span><span class="ref-year">2016</span></li>
             <li><span class="ref-body"><span class="ref-authors">Dao, T., Fu, D. Y., Ermon, S., Rudra, A. &amp; Ré, C.</span> · <span class="ref-title"><a href="https://arxiv.org/abs/2205.14135" target="_blank" rel="noopener">FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness</a></span> · <span class="ref-venue">NeurIPS</span></span><span class="ref-year">2022</span></li>
             <li><span class="ref-body"><span class="ref-authors">Veličković, P., Cucurull, G., Casanova, A. <em>et al.</em></span> · <span class="ref-title"><a href="https://arxiv.org/abs/1710.10903" target="_blank" rel="noopener">Graph Attention Networks (attention as message-passing)</a></span> · <span class="ref-venue">ICLR</span></span><span class="ref-year">2018</span></li>
+            <li><span class="ref-body"><span class="ref-authors">Abbott, V.</span> · <span class="ref-title"><a href="https://arxiv.org/abs/2402.05424" target="_blank" rel="noopener">Neural Circuit Diagrams (the notation of slides 14a&ndash;14d)</a></span> · <span class="ref-venue">TMLR</span></span><span class="ref-year">2024</span></li>
           </ol>
           <aside class="slide-notes">Appendix, part one — the architecture lineage. Vaswani and colleagues 2017 is the Transformer paper itself, the source of scaled dot-product attention, multi-head attention and the sinusoidal positional encoding. Devlin and colleagues 2019 is BERT, the bidirectional encoder that made contextual embeddings mainstream and gave us [CLS]. Ba, Kiros and Hinton 2016 is layer normalization, the Norm in every Add and Norm. He and colleagues 2016 is ResNet, the residual connection that lets a deep stack train at all.</aside>
         </section>
@@ -2191,8 +2377,13 @@
   <script src="js/sequence.js"></script>
   <script src="js/budget.js"></script>
   <script src="js/preflight.js"></script>
-  <!-- deck-mounted spine widget (course-map): classic offline bundle + the deck-adapter (after deck.js). BUILD OUTPUT. -->
+  <!-- deck-mounted widgets: classic offline bundles register window.mount<Pascal>; the deck-adapter (after
+       deck.js) drives them with the deck step engine. course-map = the spine; ncd-einsum + ncd-attention =
+       the neural-circuit-diagram notation (14c grammar proof · 22a the n×n memory bill). BUILD OUTPUT
+       (scripts/build-deck-widgets.mjs). -->
   <script src="js/course-map.classic.js"></script>
+  <script src="js/ncd-einsum.classic.js"></script>
+  <script src="js/ncd-attention.classic.js"></script>
   <script src="js/deck-adapter.js"></script>
 
 </body>
