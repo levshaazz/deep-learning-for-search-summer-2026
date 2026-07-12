@@ -93,11 +93,22 @@ export function glyphs(el) {
      in English), and it is pinned to one font-size (so raising 10px to 11px burst them all over again).
      Both defects shipped, twice. A box that MEASURES cannot be wrong about any language or any size.
 
-     Draws the text first, reads its real bbox, then inserts the rect BEHIND it. Requires the SVG to be
-     in the document — which it is, under every driver we have. */
+     Draws the text first, reads its real bbox, then inserts the rect BEHIND it.
+
+     IT IS NOT ENOUGH FOR THE SVG TO BE IN THE DOCUMENT — IT MUST BE RENDERED. Inside a display:none
+     subtree getBBox() returns {0,0,0,0}, so the box comes out padding-sized and pinned to the origin: a
+     26×12 rectangle in the figure's top-left corner, and it STAYS there, because nothing measures twice.
+     That is not a hypothetical — deck.js's fitAllSlides() strips is-active from every slide to re-measure
+     them one by one after the fonts land, and any figure that (re)draws in that window draws itself blind.
+     So refuse: a measurement that cannot be taken must not be silently rounded down to zero. The factory
+     already declines to paint a hidden host; this is the backstop for every other driver. */
   function tagBox(parent, cx, cy, s, boxCls, txtCls, padX = 9, padY = 5, anchor = 'middle') {
     const t = text(parent, cx, cy, s, txtCls, anchor);
     const b = t.getBBox();
+    if (String(s).trim() && b.width === 0) {
+      throw new Error(`_ncd.tagBox("${s}"): measured a 0-width box — the figure is being drawn inside a `
+        + `hidden subtree, where getBBox() lies. Every measured box would collapse onto the origin.`);
+    }
     const r = el('rect', { class: boxCls, x: b.x - padX, y: b.y - padY,
       width: b.width + padX * 2, height: b.height + padY * 2, rx: 5 }, parent);
     parent.insertBefore(r, t);      // behind the glyphs, never over them
@@ -122,13 +133,11 @@ export function glyphs(el) {
   // a dashed region making a broadcast axis concrete, with a corner tag
   function region(parent, x, y, w, h, tag, regionCls, tagCls, txtCls) {
     el('rect', { class: regionCls, x, y, width: w, height: h, rx: 14 }, parent);
-    // the tag rides ABOVE the border, and MEASURES itself (it used to guess chars × 6.3px and burst in
-    // Cyrillic; it also used to straddle the region's own stroke, which the detector reads as a collision)
-    const t = text(parent, x + 24, y - 6, tag, txtCls, 'start');
-    const b = t.getBBox();
-    const r = el('rect', { class: tagCls, x: b.x - 9, y: b.y - 4,
-      width: b.width + 18, height: b.height + 8, rx: 6 }, parent);
-    parent.insertBefore(r, t);
+    // The tag rides ABOVE the border and MEASURES itself — via tagBox, not a copy of it. It used to
+    // carry its own inline measure, which is how it quietly dodged tagBox's guard and kept collapsing
+    // onto the origin when it was drawn into a subtree that could not be measured. One measured box in
+    // the codebase, or the guard protects only the callers that happened to use it.
+    tagBox(parent, x + 24, y - 6, tag, tagCls, txtCls, 9, 4, 'start');
   }
   const fmt3 = (x) => (typeof x !== 'number' ? '' : Number.isInteger(x) ? String(x) : x.toFixed(3));
   return { text, wire, path, chippedL, cup, tri, hexagon, pentagon, box, chips, weave, region, tagBox, fmt3 };
