@@ -155,8 +155,8 @@ export const mountNcdRag = defineWidget({
         G.text(gG, xGen, yM + 78, L('lblAnswer', 'answer'), 'ncdrag-answer-txt');
       }
 
-      G.text(main, W / 2, H - 6, L('legMap',
-        'region = the corpus axis N · hexagon = a slice (top-k) · the query enters TWICE'), 'ncdrag-legend');
+      G.legend(main, W / 2, H - 6, L('legMap',
+        'region = the corpus axis N · hexagon = a slice (top-k) · the query enters TWICE'), 'ncdrag-legend', W - 40);
       prev = s;
     };
   },

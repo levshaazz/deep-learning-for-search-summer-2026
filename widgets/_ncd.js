@@ -139,8 +139,33 @@ export function glyphs(el) {
     // the codebase, or the guard protects only the callers that happened to use it.
     tagBox(parent, x + 24, y - 6, tag, tagCls, txtCls, 9, 4, 'start');
   }
+  /* legend — the key line under a figure, WRAPPED BY MEASUREMENT.
+     It used to be one long <text> tuned by eye until it looked like it fit. That makes it a hostage to
+     font metrics: the same Russian string that sits comfortably inside the frame on macOS renders a few
+     px wider under CI's Linux Chromium and pokes out of it — a defect that is invisible on the machine
+     that authored it and HARD-fails on the machine that ships it. Legends are already written as items
+     joined by ' · ', so pack those items into lines that MEASURE under maxW, and stack them. */
+  function legend(parent, cx, y, s, cls, maxW, lh = 15) {
+    const items = String(s).split(' · ');
+    const probe = text(parent, -9999, -9999, '', cls);    // one throwaway, measured then discarded
+    const fits = (str) => { probe.textContent = str; return probe.getBBox().width <= maxW; };
+    const lines = [];
+    let cur = '';
+    for (const it of items) {
+      const next = cur ? `${cur} · ${it}` : it;
+      if (cur && !fits(next)) { lines.push(cur); cur = it; } else cur = next;
+    }
+    if (cur) lines.push(cur);
+    probe.remove();
+    // BOTTOM-ANCHORED: the last line lands on y and the wrap grows UPWARD, into the figure's own
+    // bottom margin. A legend sits a few px above the frame's edge by design, so growing downward
+    // would trade an overflowing line for an overflowing frame — the same defect, one step later.
+    const y0 = y - (lines.length - 1) * lh;
+    lines.forEach((ln, i) => text(parent, cx, y0 + i * lh, ln, cls));
+    return lines.length;
+  }
   const fmt3 = (x) => (typeof x !== 'number' ? '' : Number.isInteger(x) ? String(x) : x.toFixed(3));
-  return { text, wire, path, chippedL, cup, tri, hexagon, pentagon, box, chips, weave, region, tagBox, fmt3 };
+  return { text, wire, path, chippedL, cup, tri, hexagon, pentagon, box, chips, weave, region, tagBox, legend, fmt3 };
 }
 
 /* shapeTable(obj) — the ONE place a widget names its axes.
