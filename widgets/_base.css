@@ -17,6 +17,61 @@
 .wgt-fade .is-hidden { opacity: 0; }
 .wgt-fade :not(.is-hidden) { transition: opacity var(--dur, 220ms) var(--ease, ease); }
 
+/* ── NCD family: the axis/cost LEDGER + the step-enter motion ────────────────────────────────
+   The ledger is HTML, never SVG. Three reasons: it CANNOT collide with the diagram (it lives in
+   normal flow, so the overlap detector has nothing to find), a screen reader reads it as text, and
+   it sizes on the --fz-* scale like every other piece of widget chrome (SVG-internal labels stay in
+   user-units px on purpose — figures fit-scale, which is why G20 exempts them).
+   WHY it exists: NCD is a notation about AXES. A diagram that shows the axes but never COUNTS them
+   leaves "attention is O(n²)" a fact to memorise instead of an axis you watch being born. */
+.ncd-stagewrap { container-type: inline-size; width: 100%; }
+.ncd-stage { display: flex; gap: var(--ws-2, 1rem); align-items: flex-start; width: 100%; }
+.ncd-stage > svg { flex: 1 1 auto; min-width: 0; }
+/* Narrow column (Book, a gallery card): the ledger drops BELOW the diagram instead of stealing the
+   width its labels need. A container query, not a media query — what matters is the space the widget
+   was given, not the size of the window. */
+@container (max-width: 680px) {
+  .ncd-stage { flex-direction: column; }
+  .ncd-lg { flex: 1 1 auto; width: 100%; }
+}
+.ncd-lg {
+  flex: 0 0 clamp(9.5rem, 27%, 21rem); display: flex; flex-direction: column;
+  background: var(--bg-card, #fff); border: var(--hairline, 1.5px) solid var(--rule, #ddd);
+  border-radius: var(--r-md, 14px); padding: .7rem .8rem;
+}
+.ncd-lg-h {
+  font-family: var(--font-mono, monospace); font-size: var(--fz-tiny, .8rem);
+  letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3, #6B7280); margin-bottom: .4rem;
+}
+.ncd-lg-b { display: flex; flex-direction: column; gap: .25rem; }
+.ncd-lg-row {
+  display: flex; justify-content: space-between; align-items: baseline; gap: .6rem;
+  font-family: var(--font-mono, monospace); font-size: var(--fz-small, .9rem);
+  padding: .26rem .4rem; border-radius: 8px; opacity: .32;
+  transition: opacity var(--dur, 220ms) var(--ease, ease), background var(--dur, 220ms) var(--ease, ease);
+}
+.ncd-lg-row.is-on  { opacity: 1; }
+.ncd-lg-row.is-new { opacity: 1; background: var(--accent-soft, #DCE8F8); }
+.ncd-lg-k { color: var(--ink-2, #3D434E); }
+.ncd-lg-v { color: var(--ink, #14181F); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ncd-lg-row.is-cost .ncd-lg-v { color: var(--c-red, #D7522C); }
+.ncd-lg-row.is-good .ncd-lg-v { color: var(--c-green, #3A8A5C); }
+.ncd-lg-note {
+  font-family: var(--font-sans, system-ui); font-size: var(--fz-tiny, .8rem);
+  color: var(--ink-3, #6B7280); line-height: 1.45; margin: .5rem 0 0;
+}
+/* Step-enter motion: only the section a move actually REVEALS animates (the widget passes .ncd-fx to
+   it), so stepping reads as data FLOWING rather than elements popping. Wires draw themselves —
+   pathLength="1" normalises every wire to one unit, so one keyframe draws any length. */
+@keyframes ncd-in   { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes ncd-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+.ncd-fx { animation: ncd-in 320ms var(--ease, ease) both; }
+.ncd-fx .ncd-wire { stroke-dasharray: 1; animation: ncd-draw 460ms var(--ease, ease) both; }
+@media (prefers-reduced-motion: reduce) {
+  .ncd-fx, .ncd-fx .ncd-wire { animation: none; }
+  .ncd-lg-row { transition: none; }
+}
+
 /* Near-bg label HALO — ONE definition (was 6 copies across 5 widgets). Light stroke UNDER the glyph
    keeps a label readable over a dot/tint (not the saturated double-paint slide-viz flags). Add
    `svg-halo` to a label's class; non-2.5px widths set `--halo-w` on the element (3px labels do). */

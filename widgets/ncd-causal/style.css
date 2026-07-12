@@ -1,0 +1,73 @@
+/* ncd-causal — the causal mask, and the leak you get without it. Semantic token contract:
+   --accent  = the q / K input wires (the token data path)
+   --warm    = scores, the attention path, the softmax triangle (focus)
+   --c-cyan  = the MASK op — the reindex/slice hexagon (a distinct operation)
+   --c-green = the masked, correct result (weights over the allowed keys)
+   --c-violet= the derived n×n axis you allocate whether you use it or not
+   --c-red   = ONLY the leak: the weight the model puts on the future token
+   --ink*/--rule* = structure, forbidden cells, the −∞ chips, labels.
+   SVG-internal text uses raw px in a `font:` shorthand — figures fit-scale, so this is legal here;
+   the HTML ledger (.ncd-lg*, in _base.css) inherits the --fz-* tokens instead. */
+.ncdc-svg { width: 100%; height: auto; display: block; overflow: visible; min-width: 720px; }
+
+/* wires + the contraction cup */
+.ncdc-w        { fill: none; stroke-width: 2.2; stroke-linecap: round; }
+.ncdc-w-in     { stroke: var(--accent, #2A6FDB); }
+.ncdc-w-attn   { stroke: var(--warm, #E8743B); }
+.ncdc-op       { fill: none; stroke: var(--ink-2, #3D434E); stroke-width: 1.8; }
+.ncdc-op-dot   { fill: var(--ink-2, #3D434E); }
+
+/* softmax triangle */
+.ncdc-sm       { fill: var(--warm-soft, #FBE6D8); stroke: var(--warm, #E8743B); stroke-width: 1.6; }
+.ncdc-sm-txt   { font: 700 14px var(--font-mono, monospace); fill: var(--warm-ink, #B4521F); }
+
+/* the mask: a hexagon (reindex / slice) — and, in step 0, the hole where it isn't */
+.ncdc-hex       { fill: var(--c-cyan-soft, #D2EDEF); stroke: var(--c-cyan, #1AA7B5); stroke-width: 1.8; }
+.ncdc-hex-txt   { font: 700 11px var(--font-mono, monospace); fill: var(--c-cyan-ink, #0A6F7A); }
+.ncdc-hex-ghost { fill: none; stroke: var(--ink-4, #9CA3AF); stroke-width: 2.2; stroke-dasharray: 6 4; }
+
+/* value chips */
+.ncdc-chip        { stroke-width: 1.5; }
+.ncdc-chip-sc     { fill: var(--warm-soft, #FBE6D8); stroke: var(--warm, #E8743B); }
+.ncdc-chip-w      { fill: var(--warm-soft, #FBE6D8); stroke: var(--warm, #E8743B); }
+.ncdc-chip-inf    { fill: var(--bg-inset, #EBE7DA); stroke: var(--rule-strong, #B8B19E); }
+.ncdc-chip-off    { fill: var(--bg-inset, #EBE7DA); stroke: var(--rule-strong, #B8B19E); }
+.ncdc-chip-good   { fill: var(--c-green-soft, #DDEDDF); stroke: var(--c-green, #3A8A5C); }
+.ncdc-chip-leak   { fill: var(--c-red-soft, #FBE3D8); stroke: var(--c-red, #D7522C); stroke-width: 2.2; }
+.ncdc-chipv       { font: 700 11px var(--font-mono, monospace); fill: var(--ink, #14181F); }
+.ncdc-chipv-good  { fill: var(--c-green-ink, #1F6B40); }
+.ncdc-chipv-off   { fill: var(--ink-4, #9CA3AF); }
+.ncdc-chipv-leak  { fill: var(--c-red, #D7522C); }
+
+/* labels */
+.ncdc-axis     { font: 700 12px var(--font-mono, monospace); fill: var(--accent-ink, #1B4FA0); }
+.ncdc-key      { font: 700 11px var(--font-mono, monospace); fill: var(--ink-3, #6B7280); }
+.ncdc-key-leak { fill: var(--c-red, #D7522C); }
+.ncdc-key-off  { fill: var(--ink-4, #9CA3AF); }
+.ncdc-lbl      { font: 600 11px var(--font-mono, monospace); fill: var(--ink-3, #6B7280); }
+.ncdc-size     { font: 600 11px var(--font-mono, monospace); fill: var(--ink-3, #6B7280); }
+.ncdc-tag      { font: 600 11px var(--font-mono, monospace); fill: var(--ink-4, #9CA3AF); }
+.ncdc-head     { font: 700 12px var(--font-mono, monospace); fill: var(--ink-2, #3D434E); }
+.ncdc-legend   { font: 600 11px var(--font-mono, monospace); fill: var(--ink-3, #6B7280); }
+.ncdc-red-txt  { font: 700 11px var(--font-mono, monospace); fill: var(--c-red, #D7522C); }
+.ncdc-good-txt { font: 700 11px var(--font-mono, monospace); fill: var(--c-green-ink, #1F6B40); }
+.ncdc-vio-txt  { font: 700 11px var(--font-mono, monospace); fill: var(--c-violet, #7D5BA6); }
+
+/* the verdict badge under the weights: red when the future leaks, green when it cannot */
+.ncdc-badge      { stroke-width: 1.6; }
+.ncdc-badge-bad  { fill: var(--c-red-soft, #FBE3D8); stroke: var(--c-red, #D7522C); }
+.ncdc-badge-ok   { fill: var(--c-green-soft, #DDEDDF); stroke: var(--c-green, #3A8A5C); }
+.ncdc-badge-txt  { font: 700 11px var(--font-mono, monospace); fill: var(--ink, #14181F); }
+
+/* ── step 2: the n×n score matrix — kept half, paid for whole ──────────────────── */
+.ncdc-cell-ok      { fill: var(--warm-soft, #FBE6D8); stroke: var(--warm, #E8743B); stroke-width: 1.2; }
+.ncdc-cell-no      { fill: var(--bg-inset, #EBE7DA); stroke: var(--rule-strong, #B8B19E); stroke-width: 1.2; }
+.ncdc-cell-leak    { fill: var(--c-red-soft, #FBE3D8); stroke: var(--c-red, #D7522C); stroke-width: 2.2; }
+.ncdc-cell-txt     { font: 700 14px var(--font-mono, monospace); fill: var(--warm-ink, #B4521F); }
+.ncdc-cell-dot     { font: 700 16px var(--font-mono, monospace); fill: var(--warm, #E8743B); opacity: .8; }
+.ncdc-cell-txt-no  { font: 700 13px var(--font-mono, monospace); fill: var(--ink-3, #6B7280); }
+.ncdc-rowhi        { fill: none; stroke: var(--warm, #E8743B); stroke-width: 2; stroke-dasharray: 5 4; }
+.ncdc-mem-chip     { fill: var(--bg-card, #fff); stroke: var(--c-violet, #7D5BA6); stroke-width: 1.4; }
+.ncdc-mem-txt      { font: 700 11px var(--font-mono, monospace); fill: var(--ink, #14181F); }
+
+@media (prefers-reduced-motion: reduce) { .ncdc-svg * { transition: none !important; } }

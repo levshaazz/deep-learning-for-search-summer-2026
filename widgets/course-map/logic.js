@@ -29,7 +29,7 @@ function activeSet(active) {
 
 export const mountCourseMap = defineWidget({
   id: 'course-map',
-  rootClass: 'cm-root',
+  rootClass: 'cmap-root',
   exportName: 'mountCourseMap',
   maxStep: STOPS.length, // step 0 = whole map; 1..4 light each stop
   render({ host, labels, el }) {
@@ -38,14 +38,14 @@ export const mountCourseMap = defineWidget({
     // instead of floating top-light when the SVG scales into a slide/book region.
     const W = 700, H = 221;
     const cy = 96, xs = [100, 267, 433, 600];
-    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'wgt-svg cm-svg', role: 'img', 'aria-label': labels.alt || '' }, host);
+    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'wgt-svg cmap-svg', role: 'img', 'aria-label': labels.alt || '' }, host);
 
     // route line
-    el('line', { x1: xs[0], y1: cy, x2: xs[STOPS.length - 1], y2: cy, class: 'cm-route' }, svg);
+    el('line', { x1: xs[0], y1: cy, x2: xs[STOPS.length - 1], y2: cy, class: 'cmap-route' }, svg);
 
     // Stops are evenly spaced 167px apart; centred labels must stay inside ~SLOT px or
-    // they'd collide with the neighbouring stop's label. cm-leg/cm-terr/cm-num are short
-    // fixed strings; cm-terr (14px serif) and cm-ship (11px mono) take per-lecture / RU+TT
+    // they'd collide with the neighbouring stop's label. cmap-leg/cmap-terr/cmap-num are short
+    // fixed strings; cmap-terr (14px serif) and cmap-ship (11px mono) take per-lecture / RU+TT
     // text that can overrun. Budget the slot and, only when a string exceeds it, pin
     // textLength so it shrink-to-fits instead of running under the neighbour (no clip, no
     // collision). Current locked strings are all under budget → rendered unchanged.
@@ -56,15 +56,15 @@ export const mountCourseMap = defineWidget({
     };
 
     const nodes = STOPS.map((id, i) => {
-      const g = el('g', { class: 'cm-stop', 'data-stop': id }, svg);
-      el('circle', { cx: xs[i], cy, r: 30, class: 'cm-node' }, g);
-      el('text', { x: xs[i], y: cy + 6, class: 'cm-num', 'text-anchor': 'middle' }, g).textContent = i + 1;
+      const g = el('g', { class: 'cmap-stop', 'data-stop': id }, svg);
+      el('circle', { cx: xs[i], cy, r: 30, class: 'cmap-node' }, g);
+      el('text', { x: xs[i], y: cy + 6, class: 'cmap-num', 'text-anchor': 'middle' }, g).textContent = i + 1;
       // spine leg (above)
-      el('text', { x: xs[i], y: cy - 46, class: 'cm-leg', 'text-anchor': 'middle' }, g).textContent = labels['leg' + i] || id;
+      el('text', { x: xs[i], y: cy - 46, class: 'cmap-leg', 'text-anchor': 'middle' }, g).textContent = labels['leg' + i] || id;
       // territory (below) — ~22 serif-char slot budget
-      setText(el('text', { x: xs[i], y: cy + 58, class: 'cm-terr', 'text-anchor': 'middle' }, g), labels['terr' + i] || '', 22);
+      setText(el('text', { x: xs[i], y: cy + 58, class: 'cmap-terr', 'text-anchor': 'middle' }, g), labels['terr' + i] || '', 22);
       // ship subsystem (below, smaller) — ~24 mono-char slot budget
-      setText(el('text', { x: xs[i], y: cy + 78, class: 'cm-ship', 'text-anchor': 'middle' }, g), labels['ship' + i] || '', 24);
+      setText(el('text', { x: xs[i], y: cy + 78, class: 'cmap-ship', 'text-anchor': 'middle' }, g), labels['ship' + i] || '', 24);
       return g;
     });
 

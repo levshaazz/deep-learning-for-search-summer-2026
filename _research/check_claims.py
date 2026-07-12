@@ -2345,6 +2345,12 @@ def l15_deck_claims():
         # O(n²) score-matrix memory (fp16, per head): 0.52 MB (n=512), 2.15 GB (n=32k)
         C("L15 mem 512", Mem["mb512"], r"(0\.52) MB"),
         C("L15 mem 32k", Mem["gb32k"], r"(2\.15) GB"),
+        # …and the ×12-heads bill the walk-through DISPLAYS: 6.3 MB / 403 MB / 25.8 GB. Gated because the
+        # generator once re-rounded the per-head figure (round(0.52·12,1)=6.2 ≠ round(2·512²·12/1e6,1)=6.3)
+        # and NOTHING caught it — the deck printed 6.3 while data/ said 6.2 for a whole release.
+        C("L15 mem 512 ×12", Mem["mb512x12"], r"0\.52 MB · ×12 = ([\d.]+) MB", tol=1e-2),
+        C("L15 mem 4k ×12",  Mem["mb4kx12"],  r"33\.6 MB · ×12 = ([\d.]+) MB", tol=1e-2),
+        C("L15 mem 32k ×12", Mem["gb32kx12"], r"2\.15 GB · ×12 = ([\d.]+) GB", tol=1e-2),
     ]
 
 

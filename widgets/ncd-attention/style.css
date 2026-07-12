@@ -1,0 +1,94 @@
+/* ncd-attention — the neural-circuit-diagram lens on scaled dot-product attention.
+   Themed ENTIRELY through the course design tokens + the semantic colour contract:
+     --accent (blue)   = input / token / query wire      (the "tracked" thing)
+     --c-cyan          = the contracted dimension axis d  (categorical, told-apart)
+     --warm  (orange)  = scores / attention               (focus / currently-formed)
+     --c-green         = context / output                 (result)
+     --c-violet        = the head broadcast axis h         (derived / secondary)
+     --ink* / --rule   = structure, frame, neutral ops
+   One SVG, width:100% height:auto, so it never overflows a narrow scrolly column. */
+.ncda-svg { width: 100%; height: auto; display: block; overflow: visible; }
+
+/* wires (axes) — colour = meaning */
+.ncda-w        { fill: none; stroke-width: 2.4; stroke-linecap: round; }
+.ncda-w-in     { stroke: var(--accent, #2A6FDB); }
+.ncda-w-d      { stroke: var(--c-cyan, #1AA7B5); }
+.ncda-w-attn   { stroke: var(--warm, #E8743B); }
+.ncda-w-out    { stroke: var(--c-green, #3A8A5C); }
+.ncda-w-h      { stroke: var(--c-violet, #7D5BA6); stroke-width: 2; stroke-dasharray: 1 5; }
+.ncda-w-b      { stroke: var(--ink-3, #6B7280); stroke-width: 2; stroke-dasharray: 1 5; }
+
+/* learned linear boxes L (the Q/K/V projections) — chipped rectangle, input colour */
+.ncda-L        { fill: var(--accent-soft, #DCE8F8); stroke: var(--accent, #2A6FDB); stroke-width: 1.5; }
+.ncda-L-txt    { font: 700 13px var(--font-mono, monospace); fill: var(--accent-ink, #1B4FA0); }
+
+/* neutral operation glyphs (contraction cups) */
+.ncda-op       { fill: none; stroke: var(--ink-2, #3D434E); stroke-width: 2; }
+.ncda-op-dot   { fill: var(--ink-2, #3D434E); }
+/* softmax triangle — it forms the attention, so it carries the focus colour */
+.ncda-sm       { fill: var(--warm-soft, #FBE6D8); stroke: var(--warm, #E8743B); stroke-width: 1.6; }
+.ncda-sm-txt   { font: 700 12px var(--font-mono, monospace); fill: var(--warm-ink, #B4521F); }
+
+/* value chips (real numbers from data/) — each in its own box with a gap (no run-on text) */
+.ncda-chip     { stroke: var(--rule, #DDD7C7); stroke-width: 1; }
+.ncda-chip-attn{ fill: var(--warm-soft, #FBE6D8); }
+.ncda-chip-out { fill: var(--c-green-soft, #DDEDDF); }
+.ncda-chip-sc  { fill: var(--bg-inset, #EBE7DA); }
+.ncda-chipv    { font: 600 11px var(--font-mono, monospace); fill: var(--ink, #14181F); }
+
+/* labels */
+.ncda-axis     { font: 700 13px var(--font-mono, monospace); }
+.ncda-axis-in  { fill: var(--accent-ink, #1B4FA0); }
+.ncda-axis-d   { fill: var(--c-cyan-ink, #0A6F7A); }
+.ncda-axis-attn{ fill: var(--warm-ink, #B4521F); }
+.ncda-axis-out { fill: var(--c-green-ink, #1F6B40); }
+.ncda-size     { font: 600 11px var(--font-mono, monospace); fill: var(--ink-3, #6B7280); }
+.ncda-stage    { font: 600 11px var(--font-mono, monospace); fill: var(--ink-3, #6B7280); }
+
+/* the "one head" grouping block (a faint backdrop, dashed) */
+.ncda-block    { fill: color-mix(in srgb, var(--c-green) 5%, transparent); stroke: var(--rule-strong, #B8B19E);
+  stroke-width: 1.2; stroke-dasharray: 2 5; }
+.ncda-block-txt{ font: 600 11px var(--font-mono, monospace); fill: var(--ink-3, #6B7280); }
+
+/* the ÷√dₖ scale box — a FIXED op (not learned), so it is a plain rectangle, not a chipped one.
+   It exists because step 4 removes it; a counterfactual that deletes a glyph the student never saw
+   teaches nothing. Warm, because it is part of forming the attention. */
+.ncda-scale    { fill: var(--bg-card, #fff); stroke: var(--warm, #E8743B); stroke-width: 1.6; }
+.ncda-scale-txt{ font: 700 12px var(--font-mono, monospace); fill: var(--warm-ink, #B4521F); }
+
+/* broadcast weave tag + its anchor dot. The dot used to carry only the wire class, whose `fill: none`
+   lives on .ncda-w — which it did NOT have — so it painted BLACK, as a blob on the "tokens" label. */
+.ncda-tag-box  { fill: var(--bg-card, #fff); stroke-width: 1.2; }
+.ncda-tag-h    { stroke: var(--c-violet, #7D5BA6); }
+.ncda-tag-b    { stroke: var(--ink-3, #6B7280); }
+.ncda-tag-txt  { font: 700 11px var(--font-mono, monospace); }
+.ncda-tag-txt-h{ fill: var(--c-violet, #7D5BA6); }
+.ncda-tag-txt-b{ fill: var(--ink-3, #6B7280); }
+.ncda-dot-h    { fill: var(--c-violet, #7D5BA6); stroke: none; }
+.ncda-dot-b    { fill: var(--ink-3, #6B7280); stroke: none; }
+
+/* ── the ÷√dₖ COUNTERFACTUAL (step 4) ────────────────────────────────────────
+   Deliberately the only place --c-red appears in this widget: red means "this is what the
+   missing box COSTS you", never merely "branch two". The saturated weights are red, the
+   healthy ones green, and the two branches are fed by ONE dot product so the comparison is
+   honest — nothing changed except the presence of a single glyph. */
+.ncda-cf-head   { font: 700 12px var(--font-mono, monospace); fill: var(--ink-2, #3D434E); }
+.ncda-cf-lbl    { stroke-width: 1.6; }
+.ncda-cf-bad    { fill: var(--c-red-soft, #FBE3D8); stroke: var(--c-red, #D7522C); }
+.ncda-cf-ok     { fill: var(--c-green-soft, #DDEDDF); stroke: var(--c-green, #3A8A5C); }
+.ncda-cf-lbl-txt{ font: 700 11px var(--font-mono, monospace); fill: var(--ink, #14181F); }
+.ncda-cf-ver    { stroke-width: 1.4; opacity: .92; }
+.ncda-cf-ver-txt{ font: 700 11px var(--font-mono, monospace); fill: var(--ink, #14181F); }
+.ncda-chip-bad  { fill: var(--c-red-soft, #FBE3D8); stroke: var(--c-red, #D7522C); }
+.ncda-chip-good { fill: var(--c-green-soft, #DDEDDF); stroke: var(--c-green, #3A8A5C); }
+
+@media (prefers-reduced-motion: reduce) { .ncda-svg * { transition: none !important; } }
+
+/* the opened softmax (step 1) + the V matrix (step 2). Both exist because an audit found that this
+   widget computed softmax five times without ever showing exp/Σ, and derived the context from a V that
+   was never drawn. A worked example whose middle is hidden is not a worked example. */
+.ncda-work      { fill: var(--bg-inset, #EBE7DA); stroke: var(--rule, #DDD7C7); stroke-width: 1.2; stroke-dasharray: 4 3; }
+.ncda-work-head { font: 700 11px var(--font-mono, monospace); fill: var(--warm-ink, #B4521F); }
+.ncda-work-sum  { font: 700 12px var(--font-mono, monospace); fill: var(--ink, #14181F); }
+.ncda-chip-v    { fill: var(--c-cyan-soft, #D2EDEF); stroke: var(--c-cyan, #1AA7B5); stroke-width: 1; }
+.ncda-vcell     { font: 700 11px var(--font-mono, monospace); fill: var(--c-cyan-ink, #0A6F7A); }

@@ -1,0 +1,131 @@
+{
+  "_doc": "ncd-causal — the causal (autoregressive) mask in the NCD lens. The mask is a REINDEX/SLICE glyph: a HEXAGON inserted between the scores and the softmax triangle. Without it the query at t₂ attends to t₃ — the token it is being trained to predict — and softmax(0,2,3) puts 0.705 of its attention on the answer. Every number comes from data/l15-attention.json (causal.scores/noMask/masked, memory.*). {v} placeholders are filled in code from that data — never typed here.",
+  "alt": {
+    "en": "The causal mask drawn as a neural circuit diagram. The query wire at position t₂ and the key wires meet at a contraction cup, producing three scores 0, 2 and 3 for the keys t₁, t₂ and t₃. Without a mask the scores run straight into the softmax triangle and 0.705 of the attention lands on t₃, the future token the model is being trained to predict — the leak, drawn in red. Inserting a hexagon, the reindex or slice glyph, sends the disallowed position to minus infinity, so softmax renormalises over the allowed keys only, giving 0.119 and 0.881 in green. A final panel shows the whole n by n score matrix with its strictly upper triangle forbidden: about half the square is thrown away, yet the memory is still allocated in full.",
+    "ru": "Каузальная маска в виде neural circuit diagram. Провод запроса на позиции t₂ и провода ключей сходятся в чаше-стягивании, давая три оценки 0, 2 и 3 для ключей t₁, t₂ и t₃. Без маски оценки идут прямо в треугольник softmax, и 0.705 внимания приходится на t₃ — будущий токен, который модель как раз и учится предсказывать; эта утечка нарисована красным. Вставленный шестиугольник — глиф переиндексации/среза — отправляет запрещённую позицию в минус бесконечность, и softmax перенормируется только по разрешённым ключам, давая 0.119 и 0.881 зелёным. В последней панели показана вся матрица оценок n×n со строго верхним треугольником под запретом: примерно половина квадрата выбрасывается, а память по-прежнему выделяется целиком.",
+    "tt": "Каузаль маска neural circuit diagram буларак. t₂ позициясендәге сорау чыбыгы һәм ачкыч чыбыклары җыю касәсендә очраша, t₁, t₂ һәм t₃ ачкычлары өчен 0, 2 һәм 3 бәяләрен бирә. Маскасыз бәяләр туры softmax өчпочмагына керә, һәм игътибарның 0.705 өлеше t₃ гә төшә — модель нәкъ шуны алдан әйтергә өйрәнә торган киләчәк токенга; бу агып чыгу кызыл белән сызылган. Куелган алтыпочмак — яңадан индексацияләү/кисү глифы — тыелган позицияне минус чиксезлеккә җибәрә, һәм softmax бары тик рөхсәт ителгән ачкычлар буенча гына яңадан нормалаша: яшел белән 0.119 һәм 0.881. Соңгы панельдә бөтен n×n бәя матрицасы күрсәтелә, аның югары өчпочмагы тыелган: квадратның яртысы диярлек ташлана, ә хәтер һаман тулысынча бүленә."
+  },
+
+  "hd0": {
+    "en": "no mask — the query can see the answer",
+    "ru": "без маски — запрос видит ответ",
+    "tt": "маскасыз — сорау җавапны күрә"
+  },
+  "hd1": {
+    "en": "insert the hexagon — the future goes to −∞",
+    "ru": "вставляем шестиугольник — будущее уходит в −∞",
+    "tt": "алтыпочмакны куябыз — киләчәк −∞ гә китә"
+  },
+  "hd2": {
+    "en": "the same mask, seen as the whole n×n matrix",
+    "ru": "та же маска — на всей матрице n×n",
+    "tt": "шул ук маска — бөтен n×n матрицада"
+  },
+
+  "lblQ": { "en": "q  at t₂", "ru": "q  на t₂", "tt": "q  t₂ дә" },
+  "lblK": { "en": "K  t₁ t₂ t₃", "ru": "K  t₁ t₂ t₃", "tt": "K  t₁ t₂ t₃" },
+  "lblFuture": { "en": "the future", "ru": "будущее", "tt": "киләчәк" },
+  "lblMask": { "en": "mask", "ru": "маска", "tt": "маска" },
+  "maskCond": { "en": "keep j ≤ i", "ru": "оставить j ≤ i", "tt": "j ≤ i калдыру" },
+  "lblMasked": { "en": "masked scores", "ru": "оценки после маски", "tt": "маскадан соң бәяләр" },
+  "lblSoftmax": { "en": "softmax", "ru": "softmax", "tt": "softmax" },
+  "lblWeights": { "en": "attention weights", "ru": "веса внимания", "tt": "игътибар авырлыклары" },
+  "noMaskTag": {
+    "en": "no mask — nothing is removed",
+    "ru": "маски нет — ничего не убрано",
+    "tt": "маска юк — берни алынмаган"
+  },
+  "leakTag": {
+    "en": "{v} of the attention lands on the FUTURE token t₃",
+    "ru": "{v} внимания уходит на БУДУЩИЙ токен t₃",
+    "tt": "игътибарның {v} өлеше КИЛӘЧӘК t₃ токенына төшә"
+  },
+  "okTag": {
+    "en": "the future gets 0 — the model can only look back",
+    "ru": "будущее получает 0 — модель смотрит только назад",
+    "tt": "киләчәк 0 ала — модель бары артка гына карый"
+  },
+  "legMap": {
+    "en": "wire = axis · hexagon = reindex/mask · triangle = softmax",
+    "ru": "провод = ось · шестиугольник = переиндексация/маска · треугольник = softmax",
+    "tt": "чыбык = күчәр · алтыпочмак = яңадан индексация/маска · өчпочмак = softmax"
+  },
+
+  "gridKeys": { "en": "keys  j →", "ru": "ключи  j →", "tt": "ачкычлар  j →" },
+  "gridQueries": { "en": "queries i", "ru": "запросы i", "tt": "сораулар i" },
+  "gridRow": {
+    "en": "row t₂ — the row we just computed",
+    "ru": "строка t₂ — та, что мы считали",
+    "tt": "t₂ юлы — без хәзер санаган юл"
+  },
+  "gridLeak": {
+    "en": "the red cell is where {v} of the attention went",
+    "ru": "красная клетка — туда ушло {v} внимания",
+    "tt": "кызыл күзәнәк — игътибарның {v} өлеше шунда киткән"
+  },
+  "memHead": {
+    "en": "memory for the FULL n×n (h={v})",
+    "ru": "память под ВСЮ матрицу n×n (h={v})",
+    "tt": "БӨТЕН n×n өчен хәтер (h={v})"
+  },
+  "memKept": {
+    "en": "used: j ≤ i — about half of it",
+    "ru": "используется: j ≤ i — примерно половина",
+    "tt": "кулланыла: j ≤ i — яртысы чамасы"
+  },
+  "memPaid": {
+    "en": "allocated: every cell, all n²",
+    "ru": "выделяется: каждая клетка, все n²",
+    "tt": "бүленә: һәр күзәнәк, бөтен n²"
+  },
+  "legGrid": {
+    "en": "the mask changes what softmax SEES — not what memory ALLOCATES",
+    "ru": "маска меняет то, что ВИДИТ softmax — а не то, что ВЫДЕЛЯЕТ память",
+    "tt": "маска softmax НӘРСӘ КҮРГӘНЕН үзгәртә — хәтер НӘРСӘ БҮЛГӘНЕН түгел"
+  },
+  "uMB": { "en": "MB", "ru": "МБ", "tt": "МБ" },
+  "uGB": { "en": "GB", "ru": "ГБ", "tt": "ГБ" },
+
+  "s0": {
+    "en": "No mask. The query at position t₂ scores all three keys — including t₃, the very token it is being trained to predict — and softmax(0, 2, 3) hands 0.705 of its attention straight to it. Read that again: seven tenths of the model’s attention is spent looking at the answer. This is not a slow training bug you find in a loss curve; it is a LEAK, and in this notation it is visible as a hole — the place where a hexagon should be and isn’t. Train like this and the loss falls beautifully while the model learns nothing, because at inference time t₃ does not exist yet.",
+    "ru": "Маски нет. Запрос на позиции t₂ считает оценки по всем трём ключам — включая t₃, тот самый токен, который он и должен предсказать, — и softmax(0, 2, 3) отдаёт ему 0.705 внимания. Перечитайте: семь десятых внимания модели уходит на разглядывание ответа. Это не медленный баг, который ловят по кривой лосса; это УТЕЧКА, и в этой нотации она видна как дыра — место, где должен стоять шестиугольник, но его нет. Обучайтесь так — и лосс будет падать красиво, а модель не выучит ничего: на инференсе токена t₃ ещё не существует.",
+    "tt": "Маска юк. t₂ позициясендәге сорау өч ачкычны да бәяли — шул исәптән t₃ не, ул нәкъ шуны алдан әйтергә тиеш иде, — һәм softmax(0, 2, 3) аңа игътибарның 0.705 өлешен бирә. Тагын бер кат укыгыз: модель игътибарының уннан җидесе җавапны карап тора. Бу — лосс сызыгыннан эзләнә торган әкрен баг түгел; бу — АГЫП ЧЫГУ, һәм бу нотациядә ул тишек булып күренә: алтыпочмак торырга тиешле, ләкин юк урын. Шулай өйрәтсәң, лосс матур төшәчәк, ә модель бернәрсә дә өйрәнмәячәк: инференс вакытында t₃ токены әле бөтенләй юк."
+  },
+  "s1": {
+    "en": "Now insert the mask: a HEXAGON — the reindex/slice glyph — between the scores and the softmax triangle. It keeps the positions j ≤ i and sends everything ahead of the query to −∞, so exp(−∞) = 0 and the future gets exactly zero weight. Softmax then renormalises over the allowed keys alone: [0.119, 0.881]. Nothing else in the circuit changed — same q, same K, same triangle. The whole difference between a language model that cheats and one that learns is one glyph, and now you can point at it.",
+    "ru": "Теперь вставим маску: ШЕСТИУГОЛЬНИК — глиф переиндексации/среза — между оценками и треугольником softmax. Он оставляет позиции j ≤ i, а всё, что впереди запроса, отправляет в −∞: exp(−∞) = 0, и будущее получает ровно нулевой вес. Softmax перенормируется только по разрешённым ключам: [0.119, 0.881]. Больше в схеме ничего не поменялось — тот же q, тот же K, тот же треугольник. Вся разница между языковой моделью, которая жульничает, и той, которая учится, — в одном глифе, и теперь на него можно показать пальцем.",
+    "tt": "Хәзер маскны куябыз: АЛТЫПОЧМАК — яңадан индексацияләү/кисү глифы — бәяләр белән softmax өчпочмагы арасына. Ул j ≤ i позицияләрен калдыра, ә сораудан алдагы барысын −∞ гә җибәрә: exp(−∞) = 0, һәм киләчәк төп-төгәл нуль авырлык ала. Аннары softmax бары рөхсәт ителгән ачкычлар буенча гына яңадан нормалаша: [0.119, 0.881]. Схемада башка бернәрсә дә үзгәрмәде — шул ук q, шул ук K, шул ук өчпочмак. Хәйләли торган тел моделе белән чыннан өйрәнә торган модель арасындагы бөтен аерма — бер глифта, һәм хәзер аңа бармак белән төртеп була."
+  },
+  "s2": {
+    "en": "Zoom out from one query row to the whole n×n score matrix. Every row i is a query, every column j a key, and the mask blacks out the strictly upper triangle j > i — about half the square, including the red cell where our 0.705 went. Now look at what you still pay for: the tensor is allocated n×n before the mask ever touches it, and a −∞ occupies exactly as many bytes as any other float. At n=32768 with 12 heads that is 25.8 GB — for a matrix half of which is thrown away on principle. You pay for the whole square and use half of it. That is the standing bill of the causal transformer, and it is precisely what every efficient-attention paper is trying to get out of.",
+    "ru": "Отойдём от одной строки к целой матрице оценок n×n. Каждая строка i — запрос, каждый столбец j — ключ, и маска гасит строго верхний треугольник j > i — примерно половину квадрата, включая ту самую красную клетку, куда ушли наши 0.705. А теперь посмотрите, за что вы всё равно платите: тензор выделяется как n×n ещё до того, как маска его коснётся, и −∞ занимает ровно столько же байтов, сколько любое другое число. При n=32768 и 12 головах это 25.8 ГБ — за матрицу, половину которой мы принципиально выбрасываем. Вы платите за весь квадрат, а используете половину. Это постоянный счёт каузального трансформера — и ровно от него пытается уйти каждая статья про эффективное внимание.",
+    "tt": "Бер юлдан бөтен n×n бәя матрицасына чигенеп карыйк. Һәр i юлы — сорау, һәр j баганасы — ачкыч, ә маска катгый рәвештә югары өчпочмакны j > i сүндерә — квадратның яртысы чамасын, шул исәптән безнең 0.705 киткән кызыл күзәнәкне дә. Ә хәзер нәрсә өчен барыбер түләгәнегезгә карагыз: тензор маска аңа кагылганчы ук n×n итеп бүленә, һәм −∞ теләсә нинди башка сан кадәр үк байт ала. n=32768 һәм 12 баш булганда бу — 25.8 ГБ, яртысын принципта ташлый торган матрица өчен. Сез бөтен квадрат өчен түлисез, ә яртысын гына кулланасыз. Бу — каузаль трансформерның даими счёты, һәм эффектив игътибар турындагы һәр мәкалә нәкъ шуннан котылырга тырыша."
+  },
+
+  "lgTitle": { "en": "the leak & the bill", "ru": "утечка и счёт", "tt": "агып чыгу һәм счёт" },
+  "lgScores": { "en": "scores q·kⱼ", "ru": "оценки q·kⱼ", "tt": "бәяләр q·kⱼ" },
+  "lgFuture": { "en": "the future", "ru": "будущее", "tt": "киләчәк" },
+  "lgForbidden": { "en": "forbidden", "ru": "запрещено", "tt": "тыелган" },
+  "lgMask": { "en": "mask: j ≤ i", "ru": "маска: j ≤ i", "tt": "маска: j ≤ i" },
+  "lgHex": { "en": "hexagon", "ru": "шестиугольник", "tt": "алтыпочмак" },
+  "lgLeak": { "en": "w(t₃) no mask", "ru": "w(t₃) без маски", "tt": "w(t₃) маскасыз" },
+  "lgFixed": { "en": "w(t₃) masked", "ru": "w(t₃) с маской", "tt": "w(t₃) маска белән" },
+  "lgKept": { "en": "kept (j ≤ i)", "ru": "нужно (j ≤ i)", "tt": "кирәк (j ≤ i)" },
+  "lgHalf": { "en": "≈ half", "ru": "≈ половина", "tt": "≈ яртысы" },
+  "lgPaid": { "en": "allocated", "ru": "выделено", "tt": "бүленә" },
+  "lgN0": {
+    "en": "No hexagon, no mask: {v} of the attention lands on t₃ — the token the model is supposed to be predicting. It is reading the answer.",
+    "ru": "Нет шестиугольника — нет маски: {v} внимания приходится на t₃, токен, который модель должна предсказывать. Она читает ответ.",
+    "tt": "Алтыпочмак юк — маска юк: игътибарның {v} өлеше t₃ гә төшә, ә модель нәкъ шуны алдан әйтергә тиеш иде. Ул җавапны укый."
+  },
+  "lgN1": {
+    "en": "The disallowed score goes to −∞, so exp(−∞) = 0: the future gets exactly zero weight and softmax renormalises over the past.",
+    "ru": "Запрещённая оценка уходит в −∞, значит exp(−∞) = 0: будущее получает ровно нулевой вес, а softmax перенормируется по прошлому.",
+    "tt": "Тыелган бәя −∞ гә китә, димәк exp(−∞) = 0: киләчәк төп-төгәл нуль авырлык ала, ә softmax үткән буенча яңадан нормалаша."
+  },
+  "lgN2": {
+    "en": "The mask throws away half the matrix — and the allocation keeps all of it. O(n²) is paid in full.",
+    "ru": "Маска выбрасывает половину матрицы — а выделение памяти оставляет её целиком. O(n²) оплачивается полностью.",
+    "tt": "Маска матрицаның яртысын ташлый — ә хәтер аны тулысынча саклый. O(n²) тулысынча түләнә."
+  }
+}

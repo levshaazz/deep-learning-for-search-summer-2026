@@ -1,0 +1,111 @@
+{
+  "_doc": "ncd-kvcache — autoregressive decoding with a KV cache in the NCD lens. Step 0 prefill (n tokens through L_K/L_V once; the K,V rows are KEPT — violet region = the cache. The query is an n-row block here, so the full n×n score matrix IS materialised: that, and ONLY that, is what the MB/GB figures price). Step 1 one decode step (one new token → one q, one k row, one v row in warm; the cached rows have NO box in front of them any more — they are read, not recomputed; the query is ONE row, so the scores are 1×(n+1), never n×n; the n axis becomes n+1). Step 2 the trade (1 row/step with the cache vs n+1 rows/step without = re-running the prefill on every token; the cache holds K AND V — 2·n×d per layer per head → LINEAR in n, and during decoding it is the EXPENSIVE axis, while a step's attention is the cheap one; the attention work is quadratic only summed over a whole generation, n(n+1)/2). Numbers: data/l15-attention.json → memory, fp16 (the strings SAY fp16 — at fp32 they would double). Those MB/GB are the n×n ATTENTION MATRIX at PREFILL across 12 heads — never the cache and never the price of a decode step (that would be wrong by ~32000×). The cache's own size stays symbolic: data/ has no layer count.",
+
+  "alt": {
+    "en": "Autoregressive decoding with a KV cache, drawn as a neural circuit diagram. The token wire enters on the left and feeds three learned projections: L_Q, L_K and L_V. The K and V rows they produce are stored as two stacks of rows inside a dashed violet region — the KV cache, two stacks and therefore two times n by d numbers per layer per head — which is read into the attention block on the right. On a decode step exactly one new token arrives, so exactly one new query, one new K row and one new V row are computed, shown in warm orange; the older cached rows have no projection box in front of them at all, because they are read rather than recomputed, and the sequence axis grows from n to n plus one. Because that single query is one row, the scores on a decode step are one by n plus one — a single row, kilobytes. The full n by n score matrix belongs to prefill, not to a decode step.",
+    "ru": "Авторегрессионное декодирование с KV-кэшем в виде neural circuit diagram. Слева входит провод токенов и питает три обучаемые проекции: L_Q, L_K и L_V. Полученные строки K и V хранятся как два стека строк внутри пунктирной фиолетовой области — это KV-кэш, и раз стеков два, то в нём 2·n·d чисел на слой на голову, — который читается в блок внимания справа. На шаге декодирования приходит ровно один новый токен, поэтому считаются ровно один новый запрос, одна новая строка K и одна новая строка V, показанные тёплым оранжевым; перед старыми кэшированными строками нет никакого прямоугольника-проекции, потому что их читают, а не пересчитывают, и ось последовательности растёт с n до n+1. И раз запрос — одна строка, то оценки на шаге декодирования имеют форму 1×(n+1): одна строка, килобайты. Полная матрица оценок n×n принадлежит prefill, а не шагу декодирования.",
+    "tt": "KV-кэш белән авторегрессион декодлау neural circuit diagram буларак. Сулдан токен чыбыгы керә һәм өч өйрәнелә торган проекцияне туйдыра: L_Q, L_K һәм L_V. Алар ясаган K һәм V юллары пунктир шәмәхә өлкә эчендә ике өем булып саклана — бу KV-кэш, һәм өем ике булгач, анда һәр катламга, һәр башка 2·n·d сан бар, — ул уңдагы игътибар блогына укыла. Декодлау адымында нәкъ бер яңа токен килә, шуңа күрә нәкъ бер яңа сорау, бер яңа K юлы һәм бер яңа V юлы исәпләнә, алар җылы кызгылт сары белән күрсәтелгән; иске кэш юллары алдында бернинди проекция турыпочмагы да юк, чөнки аларны яңадан исәпләмиләр, ә укыйлар, һәм эзлеклелек күчәре n нән n+1 гә үсә. Сорау бер юл булгач, декодлау адымындагы бәяләрнең формасы 1×(n+1) — бер юл, килобайтлар. Тулы n×n бәя матрицасы prefill га карый, декодлау адымына түгел."
+  },
+
+  "legMap": {
+    "en": "violet = cached K,V (read) · warm = computed this step · the n axis grows by 1",
+    "ru": "фиолетовый = кэш K,V (чтение) · тёплый = посчитано сейчас · ось n растёт на 1",
+    "tt": "шәмәхә = K,V кэш (уку) · җылы = хәзер исәпләнде · n күчәре 1гә үсә"
+  },
+  "lblIn0":   { "en": "prompt · n",   "ru": "промпт · n",     "tt": "промпт · n" },
+  "lblIn1":   { "en": "1 new token",  "ru": "1 новый токен",  "tt": "1 яңа токен" },
+  "lblNoBox": { "en": "not recomputed", "ru": "не пересчитано", "tt": "яңадан исәпләнми" },
+  "tagCache": { "en": "KV cache",     "ru": "KV-кэш",         "tt": "KV-кэш" },
+  "tagRead":  { "en": "read",         "ru": "чтение",         "tt": "уку" },
+  "lblAttn":  { "en": "attention",    "ru": "внимание",       "tt": "игътибар" },
+  "subAttn0": { "en": "over n keys",  "ru": "по n ключам",    "tt": "n ачкыч буенча" },
+  "subAttn1": { "en": "over n+1 keys","ru": "по n+1 ключам",  "tt": "n+1 ачкыч буенча" },
+  "lblOut":   { "en": "next token",   "ru": "следующий токен","tt": "чираттагы токен" },
+
+  "shpScores0": { "en": "scores  n×n",     "ru": "оценки  n×n",     "tt": "бәяләр  n×n" },
+  "shpScores1": { "en": "scores  1×(n+1)", "ru": "оценки  1×(n+1)", "tt": "бәяләр  1×(n+1)" },
+  "lblCacheTot": {
+    "en": "K + V  →  2·n×d / layer / head",
+    "ru": "K + V  →  2·n×d / слой / голову",
+    "tt": "K + V  →  2·n×d / катлам / баш"
+  },
+
+  "s0": {
+    "en": "Prefill. The whole prompt — n tokens at once — runs through the projections exactly once: L_Q, L_K, L_V. Here the query is a whole n-row block, so attention really does build the full n×n score matrix — and in fp16, across 12 heads, that is 25.8 GB at n=32768. The ledger prices it, and this is the ONE step where that price is real. The K and V rows are not thrown away when the step ends: they are KEPT, and the dashed violet region is that cache — n rows of K and n rows of V, i.e. 2·n·d numbers per layer, per head. Notice what is NOT cached: the queries. A q is used once, this step, and discarded.",
+    "ru": "Prefill. Весь промпт — сразу n токенов — ровно один раз проходит через проекции L_Q, L_K, L_V. Здесь запрос — это целый блок из n строк, поэтому внимание действительно строит полную матрицу оценок n×n — и в fp16 на 12 головах это 25.8 ГБ при n=32768. Сводка выставляет этот счёт, и это ЕДИНСТВЕННЫЙ шаг, где счёт настоящий. Строки K и V не выбрасываются в конце шага: они СОХРАНЯЮТСЯ, и пунктирная фиолетовая область — это и есть кэш: n строк K и n строк V, то есть 2·n·d чисел на слой и на голову. Заметьте, что НЕ кэшируется: запросы. Каждый q используется один раз, на этом шаге, и выбрасывается.",
+    "tt": "Prefill. Бөтен промпт — берьюлы n токен — L_Q, L_K, L_V проекцияләре аша нәкъ бер тапкыр үтә. Монда сорау — n юллы бөтен блок, шуңа күрә игътибар чыннан да тулы n×n бәя матрицасын төзи — һәм fp16 та, 12 башта, бу n=32768 дә 25.8 ГБ. Җыелма шул хисапны күрсәтә, һәм бу — хисап чын булган БЕРДӘНБЕР адым. K һәм V юллары адым беткәч ташланмый: алар САКЛАНА, ә пунктир шәмәхә өлкә — шул кэш: n K юлы һәм n V юлы, ягъни һәр катламга, һәр башка 2·n·d сан. Нәрсә кэшланмаганына игътибар итегез: сораулар. Һәр q бер тапкыр, шушы адымда кулланыла һәм ташлана."
+  },
+  "s1": {
+    "en": "Now decode one token. Exactly one token arrives, so exactly one q, one new k row and one new v row are computed — that is every warm thing in the picture, and it is the entire cost of the step. Now look at the old rows: there is no box in front of them any more. The gutter is empty. They are not recomputed, they are READ; the projections that made them ran once, in the prefill, and never run again. Then look at the attention block: exactly ONE query wire enters it, so the scores it forms are 1×(n+1) — a single row against the n+1 keys, kilobytes. Nothing here builds an n×n matrix. The sequence axis has quietly become n+1.",
+    "ru": "Теперь один шаг декодирования. Приходит ровно один токен — значит, считаются ровно один q, одна новая строка k и одна новая строка v: это всё тёплое на картинке, и это вся цена шага. А теперь посмотрите на старые строки: перед ними больше НЕТ прямоугольника. Проход пуст. Их не пересчитывают, их ЧИТАЮТ — проекции, которые их сделали, отработали один раз на prefill и больше не запускаются. Теперь посмотрите на блок внимания: в него входит РОВНО ОДИН провод запроса, поэтому оценки имеют форму 1×(n+1) — одна строка против n+1 ключей, килобайты. Никакой матрицы n×n здесь не строится. Ось последовательности тихо стала n+1.",
+    "tt": "Хәзер бер декодлау адымы. Нәкъ бер токен килә — димәк, нәкъ бер q, бер яңа k юлы һәм бер яңа v юлы исәпләнә: рәсемдәге бөтен җылы нәрсә шул, һәм бу — адымның бөтен бәясе. Ә хәзер иске юлларга карагыз: алар алдында инде турыпочмак ЮК. Ара буш. Аларны яңадан исәпләмиләр, аларны УКЫЙЛАР — аларны ясаган проекцияләр prefill вакытында бер тапкыр эшләде һәм башка җибәрелми. Аннары игътибар блогына карагыз: аңа НӘКЪ БЕР сорау чыбыгы керә, шуңа күрә бәяләрнең формасы 1×(n+1) — n+1 ачкычка каршы бер юл, килобайтлар. Монда бернинди n×n матрица төзелми. Эзлеклелек күчәре тын гына n+1 булды."
+  },
+  "s2": {
+    "en": "The trade, in shapes. With the cache, one more token costs ONE row of K and ONE row of V; without it you would have to re-run L_K and L_V over all n+1 positions — the entire prefill, on every single token. You buy that compute with memory, and here is the part almost everyone gets backwards: while you are DECODING, the cache is the expensive axis and the attention is the cheap one. The cache holds K and V — 2·n·d per layer per head — and grows with every token you emit, until it is gigabytes. A step's attention is one query row against n+1 keys: 1×(n+1) scores, kilobytes. The n×n figure you saw back at prefill (25.8 GB at n=32768, over 12 heads, in fp16) is the PREFILL bill; a decode step is some four orders of magnitude cheaper than that. The attention work only turns quadratic when you SUM the steps of a whole generation: n(n+1)/2. That inversion is precisely why MQA, GQA and paged attention exist — every one of them shrinks the CACHE.",
+    "ru": "Сделка — в терминах форм. С кэшем ещё один токен стоит ОДНОЙ строки K и ОДНОЙ строки V; без кэша пришлось бы гонять L_K и L_V по всем n+1 позициям — то есть заново делать весь prefill на каждый токен. Эти вычисления вы покупаете памятью, и вот что почти все понимают наоборот: пока вы ДЕКОДИРУЕТЕ, дорогая ось — это кэш, а внимание — дешёвая. Кэш держит и K, и V — 2·n·d на слой на голову — и растёт с каждым выданным токеном, пока не превращается в гигабайты. А внимание одного шага — это одна строка запроса против n+1 ключей: оценки 1×(n+1), килобайты. Цифра n×n, которую вы видели на шаге prefill (25.8 ГБ при n=32768, на 12 головах, в fp16), — это счёт за PREFILL; шаг декодирования дешевле примерно на четыре порядка. Квадратичной работа внимания становится, только если СЛОЖИТЬ шаги всей генерации: n(n+1)/2. Именно из-за этой инверсии и существуют MQA, GQA и paged attention — все они уменьшают КЭШ.",
+    "tt": "Килешү — формалар телендә. Кэш белән тагын бер токен K ның БЕР юлына һәм V ның БЕР юлына тора; кэшсез L_K һәм L_V ны барлык n+1 позиция буенча куарга кирәк булыр иде — ягъни һәр токен саен бөтен prefill ны яңадан ясау. Бу исәпләүләрне сез хәтер белән сатып аласыз, һәм менә күпчелек киресенчә аңлаган урын: сез ДЕКОДЛАГАНДА кыйбат күчәр — кэш, ә игътибар — арзаны. Кэш K ны да, V ны да тота — һәр катламга, һәр башка 2·n·d — һәм һәр чыгарылган токен белән үсә, гигабайтларга әйләнгәнче. Ә бер адымның игътибары — n+1 ачкычка каршы бер сорау юлы: 1×(n+1) бәяләр, килобайтлар. Prefill адымында күргән n×n саны (n=32768 дә, 12 башта, fp16 та 25.8 ГБ) — PREFILL хисабы; декодлау адымы аннан якынча дүрт тәртипкә арзанрак. Игътибар эше квадратик булып бары тик бөтен генерациянең адымнарын КУШКАНДА гына чыга: n(n+1)/2. Нәкъ шушы инверсия аркасында MQA, GQA һәм paged attention бар — аларның һәрберсе КЭШне кечерәйтә."
+  },
+
+  "lgTitle0": { "en": "prefill: the bill",      "ru": "prefill: счёт",              "tt": "prefill: хисап" },
+  "lgTitle1": { "en": "one decode step",        "ru": "один шаг декодирования",    "tt": "бер декодлау адымы" },
+  "lgTitle2": { "en": "the trade",              "ru": "сделка",                    "tt": "килешү" },
+  "lgTok":    { "en": "new tokens this step",   "ru": "новых токенов за шаг",      "tt": "адымга яңа токен" },
+  "lgComp":   { "en": "K,V rows computed",      "ru": "строк K,V посчитано",       "tt": "исәпләнгән K,V юлы" },
+  "lgRead":   { "en": "K,V rows read",          "ru": "строк K,V прочитано",       "tt": "укылган K,V юлы" },
+  "lgScores": { "en": "scores this step",       "ru": "оценки за шаг",             "tt": "адымга бәяләр" },
+  "lgWork":   { "en": "scores over n steps",    "ru": "оценки за n шагов",         "tt": "n адымга бәяләр" },
+  "lgRecomp": { "en": "no cache: rows/step",    "ru": "без кэша: строк/шаг",       "tt": "кэшсез: юл/адым" },
+  "lgCache":  { "en": "cache / layer / head",   "ru": "кэш / слой / голову",       "tt": "кэш / катлам / баш" },
+  "lgAxis":   { "en": "sequence axis",          "ru": "ось последовательности",    "tt": "эзлеклелек күчәре" },
+  "uMB":      { "en": "MB", "ru": "МБ", "tt": "МБ" },
+  "uGB":      { "en": "GB", "ru": "ГБ", "tt": "ГБ" },
+  "lgN0": {
+    "en": "Prefill is the step that really does build the n×n matrix — in fp16, across 12 heads, 25.8 GB of it at n=32768. And every K and V row it makes is KEPT.",
+    "ru": "Именно prefill действительно строит матрицу n×n — в fp16 на 12 головах это 25.8 ГБ при n=32768. И каждая полученная строка K и V СОХРАНЯЕТСЯ.",
+    "tt": "Нәкъ prefill чыннан да n×n матрицасын төзи — fp16 та, 12 башта, n=32768 дә бу 25.8 ГБ. Һәм барлыкка килгән һәр K һәм V юлы САКЛАНА."
+  },
+  "lgN1": {
+    "en": "One token in, one K row and one V row out — the other n rows are read, not recomputed. And the query is ONE row, so the scores are one row too: 1×(n+1). No n×n matrix is built here.",
+    "ru": "Один токен на входе — одна строка K и одна строка V на выходе; остальные n строк читают, а не пересчитывают. И запрос — ОДНА строка, поэтому оценки тоже одна строка: 1×(n+1). Никакой матрицы n×n здесь не строится.",
+    "tt": "Бер токен керә — бер K юлы һәм бер V юлы чыга; калган n юлны укыйлар, яңадан исәпләмиләр. Сорау исә — БЕР юл, шуңа бәяләр дә бер юл: 1×(n+1). Монда бернинди n×n матрица төзелми."
+  },
+  "lgN2": {
+    "en": "What the cache buys is compute; what it costs is memory. It holds K AND V — 2·n·d per layer per head — and grows linearly with every token, forever: while you decode, THAT is the expensive axis. One step's scores are only 1×(n+1); they go quadratic only summed over the whole generation — n(n+1)/2.",
+    "ru": "Кэш покупает вычисления, а платите вы памятью. Он держит и K, и V — 2·n·d на слой на голову — и растёт линейно с каждым токеном: пока вы декодируете, дорогая ось — именно он. Оценки одного шага — всего 1×(n+1); квадратичными они становятся, только если сложить их за всю генерацию: n(n+1)/2.",
+    "tt": "Кэш исәпләүләрне сатып ала, ә сез хәтер белән түлисез. Ул K ны да, V ны да тота — һәр катламга, һәр башка 2·n·d — һәм һәр токен белән сызыклы үсә: сез декодлаганда кыйбат күчәр нәкъ шул. Бер адымның бәяләре — барлыгы 1×(n+1); алар квадратик булып бары тик бөтен генерация буенча кушылганда гына чыга: n(n+1)/2."
+  },
+
+  "cfHead":    { "en": "one more token — with the cache, and without it", "ru": "ещё один токен — с кэшем и без него", "tt": "тагын бер токен — кэш белән һәм кэшсез" },
+  "cfWith":    { "en": "with cache", "ru": "с кэшем",  "tt": "кэш белән" },
+  "cfWithout": { "en": "no cache",   "ru": "без кэша", "tt": "кэшсез" },
+  "cfA1": {
+    "en": "1 new row of K and V computed",
+    "ru": "посчитана 1 новая строка K и V",
+    "tt": "K һәм V ның 1 яңа юлы исәпләнде"
+  },
+  "cfA2": {
+    "en": "n rows read straight from the cache",
+    "ru": "n строк прочитаны прямо из кэша",
+    "tt": "n юл турыдан-туры кэштан укылды"
+  },
+  "cfB1": {
+    "en": "all n+1 rows of K and V recomputed",
+    "ru": "пересчитаны все n+1 строк K и V",
+    "tt": "K һәм V ның барлык n+1 юлы яңадан исәпләнде"
+  },
+  "cfB2": {
+    "en": "the whole prefill, on every single token",
+    "ru": "весь prefill — на каждый токен",
+    "tt": "бөтен prefill — һәр токен саен"
+  },
+  "cfLine1": {
+    "en": "the cache holds K and V — 2·n×d per layer per head, growing every step: the EXPENSIVE axis",
+    "ru": "кэш держит K и V — 2·n×d на слой на голову, растёт каждый шаг: ДОРОГАЯ ось",
+    "tt": "кэш K һәм V ны тота — катламга, башка 2·n×d, һәр адымда үсә: КЫЙБАТ күчәр"
+  },
+  "cfLine2": {
+    "en": "a step's scores are just 1×(n+1) — kilobytes: the CHEAP axis (quadratic only summed over the run)",
+    "ru": "оценки шага — всего 1×(n+1), килобайты: ДЕШЁВАЯ ось (квадратичны лишь в сумме за генерацию)",
+    "tt": "адымның бәяләре — барлыгы 1×(n+1), килобайтлар: АРЗАН күчәр (квадратик — бары тик суммада)"
+  }
+}
