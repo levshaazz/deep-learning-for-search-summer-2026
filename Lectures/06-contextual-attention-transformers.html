@@ -479,25 +479,23 @@
         <section class="slide" data-type="definition" data-screen-label="14d Notation · what it buys you">
           <div class="slide-header">
             <h2><span lang="ru">Лучший баг — тот, который никогда не падает</span><span lang="en">The best bug is the one that never crashes</span></h2>
-            <span class="slide-kicker"><span lang="ru">что покупает нотация · и зачем мы потратили на неё три слайда</span><span lang="en">what the notation buys · and why it was worth three slides</span></span>
+            <span class="slide-kicker"><span lang="ru">отказ — это недостающий или повёрнутый глиф, а не загадка</span><span lang="en">a failure is a missing or a turned glyph, not a mystery</span></span>
           </div>
           <div class="def-card">
             <span class="def-tag"><span lang="ru">Отладка</span><span lang="en">Debugging</span></span>
             <div class="def-term"><span lang="ru">Баг, сохраняющий форму</span><span lang="en">The shape-preserving bug</span><span class="term-en">\(n\times n \to n\times n\)</span></div>
             <div class="def-body">
-              <p><span lang="ru">softmax, нормированный <strong>не по той оси</strong>, форму <em>сохраняет</em>: вошло \(n\times n\) — вышло \(n\times n\). Каждая проверка формы во всём стеке пройдёт. Ничего не упадёт. Модель просто выучит бессмыслицу — молча, за тысячи GPU-часов.</span><span lang="en">A softmax normalised <strong>over the wrong axis</strong> is <em>shape-preserving</em>: \(n\times n\) in, \(n\times n\) out. Every shape assertion in your stack passes. Nothing crashes. The model simply learns nonsense — silently, over thousands of GPU-hours.</span></p>
-              <p class="small muted"><span lang="ru">Единственное, что вам об этом скажет, — <strong>ориентация треугольника</strong>: раскрыт поперёк оси ключей (в единицу суммируется <em>строка</em>) или поперёк оси запросов (в единицу суммируется <em>столбец</em>). В формуле этого нет. На схеме это видно за секунду.</span><span lang="en">The only thing that can tell you is <strong>the orientation of the triangle</strong>: does it open across the key axis (a <em>row</em> sums to one) or across the query axis (a <em>column</em> sums to one)? The formula does not record it. The diagram shows it in a second.</span></p>
+              <p><span lang="ru">softmax, нормированный <strong>не по той оси</strong>, форму <em>сохраняет</em>: вошло \(n\times n\) — вышло \(n\times n\). Каждая проверка формы пройдёт, ничего не упадёт — модель просто выучит бессмыслицу, молча, за тысячи GPU-часов.</span><span lang="en">A softmax normalised <strong>over the wrong axis</strong> is <em>shape-preserving</em>: \(n\times n\) in, \(n\times n\) out. Every shape assertion passes, nothing crashes — the model simply learns nonsense, silently, over thousands of GPU-hours.</span></p>
             </div>
           </div>
           <table class="cmp-table">
             <thead><tr><th><span lang="ru">Поломка</span><span lang="en">Breakage</span></th><th><span lang="ru">Падает?</span><span lang="en">Crashes?</span></th><th><span lang="ru">Что её ловит</span><span lang="en">What catches it</span></th></tr></thead>
             <tbody>
-              <tr><td><span lang="ru">\(K\) не транспонирован</span><span lang="en">\(K\) is not transposed</span></td><td class="cell-good"><span lang="ru">да, сразу</span><span lang="en">yes, at once</span></td><td><span lang="ru">любая проверка формы (чаша не сходится)</span><span lang="en">any shape check (the cup does not close)</span></td></tr>
+              <tr><td><span lang="ru">\(K\) не транспонирован</span><span lang="en">\(K\) is not transposed</span></td><td class="cell-good"><span lang="ru">да, сразу</span><span lang="en">yes, at once</span></td><td><span lang="ru">проверка формы: чаша не сходится</span><span lang="en">a shape check: the cup does not close</span></td></tr>
               <tr><td><span lang="ru">softmax по неверной оси</span><span lang="en">softmax over the wrong axis</span></td><td class="cell-bad"><span lang="ru"><strong>нет, никогда</strong></span><span lang="en"><strong>no, never</strong></span></td><td><span lang="ru"><strong>только ориентация треугольника</strong></span><span lang="en"><strong>only the orientation of the triangle</strong></span></td></tr>
-              <tr><td><span lang="ru">головы так и не собрали</span><span lang="en">the heads were never merged</span></td><td class="cell-meh"><span lang="ru">да, но этажом позже</span><span lang="en">yes, but one floor later</span></td><td><span lang="ru">проверка формы в <em>следующем</em> блоке</span><span lang="en">a shape check in the <em>next</em> block</span></td></tr>
+              <tr><td><span lang="ru">головы так и не собрали</span><span lang="en">the heads were never merged</span></td><td class="cell-meh"><span lang="ru">да, но этажом позже</span><span lang="en">yes, but one floor later</span></td><td><span lang="ru">форма — в <em>следующем</em> блоке</span><span lang="en">a shape check one block <em>later</em></span></td></tr>
             </tbody>
           </table>
-          <p class="small muted center mt-2"><span lang="ru">Отсюда правило: отказ — это <strong>недостающий или повёрнутый глиф</strong>, а не загадка. Нотация выучена; дальше мы ею просто <em>пользуемся</em>.</span><span lang="en">Hence the rule: a failure is <strong>a missing or a turned glyph</strong>, not a mystery. The notation is learned; from here we simply <em>use</em> it.</span></p>
           <aside class="slide-notes">Close the notation interlude by paying it off, because a tool has to earn its keep. Three ways to break attention. Forget to transpose K, and the contraction cup tries to join an axis of size four to an axis of size three — the wires do not meet, and any shape check anywhere catches it in a second. Forget to merge the heads back, and the block emits h by n by sixty-four where the next block expects n by seven sixty-eight — it crashes, just one floor later than you would like. But the second one is the reason we are here. Normalise the softmax over the query axis instead of the key axis, and the tensor is n by n going in and n by n coming out. Nothing changes shape. Every assertion in your stack passes, nothing crashes, no stack trace appears — and the model quietly learns nonsense, for as many GPU-hours as you are willing to pay for. The formula does not record which axis was normalised. The einsum string does not either. The only thing in the entire pipeline that can tell you is the orientation of that triangle: opened across the keys, a row sums to one; turned a quarter turn, a column sums to one. That is the trade we just made. Three slides of glyphs, in exchange for bugs that are visible instead of silent. From here on, we use the notation and do not talk about it again.</aside>
         </section>
 
@@ -1225,6 +1223,116 @@
           </div>
           <p class="small muted center mt-2"><span lang="ru">Один советник видит одну связь. Разбиваем \(d\) на \(h\) подпространств \(d/h\), в каждом — своя голова внимания; выходы <strong>конкатенируются</strong> и проецируются \(W^O\) обратно в \(d\). У нас \(h=2,\ d_k=4\Rightarrow\) подпространство \(=2\).</span><span lang="en">One councillor sees one relation. We split \(d\) into \(h\) subspaces of size \(d/h\), run an attention head in each; the outputs are <strong>concatenated</strong> and projected by \(W^O\) back to \(d\). Here \(h=2,\ d_k=4\Rightarrow\) subspace \(=2\).</span></p>
           <aside class="slide-notes">Multi-head attention as a forward data path. The whole pipeline is on screen from the start — input, split, attend, concatenate, project — with the current stage ringed and the not-yet-reached stages faded, so the projected frame is never empty even at rest. Step zero: the input X, T token vectors each of dimension d, which is four in our example. Step one: we split into h heads — here two — by projecting X with per-head query, key and value matrices, so each head works in a subspace of dimension d over h, which is two. Step two: each head independently runs the full scaled-dot-product attention we just built, so head one might capture one relation and head two a different one. Step three: we concatenate the heads' outputs back up to the full dimension d. Step four: a final learned matrix W output mixes the heads together — and this projection is essential, because concatenation alone just stacks them side by side without letting them talk. Because each head lives in a smaller subspace, the total compute is about that of a single full-size head, so we get several attention patterns nearly for free.<aside data-notes-for-step="0">Step 0 — input X: T tokens of dimension d.</aside><aside data-notes-for-step="1">Step 1 — split into h=2 heads via per-head Q/K/V projections, each in d/h dims.</aside><aside data-notes-for-step="2">Step 2 — each head runs its own scaled-dot-product attention.</aside><aside data-notes-for-step="3">Step 3 — concatenate the head outputs back to dimension d.</aside><aside data-notes-for-step="4">Step 4 — project by Wᴼ, which mixes the heads → output.</aside></aside>
+        </section>
+
+        <!-- ============================================ 25b · EXERCISE · find the bug (ncd-debug) ============================================ -->
+        <section class="slide" data-type="viz" data-max-step="2" data-current-step="0" data-screen-label="27a NCD · find the bug (exercise)">
+          <div class="slide-header">
+            <h2><span lang="ru">Где здесь баг?</span><span lang="en">Where is the bug?</span></h2>
+            <span class="slide-kicker"><span lang="ru">упражнение · шаг (&larr;/&rarr;): форма &rarr; смысл &rarr; композиция</span><span lang="en">exercise · step (&larr;/&rarr;): shape &rarr; meaning &rarr; composition</span></span>
+          </div>
+          <div class="widget-mount" data-widget="ncd-debug"></div>
+          <script class="widget-data" type="application/json">
+{
+  "data": {
+    "attention": {
+      "dk": 4
+    },
+    "params": {
+      "d": 768
+    },
+    "memory": {
+      "heads": 12
+    }
+  },
+  "i18n": {
+    "ru": {
+      "alt": "Три намеренно сломанных neural circuit diagram. В первой K не транспонирован, поэтому чаша-стягивание пытается соединить ось размера четыре с осью размера три, и провода не сходятся. Во второй одна и та же сетка оценок n×n нарисована дважды, натянутая на те же два провода — ось запросов n слева вниз, ось ключей m сверху вправо — и единственное различие между картинками это треугольник softmax: справа он раскрывается вдоль оси ключей, и каждая строка суммируется в единицу; слева он повёрнут на четверть оборота и раскрывается вниз по оси запросов, так что в единицу суммируется каждый столбец. Форма тензора и там, и там n×n, поэтому никакая проверка форм этот баг не поймает — поймает только повёрнутый треугольник. В третьей ось голов так и не собрана обратно, поэтому блок выдаёт h×n×64 там, где следующий блок ждёт n×768; лечится шестиугольником concat и выходной проекцией.",
+      "legMap": "чаша соединяет две РАВНЫЕ оси · треугольник смотрит поперёк оси, по которой нормируем",
+      "h0": "баг 1 — K не транспонирован",
+      "h1": "баг 2 — softmax не по той оси",
+      "h2": "баг 3 — головы так и не собрали",
+      "noContract": "стянуть нечего",
+      "fix0": "фикс: Kᵀ это 4×3 → (3×4)·(4×3) = 3×3 ✓",
+      "fix1": "те же провода, та же форма n×n — повёрнут лишь треугольник",
+      "badHdr": "✗ по запросам",
+      "okHdr": "✓ по ключам",
+      "axQueries": "n · запросы",
+      "axKeys": "m · ключи",
+      "vs": "против",
+      "lblAttn": "внимание",
+      "tagHeads": "broadcast: h=12 голов",
+      "nextBlock": "следующий блок",
+      "wants": "ждёт",
+      "fixLbl": "фикс",
+      "concat": "concat",
+      "lgTitle": "баг",
+      "lgWant": "надо стянуть",
+      "lgGot": "оси, что встретились",
+      "lgFix": "фикс",
+      "lgShapeIn": "форма на входе",
+      "lgShapeOut": "форма на выходе",
+      "lgNormOver": "нормируем по",
+      "lgQueries": "запросам ✗",
+      "lgKeys": "ключам ✓",
+      "lgShouldBe": "должно быть по",
+      "lgTypeCheck": "проверка форм скажет",
+      "lgPerHead": "на голову",
+      "lgAfter": "после",
+      "lgNextWants": "следующий блок ждёт",
+      "lgN0": "Чаша может стянуть только СОВПАДАЮЩИЕ оси. Здесь d=4 встречается с n=3 — стягивать нечего, провода не сходятся. В формуле QKᵀ транспонирование — это один символ, его легко потерять; на схеме контур просто разваливается.",
+      "lgN1": "Вот этот — опасный. Вошло n×n, вышло n×n, поэтому все проверки форм в вашем стеке проходят и ничего не падает — модель просто учит чушь. NCD рисует треугольник ПОПЕРЁК той оси, по которой нормирует, поэтому повёрнутый не туда треугольник видно даже там, где форму не видно.",
+      "lgN2": "Ось голов так и не вернули на место. Блоки стыкуются встык только потому, что каждый подслой сохраняет форму n×m — оставьте h болтаться, и следующий блок не подойдёт. Concat — это не «склейка для удобства», это операция, возвращающая ось, которую вы разрезали.",
+      "s0": "Баг 1 — ошибка ФОРМЫ. Q это 3×4, и K это 3×4. Чтобы оценить запрос против ключа, нужно стянуть ось d, а значит K обязан прийти транспонированным: 4×3. Он не пришёл. В чаше на самом деле встречаются ось размера 4 и ось размера 3, а чаша умеет стягивать только СОВПАДАЮЩИЕ оси — стягивать нечего, и контур разваливается прямо здесь. Это лёгкий баг: его поймает и проверка типов, и один взгляд на картинку.",
+      "s1": "Баг 2 — ошибка СМЫСЛА, и вот он-то и испортит вам неделю. Обе панели ниже — ОДНА И ТА ЖЕ схема: та же сетка оценок n×n, натянутая на те же два провода — ось запросов n идёт вниз слева, ось ключей m идёт вправо сверху. Сравните их: различается ровно ОДНО — треугольник softmax. Справа он раскрывается ВДОЛЬ оси ключей, поэтому каждая СТРОКА — это распределение по ключам (верно), и чипы Σ=1 стоят рядом со строками. Слева тот же самый треугольник повёрнут на четверть оборота: теперь он раскрывается вниз, вдоль оси ЗАПРОСОВ, и в единицу суммируется каждый СТОЛБЕЦ. Посмотрите на формы: n×n до, n×n после — и там, и там. Одинаковые. Все проверки форм проходят, ничего не падает, стектрейса не будет никогда; модель просто учит чушь, а вы неделю делите пополам гиперпараметры. Единственное, что может вам об этом сказать, — треугольник. Ровно поэтому NCD его и рисует.",
+      "s2": "Баг 3 — ошибка КОМПОЗИЦИИ. Multi-head внимание РАЗРЕЗАЕТ размерность модели: при h=12 головах и m=768 каждая голова работает в n×64. И это нормально — ровно до того момента, как вы забудете вернуть ось на место. Здесь блок выдаёт h×n×64: ось голов так и болтается. Следующий блок ждёт n×768 и не подойдёт. Блоки стыкуются встык ровно по одной причине — каждый подслой сохраняет форму n×m — а этот не сохраняет. Лечение в нижнем ряду: шестиугольник concat (который и есть в точности обратная операция к разрезанию: 12 × 64 = 768), а за ним выходная проекция L_O."
+    },
+    "en": {
+      "alt": "Three deliberately broken neural circuit diagrams. In the first, K is not transposed, so the contraction cup tries to join an axis of size four to an axis of size three and the wires do not meet. In the second, the same n by n score grid is drawn twice, held between the same two wires — the query axis n down the left, the key axis m across the top — and the only difference between the two pictures is the softmax triangle: on the right it expands along the key axis, so each row sums to one; on the left it has been turned a quarter turn and expands down the query axis, so each column sums to one instead. The tensor shape is n by n either way, so no shape check can catch it — only the turned triangle can. In the third, the head broadcast axis is never merged back, so the block outputs h by n by 64 where the next block expects n by 768; the fix is a concat hexagon followed by the output projection.",
+      "legMap": "a cup joins two EQUAL axes · the triangle points across the axis it normalises",
+      "h0": "bug 1 — K is not transposed",
+      "h1": "bug 2 — softmax over the wrong axis",
+      "h2": "bug 3 — the heads were never merged",
+      "noContract": "no contraction",
+      "fix0": "fix: Kᵀ is 4×3 → (3×4)·(4×3) = 3×3 ✓",
+      "fix1": "same wires, same n×n shape — only the triangle turned",
+      "badHdr": "✗ over queries",
+      "okHdr": "✓ over keys",
+      "axQueries": "n · queries",
+      "axKeys": "m · keys",
+      "vs": "vs",
+      "lblAttn": "attention",
+      "tagHeads": "broadcast: h=12 heads",
+      "nextBlock": "the next block",
+      "wants": "wants",
+      "fixLbl": "fix",
+      "concat": "concat",
+      "lgTitle": "the bug",
+      "lgWant": "must contract",
+      "lgGot": "axes that met",
+      "lgFix": "fix",
+      "lgShapeIn": "shape in",
+      "lgShapeOut": "shape out",
+      "lgNormOver": "normalised over",
+      "lgQueries": "queries ✗",
+      "lgKeys": "keys ✓",
+      "lgShouldBe": "should be",
+      "lgTypeCheck": "a shape check says",
+      "lgPerHead": "per head",
+      "lgAfter": "after",
+      "lgNextWants": "next block wants",
+      "lgN0": "A cup can only contract two axes that MATCH. Here d=4 meets n=3, so there is nothing to contract — the wires do not join. In the formula QKᵀ the transpose is one character and easy to lose; on the diagram the circuit simply comes apart.",
+      "lgN1": "This is the dangerous one. n×n goes in and n×n comes out, so every shape assertion in your stack passes and nothing crashes — the model just learns nonsense. NCD draws the triangle ACROSS the axis it normalises, so a triangle turned the wrong way is visible even when the shape is not.",
+      "lgN2": "The head axis was never put back. Blocks compose end to end only because every sublayer preserves the n×m shape — leave h dangling and the next block will not fit. Concat is not glue for convenience; it is the operation that returns the axis you split.",
+      "s0": "Bug 1 — a SHAPE bug. Q is 3×4 and K is 3×4. To score query against key you must contract the d axis, so K has to arrive transposed: 4×3. It has not. What actually meets at the cup is an axis of size 4 and an axis of size 3, and a cup can only contract axes that MATCH — so there is nothing to contract and the circuit comes apart right there. This bug is the easy kind: a type checker catches it, and so does a glance at the picture.",
+      "s1": "Bug 2 — a MEANING bug, and this is the one that will ruin your week. Both panels below are the SAME circuit: the same n×n score grid, held between the same two wires — the query axis n running down the left, the key axis m running across the top. Compare them and only ONE thing differs: the softmax triangle. On the right it expands ALONG the key axis, so each ROW is a distribution over the keys — correct, and the Σ=1 chips sit beside the rows. On the left the very same triangle has been turned a quarter turn: it now expands down the QUERY axis, so each COLUMN sums to one. Look at the shapes: n×n before, n×n after, in both. Identical. Every shape assertion passes, nothing crashes, no stack trace ever appears; the model simply learns nonsense and you spend a week bisecting hyperparameters. The triangle is the only thing on the page that can tell you — which is precisely why NCD draws it.",
+      "s2": "Bug 3 — a COMPOSITION bug. Multi-head attention SPLITS the model dimension: with h=12 heads and m=768, each head works in n×64. That is fine — until you forget to put the axis back. Here the block emits h×n×64: the head axis is still dangling. The next block wants n×768 and will not fit. Blocks compose end to end for exactly one reason — every sublayer preserves the n×m shape — and this one does not. The fix is the bottom row: a concat hexagon (which is precisely the inverse of the split: 12 × 64 = 768) followed by the output projection L_O."
+    }
+  }
+}
+          </script>
+          <p class="viz-caption"><span lang="ru">Проверка форм ловит две поломки из трёх. Третью — <strong>ничто</strong>: вошло \(n\times n\), вышло \(n\times n\), стектрейса не будет никогда. Улика одна — <strong>ориентация треугольника</strong>.</span><span lang="en">A shape check catches two of the three. The third, <strong>nothing</strong> catches: \(n\times n\) in, \(n\times n\) out, no stack trace, ever. The only evidence is <strong>the orientation of the triangle</strong>.</span></p>
+          <aside class="slide-notes">This is an EXERCISE, not a lecture — run it that way. Put the slide up and say nothing for a good half minute: three circuits, all of them wrong, find the bugs. Let the room look. Only then step. The tenth slide of the notation interlude promised that a failure would be a missing or a turned glyph rather than a mystery; this is where that promise gets paid, and it is why the notation was worth its ten minutes. Step zero, bug one, the easy kind: Q is three by four and K is three by four, so the cup tries to contract an axis of size four against an axis of size three. A cup joins EQUAL axes or it joins nothing — the wires do not meet and the circuit comes apart on the page. A type checker catches this; so does a glance. In the formula QK-transpose the transpose is one character and easy to lose. Step one is the whole reason we are here, so slow right down. Both panels are the same circuit: the same n by n score grid, the same two wires — the query axis down the left, the key axis across the top. Ask them what differs. Exactly one thing does: the softmax triangle. On the right it opens along the key axis, so each ROW is a distribution over keys — correct. On the left it has been turned a quarter turn and opens down the query axis, so each COLUMN sums to one instead. Now make them look at the shapes: n by n before, n by n after, in both panels. Identical. Every shape assertion in the stack passes. Nothing crashes. No stack trace ever appears. The model quietly learns nonsense and you spend a week bisecting learning rates. The formula does not record which axis was normalised; the einsum string does not either. The turned triangle is the only thing in the entire pipeline that can tell you — which is precisely why this notation draws it across the axis it normalises. Step two, bug three, and this is the one that needed multi-head: the block splits the model dimension across twelve heads, sixty-four apiece, and then never puts the axis back — so it emits h by n by sixty-four where the next block wants n by seven sixty-eight. Blocks compose end to end for exactly one reason: every sublayer preserves the n by m shape. The concat hexagon is not glue for convenience — it is the inverse of the split, twelve times sixty-four is seven sixty-eight, and the output projection follows. Land it: from here on we USE the notation and never explain it again. Homework three asks them to draw their own model this way and name the axis whose square is their memory bill.</aside>
         </section>
 
         <!-- ============================================ BEAT 7 · turn-positional ============================================ -->
@@ -2378,12 +2486,13 @@
   <script src="js/budget.js"></script>
   <script src="js/preflight.js"></script>
   <!-- deck-mounted widgets: classic offline bundles register window.mount<Pascal>; the deck-adapter (after
-       deck.js) drives them with the deck step engine. course-map = the spine; ncd-einsum + ncd-attention =
-       the neural-circuit-diagram notation (14c grammar proof · 22a the n×n memory bill). BUILD OUTPUT
-       (scripts/build-deck-widgets.mjs). -->
+       deck.js) drives them with the deck step engine. course-map = the spine; ncd-einsum + ncd-attention +
+       ncd-debug = the neural-circuit-diagram notation (14c grammar proof · 22a the n×n memory bill · 25b the
+       find-the-bug exercise that justifies all of it). BUILD OUTPUT (scripts/build-deck-widgets.mjs). -->
   <script src="js/course-map.classic.js"></script>
   <script src="js/ncd-einsum.classic.js"></script>
   <script src="js/ncd-attention.classic.js"></script>
+  <script src="js/ncd-debug.classic.js"></script>
   <script src="js/deck-adapter.js"></script>
 
 </body>

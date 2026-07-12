@@ -134,7 +134,7 @@ export const mountNcdMultihead = defineWidget({
         G.text(g, xBar + wBar / 2, yBar + 42, L('lblOneOf', `one head = 1 strip of ${heads}`),
           'ncdm-axis ncdm-axis-slice');
 
-        G.text(g, W / 2, H - 8, L('legMap', 'wire = axis · ▭ = learned projection · box = operation'), 'ncdm-legend');
+        G.legend(g, W / 2, H - 8, L('legMap', 'wire = axis · ▭ = learned projection · box = operation'), 'ncdm-legend', W - 40);
         prev = step;
         return;
       }

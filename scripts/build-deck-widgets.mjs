@@ -35,7 +35,17 @@ const DECK_WIDGETS = ['course-map',
   'graphrag', 'clip-matrix',                             // L12 "The Deep Field" deck-mounted figures (rag-control-flow reused for CRAG/self-RAG callback)
   'infonce-calc', 'hardness-sphere', 'mining-comparator', 'impostor-denoise',  // L13 "The Crucible of Negatives" deck-mounted figures
   'hyde-embed', 'query-rewriter', 'rrf-fusion',  // L14 "The Artificer's Quill" deck-mounted figures (rrf-fusion reused from L3)
-  'ncd-einsum', 'ncd-attention'];                // L6 neural-circuit-diagram notation: the grammar proof (14c) + the n×n memory bill (22a)
+  'ncd-einsum', 'ncd-attention',                 // L6 neural-circuit-diagram notation: the grammar proof (14c) + the n×n memory bill (22a)
+  // The notation is taught once in L6 and then USED. These are the circuits that carry an argument the
+  // lecture's prose can only assert: count the encoder boxes (L7/L8), watch the broadcast axis SHRINK
+  // and a true neighbour fall outside it (L9), read the funnel N→K→k→1 as shapes (L10), and see the
+  // transformer's internals as axes that are split, masked and grown (L15). The atlas opens the course.
+  'ncd-retrieval',                              // L7 bi- vs cross-encoder (+ L8 ColBERT, step 2)
+  'ncd-ann',                                    // L9 exact vs approximate: the broadcast that shrank
+  'ncd-rag',                                    // L10 retrieve → rerank → generate
+  'ncd-multihead', 'ncd-causal', 'ncd-kvcache', 'ncd-block',   // L15 transformer internals
+  'ncd-atlas',                                  // L0 the map: the whole course as one funnel of shapes
+  'ncd-debug'];                                 // L6 the exercise: three broken circuits — the notation's own justification
 
 for (const id of DECK_WIDGETS) {
   await build({
@@ -84,8 +94,9 @@ const mountRule =
   // ~500-unit widgets above, and the ledger only stays BESIDE the diagram above a 1000px container query.
   // So run them wide: at 1560px the SVG still gets ~1120px (an authored 11px label → ~15px effective) and
   // the 820×292 / 820×344 boxes land at ~400 / ~470px tall — big inside the ~830px figure band, no overflow.
-  '.slide .widget-mount[data-widget="ncd-einsum"]         { max-width: min(1560px, 82cqw); }\n' +
-  '.slide .widget-mount[data-widget="ncd-attention"]      { max-width: min(1560px, 82cqw); }\n' +
+  // Every NCD figure is an 800–880-unit circuit plus a ~27% ledger — wider than the ~500-unit widgets
+  // above, so they all take the same generous cap rather than one line each.
+  '.slide .widget-mount[data-widget^="ncd-"]             { max-width: min(1560px, 82cqw); }\n' +
   // the cascade is HTML (not an autoscaling SVG): bump its type + bar height DECK-ONLY so it reads big on
   // 1920 without enlarging it in the narrower Book column.
   // size via calc(var(--fz-…)*k) so the font-gate sees an on-scale token (raw px/rem literals would HARD-fail it)

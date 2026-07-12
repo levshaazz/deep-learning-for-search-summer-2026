@@ -171,6 +171,36 @@ window.__mount=(id,step,lang)=>{const box=document.getElementById('box');box.inn
   try{ M[id](box,{data:DATA[id],labels:LAB[id][lang]}).setStep(step); return null; }
   catch(e){ return id+' step '+step+' ['+lang+']: '+e.message; }};
 
+/* [H] DOES THE FIGURE FOLLOW A LANGUAGE SWITCH, OR ONLY ITS CAPTION?
+   The deck flips document.documentElement's data-lang in place; the Book reloads. For a whole week
+   every ncd-* figure ignored the deck's flip: the factory built a NEW label map on a switch, while
+   render() held a closure over the OLD one — and it never re-ran render() at all, so every label drawn
+   in the render() body (the axis names, the box captions, the ledger) stayed frozen in the language the
+   slide happened to boot in. The caption underneath dutifully switched, which is what made it invisible:
+   the slide LOOKED bilingual.
+   The check is language-agnostic on purpose — no "does it still contain Cyrillic" heuristic, which would
+   pass a figure whose labels are all Latin symbols anyway. Ground truth is a FRESH BOOT in the target
+   language: after the flip, the figure must be text-identical to the same widget booted in it. */
+window.__flip=async(id,step,from,to)=>{const box=document.getElementById('box');
+  const all={};for(const lg of LANGS)all[lg]=LAB[id][lg];
+  const snap=()=>[...box.querySelectorAll('text')].map(t=>t.textContent).join('\\u241f');
+  document.documentElement.setAttribute('data-lang',from);
+  box.innerHTML='';
+  try{ M[id](box,{data:DATA[id],labels:LAB[id][from],i18nAll:all}).setStep(step); }
+  catch(e){ return id+' step '+step+' ['+from+']: '+e.message; }
+  document.documentElement.setAttribute('data-lang',to);
+  await new Promise(r=>setTimeout(r,60));          // the MutationObserver fires on a microtask+
+  const flipped=snap();
+  box.innerHTML='';                                 // …now the ground truth: a fresh boot in the target
+  try{ M[id](box,{data:DATA[id],labels:LAB[id][to],i18nAll:all}).setStep(step); }
+  catch(e){ return id+' step '+step+' ['+to+']: '+e.message; }
+  const booted=snap();
+  if(flipped===booted) return null;
+  const a=flipped.split('\\u241f'), b=booted.split('\\u241f');
+  const stuck=b.map((t,i)=>a[i]===t?null:'"'+(a[i]===undefined?'—':a[i])+'" should read "'+t+'"')
+    .filter(Boolean).slice(0,3).join('; ');
+  return id+' step '+step+' '+from+'→'+to+': figure did not follow the switch — '+stuck;};
+
 /* [D] effective px = authored user-units × (rendered width / viewBox width). */
 window.__minFont=()=>{const svg=document.querySelector('#box svg');if(!svg)return null;
   const vb=svg.viewBox.baseVal.width||1, w=svg.getBoundingClientRect().width;
@@ -259,7 +289,7 @@ window.__ready=true;
 async function audit(ids, { fontFloor = FONT_FLOOR_PX } = {}) {
   writeFileSync(join(ROOT, PROBE), PROBE_HTML(ids));
   const server = await serveDir(ROOT);
-  const out = { collisions: [], wires: [], errors: [], fonts: [], loaded: [] };
+  const out = { collisions: [], wires: [], errors: [], fonts: [], flips: [], loaded: [] };
   try {
     await withBrowser(async (b) => {
       await withPage(b, { viewport: { width: 1200, height: 900 } }, async (page) => {
@@ -281,6 +311,12 @@ async function audit(ids, { fontFloor = FONT_FLOOR_PX } = {}) {
               if (lg === 'ru') for (const f of await page.evaluate(() => window.__wires())) {
                 out.wires.push(`${id} step ${s}: ${f}`);   // geometry is language-independent
               }
+            }
+            // [H] the deck flips language IN PLACE — the figure must follow, at every step, both ways
+            for (const [from, to] of [['ru', 'en'], ['en', 'ru']]) {
+              const f = await page.evaluate(({ i, s, from, to }) => window.__flip(i, s, from, to),
+                { i: id, s, from, to });
+              if (f) out.flips.push(f);
             }
           }
           // [D] the narrowest real surface: the Book's figure column
@@ -335,13 +371,18 @@ async function main() {
   if (r.wires.length) for (const w of r.wires) console.log(`  ✗ ${w}`);
   else console.log('  ✓ none');
 
+  console.log(`\n[ncd] [H] figure follows an in-place language switch (deck flips data-lang, Book reloads):`);
+  if (r.flips.length) for (const f of r.flips) console.log(`  ✗ ${f}`);
+  else console.log(`  ✓ every figure repaints — flipped == a fresh boot in the target language`);
+
   console.log(`\n[ncd] [D] smallest label at the Book column width (${BOOK_COL_PX}px), floor = ${FONT_FLOOR_PX}px:`);
   for (const f of r.fonts.sort((a, b) => a.px - b.px)) {
     console.log(`  ${f.px < FONT_FLOOR_PX ? '✗' : ' '} ${String(f.px).padStart(5)}px  ${f.id.padEnd(16)} (scale ${f.scale}×)  "${f.who}"`);
   }
 
-  const hard = ns.length + guess.length + drift.length + r.errors.length + r.collisions.length + r.wires.length + r.tooSmall.length;
-  console.log(`\n[ncd] HARD(namespace/width-guess/prose-drift/mount-error/collision/wire-through/too-small) = ${hard}`);
+  const hard = ns.length + guess.length + drift.length + r.errors.length + r.collisions.length
+             + r.wires.length + r.flips.length + r.tooSmall.length;
+  console.log(`\n[ncd] HARD(namespace/width-guess/prose-drift/mount-error/collision/wire-through/lang-stuck/too-small) = ${hard}`);
   if (hard) { console.log('[ncd] ✗ FAIL'); process.exit(1); }
   console.log('[ncd] ✓ pass');
 }
@@ -374,6 +415,20 @@ async function selftest() {
       "text(scC[1], yS + 21, L('lblScores', 'scores')"));
     const b = await audit([victim]);
     results.push(['A catches a text×text collision', b.collisions.some((c) => c.includes('TEXT×TEXT'))]);
+
+    /* plant a figure that IGNORES the language switch: freeze the label map at the FIRST render of
+       this mount — the exact shape of the bug the factory itself had (render closed over the boot-time
+       map; the caption switched, the figure did not). Frozen per-mount, not globally: a global freeze
+       would poison the fresh-boot ground truth too, and the check would compare stale against stale
+       and see nothing. That mistake is why this plant exists. */
+    writeFileSync(f, orig.replace(
+      "  render({ host, data, labels, el }) {",
+      "  render(__ctx) {\n"
+      + "    const { host, data, el } = __ctx;\n"
+      + "    __ctx.__boot = __ctx.__boot || { ...__ctx.labels };\n"
+      + "    const labels = __ctx.__boot;"));
+    const d = await audit([victim]);
+    results.push(['H catches a figure frozen in its boot language', d.flips.length > 0]);
 
     // an impossible floor must trip [D]
     writeFileSync(f, orig);
