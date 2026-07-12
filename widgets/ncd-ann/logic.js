@@ -46,7 +46,10 @@ export const mountNcdAnn = defineWidget({
   render({ host, labels, el }) {
     const L = (k, fb) => (labels && labels[k]) || fb;
     const G = glyphs(el);
-    const W = 860, H = 400;
+    // H carries a two-line budget for the legend below the figure: the key line wraps by measurement
+    // (Cyrillic runs wider than Latin, and wider still under CI's Linux Chromium), and a wrap that has
+    // nowhere to go just trades an overflowing line for a collision with the cost label above it.
+    const W = 860, H = 430;
     const wrap = stage(host);
     const svg = el('svg', { class: 'ncdann-svg', viewBox: `0 0 ${W} ${H}`, role: 'img',
       'aria-label': L('alt', 'Exact vs approximate nearest-neighbour search as a neural circuit diagram') }, wrap);
@@ -226,9 +229,9 @@ export const mountNcdAnn = defineWidget({
       }
 
       G.text(main, 515, 374, approx ? L('costAnn', 'cost:  ≈ |C| · d') : L('costExact', 'cost:  N · d'), 'ncdann-cost');
-      G.text(main, W / 2, 394, L('legMap',
+      G.legend(main, W / 2, H - 10, L('legMap',
         'pentagon = a document vector · ⌣ = one contraction q·dᵢ · dashed = the broadcast axis · orange = the graph walk'),
-        'ncdann-legend');
+        'ncdann-legend', W - 40);
       prev = s;
     };
   },

@@ -251,7 +251,7 @@ export const mountNcdKvcache = defineWidget({
       wire(gA, 'ncdk-w-out', AX + AW / 2, AY, 840, AY, { arrow: true });
       G.text(gA, 840, AY - 14, L('lblOut', 'next token'), 'ncdk-out-txt', 'end');
 
-      G.text(main, W / 2, 352, L('legMap', 'violet = cached K,V (read) · warm = computed this step · the n axis grows by 1'), 'ncdk-legend');
+      G.legend(main, W / 2, 352, L('legMap', 'violet = cached K,V (read) · warm = computed this step · the n axis grows by 1'), 'ncdk-legend', W - 40);
       prev = step;
     };
   },
