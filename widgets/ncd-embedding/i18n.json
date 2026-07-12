@@ -1,0 +1,35 @@
+{
+  "_doc": "ncd-embedding — the embedding layer E: V→ℝᵐ in the NCD lens. A token id selects one row of the learned V×m table; that is a one-hot × E matrix product. Over a sequence the lookup is broadcast over the token axis n. Structural (illustrative cells, no grounded numbers). NOTE the row ORDER in logic.js is deliberately arbitrary (a token id carries no semantics): s1 exists to kill the 'nearby meanings are nearby rows' misconception — what ends up close is the POINT in ℝᵐ, not the row. Do not 'tidy' WORDS back into a semantic order.",
+  "alt": {
+    "en": "An embedding layer drawn as a neural circuit diagram. A token selects its row from the learned vocabulary matrix (V rows by m columns) — that is exactly a one-hot vector times the matrix. The output is the m-dimensional vector for that token. Over a whole sequence the same lookup is broadcast over the token axis, turning n token ids into an n by m matrix of vectors.",
+    "ru": "Слой эмбеддинга в виде neural circuit diagram. Токен выбирает свою строку из обучаемой матрицы словаря (V строк на m столбцов) — это ровно one-hot вектор, умноженный на матрицу. Выход — m-мерный вектор этого токена. По всей последовательности та же выборка оплетает ось токенов, превращая n id токенов в матрицу n на m векторов.",
+    "tt": "Эмбеддинг катламы neural circuit diagram буларак. Токен өйрәнелгән сүзлек матрицасыннан (V юл × m баган) үз юлын сайлый — бу нәкъ one-hot вектор × матрица. Чыгыш — шул токенның m үлчәмле векторы. Бөтен эзлеклелек буенча шул ук сайлау токен күчәрен урый, n токен id ын n×m векторлар матрицасына әйләндерә."
+  },
+  "legMap": {
+    "en": "token → select its row → m-vector · a lookup is a one-hot × matrix",
+    "ru": "токен → выбор его строки → вектор m · поиск = one-hot × матрица",
+    "tt": "токен → үз юлын сайлау → m-вектор · эзләү = one-hot × матрица"
+  },
+  "lblToken": { "en": "token", "ru": "токен", "tt": "токен" },
+  "lblTable": { "en": "E · vocabulary V × m", "ru": "E · словарь V × m", "tt": "E · сүзлек V × m" },
+  "lblVec": { "en": "∈ ℝᵐ", "ru": "∈ ℝᵐ", "tt": "∈ ℝᵐ" },
+  "lblSel": { "en": "one-hot × E = row", "ru": "one-hot × E = строка", "tt": "one-hot × E = юл" },
+  "lblSeq": { "en": "n tokens", "ru": "n токенов", "tt": "n токен" },
+  "lblMat": { "en": "n × m", "ru": "n × m", "tt": "n × m" },
+  "tagSeq": { "en": "broadcast over n tokens", "ru": "broadcast по токенам n", "tt": "n токен буенча broadcast" },
+  "s0": {
+    "en": "An embedding turns a discrete token into a vector. The learned table E has one row per vocabulary word (V rows) and m columns. The token “cat” simply points at its own row — a pure lookup — and that row IS its embedding, an m-dimensional vector. No arithmetic yet: the token just selects where to read.",
+    "ru": "Эмбеддинг превращает дискретный токен в вектор. Обучаемая таблица E имеет по строке на каждое слово словаря (V строк) и m столбцов. Токен «cat» просто указывает на свою строку — чистый поиск — и эта строка И ЕСТЬ его эмбеддинг, m-мерный вектор. Пока никакой арифметики: токен лишь выбирает, откуда читать.",
+    "tt": "Эмбеддинг дискрет токенны векторга әйләндерә. Өйрәнелгән E таблицасында сүзлекнең һәр сүзенә бер юл (V юл) һәм m баган бар. «cat» токены үз юлына күрсәтә — саф эзләү — һәм шул юл аның эмбеддингы, m үлчәмле вектор. Әле бернинди арифметика юк: токен кайдан укырга сайлый гына."
+  },
+  "s1": {
+    "en": "Under the hood, that lookup is a matrix product. Represent “cat” as a one-hot vector (a 1 in the “cat” slot, 0 everywhere else); multiply it by E and you get exactly the “cat” row. So the embedding layer is a learned linear op whose input happens to be one-hot — that is why we draw it as a selection. Now notice what the row INDEX is not: it is only a token id, handed out by the vocabulary in merge order, so the rows above and below “cat” are its neighbours by accident and mean nothing. Nothing downstream ever looks at index proximity. The meaning lives in the m numbers INSIDE the row: two words are close when their POINTS in ℝᵐ are close — never when their rows are.",
+    "ru": "Под капотом этот поиск — матричное произведение. Представьте «cat» как one-hot вектор (1 в слоте «cat», 0 везде) и умножьте на E — получите ровно строку «cat». То есть слой эмбеддинга — обучаемая линейная операция, вход которой оказался one-hot; поэтому мы рисуем её как выборку. А теперь заметьте, чем НЕ является номер строки: это всего лишь id токена, выданный словарём в порядке слияний, так что строки над «cat» и под ним — соседи по случайности и не значат ничего. Ничто ниже по модели никогда не смотрит на близость индексов. Смысл живёт в m числах ВНУТРИ строки: два слова близки, когда близки их ТОЧКИ в ℝᵐ, — но не когда соседствуют их строки.",
+    "tt": "Эчтә бу эзләү — матрица тапкырчыгы. «cat»'ны one-hot вектор итеп күз алдына китерегез (1 «cat» урынында, 0 калганда) һәм E га тапкырлагыз — нәкъ «cat» юлын аласыз. Ягъни эмбеддинг катламы — керүе one-hot булган өйрәнелгән сызыклы операция; шуңа без аны сайлау итеп сызабыз. Ә хәзер юл НОМЕРЫ нәрсә түгеллеген күрегез: ул бары тик токен id ы, сүзлек тарафыннан кушылу тәртибендә бирелгән, шуңа «cat» өстендәге һәм астындагы юллар — очраклы күршеләр, алар бернәрсә дә аңлатмый. Модельдә аннан соң килгән бернәрсә дә индекс якынлыгына карамый. Мәгънә юл ЭЧЕНДӘГЕ m санда яши: ике сүз, аларның ℝᵐ дагы НОКТАЛАРЫ якын булганда якын — юллары күрше булганда түгел."
+  },
+  "s2": {
+    "en": "A real input is a whole sequence. The same lookup is broadcast over the token axis n: every token independently reads its own row, in parallel. n token ids become an n×m matrix of vectors — the sequence, now numeric — ready for positional encoding and attention. One learned table, applied n times over the token axis.",
+    "ru": "Настоящий вход — целая последовательность. Тот же поиск оплетает ось токенов n: каждый токен независимо читает свою строку, параллельно. n id токенов становятся матрицей n×m векторов — последовательность, теперь числовая — готовая для позиционного кодирования и внимания. Одна обучаемая таблица, применённая n раз по оси токенов.",
+    "tt": "Чын керү — бөтен эзлеклелек. Шул ук эзләү токен күчәре n не урый: һәр токен үз юлын бәйсез, параллель укый. n токен id ы n×m векторлар матрицасы була — эзлеклелек, хәзер санлы — позицион кодлау һәм игътибар өчен әзер. Бер өйрәнелгән таблица, токен күчәре буенча n тапкыр кулланылган."
+  }
+}

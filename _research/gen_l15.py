@@ -77,11 +77,17 @@ def measure():
     t_soft = softmax(z, T=2.0)                         # (0.375,0.227,0.177,0.138,0.084)
 
     # ── O(n²) score-matrix memory (slide 88): E=QKᵀ is n×n; fp16 = 2n² bytes per head, h=12. ──
-    def mem(n, unit):
-        return round(2 * n * n / unit, 2)
+    #    Every figure is rounded ONCE, from bytes — never re-rounded from an already-rounded per-head
+    #    figure (round(round(2·512²/1e6,2)·12,1) would report 6.2 MB, not the true 6.3 MB).
+    heads = 12
+    def mem(n, unit, r=2, h=1):
+        return round(2 * n * n * h / unit, r)
     mem512_mb = mem(512, 1e6)                          # 0.52
-    mem4k_mb = round(2 * 4096 ** 2 / 1e6, 1)          # 33.6
+    mem4k_mb = mem(4096, 1e6, 1)                       # 33.6
     mem32k_gb = mem(32768, 1e9)                        # 2.15
+    mem512_mb_h = mem(512, 1e6, 1, heads)              # 6.3   (2·512²·12/1e6 = 6.291456)
+    mem4k_mb_h = round(2 * 4096 ** 2 * heads / 1e6)    # 403   (402.653184 → integer MB)
+    mem32k_gb_h = mem(32768, 1e9, 1, heads)            # 25.8  (25.769803776)
 
     return {
         "_doc": "COMPUTED by hand on tiny inputs (stdlib math.exp/sin/cos). Deck-displayable, reproducible. "
@@ -118,10 +124,10 @@ def measure():
                      "T=0.5 (0.829,…); T=2.0 (0.375,…)",
         },
         "memory": {
-            "heads": 12, "n": [512, 4096, 32768],
+            "heads": heads, "n": [512, 4096, 32768],
             "mb512": mem512_mb, "mb4k": mem4k_mb, "gb32k": mem32k_gb,
-            "mb512x12": round(mem512_mb * 12, 1), "mb4kx12": round(mem4k_mb * 12),
-            "gb32kx12": round(mem32k_gb * 12, 1),
+            "mb512x12": mem512_mb_h, "mb4kx12": mem4k_mb_h,
+            "gb32kx12": mem32k_gb_h,
             "_note": "fp16 2n² bytes/head: n=512→0.52MB, n=32k→2.15GB; ×12 heads → 6.3MB / 403MB / 25.8GB (O(n²))",
         },
         "uniform3": round(1 / 3, 3),

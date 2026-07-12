@@ -1,0 +1,67 @@
+/* ncd-ann — ANN as the broadcast that shrank. The SAME circuit at every step; only the size of the
+   dashed broadcast axis changes. Semantic tokens (colour = meaning, never decoration):
+   --accent = the query wire · --c-violet = the broadcast axis / the region (the star of this widget)
+   · --c-green = a true neighbour that IS scored · --warm = the graph walk (the work being done)
+   · --c-red = ONLY the missed neighbour (recall < 1) · --ink* / --rule* = structure, and the documents
+   the broadcast no longer reaches go neutral/faint — never scored, never coloured. */
+.ncdann-svg { width: 100%; height: auto; display: block; overflow: visible; min-width: 760px; }
+
+/* the query wire */
+.ncdann-qchip     { fill: var(--accent-soft, #DCE8F8); stroke: var(--accent, #2A6FDB); stroke-width: 1.4; }
+.ncdann-qchip-txt { font: 600 12px var(--font-sans, sans-serif); fill: var(--accent-ink, #1B4FA0); }
+.ncdann-qlbl      { font: 700 12px var(--font-mono, monospace); fill: var(--accent-ink, #1B4FA0); }
+.ncdann-w         { fill: none; stroke-width: 2.2; stroke-linecap: round; }
+.ncdann-w-q       { stroke: var(--accent, #2A6FDB); }
+.ncdann-axis      { font: 700 11px var(--font-mono, monospace); fill: var(--accent-ink, #1B4FA0); }
+
+/* the broadcast axis, made concrete — and its ghost, the axis it used to be */
+.ncdann-region       { fill: color-mix(in srgb, var(--c-violet, #7D5BA6) 5%, transparent);
+  stroke: var(--c-violet, #7D5BA6); stroke-width: 1.8; stroke-dasharray: 7 5; }
+.ncdann-tag          { fill: var(--bg-card, #fff); stroke: var(--c-violet, #7D5BA6); stroke-width: 1.3; }
+/* 10px, not 11: region()'s tag box is sized at 6.3px/char, but Cyrillic mono advances ~6.6px — at
+   11px a long RU/TT tag runs out the right side of its own box. 10px advances 6.0px → always fits. */
+.ncdann-tag-txt      { font: 700 11px var(--font-mono, monospace); fill: var(--c-violet, #7D5BA6); }
+.ncdann-region-ghost { fill: none; stroke: var(--c-violet, #7D5BA6); stroke-width: 1.2;
+  stroke-dasharray: 3 6; opacity: .38; }
+.ncdann-tag-ghost    { fill: var(--bg-card, #fff); stroke: var(--c-violet, #7D5BA6); stroke-width: 1;
+  opacity: .5; }
+.ncdann-tag-ghost-txt { font: 700 11px var(--font-mono, monospace); fill: var(--ink-4, #9CA3AF); }
+
+/* the proximity graph: structure, never a protagonist */
+.ncdann-edge      { fill: none; stroke: var(--rule-strong, #B8B19E); stroke-width: 1.4; }
+
+/* the walk — the work actually being done to REACH the candidates */
+.ncdann-walk      { fill: none; stroke: var(--warm, #E8743B); stroke-width: 2.6; stroke-linecap: round; }
+.ncdann-hop       { fill: var(--warm-soft, #FBE6D8); stroke: var(--warm, #E8743B); stroke-width: 1.4; }
+.ncdann-hop-txt   { font: 700 11px var(--font-mono, monospace); fill: var(--warm-ink, #B4521F); }
+.ncdann-entry     { font: 700 11px var(--font-mono, monospace); fill: var(--warm-ink, #B4521F); }
+/* the frontier: SCORED (a cup runs on them) but never EXPANDED (the walk never stepped on them). Warm,
+   because being scored at all is work the walk paid for — not red: they are not the miss, they are the
+   bill. This label is the distinction the whole widget turns on, so it is drawn, not just narrated. */
+.ncdann-frontier  { font: 700 11px var(--font-mono, monospace); fill: var(--warm-ink, #B4521F); }
+
+/* the documents: pentagons = pre-computed, looked-up index vectors */
+.ncdann-node      { fill: var(--bg-card, #fff); stroke: var(--rule-strong, #B8B19E); stroke-width: 1.4; }
+.ncdann-node-gold { stroke: var(--c-green, #3A8A5C); stroke-width: 2.2; }
+/* greyed BODY (it was never scored — no cup ever ran on it) but a red outline (it should have been) */
+.ncdann-node-miss { fill: var(--bg-inset, #EBE7DA); stroke: var(--c-red, #D7522C); stroke-width: 2.4; }
+/* the edges into the missed neighbour: they EXIST, and they were never crossed — because both start at
+   a frontier node that was scored and never expanded. The miss is a LOCAL OPTIMUM (2 hops from every
+   expanded node), not a node the walk stopped one edge short of: that miss would be impossible, since a
+   graph search scores every neighbour of every node it expands. This is the whole of recall < 1, drawn. */
+.ncdann-edge-miss { fill: none; stroke: var(--c-red, #D7522C); stroke-width: 1.8; }
+.ncdann-node-txt  { font: 700 11px var(--font-mono, monospace); fill: var(--ink-2, #3D434E); }
+.ncdann-node-txt-miss { font: 700 11px var(--font-mono, monospace); fill: var(--c-red, #D7522C); }
+.ncdann-faint     { opacity: .32; }        /* outside the broadcast: never scored, so never emphasised */
+
+/* the contraction — one cup per document the query is broadcast to (absent = never scored) */
+.ncdann-cup       { fill: none; stroke: var(--ink-2, #3D434E); stroke-width: 1.8; }
+.ncdann-cup-dot   { fill: var(--ink-2, #3D434E); }
+
+/* the price */
+.ncdann-miss      { font: 700 11px var(--font-mono, monospace); fill: var(--c-red, #D7522C); }
+.ncdann-unscored  { font: 700 11px var(--font-mono, monospace); fill: var(--ink-4, #9CA3AF); }
+
+.ncdann-cost      { font: 700 11px var(--font-mono, monospace); fill: var(--ink-2, #3D434E); }
+.ncdann-legend    { font: 600 11px var(--font-mono, monospace); fill: var(--ink-3, #6B7280); }
+@media (prefers-reduced-motion: reduce) { .ncdann-svg * { transition: none !important; } }

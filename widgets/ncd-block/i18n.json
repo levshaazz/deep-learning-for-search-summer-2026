@@ -1,0 +1,85 @@
+{
+  "_doc": "ncd-block — one pre-norm transformer block in the NCD lens: self-attention + residual + LayerNorm, then FFN + residual + LayerNorm. The residual is a wire that skips the sublayer and adds back (⊕); the head axis h is a broadcast over the attention. The ledger is grounded in data/l15-attention.json and totals ONLY what the diagram draws (12·12d² + token embeddings = 108.38M). It must never claim to be BERT-base 'to the million': the real bert-base-uncased is 109,482,240. The omitted 1,106,688 (positions, segments, embedding LayerNorm, per-block biases + LN gains, pooler) is named in the s2 CAPTION PROSE only — those terms are not in data/, so a ledger row for them would hard-fail the facts-gate coverage-guard.",
+  "alt": {
+    "en": "One transformer block drawn as a neural circuit diagram. The token-vector wire runs left to right through two sublayers. First self-attention, whose output is added back to the input through a residual skip wire (⊕) and normalised (LayerNorm). Then a feed-forward network that expands m to 4m and back, again with a residual add and a LayerNorm. The head axis is a broadcast woven around attention, and the whole block is stacked L times to make the model.",
+    "ru": "Один блок трансформера в виде neural circuit diagram. Провод токен-векторов идёт слева направо через два подслоя. Сначала self-attention, чей выход складывается со входом через остаточный провод-обход (⊕) и нормируется (LayerNorm). Затем feed-forward сеть, расширяющая m до 4m и обратно, снова с остаточным сложением и LayerNorm. Ось голов — broadcast, оплетающий внимание, а весь блок повторяется L раз, образуя модель.",
+    "tt": "Бер трансформер блогы neural circuit diagram буларак. Токен-вектор чыбыгы сулдан уңга ике асткатлам аша бара. Башта self-attention, аның чыгышы калдык чыбык-урап (⊕) аша керүгә кушыла һәм нормалаша (LayerNorm). Аннары m ны 4m га һәм кире киңәйтүче feed-forward челтәр, тагын калдык кушу һәм LayerNorm белән. Башлар күчәре — игътибарны урап алган broadcast, ә бөтен блок L тапкыр өелә."
+  },
+  "legMap": {
+    "en": "wire = token vectors · ⊕ = residual add · ◎ = LayerNorm · dashed = head broadcast",
+    "ru": "провод = токен-векторы · ⊕ = остаточное сложение · ◎ = LayerNorm · пунктир = broadcast голов",
+    "tt": "чыбык = токен-векторлар · ⊕ = калдык кушу · ◎ = LayerNorm · пунктир = башлар broadcast"
+  },
+  "lblIn": { "en": "x  (n×m)", "ru": "x  (n×m)", "tt": "x  (n×m)" },
+  "lblAttn": { "en": "self-attention", "ru": "self-attention", "tt": "self-attention" },
+  "lblFFN": { "en": "FFN", "ru": "FFN", "tt": "FFN" },
+  "lblFFNsub": { "en": "m → 4m → m", "ru": "m → 4m → m", "tt": "m → 4m → m" },
+  "lblLN": { "en": "LN", "ru": "LN", "tt": "LN" },
+  "lblRes": { "en": "residual", "ru": "остаток", "tt": "калдык" },
+  "lblOut": { "en": "out", "ru": "выход", "tt": "чыгыш" },
+  "tagHead": { "en": "broadcast: h heads", "ru": "broadcast: h голов", "tt": "broadcast: h баш" },
+  "tagStack": { "en": "× L blocks → the model", "ru": "× L блоков → модель", "tt": "× L блок → модель" },
+  "s0": {
+    "en": "First sublayer: self-attention. The token-vector wire enters; a residual wire taps a copy and skips OVER the attention. Attention mixes information across tokens; its output is ADDED back to the untouched copy (⊕ — the residual, so gradients and the original signal survive), then LayerNorm (◎) re-centres and re-scales each vector. Notice the shape never changes: n×m in, n×m out.",
+    "ru": "Первый подслой: self-attention. Входит провод токен-векторов; остаточный провод снимает копию и обходит внимание СВЕРХУ. Внимание смешивает информацию между токенами; его выход СКЛАДЫВАЕТСЯ с нетронутой копией (⊕ — остаток, чтобы выжили градиенты и исходный сигнал), затем LayerNorm (◎) заново центрирует и масштабирует каждый вектор. Форма не меняется: n×m на входе, n×m на выходе.",
+    "tt": "Беренче асткатлам: self-attention. Токен-вектор чыбыгы керә; калдык чыбык күчермә ала һәм игътибарны ӨСТӘН урап уза. Игътибар токеннар арасында мәгълүматны катнаштыра; аның чыгышы тимәгән күчермәгә КУШЫЛА (⊕ — калдык, градиентлар һәм чыганак сигнал саклансын өчен), аннары LayerNorm (◎) һәр векторны яңадан үзәкли һәм масштаблый. Форма үзгәрми: n×m керә, n×m чыга."
+  },
+  "s1": {
+    "en": "Second sublayer: the feed-forward network. Same recipe: tap a residual, then run a small MLP that expands each vector from m to 4m, applies a nonlinearity, and projects back to m — this is where per-token “thinking” happens (attention moved information; the FFN transforms it). Add the residual, LayerNorm again. Still n×m in, n×m out — a block is a shape-preserving refinement.",
+    "ru": "Второй подслой: feed-forward сеть. Тот же рецепт: снимаем остаток, затем маленький MLP расширяет каждый вектор с m до 4m, применяет нелинейность и проецирует обратно в m — здесь идёт «обдумывание» на токен (внимание переносило информацию; FFN её преобразует). Складываем остаток, снова LayerNorm. По-прежнему n×m на входе и выходе — блок сохраняет форму, уточняя её.",
+    "tt": "Икенче асткатлам: feed-forward челтәр. Шул ук рецепт: калдык алабыз, аннары кечкенә MLP һәр векторны m нән 4m га киңәйтә, сызыксызлык куллана һәм кире m га проекцияли — биредә токенга «уйлау» бара (игътибар мәгълүматны КҮЧЕРДЕ; FFN аны ҮЗГӘРТӘ). Калдыкны кушабыз, тагын LayerNorm. Һаман n×m керә-чыга — блок форманы саклап, аны төгәлли."
+  },
+  "s2": {
+    "en": "Two more truths the diagram makes visible — and one the LEDGER makes visible. First, attention runs multi-head: the head axis h (dashed) is a broadcast woven around the attention sublayer. Second, this whole block is a single unit stacked ×L times (L=12 for BERT-base); because every sublayer preserves the n×m shape, blocks compose end to end without any glue. Now read the ledger: 12d² per block → 7.08M, times 12 blocks, plus 23.4M of token embeddings — total ≈ 108.38M. And that is honestly all this skeleton contains. The real bert-base-uncased has 109,482,240 parameters; the missing 1,106,688 are exactly the parts the diagram does not draw — the positional embeddings (512×768 = 393,216), the segment embeddings (2×768 = 1,536), the embedding LayerNorm (2×768 = 1,536), the biases and LayerNorm gains inside the 12 blocks (12×9,984 = 119,808), and the pooler (768²+768 = 590,592). Add them and you land on the “110M” everyone quotes. That is the real lesson: the headline number is a rounding of a sum, and until you can name every term in it, you are quoting, not counting.",
+    "ru": "Ещё две истины, которые делает видимыми диаграмма — и одну делает видимой СВОДКА. Первое: внимание многоголовое — ось голов h (пунктир) это broadcast, оплетающий подслой внимания. Второе: весь этот блок — единый юнит, повторённый ×L раз (L=12 для BERT-base); поскольку каждый подслой сохраняет форму n×m, блоки стыкуются встык без всякого клея. А теперь читайте сводку: 12d² на блок → 7.08M, умножить на 12 блоков, плюс 23.4M токен-эмбеддингов — итого ≈ 108.38M. И это честно всё, что содержит наш скелет. В настоящем bert-base-uncased 109 482 240 параметров; недостающие 1 106 688 — ровно те части, которых на диаграмме нет: позиционные эмбеддинги (512×768 = 393 216), сегментные (2×768 = 1 536), LayerNorm эмбеддингов (2×768 = 1 536), смещения и гейны LayerNorm внутри 12 блоков (12×9 984 = 119 808) и пулер (768²+768 = 590 592). Прибавьте их — и получите те самые «110M», которые все цитируют. Вот в чём урок: круглая цифра — это округление суммы, и пока вы не можете назвать каждое её слагаемое, вы цитируете, а не считаете.",
+    "tt": "Диаграмма күрсәткән тагын ике хакыйкать — һәм берсен ҖЫЕЛМА күрсәтә. Беренче: игътибар күпбашлы — башлар күчәре h (пунктир) игътибар асткатламын урап алган broadcast. Икенче: бу бөтен блок — L тапкыр өелгән бердәм берәмлек (BERT-base өчен L=12); һәр асткатлам n×m форманы саклаганга, блоклар клейсыз тоташа. Хәзер җыелманы укыгыз: блокка 12d² → 7.08M, 12 блокка тапкырлагыз, өстәгез 23.4M токен-эмбеддинг — барлыгы ≈ 108.38M. Һәм намуслы әйткәндә, бу скелет шуннан гына тора. Чын bert-base-uncased та 109 482 240 параметр бар; җитмәгән 1 106 688 — нәкъ диаграммада сызылмаган өлешләр: позицион эмбеддинглар (512×768 = 393 216), сегмент эмбеддинглары (2×768 = 1 536), эмбеддинг LayerNorm ы (2×768 = 1 536), 12 блок эчендәге bias лар һәм LayerNorm gain нары (12×9 984 = 119 808) һәм pooler (768²+768 = 590 592). Аларны өстәгез — һәм барысы да китергән шул «110M» ны алырсыз. Менә нәрсә ул чын сабак: түгәрәк сан — суммаларның түгәрәкләнеше, һәм һәр кушылучысын атый алмыйсың икән, син саныйсың түгел, ә цитата китерәсең."
+  },
+  "s3": {
+    "en": "Now cut the residual. Both rows below are the SAME circuit — the shapes still line up, the forward pass still computes. The only difference is one wire. With the skip, the backward wire (green, on top) travels from the output straight back to x: an identity path the gradient can ride. Without it, the gradient has to squeeze back THROUGH self-attention and THROUGH the FFN, and it fades at every box — by the time it lands on x there is nothing left. Twenty-four sublayers deep, that is the difference between a model that trains and one that does not. The bug is a MISSING WIRE, and you can point at where it isn’t.",
+    "ru": "А теперь перережем остаток. Обе строки внизу — ОДНА И ТА ЖЕ схема: формы по-прежнему сходятся, прямой проход по-прежнему считается. Разница ровно в одном проводе. С обходом обратный провод (зелёный, сверху) идёт от выхода прямиком к x: это identity-путь, по которому градиент едет как по шоссе. Без него градиенту приходится продавливаться обратно СКВОЗЬ self-attention и СКВОЗЬ FFN, и на каждом блоке он гаснет — до x долетает уже ничто. На глубине в двадцать четыре подслоя это и есть разница между моделью, которая учится, и моделью, которая нет. Баг — это ОТСУТСТВУЮЩИЙ ПРОВОД, и можно ткнуть пальцем туда, где его нет.",
+    "tt": "Ә хәзер калдыкны кисәбез. Астагы ике юл да — ШУЛ УК схема: формалар һаман туры килә, туры үтү һаман исәпләнә. Аерма нәкъ бер чыбыкта. Урау белән кире чыбык (яшел, өстә) чыгыштан туры x ка бара: градиент шуның буйлап шоссе кебек оча. Аннан башка градиентка self-attention АША һәм FFN АША кире этелергә туры килә, һәм ул һәр блокта сүнә — x ка бернәрсә дә җитми. Егерме дүрт асткатлам тирәнлектә бу — өйрәнә торган модель белән өйрәнми торган модель арасындагы аерма. Баг — ЮК ЧЫБЫК, һәм аның юклыгына бармак белән төртеп була."
+  },
+
+  "lgTitle": { "en": "parameters", "ru": "параметры", "tt": "параметрлар" },
+  "lgBlock": { "en": "block", "ru": "блок", "tt": "блок" },
+  "lgBlocks": { "en": "blocks", "ru": "блоков", "tt": "блок" },
+  "lgEmb": { "en": "embeddings", "ru": "эмбеддинги", "tt": "эмбеддинглар" },
+  "lgTotal": { "en": "total", "ru": "итого", "tt": "барлыгы" },
+  "lgPath": { "en": "identity path", "ru": "identity-путь", "tt": "identity-юл" },
+  "lgGone": { "en": "gone", "ru": "исчез", "tt": "юкка чыкты" },
+  "lgDepth": { "en": "sublayers to cross", "ru": "подслоёв насквозь", "tt": "аша үтәсе асткатлам" },
+  "lgN0": {
+    "en": "The shape never changes: n×m in, n×m out. A sublayer refines; it does not reshape.",
+    "ru": "Форма не меняется: n×m вошло, n×m вышло. Подслой уточняет, а не переформовывает.",
+    "tt": "Форма үзгәрми: n×m керде, n×m чыкты. Асткатлам төгәлли, форманы үзгәртми."
+  },
+  "lgN1": {
+    "en": "The surprise: the FFN is 8d² — TWICE attention. Two thirds of the block is not attention at all.",
+    "ru": "Сюрприз: FFN — это 8d², ВДВОЕ больше внимания. Две трети блока — вообще не внимание.",
+    "tt": "Сюрприз: FFN — 8d², игътибардан ИКЕ тапкыр күбрәк. Блокның өчтән икесе — бөтенләй игътибар түгел."
+  },
+  "lgN2": {
+    "en": "This tally counts what the diagram draws: 12 blocks of 12d² plus the token embeddings. The quoted “110M” also pays for positions, segments, every bias, the LayerNorm gains and the pooler — the caption does that arithmetic.",
+    "ru": "Этот подсчёт считает ровно то, что нарисовано: 12 блоков по 12d² плюс токен-эмбеддинги. За расхожие «110M» платят ещё позиции, сегменты, все смещения, гейны LayerNorm и пулер — эту арифметику доводит подпись.",
+    "tt": "Бу исәп нәкъ сызылганны саный: 12d² лы 12 блок плюс токен-эмбеддинглар. Күпләр китергән «110M» өчен өстәмә рәвештә позицияләр, сегментлар, барлык bias лар, LayerNorm gain нары һәм pooler түләнә — бу арифметиканы аңлатма башкара."
+  },
+  "lgN3": {
+    "en": "With no residual the ONLY path from x to the output runs THROUGH every sublayer. The gradient has nothing to hold on to.",
+    "ru": "Без остатка ЕДИНСТВЕННЫЙ путь от x к выходу идёт СКВОЗЬ каждый подслой. Градиенту не за что зацепиться.",
+    "tt": "Калдыксыз x тан чыгышка бердәнбер юл һәр асткатлам АША бара. Градиентка тотынырга бернәрсә юк."
+  },
+  "cfHead": {
+    "en": "the same circuit — one wire apart",
+    "ru": "одна и та же схема — разница в одном проводе",
+    "tt": "шул ук схема — аерма бер чыбыкта"
+  },
+  "cfWith": { "en": "with residual", "ru": "с остатком", "tt": "калдык белән" },
+  "cfWithout": { "en": "no residual", "ru": "без остатка", "tt": "калдыксыз" },
+  "cfGradOk": { "en": "∇ reaches x intact", "ru": "∇ доходит до x целым", "tt": "∇ x ка бөтен килеп җитә" },
+  "cfGradBad": { "en": "∇ ≈ 0 by the time it lands", "ru": "∇ ≈ 0 к моменту прилёта", "tt": "∇ ≈ 0 килеп җиткәндә" },
+  "legCf": {
+    "en": "every shape still lines up — it just never learns",
+    "ru": "все формы по-прежнему сходятся — оно просто никогда не научится",
+    "tt": "барлык формалар туры килә — ул бары тик өйрәнмәячәк"
+  }
+}

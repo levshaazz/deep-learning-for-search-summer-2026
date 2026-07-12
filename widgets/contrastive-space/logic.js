@@ -26,7 +26,7 @@ import { frameHeightFor } from '../_plot-util.js';
 
 export const mountContrastiveSpace = defineWidget({
   id: 'contrastive-space',
-  rootClass: 'cs-root',
+  rootClass: 'ctrs-root',
   exportName: 'mountContrastiveSpace',
   maxStep: 4,
   render({ host, data, labels, el }) {
@@ -64,7 +64,7 @@ export const mountContrastiveSpace = defineWidget({
     const Rmax = Math.min(W / 2 - PAD, scH / 2) - 22;  // rim radius (clear of the frame)
     const Rmin = 46;                              // cos 1 → Rmin (near), cos 0 → Rmax (far)
 
-    const svg = el('svg', { viewBox: `0 0 ${W} 10`, class: 'wgt-svg cs-svg',
+    const svg = el('svg', { viewBox: `0 0 ${W} 10`, class: 'wgt-svg ctrs-svg',
       role: 'img', 'aria-label': labels.alt || '' }, host);
 
     const layers = {};
@@ -115,7 +115,7 @@ export const mountContrastiveSpace = defineWidget({
     const placeAt = (it, r) => {
       const ang = angOf(it);
       return { ...it, px: cx0 + r * Math.cos(ang), py: cy0 + r * Math.sin(ang),
-        ux: Math.cos(ang), uy: Math.sin(ang), cls: it.kind === 'pos' ? 'cs-pos' : 'cs-neg' };
+        ux: Math.cos(ang), uy: Math.sin(ang), cls: it.kind === 'pos' ? 'ctrs-pos' : 'ctrs-neg' };
     };
 
     // distance from a point to a segment's closest point → for repelling a label off an arrow shaft.
@@ -134,7 +134,7 @@ export const mountContrastiveSpace = defineWidget({
     const relaxLabels = (placedSet, arrowSet) => {
       const seeds = [];
       seeds.push({ word: anchor, ref: { dx: cx0, dy: cy0 }, ux: 0, uy: 1, off: 24,
-        cls: 'cs-anchor-lbl svg-halo', isAnchor: true });
+        cls: 'ctrs-anchor-lbl svg-halo', isAnchor: true });
       placedSet.forEach((p) => {
         let sux = p.ux, suy = p.uy, off;
         if (p.kind === 'neg') {
@@ -146,7 +146,7 @@ export const mountContrastiveSpace = defineWidget({
           off = 30;
         }
         seeds.push({ word: p.word, ref: { dx: p.px, dy: p.py }, ux: sux, uy: suy, off,
-          cls: `cs-pt-lbl svg-halo ${p.cls}`, isAnchor: false });
+          cls: `ctrs-pt-lbl svg-halo ${p.cls}`, isAnchor: false });
       });
       const lab = seeds.map((s) => ({
         w: Math.max(18, lblText(s.word).length * CHARW + 6), h: LBL_H,
@@ -209,18 +209,18 @@ export const mountContrastiveSpace = defineWidget({
     const drawScatter = (layerName, placedSet, arrowSet) => {
       placedSet.forEach((p) => {
         const g = el('g', {}, svg);
-        el('line', { x1: cx0, y1: cy0, x2: p.px, y2: p.py, class: `cs-ray ${p.cls}` }, g);
-        el('circle', { cx: p.px, cy: p.py, r: 6, class: `cs-pt ${p.cls}` }, g);
+        el('line', { x1: cx0, y1: cy0, x2: p.px, y2: p.py, class: `ctrs-ray ${p.cls}` }, g);
+        el('circle', { cx: p.px, cy: p.py, r: 6, class: `ctrs-pt ${p.cls}` }, g);
         add(layerName, g);
       });
-      add(layerName, el('circle', { cx: cx0, cy: cy0, r: 8, class: 'cs-anchor' }, svg));
+      add(layerName, el('circle', { cx: cx0, cy: cy0, r: 8, class: 'ctrs-anchor' }, svg));
       const lab = relaxLabels(placedSet, arrowSet);
       lab.forEach((a) => {
         const onLeft = a.cx >= a.ref.dx;
         const tx = onLeft ? a.cx - a.w / 2 + 3 : a.cx + a.w / 2 - 3;
         const ty = a.cy + 4;
         add(layerName, el('line', { x1: a.ref.dx, y1: a.ref.dy, x2: tx, y2: a.cy,
-          class: 'cs-leader', fill: 'none' }, svg));
+          class: 'ctrs-leader', fill: 'none' }, svg));
         add(layerName, el('text', { x: tx, y: ty, class: a.cls, 'text-anchor': onLeft ? 'start' : 'end' }, svg))
           .textContent = a.word;
       });
@@ -229,7 +229,7 @@ export const mountContrastiveSpace = defineWidget({
     // ── STEP 0: anchor at centre + neighbours fanned at their ORIGINAL (cosine) radii ──
     layer('scatter', 0);          // the original layout — visible at steps 0,1,2 (hidden once trained)
     [Rmin, Rmax].forEach((r) => add('scatter', el('circle',
-      { cx: cx0, cy: cy0, r, class: 'cs-arc', fill: 'none' }, svg)));
+      { cx: cx0, cy: cy0, r, class: 'ctrs-arc', fill: 'none' }, svg)));
     const placed = items.map((it) => placeAt(it, rOrig(it)));
 
     // ── STEP 2: pull/push arrows on the ORIGINAL positions (the gradient drawn; nothing has moved yet).
@@ -242,9 +242,9 @@ export const mountContrastiveSpace = defineWidget({
       const sy = pull ? p.py - p.uy * 6 : p.py + p.uy * 6;
       const ex = pull ? sx - p.ux * ARRLEN : sx + p.ux * ARRLEN;
       const ey = pull ? sy - p.uy * ARRLEN : sy + p.uy * ARRLEN;
-      const cls = pull ? 'cs-arr cs-arr-pull' : 'cs-arr cs-arr-push';
+      const cls = pull ? 'ctrs-arr ctrs-arr-pull' : 'ctrs-arr ctrs-arr-push';
       add('forces', el('line', { x1: sx, y1: sy, x2: ex, y2: ey, class: cls,
-        'marker-end': pull ? 'url(#cs-pull)' : 'url(#cs-push)' }, svg));
+        'marker-end': pull ? 'url(#ctrs-pull)' : 'url(#ctrs-push)' }, svg));
       return { sx, sy, ex, ey };
     });
     drawScatter('scatter', placed, arrows);     // original dots + labels (relaxed around the arrows)
@@ -254,7 +254,7 @@ export const mountContrastiveSpace = defineWidget({
     //    original is hidden at step ≥ 3), so the audience sees the space re-shape, not a teleport. ──
     layer('trained', 3);
     [Rmin, Rmax].forEach((r) => add('trained', el('circle',
-      { cx: cx0, cy: cy0, r, class: 'cs-arc', fill: 'none' }, svg)));
+      { cx: cx0, cy: cy0, r, class: 'ctrs-arc', fill: 'none' }, svg)));
     const placedTrained = items.map((it) => placeAt(it, rTrained(it)));
     drawScatter('trained', placedTrained, []);  // no arrows now — the force has already acted
 
@@ -262,17 +262,17 @@ export const mountContrastiveSpace = defineWidget({
     // declared above and fed into the relaxation pass as an obstacle so no label sits under it.
     layer('legend', 0);
     add('legend', el('rect', { x: legX, y: legY, width: legW, height: legH, rx: 6,
-      class: 'cs-legbox' }, svg));
-    add('legend', el('circle', { cx: legX + 12, cy: legY + 11, r: 5, class: 'cs-pt cs-pos' }, svg));
-    add('legend', el('text', { x: legX + 22, y: legY + 15, class: 'cs-leglbl' }, svg))
+      class: 'ctrs-legbox' }, svg));
+    add('legend', el('circle', { cx: legX + 12, cy: legY + 11, r: 5, class: 'ctrs-pt ctrs-pos' }, svg));
+    add('legend', el('text', { x: legX + 22, y: legY + 15, class: 'ctrs-leglbl' }, svg))
       .textContent = labels.posLeg || 'positive';
-    add('legend', el('circle', { cx: legX + 12, cy: legY + 26, r: 5, class: 'cs-pt cs-neg' }, svg));
-    add('legend', el('text', { x: legX + 22, y: legY + 30, class: 'cs-leglbl' }, svg))
+    add('legend', el('circle', { cx: legX + 12, cy: legY + 26, r: 5, class: 'ctrs-pt ctrs-neg' }, svg));
+    add('legend', el('text', { x: legX + 22, y: legY + 30, class: 'ctrs-leglbl' }, svg))
       .textContent = labels.negLeg || 'negative';
 
     // arrow-head defs
     const defs = el('defs', {}, svg);
-    [['cs-pull', 'cs-arrhead-pull'], ['cs-push', 'cs-arrhead-push']].forEach(([id, cls]) => {
+    [['ctrs-pull', 'ctrs-arrhead-pull'], ['ctrs-push', 'ctrs-arrhead-push']].forEach(([id, cls]) => {
       const m = el('marker', { id, viewBox: '0 0 10 10', refX: '8', refY: '5',
         markerWidth: '6', markerHeight: '6', orient: 'auto-start-reverse' }, defs);
       el('path', { d: 'M0,0 L10,5 L0,10 z', class: cls }, m);
@@ -284,18 +284,18 @@ export const mountContrastiveSpace = defineWidget({
     const barRow = 24, barH = 14;
     const barX = PAD + 86;
     const barMaxW = W - barX - 60;
-    add('bars', el('text', { x: PAD, y: barsTop - 8, class: 'cs-barshead' }, svg))
+    add('bars', el('text', { x: PAD, y: barsTop - 8, class: 'ctrs-barshead' }, svg))
       .textContent = labels.barsHead || 'cosine to “' + anchor + '” — Sir Cosine’s ruler';
     items.forEach((it, i) => {
       const cy = barsTop + i * barRow;
       const g = el('g', {}, svg);
-      el('text', { x: barX - 10, y: cy + barH - 2, class: `cs-pairlbl cs-${it.kind}`,
+      el('text', { x: barX - 10, y: cy + barH - 2, class: `ctrs-pairlbl ctrs-${it.kind}`,
         'text-anchor': 'end' }, g).textContent = it.word;
-      el('rect', { x: barX, y: cy, width: barMaxW, height: barH, rx: 3, class: 'cs-bartrack' }, g);
+      el('rect', { x: barX, y: cy, width: barMaxW, height: barH, rx: 3, class: 'ctrs-bartrack' }, g);
       const frac = Math.max(0, Math.min(1, it.cos));
       el('rect', { x: barX, y: cy, width: Math.max(2, frac * barMaxW), height: barH, rx: 3,
-        class: `cs-barfill cs-bar-${it.kind}` }, g);
-      el('text', { x: barX + barMaxW + 8, y: cy + barH - 2, class: 'cs-barval' }, g)
+        class: `ctrs-barfill ctrs-bar-${it.kind}` }, g);
+      el('text', { x: barX + barMaxW + 8, y: cy + barH - 2, class: 'ctrs-barval' }, g)
         .textContent = cos(it.cos);
       add('bars', g);
     });
@@ -305,19 +305,19 @@ export const mountContrastiveSpace = defineWidget({
     layer('loss', 4);
     const lossTop = barsBottom + 14;
     add('loss', el('rect', { x: PAD, y: lossTop, width: W - 2 * PAD, height: 78, rx: 8,
-      class: 'cs-lossbox' }, svg));
+      class: 'ctrs-lossbox' }, svg));
     // InfoNCE line
-    add('loss', el('text', { x: PAD + 12, y: lossTop + 20, class: 'cs-loss-head' }, svg))
+    add('loss', el('text', { x: PAD + 12, y: lossTop + 20, class: 'ctrs-loss-head' }, svg))
       .textContent = labels.infoHead || 'InfoNCE  (softmax over cosines, τ = ' + tau + ')';
-    add('loss', el('text', { x: PAD + 12, y: lossTop + 38, class: 'cs-loss-line' }, svg))
+    add('loss', el('text', { x: PAD + 12, y: lossTop + 38, class: 'ctrs-loss-line' }, svg))
       .textContent = (labels.infoLine || 'P(positive “{p}”) = {pp}   →   loss = {loss}')
         .replace('{p}', posItem || '')
         .replace('{pp}', num4(info.pPositive))
         .replace('{loss}', num4(info.loss));
     // triplet foil
-    add('loss', el('text', { x: PAD + 12, y: lossTop + 58, class: 'cs-loss-head2' }, svg))
+    add('loss', el('text', { x: PAD + 12, y: lossTop + 58, class: 'ctrs-loss-head2' }, svg))
       .textContent = labels.tripHead || 'triplet  (margin = ' + margin + ', hardest neg)';
-    add('loss', el('text', { x: PAD + 12, y: lossTop + 72, class: 'cs-loss-line2' }, svg))
+    add('loss', el('text', { x: PAD + 12, y: lossTop + 72, class: 'ctrs-loss-line2' }, svg))
       .textContent = (labels.tripLine || 'max(0, margin − (cos⁺ − cos⁻)) = {loss}  — already satisfied')
         .replace('{loss}', num4(trip.loss));
 
@@ -342,7 +342,7 @@ export const mountContrastiveSpace = defineWidget({
         for (const node of layers[name].nodes) node.classList.toggle('is-hidden', !on);
       }
       // tighten the positive rays / fade the negatives once the space is trained (step ≥ 3).
-      svg.classList.toggle('cs-trained', k >= 3);
+      svg.classList.toggle('ctrs-trained', k >= 3);
     };
   },
 });
