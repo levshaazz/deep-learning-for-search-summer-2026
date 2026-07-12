@@ -39,12 +39,18 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PROBE = '_audit/.ncd-probe.html';           // written, served, removed
 const LANGS = ['ru', 'en', 'tt'];
 
-/* The narrowest surface an NCD widget actually renders into: the Book's scrolly figure column.
-   Measured from src/pages/[lang]/book/[id].astro's layout at a 1280px viewport. */
-const BOOK_COL_PX = 449;
-/* RATCHET, not an aspiration. This is the family's current worst effective label size at BOOK_COL_PX.
-   It may only ever go UP. Lower it here when you have earned it; never raise it to make a build pass. */
-const FONT_FLOOR_PX = 5.6;
+/* The narrowest surface an NCD widget actually renders into. It USED to be the 46% sticky figure column
+   (449px), which crushed every label to ~6px. The Book now gives ncd-* beats the FULL page width
+   (`.scrolly--wide`), and the ledger stacks below the diagram under 1000px, so the SVG gets all of it:
+   1040px page − 2×32px padding = 976. Measure the surface the widget actually lands on, not a surface
+   it no longer uses — a floor measured in the wrong place is a floor that protects nothing. */
+const BOOK_COL_PX = 976;
+/* RATCHET, not an aspiration: the family's current WORST effective label size at BOOK_COL_PX. It may
+   only ever go UP. Lower it here when you have earned it; never raise it to make a build pass.
+   History: 5.0 → 5.6 (bumped the smallest authored class 10px→11px) → 12.0, when the Book stopped
+   squeezing these figures into a 46% column and gave them the page. The floor is now above G20's 11px
+   prose floor, which is the bar these labels should have been held to all along. */
+const FONT_FLOOR_PX = 12.0;
 
 const ncdWidgets = () => readdirSync(join(ROOT, 'widgets'))
   .filter((d) => d.startsWith('ncd-') && existsSync(join(ROOT, 'widgets', d, 'manifest.json')))

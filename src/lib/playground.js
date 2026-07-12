@@ -113,7 +113,6 @@ const TOPIC_OF = {
   'tsne-migrate': 'dimred',
   'tsne-steps': 'dimred',
   // Attention & Transformers
-  'attention-e2e': 'transformers',
   'attention-geometry': 'transformers',
   'block-geometry': 'transformers',
   'layernorm-viz': 'transformers',

@@ -173,7 +173,7 @@ const katexAuto = withBase('/Lectures/vendor/katex/auto-render.min.js');
         {proseText(t(b.body, lang)).map((p) => <p set:html={inlineMd(p)} />)}
       </section>
     ) : (
-      <section class="scrolly" id={b.id} data-beat={b.id}>
+      <section class={`scrolly${b.widget.startsWith('ncd-') ? ' scrolly--wide' : ''}`} id={b.id} data-beat={b.id}>
         <figure class="scrolly-graphic">
           <figcaption class="scrolly-cap">{t(WIDGET_META[b.widget].manifest.title, lang)}</figcaption>
           <div class="cs-mount" id={`fig-${b.id}`}></div>
@@ -396,6 +396,16 @@ const katexAuto = withBase('/Lectures/vendor/katex/auto-render.min.js');
     .scrolly-cap { font-family: var(--font-mono); font-size: var(--fz-tiny); letter-spacing: 1px;
       text-transform: uppercase; color: var(--ink-3); }
     .cs-mount { width: 100%; }
+    /* FULL-BLEED for the neural-circuit figures. They are 800–880 user units wide by nature (a circuit
+       reads left-to-right and cannot be folded), so in the 46% sticky column they scale to ~0.55× and
+       their authored 11px labels land at ~6px — below anything a human reads. These beats take the whole
+       page width instead, with the figure sticky ABOVE the prose (the shape the mobile layout already
+       uses). 976px ÷ 820 units ≈ 1.19×, so the same label renders at ~13px. Only ncd-* beats opt in;
+       every other widget keeps the side-by-side rhythm. */
+    .scrolly--wide { grid-template-columns: 1fr; gap: var(--ws-3); }
+    .scrolly--wide .scrolly-graphic { position: sticky; top: 0; min-height: 0; padding: var(--ws-2) 0;
+      background: var(--bg); z-index: 5; box-shadow: 0 6px 12px -8px rgba(0, 0, 0, .25); }
+    .scrolly--wide .scrolly-steps { max-width: var(--ws-measure); margin-inline: auto; }
     .scrolly-steps { display: flex; flex-direction: column; }
     .scroll-step { min-height: 80vh; display: flex; align-items: center; }
     .scroll-step:last-child { min-height: 60vh; }

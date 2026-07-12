@@ -636,10 +636,10 @@ BOOK_ANCHORS = [
     ("L5T q_ij",        r"q_\{ij\} = ([\d.]+)\\\)", 5e-4),
     ("L5T joint p_ij",  r"joint \\\(p_\{ij\} = ([\d.]+)\\\)"),
     ("L5T KL svg",      r"\\mathrm\{KL\} = ([\d.]+)\\\)"),
-    # L6 — attention weights + DistilBERT stack (pinned to the "bank downtown" context)
-    ("L6 √d_k var",     r"Divide by √d_k = ([\d.]+)"),
-    ("L6 w[cat][cat]",  r"pours ([\d.]+) of its weight"),
-    ("L6 out[cat][0]",  r"becomes ≈ \[([\d.]+), 1\.996"),
+    # L6 — the worked attention example (now displayed by the ncd-chain climb) + DistilBERT stack
+    ("L6 √d_k var",     r"√dₖ = √4 = ([\d.]+)"),
+    ("L6 w[sat][sat]",  r"spends ([\d.]+) of its attention on itself"),
+    ("L6 out[cat][0]",  r"\(1\.267 \+ ([\d.]+) \+ 1\.364\)"),
     ("L6 stack cos final", r'downtown"\) sit at cosine \\\(([\d.]+)\\\)'),
 ]
 def book_claims():
@@ -1260,7 +1260,17 @@ COVERAGE_BASELINE = {
     # previously-grandfathered un-gated numbers on those surfaces (softmax/temperature decimals reused), so
     # the global gated set now covers them → ratchet down (strictly stronger; never raised).
     "deck:L0": 0, "deck:L1": 1, "deck:L2": 6, "deck:L3": 41, "deck:L4": 27, "deck:L5": 37, "deck:L6": 25,
-    "book:L0": 0, "book:L1": 0, "book:L2": 8,  "book:L3": 9,  "book:L4": 15, "book:L5": 10, "book:L6": 6,
+    "book:L0": 0, "book:L1": 0, "book:L2": 8,  "book:L3": 9,  "book:L4": 15, "book:L5": 10,
+    # book:L6 — RAISED 6 → 37 when the L06 climb became `ncd-chain`, the end-to-end worked example.
+    # Its ten scroll-step captions ARE Book prose, and they walk the whole computation: every
+    # embedding row, every scaled score, the exponentials, the row sums, the context cells, the pooled
+    # point and both document scores. Raising a coverage baseline is normally how a gate rots, so the
+    # justification has to be load-bearing: these numbers are NOT ungated, they are gated HARDER.
+    # `_audit/ncd-gate.mjs` check [E] requires that EVERY decimal quoted in an ncd-* widget's captions
+    # exist in that widget's own data/ file — all of them, not the handful a C() claim happens to pin —
+    # and `_research/gen_l6_chain.py` ASSERTS at generation time that the chain reproduces
+    # data/l6-attention.json to the digit. A number here cannot drift without one of those two failing.
+    "book:L6": 31,
     "deck:L12": 2, "book:L12": 2,
     # deck:L14 "The Artificer's Quill" — all displayed toy numbers are now gated in l14_deck_claims() → 0.
     "deck:L14": 0,

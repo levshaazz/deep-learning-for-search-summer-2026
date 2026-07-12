@@ -9,13 +9,30 @@
    CELL: the actual arithmetic of a single element, spelled out with the real numbers.
 
    The flagship callout is step 4, the multiply-accumulate the course had never once shown:
-       Q[0]·K[0] = 1·1 + 2·1 + 1·0 + 1·2 = 5 = scores[0][0]
+       Q[0]·K[0] = 1·1 + 0·0 + 1·1 + 0·0 = 2 = scores[0][0]
    Four multiplies, three adds, one number out. That is what a cup MEANS.
 
-   EVERY number comes from data/l15-chain.json (facts-gated, _research/gen_l15_chain.py) — the embedding
+   EVERY number comes from data/l6-chain.json (facts-gated, _research/gen_l6_chain.py) — the embedding
    table, the PE rows, Wq/Wk/Wv, Q/K/V, the scores, the exponentials AND their row sums, the weights, the
    context, the pooled vector, the two documents (encoded by the SAME encoder, offline) and the ranking.
    Nothing here is derived that could be read, and nothing at all is invented: the widget only formats.
+
+   THIS IS L06's CLIMB, and the attention core is L06's OWN canonical example: the generator SOLVES the
+   projections (Wq = I + X⁺·(Q_L06 − X)) so that scores/scaled/weights/output reproduce data/l6-attention.json
+   to the digit. A chain that arrived with its own Q/K/V would contradict the prose beside it. Two
+   consequences, and both are LESSONS: (a) the projections are UGLY — 1.727, −1.636 — because a learned
+   matrix is ugly, and the worked cell of step 3 leans on it: four hideous products, and the clean integer
+   the chapter prints falls out. (b) the ranking margin is THIN — dot 3.225 vs 2.901, cos 0.407 vs 0.271 —
+   because NOBODY TRAINED THIS ENCODER; the weights were solved to fit three tokens, not learned from data.
+   Step 9 does not apologise for that. It hands the student to contrastive learning, which is the second
+   half of this very lecture.
+
+   WORKED CELLS ARE CHOSEN SO THE ARITHMETIC ON SCREEN LITERALLY ADDS UP. The data is rounded to 3 dp, so
+   a cell whose displayed factors sum to 1.266 while its stored value is 1.267 would be a figure that
+   contradicts itself in front of the student. Every cell below was verified against data/l6-chain.json:
+   the displayed terms sum to the displayed result. The ONE exception is step 9, where a dot product of
+   two rounded 4-vectors cannot reproduce a score computed at full precision — so it is written with ≈,
+   not with a false "=".
 
    The chain: 0 lookup · 1 E[ids] · 2 +PE · 3 x·Wq (K,V from the same x) · 4 Q·Kᵀ · 5 ÷√dₖ · 6 softmax
    (exp, Σ, divide) · 7 ·V · 8 mean-pool (where the axis n DIES) · 9 q·dᵢ → rank (dot vs cosine).
@@ -245,22 +262,30 @@ export const mountNcdChain = defineWidget({
       }
 
       // ── 3 · the projections. x meets a learned matrix — and a dot product appears. ───────────────
+      /* The worked cell is x[«sat»] · Wq[:,1] → Q[2][1], and it is chosen, not arbitrary: the four
+         displayed products sum to exactly the displayed result (0.909·(−1.751) + (−0.416)·0.082 +
+         1.020·0.938 + 1·1.669 = 1.000). Q[1][1] would have shown 2.001 under a result printed as 2 —
+         a figure contradicting itself, which is the disease this family exists to cure. It also makes
+         the LESSON: four hideous products, one clean integer. Learned weights ARE ugly; the OPERATION
+         is clean regardless — and this Q is the chapter's own, because Wq was solved to reproduce it. */
       if (step === 3) {
         const y = Y_MID - mh(n) / 2;
+        const R3 = 2, C3 = 1;
         matrix(70, y, Q.x || [], { title: 'x', shape: SH.x, tcls: 'ncdch-mt-tok', cls: 'ncdch-c-tok',
-          vcls: 'ncdch-v-tok', rowLabels: words, hi: (r) => (r === 1 ? 'w' : null) }, g);
+          vcls: 'ncdch-v-tok', rowLabels: words, hi: (r) => (r === R3 ? 'w' : null) }, g);
         line('ncdch-w-tok', 275, Y_MID, 286, Y_MID, g);
         opBox(309, Y_MID, 34, 34, '·', null, g);
         line('ncdch-w-d', 332, Y_MID, 341, Y_MID, g);
         matrix(345, Y_MID - mh(dim) / 2, D.Wq || [], { title: 'Wq', shape: `${dim}×${dim}`, tcls: 'ncdch-mt-proj',
-          cls: 'ncdch-c-proj', vcls: 'ncdch-v-proj', hi: (r, c) => (c === 1 ? 'w' : null) }, g);
+          cls: 'ncdch-c-proj', vcls: 'ncdch-v-proj', hi: (r, c) => (c === C3 ? 'w' : null) }, g);
         line('ncdch-w-d', 550, Y_MID, 561, Y_MID, g);
         opBox(584, Y_MID, 34, 34, '=', null, g);
         line('ncdch-w-tok', 607, Y_MID, 616, Y_MID, g, true);
         matrix(620, y, Q.Q || [], { title: 'Q', shape: SH.qkv, tcls: 'ncdch-mt-tok', cls: 'ncdch-c-tok',
-          vcls: 'ncdch-v-tok', hi: (r, c) => (r === 1 && c === 1 ? 'g' : null) }, g);
-        worked(L('w3', 'row · column: one dot product = one element of Q'),
-          [`Q[1][1] = ${(Q.x[1] || []).map((v, j) => `${F(v)}·${F(D.Wq[j][1])}`).join(' + ')} = ${F(Q.Q[1][1])}`],
+          vcls: 'ncdch-v-tok', hi: (r, c) => (r === R3 && c === C3 ? 'g' : null) }, g);
+        // T() on BOTH factors: Wq is full of negatives now, and "0.909·-1.751" is not an equation
+        worked(L('w3', 'ugly weights, clean result: one dot product = one element of Q'),
+          [`Q[${R3}][${C3}] = ${(Q.x[R3] || []).map((v, j) => `${T(v)}·${T(D.Wq[j][C3])}`).join(' + ')} = ${F(Q.Q[R3][C3])}`],
           L('n3', 'K = x·Wk and V = x·Wv come from the SAME x — three views of one input.'), g);
       }
 
@@ -325,9 +350,13 @@ export const mountNcdChain = defineWidget({
       }
 
       // ── 7 · · V — the SECOND contraction. Every output row is a weighted sum of the V rows. ──────
+      /* Row «sat» (R7 = 2), column 0 — again chosen so the displayed terms literally sum to the
+         displayed result (0.212·1 + 0.212·0 + 0.576·2 = 1.364, exact). Row 0's cell would print
+         1.266 = 1.267. And 1.364 is one of the three numbers step 8 then averages — the arrow survives. */
       if (step === 7) {
+        const R7 = 2;
         matrix(167, 56, Q.weights || [], { title: L('lblWeights', 'attention'), shape: SH.weights, tcls: 'ncdch-mt-attn',
-          cls: 'ncdch-c-attn', vcls: 'ncdch-v-attn', rowLabels: words, hi: (r) => (r === 0 ? 'w' : null) }, g);
+          cls: 'ncdch-c-attn', vcls: 'ncdch-v-attn', rowLabels: words, hi: (r) => (r === R7 ? 'w' : null) }, g);
         matrix(167, 156, Q.V || [], { title: 'V', shape: SH.qkv, tcls: 'ncdch-mt-proj', cls: 'ncdch-c-proj',
           vcls: 'ncdch-v-proj', rowLabels: words, hi: (r, c) => (c === 0 ? 'c' : null) }, g);
         path('ncdch-w-attn', `M${321},${92} C${400},${92} ${449},${110} ${449},${130}`, g);
@@ -336,10 +365,10 @@ export const mountNcdChain = defineWidget({
         text(463, 116, '· V', 'ncdch-glyph-lbl', 'middle', g);
         line('ncdch-w-out', 480, 142, 557, 142, g, true);
         matrix(563, 106, Q.ctx || [], { title: 'ctx', shape: SH.ctx, tcls: 'ncdch-mt-out',
-          cls: 'ncdch-c-out', vcls: 'ncdch-v-out', hi: (r, c) => (r === 0 && c === 0 ? 'g' : null) }, g);
+          cls: 'ncdch-c-out', vcls: 'ncdch-v-out', hi: (r, c) => (r === R7 && c === 0 ? 'g' : null) }, g);
         text(463, 208, L('lblKdies', 'the key axis dies here'), 'ncdch-size', 'middle', g);
         worked(L('w7', 'one output element = a weighted sum down one column of V'),
-          [`ctx[0][0] = ${(Q.weights[0] || []).map((w, i) => `${F(w)}·${T(Q.V[i][0])}`).join(' + ')} = ${F(Q.ctx[0][0])}`],
+          [`ctx[${R7}][0] = ${(Q.weights[R7] || []).map((w, i) => `${F(w)}·${T(Q.V[i][0])}`).join(' + ')} = ${F(Q.ctx[R7][0])}`],
           L('n7', 'Every output row is now a MIX of all the V rows — that is what the second cup buys you.'), g);
       }
 
@@ -392,11 +421,15 @@ export const mountNcdChain = defineWidget({
         text(450, 130, 'q·d', 'ncdch-glyph-lbl', 'middle', g);
         text(556, 130, 'cos', 'ncdch-glyph-lbl', 'middle', g);
         const d0 = docs[rank[0]] || {}, d1 = docs[rank[1]] || {};
-        const margin = d1.score ? ((d0.score / d1.score - 1) * 100).toFixed(1) : '0';
+        /* ≈, not =. The score in data/ is the dot product of the FULL-PRECISION pooled vectors; these
+           factors are rounded to 3 dp, so their sum cannot land on it exactly. An "=" here would be the
+           one false equation in a widget whose entire promise is that every number survives the arrow.
+           And no Δ%: a margin is a number nobody can read out of the data file. The two scores and the
+           two cosines are printed instead — the gap is thin, and the widget does not hide it. */
         worked(L('w9', 'one encoder, two ways to score it'),
-          [`q·d${rank[0] + 1} = ${(Q.pooled || []).map((v, j) => `${F(v)}·${F(d0.pooled[j])}`).join(' + ')} = ${F(d0.score)}`,
-           `q·d${rank[1] + 1} = ${F(d1.score)}      Δ = +${margin}%      cos: ${F(d0.cos)} ${L('uVs', 'vs')} ${F(d1.cos)}`],
-          L('n9', 'PE inflates every vector, so magnitude starts to drown direction. The cosine strips it out.'), g);
+          [`q·d${rank[0] + 1} = ${(Q.pooled || []).map((v, j) => `${T(v)}·${T(d0.pooled[j])}`).join(' + ')} ≈ ${F(d0.score)}`,
+           `q·d${rank[1] + 1} = ${F(d1.score)}      cos d${rank[0] + 1} = ${F(d0.cos)}  ${L('uVs', 'vs')}  cos d${rank[1] + 1} = ${F(d1.cos)}`],
+          L('n9', 'Same order both ways — but a thin gap: nobody trained this encoder. Widening it IS contrastive learning.'), g);
       }
     };
   },
