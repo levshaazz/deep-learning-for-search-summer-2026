@@ -72,8 +72,30 @@ const MEASURE = () => {
     const past = Math.max(r.bottom - frame.bottom, r.right - frame.right);
     if (past > spill) { spill = past; worst = (el.textContent || el.tagName).replace(/\s+/g, ' ').trim().slice(0, 34); }
   }
-  return { ok: true, label: vis.getAttribute('data-screen-label') || '', overY: vis.scrollHeight - vis.clientHeight, overX: vis.scrollWidth - vis.clientWidth, spill, worst };
+  /* ── AN ILLUSTRATION THAT IS IN THE MARKUP BUT NOT ON THE SCREEN ────────────────────────────────
+     Composition used to mean one thing here: does content spill OUT of the frame. The opposite failure
+     is just as real and shipped for months — a plate that COLLAPSES. L18's «Re-project» divider rendered
+     its illustration at 0×0: the image was in the deck, the brand gate had checked it for Séréga and for
+     palette, and nobody could see it. The cause was a flex layout keyed on a wrapper class the author had
+     to remember; the reason it survived is that slide-viz only discovers STEPPED slides, and a divider has
+     no steps — so no gate ever looked at a divider's figure at all.
+     The floor is deliberately a RATCHET, not a wish: it asks only that a plate be VISIBLE. Making every
+     figure large is a redesign; refusing to ship an invisible one is a gate. */
+  const figs = [];
+  for (const im of vis.querySelectorAll('img')) {
+    const cs = getComputedStyle(im);
+    if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity === 0) continue;   // deliberately hidden
+    const b = im.getBoundingClientRect();
+    figs.push({ w: Math.round(b.width), h: Math.round(b.height),
+                src: (im.getAttribute('src') || '').split('/').pop().split('?')[0] });
+  }
+  return { ok: true, label: vis.getAttribute('data-screen-label') || '', overY: vis.scrollHeight - vis.clientHeight, overX: vis.scrollWidth - vis.clientWidth, spill, worst, figs };
 };
+
+/* The short side an illustration must at least reach to count as VISIBLE. A ratchet: the smallest plate
+   the course currently ships is 147px (L07 s35), so 40px asks nothing of any existing slide — it only
+   forbids the collapse that actually shipped (0×0). Raise it as the debt is paid; never lower it. */
+const FIG_FLOOR = 40;
 
 function slideCount(html) { return (html.match(/<section class="slide"/g) || []).length; }
 
@@ -99,6 +121,12 @@ async function run({ contact = null } = {}) {
             scanned++;
             if (contact) await page.screenshot({ path: join(shotDir, `s${String(i).padStart(2, '0')}.png`) });
             if (!m.ok) continue;
+            for (const f of (m.figs || [])) {
+              if (Math.min(f.w, f.h) < FIG_FLOOR) {
+                R.err(`${deck} · slide ${i} "${m.label}" — the illustration ${f.src} renders ${f.w}×${f.h}: `
+                      + `it is IN the deck and not ON the screen (floor ${FIG_FLOOR}px on the short side)`);
+              }
+            }
             if (m.spill > TOL) {
               R.err(`${deck} · slide ${i} "${m.label}" — an element spills ${Math.round(m.spill)}px past the frame` +
                      (m.worst ? ` (worst: "${m.worst}")` : '') + ` [scrollH+${Math.round(m.overY)} scrollW+${Math.round(m.overX)}]`);
@@ -112,7 +140,7 @@ async function run({ contact = null } = {}) {
   } finally { await server.close(); }
   if (contact) console.log(`[composition] contact sheet → _internal/contact-sheets/${contact.replace('.html', '')}/`);
   console.log(`\n[composition] scanned ${scanned} slide-state(s) across ${targets.length} deck(s)`);
-  console.log(`[composition] HARD(content-overflow)=${R.errors}` + (R.errors ? '' : '  — no slide content spills its 1920×1080 frame ✓'));
+  console.log(`[composition] HARD(content-overflow/collapsed-illustration)=${R.errors}` + (R.errors ? '' : '  — no slide content spills its 1920×1080 frame ✓'));
   return R.errors ? 1 : 0;
 }
 
@@ -121,32 +149,39 @@ async function selftest() {
   const html = `<!doctype html><html><head><style>
     html,body{margin:0} section.slide{height:1080px;width:1920px;overflow:hidden;position:relative}
   </style></head><body>
-    <section class="slide" data-screen-label="01 ok"><p style="height:200px">fits</p></section>
+    <section class="slide" data-screen-label="01 ok"><p style="height:200px">fits</p>
+      <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="a healthy plate" style="width:600px;height:400px" /></section>
     <section class="slide" data-screen-label="02 overflow" aria-hidden="true"><div style="height:1600px">way too tall — cut off</div></section>
+    <section class="slide" data-screen-label="03 collapsed plate" aria-hidden="true">
+      <p>the text block took the whole slide and the plate gave way</p>
+      <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="the plate that shipped invisible" style="width:20px;height:15px" /></section>
     <script>function go(){const h=location.hash.replace('#/','')||'1';document.querySelectorAll('section.slide').forEach((s,i)=>s.setAttribute('aria-hidden', String(i!==(+h-1))));}
     window.addEventListener('hashchange',go);go();</script>
   </body></html>`;
   const dir = join(ROOT, '_internal', '_composition_selftest'); mkdirSync(dir, { recursive: true });
   const f = join(dir, 'fixture.html'); (await import('node:fs')).writeFileSync(f, html);
   const server = await serveDir(dir);
-  let firedOverflow = false, silentOk = true;
+  let firedOverflow = false, firedCollapsed = false, silentOk = true;
   try {
     await withBrowser(async (browser) => {
       await withPage(browser, { viewport: VIEW }, async (page) => {
         await page.goto(server.href('fixture.html'), { waitUntil: 'networkidle' });
-        for (const i of [1, 2]) {
+        for (const i of [1, 2, 3]) {
           await page.evaluate((k) => { location.hash = '#/' + k; }, i); await page.waitForTimeout(150);
           const m = await page.evaluate(MEASURE);
           const over = m.ok ? Math.max(m.overY, m.overX, m.spill) : 0;
+          const tiny = (m.figs || []).some((f) => Math.min(f.w, f.h) < FIG_FLOOR);
           if (i === 2 && over > TOL) firedOverflow = true;
-          if (i === 1 && over > TOL) silentOk = false;
+          if (i === 1 && (over > TOL || tiny)) silentOk = false;   // a healthy 600×400 plate must stay silent
+          if (i === 3 && tiny) firedCollapsed = true;
         }
       });
     });
   } finally { await server.close(); }
-  const ok = firedOverflow && silentOk;
-  console.log(`[selftest] overflow slide fires=${firedOverflow}  clean slide silent=${silentOk}`);
-  console.log('[selftest]', ok ? 'PASS — composition detector fires on an overflowing slide, silent on a fitting one'
+  const ok = firedOverflow && firedCollapsed && silentOk;
+  console.log(`[selftest] overflow slide fires=${firedOverflow}  collapsed illustration fires=${firedCollapsed}`
+    + `  clean slide silent=${silentOk}`);
+  console.log('[selftest]', ok ? 'PASS — fires on an overflowing slide AND on a collapsed illustration, silent on a healthy one'
                                : 'FAIL — blind to content overflow!');
   return ok ? 0 : 1;
 }
