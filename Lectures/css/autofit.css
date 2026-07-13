@@ -155,7 +155,15 @@
      additive-gap blow-up that regressed the earlier attempt. */
   gap: var(--sp-2);
 }
-.slide[data-type="divider"].is-active > .divider-content {
+/* The TEXT BLOCK of a divider must not grow — the figure gets what is left.
+   This used to be written as `> .divider-content`, which made the whole layout hostage to a class name
+   the author had to remember. Forget it and nothing errors: the bare <div> grows, the flex figure is
+   squeezed, and the illustration ships as a postage stamp — L18's dividers render at 262×196 and one at
+   0×0 (invisible) for exactly this reason, and no gate saw it, because slide-viz only discovers STEPPED
+   slides and a divider has no steps. So key the rule on the STRUCTURE instead: any direct child of an
+   active divider that is not the figure is the text block. A layout that depends on a remembered class
+   is a layout that will be forgotten. */
+.slide[data-type="divider"].is-active > :not(.viz-frame):not(.slide-notes):not(script) {
   flex: 0 0 auto;
   text-align: center;
 }
@@ -167,7 +175,8 @@
    figure so it stays LEGIBLE while still shrinking under the text — and reads
    identically on lighter dividers. autofit.css loads last; equal specificity
    (0-2-1) → wins. */
-.slide[data-type="divider"].is-active .divider-content .divider-sub {
+/* …and the sub-font cap must reach the sub wherever it sits, wrapper or not — same reason. */
+.slide[data-type="divider"].is-active .divider-sub {
   margin-top: var(--sp-4);
   /* Cap the divider-sub font on ACTIVE dividers. slides.css sets it to --fs-lead
      (44px); RU runs ~15% longer, so a two-clause sub wraps to 4 lines and the
@@ -197,3 +206,16 @@
   object-fit: contain;
   display: block;
 }
+
+/* A FIGURE MAY NOT BE SQUEEZED OUT OF EXISTENCE BY THE TEXT ABOVE IT.
+   A `formula`/`definition` slide body is a GRID with sized rows. Add a figure and it lands in the last
+   row — which, when the text above has already eaten the height, is handed 18px. The frame then collapses
+   and the <img> inside it renders 0×0: the illustration is in the deck, it passed the brand gate, and
+   nobody can see it. Four of them shipped that way (L9 s35, L10 s32, L11 s12, L11 s27) and no gate looked,
+   because composition only ever asked whether content spills OUT of the frame, never whether it vanished
+   inside it. It asks both now.
+   The floor is small on purpose: enough that the plate EXISTS, not enough to blow the slide's height
+   budget (the deck auto-fits the body, so every px here is paid for in type size). A slide that cannot
+   afford even this much figure is not a layout problem — it is an over-stuffed slide, and it should be
+   trimmed rather than propped up. */
+.slide-body > .viz-frame.fig-fit { min-height: 14cqh; }

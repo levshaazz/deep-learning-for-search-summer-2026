@@ -45,7 +45,8 @@ const DECK_WIDGETS = ['course-map',
   'ncd-rag',                                    // L10 retrieve → rerank → generate
   'ncd-multihead', 'ncd-causal', 'ncd-kvcache', 'ncd-block',   // L15 transformer internals
   'ncd-atlas',                                  // L0 the map: the whole course as one funnel of shapes
-  'ncd-debug'];                                 // L6 the exercise: three broken circuits — the notation's own justification
+  'ncd-debug',                                  // L6 the exercise: three broken circuits
+  'ncd-embedding', 'ncd-posenc', 'ncd-chain'];  // L19 mounts the WHOLE family — the notation lecture
 
 for (const id of DECK_WIDGETS) {
   await build({

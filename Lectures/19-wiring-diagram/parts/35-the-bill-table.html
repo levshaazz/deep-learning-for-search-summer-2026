@@ -1,0 +1,47 @@
+<section class="slide" data-type="table" data-screen-label="35 The bill &middot; 10% &rarr; 47% &rarr; 88%">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Счёт одного блока при \(d = 768\)</span>
+      <span lang="en">One block&rsquo;s bill at \(d = 768\)</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">BERT-base &middot; выведено со схемы, не измерено</span>
+      <span lang="en">BERT-base &middot; derived off the circuit, not measured</span>
+    </span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th><span lang="ru">Длина</span><span lang="en">Length</span></th>
+        <th><span lang="ru">Линейная половина \(24nd^2\)</span><span lang="en">The linear half \(24nd^2\)</span></th>
+        <th><span lang="ru">Ядро внимания \(4n^2d\)</span><span lang="en">The attention core \(4n^2d\)</span></th>
+        <th><span lang="ru">Доля внимания</span><span lang="en">Attention&rsquo;s share</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>512</strong></td>
+        <td class="cell-bad"><span lang="ru">7.2 ГФлопс</span><span lang="en">7.2 GFLOPs</span></td>
+        <td><span lang="ru">0.8 ГФлопс</span><span lang="en">0.8 GFLOPs</span></td>
+        <td class="cell-good">10.0&thinsp;%</td>
+      </tr>
+      <tr>
+        <td><strong>4096</strong></td>
+        <td class="cell-meh"><span lang="ru">58.0 ГФлопс</span><span lang="en">58.0 GFLOPs</span></td>
+        <td class="cell-meh"><span lang="ru">51.5 ГФлопс</span><span lang="en">51.5 GFLOPs</span></td>
+        <td class="cell-meh">47.1&thinsp;%</td>
+      </tr>
+      <tr>
+        <td><strong>32768</strong></td>
+        <td><span lang="ru">463.9 ГФлопс</span><span lang="en">463.9 GFLOPs</span></td>
+        <td class="cell-bad"><span lang="ru">3298.5 ГФлопс</span><span lang="en">3298.5 GFLOPs</span></td>
+        <td class="cell-bad">87.7&thinsp;%</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2">
+    <span lang="ru">Длина выросла в 64 раза&nbsp;&mdash; линейная половина выросла в 64 раза, а ядро внимания в <strong>4096 раз</strong>. При \(n=512\) внимание&nbsp;&mdash; это <strong>десятая часть</strong> блока, и в этом весь фокус: <em>там, где почти все учат модели, дорогая часть схемы&nbsp;&mdash; не чаша</em>.</span>
+    <span lang="en">The length grew 64&times; &mdash; the linear half grew 64&times;, and the attention core grew <strong>4096&times;</strong>. At \(n=512\) attention is <strong>a tenth</strong> of the block, and that is the whole trick: <em>at the length nearly everyone trains at, the expensive part of the circuit is not the cup</em>.</span>
+  </p>
+  <aside class="slide-notes">Теперь подставляем константы BERT-base: d = 768. Ничего нового считать не нужно — обе формулы уже выведены со схемы. При n = 512 линейная половина стоит 7.2 ГФлопс, ядро внимания — 0.8, то есть внимание это ровно 10.0% блока. При n = 4096 они почти сравнялись: 58.0 против 51.5, доля 47.1%. При n = 32768 всё перевернулось: 463.9 против 3298.5, внимание съедает 87.7%. Проговорите вслух масштабы: длина выросла в 64 раза, линейная часть — тоже в 64, а квадратичная — в 64² = 4096 раз. Это и есть ответ на вопрос, который зал не смог дать три слайда назад. Все цифры: data/l19-cost.json → flops.512 / flops.4096 / flops.32768 (linearGF, attnCoreGF, attnSharePct). Ни одна не измерена — все выведены правилом 2abc.</aside>
+</section>

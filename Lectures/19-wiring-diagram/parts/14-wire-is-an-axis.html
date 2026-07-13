@@ -1,0 +1,53 @@
+<section class="slide" data-type="viz" data-max-step="2" data-current-step="0" data-screen-label="14 NCD · a wire IS an axis">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Провод — это ось, а не номер</span>
+      <span lang="en">A wire is an axis, not an index</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">шаг (&larr;/&rarr;): токен &rarr; строка &rarr; вся последовательность</span>
+      <span lang="en">step (&larr;/&rarr;): a token &rarr; its row &rarr; the whole sequence</span>
+    </span>
+  </div>
+  <div class="widget-mount" data-widget="ncd-embedding"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {},
+  "i18n": {
+    "ru": {
+      "alt": "Слой эмбеддинга в виде neural circuit diagram. Токен выбирает свою строку из обучаемой матрицы словаря (V строк на m столбцов) — это ровно one-hot вектор, умноженный на матрицу. Выход — m-мерный вектор этого токена. По всей последовательности та же выборка оплетает ось токенов, превращая n id токенов в матрицу n на m векторов.",
+      "legMap": "токен → выбор его строки → вектор m · поиск = one-hot × матрица",
+      "lblToken": "токен",
+      "lblTable": "E · словарь V × m",
+      "lblVec": "∈ ℝᵐ",
+      "lblSel": "one-hot × E = строка",
+      "lblSeq": "n токенов",
+      "lblMat": "n × m",
+      "tagSeq": "broadcast по токенам n",
+      "s0": "Эмбеддинг превращает дискретный токен в вектор. Обучаемая таблица E имеет по строке на каждое слово словаря (V строк) и m столбцов. Токен «cat» просто указывает на свою строку — чистый поиск — и эта строка И ЕСТЬ его эмбеддинг, m-мерный вектор. Пока никакой арифметики: токен лишь выбирает, откуда читать.",
+      "s1": "Под капотом этот поиск — матричное произведение. Представьте «cat» как one-hot вектор (1 в слоте «cat», 0 везде) и умножьте на E — получите ровно строку «cat». То есть слой эмбеддинга — обучаемая линейная операция, вход которой оказался one-hot; поэтому мы рисуем её как выборку. А теперь заметьте, чем НЕ является номер строки: это всего лишь id токена, выданный словарём в порядке слияний, так что строки над «cat» и под ним — соседи по случайности и не значат ничего. Ничто ниже по модели никогда не смотрит на близость индексов. Смысл живёт в m числах ВНУТРИ строки: два слова близки, когда близки их ТОЧКИ в ℝᵐ, — но не когда соседствуют их строки.",
+      "s2": "Настоящий вход — целая последовательность. Тот же поиск оплетает ось токенов n: каждый токен независимо читает свою строку, параллельно. n id токенов становятся матрицей n×m векторов — последовательность, теперь числовая — готовая для позиционного кодирования и внимания. Одна обучаемая таблица, применённая n раз по оси токенов."
+    },
+    "en": {
+      "alt": "An embedding layer drawn as a neural circuit diagram. A token selects its row from the learned vocabulary matrix (V rows by m columns) — that is exactly a one-hot vector times the matrix. The output is the m-dimensional vector for that token. Over a whole sequence the same lookup is broadcast over the token axis, turning n token ids into an n by m matrix of vectors.",
+      "legMap": "token → select its row → m-vector · a lookup is a one-hot × matrix",
+      "lblToken": "token",
+      "lblTable": "E · vocabulary V × m",
+      "lblVec": "∈ ℝᵐ",
+      "lblSel": "one-hot × E = row",
+      "lblSeq": "n tokens",
+      "lblMat": "n × m",
+      "tagSeq": "broadcast over n tokens",
+      "s0": "An embedding turns a discrete token into a vector. The learned table E has one row per vocabulary word (V rows) and m columns. The token “cat” simply points at its own row — a pure lookup — and that row IS its embedding, an m-dimensional vector. No arithmetic yet: the token just selects where to read.",
+      "s1": "Under the hood, that lookup is a matrix product. Represent “cat” as a one-hot vector (a 1 in the “cat” slot, 0 everywhere else); multiply it by E and you get exactly the “cat” row. So the embedding layer is a learned linear op whose input happens to be one-hot — that is why we draw it as a selection. Now notice what the row INDEX is not: it is only a token id, handed out by the vocabulary in merge order, so the rows above and below “cat” are its neighbours by accident and mean nothing. Nothing downstream ever looks at index proximity. The meaning lives in the m numbers INSIDE the row: two words are close when their POINTS in ℝᵐ are close — never when their rows are.",
+      "s2": "A real input is a whole sequence. The same lookup is broadcast over the token axis n: every token independently reads its own row, in parallel. n token ids become an n×m matrix of vectors — the sequence, now numeric — ready for positional encoding and attention. One learned table, applied n times over the token axis."
+    }
+  }
+}
+  </script>
+  <p class="viz-caption">
+    <span lang="ru">Провод, выходящий из таблицы, — это ось \(m\), а не «стрелка данных». И <strong>номер строки не значит ничего</strong>: id токена выдан словарём в порядке слияний, поэтому соседи «cat» по таблице — соседи по случайности. Смысл живёт <em>внутри</em> строки, в \(m\) числах. Ось имеет <strong>имя и длину</strong> — больше у неё нет свойств.</span>
+    <span lang="en">The wire out of the table is the axis \(m\), not an "arrow of data". And the <strong>row index means nothing</strong>: a token id is handed out by the vocabulary in merge order, so "cat"'s table neighbours are neighbours by accident. The meaning lives <em>inside</em> the row, in \(m\) numbers. An axis has a <strong>name and a length</strong> — it has no other properties.</span>
+  </p>
+  <aside class="slide-notes">Первый глиф — провод, и он же самый недооценённый. Шаг ноль: токен «cat» указывает на свою строку в обучаемой таблице E размера V на m. Это чистый поиск, арифметики ещё нет. Провод, который выходит справа, — это ось m, длина эмбеддинга. Шаг один — и здесь мы убиваем главное заблуждение курса. Поиск по таблице — это на самом деле матричное произведение: one-hot вектор на E даёт ровно нужную строку. Значит, эмбеддинг — обучаемая линейная операция, просто вход у неё one-hot. И раз так, спросите себя, что означает НОМЕР строки. Ничего. Это id токена, выданный словарём в порядке слияний BPE. Строка над «cat» и строка под «cat» — соседи по случайности. Никакой слой ниже никогда не смотрит на близость индексов; близость живёт в m числах внутри строки, то есть в ТОЧКЕ в пространстве ℝ в степени m. Обратите внимание: в виджете слова в таблице намеренно перемешаны — это не небрежность, это прививка. Шаг два: настоящий вход — последовательность, и тот же поиск оплетает ось токенов n. На выходе матрица n на m — два провода, две оси. Вот и весь глиф: провод — это ось, у неё есть имя и длина, и больше ничего.</aside>
+</section>
