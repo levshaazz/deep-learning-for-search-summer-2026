@@ -1,0 +1,26 @@
+<section class="slide" data-type="quiz" data-screen-label="46 Quiz · the string and the circuit disagree">
+  <div class="slide-header">
+    <h2><span lang="ru">Строка и схема расходятся. Где баг?</span><span lang="en">The string and the circuit disagree. Where is the bug?</span></h2>
+    <span class="slide-kicker">
+      <span lang="ru">упражнение &middot; сначала прочитайте строку, потом смотрите на картинку</span>
+      <span lang="en">exercise &middot; read the string first, then look at the picture</span>
+    </span>
+  </div>
+  <div class="quiz-frame">
+    <div class="quiz-q">
+      <span lang="ru">Код второго стягивания: <code>O = torch.einsum('nm,md-&gt;nd', P, V)</code>. На схеме рядом чаша соединяет провод \(n\) матрицы \(P\) с проводом \(m\) матрицы \(V\), а наружу выходят провода \(m\) и \(d\). Что сломано?</span>
+      <span lang="en">The code for the second contraction: <code>O = torch.einsum('nm,md-&gt;nd', P, V)</code>. On the circuit beside it, the cup joins the \(n\) wire of \(P\) to the \(m\) wire of \(V\), and the wires leaving are \(m\) and \(d\). What is broken?</span>
+    </div>
+    <div class="quiz-options">
+      <div class="quiz-option" data-correct="false"><span class="quiz-letter">A</span><span><span lang="ru">Строка: в ней потеряна ось голов \(h\).</span><span lang="en">The string: the head axis \(h\) is missing from it.</span></span><span></span></div>
+      <div class="quiz-option" data-correct="true"><span class="quiz-letter">B</span><span><span lang="ru">Схема: чаша стоит не на той оси &mdash; съесть должна \(m\), выход \(n\times d\).</span><span lang="en">The circuit: the cup is on the wrong axis &mdash; it must eat \(m\), and the output is \(n\times d\).</span></span><span></span></div>
+      <div class="quiz-option" data-correct="false"><span class="quiz-letter">C</span><span><span lang="ru">Ничего: чаша симметрична, ей всё равно, какие оси соединять.</span><span lang="en">Nothing: a cup is symmetric, it does not care which axes it joins.</span></span><span></span></div>
+      <div class="quiz-option" data-correct="false"><span class="quiz-letter">D</span><span><span lang="ru">Треугольник: softmax должен стоять <em>после</em> чаши, а не до.</span><span lang="en">The triangle: the softmax belongs <em>after</em> the cup, not before it.</span></span><span></span></div>
+    </div>
+    <details class="hidden-answer mt-4">
+      <summary><span lang="ru">Показать ответ</span><span lang="en">Reveal explanation</span></summary>
+      <div class="ha-content"><strong>B</strong>. <span lang="ru">Правило одно: индекс, который есть <em>слева</em> от стрелки и <em>нет справа</em>, &mdash; стянут. Слева <code>nm,md</code>, справа <code>nd</code>: исчезла буква \(m\) &mdash; значит чаша обязана съесть именно \(m\), а выйти должны \(n\) и \(d\). Нарисовано стягивание \(n\). Строка и схема &mdash; <em>одно и то же утверждение</em>, записанное дважды; расходятся они ровно тогда, когда одна из записей неверна. (C неверно: чаша соединяет только <strong>равные</strong> оси. И заметьте: в self-attention \(n=m\) &mdash; тогда формы совпали бы и <strong>не упало бы ничто</strong>. Это баг 2 в другом костюме.)</span><span lang="en">One rule: an index that appears <em>left</em> of the arrow and <em>not right</em> of it has been contracted. Left is <code>nm,md</code>, right is <code>nd</code>: the letter \(m\) is gone &mdash; so the cup must eat \(m\), and \(n\) and \(d\) must leave. The picture contracts \(n\). String and circuit are <em>the same statement</em> written twice; they disagree exactly when one of them is wrong. (C is false: a cup joins only <strong>equal</strong> axes. And note: in self-attention \(n=m\) &mdash; the shapes would match and <strong>nothing would crash</strong>. That is bug 2 in a different suit.)</span></div>
+    </details>
+  </div>
+  <aside class="slide-notes">Упражнение на проверяемость. Дайте тридцать секунд и требуйте, чтобы читали СТРОКУ, а не картинку — картинка здесь подсудимая. Правило, которое мы вывели в третьем акте: индекс слева от стрелки и не справа — стянут. Слева nm и md, справа nd. Буква m стоит слева дважды и справа ни разу: значит стянуть надо m. Буква n стоит слева и справа — она выживает, это провод, выходящий наружу. Значит чаша обязана съесть m, а выход — n на d, контекст. На схеме съедена n, и наружу выходят m и d — то есть нарисован совсем другой тензор. Дистрактор A ловит тех, кто не читает, а вспоминает: голов в этой строке нет, потому что это одна голова, и их отсутствие не баг. Дистрактор C — самая частая иллюзия новичка: «чаша — это просто соединение». Нет: чаша соединяет только РАВНЫЕ оси, и в этом весь её смысл. Дистрактор D проверяет, помнят ли они порядок глифов. И теперь — та самая точка, ради которой упражнение стоит на этом месте, сразу после акта об отладке. Спросите: а что будет, если n равно m? В self-attention так и есть — запросов и ключей поровну. Тогда неверно нарисованная чаша даёт тензор ПРАВИЛЬНОЙ формы, ассерты проходят, ничего не падает, и вы получаете ровно тот баг, за которым мы охотились полакта. Строка и схема — два независимых свидетеля одного и того же утверждения; расхождение между ними видно ДО запуска.</aside>
+</section>

@@ -171,6 +171,8 @@ BENCH14    = load(DATA, "l14-bench.json")     # CITED: HyDE (2212.10496), Query2
 #    frozen only), L15 is now FULLY gated: l15_deck_claims() pins every flagship worked value deck==data. ──
 ATTN15     = load(DATA, "l15-attention.json") # toy: softmax(1,0,3)=(0.114,0.042,0.844)→Y1=(0.958,0.886); √dₖ 0.995 vs 0.909; PE (0.841,0.540,0.010,1.000); 12·768²=7.08M/block; causal (0.035,0.259,0.705)/(0.119,0.881); decoding base+T; mem 0.52MB/2.15GB
 BENCH15    = load(DATA, "l15-bench.json")     # CITED: Transformer (vaswani-2017), BERT-base 110M / large 340M (devlin-2019), DistilBERT 40/60/97 (distilbert-2019), GPT-3 175B (gpt3-2020), RoBERTa/ALBERT/ELECTRA, T5/BART, FlashAttention
+COST19     = load(DATA, "l19-cost.json")     # DERIVED by gen_l19.py from the GLYPHS: linear 24nd² vs attention core 4n²d;
+                                              # share 10.0/47.1/87.7 %; crossover n = 6d = 4608; score box 6.3MB/403MB/25.8GB; KV 36.9KB/token
 
 # frozen run-once Ollama artifacts (REAL measured numbers; provenance recomputes the data/ "real" blocks from these)
 def load_research(name):
@@ -556,7 +558,7 @@ def claims():
              anchor=r"\b(32\.3)\s*%", must=True),
         dict(id="top-3 %",   deck="L1", value=CLICK["top3Pct"], tol=0.2,
              anchor=r"\b(60\.6)\b", must=True),
-    ] + l3_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims() + l11_deck_claims() + l12_deck_claims() + l13_deck_claims() + l14_deck_claims() + l15_deck_claims()
+    ] + l3_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims() + l11_deck_claims() + l12_deck_claims() + l13_deck_claims() + l14_deck_claims() + l15_deck_claims() + l19_deck_claims()
 
 # ── [C] BOOK CLAIMS: the built Book PROSE must show the same flagship numbers as data/ ───────────
 # The Book restates the decks' worked examples in its own prose/KaTeX, so the deck anchors do NOT
@@ -2440,6 +2442,44 @@ def provenance_l14(report):
             report.append(("HARD", f"provenance-L14({name}): data/ disagree/invariant broken — {a} vs {b}"))
     if not bad and not flags:
         report.append(("OK", f"provenance-L14: {len(checks)} recompute + structural invariants consistent ✓"))
+
+
+# ── L19 "The Wiring Diagram" — the lecture whose whole promise is that the BILL is readable off the
+#    picture. Every figure it prints is derived by _research/gen_l19.py from one counting rule
+#    (2·a·b·c per matmul) applied to the glyphs, so every figure it prints must EQUAL that derivation.
+#    Note these are all 1-decimal numbers, which is exactly why they need claims: the coverage-guard
+#    only forces a gate on ≥2-dp values, so a whole lecture of 10.0 / 47.1 / 87.7 could have drifted
+#    from its own generator without a single gate saying a word. ──────────────────────────────────
+def l19_deck_claims():
+    F, X, S, K = (COST19[k] for k in ("flops", "crossover", "scoreBox", "kvCache"))
+    C = lambda id, value, anchor, tol=1e-3: dict(id=id, deck="L19", value=value, tol=tol, anchor=anchor, must=True)
+    return [
+        # the punchline: attention is 10 % of a block at the length everyone actually trains at, and 88 % at 32k
+        C("L19 share 512",    F["512"]["attnSharePct"],     r"доля внимания в блоке: ([\d.]+)%"),
+        C("L19 share 32k",    F["32768"]["attnSharePct"],   r"доля внимания в блоке: 10\.0% &rarr; ([\d.]+)%"),
+        C("L19 share 4k",     F["4096"]["attnSharePct"],    r'<td class="cell-meh">([\d.]+)&thinsp;%</td>'),
+        # the table it is read from — linear (24nd²) against the attention core (4n²d), per length
+        C("L19 lin 512",      F["512"]["linearGF"],         r'<strong>512</strong></td>\s*<td class="cell-bad"><span lang="ru">([\d.]+) ГФлопс'),
+        C("L19 core 512",     F["512"]["attnCoreGF"],       r'7\.2 GFLOPs</span></td>\s*<td><span lang="ru">([\d.]+) ГФлопс'),
+        C("L19 lin 4k",       F["4096"]["linearGF"],        r'<strong>4096</strong></td>\s*<td class="cell-meh"><span lang="ru">([\d.]+) ГФлопс'),
+        C("L19 core 4k",      F["4096"]["attnCoreGF"],      r'([\d.]+) GFLOPs</span></td>\s*<td class="cell-meh">47\.1'),
+        C("L19 lin 32k",      F["32768"]["linearGF"],       r'<strong>32768</strong></td>\s*<td><span lang="ru">([\d.]+) ГФлопс'),
+        C("L19 core 32k",     F["32768"]["attnCoreGF"],     r'463\.9 GFLOPs</span></td>\s*<td class="cell-bad"><span lang="ru">([\d.]+) ГФлопс'),
+        # the crossover, which the diagram SOLVES rather than searches for: 4n²d = 24nd² ⟺ n = 6d
+        C("L19 crossover GF", X["linearGF"],                r"стоят поровну: <strong>([\d.]+) ГФлопс"),
+        C("L19 crossover n",  X["n"],                       r"это \\\(n = (\d+)\\\) токенов"),
+        # memory bites long before flops do — and these three MUST agree with L06/L15, which print them too
+        C("L19 box 512",      S["512"]["mb"],               r"12 голов: ([\d.]+) МБ при"),
+        C("L19 box 4k",       S["4096"]["mb"],              r'<span lang="ru">(\d+) МБ</span>'),
+        C("L19 box 32k",      S["32768"]["gb"],             r"<strong>([\d.]+) ГБ</strong> при"),
+        # the KV cache: the axis that GROWS, and why MQA/GQA divide the bill without touching the query wire
+        C("L19 kv mha/token", K["mha"]["perTokenKB"],       r"бирка «([\d.]+) КБ за токен»"),
+        C("L19 kv mha total", K["mha"]["atLongMB"],         r"&rarr; <strong>([\d.]+) МБ</strong> при"),
+        C("L19 kv mqa/token", K["mqa"]["perTokenKB"],       r"K и V: <strong>([\d.]+) КБ на токен</strong>"),
+        C("L19 kv mqa total", K["mqa"]["atLongMB"],         r"КБ на токен</strong>, ([\d.]+) МБ"),
+        C("L19 kv gqa/token", K["gqa4"]["perTokenKB"],      r"GQA-4&nbsp;&mdash; ([\d.]+) КБ"),
+        C("L19 kv gqa total", K["gqa4"]["atLongMB"],        r"([\d.]+) МБ, в 3 раза"),
+    ]
 
 
 def main():
