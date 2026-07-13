@@ -1,0 +1,98 @@
+<section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="28 NCD · the block, and why it stacks">
+  <div class="slide-header">
+    <h2><span lang="ru">Блок сохраняет форму</span><span lang="en">A block preserves the shape</span></h2>
+    <span class="slide-kicker"><span lang="ru">шаг (&larr;/&rarr;): внимание &rarr; FFN &rarr; \(\times L\) и сводка &rarr; блок без остатка</span><span lang="en">step (&larr;/&rarr;): attention &rarr; FFN &rarr; \(\times L\) and the ledger &rarr; the block with no residual</span></span>
+  </div>
+  <div class="widget-mount" data-widget="ncd-block"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "params": {
+      "d": 768,
+      "perBlock": 7077888,
+      "perBlockM": 7.08,
+      "blocks": 12,
+      "tokenEmb": 23440896,
+      "attnCoef": 4,
+      "ffnCoef": 8,
+      "blockCoef": 12
+    }
+  },
+  "i18n": {
+    "ru": {
+      "alt": "Один блок трансформера в виде neural circuit diagram. Провод токен-векторов идёт слева направо через два подслоя. Сначала self-attention, чей выход складывается со входом через остаточный провод-обход (⊕) и нормируется (LayerNorm). Затем feed-forward сеть, расширяющая m до 4m и обратно, снова с остаточным сложением и LayerNorm. Ось голов — broadcast, оплетающий внимание, а весь блок повторяется L раз, образуя модель.",
+      "legMap": "провод = токен-векторы · ⊕ = остаточное сложение · ◎ = LayerNorm · пунктир = broadcast голов",
+      "lblIn": "x  (n×m)",
+      "lblAttn": "self-attention",
+      "lblFFN": "FFN",
+      "lblFFNsub": "m → 4m → m",
+      "lblLN": "LN",
+      "lblRes": "остаток",
+      "lblOut": "выход",
+      "tagHead": "broadcast: h голов",
+      "tagStack": "× L блоков → модель",
+      "s0": "Первый подслой: self-attention. Входит провод токен-векторов; остаточный провод снимает копию и обходит внимание СВЕРХУ. Внимание смешивает информацию между токенами; его выход СКЛАДЫВАЕТСЯ с нетронутой копией (⊕ — остаток, чтобы выжили градиенты и исходный сигнал), затем LayerNorm (◎) заново центрирует и масштабирует каждый вектор. Форма не меняется: n×m на входе, n×m на выходе.",
+      "s1": "Второй подслой: feed-forward сеть. Тот же рецепт: снимаем остаток, затем маленький MLP расширяет каждый вектор с m до 4m, применяет нелинейность и проецирует обратно в m — здесь идёт «обдумывание» на токен (внимание переносило информацию; FFN её преобразует). Складываем остаток, снова LayerNorm. По-прежнему n×m на входе и выходе — блок сохраняет форму, уточняя её.",
+      "s2": "Ещё две истины, которые делает видимыми диаграмма — и одну делает видимой СВОДКА. Первое: внимание многоголовое — ось голов h (пунктир) это broadcast, оплетающий подслой внимания. Второе: весь этот блок — единый юнит, повторённый ×L раз (L=12 для BERT-base); поскольку каждый подслой сохраняет форму n×m, блоки стыкуются встык без всякого клея. А теперь читайте сводку: 12d² на блок → 7.08M, умножить на 12 блоков, плюс 23.4M токен-эмбеддингов — итого ≈ 108.38M. И это честно всё, что содержит наш скелет. В настоящем bert-base-uncased 109 482 240 параметров; недостающие 1 106 688 — ровно те части, которых на диаграмме нет: позиционные эмбеддинги (512×768 = 393 216), сегментные (2×768 = 1 536), LayerNorm эмбеддингов (2×768 = 1 536), смещения и гейны LayerNorm внутри 12 блоков (12×9 984 = 119 808) и пулер (768²+768 = 590 592). Прибавьте их — и получите те самые «110M», которые все цитируют. Вот в чём урок: круглая цифра — это округление суммы, и пока вы не можете назвать каждое её слагаемое, вы цитируете, а не считаете.",
+      "s3": "А теперь перережем остаток. Обе строки внизу — ОДНА И ТА ЖЕ схема: формы по-прежнему сходятся, прямой проход по-прежнему считается. Разница ровно в одном проводе. С обходом обратный провод (зелёный, сверху) идёт от выхода прямиком к x: это identity-путь, по которому градиент едет как по шоссе. Без него градиенту приходится продавливаться обратно СКВОЗЬ self-attention и СКВОЗЬ FFN, и на каждом блоке он гаснет — до x долетает уже ничто. На глубине в двадцать четыре подслоя это и есть разница между моделью, которая учится, и моделью, которая нет. Баг — это ОТСУТСТВУЮЩИЙ ПРОВОД, и можно ткнуть пальцем туда, где его нет.",
+      "lgTitle": "параметры",
+      "lgBlock": "блок",
+      "lgBlocks": "блоков",
+      "lgEmb": "эмбеддинги",
+      "lgTotal": "итого",
+      "lgPath": "identity-путь",
+      "lgGone": "исчез",
+      "lgDepth": "подслоёв насквозь",
+      "lgN0": "Форма не меняется: n×m вошло, n×m вышло. Подслой уточняет, а не переформовывает.",
+      "lgN1": "Сюрприз: FFN — это 8d², ВДВОЕ больше внимания. Две трети блока — вообще не внимание.",
+      "lgN2": "Этот подсчёт считает ровно то, что нарисовано: 12 блоков по 12d² плюс токен-эмбеддинги. За расхожие «110M» платят ещё позиции, сегменты, все смещения, гейны LayerNorm и пулер — эту арифметику доводит подпись.",
+      "lgN3": "Без остатка ЕДИНСТВЕННЫЙ путь от x к выходу идёт СКВОЗЬ каждый подслой. Градиенту не за что зацепиться.",
+      "cfHead": "одна и та же схема — разница в одном проводе",
+      "cfWith": "с остатком",
+      "cfWithout": "без остатка",
+      "cfGradOk": "∇ доходит до x целым",
+      "cfGradBad": "∇ ≈ 0 к моменту прилёта",
+      "legCf": "все формы по-прежнему сходятся — оно просто никогда не научится"
+    },
+    "en": {
+      "alt": "One transformer block drawn as a neural circuit diagram. The token-vector wire runs left to right through two sublayers. First self-attention, whose output is added back to the input through a residual skip wire (⊕) and normalised (LayerNorm). Then a feed-forward network that expands m to 4m and back, again with a residual add and a LayerNorm. The head axis is a broadcast woven around attention, and the whole block is stacked L times to make the model.",
+      "legMap": "wire = token vectors · ⊕ = residual add · ◎ = LayerNorm · dashed = head broadcast",
+      "lblIn": "x  (n×m)",
+      "lblAttn": "self-attention",
+      "lblFFN": "FFN",
+      "lblFFNsub": "m → 4m → m",
+      "lblLN": "LN",
+      "lblRes": "residual",
+      "lblOut": "out",
+      "tagHead": "broadcast: h heads",
+      "tagStack": "× L blocks → the model",
+      "s0": "First sublayer: self-attention. The token-vector wire enters; a residual wire taps a copy and skips OVER the attention. Attention mixes information across tokens; its output is ADDED back to the untouched copy (⊕ — the residual, so gradients and the original signal survive), then LayerNorm (◎) re-centres and re-scales each vector. Notice the shape never changes: n×m in, n×m out.",
+      "s1": "Second sublayer: the feed-forward network. Same recipe: tap a residual, then run a small MLP that expands each vector from m to 4m, applies a nonlinearity, and projects back to m — this is where per-token “thinking” happens (attention moved information; the FFN transforms it). Add the residual, LayerNorm again. Still n×m in, n×m out — a block is a shape-preserving refinement.",
+      "s2": "Two more truths the diagram makes visible — and one the LEDGER makes visible. First, attention runs multi-head: the head axis h (dashed) is a broadcast woven around the attention sublayer. Second, this whole block is a single unit stacked ×L times (L=12 for BERT-base); because every sublayer preserves the n×m shape, blocks compose end to end without any glue. Now read the ledger: 12d² per block → 7.08M, times 12 blocks, plus 23.4M of token embeddings — total ≈ 108.38M. And that is honestly all this skeleton contains. The real bert-base-uncased has 109,482,240 parameters; the missing 1,106,688 are exactly the parts the diagram does not draw — the positional embeddings (512×768 = 393,216), the segment embeddings (2×768 = 1,536), the embedding LayerNorm (2×768 = 1,536), the biases and LayerNorm gains inside the 12 blocks (12×9,984 = 119,808), and the pooler (768²+768 = 590,592). Add them and you land on the “110M” everyone quotes. That is the real lesson: the headline number is a rounding of a sum, and until you can name every term in it, you are quoting, not counting.",
+      "s3": "Now cut the residual. Both rows below are the SAME circuit — the shapes still line up, the forward pass still computes. The only difference is one wire. With the skip, the backward wire (green, on top) travels from the output straight back to x: an identity path the gradient can ride. Without it, the gradient has to squeeze back THROUGH self-attention and THROUGH the FFN, and it fades at every box — by the time it lands on x there is nothing left. Twenty-four sublayers deep, that is the difference between a model that trains and one that does not. The bug is a MISSING WIRE, and you can point at where it isn’t.",
+      "lgTitle": "parameters",
+      "lgBlock": "block",
+      "lgBlocks": "blocks",
+      "lgEmb": "embeddings",
+      "lgTotal": "total",
+      "lgPath": "identity path",
+      "lgGone": "gone",
+      "lgDepth": "sublayers to cross",
+      "lgN0": "The shape never changes: n×m in, n×m out. A sublayer refines; it does not reshape.",
+      "lgN1": "The surprise: the FFN is 8d² — TWICE attention. Two thirds of the block is not attention at all.",
+      "lgN2": "This tally counts what the diagram draws: 12 blocks of 12d² plus the token embeddings. The quoted “110M” also pays for positions, segments, every bias, the LayerNorm gains and the pooler — the caption does that arithmetic.",
+      "lgN3": "With no residual the ONLY path from x to the output runs THROUGH every sublayer. The gradient has nothing to hold on to.",
+      "cfHead": "the same circuit — one wire apart",
+      "cfWith": "with residual",
+      "cfWithout": "no residual",
+      "cfGradOk": "∇ reaches x intact",
+      "cfGradBad": "∇ ≈ 0 by the time it lands",
+      "legCf": "every shape still lines up — it just never learns"
+    }
+  }
+}
+  </script>
+  <p class="viz-caption"><span lang="ru">Остаток &#8853; и LayerNorm &#9678; стоят здесь ради одного: форма \(n\times m\) вошла — форма \(n\times m\) вышла. <strong>Только поэтому</strong> блок можно поставить на блок без единой прокладки. Шаг 3 перерезает остаток: формы по-прежнему сходятся, проход по-прежнему считается — исчезает лишь identity-путь, и схема тихо перестаёт учиться.</span><span lang="en">The residual &#8853; and LayerNorm &#9678; are here for exactly one reason: \(n\times m\) in, \(n\times m\) out. <strong>That alone</strong> is why a block can be stacked on a block with no glue. Step 3 cuts the residual: the shapes still line up, the forward pass still runs — only the identity path is gone, and the circuit quietly stops learning.</span></p>
+  <aside class="slide-notes">Четыре шага. Шаги 0 и 1 идут парой и быстро — один и тот же рецепт дважды: снять остаток, посчитать подслой, сложить обратно, нормировать. После каждого спрашивайте одно и то же: какая форма вошла и какая вышла? Пока зал не начнёт отвечать хором «та же», дальше не нажимайте — на этом ответе держится вся стопка. Шаг 2 — нажмите и молчите: пусть сводка сама скажет, что FFN вдвое больше внимания. Шаг 3 — кульминация всей части: перережьте остаток и не объясняйте сразу. Спросите: что сломалось? Формы сходятся, проход считается, ошибки нет. Ответ — исчез единственный провод, по которому градиент возвращался к x. Баг, на который можно показать пальцем, — это ровно то, что нотация нам обещала.</aside>
+</section>
+

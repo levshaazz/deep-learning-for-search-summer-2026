@@ -1955,6 +1955,84 @@ JOBS = [
      "Earned, warm send-off — 'straight-line distance lies on a curved map; so straighten the map'. Black ink "
      "+ course-blue even grid + thin warm-orange meridians; Serega's green tübetey is the ONLY green. No "
      "lettered title bar. Fills ≥85% width."),
+    # ---- L19 "The Wiring Diagram" (neural circuit diagrams). Metaphor: Serega the SCHEMATIC-READER —
+    #      he puts down the spec written in prose and picks up the wiring diagram of the same machine.
+    #      Wires are axes; a solder joint (cup) is where an axis DIES; the bill is read off the drawing.
+    #      Serega in every plate; wires/boards stay ink+blue+orange — green ONLY on his tübetey. ----
+    ("L19", "L19/L19-00-two-documents.png", "16:9", True,
+     "HERO. EXACTLY ONE Serega — he is a single character and must appear ONCE; do NOT draw him twice. He "
+     "stands at a workbench. Lying face-up on the bench in front of him: a dense page of prose and formulae, "
+     "just PUT DOWN. Held up in both his hands and turned toward us: a big clean WIRING DIAGRAM (boxes joined "
+     "by wires) of the SAME machine — and he is reading it with obvious relief. Hand-lettered 'same machine' "
+     "with a thin bracket spanning from the page on the bench to the diagram in his hands. Do NOT letter any "
+     "object with its own name. Black ink + course-blue wires + thin warm-orange highlight; Serega's green "
+     "tübetey is the ONLY green. No lettered title bar. Fills ≥85% width."),
+    ("L19", "L19/L19-01-formula-hides.png", "4:3", True,
+     "the FORMULA HIDES THE WIRES. Serega holds up a formula written on a card; behind/through it, ghosted "
+     "and unreadable, are the wires it is actually describing — the card is opaque and blocks them. He "
+     "squints, frustrated. Hand-lettered 'what does it cost?'. Black ink + course-blue ghost-wires + one "
+     "warm-orange question-mark; Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L19", "L19/L19-02-wire-is-an-axis.png", "4:3", True,
+     "a WIRE IS AN AXIS. Serega pinches a single long wire between finger and thumb and pulls it taut; small "
+     "beads are threaded along it (the entries of the axis), and a little tag on the wire reads 'n'. The one "
+     "clean idea of the whole lecture. Hand-lettered 'one wire, one axis'. Black ink + course-blue wire + "
+     "warm-orange tag; Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L19", "L19/L19-03-solder-joint.png", "4:3", True,
+     "the CUP = a SOLDER JOINT where an axis DIES. Serega solders two wire-ends together into one joint; the "
+     "shared wire simply ENDS there — it does not come out the other side. A small puff of smoke; a tiny "
+     "hand-lettered tally '2·a·b·c' beside the joint (the price of the joint). Hand-lettered 'the axis dies "
+     "here'. Black ink + course-blue wires + warm-orange solder glow; Serega's green tübetey the ONLY green. "
+     "No lettered title bar. Fills ≥80% width."),
+    ("L19", "L19/L19-04-triangle-turned.png", "4:3", True,
+     "the TRIANGLE POINTS ACROSS AN AXIS. Serega holds a triangular gauge against a grid of wires; turned one "
+     "way it spans the ROWS, turned a quarter-turn it spans the COLUMNS — and the grid's shape is IDENTICAL "
+     "either way. He is caught mid-turn, realising it matters. Hand-lettered 'which way?'. Black ink + "
+     "course-blue grid + one warm-orange triangle; Serega's green tübetey the ONLY green. No lettered title "
+     "bar. Fills ≥80% width."),
+    ("L19", "L19/L19-05-counting-rule.png", "4:3", True,
+     "COUNTING THE BILL OFF THE DRAWING. Serega, sleeves up, walks a wiring diagram with a mechanical counter/"
+     "tally-clicker in hand, adding up the price of each box as he passes it, chalk marks on a slate. The "
+     "diagram is being READ like an invoice. Hand-lettered 'count the boxes'. Black ink + course-blue diagram "
+     "+ warm-orange chalk tally; Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L19", "L19/L19-06-crossover-seesaw.png", "4:3", True,
+     "the CROSSOVER. A SEESAW: on one side a fat squat box labelled with a small hand-lettered 'n' (the "
+     "feed-forward bulk), on the other a box that grows visibly with a hand-lettered 'n²' (the attention "
+     "core). At short lengths the squat box wins and the seesaw tips left; Serega stands at the fulcrum "
+     "chalking the exact tipping point. Hand-lettered 'where does it tip?'. Black ink + course-blue boxes + "
+     "one warm-orange fulcrum; Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L19", "L19/L19-07-the-box-that-never-exists.png", "4:3", True,
+     "FLASH-ATTENTION: the WIRE STAYS, the TENSOR GOES. A huge crate labelled with a hand-lettered 'n×n' sits "
+     "in the middle of a wiring run, dwarfing everything; Serega, straining, DELETES the crate (an eraser "
+     "sweeping it into a ghostly dotted outline) while the wires through it stay perfectly connected. Hand-"
+     "lettered 'never build it'. Black ink + course-blue wires + one warm-orange eraser; Serega's green "
+     "tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L19", "L19/L19-08-cache-drum.png", "4:3", True,
+     "the KV CACHE = an AXIS THAT GROWS. Serega feeds tokens one at a time into a machine while a fat CABLE "
+     "DRUM beside him winds on, getting visibly heavier with every token; he braces against its weight. A "
+     "small hand-lettered weight-tag hangs off the drum. Hand-lettered 'it grows'. Black ink + course-blue "
+     "cable + warm-orange weight-tag; Serega's green tübetey the ONLY green. No lettered title bar. Fills "
+     "≥80% width."),
+    ("L19", "L19/L19-09-silent-short.png", "4:3", True,
+     "the BUG THAT NEVER BLOWS THE FUSE. A wiring board where one wire is soldered to the WRONG terminal — "
+     "but nothing sparks, no fuse blows, no smoke: the machine hums along contentedly, quietly producing "
+     "nonsense. Serega leans in with a torch, and only the DIAGRAM in his other hand reveals the wrong "
+     "terminal. Hand-lettered 'no stack trace'. Black ink + course-blue board + one warm-orange wrong-wire; "
+     "Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L19", "L19/L19-10-draw-your-own.png", "4:3", True,
+     "DRAW YOUR OWN. Serega at a drafting table, sleeves rolled, drawing the wiring diagram of HIS OWN machine "
+     "from scratch — a fresh sheet, ruler, a few confident wires already down, the real machine on the bench "
+     "beside him for reference. Hand-lettered 'now yours'. Black ink + course-blue drawing + thin warm-orange "
+     "ruler-line; Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L19", "L19/L19-11-reads-the-price.png", "16:9", True,
+     "FINAL. EXACTLY ONE Serega. He stands before a big finished WIRING DIAGRAM pinned up on the wall and "
+     "traces one wire across it with his fingertip, saying the price out loud; a small warm-orange PRICE TAG "
+     "on a string hangs from the wire exactly where his fingertip rests, and on the tag is a hand-drawn "
+     "currency mark (no words). Behind him the real machine hums with its panels open, every wire legible. "
+     "CRITICAL: do NOT label or caption any object with its own name — no 'Serega', no 'machine', no "
+     "'diagram', no 'price-tag' captions and no arrows pointing at nouns. The ONLY hand-lettering anywhere in "
+     "the plate is the single phrase 'the diagram is the invoice'. Earned, warm send-off. Black ink + "
+     "course-blue wires + one warm-orange tag; Serega's green tübetey is the ONLY green. No lettered title "
+     "bar. Fills ≥85% width."),
 ]
 
 H = {"Authorization": f"Bearer {API_KEY}"}
