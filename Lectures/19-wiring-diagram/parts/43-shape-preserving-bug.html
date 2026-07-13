@@ -1,0 +1,61 @@
+<section class="slide" data-type="table" data-screen-label="43 The bug that preserves the shape">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Баг, который сохраняет форму</span>
+      <span lang="en">The bug that preserves the shape</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">softmax нормирует по оси <em>запросов</em>, а не ключей</span>
+      <span lang="en">softmax normalises over the <em>query</em> axis, not the key axis</span>
+    </span>
+  </div>
+
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th><span lang="ru">улика</span><span lang="en">the evidence</span></th>
+        <th><span lang="ru">верно &mdash; поперёк ключей</span><span lang="en">correct &mdash; across the keys</span></th>
+        <th><span lang="ru">баг &mdash; поперёк запросов</span><span lang="en">the bug &mdash; across the queries</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span lang="ru">форма на входе</span><span lang="en">shape in</span></td>
+        <td>\(n\times n\)</td>
+        <td>\(n\times n\)</td>
+      </tr>
+      <tr>
+        <td><span lang="ru">форма на выходе</span><span lang="en">shape out</span></td>
+        <td>\(n\times n\)</td>
+        <td>\(n\times n\)</td>
+      </tr>
+      <tr>
+        <td><span lang="ru">строка einsum</span><span lang="en">the einsum string</span></td>
+        <td><code>nm -&gt; nm</code></td>
+        <td><code>nm -&gt; nm</code></td>
+      </tr>
+      <tr>
+        <td><span lang="ru">формула</span><span lang="en">the formula</span></td>
+        <td>\(\sigma(QK^{\top}\!/\sqrt{d_k})\)</td>
+        <td>\(\sigma(QK^{\top}\!/\sqrt{d_k})\)</td>
+      </tr>
+      <tr>
+        <td><span lang="ru">код</span><span lang="en">the code</span></td>
+        <td><code>softmax(s, dim=-1)</code></td>
+        <td><code>softmax(s, dim=-2)</code></td>
+      </tr>
+      <tr>
+        <td><span lang="ru"><strong>схема</strong></span><span lang="en"><strong>the circuit</strong></span></td>
+        <td class="cell-good"><span lang="ru">треугольник поперёк ключей</span><span lang="en">triangle across the keys</span></td>
+        <td class="cell-bad"><span lang="ru">треугольник повёрнут на четверть оборота</span><span lang="en">triangle turned a quarter turn</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="small muted center mt-3">
+    <span lang="ru">Пять строк из шести <strong>совпадают</strong>. Каждый ассерт формы проходит, ничего не падает, <strong>стектрейса не будет никогда</strong>. В коде ось нормировки &mdash; одно целое число, которое не проверяет ни один линтер. Единственное во всём конвейере, что <em>записывает</em>, по какой оси нормировали, &mdash; <strong>ориентация треугольника</strong>.</span>
+    <span lang="en">Five rows out of six are <strong>identical</strong>. Every shape assertion passes, nothing crashes, <strong>no stack trace ever appears</strong>. In the code the axis is one integer that no linter checks. The only thing in the entire pipeline that <em>records</em> which axis was normalised is <strong>the orientation of the triangle</strong>.</span>
+  </p>
+
+  <aside class="slide-notes">Разбираем баг 2 медленно и по одной улике. Внимание нормирует строку скоров: для каждого запроса — распределение по ключам, строки суммируются в единицу. Перепутайте ось — и в единицу начнут суммироваться столбцы: каждый КЛЮЧ раздаёт свою единицу массы по запросам. Модель по-прежнему что-то считает, но это уже не внимание: запрос больше не выбирает, на что смотреть, — он конкурирует с другими запросами за право быть замеченным ключом. Теперь по таблице. Форма на входе n на n, на выходе n на n — совпадает. Строка einsum: softmax не съедает ни одной буквы, слева nm, справа nm — совпадает, и это принципиально: einsum записывает, какие оси УМИРАЮТ, а не какие нормируются. Формула — та же сигма, ось нормировки в неё просто не входит, она живёт в словах вокруг формулы. Код — единственное место, где ось вообще упомянута: dim=-1 против dim=-2. Один символ. Ни один тайп-чекер, ни один shape-ассерт, ни один линтер этого не проверяет, потому что проверять нечего: формы совпадают. Остаётся схема. NCD рисует треугольник ПОПЕРЁК той оси, по которой нормирует, — и повёрнутый треугольник виден с другого конца комнаты. Это и есть ответ на вопрос «зачем нам ещё одна нотация»: она делает видимым ровно то, что не видит ни один инструмент в стеке. Числовых величин на слайде нет — только формы (n×n) и имена осей.</aside>
+</section>

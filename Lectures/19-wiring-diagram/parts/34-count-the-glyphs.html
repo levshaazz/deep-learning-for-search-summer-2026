@@ -1,0 +1,63 @@
+<section class="slide" data-type="table" data-screen-label="34 Count the glyphs of one block">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Считаем глифы одного блока</span>
+      <span lang="en">Counting the glyphs of one block</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">каждая строка&nbsp;&mdash; глиф из акта&nbsp;II &middot; правило одно и то же</span>
+      <span lang="en">every row is a glyph from Act&nbsp;II &middot; the rule never changes</span>
+    </span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th><span lang="ru">Глиф</span><span lang="en">Glyph</span></th>
+        <th><span lang="ru">Формы на проводах</span><span lang="en">Shapes on the wires</span></th>
+        <th><span lang="ru">Flops</span><span lang="en">Flops</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span lang="ru">Три проекции</span><span lang="en">Three projections</span></td>
+        <td>\(W_q, W_k, W_v:\ 3\times (n\times d)\cdot(d\times d)\)</td>
+        <td>\(6nd^2\)</td>
+      </tr>
+      <tr>
+        <td><span lang="ru">Выходная проекция</span><span lang="en">Output projection</span></td>
+        <td>\(L_O:\ (n\times d)\cdot(d\times d)\)</td>
+        <td>\(2nd^2\)</td>
+      </tr>
+      <tr>
+        <td><span lang="ru">Два прямоугольника FFN</span><span lang="en">The two FFN rectangles</span></td>
+        <td>\((n\times d)\cdot(d\times 4d)\), <span lang="ru">затем</span><span lang="en">then</span> \((n\times 4d)\cdot(4d\times d)\)</td>
+        <td>\(16nd^2\)</td>
+      </tr>
+      <tr>
+        <td class="cell-bad"><span lang="ru">Чаша</span><span lang="en">The cup</span></td>
+        <td>\(QK^{\top}:\ (n\times d)\cdot(d\times n)\) &mdash; <span lang="ru">умирает ось \(d\)</span><span lang="en">the \(d\) axis dies</span></td>
+        <td class="cell-bad">\(2n^2d\)</td>
+      </tr>
+      <tr>
+        <td class="cell-bad"><span lang="ru">Вторая чаша</span><span lang="en">The second cup</span></td>
+        <td>\(A\cdot V:\ (n\times n)\cdot(n\times d)\) &mdash; <span lang="ru">умирает ось ключей</span><span lang="en">the key axis dies</span></td>
+        <td class="cell-bad">\(2n^2d\)</td>
+      </tr>
+      <tr>
+        <td><strong><span lang="ru">Линейная половина</span><span lang="en">The linear half</span></strong></td>
+        <td><span lang="ru">всё, что касается провода \(n\) один раз</span><span lang="en">everything that touches the \(n\) wire once</span></td>
+        <td class="cell-good">\(\mathbf{24\,n\,d^2}\)</td>
+      </tr>
+      <tr>
+        <td><strong><span lang="ru">Ядро внимания</span><span lang="en">The attention core</span></strong></td>
+        <td><span lang="ru">всё, что касается провода \(n\) дважды</span><span lang="en">everything that touches the \(n\) wire twice</span></td>
+        <td class="cell-bad">\(\mathbf{4\,n^2 d}\)</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2">
+    <span lang="ru">Ни одной подставленной цифры&nbsp;&mdash; только формы, снятые с проводов. Обратите внимание: <strong>квадрат появляется ровно там, где глиф касается двух проводов \(n\)</strong>&nbsp;&mdash; у обеих чаш. Всё остальное касается \(n\) один раз, а значит линейно. Это и есть весь блок.</span>
+    <span lang="en">Not one number substituted &mdash; only shapes, read off the wires. Notice: <strong>the square appears exactly where a glyph touches two \(n\) wires</strong> &mdash; at both cups. Everything else touches \(n\) once, hence linear. That is the entire block.</span>
+  </p>
+  <aside class="slide-notes">Разбор у доски, строка за строкой. Три проекции: каждая — (n×d)·(d×d), то есть 2nd², и их три, значит 6nd². Выходная проекция L_O — ещё 2nd². FFN расширяет до 4d и сжимает обратно: (n×d)·(d×4d) даёт 8nd², и (n×4d)·(4d×d) — ещё 8nd², всего 16nd². Складываем: 6 + 2 + 16 = 24, линейная половина стоит 24·n·d². Теперь чаши. Первая, QKᵀ: (n×d)·(d×n) — умирает ось d, но обе оставшиеся оси это n, поэтому 2·n·d·n = 2n²d. Вторая, A·V: (n×n)·(n×d) — умирает ось ключей, снова 2n²d. Итого ядро внимания — 4·n²·d. Главное, что нужно унести: квадрат стоит ровно там, где глиф касается ДВУХ проводов n. Формула этого не показывает — схема показывает. Числа: data/l19-cost.json → perBlock.linearCoef = 24, perBlock.attnCoef = 4.</aside>
+</section>

@@ -1,0 +1,124 @@
+<section class="slide" data-type="viz" data-max-step="2" data-current-step="0" data-screen-label="40 NCD &middot; the KV cache is the axis that GROWS">
+  <div class="slide-header">
+    <h2><span lang="ru">KV-кэш&nbsp;&mdash; ось, которая растёт</span><span lang="en">The KV cache &mdash; the axis that grows</span></h2>
+    <span class="slide-kicker"><span lang="ru">шаг (&larr;/&rarr;): prefill &rarr; один шаг декодирования &rarr; чем вы платите на самом деле</span><span lang="en">step (&larr;/&rarr;): prefill &rarr; one decode step &rarr; what you actually pay for</span></span>
+  </div>
+  <div class="ncd-row" style="display:flex; align-items:center; justify-content:center; gap:1.2rem;">
+    <div class="widget-mount" data-widget="ncd-kvcache" style="flex:1 1 auto; min-width:0;"></div>
+    <div class="viz-frame fig-fit" style="--fig-max:46cqh; --fig-w:100%; flex:0 0 18%;">
+      <img src="assets/img/L19/L19-08-cache-drum.png?v=1" alt="Серёга крутит ручку барабана-катушки, на который виток за витком наматываются две ленты с подписями K и V: с каждым выданным токеном барабан становится толще, а рядом на нём висит бирка «36.9 КБ за токен»; провод запроса проходит мимо барабана, не касаясь его, и единственное зелёное на рисунке — его тюбетейка." />
+    </div>
+  </div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "memory": {
+      "heads": 12,
+      "n": [
+        512,
+        4096,
+        32768
+      ],
+      "mb512": 0.52,
+      "mb4k": 33.6,
+      "gb32k": 2.15,
+      "mb512x12": 6.3,
+      "mb4kx12": 403,
+      "gb32kx12": 25.8
+    }
+  },
+  "i18n": {
+    "ru": {
+      "alt": "Авторегрессионное декодирование с KV-кэшем в виде neural circuit diagram. Слева входит провод токенов и питает три обучаемые проекции: L_Q, L_K и L_V. Полученные строки K и V хранятся как два стека строк внутри пунктирной фиолетовой области — это KV-кэш, и раз стеков два, то в нём 2·n·d чисел на слой на голову, — который читается в блок внимания справа. На шаге декодирования приходит ровно один новый токен, поэтому считаются ровно один новый запрос, одна новая строка K и одна новая строка V, показанные тёплым оранжевым; перед старыми кэшированными строками нет никакого прямоугольника-проекции, потому что их читают, а не пересчитывают, и ось последовательности растёт с n до n+1. И раз запрос — одна строка, то оценки на шаге декодирования имеют форму 1×(n+1): одна строка, килобайты. Полная матрица оценок n×n принадлежит prefill, а не шагу декодирования.",
+      "legMap": "фиолетовый = кэш K,V (чтение) · тёплый = посчитано сейчас · ось n растёт на 1",
+      "lblIn0": "промпт · n",
+      "lblIn1": "1 новый токен",
+      "lblNoBox": "не пересчитано",
+      "tagCache": "KV-кэш",
+      "tagRead": "чтение",
+      "lblAttn": "внимание",
+      "subAttn0": "по n ключам",
+      "subAttn1": "по n+1 ключам",
+      "lblOut": "следующий токен",
+      "shpScores0": "оценки  n×n",
+      "shpScores1": "оценки  1×(n+1)",
+      "lblCacheTot": "K + V  →  2·n×d / слой / голову",
+      "s0": "Prefill. Весь промпт — сразу n токенов — ровно один раз проходит через проекции L_Q, L_K, L_V. Здесь запрос — это целый блок из n строк, поэтому внимание действительно строит полную матрицу оценок n×n — и в fp16 на 12 головах это 25.8 ГБ при n=32768. Сводка выставляет этот счёт, и это ЕДИНСТВЕННЫЙ шаг, где счёт настоящий. Строки K и V не выбрасываются в конце шага: они СОХРАНЯЮТСЯ, и пунктирная фиолетовая область — это и есть кэш: n строк K и n строк V, то есть 2·n·d чисел на слой и на голову. Заметьте, что НЕ кэшируется: запросы. Каждый q используется один раз, на этом шаге, и выбрасывается.",
+      "s1": "Теперь один шаг декодирования. Приходит ровно один токен — значит, считаются ровно один q, одна новая строка k и одна новая строка v: это всё тёплое на картинке, и это вся цена шага. А теперь посмотрите на старые строки: перед ними больше НЕТ прямоугольника. Проход пуст. Их не пересчитывают, их ЧИТАЮТ — проекции, которые их сделали, отработали один раз на prefill и больше не запускаются. Теперь посмотрите на блок внимания: в него входит РОВНО ОДИН провод запроса, поэтому оценки имеют форму 1×(n+1) — одна строка против n+1 ключей, килобайты. Никакой матрицы n×n здесь не строится. Ось последовательности тихо стала n+1.",
+      "s2": "Сделка — в терминах форм. С кэшем ещё один токен стоит ОДНОЙ строки K и ОДНОЙ строки V; без кэша пришлось бы гонять L_K и L_V по всем n+1 позициям — то есть заново делать весь prefill на каждый токен. Эти вычисления вы покупаете памятью, и вот что почти все понимают наоборот: пока вы ДЕКОДИРУЕТЕ, дорогая ось — это кэш, а внимание — дешёвая. Кэш держит и K, и V — 2·n·d на слой на голову — и растёт с каждым выданным токеном, пока не превращается в гигабайты. А внимание одного шага — это одна строка запроса против n+1 ключей: оценки 1×(n+1), килобайты. Цифра n×n, которую вы видели на шаге prefill (25.8 ГБ при n=32768, на 12 головах, в fp16), — это счёт за PREFILL; шаг декодирования дешевле примерно на четыре порядка. Квадратичной работа внимания становится, только если СЛОЖИТЬ шаги всей генерации: n(n+1)/2. Именно из-за этой инверсии и существуют MQA, GQA и paged attention — все они уменьшают КЭШ.",
+      "lgTitle0": "prefill: счёт",
+      "lgTitle1": "один шаг декодирования",
+      "lgTitle2": "сделка",
+      "lgTok": "новых токенов за шаг",
+      "lgComp": "строк K,V посчитано",
+      "lgRead": "строк K,V прочитано",
+      "lgScores": "оценки за шаг",
+      "lgWork": "оценки за n шагов",
+      "lgRecomp": "без кэша: строк/шаг",
+      "lgCache": "кэш / слой / голову",
+      "lgAxis": "ось последовательности",
+      "uMB": "МБ",
+      "uGB": "ГБ",
+      "lgN0": "Именно prefill действительно строит матрицу n×n — в fp16 на 12 головах это 25.8 ГБ при n=32768. И каждая полученная строка K и V СОХРАНЯЕТСЯ.",
+      "lgN1": "Один токен на входе — одна строка K и одна строка V на выходе; остальные n строк читают, а не пересчитывают. И запрос — ОДНА строка, поэтому оценки тоже одна строка: 1×(n+1). Никакой матрицы n×n здесь не строится.",
+      "lgN2": "Кэш покупает вычисления, а платите вы памятью. Он держит и K, и V — 2·n·d на слой на голову — и растёт линейно с каждым токеном: пока вы декодируете, дорогая ось — именно он. Оценки одного шага — всего 1×(n+1); квадратичными они становятся, только если сложить их за всю генерацию: n(n+1)/2.",
+      "cfHead": "ещё один токен — с кэшем и без него",
+      "cfWith": "с кэшем",
+      "cfWithout": "без кэша",
+      "cfA1": "посчитана 1 новая строка K и V",
+      "cfA2": "n строк прочитаны прямо из кэша",
+      "cfB1": "пересчитаны все n+1 строк K и V",
+      "cfB2": "весь prefill — на каждый токен",
+      "cfLine1": "кэш держит K и V — 2·n×d на слой на голову, растёт каждый шаг: ДОРОГАЯ ось",
+      "cfLine2": "оценки шага — всего 1×(n+1), килобайты: ДЕШЁВАЯ ось (квадратичны лишь в сумме за генерацию)"
+    },
+    "en": {
+      "alt": "Autoregressive decoding with a KV cache, drawn as a neural circuit diagram. The token wire enters on the left and feeds three learned projections: L_Q, L_K and L_V. The K and V rows they produce are stored as two stacks of rows inside a dashed violet region — the KV cache, two stacks and therefore two times n by d numbers per layer per head — which is read into the attention block on the right. On a decode step exactly one new token arrives, so exactly one new query, one new K row and one new V row are computed, shown in warm orange; the older cached rows have no projection box in front of them at all, because they are read rather than recomputed, and the sequence axis grows from n to n plus one. Because that single query is one row, the scores on a decode step are one by n plus one — a single row, kilobytes. The full n by n score matrix belongs to prefill, not to a decode step.",
+      "legMap": "violet = cached K,V (read) · warm = computed this step · the n axis grows by 1",
+      "lblIn0": "prompt · n",
+      "lblIn1": "1 new token",
+      "lblNoBox": "not recomputed",
+      "tagCache": "KV cache",
+      "tagRead": "read",
+      "lblAttn": "attention",
+      "subAttn0": "over n keys",
+      "subAttn1": "over n+1 keys",
+      "lblOut": "next token",
+      "shpScores0": "scores  n×n",
+      "shpScores1": "scores  1×(n+1)",
+      "lblCacheTot": "K + V  →  2·n×d / layer / head",
+      "s0": "Prefill. The whole prompt — n tokens at once — runs through the projections exactly once: L_Q, L_K, L_V. Here the query is a whole n-row block, so attention really does build the full n×n score matrix — and in fp16, across 12 heads, that is 25.8 GB at n=32768. The ledger prices it, and this is the ONE step where that price is real. The K and V rows are not thrown away when the step ends: they are KEPT, and the dashed violet region is that cache — n rows of K and n rows of V, i.e. 2·n·d numbers per layer, per head. Notice what is NOT cached: the queries. A q is used once, this step, and discarded.",
+      "s1": "Now decode one token. Exactly one token arrives, so exactly one q, one new k row and one new v row are computed — that is every warm thing in the picture, and it is the entire cost of the step. Now look at the old rows: there is no box in front of them any more. The gutter is empty. They are not recomputed, they are READ; the projections that made them ran once, in the prefill, and never run again. Then look at the attention block: exactly ONE query wire enters it, so the scores it forms are 1×(n+1) — a single row against the n+1 keys, kilobytes. Nothing here builds an n×n matrix. The sequence axis has quietly become n+1.",
+      "s2": "The trade, in shapes. With the cache, one more token costs ONE row of K and ONE row of V; without it you would have to re-run L_K and L_V over all n+1 positions — the entire prefill, on every single token. You buy that compute with memory, and here is the part almost everyone gets backwards: while you are DECODING, the cache is the expensive axis and the attention is the cheap one. The cache holds K and V — 2·n·d per layer per head — and grows with every token you emit, until it is gigabytes. A step's attention is one query row against n+1 keys: 1×(n+1) scores, kilobytes. The n×n figure you saw back at prefill (25.8 GB at n=32768, over 12 heads, in fp16) is the PREFILL bill; a decode step is some four orders of magnitude cheaper than that. The attention work only turns quadratic when you SUM the steps of a whole generation: n(n+1)/2. That inversion is precisely why MQA, GQA and paged attention exist — every one of them shrinks the CACHE.",
+      "lgTitle0": "prefill: the bill",
+      "lgTitle1": "one decode step",
+      "lgTitle2": "the trade",
+      "lgTok": "new tokens this step",
+      "lgComp": "K,V rows computed",
+      "lgRead": "K,V rows read",
+      "lgScores": "scores this step",
+      "lgWork": "scores over n steps",
+      "lgRecomp": "no cache: rows/step",
+      "lgCache": "cache / layer / head",
+      "lgAxis": "sequence axis",
+      "uMB": "MB",
+      "uGB": "GB",
+      "lgN0": "Prefill is the step that really does build the n×n matrix — in fp16, across 12 heads, 25.8 GB of it at n=32768. And every K and V row it makes is KEPT.",
+      "lgN1": "One token in, one K row and one V row out — the other n rows are read, not recomputed. And the query is ONE row, so the scores are one row too: 1×(n+1). No n×n matrix is built here.",
+      "lgN2": "What the cache buys is compute; what it costs is memory. It holds K AND V — 2·n·d per layer per head — and grows linearly with every token, forever: while you decode, THAT is the expensive axis. One step's scores are only 1×(n+1); they go quadratic only summed over the whole generation — n(n+1)/2.",
+      "cfHead": "one more token — with the cache, and without it",
+      "cfWith": "with cache",
+      "cfWithout": "no cache",
+      "cfA1": "1 new row of K and V computed",
+      "cfA2": "n rows read straight from the cache",
+      "cfB1": "all n+1 rows of K and V recomputed",
+      "cfB2": "the whole prefill, on every single token",
+      "cfLine1": "the cache holds K and V — 2·n×d per layer per head, growing every step: the EXPENSIVE axis",
+      "cfLine2": "a step's scores are just 1×(n+1) — kilobytes: the CHEAP axis (quadratic only summed over the run)"
+    }
+  }
+}
+  </script>
+  <p class="viz-caption"><span lang="ru">Схема показывает, <em>какие</em> провода сохраняются&nbsp;&mdash; и поэтому показывает счёт. MHA: <strong>36.9 КБ на токен</strong> (12 голов &times; 2 тензора &times; 12 слоёв, fp16) &rarr; <strong>1208.0 МБ</strong> при \(n=32768\). MQA оставляет <em>одну</em> голову у K и V: <strong>3.1 КБ на токен</strong>, 100.7 МБ&nbsp;&mdash; <strong>в 12 раз меньше</strong>. GQA-4&nbsp;&mdash; 12.3 КБ, 402.7 МБ, в 3 раза меньше. И схема объясняет, почему экономия <em>свободна от \(h\)</em>: MQA не трогает провод запроса, а только два провода, которые кладут в кэш.</span><span lang="en">The circuit shows <em>which</em> wires get stored &mdash; so it shows the bill. MHA: <strong>36.9 KB per token</strong> (12 heads &times; 2 tensors &times; 12 layers, fp16) &rarr; <strong>1208.0 MB</strong> at \(n=32768\). MQA keeps <em>one</em> head for K and V: <strong>3.1 KB per token</strong>, 100.7 MB &mdash; <strong>12&times; smaller</strong>. GQA-4 is 12.3 KB, 402.7 MB, 3&times; smaller. And the diagram shows why the saving is <em>free of \(h\)</em>: MQA never touches the query wire, only the two wires that get stored.</span></p>
+  <aside class="slide-notes">ncd-kvcache, три шага, и это тот слайд, ради которого весь акт про счёт. Шаг ноль — prefill: коробка n×n действительно строится, и её счёт вы уже видели, 25.8 ГБ при n=32768. Шаг один — декодирование: приходит один токен, значит один q, одна строка k, одна строка v; перед старыми строками прямоугольника НЕТ — их читают, а не пересчитывают, и оценки шага имеют форму 1×(n+1), килобайты. Никакой матрицы n×n. Шаг два — сделка, и инверсия: пока вы генерируете, дорогая ось — это КЭШ. Теперь цифры, и они читаются прямо с проводов. Кэшируются ровно два тензора, K и V, по d_head на голову, на каждый из 12 слоёв, в fp16: 2 × 12 голов × 64 × 2 байта × 12 слоёв = 36864 байта, то есть 36.9 КБ на КАЖДЫЙ токен. При n = 32768 это 1208.0 МБ — гигабайт с лишним, и он не влезает вместе с весами. MQA: оставить у K и V ОДНУ голову — 3.1 КБ на токен, 100.7 МБ, ровно в 12 раз меньше. GQA-4 — компромисс: 12.3 КБ, 402.7 МБ, в 3 раза меньше. И вот главное, что даёт именно схема: экономия НЕ зависит от числа голов h у запроса, потому что MQA не трогает провод запроса вообще — он режет только те два провода, которые уходят в кэш. Внимание считается по-прежнему всеми 12 головами. В формуле softmax(QKᵀ/√dₖ)V этого различия нет; в схеме оно нарисовано. data/l19-cost.json → kvCache.mha.perTokenKB = 36.9, kvCache.mha.atLongMB = 1208.0, kvCache.mqa.perTokenKB = 3.1, kvCache.mqa.atLongMB = 100.7, kvCache.mqa.shrink = 12, kvCache.gqa4.perTokenKB = 12.3, kvCache.gqa4.atLongMB = 402.7, kvCache.gqa4.shrink = 3, kvCache.n = 32768.</aside>
+</section>

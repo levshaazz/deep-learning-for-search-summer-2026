@@ -1,0 +1,38 @@
+<section class="slide" data-type="code" data-screen-label="48 Circuit → einsum → code">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Схема &rarr; einsum &rarr; код</span>
+      <span lang="en">Circuit &rarr; einsum &rarr; code</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">то же соответствие &mdash; в сторону <em>письма</em></span>
+      <span lang="en">the same correspondence &mdash; run in the <em>writing</em> direction</span>
+    </span>
+  </div>
+
+  <ul class="obj-list">
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">1</span><span class="obj-text"><span lang="ru"><strong>Назовите оси</strong> &mdash; по букве на провод: \(n\) запросы, \(m\) ключи, \(d\) голова, \(h\) головы. Буква &mdash; это и есть имя провода.</span><span lang="en"><strong>Name the axes</strong> &mdash; one letter per wire: \(n\) queries, \(m\) keys, \(d\) head width, \(h\) heads. The letter <em>is</em> the wire&rsquo;s name.</span></span></li>
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">2</span><span class="obj-text"><span lang="ru"><strong>Отметьте, какая ось умирает</strong> (чаша). Она повторится слева от стрелки и исчезнет справа.</span><span lang="en"><strong>Mark the axis that dies</strong> (a cup). It is repeated left of the arrow and absent on the right.</span></span></li>
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">3</span><span class="obj-text"><span lang="ru"><strong>Отметьте, поперёк какой оси нормируете</strong> (треугольник). Эта буква <em>не</em> умирает &mdash; и в строке einsum её не видно вовсе. Только в коде: <code>dim=</code>.</span><span lang="en"><strong>Mark the axis you normalise across</strong> (a triangle). That letter does <em>not</em> die &mdash; and the einsum string cannot see it at all. Only the code can: <code>dim=</code>.</span></span></li>
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">4</span><span class="obj-text"><span lang="ru"><strong>Прочитайте буквы справа от стрелки</strong> &mdash; это форма выхода. Только теперь пишите код.</span><span lang="en"><strong>Read the letters right of the arrow</strong> &mdash; that is the output shape. Only now write the code.</span></span></li>
+  </ul>
+
+  <div class="code-block mt-3">
+    <div class="code-header">
+      <span class="code-lang">Python &middot; one attention block, glyph by glyph</span>
+      <span class="badge" data-color="accent">einsum</span>
+    </div>
+    <pre><code class="language-python">S = torch.einsum('nhd,mhd->hnm', Q, K) / math.sqrt(d_head)  # cup: the letter d dies
+P = torch.softmax(S, dim=-1)                                # triangle: ACROSS m — no letter dies
+O = torch.einsum('hnm,mhd->nhd', P, V)                      # cup: the letter m dies
+O = O.reshape(n, h * d_head)                                # hexagon: concat gives the axis back
+O = O @ W_o                                                 # chipped rectangle: a learned linear op</code></pre>
+  </div>
+
+  <p class="small muted center mt-2">
+    <span lang="ru">Каждая строка кода &mdash; один глиф. Если строку нельзя назвать глифом &mdash; вы не поняли, что она делает.</span>
+    <span lang="en">Every line of code is one glyph. If you cannot name the glyph, you do not yet know what the line does.</span>
+  </p>
+
+  <aside class="slide-notes">Рецепт, который студент уносит с собой. Три акта мы читали чужие схемы; здесь мы разворачиваем то же соответствие в сторону письма — и оказывается, что рисование схемы это не «оформление», а способ ЗАДАТЬ себе четыре вопроса, которые код позволяет не задавать. Шаг один: назовите оси. Не «batch, seq, hidden», а буква на провод — n, m, d, h. Уже здесь ловится половина будущих багов, потому что вы обязаны решить, n и m это одна ось или две (в self-attention одна и та же длина, но РОЛИ разные — и именно это различие потом спасёт вас). Шаг два: какая ось умирает. Это чаша, и в строке einsum она — буква, повторённая слева и отсутствующая справа. Шаг три, и он тут самый важный: поперёк какой оси вы нормируете. Обратите внимание — эту букву einsum не видит ВООБЩЕ: softmax не съедает ни одной оси, nm входит, nm выходит. Единственное место, где ось нормировки записана, — dim в коде и ориентация треугольника на схеме. Это ровно тот разрыв, который мы полакта изучали, и он виден прямо в рецепте. Шаг четыре: буквы справа от стрелки — это форма выхода, и вы знаете её ДО запуска. Пройдите код построчно и назовите глиф для каждой строки: чаша, треугольник, чаша, шестиугольник, прямоугольник со срезом. Пять строк — пять глифов. Правило на вынос: строка, для которой вы не можете назвать глиф, — это строка, смысла которой вы не знаете. Константы (d=768, h=12, голова 64) — BERT-base, l19-cost.json; на слайде они не печатаются, код написан в символах.</aside>
+</section>

@@ -1,0 +1,55 @@
+<section class="slide" data-type="viz" data-max-step="2" data-current-step="0" data-screen-label="19 NCD · the dashed region is a broadcast axis">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Пунктирная область: broadcast стал видимым</span>
+      <span lang="en">The dashed region: a broadcast made visible</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">шаг (&larr;/&rarr;): позиция оплетает ось измерений</span>
+      <span lang="en">step (&larr;/&rarr;): a position broadcasts over the dimension axis</span>
+    </span>
+  </div>
+  <div class="widget-mount" data-widget="ncd-posenc"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "posEnc": { "d": 4, "freqs": [1.0, 0.01], "pos0": [0.0, 1.0, 0.0, 1.0], "pos1": [0.841, 0.54, 0.01, 1.0] }
+  },
+  "i18n": {
+    "ru": {
+      "alt": "Синусоидальное позиционное кодирование как neural circuit diagram. Индекс позиции оплетает 4-мерную ось; каждая пара измерений несёт частоту (1 и 0.01) и операцию sin или cos. На позиции 1 высокочастотное измерение уходит в 0.841, а низкочастотное едва сдвигается в 0.010 — так позиция кодируется сразу в нескольких масштабах.",
+      "legMap": "позиция оплетает ось измерений · sin/cos на измерение · частота задаёт масштаб",
+      "lblPos": "позиция",
+      "lblDim": "изм.",
+      "lblFreq": "частота",
+      "lblPE": "PE(pos)",
+      "tagBroadcast": "broadcast по измерениям",
+      "fast": "быстро (точная позиция)",
+      "slow": "медленно (грубая позиция)",
+      "s0": "Позиционное кодирование, вид в лоб. Индекс позиции (слева) оплетает 4-мерную ось эмбеддинга — одна и та же позиция подаётся в каждое измерение. Измерения идут парами (sin, cos); у каждой пары своя частота: изм. 0–1 — частота 1, изм. 2–3 — частота 0.01. Каждая ячейка — sin(pos·freq) или cos(pos·freq). На позиции 0 это (0, 1, 0, 1) — нулевая позиция всегда такая.",
+      "s1": "Теперь позиция 1. Вектор становится (0.841, 0.540, 0.010, 1.000): изм. 0 = sin(1·1) = 0.841, изм. 1 = cos(1·1) = 0.540, изм. 2 = sin(1·0.01) = 0.010, изм. 3 = cos(1·0.01) = 1.000. Заметьте, как частота меняет всё — та же позиция, но совсем разное движение по измерениям.",
+      "s2": "Зачем два масштаба? Высокочастотная пара (частота 1) сильно качнулась с 0 до 0.841 — она тонко различает БЛИЗКИЕ позиции. Низкочастотная пара (частота 0.01) едва сдвинулась (0 → 0.010) — она меняется медленно, кодируя ГРУБУЮ позицию на длинных дистанциях. Настоящая модель складывает много таких частот, поэтому у каждой позиции — уникальный многомасштабный отпечаток, который читает внимание."
+    },
+    "en": {
+      "alt": "Sinusoidal positional encoding as a neural circuit diagram. A position index broadcasts over the 4-dimensional axis; each dimension pair carries a frequency (1 and 0.01) and a sin or cos operation. At position 1 the high-frequency dimension swings to 0.841 while the low-frequency one barely moves to 0.010 — so position is encoded at several scales at once.",
+      "legMap": "position broadcasts over the dimension axis · sin/cos per dim · frequency sets the scale",
+      "lblPos": "position",
+      "lblDim": "dim",
+      "lblFreq": "freq",
+      "lblPE": "PE(pos)",
+      "tagBroadcast": "broadcast over dim",
+      "fast": "fast (fine position)",
+      "slow": "slow (coarse position)",
+      "s0": "Positional encoding, one head-on view. A position index (left) is broadcast over the 4-dimensional embedding axis — the same position feeds every dimension. Dimensions come in (sin, cos) pairs; each pair has a frequency: dims 0–1 use freq 1, dims 2–3 use freq 0.01. Each cell is sin(pos·freq) or cos(pos·freq). At position 0 that is (0, 1, 0, 1) — the zero position is always this.",
+      "s1": "Now position 1. The vector becomes (0.841, 0.540, 0.010, 1.000): dim 0 = sin(1·1) = 0.841, dim 1 = cos(1·1) = 0.540, dim 2 = sin(1·0.01) = 0.010, dim 3 = cos(1·0.01) = 1.000. Notice how the frequency changes everything — same position, very different movement per dimension.",
+      "s2": "Why two scales? The high-frequency pair (freq 1) swung hard from 0 to 0.841 — it distinguishes NEARBY positions finely. The low-frequency pair (freq 0.01) barely moved (0 → 0.010) — it changes slowly, encoding COARSE position over long ranges. A real model stacks many such frequencies, so every position gets a unique multi-scale fingerprint the attention can read."
+    }
+  }
+}
+  </script>
+  <p class="viz-caption">
+    <span lang="ru">Один индекс позиции — и <em>каждое</em> измерение читает его заново. Это <strong>broadcast</strong>: ось, которой нет во входе, но по которой всё повторяется. Нотация делает её <strong>вещественной</strong> — рисует <em>пунктирную область</em>, охватывающую всё, что оплетено. И тогда становится видна цена: область <strong>умножает</strong> счёт всего, что внутри, на свою длину. Так на схему выходят головы \(h\) и батч \(B\).</span>
+    <span lang="en">One position index — and <em>every</em> dimension reads it again. That is a <strong>broadcast</strong>: an axis absent from the input, along which everything is repeated. The notation makes it <strong>concrete</strong> — it draws a <em>dashed region</em> around everything the axis wraps. And then the price becomes visible: the region <strong>multiplies</strong> the bill of everything inside it by its own length. This is how heads \(h\) and the batch \(B\) enter a diagram.</span>
+  </p>
+  <aside class="slide-notes">Шестой глиф — пунктирная область, она же broadcast. Виджет показывает самый честный пример: позиционное кодирование. Слева один индекс позиции. Справа четыре измерения, и каждое читает ЭТОТ ЖЕ индекс — веер проводов расходится из одного. Оси «позиция» во входе как отдельного тензора нет, но по ней всё повторяется: это и есть broadcast. Шаг ноль — позиция ноль: ноль, один, ноль, один. Шаг один — позиция один, и вектор становится ноль-восемьсот-сорок-один, ноль-пятьсот-сорок, ноль-ноль-один, единица; частоты один и одна сотая берутся из данных пятнадцатой лекции. Шаг два — зачем два масштаба: быстрая пара тонко различает близкие позиции, медленная кодирует грубую позицию на длинных дистанциях. Но нас сегодня интересует не синус — нас интересует ГЛИФ. В формуле broadcast невидим: он прячется в правилах NumPy, в единичной размерности, в молчаливом повторении. В схеме его РИСУЮТ — пунктирной областью, которая охватывает всё, что оплетено. И как только вы её нарисовали, вы увидели цену: область умножает счёт всего, что внутри, на свою длину. Двенадцать голов — это пунктирная область вокруг всего внимания, и всё внутри становится в двенадцать раз дороже. Батч — ещё одна область снаружи. Формула этого не скажет; картинка скажет сразу.</aside>
+</section>

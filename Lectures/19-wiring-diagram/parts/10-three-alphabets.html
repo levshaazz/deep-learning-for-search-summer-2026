@@ -1,0 +1,50 @@
+<section class="slide" data-type="table" data-screen-label="10 One row, three columns">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Одна строка &mdash; три алфавита</span>
+      <span lang="en">One row, three alphabets</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">внимание целиком &middot; читайте слева направо, по строкам</span>
+      <span lang="en">all of attention &middot; read left to right, row by row</span>
+    </span>
+  </div>
+
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th><span lang="ru">Шаг</span><span lang="en">Step</span></th>
+        <th><code>einsum</code></th>
+        <th><span lang="ru">Глиф на схеме</span><span lang="en">Glyph in the circuit</span></th>
+        <th><span lang="ru">Строка на PyTorch</span><span lang="en">The PyTorch line</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span lang="ru"><strong>Оценки</strong><br /><span class="muted">\(QK^{\top}\)</span></span><span lang="en"><strong>Scores</strong><br /><span class="muted">\(QK^{\top}\)</span></span></td>
+        <td><code style="white-space:nowrap">bnd,bmd-&gt;bnm</code></td>
+        <td class="cell-good"><span lang="ru">Два провода сходятся в <strong>чашу</strong>: \(d\) съедена.</span><span lang="en">Two wires meet in a <strong>cup</strong>: \(d\) is eaten.</span></td>
+        <td><code>torch.einsum(<span style="white-space:nowrap">'bnd,bmd-&gt;bnm'</span>,&nbsp;q,&nbsp;k)</code></td>
+      </tr>
+      <tr>
+        <td><span lang="ru"><strong>Веса</strong><br /><span class="muted">\(\sigma(\cdot)\)</span></span><span lang="en"><strong>Weights</strong><br /><span class="muted">\(\sigma(\cdot)\)</span></span></td>
+        <td><code style="white-space:nowrap">bnm-&gt;bnm</code></td>
+        <td class="cell-meh"><span lang="ru"><strong>Треугольник</strong> поперёк \(m\): нормирует, но не съедает.</span><span lang="en">A <strong>triangle</strong> across \(m\): it normalises, it does not eat.</span></td>
+        <td><code>scores.softmax(dim=-1)</code></td>
+      </tr>
+      <tr>
+        <td><span lang="ru"><strong>Контекст</strong><br /><span class="muted">\(A V\)</span></span><span lang="en"><strong>Context</strong><br /><span class="muted">\(A V\)</span></span></td>
+        <td><code style="white-space:nowrap">bnm,bmd-&gt;bnd</code></td>
+        <td class="cell-good"><span lang="ru">Вторая <strong>чаша</strong>: \(m\) съедена, ширина вернулась.</span><span lang="en">A second <strong>cup</strong>: \(m\) is eaten, the width is back.</span></td>
+        <td><code>torch.einsum(<span style="white-space:nowrap">'bnm,bmd-&gt;bnd'</span>,&nbsp;a,&nbsp;v)</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="small muted center mt-3">
+    <span lang="ru">Три столбца &mdash; <strong>один объект</strong>. Форма выхода читается справа от стрелки. Цена читается по букве, которую съела чаша: стягивание по \(d\) стоит \(2\,n\,m\,d\) flops &mdash; и это уже весь счёт за внимание.</span>
+    <span lang="en">Three columns, <strong>one object</strong>. The output shape is what stands right of the arrow. The price is the letter the cup ate: contracting over \(d\) costs \(2\,n\,m\,d\) flops &mdash; and that is already the whole attention bill.</span>
+  </p>
+
+  <aside class="slide-notes">Сводка акта I на одной таблице: внимание целиком, в трёх алфавитах, построчно. Строка «оценки»: bnd,bmd→bnm — d слева дважды, справа нет, значит чаша; на схеме два провода сходятся, ось признаков умирает; в коде это одна строка einsum. Строка «веса»: bnm→bnm — ни одна буква не исчезла, значит чаши НЕТ, это треугольник поперёк m; в коде softmax(dim=-1), и вся разница между рабочей моделью и недельным багом — в этой единице. Строка «контекст»: bnm,bmd→bnd — теперь умирает m, ширина d возвращается. Мораль: перевод механический в обе стороны. По строке einsum вы рисуете схему, по схеме пишете einsum, по einsum — код; форму выхода читаете справа от стрелки, а цену — по букве, которую съела чаша (стягивание по d стоит 2·n·m·d flops). Именно поэтому в акте IV счёт за блок можно будет посчитать глазами, не запуская профайлер.</aside>
+</section>

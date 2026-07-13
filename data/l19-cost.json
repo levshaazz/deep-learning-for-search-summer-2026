@@ -1,0 +1,115 @@
+{
+  "_doc": "L19 'The Wiring Diagram' — every cost in the lecture, DERIVED from the glyphs by _research/gen_l19.py, never typed. One rule does all of it: an (a×b)·(b×c) matmul costs 2abc flops. Model constants (d=768, h=12, L=12) are BERT-base, cited to l15-bench.json; the n×n score-box memory is recomputed from the glyph and ASSERTED equal to l15-attention.json, so the lecture that DERIVES the bill cannot drift from the two that already print it.",
+  "_source": "_research/gen_l19.py (model ← data/l15-bench.json · memory asserted vs data/l15-attention.json)",
+  "model": {
+    "d": 768,
+    "heads": 12,
+    "layers": 12,
+    "dHead": 64,
+    "bytesPerElem": 2,
+    "cite": "devlin-2019-bert"
+  },
+  "rule": "an (a×b)·(b×c) matmul costs 2·a·b·c flops — one multiply and one add per triple",
+  "perBlock": {
+    "linearCoef": 24,
+    "attnCoef": 4,
+    "_note": "linear = 24·n·d² (Wq,Wk,Wv,L_O = 8nd² · FFN = 16nd²); attention core = 4·n²·d (two cups)"
+  },
+  "flops": {
+    "512": {
+      "qkv": 1811939328,
+      "scores": 402653184,
+      "av": 402653184,
+      "outProj": 603979776,
+      "ffn": 4831838208,
+      "linear": 7247757312,
+      "attnCore": 805306368,
+      "total": 8053063680,
+      "attnSharePct": 10.0,
+      "linearGF": 7.2,
+      "attnCoreGF": 0.8,
+      "totalGF": 8.1
+    },
+    "4096": {
+      "qkv": 14495514624,
+      "scores": 25769803776,
+      "av": 25769803776,
+      "outProj": 4831838208,
+      "ffn": 38654705664,
+      "linear": 57982058496,
+      "attnCore": 51539607552,
+      "total": 109521666048,
+      "attnSharePct": 47.1,
+      "linearGF": 58.0,
+      "attnCoreGF": 51.5,
+      "totalGF": 109.5
+    },
+    "32768": {
+      "qkv": 115964116992,
+      "scores": 1649267441664,
+      "av": 1649267441664,
+      "outProj": 38654705664,
+      "ffn": 309237645312,
+      "linear": 463856467968,
+      "attnCore": 3298534883328,
+      "total": 3762391351296,
+      "attnSharePct": 87.7,
+      "linearGF": 463.9,
+      "attnCoreGF": 3298.5,
+      "totalGF": 3762.4
+    }
+  },
+  "crossover": {
+    "n": 4608,
+    "rule": "n = 6d",
+    "d": 768,
+    "linearGF": 65.2,
+    "attnCoreGF": 65.2,
+    "_note": "4n²d = 24nd² ⟺ n = 6d. Below it the block is mostly the FFN; above it, the cup eats the machine."
+  },
+  "scoreBox": {
+    "512": {
+      "bytes": 6291456,
+      "mb": 6.3,
+      "gb": 0.0
+    },
+    "4096": {
+      "bytes": 402653184,
+      "mb": 403,
+      "gb": 0.4
+    },
+    "32768": {
+      "bytes": 25769803776,
+      "mb": 25769.8,
+      "gb": 25.8
+    }
+  },
+  "kvCache": {
+    "mha": {
+      "kvHeads": 12,
+      "perTokenB": 36864,
+      "perTokenKB": 36.9,
+      "atLongMB": 1208.0
+    },
+    "mqa": {
+      "kvHeads": 1,
+      "perTokenB": 3072,
+      "perTokenKB": 3.1,
+      "atLongMB": 100.7,
+      "shrink": 12
+    },
+    "gqa4": {
+      "kvHeads": 4,
+      "perTokenB": 12288,
+      "perTokenKB": 12.3,
+      "atLongMB": 402.7,
+      "shrink": 3
+    },
+    "n": 32768
+  },
+  "flash": {
+    "cite": "dao-2022-flashattention",
+    "avoidedGB": 25.8,
+    "_note": "FlashAttention never MATERIALISES the n×n box: the wire is still there, the tensor is not. What it avoids at n=32768 is exactly the score-box bytes computed above."
+  }
+}
