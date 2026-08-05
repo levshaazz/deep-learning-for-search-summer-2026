@@ -47,6 +47,20 @@ def num(s):  # parse a displayed number: U+2212 minus, KaTeX/RU decimal comma, E
     s = re.sub(r"\.+$", "", s)
     return float(s)
 
+_THOU_GROUP = re.compile(r'(?<!\d)\d{1,3}(?:,\d{3})+(?!\d)')   # EN thousands "94,287" — NOT a decimal comma
+
+def norm_dec(t):
+    """Canonicalise the RU decimal comma to a dot so a [C] anchor matches BOTH renderings.
+
+    The deck ships每 number twice (EN span '0.59', RU span '0,59' / KaTeX '0{,}59'); the anchors are
+    written once. Normalising the haystack keeps every existing anchor valid and makes the gate check
+    the RU rendering too — strictly more coverage, never less. EN thousands groups are protected first.
+    """
+    t = t.replace("{,}", ".")
+    t = _THOU_GROUP.sub(lambda m: m.group(0).replace(",", "\x00"), t)
+    t = re.sub(r'(?<=\d),(?=\d)', '.', t)
+    return t.replace("\x00", ",")
+
 def load_book():
     """Built Book chapters docs/<en>/book/NN/index.html, keyed L<n> (glob — L7 auto-covered).
     Empty dict if docs/ is not built (the gate then WARNs and skips Book [C] claims)."""
@@ -173,6 +187,13 @@ ATTN15     = load(DATA, "l15-attention.json") # toy: softmax(1,0,3)=(0.114,0.042
 BENCH15    = load(DATA, "l15-bench.json")     # CITED: Transformer (vaswani-2017), BERT-base 110M / large 340M (devlin-2019), DistilBERT 40/60/97 (distilbert-2019), GPT-3 175B (gpt3-2020), RoBERTa/ALBERT/ELECTRA, T5/BART, FlashAttention
 COST19     = load(DATA, "l19-cost.json")     # DERIVED by gen_l19.py from the GLYPHS: linear 24nd² vs attention core 4n²d;
                                               # share 10.0/47.1/87.7 %; crossover n = 6d = 4608; score box 6.3MB/403MB/25.8GB; KV 36.9KB/token
+
+# ── L20 "Search in Russian" (supplementary) — toy = stdlib-reproducible (gen_l20.py: BPE token tax on a
+#    9:1 EN:RU mix + BM25 surface-vs-lemma inversion, k1=1.5/b=0.75, fully re-derivable); bench = cited
+#    facts (MIRACL/mMARCO/ruMTEB, BGE-M3, mE5, LaBSE, tokenizer unfairness). Like L14/L15, FULLY gated:
+#    l20_deck_claims() pins every displayed worked value deck==data (deck:L20 coverage → 0). ──
+L20RU      = load(DATA, "l20-ru.json")       # toy: token tax 1.0→5.8 tok/word; BM25 surface gold 0.0 (rank 2) → lemma gold 1.3884 (rank 1); distractor 1.3608; kitten idf 0.8755 / bm25 0.8594
+L20B       = load(DATA, "l20-bench.json")    # CITED: MIRACL (2210.09984), mMARCO (2108.13897), ruMTEB/RoSBERTa (2408.12503), BGE-M3 (2402.03216), mE5 (2402.05672), LaBSE (2007.01852), tokenizer unfairness ×15 (2305.15425)
 
 # frozen run-once Ollama artifacts (REAL measured numbers; provenance recomputes the data/ "real" blocks from these)
 def load_research(name):
@@ -558,7 +579,20 @@ def claims():
              anchor=r"\b(32\.3)\s*%", must=True),
         dict(id="top-3 %",   deck="L1", value=CLICK["top3Pct"], tol=0.2,
              anchor=r"\b(60\.6)\b", must=True),
-    ] + l3_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims() + l11_deck_claims() + l12_deck_claims() + l13_deck_claims() + l14_deck_claims() + l15_deck_claims() + l19_deck_claims()
+    ] + l3_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims() + l11_deck_claims() + l12_deck_claims() + l13_deck_claims() + l14_deck_claims() + l15_deck_claims() + l19_deck_claims() + l20_deck_claims()
+
+# ── L20 "Search in Russian" — the worked BM25 surface-vs-lemma inversion (data/l20-ru.json, gen_l20.py).
+#    Every displayed ≥2-dp value is pinned deck==data here, so deck:L20 coverage stays 0 (like L14/L15). ──
+def l20_deck_claims():
+    b  = L20RU["bm25"]
+    gw = b["lemma"]["goldWork"]      # [{t:"котёнок", idf, bm25}, {t:"играть", idf, bm25}]
+    C = lambda id, value, anchor, tol=1e-4: dict(id="L20 " + id, deck="L20", value=value, tol=tol, anchor=anchor, must=True)
+    return [
+        C("surface distractor", b["surface"]["scores"]["d2_distractor"], r'cell-meh">([\d.]+) &middot; #1'),      # 1.3608 (rank 1 surface)
+        C("lemma gold sum",     b["lemma"]["goldScore"],                 r'cell-good"><strong>([\d.]+)</strong></td>'),  # 1.3884 (rank 1 lemma)
+        C("lemma kitten idf",   gw[0]["idf"],                            r'котёнок</td><td>2</td><td>([\d.]+)</td>'),     # 0.8755
+        C("lemma kitten bm25",  gw[0]["bm25"],                           r'котёнок</td><td>2</td><td>0\.8755</td><td>([\d.]+)</td>'),  # 0.8594
+    ]
 
 # ── [C] BOOK CLAIMS: the built Book PROSE must show the same flagship numbers as data/ ───────────
 # The Book restates the decks' worked examples in its own prose/KaTeX, so the deck anchors do NOT
@@ -663,7 +697,20 @@ def book_claims():
     out += l10_book_claims()
     out += l11_book_claims()
     out += l13_book_claims()
+    out += l20_book_claims()
     return out
+
+# ── [C] L20 BOOK CLAIMS: the built Book PROSE restates the BM25 surface→lemma inversion (data/l20-ru.json,
+#    gen_l20.py): the gold answer's score 0.0 → 1.3884 and the surface distractor 1.3608. Gating both keeps
+#    book:L20 coverage at 0. Values from L20RU["bm25"]; anchored to the worked-by-hand beat prose (all 3 langs). ──
+def l20_book_claims():
+    b = L20RU["bm25"]
+    return [
+        dict(id="book L20 lemma gold", deck="L20", value=b["lemma"]["goldScore"], tol=1e-4,
+             anchor=r'\\\((1\.3884)\\\)', must=True),
+        dict(id="book L20 surface distractor", deck="L20", value=b["surface"]["scores"]["d2_distractor"], tol=1e-4,
+             anchor=r'\\\((1\.3608)\\\)', must=True),
+    ]
 
 # ── [C] L13 BOOK CLAIMS: the built Book PROSE restates TAS-B's achieved MS MARCO MRR@10 (≈ 0.34) — the only
 #    NEW ≥2-dp number this depth pass adds to the Book. Gating it keeps book:L13 coverage at 0 (ANCE's 0.33 is
@@ -1167,11 +1214,35 @@ def l6_enrichment_claims():
              anchor=r"InfoNCE loss falls from 3\.31 to 0\.86 to "+N+r"\.", must=True),
     ]
 
-def check_claim(c, text):
+def _claim_hits(c, text):
+    """Anchor hits + the ones that fail the value check.
+
+    Tried on the raw text first (anchors may carry literal tuples like "0,0,6" that must NOT be
+    canonicalised), then on the RU-comma-normalised text. The fallback fires both when the raw pass
+    finds nothing AND when it matched but truncated a RU decimal ("0,59" captured as "0") — a hit that
+    validates is always preferred, so the gate stays exact while reading both renderings.
+    """
     hits = re.findall(c["anchor"], text)
+    def _bad(hs):
+        out = []
+        for h in hs:
+            try:
+                if abs(num(h) - c["value"]) > c["tol"]:
+                    out.append(h)
+            except ValueError:
+                out.append(h)
+        return out
+    bad = _bad(hits)
+    if not hits or bad:
+        alt = re.findall(c["anchor"], norm_dec(text))
+        if alt and not _bad(alt):
+            return alt, []
+    return hits, bad
+
+def check_claim(c, text):
+    hits, bad = _claim_hits(c, text)
     if not hits:
         return ("HARD" if c["must"] else "WARN", f'{c["id"]}: NOT FOUND in {c["deck"]} (expected ≈{c["value"]})')
-    bad = [h for h in hits if abs(num(h) - c["value"]) > c["tol"]]
     if bad:
         return ("HARD", f'{c["id"]}: DRIFT in {c["deck"]} — displayed {bad} vs data/ {c["value"]}')
     return ("OK", f'{c["id"]}: {len(hits)} match(es) ≈{c["value"]} ✓')
@@ -1216,6 +1287,8 @@ def arithmetic_checks(report, texts):
 # are excluded (not numbers in the data sense). "Covered" = within max(claim-tol, 0.001) of a gated value —
 # i.e. the displayed number IS, to display precision, a gated value (a coincidental match needs a value
 # within 1e-3; a genuinely new data-number, e.g. an L7 cosine 0.7531, is not and so HARD-fails until gated).
+# TIGHTENED (2026-08, RU decimal-comma canon + locale-aware coverage key): one number now counts once
+# across its EN and RU renderings, and the L15 recap/L9 split resolved a few more to covered. Stronger.
 COVERAGE_BASELINE = {
     # L3–L6 deck/book baselines TIGHTENED after L7 and again after L8: each new unit's value-gated worked
     # numbers (L8: the ColBERT/SPLADE/RRF/LambdaRank intermediates 0.0325, 0.7685, 2.35, …) are matched
@@ -1261,7 +1334,7 @@ COVERAGE_BASELINE = {
     # deck:L5/L18 TIGHTENED (2026-07): the new l15_deck_claims() gated values coincide with a couple of
     # previously-grandfathered un-gated numbers on those surfaces (softmax/temperature decimals reused), so
     # the global gated set now covers them → ratchet down (strictly stronger; never raised).
-    "deck:L0": 0, "deck:L1": 1, "deck:L2": 6, "deck:L3": 41, "deck:L4": 27, "deck:L5": 37, "deck:L6": 25,
+    "deck:L0": 0, "deck:L1": 1, "deck:L2": 6, "deck:L3": 41, "deck:L4": 26, "deck:L5": 37, "deck:L6": 22,
     "book:L0": 0, "book:L1": 0, "book:L2": 8,  "book:L3": 9,  "book:L4": 15, "book:L5": 10,
     # book:L6 — RAISED 6 → 37 when the L06 climb became `ncd-chain`, the end-to-end worked example.
     # Its ten scroll-step captions ARE Book prose, and they walk the whole computation: every
@@ -1272,7 +1345,7 @@ COVERAGE_BASELINE = {
     # exist in that widget's own data/ file — all of them, not the handful a C() claim happens to pin —
     # and `_research/gen_l6_chain.py` ASSERTS at generation time that the chain reproduces
     # data/l6-attention.json to the digit. A number here cannot drift without one of those two failing.
-    "book:L6": 31,
+    "book:L6": 30,
     "deck:L12": 2, "book:L12": 2,
     # deck:L14 "The Artificer's Quill" — all displayed toy numbers are now gated in l14_deck_claims() → 0.
     "deck:L14": 0,
@@ -1291,10 +1364,10 @@ COVERAGE_BASELINE = {
     # cited REPORTED bench (data/l16-bench.json: Berlin 0.8486/0.7084/0.7535/0.8249/0.8498, BeIR 52.4/54.3…,
     # ACME) — provenance lives in those data files + gen_l16.py, not in individual [C] anchors. Baseline
     # frozen at the current count so the guard still HARD-fails any FUTURE ungated number added beyond these.
-    "deck:L16": 10,
+    "deck:L16": 9,
     # book:L16 mirrors the deck's Late-Chunking numbers in prose (Berlin 0.7084/0.8249…, the ACME toy 0.5164/
     # 0.7071, BeIR 52.4/54.3) — same reproducible-generator + cited-bench provenance as deck:L16.
-    "book:L16": 11,
+    "book:L16": 10,
     # deck:L17 "Shannon Entropy" — numbers from gen_l17.py (data/l17-entropy.json: coin H=0.8113, dyadic code
     # H=avgLen=1.75, toy-phrase entropy) and the cited REPORTED bench (data/l17-bench.json: Shannon 1951 Fn table
     # 4.70/4.76/4.03/4.14…, human bounds 0.6/1.3, 79/102, redundancy 50/75, 'E' 12.7, Cover-King 1.3, Brown 1.75).
@@ -1330,7 +1403,7 @@ def _coverage_uncovered(html, gated):
             continue
         d = num(s)                                           # num() parses dot, RU comma, and KaTeX {,} alike
         if not any(abs(d - v) <= max(tol, 0.001) for v, tol in gated):
-            out.add(s)
+            out.add(f"{d!r}")                                # canonical key: one number counts once in EN+RU
     return out
 
 def coverage_guard(report, text, book):

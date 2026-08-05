@@ -1,0 +1,40 @@
+<section class="slide" data-type="formula" data-screen-label="17 Formal · BM25 needs matching terms">
+  <div class="slide-header" style="border:none; padding-bottom:0;">
+    <h2>
+      <span lang="ru">BM25 награждает только общий терм</span>
+      <span lang="en">BM25 rewards only a shared term</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">та же формула из L3 &middot; \(k_1=1{,}5,\ b=0{,}75\)</span>
+      <span lang="en">the same formula from L3 &middot; \(k_1=1.5,\ b=0.75\)</span>
+    </span>
+  </div>
+  <div class="formula-stage">
+    $$ \mathrm{BM25}(q,d) \;=\; \sum_{t \in q \cap d} \mathrm{idf}(t)\;\frac{f_{t,d}\,(k_1+1)}{f_{t,d} + k_1\bigl(1 - b + b\,\tfrac{|d|}{\mathrm{avgdl}}\bigr)} $$
+  </div>
+  <div class="formula-caption">
+    <div class="var-block">
+      <div class="var-symbol">\(t \in q \cap d\)</div>
+      <div class="var-desc">
+        <span lang="ru"><strong>Только общие термы</strong><br />нет общей строки &rarr; вклад&nbsp;=&nbsp;0</span>
+        <span lang="en"><strong>Shared terms only</strong><br />no shared string &rarr; contribution&nbsp;=&nbsp;0</span>
+      </div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">\(\mathrm{idf}(t)\)</div>
+      <div class="var-desc">
+        <span lang="ru"><strong>Редкость</strong><br />\(\ln\frac{N-\mathrm{df}+0{,}5}{\mathrm{df}+0{,}5}+1\)</span>
+        <span lang="en"><strong>Rarity</strong><br />\(\ln\frac{N-\mathrm{df}+0.5}{\mathrm{df}+0.5}+1\)</span>
+      </div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">\(f_{t,d}\)</div>
+      <div class="var-desc">
+        <span lang="ru"><strong>Частота</strong><br />сколько раз терм в \(d\)</span>
+        <span lang="en"><strong>Frequency</strong><br />times the term is in \(d\)</span>
+      </div>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Ключевое &mdash; в области суммы: \(t \in q \cap d\). Нет <em>одинаковой строки</em> &mdash; нет слагаемого. Нормализация меняет, что считать &laquo;одинаковой строкой&raquo;: до неё &laquo;котята&raquo;&ne;&laquo;котёнок&raquo;, после &mdash; обе &laquo;котёнок&raquo;.</span><span lang="en">The crux is the sum&rsquo;s domain: \(t \in q \cap d\). No <em>identical string</em>, no term. Normalization changes what counts as &ldquo;the same string&rdquo;: before it &ldquo;котята&rdquo;&ne;&ldquo;котёнок&rdquo;, after it both are &ldquo;котёнок&rdquo;.</span></p>
+  <aside class="slide-notes">The formula from L3, unchanged — the whole point lives in the summation domain t ∈ q ∩ d: BM25 can only reward a term the query and document literally share. The course convention (gen_l3.py, gen_l20.py): k1=1.5, b=0.75, idf(t)=ln((N−df+0.5)/(df+0.5)+1). Normalization does not touch this formula; it changes the tokens fed to it, so what counts as "the same string" shifts — surface "котята" and "котёнок" are different terms, but their shared lemma "котёнок" is one. The next two slides run this exact formula on our five-doc toy.</aside>
+</section>

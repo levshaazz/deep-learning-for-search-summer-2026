@@ -1,0 +1,108 @@
+{
+  "_doc": "MEASURED toys for L20 'Russian Search' — token tax (BPE on a 9:1 EN:RU mix), the noun paradigm, and the BM25 surface-vs-lemma ordering inversion. All stdlib, deterministic. Generator: _research/gen_l20.py.",
+  "tokenTax": {
+    "_doc": "MEASURED on a constructed BPE toy: character-BPE trained on a 9:1 EN:RU mix (EN_WEIGHT=9, NUM_MERGES=60, deterministic tie-break), then applied to a parallel EN/RU sentence. Reproduces the DIRECTION of the token tax (Russian fragments into several times more pieces), not any production tokenizer's exact ratio. Generator: _research/gen_l20.py.",
+    "enWeight": 9,
+    "numMerges": 60,
+    "enSentence": "the search finds the meaning of the query",
+    "ruSentence": "поиск находит смысл запроса",
+    "enWords": 8,
+    "ruWords": 4,
+    "enTokens": 8,
+    "ruTokens": 23,
+    "perWordEn": 1.0,
+    "perWordRu": 5.8,
+    "taxRatio": 5.8,
+    "enSplitSearch": [
+      "search"
+    ],
+    "ruSplitZaprosa": [
+      "з",
+      "а",
+      "п",
+      "р",
+      "о",
+      "с",
+      "а"
+    ]
+  },
+  "paradigm": {
+    "_doc": "The full 6-case x 2-number paradigm of one inanimate noun — 12 slots, 10 distinct surface strings (nom == acc in both numbers). A keyword index sees 10 unrelated terms unless you normalize.",
+    "lemma": "запрос",
+    "cases": 6,
+    "numbers": 2,
+    "slots": 12,
+    "distinctForms": 10,
+    "forms": [
+      "запрос",
+      "запроса",
+      "запросу",
+      "запрос",
+      "запросом",
+      "запросе",
+      "запросы",
+      "запросов",
+      "запросам",
+      "запросы",
+      "запросами",
+      "запросах"
+    ]
+  },
+  "bm25": {
+    "_doc": "MEASURED on a constructed 5-doc Russian corpus (stdlib BM25, k1=1.5, b=0.75, idf=ln((N-df+.5)/(df+.5)+1) — the gen_l3.py course convention). Surface-form BM25: the gold doc shares ZERO surface forms with the query -> score 0.0, while a distractor repeating the exact form 'играют' wins. Lemmatized BM25: the gold doc matches both query lemmas -> rank 1. Reproduces the ORDERING INVERSION, not any production system's magnitudes. Generator: _research/gen_l20.py.",
+    "k1": 1.5,
+    "b": 0.75,
+    "avgdl": 4.8,
+    "query": [
+      "котята",
+      "играют"
+    ],
+    "queryLemmas": [
+      "котёнок",
+      "играть"
+    ],
+    "goldDoc": "d1_gold",
+    "surface": {
+      "scores": {
+        "d1_gold": 0.0,
+        "d2_distractor": 1.3608,
+        "d3_cats": 0.0,
+        "d4_puppy": 0.0,
+        "d5_shop": 0.0
+      },
+      "goldScore": 0.0,
+      "goldMatches": 0,
+      "topDoc": "d2_distractor",
+      "goldRank": 2
+    },
+    "lemma": {
+      "scores": {
+        "d1_gold": 1.3884,
+        "d2_distractor": 0.5291,
+        "d3_cats": 0.0,
+        "d4_puppy": 0.5827,
+        "d5_shop": 0.8594
+      },
+      "goldScore": 1.3884,
+      "goldRank": 1,
+      "goldWork": [
+        {
+          "t": "котёнок",
+          "tf": 1,
+          "df": 2,
+          "idf": 0.8755,
+          "bm25": 0.8594
+        },
+        {
+          "t": "играть",
+          "tf": 1,
+          "df": 3,
+          "idf": 0.539,
+          "bm25": 0.5291
+        }
+      ],
+      "runnerUp": "d5_shop"
+    },
+    "inversion": true
+  }
+}

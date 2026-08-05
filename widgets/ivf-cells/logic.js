@@ -89,11 +89,12 @@ function renderToy({ host, data, labels, el }) {
       el('text', { x: cx, y: cy - 13, class: 'iv-clbl', 'text-anchor': 'middle' }, svg).textContent = 'c' + ci;
     });
 
-    // ── query marker (★) ──
+    // ── query marker (course canon: solid --warm DIAMOND, see tokens/design-tokens.css) ──
+    // Solid warm vs the HOLLOW cluster-stroke centroids ◇ — same glyph family, opposite fill.
     const qx = sx(q[0]), qy = sy(q[1]);
     const qEl = el('g', { class: 'iv-queryg is-hidden' }, svg);
-    el('circle', { cx: qx, cy: qy, r: 7, class: 'iv-query' }, qEl);
-    el('text', { x: qx + 11, y: qy + 4, class: 'iv-qlbl' }, qEl).textContent = labels.query || 'query';
+    el('path', { d: `M${qx} ${qy - 9} L${qx + 9} ${qy} L${qx} ${qy + 9} L${qx - 9} ${qy} Z`, class: 'iv-query' }, qEl);
+    el('text', { x: qx + 13, y: qy + 4, class: 'iv-qlbl' }, qEl).textContent = labels.query || 'query';
 
     const readHead = el('text', { x: PAD, y: readTop, class: 'iv-readhead' }, svg);
 
@@ -199,11 +200,11 @@ function renderToy2({ host, data, labels, el }) {
     }, svg).textContent = 'c' + ci;
   });
 
-  // ── query marker (★) ──
+  // ── query marker (course canon: solid --warm DIAMOND, see tokens/design-tokens.css) ──
   const qx = sx(q[0]), qy = sy(q[1]);
   const qEl = el('g', { class: 'iv-queryg is-hidden' }, svg);
-  el('circle', { cx: qx, cy: qy, r: 7, class: 'iv-query' }, qEl);
-  el('text', { x: qx + 11, y: qy + 4, class: 'iv-qlbl' }, qEl).textContent = labels.query || 'query';
+  el('path', { d: `M${qx} ${qy - 9} L${qx + 9} ${qy} L${qx} ${qy + 9} L${qx - 9} ${qy} Z`, class: 'iv-query' }, qEl);
+  el('text', { x: qx + 13, y: qy + 4, class: 'iv-qlbl' }, qEl).textContent = labels.query || 'query';
 
   const readHead = el('text', { x: PAD, y: readTop, class: 'iv-readhead' }, svg);
   const readSub = el('text', { x: PAD, y: readTop + readRow, class: 'iv-readhead' }, svg);

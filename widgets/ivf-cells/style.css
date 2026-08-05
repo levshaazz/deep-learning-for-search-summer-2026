@@ -10,16 +10,20 @@
   transition: opacity var(--dur, 220ms) var(--ease); }
 .iv-cell.is-probed { stroke-dasharray: none; stroke-width: 3; }
 .iv-cell.is-dim { opacity: .3; }
-/* a probed cell that bought NO new recall (diminishing returns): keep it probed-solid but recolour to
-   the warm "wasted work" hue with a faint fill, so the extra probe reads as cost without payoff. */
-.iv-cell.is-wasted { stroke: var(--warm-ink, #B4521F); stroke-dasharray: 2 3;
-  fill: var(--warm-soft, rgba(180, 82, 31, .08)); }
+/* a probed cell that bought NO new recall (diminishing returns): keep it probed-solid but recolour
+   to a hue no cluster owns, with a faint fill, so the extra probe reads as cost without payoff.
+   Cyan, not warm: warm is the query marker's canon hue (tokens/design-tokens.css) — the wasted-cell
+   state inherited cyan when the query gave it up. */
+.iv-cell.is-wasted { stroke: var(--c-cyan-ink, #0A6F7A); stroke-dasharray: 2 3;
+  fill: var(--c-cyan-soft, rgba(10, 111, 122, .08)); }
 
 /* the three cell colours (accent / amber / violet — neutral categories, NOT green/red) */
 /* cluster identity = STROKE only (cell outline + centroid outline); the cluster FILL lives solely on
-   the dots below, so cell / centroid / dot of one cluster are no longer one indistinguishable fill. */
+   the dots below, so cell / centroid / dot of one cluster are no longer one indistinguishable fill.
+   c1 is the AMBER family end-to-end (stroke + dots): warm/orange is reserved for the query marker
+   (course-wide canon, tokens/design-tokens.css) so no cluster may wear it. */
 .iv-c0 { stroke: var(--accent-ink, #1B4FA0); }
-.iv-c1 { stroke: var(--warm-ink, #B4521F); }
+.iv-c1 { stroke: var(--c-amber-ink, #8A5A00); }
 .iv-c2 { stroke: var(--c-violet, #7D5BA6); }
 /* toy2 adds two more neutral category strokes (5 cells); uses defined role tokens only */
 .iv-c3 { stroke: var(--c-green-ink, #1F6B40); }
@@ -41,10 +45,11 @@
 .iv-cent { fill: none; stroke-width: 2.5; }   /* hollow cluster-outline diamond — distinct from the solid dots */
 .iv-clbl { font: 700 12px var(--font-mono, monospace); fill: var(--ink-2, #3D434E); }
 
-/* the query is the OUTSIDER — it must not wear any cluster's colour (c0 owns accent-blue, c1 the
-   warm/amber family, c2 violet, c3 green, c4 gray; red = missed). Ink-black read as a void HOLE on
-   the light canvas (slide-viz lum<0.045), so it wears the one hue no cluster owns: cyan. */
-.iv-query { fill: var(--c-cyan, #1AA7B5); stroke: var(--c-cyan-ink, #0A6F7A); stroke-width: 1.5; }
-.iv-qlbl { font: 700 12px var(--font-mono, monospace); fill: var(--ink, #14181F); }
+/* the query marker — COURSE CANON (tokens/design-tokens.css QUERY-MARKER CANON): a solid --warm
+   diamond, same glyph as hnsw-graph's. No cluster owns the warm hue (c1 was moved to the amber
+   family precisely so the query stays the outsider); the solid fill vs the HOLLOW centroids keeps
+   the two diamond glyphs apart. */
+.iv-query { fill: var(--warm, #E8743B); stroke: var(--warm-ink, #B4521F); stroke-width: 1.5; }
+.iv-qlbl { font: 700 12px var(--font-mono, monospace); fill: var(--warm-ink, #B4521F); }
 
 .iv-readhead { font: 700 11px var(--font-mono, monospace); fill: var(--ink, #14181F); }   /* 11px keeps the long nprobe/readout line inside the viewBox (OOB) */
