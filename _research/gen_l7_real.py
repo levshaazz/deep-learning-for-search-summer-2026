@@ -221,11 +221,18 @@ def part3_cascade_l4():
         "rerankedNdcg": r(rerankedNdcg),
     }
     # latency — CITED representative magnitudes (hardware-dependent, never CI-measured).
+    # ONE coherent regime: the cascade reranks at depth 100 (= MS_RERANK_DEPTH, the depth the frozen
+    # MS MARCO MRR 0.6732 is measured at), GPU-BATCHED — 100 pairs ≈ 120 ms at batch ≈32, NOT
+    # 100 × 12 ms; 12 ms/pair is the one-pair sequential CPU figure (sequential CPU top-100 ≈ 1.2 s).
     latency = {
         "cited": True,
-        "queryEncodeMs": 8, "annSearchMs": 5, "crossPerPairMs": 12, "rerankMs": 120, "totalMs": 133,
-        "source": "representative all-MiniLM-L6-v2 / ms-marco-MiniLM-L-6-v2 CPU latencies; "
-                  "hardware-dependent — cited, not CI-measured",
+        "queryEncodeMs": 8, "annSearchMs": 5,
+        "rerankDepth": 100, "rerankBatch": 32,
+        "crossPerPairMs": 12, "rerankMs": 120, "totalMs": 133,
+        "source": "representative all-MiniLM-L6-v2 / ms-marco-MiniLM-L-6-v2 latencies. rerankMs prices "
+                  "the cascade's depth-100 rerank GPU-batched (batch ≈32): 100 pairs ≈ 120 ms — NOT "
+                  "100 × crossPerPairMs; crossPerPairMs=12 is the one-pair sequential CPU figure (a "
+                  "sequential CPU top-100 would be ~1.2 s). Hardware-dependent — cited, not CI-measured",
     }
     splice(DATA / "l7-cascade.json", quality=quality, latency=latency)
     print(f"[l7-real] cascade  bm25Ndcg={bm25} → rerankedNdcg={quality['rerankedNdcg']}  order={rerankedOrder}")
@@ -340,8 +347,10 @@ def part4_msmarco():
     }
     (DATA / "l7-msmarco.json").write_text(json.dumps(msmarco, indent=2, ensure_ascii=False) + "\n")
 
-    # the depth dial → splice into the cascade (rerank top-k nDCG@10 + cited latency ∝ k).
-    cited_latency = {10: 120, 100: 1200, 1000: 12000}
+    # the depth dial → splice into the cascade (rerank top-k nDCG@10 + cited latency ~∝ k).
+    # SAME GPU-batched regime as the latency block (≈1.2 ms/pair amortized at batch ≈32): k=100 → 120 ms
+    # matches latency.rerankMs exactly; k=10 is one part-filled batch (~15 ms), k=1000 → ~1.2 s.
+    cited_latency = {10: 15, 100: 120, 1000: 1200}
     rerankDepth = [{"k": k, "ndcg": rerank_ndcg_at[k], "latencyMs": cited_latency[k]} for k in MS_DEPTHS]
     splice(DATA / "l7-cascade.json", rerankDepth=rerankDepth)
     print(f"[l7-real] MS MARCO  recall@{{10,100,1000}}={list(retrieve['recallAt'].values())}  "

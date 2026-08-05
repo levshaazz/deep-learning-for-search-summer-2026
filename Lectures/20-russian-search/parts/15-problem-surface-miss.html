@@ -1,0 +1,27 @@
+<section class="slide" data-type="definition" data-screen-label="15 Problem · surface forms miss">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Поверхностные формы промахиваются</span>
+      <span lang="en">Surface forms miss</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">BM25 награждает только <em>ту же</em> строку</span>
+      <span lang="en">BM25 rewards only the <em>same</em> string</span>
+    </span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">
+      <span lang="ru">Мешок строк не знает морфологии</span>
+      <span lang="en">A bag of strings knows no morphology</span>
+    </span>
+    <div class="def-body">
+      <p><span lang="ru">BM25 суммирует вклад термов, <em>общих</em> у запроса и документа. Если запрос &mdash; &laquo;котята&raquo;, а документ &mdash; &laquo;котёнок&raquo;, общего терма нет: вклад нулевой, документ даже не кандидат.</span><span lang="en">BM25 sums the contribution of terms the query and document <em>share</em>. If the query is &ldquo;котята&rdquo; and the document says &ldquo;котёнок&rdquo;, there is no shared term: the contribution is zero, the document is not even a candidate.</span></p>
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Хуже: побеждает не тот.</strong> Документ, случайно повторивший точную форму запроса, обходит настоящий ответ &mdash; даже если он не по теме.</span><span lang="en"><strong>Worse: the wrong doc wins.</strong> A document that happens to repeat the query&rsquo;s exact form out-ranks the true answer &mdash; even when it is off-topic.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>idf раскалывается.</strong> Десять форм одного слова &mdash; десять редких термов; частотная статистика размывается, веса врут.</span><span lang="en"><strong>idf splinters.</strong> Ten forms of one word are ten rare terms; the frequency statistics smear and the weights lie.</span></span></li>
+      </ul>
+      <p class="small muted"><span lang="ru">Лечение &mdash; нормализация <strong>до</strong> индексации: свести и запрос, и документ к общей форме, чтобы термы совпали. Считаем это руками на следующих слайдах.</span><span lang="en">The cure is to normalize <strong>before</strong> indexing: fold both query and document to a common form so terms can match. We measure it by hand next.</span></p>
+    </div>
+  </div>
+  <aside class="slide-notes">The mechanism of the failure. BM25 only scores shared terms, so if query "котята" and document "котёнок" share no surface string, the true answer scores zero and never enters the candidate set — while a document that echoes the exact query form, even off-topic, wins. A second harm: inverse document frequency splinters across the paradigm's ten forms, so term weights are miscalibrated. The fix is normalization applied symmetrically to query and corpus before indexing. The next two slides run BM25 on our toy corpus, surface-form then lemmatized, and watch the ranking invert.</aside>
+</section>

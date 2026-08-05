@@ -27,8 +27,9 @@
    plausible-looking fake recall would be worse than no recall at all, so there isn't one — not in the
    ledger, not in a caption.
 
-   Colour is meaning: --accent = the query wire · --c-violet = the broadcast axis / the region C (the
-   star) · --c-green = a true neighbour that IS scored · --warm = the graph walk (the work being done)
+   Colour is meaning: --warm = the query wire (course query-marker canon) and the graph walk it pays
+   for · --c-violet = the broadcast axis / the region C (the
+   star) · --c-green = a true neighbour that IS scored
    · --c-red = ONLY the missed neighbour and the edges into it that were never crossed · --ink* /
    --rule* = structure, and documents outside C fade (no cup ever ran on them).
 

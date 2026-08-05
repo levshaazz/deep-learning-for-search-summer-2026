@@ -119,7 +119,7 @@ export const mountNcdRetrieval = defineWidget({
         // bi-encoder: ONE query vector. ColBERT: one vector per query TOKEN — the grid the s2 caption
         // promised and the figure used to withhold (it drew the same single 6-cell row as s0).
         if (step === 2) vecGrid(360, 30, 'ncdr-vec-q', g);
-        else vec(360, 38, 'ncdr-vec-q', g);               // fresh query vector (cyan)
+        else vec(360, 38, 'ncdr-vec-q', g);               // fresh query vector (warm — the query's, made online)
       } else {                                            // cross: the QUERY ITSELF enters every encoder
         line('ncdr-w-q', 250, 44, 404, 44, g);
         // NO query vector, and (below) no document vectors either. There is nothing to precompute.

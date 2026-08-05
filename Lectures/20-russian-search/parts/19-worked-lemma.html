@@ -1,0 +1,49 @@
+<section class="slide" data-type="two-col" data-screen-label="19 Worked · lemmatize and the ranking inverts">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Руками: лемматизация переворачивает ранг</span>
+      <span lang="en">By hand: lemmatize and the ranking inverts</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">query&nbsp;&rarr;&nbsp;&laquo;котёнок играть&raquo; &middot; тот же BM25 &middot; измерено на toy</span>
+      <span lang="en">query&nbsp;&rarr;&nbsp;&ldquo;котёнок играть&rdquo; &middot; same BM25 &middot; measured on the toy</span>
+    </span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <table class="cmp-table">
+        <thead>
+          <tr>
+            <th><span lang="ru">терм (лемма)</span><span lang="en">term (lemma)</span></th>
+            <th>df</th>
+            <th>idf</th>
+            <th>bm25</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>котёнок</td><td>2</td><td>0.8755</td><td>0.8594</td></tr>
+          <tr><td>играть</td><td>3</td><td>0.539</td><td>0.5291</td></tr>
+          <tr><td><strong><span lang="ru">сумма</span><span lang="en">sum</span></strong></td><td></td><td></td><td class="cell-good"><strong>1.3884</strong></td></tr>
+        </tbody>
+      </table>
+      <p class="small muted center mt-2">
+        <span lang="ru">Теперь золотой документ делит с запросом <strong>обе</strong> леммы &mdash; и обходит всех.</span>
+        <span lang="en">Now the gold document shares <strong>both</strong> lemmas with the query &mdash; and beats the field.</span>
+      </p>
+    </div>
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag">
+          <span lang="ru">После лемматизации</span>
+          <span lang="en">After lemmatization</span>
+        </span>
+        <div class="def-term">\( 0.0 \;\rightarrow\; 1.3884 \;\Rightarrow\; \text{RANK } 2 \rightarrow 1 \)</div>
+        <div class="def-body">
+          <p lang="ru">Свели и запрос, и документы к леммам. Золотой &laquo;котёнок играть&hellip;&raquo; берёт <strong>1,3884</strong> и встаёт на #1. Магазин (&laquo;котёнок&raquo;, но без &laquo;играть&raquo;) &mdash; лишь <strong>0,8594</strong>, #2. Прежний победитель-дистрактор проваливается.</p>
+          <p lang="en">We folded both query and documents to lemmas. The gold &ldquo;котёнок играть&hellip;&rdquo; takes <strong>1.3884</strong> and rank 1. The shop (&ldquo;котёнок&rdquo; but no &ldquo;играть&rdquo;) gets only <strong>0.8594</strong>, rank 2. The old distractor winner drops.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <aside class="slide-notes">Worked-by-hand part 2 (lemmatized) — the inversion, the whole act in one number. Query lemmas "котёнок играть"; the gold document now shares both, so BM25 = idf(котёнок)·… + idf(играть)·… = 0.8594 + 0.5291 = 1.3884, rank 1 (up from rank 2). The shop document shares only "котёнок" and scores 0.8594 (rank 2); the surface-winner distractor "дети играть" shares only "играть" and falls behind. Same corpus, same query, same BM25 — normalization alone flips the order. All values from data/l20-ru.json (gen_l20.py, k1=1.5, b=0.75); the inversion is the point, not the magnitudes.</aside>
+</section>

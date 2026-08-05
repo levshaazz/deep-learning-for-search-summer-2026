@@ -25,8 +25,9 @@
    ledger alike. The course has no grounded RAG corpus/latency figures in data/, so there are none here;
    a plausible-looking fake K would be worse than no K at all.
 
-   Colour is meaning: --c-violet = the corpus, the broadcast axis, the offline side · --accent = the
-   query (both entries) · --warm = retrieve (cheap, over everything) · --c-cyan = rerank (sharp, over few)
+   Colour is meaning: --c-violet = the corpus, the broadcast axis, the offline side · --warm = the
+   query (both entries; course query-marker canon) + retrieve, its first cheap over-everything op
+   · --c-cyan = rerank (sharp, over few)
    · --c-amber = the two hexagons, i.e. the slices themselves · --c-pink = the generator · --c-green =
    the grounded answer. Step 0 = retrieve · 1 = + rerank · 2 = + generate.
    DRIVER-AGNOSTIC, ON-BRAND, COLLISION-FREE. */

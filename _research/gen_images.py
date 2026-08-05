@@ -1532,6 +1532,12 @@ JOBS = [
      "current near-misses as opponents. The mirror-Serega is a faint course-blue echo (a reflection, not a "
      "second character). Black ink + course-blue mirror + warm-orange glint; the real Serega's green tübetey "
      "is the ONLY green, and the reflection carries no separate green. No lettered title bar."),
+    ("L13", "L13/L13-15-gradient-budget.png", "4:3", True,
+     "Serega as quartermaster of the forge holds ONE small pouch of glowing warm-orange sparks — the whole "
+     "gradient budget — and pours nearly all of it over the single opponent crowding his guard, while a line "
+     "of far-away easy opponents get barely a fleck each and shrug, unpaid. Conveys 'each negative's push is "
+     "a softmax share: easy ones earn ~zero, the near one takes the budget'. Black ink + course-blue "
+     "opponents + warm-orange sparks; Serega's green tübetey is the ONLY green. No lettered title bar."),
     ("L13", "L13/L13-08-sparring-ghosts.png", "4:3", True,
      "Serega has moved on to a fresh stance while the Sparring Ghosts — translucent faded after-images of "
      "opponents he already beat — keep shadow-boxing an OLD position behind him, growing stale and easy "
@@ -2033,6 +2039,63 @@ JOBS = [
      "the plate is the single phrase 'the diagram is the invoice'. Earned, warm send-off. Black ink + "
      "course-blue wires + one warm-orange tag; Serega's green tübetey is the ONLY green. No lettered title "
      "bar. Fills ≥85% width."),
+
+    # ---- L20 "Search in Russian" (supplementary). Metaphor: morphology strikes back — a Russian word carries
+    #      case/number inside itself, so the English-trained Tokenosaurus chokes on it and pays a token tax;
+    #      lemmatization folds the forms; dense retrieval matches meaning. Cameo: Tokenosaurus (the L2 tokenizer
+    #      dinosaur). Serega in every plate. ----
+    ("L20", "L20/L20-00-morphology-strikes-back.png", "16:9", True,
+     "HERO. Serega stands beside Tokenosaurus (the friendly tokenizer dinosaur). The dinosaur bites a short "
+     "English word-card whole in one clean chomp, but CHOKES on a long Russian word-card that shatters in his "
+     "mouth into many little sub-word crumbs flying apart; a small vertical tally-meter beside them fills up "
+     "with the extra crumbs. Serega gestures 'see the tax'. Hand-lettered tag 'token tax'. Tokenosaurus is "
+     "BARE-HEADED (blue + orange, no green); Serega's green tübetey is the ONLY green. Black ink + course-blue "
+     "+ one warm-orange meter. No lettered title bar. Fills ≥85% width."),
+    ("L20", "L20/L20-01-token-tax.png", "4:3", True,
+     "the TOKEN TAX, counted. On the LEFT one English word-card swallowed as a SINGLE tidy token; on the RIGHT "
+     "one Russian word-card broken into SEVEN little character-tiles in a row. A small balance-scale between "
+     "them tips heavily to the Russian side, and a tiny meter reads a multiplier mark. Serega points at the "
+     "lopsided scale, wry. Hand-lettered '1 token' / 'many'. Black ink + course-blue tiles + one warm-orange "
+     "scale-pan; Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L20", "L20/L20-02-noun-paradigm.png", "4:3", True,
+     "ONE WORD, MANY FORMS. Serega holds up a single noun-card that wears twelve different little costumes on a "
+     "coat-rack behind it (the six cases across two numbers), all clearly the SAME character in different "
+     "outfits. Below, a keyword-index filing cabinet mistakenly files them as ten separate unrelated cards in "
+     "ten slots. Serega looks exasperated. Hand-lettered 'one word'. Black ink + course-blue + one warm-orange "
+     "accent on the rack; Serega's green tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L20", "L20/L20-03-bm25-inversion.png", "4:3", True,
+     "the RANKING INVERSION. A little vertical ranking-board with three document-cards. LEFT panel 'by form': "
+     "an off-topic DECOY card sits at the TOP (#1) while the true GOLD answer-card is buried at #2, greyed. "
+     "RIGHT panel 'by lemma': the GOLD card has JUMPED to #1 and glows, the decoy dropped. A warm-orange arrow "
+     "shows the gold card rising. Serega points proudly at the risen gold card. Hand-lettered 'form' / 'lemma'. "
+     "Black ink + course-blue cards + one warm-orange arrow; Serega's green tübetey the ONLY green. No lettered "
+     "title bar. Fills ≥80% width."),
+    ("L20", "L20/L20-04-lemma-mill.png", "4:3", True,
+     "the LEMMA MILL. Serega turns the crank of a hand-mill; into the top hopper he pours several different "
+     "inflected word-cards (clearly variants of one word), and out of the chute drops ONE tidy normalized "
+     "lemma-card that lands neatly in an index box. A little funnel-of-forms narrows to one. Hand-lettered "
+     "'many forms' / 'one lemma'. Black ink + course-blue mill + one warm-orange chute; Serega's green tübetey "
+     "the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L20", "L20/L20-05-multilingual-space.png", "4:3", True,
+     "ONE SHARED SPACE. Serega stands before a single soft cloud/coordinate space where two Russian word-cards "
+     "(one plain, one inflected) land RIGHT NEXT to each other, and an English word-card of the same meaning "
+     "lands nearby too — a small warm-orange link joining the near neighbours. Meaning, not spelling, decides "
+     "closeness. Hand-lettered 'meaning'. Black ink + course-blue cloud + one warm-orange link; Serega's green "
+     "tübetey the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L20", "L20/L20-06-small-cuts.png", "4:3", True,
+     "the THOUSAND SMALL CUTS. Serega dressed as a calm medic bandages a patient-card labelled with a small "
+     "heart-and-arrow 'recall' symbol (no long words) covered in many tiny nicks; beside each nick a small "
+     "mischievous ortho-gremlin holds a little tag — 'ё/е', 'CASE', 'translit', 'ghbdtn'. None fatal alone, "
+     "many together. Serega applies one small warm-orange plaster. The gremlins are BARE-HEADED, blue, NO "
+     "green. Black ink + course-blue + one warm-orange plaster; Serega's green tübetey the ONLY green. No "
+     "lettered title bar. Fills ≥80% width."),
+    ("L20", "L20/L20-07-morphology-tamed.png", "16:9", True,
+     "FINAL. EXACTLY ONE Serega. He stands proudly beside a now-calm, well-fed Tokenosaurus who gently holds a "
+     "Russian word neatly reduced to ONE tidy lemma-card (no more choking); behind them a small ranking-board "
+     "shows the gold answer-card risen to the #1 slot and glowing. Earned, warm send-off. Tokenosaurus is "
+     "BARE-HEADED (blue + orange, no green). The ONLY hand-lettering anywhere is the single short phrase 'one "
+     "form, both arms'. Black ink + course-blue + one warm-orange #1 highlight; Serega's green tübetey is the "
+     "ONLY green. No lettered title bar. Fills ≥85% width."),
 ]
 
 H = {"Authorization": f"Bearer {API_KEY}"}

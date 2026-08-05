@@ -2,7 +2,7 @@
       id: 'hook-bottleneck', kind: 'prose',
       heading: { en: "The scroll I forgot the start of", ru: "Свиток, у которого я забыл начало", tt: "Башын онытып бетергән төргәк" },
       img: 'L15/L15-00-the-loom.png', imgPos: 'hero',
-      imgAlt: { en: "Séréga at his loom pulling one long overloaded thread across a vast scroll, its far end already frayed and unravelling into loose fibres; the scroll's opening words have faded to grey behind him.", ru: "Séréга у станка тянет одну длинную перегруженную нить через огромный свиток; её дальний край уже растрёпан и распускается на волокна, а начальные слова свитка поблёкли до серого за его спиной.", tt: "Séréga станок янында зур төргәк аша бер озын, артык йөкләнгән җепне суза; аның ерак очы инде таралып, җеп-җепкә аерыла, ә төргәкнең башлангыч сүзләре аның артында соргылтка сүнгән." },
+      imgAlt: { en: "Séréga at his loom pulling one long overloaded thread across a vast scroll, its far end already frayed and unravelling into loose fibres; the scroll's opening words have faded to grey behind him.", ru: "Серёга у станка тянет одну длинную перегруженную нить через огромный свиток; её дальний край уже растрёпан и распускается на волокна, а начальные слова свитка поблёкли до серого за его спиной.", tt: "Séréga станок янында зур төргәк аша бер озын, артык йөкләнгән җепне суза; аның ерак очы инде таралып, җеп-җепкә аерыла, ә төргәкнең башлангыч сүзләре аның артында соргылтка сүнгән." },
       imgCaption: { en: "One thread cannot carry the whole scroll — it **frays** at the far edge.", ru: "Одна нить не унесёт весь свиток — на дальнем краю она **рвётся**.", tt: "Бер җеп бөтен төргәкне күтәрә алмый — ерак читендә ул **өзелә**." },
       body: {
         en: [

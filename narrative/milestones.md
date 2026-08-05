@@ -18,8 +18,9 @@
 - **Frame:** the galaxy's last test.
 - **Beats:** `hook-final-trial` → `recap` (full spine map lit; the whole Ship assembled) → `payoff`
   ("one more flight — and then she's yours").
-- **Covers:** the whole course (L0–L12), weighted toward the second half (ANN/serving, RAG, eval,
-  agentic, advanced/multimodal).
+- **Covers:** the **core course L0–L12 only**, weighted toward the second half (ANN/serving, RAG, eval,
+  agentic, advanced/multimodal). The **satellites L13–L20** (`track:"deep-dive"`, arc.md §4b) are
+  **optional** — deep-dives after the core course; they carry **no exam weight** at any milestone.
 
 ## You Take the Helm — Project Defense (Week 7 Wed)
 - **Frame:** Serega steps back; the **student becomes the captain**. The arc's resolution.

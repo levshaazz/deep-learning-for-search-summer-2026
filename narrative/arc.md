@@ -1,10 +1,10 @@
 # arc.md — the course meta-arc: *The Expedition across the Galaxy of Information*
 
 > **Status: CANON.** The single through-line that connects every lecture/Book chapter. It sits above
-> the per-lecture catchphrases in [voice_wbw.md](../_research/voice_wbw.md) §4 and the per-lecture beat
+> the per-lecture catchphrases in [voice_wbw.md](../_internal/_research/voice_wbw.md) §4 and the per-lecture beat
 > sheets (`narrative/L<n>.md`), and it pins every lecture to the course spine **Get Data → Measure →
-> Rank → Generate**. Built per [NARRATIVE_METHOD.md](../_research/iterations/NARRATIVE_METHOD.md) (esp. P3 spatial
-> metaphor, P11 spine question, P12 callbacks). Serega rules from [voice_wbw.md](../_research/voice_wbw.md) §2.
+> Rank → Generate**. Built per [NARRATIVE_METHOD.md](../_internal/_research/iterations/NARRATIVE_METHOD.md) (esp. P3 spatial
+> metaphor, P11 spine question, P12 callbacks). Serega rules from [voice_wbw.md](../_internal/_research/voice_wbw.md) §2.
 
 ---
 
@@ -75,7 +75,39 @@ This is NARRATIVE_METHOD **P11** made physical — the same question threads the
 
 > **Numbering note (L3/L4 split):** L3 'The Star Catalog' = Classical IR + Full-text Ranking + Rank
 > Fusion; L4 'The Proving Grounds' = Ranking Metrics (a dedicated lecture). The old L4–L11 shifted to
-> L5–L12; Rank Fusion (RRF) moved from the old 'Alliance' into L3. Built chapters so far: L0, L1, L2.
+> L5–L12; Rank Fusion (RRF) moved from the old 'Alliance' into L3.
+
+## 4b. The satellites: deep-dives L13–L20 (canon)
+
+The core expedition is **L0–L12** (plus the three milestone trials). Everything after it is a
+**satellite**: an *optional deep-dive* that cracks open ONE line of ONE core lecture and gives it a
+full lecture of its own. Satellites never advance the expedition — the Ship is already built — they
+open an engine hatch. Framing rule for every satellite deck: a **you-are-here** slide that says
+*"supplementary deep-dive after the core course"* and names the line it cracks open.
+
+**Numbering.** Deep-dive numbers are CANON and already shipped in the decks (L13 calls itself #1 and
+bridges to "#4 The Curved Map"; L14 calls itself #2) — so the numbers follow the historical satellite
+plan, not the lecture ids: #1 L13 · #2 L14 · #3 L16 · #4 L18 came first; the re-homed import L15 and
+the later additions L17/L19/L20 continue the count as #5–#8. Do not renumber — the cross-references
+are printed on slides.
+
+**Insertion points.** A satellite is filed *after* the core lecture whose line it cracks open. The
+same mapping is machine-readable in `data/course.json` as the `after: "NN"` field on every
+`track:"deep-dive"` entry (single source for any "suggested reading order" UI).
+
+| # | L | Catchphrase | Cracks open (which line of which lecture) | Insert after |
+|---|---|---|---|---|
+| **#1** | **L13** | **The Crucible of Negatives** | L7's line *"the Scouts are trained contrastively"* — how the dense retriever is actually forged: easy negatives teach nothing, the hardest are impostors; the hard-but-honest band | **L7** |
+| **#2** | **L14** | **The Artificer's Quill** | L10's line *"query rewriting hears what the captain really asked"* — HyDE, step-back, multi-query + RRF, decomposition, the trainable rewriter | **L10** |
+| **#3** | **L16** | **Read the Whole Book First** | L10's chunking line (Chunk Norris) — the hidden coreference defect of chunk-then-embed; late chunking reorders {cut, attend} | **L10** |
+| **#4** | **L18** | **The Curved Map** | L9's silent assumption *"distance in embedding space can be trusted"* — Sir Cosine's blind spot: anisotropy (the narrow cone) and hubness; whiten the map, tax the hubs (CSLS) | **L9** |
+| **#5** | **L15** | **The Loom of Attention** | L6's line *"attention & the Transformer block — as far as search needs it"* — the whole machine room behind it: BERT family → GPT line → decoding → efficient attention → RLHF (tail marked "beyond the border of search") | **L6** |
+| **#6** | **L17** | **How Much Is a Letter Worth?** | L3's IDF line — idf **is** Shannon self-information; entropy is the hard floor of compression and the number a language model's loss chases | **L3** |
+| **#7** | **L19** | **The Wiring Diagram** | L6's cost line *"attention is O(n²)"* — the circuit notation that lets you read the bill off the picture (crossover at n = 6d; the FFN nobody draws) | **L6** |
+| **#8** | **L20** | **Морфология наносит ответный удар** (Search in Russian) | L3's lexical pipeline line — BM25, stemming/lemmatization and tokenizer fertility on a language where one lemma wears dozens of endings. *In preparation* (`status:"soon"`) | **L3** |
+
+> L20's insertion point: **after L3**, not after L13 — its subject is the classical lexical pipeline
+> (morphology vs BM25/lemmatization), which is L3's territory; it needs no dense-retrieval machinery.
 
 ## 5. Creature roster across the arc (the payoff chains — P2)
 
