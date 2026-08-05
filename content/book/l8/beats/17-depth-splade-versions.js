@@ -7,7 +7,7 @@
           "Two details worth keeping straight: the pooling is version-dependent (sum in the original, max from v2), and \"SPLADE v2\" is the *preprint* — the SIGIR'22 publication is SPLADE++.",
         ],
         ru: [
-          "Семейство улучшалось шагами. Оригинальный **SPLADE** (Formal, Piwowarski & Clinchant, SIGIR 2021) использовал **sum**-пулинг. Статья **SPLADE v2** (препринт arXiv 2021, где присоединяется Lassance) перешла на **max**-пулинг: **SPLADE-max** достигает MS MARCO MRR@10 \\(34{,}0\\), а с дистилляцией (**DistilSPLADE-max**) — \\(36{,}8\\). **SPLADE++** (статья SIGIR 2022, «From Distillation to Hard Negative Sampling») добавил жёсткие негативы, достигнув \\(38{,}0\\) и BEIR nDCG@10 \\(50{,}7\\).",
+          "Семейство улучшалось шагами. Оригинальный **SPLADE** (Formal, Piwowarski & Clinchant, SIGIR 2021) использовал **sum**-пулинг. Статья **SPLADE v2** (препринт arXiv 2021, где присоединяется Lassance) перешла на **max**-пулинг: **SPLADE-max** достигает MS MARCO MRR@10 \\(34{,}0\\), а с дистилляцией (**DistilSPLADE-max**) — \\(36{,}8\\). **SPLADE++** (статья SIGIR 2022, «From Distillation to Hard Negative Sampling») добавил трудные негативы, достигнув \\(38{,}0\\) и BEIR nDCG@10 \\(50{,}7\\).",
           "Две детали, которые стоит не путать: пулинг зависит от версии (sum в оригинале, max начиная с v2), и «SPLADE v2» — это *препринт*, а публикация SIGIR'22 — это SPLADE++.",
         ],
         tt: [

@@ -20,7 +20,15 @@
   if (window.__lec_preflight) return;
   window.__lec_preflight = 1;
 
-  if (new URL(location.href).searchParams.get('presenter') === '1') return;
+  const params = new URL(location.href).searchParams;
+  if (params.get('presenter') === '1') return;
+
+  /* The on-screen overlay is a lecturer's tool, not something students should
+     see during a show — it is OPT-IN via ?preflight=1. Without the flag the
+     checks still run (console group only) and window.__preflight.runChecks()
+     stays available, so the CI gates (wbw-check, ci-gate, preflight-corner,
+     archflow-negative) keep working on flag-less URLs. */
+  const SHOW_OVERLAY = params.get('preflight') === '1';
 
   const KNOWN_DEMO_KINDS = ['function-plot', 'distribution'];
   /* Warn when auto-fit drops below this — matches deck.js's own console
@@ -490,9 +498,10 @@
     });
     console.groupEnd();
 
-    /* Surface as discreet overlay if there are errors/warnings.
+    /* Surface as discreet overlay if there are errors/warnings — but ONLY
+       when explicitly requested via ?preflight=1 (hidden from students).
        Info-only is silent (otherwise every deck without notes nags). */
-    if (errors + warns > 0) renderOverlay(issues);
+    if (SHOW_OVERLAY && errors + warns > 0) renderOverlay(issues);
     return issues;
   }
 

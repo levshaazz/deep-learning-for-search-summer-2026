@@ -189,8 +189,10 @@ def main():
     recall_sub = [1, 1, 1]
     recall_joint = 0
 
-    # ── multi-seed robustness: does the raw < rm3 < hyde ordering survive corpus jitter? ─────────────
-    holds = {"raw>rm3": 0, "rm3>hyde": 0, "raw>hyde": 0, "trap_beats_gold_raw": 0}
+    # ── multi-seed robustness: does the quality ordering hyde > rm3 > raw survive corpus jitter? ─────
+    # NB: technique_ranks returns RANKS (higher = worse), so tr["raw"] > tr["rm3"] means RM3 BEATS raw.
+    # Keys are named winner-first ("x_beats_y") to keep the stored semantics unambiguous.
+    holds = {"rm3_beats_raw": 0, "hyde_beats_rm3": 0, "hyde_beats_raw": 0, "trap_beats_gold_raw": 0}
     rr_samples = {"raw": [], "rm3": [], "hyde": []}
     for sd in SEEDS:
         rng = random.Random(sd)
@@ -199,12 +201,12 @@ def main():
         rr_samples["raw"].append(1.0 / tr["raw"])
         rr_samples["rm3"].append(1.0 / tr["rm3"])
         rr_samples["hyde"].append(1.0 / tr["hyde"])
-        if tr["raw"] > tr["rm3"]:
-            holds["raw>rm3"] += 1
-        if tr["rm3"] > tr["hyde"]:
-            holds["rm3>hyde"] += 1
-        if tr["raw"] > tr["hyde"]:
-            holds["raw>hyde"] += 1
+        if tr["raw"] > tr["rm3"]:      # raw ranks WORSE than rm3 ⇒ RM3 beats raw
+            holds["rm3_beats_raw"] += 1
+        if tr["rm3"] > tr["hyde"]:     # rm3 ranks WORSE than hyde ⇒ HyDE beats RM3
+            holds["hyde_beats_rm3"] += 1
+        if tr["raw"] > tr["hyde"]:     # raw ranks WORSE than hyde ⇒ HyDE beats raw
+            holds["hyde_beats_raw"] += 1
         rjc = rank_corpus(Q_BAG, jc)
         if rank_of(rjc, TRAP) < rank_of(rjc, GOLD):
             holds["trap_beats_gold_raw"] += 1
@@ -280,7 +282,8 @@ def main():
                                    "hop propagates." % (PER_HOP_P, HOPS, compose_success)},
         "robustness": {"seeds": n, "orderingHoldFraction": hold_frac, "rrBand": recall_band,
                        "_note": "over %d seeds jittering the corpus bags: fraction where each ordering invariant "
-                                "still holds (1.0 = knife-edge-free)." % n},
+                                "still holds (1.0 = knife-edge-free). Keys are winner-first: 'x_beats_y' = x ranks "
+                                "the gold better than y does." % n},
         "config": {"seeds": n, "rrfK": RRF_K, "perHopP": PER_HOP_P, "hops": HOPS,
                    "cosine": "set-overlap |A n B|/sqrt(|A||B|)"},
     }

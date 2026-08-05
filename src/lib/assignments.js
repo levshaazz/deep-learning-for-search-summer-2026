@@ -20,6 +20,7 @@ export const assignmentsMeta = {
   groups: {
     lab: { en: 'Labs', ru: 'Лабораторные', tt: 'Лаборатор эшләр' },
     homework: { en: 'Homeworks', ru: 'Домашние задания', tt: 'Өй эшләре' },
+    project: { en: 'Final project', ru: 'Финальный проект', tt: 'Йомгаклау проекты' },
   },
   setup: {
     heading: { en: 'Common setup (applies to every activity)', ru: 'Общий setup (для всех активностей)', tt: 'Гомуми setup (һәр бирем өчен)' },
@@ -89,6 +90,20 @@ export const assignments = [
       ] },
       { t: 'h4', v: { en: 'Deliverables', ru: 'Что сдавать', tt: 'Нәрсә тапшырырга' } },
       { t: 'p', v: { en: 'lab.py (or a notebook) that runs end-to-end and prints the comparison table, plus a 1-page report: the mean-nDCG@10 table, one divergent-query table, and the analysis paragraph.', ru: 'lab.py (или notebook), работающий от начала до конца и печатающий таблицу сравнения, плюс отчёт на 1 страницу: таблица среднего nDCG@10, таблица расходящегося запроса и абзац анализа.', tt: 'Башыннан ахырына кадәр эшләп, чагыштыру таблицасын бастыручы lab.py (яки notebook), һәм 1 битлек отчёт: уртача nDCG@10 таблицасы, бер аерылган сорау таблицасы һәм анализ абзацы.' } },
+      { t: 'h4', v: { en: 'Stepik autograder — control numbers', ru: 'Автогрейдер Stepik — контрольные числа' } },
+      { t: 'p', v: { en: 'On Stepik the coding part is checked by a deterministic autograder (stepik/graders/grader_lab1_bm25.py): an 8-document mini-corpus is embedded in the checker (no network, no models, tolerance 1e-4). Define the functions below in solution.py; your implementation must reproduce these numbers exactly. The full nfcorpus run goes into the report (peer-reviewed).', ru: 'На Stepik кодовая часть проверяется детерминированным автогрейдером (stepik/graders/grader_lab1_bm25.py): мини-корпус из 8 документов вшит в чекер (без интернета и моделей, допуск 1e-4). Определите в solution.py функции ниже; ваша реализация обязана воспроизвести эти числа точно. Полный прогон на nfcorpus идёт в отчёт (peer-review).' } },
+      { t: 'code', v: `# solution.py — обязательные функции (Stepik: grader_lab1_bm25.py)
+tokenize(text) -> list[str]                 # lower; не-алфанум -> пробел; split
+build_index(docs) -> {term: {doc_id: tf}}
+tfidf_search(docs, query, k) -> [(doc_id, score)]   # w = tf * ln(N/df)
+bm25_search(docs, query, k, k1=1.5, b=0.75)         # idf = ln(1+(N-df+0.5)/(df+0.5))
+ndcg_at_k(ranking, rels, k) -> float        # gain 2^rel-1, discount log2(i+1)
+
+# Контрольные числа (мини-корпус, tie-break: score desc, doc_id asc):
+tfidf_search(docs, 'cat on mat', 3) == [('d1', 3.3480), ('d5', 1.9617), ('d8', 1.3863)]
+bm25_search(docs, 'cat on mat', 3)  == [('d1', 3.4834), ('d5', 1.5611), ('d8', 1.2436)]
+bm25_search(docs, 'dog', 3)         == [('d2', 0.9170), ('d4', 0.8665), ('d5', 0.7805)]
+mean nDCG@10: TF-IDF = 0.9660  ·  BM25 = 0.9685` },
       { t: 'h4', v: { en: 'Grading (100)', ru: 'Оценка (100)', tt: 'Бәяләү (100)' } },
       { t: 'grade', rows: [
         { label: { en: 'Inverted index correct', ru: 'Инвертированный индекс', tt: 'Инверт индексы дөрес' }, w: '20' },
@@ -104,7 +119,7 @@ export const assignments = [
     slug: 'hw-ranking-metrics',
     kind: 'homework',
     code: 'A1',
-    status: 'soon',
+    status: 'ready',
     title: { en: 'Deeper experiments + paper essay', ru: 'Глубже эксперименты + эссе по статье', tt: 'Тирәнрәк экспериментлар + мәкалә буенча эссе' },
     blurb: {
       en: 'Four rankers, three metrics, a parameter sweep, a tokenization study and a significance test — then read one paper and re-draw its hero figure by hand.',
@@ -133,6 +148,19 @@ export const assignments = [
         { label: { en: 'Tokenization study', ru: 'Токенизация', tt: 'Токенлаштыруны өйрәнү' }, w: '12' },
         { label: { en: 'Significance', ru: 'Значимость', tt: 'Мөһимлек' }, w: '8' },
       ] },
+      { t: 'h4', v: { en: 'Stepik autograder — control numbers', ru: 'Автогрейдер Stepik — контрольные числа' } },
+      { t: 'p', v: { en: 'The by-hand metric and fusion logic is checked by a deterministic autograder (stepik/graders/grader_a1_metrics.py): 3 queries with graded qrels over 12 documents and frozen boolean/TF-IDF/BM25 rankings are embedded in the checker (no network, tolerance 1e-4). The full nfcorpus study, plots and the significance test go into the report (peer-reviewed).', ru: 'Метрики и слияние «руками» проверяет детерминированный автогрейдер (stepik/graders/grader_a1_metrics.py): 3 запроса с градуированными qrels на 12 документах и замороженные ранжирования boolean/TF-IDF/BM25 вшиты в чекер (без интернета, допуск 1e-4). Полное исследование на nfcorpus, графики и тест значимости идут в отчёт (peer-review).' } },
+      { t: 'code', v: `# solution.py — обязательные функции (Stepik: grader_a1_metrics.py)
+ndcg_at_k(ranking, rels, k)        # gain 2^rel-1, discount log2(i+1)
+average_precision(ranking, rels)   # бинарная rel>=1, знаменатель = все релевантные
+reciprocal_rank(ranking, rels)
+rrf_fuse(rankings, k=60)           # sum 1/(k+rank), rank с 1; desc, tie doc_id
+
+# Контрольные числа (фикстура вшита в грейдер):
+mean nDCG@10: boolean = 0.6043 · TF-IDF = 0.7806 · BM25 = 0.7922
+mean MAP(BM25) = 0.7560 · mean MRR(BM25) = 0.6667
+RRF(TF-IDF + BM25) top-5 q1 = ['d01','d05','d02','d03','d07']
+mean nDCG@10 RRF = 0.9503   # консенсус бьёт ОБЕ одиночные системы` },
 
       { t: 'h3', v: { en: 'Part 2 — Paper reading & hand-written essay (40%)', ru: 'Часть 2 — Чтение статьи и рукописное эссе (40%)', tt: '2 нче өлеш — Мәкалә уку һәм кулдан язылган эссе (40%)' } },
       { t: 'p', v: { en: 'Pick one of the five papers below, read it closely, and write a two-page A4 hand-written essay in your own words — your interpretation, not a summary. Then complete the hero-figure sub-task.', ru: 'Выберите одну из пяти статей ниже, внимательно прочитайте и напишите рукописное эссе на две страницы A4 своими словами — ваша интерпретация, не пересказ. Затем выполните подзадачу с hero-фигурой.', tt: 'Түбәндәге биш мәкаләнең берсен сайла, аны игътибар белән укы һәм үз сүзләрең белән ике битлек A4 кулдан язылган эссе яз — синең интерпретация, кыскача эчтәлек түгел. Аннары төп рәсем подбиремен башкар.' } },
@@ -160,7 +188,7 @@ export const assignments = [
     slug: 'lab-cascade',
     kind: 'lab',
     code: 'Lab 2',
-    status: 'soon',
+    status: 'ready',
     title: { en: 'Build the neural cascade: Scouts → Judges', ru: 'Собери нейронный каскад: Разведчики → Судьи', tt: 'Нейрон каскадны төз: Разведчиклар → Хөкемчеләр' },
     blurb: {
       en: 'A dense bi-encoder Scout and a cross-encoder Judge on top of your Lab-1 BM25 — wire the retrieve→rerank cascade and measure the lift and the rerank-depth tradeoff.',
@@ -183,6 +211,19 @@ export const assignments = [
       ] },
       { t: 'h4', v: { en: 'Deliverables', ru: 'Что сдавать', tt: 'Нәрсә тапшырырга' } },
       { t: 'p', v: { en: 'lab.py (or a notebook) that runs end-to-end and prints the lift-ladder table, plus a 1-page report: the three-stage nDCG@10 table, the depth-vs-nDCG plot, the one before/after query, and a short analysis paragraph (why the cross-encoder helps; why deeper reranking saturates).', ru: 'lab.py (или notebook), работающий от начала до конца и печатающий таблицу-лестницу, плюс отчёт на 1 страницу: таблица nDCG@10 по трём стадиям, график глубина-vs-nDCG, один запрос до/после и абзац анализа (почему cross-encoder помогает; почему глубокий реранк насыщается).' } },
+      { t: 'h4', v: { en: 'Stepik autograder — control numbers', ru: 'Автогрейдер Stepik — контрольные числа' } },
+      { t: 'p', v: { en: 'On Stepik the cascade LOGIC is checked by a deterministic autograder (stepik/graders/grader_lab2_cascade.py): the "embeddings" are a synthetic fixture (seed 20260605) and the "cross-encoder" is a frozen score table — no models on the runner, tolerance 1e-4. Your cosine search, stable rerank and nDCG must reproduce the numbers below; the real SBERT + cross-encoder run on nfcorpus goes into the report (peer-reviewed).', ru: 'На Stepik ЛОГИКА каскада проверяется детерминированным автогрейдером (stepik/graders/grader_lab2_cascade.py): «эмбеддинги» — синтетическая фикстура (seed 20260605), «cross-encoder» — замороженная таблица оценок; моделей на раннере нет, допуск 1e-4. Ваши косинусный поиск, стабильный реранк и nDCG обязаны воспроизвести числа ниже; реальный прогон SBERT + cross-encoder на nfcorpus идёт в отчёт (peer-review).' } },
+      { t: 'code', v: `# solution.py — обязательные функции (Stepik: grader_lab2_cascade.py)
+cosine_topk(q, docs, k) -> list[doc_id]   # нормируй внутри; desc, tie doc_id
+rerank(candidates, ce_scores, k)          # sort по score desc, СТАБИЛЬНО
+ndcg_at_k(ranking, rels, k)               # gain 2^rel-1, discount log2(i+1)
+
+# Контрольные числа (40 синтетических документов, 4 запроса, seed 20260605):
+cosine_topk(q0, docs, 10)[:3] == ['d08', 'd11', 'd16']
+mean nDCG@10, dense alone            = 0.5148
+cascade: rerank depth=5              = 0.4998   # слишком мелкий реранк ХУЖЕ dense
+cascade: rerank depth=20             = 0.9455   # колено
+cascade: rerank depth=40 (полный)    = 1.0000   # идеальный судья на полной глубине` },
       { t: 'h4', v: { en: 'Grading (100)', ru: 'Оценка (100)', tt: 'Бәяләү (100)' } },
       { t: 'grade', rows: [
         { label: { en: 'Dense bi-encoder retrieval', ru: 'Плотный bi-encoder-ретрив' }, w: '20' },
@@ -198,7 +239,7 @@ export const assignments = [
     slug: 'hw-alliance',
     kind: 'homework',
     code: 'A2',
-    status: 'soon',
+    status: 'ready',
     title: { en: 'The Alliance: hybrid fusion + Learning to Rank', ru: 'Альянс: гибридное слияние + Learning to Rank', tt: 'Альянс: гибрид берләштерү + Learning to Rank' },
     blurb: {
       en: 'Run BM25, dense, SPLADE and ColBERT as four retrievers; fuse them (RRF vs convex); then learn a combiner by hand (RankNet → LambdaRank) — and read one paper, redrawing its hero figure.',
@@ -227,6 +268,25 @@ export const assignments = [
         { label: { en: 'Feature ablation', ru: 'Абляция признаков' }, w: '8' },
         { label: { en: 'Metrics + significance', ru: 'Метрики + значимость' }, w: '7' },
       ] },
+      { t: 'h4', v: { en: 'Stepik autograder — control numbers', ru: 'Автогрейдер Stepik — контрольные числа' } },
+      { t: 'p', v: { en: 'The by-hand math of the alliance is checked by a deterministic autograder (stepik/graders/grader_a2_alliance.py): SPLADE term-weight dicts, ColBERT token matrices and dense/sparse score tables are frozen fixtures — no models on the runner, tolerance 1e-4. The real SPLADE/ColBERT runs, the alpha-sweep and the LTR training curves go into the report (peer-reviewed).', ru: 'Математику альянса «руками» проверяет детерминированный автогрейдер (stepik/graders/grader_a2_alliance.py): словари весов SPLADE, потокенные матрицы ColBERT и таблицы dense/sparse-оценок — замороженные фикстуры; моделей на раннере нет, допуск 1e-4. Реальные прогоны SPLADE/ColBERT, α-свип и кривые обучения LTR идут в отчёт (peer-review).' } },
+      { t: 'code', v: `# solution.py — обязательные функции (Stepik: grader_a2_alliance.py)
+splade_dot(qw, dw)                      # sum qw[t]*dw[t] по общим термам
+maxsim(Eq, Ed)                          # sum_i max_j dot(Eq[i], Ed[j])
+minmax_norm(scores) · convex_combine(dense, sparse, alpha)
+rrf_fuse(rankings, k=60)
+ranknet_prob(si, sj) · ranknet_loss(si, sj)      # P = sigma(si - sj); -ln P
+ranknet_step(w, xi, xj, lr)             # w' = w + lr*(1-P)*(xi - xj)
+lambda_weight(si, sj, dndcg)            # |dNDCG| * sigma(sj - si)
+
+# Контрольные числа (фикстуры вшиты в грейдер):
+splade_dot: d1 = 1.2800 · d2 = 1.6800
+maxsim(Eq 3x4, Ed 4x4) = 2.3300
+minmax_norm(sparse)['d3'] = 0.6875
+convex_combine(alpha=0.5) = ['d2','d1','d5','d6','d4','d3']
+ranknet_prob(2,1) = 0.7311 · ranknet_loss(2,1) = 0.3133
+ranknet_step([0.1,-0.2], [1,2], [2,1], lr=0.1) = [0.0426, -0.1426]
+lambda_weight(-0.3, 0.0, 0.12) = 0.0689` },
 
       { t: 'h3', v: { en: 'Part 2 — Paper reading & hand-written essay (40%)', ru: 'Часть 2 — Чтение статьи и рукописное эссе (40%)' } },
       { t: 'p', v: { en: 'Pick one of the five papers below, read it closely, and write a two-page A4 hand-written essay in your own words — your interpretation, not a summary. Then complete the hero-figure sub-task.', ru: 'Выбери одну из пяти статей ниже, внимательно прочитай и напиши рукописное эссе на две страницы A4 своими словами — твоя интерпретация, не пересказ. Затем выполни подзадачу с hero-фигурой.' } },
@@ -259,7 +319,7 @@ export const assignments = [
     slug: 'lab-ann',
     kind: 'lab',
     code: 'Lab 3',
-    status: 'soon',
+    status: 'ready',
     title: { en: 'The index at scale: build ANN by hand (IVF · PQ · IVF-PQ)', ru: 'Индекс на масштабе: ANN руками (IVF · PQ · IVF-PQ)', tt: 'Масштабта индекс: ANN кулдан (IVF · PQ · IVF-PQ)' },
     blurb: {
       en: 'Take your Lab-2 dense embeddings and index them the way billion-scale systems do — build IVF, Product Quantization and IVF-PQ by hand, and measure the recall / work / memory triangle against exact search.',
@@ -303,6 +363,20 @@ corpus = gold + slice_docs                # ~5K docs, gold guaranteed present
       ] },
       { t: 'h4', v: { en: 'Deliverables', ru: 'Что сдавать', tt: 'Нәрсә тапшырырга' } },
       { t: 'p', v: { en: 'lab.py (or a notebook) that runs end-to-end and prints the tradeoff table, plus a 1-page report: the tradeoff table, the nprobe recall/work curves, the (m,k) memory-vs-recall plot, and the analysis paragraph.', ru: 'lab.py (или notebook), работающий от начала до конца и печатающий таблицу компромиссов, плюс отчёт на 1 страницу: таблица компромиссов, кривые recall/работа от nprobe, график память-vs-recall по (m,k) и абзац анализа.' } },
+      { t: 'h4', v: { en: 'Stepik autograder — control numbers', ru: 'Автогрейдер Stepik — контрольные числа' } },
+      { t: 'p', v: { en: 'On Stepik the index LOGIC is checked by a deterministic autograder (stepik/graders/grader_lab3_ann.py): 400 synthetic unit vectors (d=16, 8 clusters, seed 20260605); the coarse centroids and the PQ codebooks are GIVEN as fixtures — you implement the index, not the k-means. All distances are squared L2, ascending. Tolerance 1e-4; the EnterpriseRAG-Bench run goes into the report (peer-reviewed).', ru: 'На Stepik ЛОГИКА индекса проверяется детерминированным автогрейдером (stepik/graders/grader_lab3_ann.py): 400 синтетических unit-векторов (d=16, 8 кластеров, seed 20260605); coarse-центроиды и кодбуки PQ ДАНЫ как фикстуры — вы реализуете индекс, а не k-means. Все расстояния — L2², по возрастанию. Допуск 1e-4; прогон на EnterpriseRAG-Bench идёт в отчёт (peer-review).' } },
+      { t: 'code', v: `# solution.py — обязательные функции (Stepik: grader_lab3_ann.py)
+exact_topk(q, X, k)                       # L2^2 asc, tie: индекс asc
+ivf_assign(X, centroids) · ivf_search(q, X, centroids, invlists, nprobe, k)
+pq_encode(X, codebooks) · adc_table(q, codebooks) · pq_topk(codes, table, k)
+rerank_exact(cands, q, X, k) · recall_at_k(ann, exact) · pq_bytes(m, k)
+
+# Контрольные числа (400 unit-векторов, d=16, nlist=8, m=4, k=16, seed 20260605):
+IVF mean recall@10: nprobe=1 -> 0.9400 (скан 12.4% корпуса)
+                    nprobe=2 -> 0.9933 (скан 24.8%) · nprobe=4 -> 1.0000
+PQ, ADC без re-rank: recall@10 = 0.5267    # потолок PQ: потеря вшита в коды
+PQ + exact re-rank top-100:      1.0000    # re-rank её возвращает
+pq_bytes(4,16) = 2.0 байта/вектор (сжатие 32x) · pq_bytes(8,256) = 8.0` },
       { t: 'h4', v: { en: 'Grading (100)', ru: 'Оценка (100)', tt: 'Бәяләү (100)' } },
       { t: 'grade', rows: [
         { label: { en: 'IVF (cells + nprobe scan) correct', ru: 'IVF (ячейки + скан nprobe)' }, w: '25' },
@@ -318,7 +392,7 @@ corpus = gold + slice_docs                # ~5K docs, gold guaranteed present
     slug: 'hw-rag',
     kind: 'homework',
     code: 'A3',
-    status: 'soon',
+    status: 'ready',
     title: { en: 'Build the RAG retriever, then judge it', ru: 'Собери RAG-ретривер, потом суди его', tt: 'RAG-ретриверны җый, аннары аны хөкем ит' },
     blurb: {
       en: 'Chunk an enterprise corpus and measure the recall floor; lift retrieval with multi-query, HyDE and RAG-Fusion; then evaluate it by hand (context precision & recall from gold answer-facts) and expose an LLM-judge’s position, verbosity and Goodhart biases — plus one paper essay.',
@@ -360,6 +434,24 @@ corpus = [d for d in stream
         { label: { en: 'LLM-judge bias lab + swap-and-average', ru: 'Лаборатория смещений судьи + swap-and-average' }, w: '12' },
         { label: { en: 'Metrics + significance', ru: 'Метрики + значимость' }, w: '6' },
       ] },
+      { t: 'h4', v: { en: 'Stepik autograder — control numbers', ru: 'Автогрейдер Stepik — контрольные числа' } },
+      { t: 'p', v: { en: 'The by-hand RAG logic is checked by a deterministic autograder (stepik/graders/grader_a3_rag.py): a 52-token mini-memo with gold answer-facts, a frozen chunk-ranking and two frozen judge-verdict lists are embedded in the checker. One substitution: the cosine >= 0.6 fact-match rule of the full homework becomes a token-overlap rule (>= 0.8 of the fact’s token set) — no encoder on the runner. Tolerance 1e-4; the EnterpriseRAG-Bench study and the live LLM-judge rates go into the report (peer-reviewed).', ru: 'RAG-логику «руками» проверяет детерминированный автогрейдер (stepik/graders/grader_a3_rag.py): мини-мемо из 52 токенов с gold answer-facts, замороженное ранжирование чанков и два замороженных списка вердиктов судьи вшиты в чекер. Одна замена: правило матчинга cosine >= 0.6 из полной домашки на раннере заменено правилом пересечения токенов (>= 0.8 множества токенов факта) — энкодера на раннере нет. Допуск 1e-4; исследование на EnterpriseRAG-Bench и живые доли смещений LLM-судьи идут в отчёт (peer-review).' } },
+      { t: 'code', v: `# solution.py — обязательные функции (Stepik: grader_a3_rag.py)
+n_chunks(L, size, overlap)                # ceil((L-overlap)/(size-overlap))
+chunk_fixed(tokens, size, overlap)        # окна с шагом size-overlap
+fact_present(fact, chunk)                 # пересечение токенов >= 0.8
+recall_floor(facts, chunks) · context_recall(facts, chunks)
+context_precision(parents, relevant)      # dedup до документа, потом AP
+weighted_mean(scores, weights)
+position_follow_rate(run1, run2) · consistent_win_rate(run1, run2)
+
+# Контрольные числа (мини-мемо 52 токена + замороженные вердикты):
+n_chunks(1000, 200, 50) = 7
+recall floor (size=16): overlap=0 -> 0.50 · overlap=4 -> 0.75   # overlap спасает факт
+context_precision([d1,d1,d2,d3,d1,d4], {d1,d3}) = 0.8333        # dedup-MAP
+Goodhart-флип: A=4.3333 > C=4.0000 (равные веса)
+            -> A=4.0000 < C=4.2500 (completeness x2, ни слова не изменено)
+position_follow_rate = 0.5000 · consistent_win_rate (swap-and-average) = 0.3333` },
 
       { t: 'h3', v: { en: 'Part 2 — Paper reading & hand-written essay (40%)', ru: 'Часть 2 — Чтение статьи и рукописное эссе (40%)' } },
       { t: 'p', v: { en: 'Pick one of the papers below, read it closely, and write a two-page A4 hand-written essay in your own words — your interpretation, not a summary. Then complete the hero-figure sub-task.', ru: 'Выбери одну из статей ниже, внимательно прочитай и напиши рукописное эссе на две страницы A4 своими словами — твоя интерпретация, не пересказ. Затем выполни подзадачу с hero-фигурой.' } },
@@ -382,6 +474,69 @@ corpus = [d for d in stream
         { label: { en: 'Hero-figure redesign (insight added)', ru: 'Перерисовка hero-фигуры (добавленный инсайт)' }, w: '15' },
         { label: { en: 'Clarity, structure, handwriting', ru: 'Ясность, структура, почерк' }, w: '5' },
       ] },
+    ],
+  },
+
+  {
+    slug: 'project-search',
+    kind: 'project',
+    code: 'FP',
+    status: 'ready',
+    title: { en: 'Final project: your own search service, end-to-end', ru: 'Финальный проект: свой поисковый сервис end-to-end', tt: 'Йомгаклау проекты: үз эзләү сервисың, башыннан ахырына кадәр' },
+    blurb: {
+      en: 'One corpus you choose, one working retrieval service you build and defend: hand-built core (index, BM25, fusion, metrics), a neural stage, an honest evaluation with ablations, and a defense. 20% of the course grade.',
+      ru: 'Один выбранный вами корпус, один работающий поисковый сервис, который вы собираете и защищаете: ядро руками (индекс, BM25, слияние, метрики), нейронная ступень, честная оценка с абляциями и защита. 20% итоговой оценки курса.',
+      tt: 'Үзең сайлаган бер корпус, үзең җыеп яклаган бер эшләүче эзләү сервисы: ядрәсе кулдан (индекс, BM25, берләштерү, метрикалар), нейрон баскычы, абляцияләр белән намуслы бәяләү һәм яклау. Курс бәясенең 20%ы.',
+    },
+    due: { en: 'Capstone · 20% of the grade · 4 checkpoints', ru: 'Итоговый · 20% оценки · 4 чек-поинта', tt: 'Йомгаклау · бәянең 20%ы · 4 чек-поинт' },
+    blocks: [
+      { t: 'lead', v: { en: 'Everything the Labs and Homeworks built in isolation — the inverted index, BM25, the neural cascade, hybrid fusion, the ANN index, the RAG layer, the metrics — becomes ONE system on a corpus you care about. The project is worth 20% of the course grade (see the course assessment). The same ground rules apply: the core is written by hand, libraries only where the common setup allows them, seed 20260605, and every number you report must be reproducible by re-running your code.', ru: 'Всё, что Лабы и домашки строили порознь — инвертированный индекс, BM25, нейронный каскад, гибридное слияние, ANN-индекс, RAG-слой, метрики — становится ОДНОЙ системой на корпусе, который вам небезразличен. Проект весит 20% итоговой оценки курса (см. оценивание курса). Правила те же: ядро пишется руками, библиотеки — только там, где их разрешает общий setup, seed 20260605, и каждое заявленное число воспроизводится перезапуском вашего кода.' } },
+
+      { t: 'h4', v: { en: 'Theme & scope', ru: 'Тема и рамки' } },
+      { t: 'p', v: { en: 'Build a working end-to-end search service over a real corpus of your choice (≥ 5K documents; e.g. a documentation set, a wiki dump slice, arXiv abstracts of one field, your city’s open data, a licensed forum dump — anything legal to use and interesting to query). The service must answer free-text queries through a pipeline you own end to end: ingestion → indexing → first-stage retrieval → reranking → (optionally) a RAG answer layer → evaluation. A thin UI or CLI is enough; the substance is the retrieval quality and the honesty of its measurement.', ru: 'Соберите работающий end-to-end поисковый сервис над реальным корпусом на ваш выбор (≥ 5 тыс. документов; например, набор документации, срез вики-дампа, аннотации arXiv одной области, открытые данные вашего города, лицензионно чистый дамп форума — всё, что легально использовать и интересно спрашивать). Сервис отвечает на свободные текстовые запросы пайплайном, которым вы владеете целиком: инжест → индексирование → первая ступень поиска → реранкинг → (опционально) RAG-слой ответа → оценка. Тонкого UI или CLI достаточно; суть — качество поиска и честность его измерения.' } },
+
+      { t: 'h4', v: { en: 'Required stages', ru: 'Обязательные этапы' } },
+      { t: 'ol', v: [
+        { en: 'Corpus & problem statement: the corpus, why it is interesting to search, 20+ real queries you expect it to answer, and a small judged set you build yourself (≥ 20 queries × top-10 pooled judgments, graded 0..2; document your judging rule).', ru: 'Корпус и постановка: сам корпус, чем он интересен для поиска, 20+ реальных запросов, на которые он должен отвечать, и небольшой судейский набор, который вы строите сами (≥ 20 запросов × top-10 pooled-оценки, градуированные 0..2; опишите правило судейства).' },
+        { en: 'Classical baseline (by hand): your inverted index + BM25 (Lab 1 code, re-indexed), with nDCG@10 / MAP / MRR (by hand) over your judged set — this line anchors every later claim.', ru: 'Классический базлайн (руками): ваш инвертированный индекс + BM25 (код Лабы 1, переиндексированный), с nDCG@10 / MAP / MRR (руками) на вашем судейском наборе — эта строка якорит все дальнейшие утверждения.' },
+        { en: 'A neural stage: a bi-encoder retriever and/or a cross-encoder reranker (Lab 2), or SPLADE/ColBERT scoring (A2) — encoders pretrained, the search/rerank/fusion logic yours. Show the lift over the baseline in one table.', ru: 'Нейронная ступень: bi-encoder-ретривер и/или cross-encoder-реранкер (Лаба 2), либо скоринг SPLADE/ColBERT (A2) — энкодеры претренированные, логика поиска/реранка/слияния ваша. Покажите прирост над базлайном одной таблицей.' },
+        { en: 'A scale OR RAG component (pick at least one): (a) your IVF / PQ / IVF-PQ index (Lab 3) with the recall/work/memory tradeoff measured on YOUR vectors, or (b) a RAG answer layer (A3): chunking with a measured recall floor, one query-rewrite technique, and context precision/recall by hand.', ru: 'Компонент масштаба ИЛИ RAG (минимум один): (а) ваш индекс IVF / PQ / IVF-PQ (Лаба 3) с треугольником recall/работа/память, измеренным на ВАШИХ векторах, или (б) RAG-слой ответа (A3): чанкинг с измеренным recall floor, одна техника переписывания запроса и context precision/recall руками.' },
+        { en: 'Evaluation & ablations: one results table over your judged set (baseline / neural / hybrid / final), at least two ablations (e.g. drop the reranker; vary the fusion; vary chunking), a paired significance test of the final system vs BM25, and an error analysis of 5 failure queries with concrete examples.', ru: 'Оценка и абляции: одна таблица результатов на вашем судейском наборе (базлайн / нейро / гибрид / финал), минимум две абляции (например, убрать реранкер; поменять слияние; поменять чанкинг), парный тест значимости финальной системы против BM25 и разбор ошибок на 5 провальных запросах с конкретными примерами.' },
+        { en: 'Engineering & reproducibility: a README with one command that rebuilds the index and reproduces the results table from scratch (fixed seed 20260605); state every formula variant; no un-allowed libraries in the core.', ru: 'Инженерия и воспроизводимость: README с одной командой, которая с нуля пересобирает индекс и воспроизводит таблицу результатов (фиксированный seed 20260605); все варианты формул указаны; никаких неразрешённых библиотек в ядре.' },
+      ] },
+
+      { t: 'h4', v: { en: 'Checkpoints', ru: 'Чек-поинты' } },
+      { t: 'ul', v: [
+        { en: 'CP1 (week 2 of the project): corpus chosen, problem statement + 20 queries submitted. Feedback, no grade.', ru: 'CP1 (2-я неделя проекта): корпус выбран, постановка + 20 запросов сданы. Фидбек, без оценки.' },
+        { en: 'CP2 (week 4): judged set + BM25 baseline numbers on it. This gate is hard: no baseline — no further grading.', ru: 'CP2 (4-я неделя): судейский набор + числа BM25-базлайна на нём. Ворота жёсткие: нет базлайна — дальше не оценивается.' },
+        { en: 'CP3 (week 6): neural stage integrated, first lift table.', ru: 'CP3 (6-я неделя): нейронная ступень встроена, первая таблица прироста.' },
+        { en: 'CP4: final report + code + defense (or the self-paced Stepik track below).', ru: 'CP4: финальный отчёт + код + защита (или самотемповый Stepik-трек ниже).' },
+      ] },
+
+      { t: 'h4', v: { en: 'Deliverables', ru: 'Что сдавать' } },
+      { t: 'p', v: { en: 'The repository (code + the one-command reproduce script + README), the judged query set with your judging rule, a 4–6 page report (corpus, architecture diagram, results table, ablations, significance, error analysis, what you would build next), and a ≤ 10-minute demo (live at the defense, or a screencast on the Stepik track).', ru: 'Репозиторий (код + reproduce-скрипт одной командой + README), судейский набор запросов с правилом судейства, отчёт на 4–6 страниц (корпус, схема архитектуры, таблица результатов, абляции, значимость, разбор ошибок, что бы вы строили дальше) и демо ≤ 10 минут (вживую на защите или скринкаст в Stepik-треке).' } },
+
+      { t: 'h4', v: { en: 'Grading (100)', ru: 'Оценка (100)' } },
+      { t: 'grade', rows: [
+        { label: { en: 'Problem statement, corpus, judged set', ru: 'Постановка, корпус, судейский набор' }, w: '10' },
+        { label: { en: 'Classical baseline + metrics by hand', ru: 'Классический базлайн + метрики руками' }, w: '15' },
+        { label: { en: 'Neural stage (correct, integrated, lift shown)', ru: 'Нейронная ступень (корректна, встроена, прирост показан)' }, w: '20' },
+        { label: { en: 'Scale or RAG component', ru: 'Компонент масштаба или RAG' }, w: '15' },
+        { label: { en: 'Evaluation: ablations + significance + error analysis', ru: 'Оценка: абляции + значимость + разбор ошибок' }, w: '20' },
+        { label: { en: 'Engineering & reproducibility (one-command rerun)', ru: 'Инженерия и воспроизводимость (перезапуск одной командой)' }, w: '10' },
+        { label: { en: 'Defense / peer-review track', ru: 'Защита / peer-review-трек' }, w: '10' },
+      ] },
+
+      { t: 'h4', v: { en: 'Defense criteria (campus track)', ru: 'Критерии защиты (очный трек)' } },
+      { t: 'ul', v: [
+        { en: '10 minutes: live demo on 3 queries the committee names on the spot, plus your prepared results story.', ru: '10 минут: живое демо на 3 запросах, которые комиссия называет на месте, плюс подготовленный рассказ о результатах.' },
+        { en: 'You can explain every number in your table: where it comes from, why it moved, what would break it.', ru: 'Вы можете объяснить каждое число в своей таблице: откуда оно, почему сдвинулось, что его сломает.' },
+        { en: 'You can defend one design decision against an alternative (e.g. why RRF and not a convex combination; why this chunk size).', ru: 'Вы можете защитить одно проектное решение против альтернативы (например, почему RRF, а не выпуклая комбинация; почему такой размер чанка).' },
+        { en: 'Honesty over polish: a negative result, measured and explained, scores; a shiny demo with unexplained numbers does not.', ru: 'Честность важнее лоска: отрицательный результат, измеренный и объяснённый, засчитывается; блестящее демо с необъяснёнными числами — нет.' },
+      ] },
+
+      { t: 'callout', title: { en: 'Self-paced Stepik track (no oral defense)', ru: 'Самотемповый Stepik-трек (без устной защиты)' }, v: { en: 'On Stepik the 10 defense points are earned asynchronously: (1) attach the ≤ 10-minute screencast of your demo (the 3 demo queries are drawn deterministically from your own query set: sort your query file’s lines, take lines 3, 7 and 13 — stated in the report so a reviewer can check); (2) peer-review THREE other projects on this same /100 rubric with at least three concrete, checkable remarks each (rerun their reproduce script if it runs on a laptop); (3) answer the reviews you receive with a short rebuttal. Reviews are graded for substance by spot-check; a missing or empty review forfeits the 10 points. The checkpoints become self-checks: the CP2 gate (a judged set + a baseline before anything neural) still applies and is verified from your report.', ru: 'На Stepik 10 баллов защиты добираются асинхронно: (1) приложите скринкаст демо ≤ 10 минут (3 демо-запроса выбираются детерминированно из вашего же набора: отсортируйте строки файла запросов, возьмите строки 3, 7 и 13 — укажите это в отчёте, чтобы ревьюер мог проверить); (2) сделайте peer-review ТРЁХ чужих проектов по этой же рубрике /100, минимум три конкретных проверяемых замечания на каждый (перезапустите их reproduce-скрипт, если он идёт на ноутбуке); (3) ответьте на полученные ревью коротким rebuttal. Ревью выборочно проверяются на содержательность; отсутствующее или пустое ревью — минус все 10 баллов. Чек-поинты превращаются в самопроверки: ворота CP2 (судейский набор + базлайн до всего нейронного) действуют и на Stepik и проверяются по отчёту.' } },
+      { t: 'muted', v: { en: 'No autograder for the project: it is graded by rubric (defense or peer review). Anti-plagiarism: your corpus, your judged set and your seed-20260605 runs make every submission unique and checkable.', ru: 'Автогрейдера у проекта нет: он оценивается по рубрике (защита или peer-review). Антиплагиат: ваш корпус, ваш судейский набор и прогоны с seed 20260605 делают каждую сдачу уникальной и проверяемой.' } },
     ],
   },
 ];

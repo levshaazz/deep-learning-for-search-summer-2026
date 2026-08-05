@@ -116,6 +116,7 @@
 }
 .toc-item .toc-text { display: block; }
 .toc-item .toc-title {
+  display: block; /* was inline span → margin-bottom ignored, title glued to sub */
   font-family: var(--font-serif);
   font-size: 44px;
   line-height: 1.1;
@@ -123,9 +124,33 @@
   color: var(--ink);
 }
 .toc-item .toc-sub {
+  display: block;
   font-family: var(--font-sans);
   font-size: 26px;
   color: var(--ink-3);
+}
+
+/* --- HEADER KICKER GUARD -------------------------------- */
+/* An overlong kicker must never starve the title. components.css gives
+   .slide-kicker white-space:nowrap + flex:0 0 auto while the h2 is
+   flex:1 1 auto / min-width:0 — so a sentence-length kicker (several decks
+   author full subtitles there, up to ~1900px of text) claims the whole
+   header row and the h2 collapses to word-per-line (headers 500–750px tall).
+   That inflated header then cascades: global auto-fit fires, fitContainer
+   sees no room below the header, and pre-flight reports spurious density /
+   fit-clip warnings. Cap the kicker at 40% of the row and let it wrap;
+   short kickers stay on one line and prose headers only get SHORTER
+   (the h2 regains width → fewer 72px lines).
+   `viz` slides are EXCLUDED: their aspect-ratio stages make the global
+   auto-fit equilibrium path-dependent (verified on L5 "45 UMAP": any header
+   perturbation — even a shorter one — re-lands the fit from 0.543× at
+   exactly-1080px to 0.692× with a 34px spill), so they keep the legacy
+   nowrap geometry byte-identically.
+   (.slide prefix out-specifies components.css, which loads after this file.) */
+.slide:not([data-type="viz"]) .slide-header .slide-kicker {
+  white-space: normal;
+  flex: 0 1 auto;
+  max-width: 40%;
 }
 
 /* --- LEARNING OBJECTIVES -------------------------------- */
