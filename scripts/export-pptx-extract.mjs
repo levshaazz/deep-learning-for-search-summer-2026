@@ -176,7 +176,13 @@ async function run() {
         const slides = [];
         await withPage(browser, { viewport: VIEW }, async (page) => {
           await page.goto(server.href(deck), { waitUntil: 'networkidle' });
-          await page.evaluate((l) => { document.documentElement.dataset.lang = l; }, lang);
+          await page.evaluate((l) => {
+            document.documentElement.dataset.lang = l;
+            // deck chrome must not land in the designer's reference renders
+            const css = document.createElement('style');
+            css.textContent = '.toolbar,.kbd-hint,.step-controls,.preflight-badge{display:none !important}';
+            document.head.appendChild(css);
+          }, lang);
           await page.waitForTimeout(400);
           for (let i = 1; i <= n; i++) {
             await page.evaluate((k) => { location.hash = '#/' + k; }, i);
