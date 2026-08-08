@@ -186,7 +186,12 @@
     // @media print rules), then open the dialog. Restore step state on afterprint (or a fallback).
     setTimeout(() => {
       temp.forEach(([s, st]) => { if (st == null) s.removeAttribute('style'); else s.setAttribute('style', st); });
-      setTimeout(() => { try { window.print(); } finally { setTimeout(restore, 1500); } }, 120);
+      // 3) auto-fit EVERY slide. Navigation fits a slide on entry, so a slide the reader
+      //    never opened carries no fit scale — and print has no stage transform to save it,
+      //    so its overflowing content printed clipped (widget rows cut by the page edge).
+      //    fitAll measures each slide with the same is-active dance navigation uses.
+      try { window.Lecture && window.Lecture.fitAll && window.Lecture.fitAll(); } catch (e) { /* fit is best-effort */ }
+      setTimeout(() => { try { window.print(); } finally { setTimeout(restore, 1500); } }, 260);
     }, 350);
   }
 

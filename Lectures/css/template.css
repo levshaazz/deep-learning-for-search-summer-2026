@@ -449,6 +449,22 @@ details > summary:focus-visible {
     position: static !important;
     inset: auto !important;
   }
+  /* `--fig-max: NNcqh` resolves against the nearest size container, which on screen is
+     `.slides` (absolutely positioned, so 1cqh == 1vh). Print makes `.slides` static, it
+     loses its definite height, and every `cqh` cap collapses to ZERO — illustrations
+     printed 0px wide, i.e. missing from the PDF. Re-establish the container on the slide
+     itself: in print each slide IS exactly 1920×1080, so 1cqh == 10.8px, as on screen. */
+  .slides { container-type: normal !important; }
+  .slide { container-name: slide; container-type: size; }
+  /* On screen a viz slide's kicker may stay `nowrap` because auto-fit scales the whole
+     slide down to compensate. Print has no auto-fit (`.stage` transform is removed), so a
+     nowrap kicker takes its full natural width — measured 1630px — and squeezes the h2 to
+     5px, which then wraps one letter per line UNDER the kicker. Let it wrap on paper. */
+  .slide[data-type="viz"] .slide-header .slide-kicker {
+    white-space: normal !important;
+    flex: 0 1 auto !important;
+    max-width: 40% !important;
+  }
   /* Every slide is a separate page at full canvas size. */
   .slide {
     display: block !important;

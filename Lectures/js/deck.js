@@ -218,6 +218,10 @@
     window.Lecture = window.Lecture || {};
     Object.assign(window.Lecture, {
       goTo, next, prev, toggleOverview, slideAt,
+      /* Re-fit EVERY slide, not just the active one. Printing needs this: the PDF
+         path lays out all 51 slides at once, and a slide the viewer never visited
+         was never auto-fitted, so overflowing content printed CLIPPED. */
+      fitAll: fitAllSlides,
       onChange(fn) { state.onChange.push(fn); fn(state.current, slideAt(state.current)); },
       /* Re-fit a slide (default: the active one) after content grows/shrinks at
          runtime — e.g. a legacy answer reveal or a misconception flip. Native
