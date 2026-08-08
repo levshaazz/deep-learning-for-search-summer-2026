@@ -60,12 +60,12 @@ export const ui = {
     playground: { en: 'Playground — drive the algorithms', ru: 'Площадка — управляй алгоритмами', tt: 'Мәйдан — алгоритмнарга идарә ит' },
     playgroundKicker: {
       en: 'The course lab · every interactive figure in free-play · step / scrub / press play · filter by lecture or topic',
-      ru: 'Лаборатория курса · каждая интерактивная фигура в свободном режиме · шаг / перемотка / запуск · фильтр по лекции или теме',
+      ru: 'Лаборатория курса · каждое интерактивное демо в свободном режиме · шаг / перемотка / запуск · фильтр по лекции или теме',
       tt: 'Курс лабораториясе · һәр интерактив фигура ирекле режимда · адым / сөйрәп күчерү / җибәрү · лекция яки тема буенча фильтр',
     },
     playgroundIntro: {
       en: 'This is the lab. Each card is one of the course’s 60+ interactive figures, freed from the scrolling story — step through it, scrub the slider, or press play to watch the algorithm run. The figures are the same ones that appear in the Book; here you drive them yourself.',
-      ru: 'Это лаборатория. Каждая карточка — одна из 60+ интерактивных фигур курса, освобождённая от скролл-истории — пройди по шагам, перемотай ползунок или нажми play, чтобы увидеть работу алгоритма. Это те же фигуры, что в Книге; здесь ты управляешь ими сам.',
+      ru: 'Это лаборатория. Каждая карточка — одно из 60+ интерактивных демо курса, освобождённое от скролл-истории — пройди по шагам, перемотай ползунок или нажми play, чтобы увидеть работу алгоритма. Это те же демо, что и в Книге; здесь ими управляешь ты.',
       tt: 'Бу — лаборатория. Һәр карта — курсның 60+ интерактив фигурасыннан берсе, скролл-хикәядән аерылган — адымлап уз, йөгерткечне (слайдерны) сөйрә, яки алгоритм эшләвен күрер өчен play бас. Болар — Китаптагы шул үк фигуралар; биредә аларга үзең идарә итәсең.',
     },
     book: { en: 'The Book', ru: 'Книга', tt: 'Китап' },
@@ -91,7 +91,7 @@ export const ui = {
     openSlides: { en: 'Open slides', ru: 'Открыть слайды', tt: 'Слайдларны ачу' },
     readBook: { en: 'Read in the Book', ru: 'Читать в Книге', tt: 'Китапта уку' },
     deepdiveTag: { en: 'Deep-dive', ru: 'Доп. тема', tt: 'Өстәмә' },
-    institution: { en: 'Institution', ru: 'Институт', tt: 'Оешма' },
+    institution: { en: 'Institution', ru: 'Учебное заведение', tt: 'Оешма' },
     instructor: { en: 'Instructor', ru: 'Преподаватель', tt: 'Укытучы' },
     term: { en: 'Term', ru: 'Семестр', tt: 'Семестр' },
     firstLecture: { en: 'First lecture', ru: 'Первая лекция', tt: 'Беренче лекция' },
@@ -151,7 +151,7 @@ export const ui = {
   // Shown on a locale whose page coverage is incomplete (fallback content is visible).
   translationInProgress: {
     en: 'Translation in progress — some text is shown in another language for now.',
-    ru: 'Перевод в процессе — часть текста пока показана на другом языке.',
+    ru: 'Перевод ещё не закончен — часть текста пока показана на другом языке.',
     tt: 'Тәрҗемә бара — кайбер текст хәзергә башка телдә күрсәтелә.',
   },
 };

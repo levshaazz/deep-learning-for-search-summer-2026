@@ -51,10 +51,29 @@ CHECKS = [
     ("E-MASCOT", "E", re.compile(r"S[ée]r[ée]ga|Серега\b|Goodhart|Chunk\s+Norris|Lexical\s+Gremlin|Tokenosaurus|Sir\s+Cosine|Artificer"), "mascot name must be cyrillic in ru"),
     ("E-MIXED", "E", re.compile(r"\b(?=[\w’']*[А-Яа-яЁё])(?=[\w’']*[A-Za-z])[A-Za-zА-Яа-яЁё’']+\b"), "mixed latin+cyrillic word"),
     ("W-VY", "W", re.compile(r"\b[Вв](?:ы|ас|ам|ами)\b|\b[Вв]аш\w*\b"), "обращение на «ты» (§1)"),
-    ("W-KANC", "W", re.compile(r"\b[Дд]анн(?:ый|ая|ое|ые|ого|ой|ом|ых)\b|\b[Яя]вля(?:ется|ются)\b|\b[Оо]существл\w+|имеет место|в рамках"), "канцелярит (§6)"),
+    # NB: bare «данные» is the ordinary word for *data* and must NOT fire — only the
+    # pointer-adjective use ("данный подход") is канцелярит. Requires a following noun
+    # that is not one of the data-domain nouns the course legitimately uses.
+    ("W-KANC", "W", re.compile(
+        r"\b[Дд]анн(?:ый|ая|ое|ого|ой|ом)\s+(?!набор|корпус|срез)[а-яё]{3,}"
+        r"|\b[Яя]вля(?:ется|ются)\b|\b[Оо]существл\w+|имеет место|в рамках"), "канцелярит (§6)"),
+    # The signature tic of this text: relative «что» where Russian wants «который».
+    # Fires only on <noun>, что <finite verb> — the slot «который» would fill.
+    # NB: excludes изъяснительное «что» (after a verb of speech/knowledge: «знаешь, что…»)
+    # and substantivised superlatives («единственное, что…») — §9.1 forbids touching those.
+    ("W-CHTO", "W", re.compile(
+        r"\b(?!(?:[а-яё]*(?:ешь|ишь|айте|ай|и|ь|ть|ти|ла|ло|ли|ет|ит))\b)"
+        r"[а-яё]{4,}(?:а|ы|о|е|ь|й|я|и|ов|ей|ам|ах|ом)\s*,\s*что\s+"
+        r"(?![бы\s])[а-яё]+(?:ет|ит|ут|ют|ат|ят|ал|ала|ало|или|ила)\b"), "→ «который» (§9.1)"),
+    # Common nouns left in Latin mid-sentence. `recall@k` is a metric symbol and stays.
+    ("W-LAT", "W", re.compile(r"(?<![\w@])recall(?![@\w])|(?<![\w@])precision(?![@\w])"),
+     "→ «полнота (recall)» / «точность (precision)» (§9.3)"),
+    # Transliterations with a settled Russian equivalent (glossary §7).
+    ("W-TRANSLIT", "W", re.compile(r"\b(?:свип|шардинг\w*|аплифт\w*|скорер\w*|фиче[йсв]\w*)\b"),
+     "транслит без нужды (§9.2)"),
     ("W-QUOTE", "W", re.compile(r"\"[А-Яа-яЁё][^\"]{0,60}\""), "→ «ёлочки» (§3)"),
     ("W-DASH", "W", re.compile(r"[а-яё»)] - [«а-яёА-ЯЁ(]"), "дефис как тире → « — » (§3)"),
-    ("W-YO", "W", re.compile(r"\b(?:еще|объем\w*|трехмерн\w*|четк\w*|звезд\w*|трудоемк\w*|переучет\w*)\b"), "ё обязательна (§3)"),
+    ("W-YO", "W", re.compile(r"\b(?:еще|объем\w*|трехмерн\w*|четк\w*|звездн\w*|трудоемк\w*|переучет\w*)\b"), "ё обязательна (§3)"),
 ]
 
 GENDER_RE = re.compile(r"[Сс]пасибо[^.!?]{0,80}?\b(?:прочитал|дочитал|стоял|сидел|провёл|прошёл|дошёл|сделал|построил)\b")
@@ -65,9 +84,43 @@ BIT_RE = re.compile(r"\b(?:[Сс]ледующ[а-яё]+|[Ээ]т(?:от|ом)|[�
 # beyond skipping pure-latin tokens (regex already requires both scripts).
 
 
+# Markdown link labels and bare URLs carry English author names as *citations*
+# ("[Goodhart (1975)](https://…)"), which is correct bibliography, not a mascot slip.
+LINKY = re.compile(r"\[[^\]]*\]\([^)]*\)|https?://\S+")
+
+
+def _in_link(seg, pos):
+    return any(m.start() <= pos < m.end() for m in LINKY.finditer(seg))
+
+
+
+# «recall»/«precision» are legitimate when they are (a) the parenthetical gloss of the
+# canonical Russian term — "полноты (recall)" — or (b) a symbol inside math / a metric
+# enumeration. Only bare prose use is a defect.
+GLOSS = re.compile(r"(?:полнот\w+|точност\w+)\s*\((?:recall|precision)\)|"
+                   r"\((?:precision|recall)[–—-](?:precision|recall)\)")
+MATHY = re.compile(r"\\text\{[^}]*\}|\\\(|\\\)|\$\$")
+
+
+def _lat_ok(seg, m):
+    if any(g.start() <= m.start() < g.end() for g in GLOSS.finditer(seg)):
+        return True
+    left = seg[max(0, m.start() - 12):m.start()]
+    right = seg[m.end():m.end() + 12]
+    if "\\text{" in left or MATHY.search(left) or MATHY.search(right):
+        return True
+    # enumeration of metric names: "precision, recall, MAP, nDCG"
+    return bool(re.search(r"(?:MAP|nDCG|MRR|precision|recall)\s*[,–—]\s*$", left) or
+                re.match(r"\s*[,–—]\s*(?:MAP|nDCG|MRR|precision|recall)", right))
+
+
 def lint_segment(seg, relpath, base_line, findings, is_l17, is_beats):
     for code, sev, rx, note in CHECKS:
         for m in rx.finditer(seg):
+            if code in ("E-MASCOT", "W-LAT") and _in_link(seg, m.start()):
+                continue
+            if code == "W-LAT" and _lat_ok(seg, m):
+                continue
             findings.append((sev, code, relpath, base_line(m.start()),
                              m.group(0)[:60], note))
     for m in GENDER_RE.finditer(seg):

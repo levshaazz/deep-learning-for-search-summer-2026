@@ -7,7 +7,7 @@
           "Done badly, it is fragile: a single outlier score blows up min-max scaling, and the right \\(\\alpha\\) varies by query and domain. The concrete trap is the scale gap — BM25 is unbounded above (it can reach the tens) while cosine sits in \\([-1,1]\\), so adding them raw lets BM25 swamp the dense score entirely. RRF sidesteps all of that by throwing away magnitudes and keeping only ranks — which is why it is the robust default, and why production systems reach for it first.",
         ],
         ru: [
-          "RRF — не единственный способ слияния. Альтернатива — **комбинация оценок**: нормализовать оценки каждого ранжировщика в общий диапазон — min-max или z-оценки — и сложить их, часто с весом \\(\\alpha\\cdot\\text{плотн} + (1-\\alpha)\\cdot\\text{разреж}\\). При аккуратной реализации это может быть точнее RRF, ведь использует *величину* оценок, а не только их порядок.",
+          "RRF — не единственный способ слияния. Альтернатива — **комбинация оценок**: нормализовать оценки каждого ранкера в общий диапазон — min-max или z-оценки — и сложить их, часто с весом \\(\\alpha\\cdot\\text{плотн} + (1-\\alpha)\\cdot\\text{разреж}\\). При аккуратной реализации это может быть точнее RRF, ведь использует *величину* оценок, а не только их порядок.",
           "При небрежной — хрупко: один выброс ломает min-max, а правильный \\(\\alpha\\) меняется от запроса и домена. Конкретная ловушка — разрыв шкал: BM25 не ограничен сверху (может достигать десятков), а косинус лежит в \\([-1,1]\\), так что при сложении «как есть» BM25 полностью забивает плотную оценку. RRF обходит всё это, выбрасывая величины и оставляя лишь ранги — поэтому он надёжный дефолт, и поэтому продакшн-системы первым делом тянутся к нему.",
         ],
         tt: [

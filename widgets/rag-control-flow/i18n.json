@@ -1,6 +1,6 @@
 {
   "_doc": "Step captions + node/edge labels for rag-control-flow. EN canonical + RU + TT. The grades, toy thresholds, actions and reflection tokens are read from data/l10-selfrag.json; this file only narrates and names. The grade KEYS (correct/ambiguous/wrong) double as the edge-label words that prefix each branch's threshold tag.",
-  "alt": { "en": "A directed decision graph: CRAG retrieves, grades each document in a diamond as correct, ambiguous, or wrong, and branches to three actions (use as-is, combine with web search, or discard and fall back to web search); below, self-RAG strings four reflection-token decision diamonds (Retrieve, IsRel, IsSup, IsUse) into a chain ending in a grounded answer.", "ru": "Направленный граф решений: CRAG извлекает, оценивает каждый документ в ромбе как correct, ambiguous или wrong и ветвится на три действия (использовать как есть, объединить с веб-поиском или отбросить и перейти к веб-поиску); ниже self-RAG выстраивает четыре ромба рефлексивных токенов (Retrieve, IsRel, IsSup, IsUse) в цепочку, завершающуюся заземлённым ответом.", "tt": "Юнәлешле карар графы: CRAG ала, һәр документны ромбта correct, ambiguous яки wrong дип бәяли һәм өч гамәлгә тармаклана (булганча куллану, веб-эзләү белән берләштерү яки ташлап веб-эзләүгә күчү); астарак self-RAG дүрт рефлексия-токен ромбын (Retrieve, IsRel, IsSup, IsUse) нигезле җавап белән тәмамлана торган чылбырга тезә." },
+  "alt": { "en": "A directed decision graph: CRAG retrieves, grades each document in a diamond as correct, ambiguous, or wrong, and branches to three actions (use as-is, combine with web search, or discard and fall back to web search); below, self-RAG strings four reflection-token decision diamonds (Retrieve, IsRel, IsSup, IsUse) into a chain ending in a grounded answer.", "ru": "Направленный граф решений: CRAG извлекает, оценивает каждый документ в ромбе как correct, ambiguous или wrong и ветвится на три действия (использовать как есть, объединить с веб-поиском или отбросить и перейти к веб-поиску); ниже self-RAG выстраивает четыре ромба рефлексивных токенов (Retrieve, IsRel, IsSup, IsUse) в цепочку, завершающуюся обоснованным ответом.", "tt": "Юнәлешле карар графы: CRAG ала, һәр документны ромбта correct, ambiguous яки wrong дип бәяли һәм өч гамәлгә тармаклана (булганча куллану, веб-эзләү белән берләштерү яки ташлап веб-эзләүгә күчү); астарак self-RAG дүрт рефлексия-токен ромбын (Retrieve, IsRel, IsSup, IsUse) нигезле җавап белән тәмамлана торган чылбырга тезә." },
   "cragTitle": { "en": "CRAG · grade the retrieval, then act", "ru": "CRAG · оцени извлечение, затем действуй", "tt": "CRAG · алуны бәялә, аннары эшлә" },
   "selfRagTitle": { "en": "self-RAG · reflection-token gates", "ru": "self-RAG · ворота рефлексивных токенов", "tt": "self-RAG · рефлексия-токен капкалары" },
   "retrieve": { "en": "retrieve", "ru": "извлечь", "tt": "алу" },
@@ -9,7 +9,7 @@
   "ambiguous": { "en": "ambiguous", "ru": "ambiguous", "tt": "ambiguous" },
   "wrong": { "en": "wrong", "ru": "wrong", "tt": "wrong" },
   "pass": { "en": "pass", "ru": "пройдено", "tt": "узды" },
-  "answer": { "en": "grounded answer", "ru": "заземлённый ответ", "tt": "нигезле җавап" },
+  "answer": { "en": "grounded answer", "ru": "обоснованный ответ", "tt": "нигезле җавап" },
   "s0": {
     "en": "Naive RAG retrieves once and trusts whatever comes back. Self-correcting RAG adds a gate. CRAG first retrieves, then runs a lightweight retrieval evaluator that GRADES each document — a decision diamond with toy score thresholds.",
     "ru": "Наивный RAG извлекает один раз и доверяет всему, что вернулось. Самокорректирующийся RAG добавляет ворота. CRAG сначала извлекает, затем запускает лёгкий оценщик извлечения, который ОЦЕНИВАЕТ каждый документ — ромб решения с игрушечными порогами оценки.",
@@ -17,7 +17,7 @@
   },
   "s1": {
     "en": "The grade falls into three buckets by score: correct (≥ 0.7), ambiguous (0.3 .. 0.7), or wrong (< 0.3). Each is a labelled branch out of the diamond — the same retrieval, three possible verdicts.",
-    "ru": "Оценка попадает в три корзины по баллу: correct (≥ 0.7), ambiguous (0.3 .. 0.7) или wrong (< 0.3). Каждая — помеченная ветвь из ромба — то же извлечение, три возможных вердикта.",
+    "ru": "Оценка попадает в три корзины по баллу: correct (≥ 0,7), ambiguous (0,3 .. 0,7) или wrong (< 0,3). Каждая — помеченная ветвь из ромба — то же извлечение, три возможных вердикта.",
     "tt": "Бәя балл буенча өч чиләккә төшә: correct (≥ 0.7), ambiguous (0.3 .. 0.7) яки wrong (< 0.3). Һәрберсе — ромбтан билгеле тармак — шул ук алу, өч мөмкин хөкем."
   },
   "s2": {
@@ -32,7 +32,7 @@
   },
   "s4": {
     "en": "The last gate, IsUse, scores how useful the overall response is (1..5). Only a response that clears every reflection gate becomes the grounded answer — the model critiques itself before it commits, instead of trusting one retrieval blindly.",
-    "ru": "Последние ворота, IsUse, оценивают, насколько полезен весь ответ (1..5). Только ответ, прошедший все рефлексивные ворота, становится заземлённым ответом — модель критикует себя, прежде чем зафиксироваться, вместо слепого доверия одному извлечению.",
+    "ru": "Последние ворота, IsUse, оценивают, насколько полезен весь ответ (1..5). Только ответ, прошедший все рефлексивные ворота, становится обоснованным ответом — модель критикует себя, прежде чем зафиксироваться, вместо слепого доверия одному извлечению.",
     "tt": "Соңгы капка, IsUse, гомуми җавапның никадәр файдалы булуын бәяли (1..5). Бары тик һәр рефлексия капкасын узган җавап кына нигезле җавап була — модель бер алуга сукырларча ышану урынына, беркетү алдыннан үзен тәнкыйтьли."
   }
 }

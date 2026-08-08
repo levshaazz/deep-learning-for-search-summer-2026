@@ -26,6 +26,7 @@ VERSION_WORDS = {
     "bert", "gpt", "claude", "phi", "gemma", "deepseek", "grok",
     "версия", "версии", "версию", "версией", "версиях",
     "v", "V", "top", "beir", "trec", "unicode",
+    "wav2vec", "word2vec", "doc2vec", "seq2seq",
 }
 
 DEC_RE = re.compile(r"(?<![\d.,])(\d+)\.(\d+)(?![\d.])")
@@ -45,7 +46,9 @@ def _prev_word(seg, start):
 def _guarded(seg, m):
     """Return reason string if this match must NOT be converted."""
     s = m.start()
-    if s > 0 and seg[s - 1] in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._/":
+    # ':' belongs here too — without it "arXiv:2409.04701" reads as a decimal and the
+    # sweep silently breaks every citation id it touches (it did: 31 ids, Aug 2026).
+    if s > 0 and seg[s - 1] in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._/:":
         return "ident"
     pw = _prev_word(seg, s).rstrip(".-").lower()
     if pw in VERSION_WORDS:

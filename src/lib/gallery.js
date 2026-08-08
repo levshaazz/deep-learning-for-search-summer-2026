@@ -20,7 +20,7 @@
 export const galleryMeta = {
   intro: {
     en: 'A visual glossary of the course. Browse the metaphor art by lecture, meet the recurring cast in the Bestiary — or search a concept to jump straight to its picture. Every image links to the chapter that teaches it.',
-    ru: 'Визуальный глоссарий курса. Листайте арт по лекциям, знакомьтесь с повторяющимися персонажами в Бестиарии — или найдите концепт поиском, чтобы сразу перейти к картинке. Каждая картинка ведёт в главу, где её учат.',
+    ru: 'Визуальный глоссарий курса. Листай арт по лекциям, знакомься с повторяющимися персонажами в Бестиарии — или найди концепт поиском, чтобы сразу перейти к картинке. Каждая картинка ведёт в главу, где её учат.',
     tt: 'Курсның визуаль глоссарие. Артны лекцияләр буенча карагыз, Бестиарийда кабатланучы персонажлар белән танышыгыз — яки концептны эзләп, туры аның рәсеменә күчегез. Һәр рәсем аны өйрәткән бүлеккә алып бара.',
   },
   topic: {
@@ -33,7 +33,7 @@ export const galleryMeta = {
     heading: { en: 'Bestiary — the recurring cast', ru: 'Бестиарий — повторяющиеся персонажи', tt: 'Бестиарий — кабатланучы персонажлар' },
     lead: {
       en: 'Each creature personifies exactly one concept. Meet them once here; they reappear across the lectures as the visual shorthand for that idea.',
-      ru: 'Каждое существо олицетворяет ровно один концепт. Познакомьтесь с ними здесь — они возвращаются в лекциях как визуальное сокращение для этой идеи.',
+      ru: 'Каждое существо олицетворяет ровно один концепт. Познакомься с ними здесь — они возвращаются в лекциях как визуальное сокращение для этой идеи.',
       tt: 'Һәр зат төгәл бер концептны гәүдәләндерә. Алар белән монда танышыгыз — алар лекцияләрдә шул идеянең визуаль кыскартмасы буларак кабат пәйда була.',
     },
   },
@@ -50,7 +50,7 @@ export const galleryMeta = {
     found: { en: 'found', ru: 'найдено', tt: 'табылды' },
     none: {
       en: 'Nothing matches — try another word.',
-      ru: 'Ничего не найдено — попробуйте другое слово.',
+      ru: 'Ничего не найдено — попробуй другое слово.',
       tt: 'Туры килгәне юк — башка сүз кулланып карагыз.',
     },
     reset: { en: 'reset', ru: 'сбросить', tt: 'ташлау' },
@@ -69,7 +69,7 @@ export const cast = [
     img: '/Lectures/assets/img/_char/serega-charsheet.png',
     concept: {
       en: 'Your narrator and guide — a round-headed explorer in a Tatar tübətəy. He hops the whole arc from keyword search to RAG, and every metaphor is told through his eyes.',
-      ru: 'Ваш рассказчик и проводник — круглоголовый исследователь в татарской тюбетейке. Он проходит весь путь от поиска по ключевым словам до RAG, и каждая метафора подана его глазами.',
+      ru: 'Твой рассказчик и проводник — круглоголовый исследователь в татарской тюбетейке. Он проходит весь путь от поиска по ключевым словам до RAG, и каждая метафора подана его глазами.',
       tt: 'Сезнең сөйләүчегез һәм юлбашчыгыз — татар түбәтәендәге түгәрәк башлы тикшерүче. Ул ачкыч сүзләр буенча эзләүдән алып RAG’ка кадәр бөтен юлны үтә, һәм һәр метафора аның күзләре аша сөйләнә.',
     },
     lecture: 'L0',
@@ -81,7 +81,7 @@ export const cast = [
     img: '/Lectures/assets/img/L1/L1-24-lexical-gremlin.png',
     concept: {
       en: 'couch ≠ sofa: exact-term matching is blind to meaning. The gremlin holds the wall between words that mean the same thing — the lexical gap embeddings must bridge.',
-      ru: 'диван ≠ софа: точное совпадение по словам слепо к смыслу. Гремлин держит стену между словами с одним значением — лексический разрыв, который должны перекрыть эмбеддинги.',
+      ru: 'диван ≠ софа: точное совпадение по словам слепо к смыслу. Гремлин держит стену между словами с одним значением — словарный разрыв, который должны перекрыть эмбеддинги.',
       tt: 'диван ≠ софа: сүзләр буенча төгәл туры килү мәгънәгә сукыр. Гремлин бер үк мәгънәле сүзләр арасында стенаны тота — эмбеддинглар каплап үтәргә тиешле лексик ярык.',
     },
     lecture: 'L1',
@@ -165,7 +165,7 @@ export const cast = [
     img: '/Lectures/assets/img/L6/L6-00-council-of-attention.png',
     concept: {
       en: 'self-attention: each token is a councillor that attends to every other and votes on whom to heed — meaning is built from a weighted blend of neighbours.',
-      ru: 'само-внимание: каждый токен — советник, который смотрит на всех остальных и голосует, кого слушать — смысл строится из взвешенной смеси соседей.',
+      ru: 'самовнимание: каждый токен — советник, который смотрит на всех остальных и голосует, кого слушать — смысл строится из взвешенной смеси соседей.',
       tt: 'үз-игътибар: һәр токен — һәрберсенә игътибар итеп, кемне тыңларга икәнен тавыш бирүче киңәшче — мәгънә күршеләрнең үлчәүле кушылмасыннан төзелә.',
     },
     lecture: 'L6',
@@ -249,7 +249,7 @@ export const cast = [
     img: '/Lectures/assets/img/L13/L13-09-the-impostor.png',
     concept: {
       en: 'the false negative — an unlabelled positive wearing an enemy’s mask. Mine the hardest candidates and you scoop up relevant-but-unlabelled passages and train against them; the danger lives on a second axis, cos(·,d⁺), invisible to query-only hardness.',
-      ru: 'ложный негатив — неразмеченный позитив в маске врага. Намайнив самые сложные кандидаты, ты подбираешь релевантные, но неразмеченные пассажи и учишься против них; опасность живёт на второй оси, cos(·,d⁺), невидимой для «сложности» со стороны запроса.',
+      ru: 'ложный негатив — неразмеченный позитив в маске врага. Намайнив самые трудные кандидаты, ты подбираешь релевантные, но неразмеченные пассажи и учишься против них; опасность живёт на второй оси, cos(·,d⁺), невидимой для «трудности» со стороны запроса.',
       tt: 'ялган негатив — дошман битлеген кигән билгеләнмәгән позитив. Иң катлаулы кандидатларны майнинглаганда син мөһим ләкин билгеләнмәгән пассажларны эләктерәсең һәм аларга каршы өйрәнәсең; куркыныч икенче күчәрдә, cos(·,d⁺), сорау ягыннан «катлаулык» өчен күренми.',
     },
     lecture: 'L13',
@@ -315,7 +315,7 @@ export const scenes = [
         tt: 'ихтыяҗ → сорау → документлар — югалтулар белән: бай мәгълүмат ихтыяҗы тар воронка аша берничә ачкыч сүзгә кысыла.' } },
       { img: '/Lectures/assets/img/L1/L1-14-grounding.png', concept: {
         en: 'grounding: an LLM confidently says "a horse has 8 legs" — retrieval fetches a real source to fix the hallucination.',
-        ru: 'граундинг: LLM уверенно говорит «у лошади 8 ног» — поиск достаёт реальный источник и исправляет галлюцинацию.',
+        ru: 'опора на источник: LLM уверенно говорит «у лошади 8 ног» — поиск достаёт реальный источник и исправляет галлюцинацию.',
         tt: 'граундинг: LLM ышаныч белән «атның 8 аягы бар» ди — эзләү чын чыганакны табып галлюцинацияне төзәтә.' } },
       { img: '/Lectures/assets/img/L1/L1-22-leaky-bucket.png', concept: {
         en: 'the recall ceiling: you can’t re-rank what you didn’t retrieve. Stars that fell through the bucket are gone for good.',
@@ -538,7 +538,7 @@ export const scenes = [
         tt: 'контраст өйрәнү (InfoNCE): уңай парны тарт, тискәреләрне этәр — пространствоны эзләү өчен өйрәт, югалту функциясе эчендә косинус белән.' } },
       { img: '/Lectures/assets/img/L6/L6-15-gremlin-caged.png', concept: {
         en: 'the Lexical Gremlin is finally caged (callback L1): contrastive learning collapses "couch" and "sofa" together — the lexical gap is closed. Bridge → L7.',
-        ru: 'Лексический Гремлин наконец заперт (отсылка к L1): контрастное обучение сводит «диван» и «софу» вместе — лексический разрыв закрыт. Мост → L7.',
+        ru: 'Лексический Гремлин наконец заперт (отсылка к L1): контрастное обучение сводит «диван» и «софу» вместе — словарный разрыв закрыт. Мост → L7.',
         tt: 'Лексик Гремлин ниһаять читлеккә ябылды (L1’гә ишарә): контраст өйрәнү «диван» белән «софаны» бергә җыя — лексик ярык ябылды. Күпер → L7.' } },
     ],
   },
@@ -603,7 +603,7 @@ export const scenes = [
         tt: 'HNSW: сикерү капкаларының күп катлы графы — өске катламда тупас башла, төш һәм сорау тирәлегенә логарифмик адымнарда комсызланып сикер.' } },
       { img: '/Lectures/assets/img/L9/L9-03-sectors-ivf.png', concept: {
         en: 'IVF: carve the space into sectors (clusters) and search only the few nearest — a coarse map that lets you skip most of the galaxy.',
-        ru: 'IVF: разрежь пространство на секторы (кластеры) и ищи только в нескольких ближайших — грубая карта, позволяющая пропустить бóльшую часть галактики.',
+        ru: 'IVF: разрежь пространство на секторы (кластеры) и ищи только в нескольких ближайших — грубая карта, позволяющая пропустить бо́льшую часть галактики.',
         tt: 'IVF: киңлекне секторларга (кластерларга) бүл һәм бары иң якын берничәсендә эзлә — галактиканың күп өлешен сикереп үтәргә мөмкинлек бирүче тупас карта.' } },
       { img: '/Lectures/assets/img/L9/L9-04-fold-the-maps-pq.png', concept: {
         en: 'product quantization: fold each vector into a short code of sub-space centroids — 32× smaller in memory, with distances read from a tiny lookup table.',
@@ -672,7 +672,7 @@ export const scenes = [
         tt: 'мультимодаль эмбеддинглар: текст белән рәсемнәрне бер уртак киңлеккә тарт, «кояш баешы фотосы» рәсемне тапсын өчен — төрле модальлекләр, бер геометрия.' } },
       { img: '/Lectures/assets/img/L12/L12-04-colpali.png', concept: {
         en: 'ColPali: embed a document’s page IMAGE directly with late interaction — skip brittle OCR and parsing and retrieve straight from the rendered page.',
-        ru: 'ColPali: эмбедь саму КАРТИНКУ страницы документа через позднее взаимодействие — пропусти хрупкий OCR и парсинг и ищи прямо по отрисованной странице.',
+        ru: 'ColPali: закодируй саму КАРТИНКУ страницы документа через позднее взаимодействие — пропусти хрупкий OCR и парсинг и ищи прямо по отрисованной странице.',
         tt: 'ColPali: документ битенең РӘСЕМЕН соңгы үзара тәэсир аша турыдан-туры эмбеддла — челпәрәмә OCR һәм парсингны сикереп үт, ясалган биттән туры эзлә.' } },
       { img: '/Lectures/assets/img/L12/L12-12-ethics-bias.png', concept: {
         en: 'retrieval inherits the corpus: what is under-represented stays unfound. Bias, attribution and safety are part of the system, not an afterthought.',
@@ -691,7 +691,7 @@ export const scenes = [
         tt: 'горн: тыгыз ретривер каршы өйрәнгән көндәшләре тарафыннан чарлана. Өйрәнү — бу горн; негативлар — клинокка үткенлек бирүче чүкеч.' } },
       { img: '/Lectures/assets/img/L13/L13-04-sir-cosine-hardness.png', concept: {
         en: 'hardness is an angle: Sir Cosine measures cos(q,d⁻). Easy negatives sit far and give no gradient; hard ones crowd the query — a negative is worth exactly its gradient.',
-        ru: 'сложность — это угол: Сэр Косинус измеряет cos(q,d⁻). Лёгкие негативы далеко и не дают градиента; сложные теснят запрос — негатив стоит ровно своего градиента.',
+        ru: 'трудность — это угол: Сэр Косинус измеряет cos(q,d⁻). Лёгкие негативы далеко и не дают градиента; трудные теснят запрос — негатив стоит ровно своего градиента.',
         tt: 'катлаулык — почмак: Сэр Косинус cos(q,d⁻) үлчи. Җиңел негативлар ерак һәм градиент бирми; катлаулылары сорауны кыса — негатив нәкъ үз градиенты кадәр кыйммәтле.' } },
       { img: '/Lectures/assets/img/L13/L13-06-forge-path.png', concept: {
         en: 'the fifteen-year search for good opponents: random → in-batch → BM25 → model-mined → denoised → distilled → modern two-stage. Each anvil fixes the flaw in the one before.',
@@ -699,7 +699,7 @@ export const scenes = [
         tt: 'яхшы көндәшләр өчен унбиш еллык эзләү: очраклы → in-batch → BM25 → модель майнинглаган → чистартылган → дистилляцияләнгән → заманча ике баскычлы. Һәр сандал алдагысының кимчелеген төзәтә.' } },
       { img: '/Lectures/assets/img/L13/L13-14-true-edge.png', concept: {
         en: 'forged by worthy opponents: effectiveness lives in a narrow hard-but-honest band. The impostor and the stale ghosts are beaten; Séréga raises a keen, true-edged blade. Bridge → deep-dive #4, The Curved Map.',
-        ru: 'выкован достойными противниками: эффективность живёт в узкой сложной-но-честной полосе. Самозванец и устаревшие призраки повержены; Серёга поднимает острый, истинный клинок. Мост → глубокое погружение №4, Кривая Карта.',
+        ru: 'выкован достойными противниками: эффективность живёт в узкой трудной-но-честной полосе. Самозванец и устаревшие призраки повержены; Серёга поднимает острый, истинный клинок. Мост → глубокое погружение №4, Кривая Карта.',
         tt: 'лаеклы көндәшләр тарафыннан чарланган: нәтиҗәлелек тар катлаулы ләкин намуслы полосада яши. Самозванец һәм искергән өрәкләр җиңелде; Серёга үткен, чын кырлы клинок күтәрә. Күпер → тирән чуму №4, Бөгелгән Карта.' } },
     ],
   },
@@ -714,7 +714,7 @@ export const scenes = [
         tt: 'Лексик Гремлин архив ишеген саклый — сүзләре киштәләргә туры килгән сорауларны гына үткәрә. Җавап шунда ук, башка сүзләр белән булырга мөмкин, ләкин барыбер үткәрелмәс: сүзлек туры килмәве.' } },
       { img: '/Lectures/assets/img/L14/L14-03-hyde-hypothetical.png', concept: {
         en: 'HyDE: draft a hypothetical answer in the archive’s own wording, then embed that draft — the fake answer lives in document-space and lands where the raw question never could.',
-        ru: 'HyDE: набросай гипотетический ответ на языке самого архива, затем эмбедь этот черновик — поддельный ответ живёт в пространстве документов и попадает туда, куда сырой вопрос никогда бы не смог.',
+        ru: 'HyDE: набросай гипотетический ответ на языке самого архива, затем закодируй этот черновик — поддельный ответ живёт в пространстве документов и попадает туда, куда сырой вопрос никогда бы не смог.',
         tt: 'HyDE: гипотетик җавапны архивның үз телендә яз, аннары шул караламаны эмбеддла — ясалма җавап документлар киңлегендә яши һәм чи сорау беркайчан җитә алмаган җиргә төшә.' } },
       { img: '/Lectures/assets/img/L14/L14-05-step-back-ladder.png', concept: {
         en: 'step-back: when a query is too specific to match anything, climb the ladder to the governing principle, retrieve that, then descend to answer.',
@@ -745,7 +745,7 @@ export const scenes = [
         tt: 'бер тапкыр предобуч, күп тапкыр дообуч: бер кыйммәтле үзкүзәтүле фаза күп арзан бурыч башлары буенча амортизацияләнә — BERT ни өчен практик булган.' } },
       { img: '/Lectures/assets/img/L15/L15-11-rlhf.png', concept: {
         en: 'from attention to RLHF: align a model with human preference — reward the answers people prefer, and steer the generator toward them.',
-        ru: 'от внимания до RLHF: вырави модель по человеческим предпочтениям — награждай ответы, которые люди предпочитают, и веди генератор к ним.',
+        ru: 'от внимания до RLHF: выровняй модель по человеческим предпочтениям — награждай ответы, которые люди предпочитают, и веди генератор к ним.',
         tt: 'игътибардан RLHF’ка: моделне кеше өстенлекләре буенча тигезлә — кешеләр өстен күргән җаваптарны бүләклә, генераторны аларга таба борь.' } },
     ],
   },
@@ -756,7 +756,7 @@ export const scenes = [
     items: [
       { img: '/Lectures/assets/img/L16/L16-01-tear-first.png', concept: {
         en: 'chunk-then-embed tears the document first: each piece is embedded alone, so a chunk whose subject is a pronoun (“it”) loses what “it” refers to.',
-        ru: '«нарежь-потом-эмбедь» сначала рвёт документ: каждый кусок эмбедится в одиночку, так что чанк, чьё подлежащее — местоимение («it»), теряет то, на что «it» ссылается.',
+        ru: '«нарежь-потом-эмбедь» сначала рвёт документ: каждый кусок кодируется в одиночку, так что чанк, чьё подлежащее — местоимение («it»), теряет то, на что «it» ссылается.',
         tt: '«кис-аннары-эмбеддла» башта документны ерта: һәр кисәк ялгыз эмбеддлана, шуңа подлежащиесе алмашлык («it») булган чанк «it» нәрсәгә ишарә иткәнне югалта.' } },
       { img: '/Lectures/assets/img/L16/L16-03-read-then-mark.png', concept: {
         en: 'late chunking reads the whole document first: full-document attention writes context into every token, THEN pools into chunks — no extra generation call.',
@@ -814,7 +814,7 @@ export const scenes = [
         tt: 'hubness: югары үлчәмлелектә берничә нокта hub’ка әйләнә, барысының да күрше исемлегенә эләгә, ә анти-hub’ларны беркем дә тапмый — үлчәмлелек ләгънәте.' } },
       { img: '/Lectures/assets/img/L18/L18-11-even-map.png', concept: {
         en: 'the fix flattens the map: whitening and contrastive training spread the vectors back out, so cosine means what it should again.',
-        ru: 'лечение выпрямляет карту: whitening и контрастное обучение снова разводят векторы, так что косинус опять значит то, что должен.',
+        ru: 'лечение выпрямляет карту: отбеливание (whitening) и контрастное обучение снова разводят векторы, так что косинус опять значит то, что должен.',
         tt: 'дәвалау картаны турайта: whitening һәм контрастив өйрәнү векторларны яңадан җәя, шуңа косинус тагын тиеш булганны аңлата.' } },
     ],
   },

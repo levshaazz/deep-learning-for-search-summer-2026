@@ -1,6 +1,6 @@
     {
       id: 'depth-ltr-flavors', kind: 'prose',
-      heading: { en: 'Pointwise, pairwise, listwise', ru: 'Pointwise, pairwise, listwise', tt: 'Pointwise, pairwise, listwise' },
+      heading: { en: 'Pointwise, pairwise, listwise', ru: 'Поточечный, попарный, списочный', tt: 'Pointwise, pairwise, listwise' },
       body: {
         en: [
           "There are three ways to teach an order. **Pointwise** scores each \\((q, d)\\) pair alone and sorts by the score — which is exactly the cross-encoder from Lecture 7. **Pairwise** learns the relative question \"is \\(d_i\\) better than \\(d_j\\)?\" — this is RankNet. **Listwise** optimizes the *whole* list directly toward the metric, like ListNet, ListMLE, and (by weighting gradients with \\(\\Delta\\)nDCG) LambdaMART.",
@@ -8,9 +8,9 @@
           "We follow the pairwise-to-listwise thread, because it is the one that produced the workhorse of classical Learning to Rank: RankNet, then LambdaRank, then LambdaMART.",
         ],
         ru: [
-          "Есть три способа научить порядку. **Pointwise** оценивает каждую пару \\((q, d)\\) отдельно и сортирует по оценке — это ровно кросс-энкодер из лекции 7. **Pairwise** учит относительный вопрос «\\(d_i\\) лучше \\(d_j\\)?» — это RankNet. **Listwise** оптимизирует *весь* список прямо под метрику, как ListNet, ListMLE и (взвешивая градиенты на \\(\\Delta\\)nDCG) LambdaMART.",
-          "Почему не остаться на pointwise? Потому что он оптимизирует не то: он регрессирует каждую *абсолютную* метку релевантности по отдельности и потому слеп к позиции и к недекомпозируемой форме nDCG — ошибка метки на ранге 2 и на ранге 800 обходятся ему одинаково. Pairwise с весом \\(\\Delta\\)nDCG исправляет ровно это: градиент велик лишь там, где перестановка реально сдвигает метрику, концентрируя обучение на верхушке.",
-          "Мы идём по нити от pairwise к listwise, потому что именно она породила рабочую лошадку классического обучения ранжированию: RankNet, затем LambdaRank, затем LambdaMART.",
+          "Есть три способа научить порядку. **Поточечный** (pointwise) оценивает каждую пару \\((q, d)\\) отдельно и сортирует по оценке — это ровно кросс-энкодер из лекции 7. **Попарный** (pairwise) учит относительный вопрос «\\(d_i\\) лучше \\(d_j\\)?» — это RankNet. **Списочный** (listwise) оптимизирует *весь* список прямо под метрику, как ListNet, ListMLE и (взвешивая градиенты на \\(\\Delta\\)nDCG) LambdaMART.",
+          "Почему не остаться на поточечном? Потому что он оптимизирует не то: он регрессирует каждую *абсолютную* метку релевантности по отдельности и потому слеп к позиции и к недекомпозируемой форме nDCG — ошибка метки на ранге 2 и на ранге 800 обходятся ему одинаково. Попарный с весом \\(\\Delta\\)nDCG исправляет ровно это: градиент велик лишь там, где перестановка реально сдвигает метрику, концентрируя обучение на верхушке.",
+          "Мы идём по нити от попарного к списочному, потому что именно она породила рабочую лошадку классического обучения ранжированию: RankNet, затем LambdaRank, затем LambdaMART.",
         ],
         tt: [
           "Тәртипкә өйрәтүнең өч ысулы бар. **Pointwise** һәр \\((q, d)\\) парын аерым бәяли һәм балл буенча тәртипкә сала — бу нәкъ 7 нче лекциядәге кросс-энкодер. **Pairwise** «\\(d_i\\) \\(d_j\\) дан яхшыракмы?» дигән чагыштырма сорауны өйрәнә — бу RankNet. **Listwise** *бөтен* исемлекне туры метрикага оптимальләштерә, ListNet, ListMLE кебек һәм (градиентларны \\(\\Delta\\)nDCG га үлчәп) LambdaMART кебек.",

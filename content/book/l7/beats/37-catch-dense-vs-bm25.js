@@ -1,6 +1,6 @@
     {
       id: 'catch-dense-vs-bm25', kind: 'prose',
-      heading: { en: 'Dense isn&rsquo;t a free lunch', ru: 'Dense — не бесплатный обед', tt: 'Dense — бушлай аш түгел' },
+      heading: { en: 'Dense isn&rsquo;t a free lunch', ru: 'Плотный поиск — не бесплатный обед', tt: 'Dense — бушлай аш түгел' },
       body: {
         en: [
           "One honest twist before we leave. It is tempting to think a learned dense retriever always beats old BM25 — it does not. On the **BEIR** zero-shot benchmark, averaged over 18 out-of-domain datasets, **BM25 reaches nDCG@10 = 0.43 and single-vector dense DPR only 0.23** — that is the original QA-trained DPR checkpoint; MS MARCO-trained encoders hold up better yet still trail BM25 on average: lexical search wins out-of-domain (a late-interaction model like ColBERTv2 climbs back to 0.5). In-domain the story flips — on MS MARCO, a DPR-style dense bi-encoder&rsquo;s MRR@10 of 0.33 beats BM25&rsquo;s 0.187. (The DPR paper itself never evaluated MS MARCO; the 0.33 comes from later DPR-style reproductions.) A single dense vector forgets too much; the fix is **hybrid** retrieval and richer late interaction, which is Lecture 8.",

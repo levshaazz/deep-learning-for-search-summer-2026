@@ -74,8 +74,6 @@ ADJ_DEBT = {
     'кунa':       'widgets/block-geometry/i18n.json — Latin a in «куна».',
     'сакланa':    'widgets/block-geometry/i18n.json — Latin a in «саклана».',
     'тыелa':      'widgets/block-geometry/i18n.json — Latin a in «тыела».',
-    'бóльшую':    'widgets/hardness-sphere/i18n.json — Latin ó; a Russian stress mark is Cyrillic о + U+0301.',
-    'бóльшим':    'content/book/l4/beats/07-climb-metrics-numbers.js — the same Latin ó.',
     'ясa':        'content/book/l10/beats/40-adaptive-rag.js — Latin a in «яса».',
     'кыланa':     'content/book/l14/beats/08-hyde-idea.js — Latin a in «кылана».',
     'ткачlyk':    'content/book/l15/beats/04-self-attention.js — Latin "lyk" spliced into «ткачлык».',

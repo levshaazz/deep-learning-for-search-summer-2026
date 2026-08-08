@@ -176,7 +176,7 @@
               <span class="toc-num">02</span>
               <span class="toc-text">
                 <span class="toc-title"><span lang="ru">Токенизация</span><span lang="en">Tokenization</span></span>
-                <span class="toc-sub"><span lang="ru">символ / слово / сабворд · BPE · WordPiece · Unigram</span><span lang="en">char / word / subword · BPE · WordPiece · Unigram</span></span>
+                <span class="toc-sub"><span lang="ru">символ / слово / подслово · BPE · WordPiece · Unigram</span><span lang="en">char / word / subword · BPE · WordPiece · Unigram</span></span>
               </span>
             </a>
             <a class="toc-item" href="#/38">
@@ -374,7 +374,7 @@
         <section class="slide" data-type="viz" data-screen-label="12 Heaps">
           <div class="slide-header">
             <h2><span lang="ru">Закон Хипса: словарь никогда не насыщается</span><span lang="en">Heaps' law: the vocabulary never saturates</span></h2>
-            <span class="slide-kicker"><span lang="ru">Аргумент в пользу сабвордов</span><span lang="en">The argument for subwords</span></span>
+            <span class="slide-kicker"><span lang="ru">Аргумент в пользу подслов</span><span lang="en">The argument for subwords</span></span>
           </div>
           <div class="viz-frame">
             <svg viewBox="0 0 1600 580" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">
@@ -473,7 +473,7 @@
                 <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">NFKC переписывает химические / математические верхние индексы (\(x^{2}\) → "x2") — уничтожает сигнал.</span><span lang="en">NFKC rewrites chemistry / math superscripts (\(x^{2}\) → "x2") — destroys signal.</span></span></li>
                 <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Токенизаторы LLM (GPT-2/4) <strong>почти не</strong> нормализуют (побайтово, с сохранением регистра). BERT-uncased приводит к нижнему регистру, убирает диакритику.</span><span lang="en">LLM tokenizers (GPT-2/4) do <strong>almost no</strong> normalization (byte-level, case-preserving). BERT-uncased lowercases + strips accents.</span></span></li>
               </ul>
-              <p class="small muted"><span lang="ru">Закономерность: NFC + минимальное сворачивание для генерации; агрессивный NFKC + сворачивание регистра только для ключей лексического индекса.</span><span lang="en">Pattern: NFC + minimal folding for generation; heavy NFKC + casefold only for lexical index keys.</span></p>
+              <p class="small muted"><span lang="ru">Практическое правило: NFC + минимальное сворачивание для генерации; агрессивный NFKC + сворачивание регистра только для ключей лексического индекса.</span><span lang="en">Pattern: NFC + minimal folding for generation; heavy NFKC + casefold only for lexical index keys.</span></p>
             </div>
           </div>
           <aside class="slide-notes">Normalization is a double-edged knife. Too little and "café" written two Unicode ways never matches; too much and you erase the very distinctions you need (U.S. vs us, code, superscripts). The right amount depends on the job: a generation model preserves nearly everything; a BM25 search index folds aggressively because recall beats precision on surface form. This tension recurs in Part 3 when we discuss query/doc mismatch.</aside>
@@ -509,7 +509,7 @@
               </div>
             </div>
           </div>
-          <p class="small muted center mt-3"><span lang="ru">Оба сводят <code>open / opened / opens / opening</code> к одной форме, чтобы запрос совпадал с любым вариантом — классическое решение <strong>словарного разрыва</strong>. Разреженный поиск (BM25) всё ещё на них опирается; нейронные / сабворд-модели обычно их пропускают и позволяют токенизатору + эмбеддингам справляться с морфологией.</span><span lang="en">Both shrink <code>open / opened / opens / opening</code> to one form so a query matches every variant — the classic fix for the <strong>lexical gap</strong>. Sparse retrieval (BM25) still relies on them; neural / subword models usually skip them and let the tokenizer + embeddings handle morphology.</span></p>
+          <p class="small muted center mt-3"><span lang="ru">Оба сводят <code>open / opened / opens / opening</code> к одной форме, чтобы запрос совпадал с любым вариантом — классическое решение <strong>словарного разрыва</strong>. Разреженный поиск (BM25) всё ещё на них опирается; нейронные / подсловные модели обычно их пропускают и позволяют токенизатору + эмбеддингам справляться с морфологией.</span><span lang="en">Both shrink <code>open / opened / opens / opening</code> to one form so a query matches every variant — the classic fix for the <strong>lexical gap</strong>. Sparse retrieval (BM25) still relies on them; neural / subword models usually skip them and let the tokenizer + embeddings handle morphology.</span></p>
           <aside class="slide-notes">The two classic ways to normalize <em>word forms</em> (after the character-level normalization on the previous slide). Stemming is a fast heuristic that just lops off endings — cheap, but it can produce non-words and over-merge unrelated terms. Lemmatization is principled: it uses a lexicon and morphology (and ideally the POS tag) to return the true dictionary form. The payoff is the same — a search for "running" should match "ran" — which is exactly the lexical-gap problem from Lecture 1. Key modern caveat: deep models rarely stem or lemmatize; subword tokenization plus learned embeddings absorb morphology, so this lives mostly on the classical-IR/BM25 side of the course.</aside>
         </section>
 
@@ -555,7 +555,7 @@
             <div class="def-term">Token · Tokenization<span class="term-en">token · tokenization</span></div>
             <div class="def-body">
               <p><span lang="ru"><strong>Токенизация</strong> разбивает сырой текст на <strong>токены</strong> — атомарные единицы, которые потребляет модель.</span><span lang="en"><strong>Tokenization</strong> splits raw text into <strong>tokens</strong> — the atomic units the model consumes.</span></p>
-              <p class="small muted"><span lang="ru">Токен может быть <strong>словом</strong>, <strong>сабвордом</strong> или отдельным <strong>символом</strong> / байтом. Выбор уровня детализации — проектное решение с реальными компромиссами — об этом следующие несколько слайдов.</span><span lang="en">A token may be a <strong>word</strong>, a <strong>subword</strong>, or a single <strong>character</strong> / byte. The choice of granularity is a design decision with real trade-offs — that is the next few slides.</span></p>
+              <p class="small muted"><span lang="ru">Токен может быть <strong>словом</strong>, <strong>подсловом</strong> или отдельным <strong>символом</strong> / байтом. Выбор уровня детализации — проектное решение с реальными компромиссами — об этом следующие несколько слайдов.</span><span lang="en">A token may be a <strong>word</strong>, a <strong>subword</strong>, or a single <strong>character</strong> / byte. The choice of granularity is a design decision with real trade-offs — that is the next few slides.</span></p>
             </div>
           </div>
           <aside class="slide-notes">Stress that a "token" is not the same as a "word". This trips students constantly. The model never sees words — it sees a sequence of token ids, whatever we defined a token to be. Rule of thumb for English: roughly 4 characters per token, ~0.75 words per token (100 tokens ≈ 75 words).</aside>
@@ -599,7 +599,7 @@
               <text x="80" y="440" font-family="var(--font-sans)" font-size="26" fill="var(--ink-2)">Each token maps to a fixed integer id — a row index into the embedding matrix.</text>
             </svg>
           </div>
-          <p class="viz-caption"><span lang="ru">«students opened their books» → токены → id <code>11 | 298 | 34 | 567</code>. id — это просто индекс поиска; смысл — в эмбеддинге, на который он указывает.</span><span lang="en">"students opened their books" → tokens → ids <code>11 | 298 | 34 | 567</code>. The id is just a lookup index; the meaning is in the embedding it points to.</span></p>
+          <p class="viz-caption"><span lang="ru">«students opened their books» → токены → id <code>11 | 298 | 34 | 567</code>. id — это просто номер в таблице; смысл — в эмбеддинге, на который он указывает.</span><span lang="en">"students opened their books" → tokens → ids <code>11 | 298 | 34 | 567</code>. The id is just a lookup index; the meaning is in the embedding it points to.</span></p>
           <aside class="slide-notes">Concrete and reassuring: tokenization plus a vocabulary is just a dictionary from token-string to integer. The integers are arbitrary — what matters is that the same token always gets the same id, so the embedding lookup is consistent. The semantics live entirely in the embedding vectors, which we learn later.</aside>
         </section>
 
@@ -641,7 +641,7 @@
             <h2><span lang="ru">Детализация на одном предложении</span><span lang="en">Granularity on one sentence</span></h2>
             <span class="slide-kicker"><span lang="ru">«несчастье невыносимо»</span><span lang="en">"unhappiness is unbearable"</span></span>
           </div>
-          <p class="small muted mt-2"><span lang="ru">Одно предложение, три способа его разрезать. Наблюдай, как размер словаря и длина последовательности идут на компромисс.</span><span lang="en">Same sentence, three ways to cut it. Watch vocabulary size and sequence length trade off.</span></p>
+          <p class="small muted mt-2"><span lang="ru">Одно предложение, три способа его разрезать. Наблюдай, как размер словаря и длина последовательности тянут в разные стороны.</span><span lang="en">Same sentence, three ways to cut it. Watch vocabulary size and sequence length trade off.</span></p>
           <div class="walk-flow">
             <div class="walk-step" data-step="1" data-color="violet">
               <div class="walk-num">01</div>
@@ -661,7 +661,7 @@
             <div class="walk-step" data-step="4" data-final="true">
               <div class="walk-num">→</div>
               <div class="walk-content"><div class="walk-label"><span lang="ru">Вердикт</span><span lang="en">Verdict</span></div><div class="walk-detail"><span lang="ru">Сабворд побеждает при открытом словаре: ограниченный размер, разумная длина последовательности, аккуратная обработка незнакомых слов.</span><span lang="en">Subword wins for an open vocabulary: bounded size, reasonable sequence length, graceful handling of unseen words.</span></div></div>
-              <div class="walk-state"><span lang="ru">✓ сабворд</span><span lang="en">✓ subword</span></div>
+              <div class="walk-state"><span lang="ru">✓ подслово</span><span lang="en">✓ subword</span></div>
             </div>
           </div>
           <div class="step-controls">
@@ -870,7 +870,7 @@
             </div>
             <div class="twocol-col">
               <h3><span lang="ru">Пробел как токен</span><span lang="en">Whitespace as a token</span></h3>
-              <p><span lang="ru">Regex-предтокенизатор оставляет ведущий пробел прикреплённым, поэтому <code>" the"</code> — отдельный токен, отличный от <code>"the"</code>.</span><span lang="en">A regex pre-tokenizer keeps the leading space attached, so <code>" the"</code> is a single token distinct from <code>"the"</code>.</span></p>
+              <p><span lang="ru">Предтокенизатор на регулярках оставляет ведущий пробел прикреплённым, поэтому <code>" the"</code> — отдельный токен, отличный от <code>"the"</code>.</span><span lang="en">A regex pre-tokenizer keeps the leading space attached, so <code>" the"</code> is a single token distinct from <code>"the"</code>.</span></p>
               <p class="small muted"><span lang="ru">Это делает кодирование обратимым (можно восстановить точные байты) и объясняет, почему завершающий пробел способен изменить поведение модели — краевой случай, к которому мы вернёмся в Части 3.</span><span lang="en">This makes encoding reversible (you can reconstruct the exact bytes) and is why a trailing space can change a model's behaviour — a corner case we return to in Part 3.</span></p>
             </div>
           </div>
@@ -1038,7 +1038,7 @@
             <div class="twocol-col">
               <h3><span lang="ru">Сверху вниз, вероятностно</span><span lang="en">Top-down, probabilistic</span></h3>
               <p><span lang="ru">Kudo (2018): начни с <strong>большого</strong> затравочного словаря, обучи униграммную языковую модель, затем итеративно <strong>обрезай</strong> токены, удаление которых меньше всего вредит правдоподобию корпуса — пока не достигнешь целевого размера.</span><span lang="en">Kudo (2018): start from a <strong>large</strong> seed vocabulary, fit a unigram language model, then iteratively <strong>prune</strong> the tokens whose removal least hurts corpus likelihood — until the target size.</span></p>
-              <p class="small muted"><span lang="ru">Направление противоположно BPE/WordPiece (которые строят снизу вверх). Позволяет <em>сабворд-регуляризацию</em>: сэмплировать альтернативные сегментации как аугментацию данных.</span><span lang="en">Opposite direction to BPE/WordPiece (which build up). Enables <em>subword regularization</em>: sample alternative segmentations as data augmentation.</span></p>
+              <p class="small muted"><span lang="ru">Направление противоположно BPE/WordPiece (которые строят снизу вверх). Позволяет <em>подсловную регуляризацию</em>: сэмплировать альтернативные сегментации как аугментацию данных.</span><span lang="en">Opposite direction to BPE/WordPiece (which build up). Enables <em>subword regularization</em>: sample alternative segmentations as data augmentation.</span></p>
             </div>
             <div class="twocol-col">
               <h3><span lang="ru">SentencePiece, обёртка</span><span lang="en">SentencePiece, the wrapper</span></h3>
@@ -1119,7 +1119,7 @@
               <div class="tl-card">
                 <div class="tl-kicker">Kudo</div>
                 <h3 class="tl-what">Unigram + SentencePiece</h3>
-                <p class="tl-why"><span lang="ru">Вероятностные сабворды; независим от языка, трактует пробел как символ (</span><span lang="en">Probabilistic subwords; language-agnostic, treats whitespace as a symbol (</span><code>▁</code><span lang="ru">).</span><span lang="en">).</span></p>
+                <p class="tl-why"><span lang="ru">Вероятностные подслова; независим от языка, трактует пробел как символ (</span><span lang="en">Probabilistic subwords; language-agnostic, treats whitespace as a symbol (</span><code>▁</code><span lang="ru">).</span><span lang="en">).</span></p>
               </div>
             </li>
             <li class="tl-node is-pivot">
@@ -1135,7 +1135,7 @@
               <div class="tl-card">
                 <div class="tl-kicker">tiktoken · frontier</div>
                 <h3 class="tl-what"><span lang="ru">Быстрый BPE в масштабе</span><span lang="en">Fast BPE at scale</span></h3>
-                <p class="tl-why"><span lang="ru">Продакшн-токенизаторы LLM; фронтир исследует безтокенные байтовые модели (ByT5).</span><span lang="en">Production LLM tokenizers; the frontier explores token-free byte models (ByT5).</span></p>
+                <p class="tl-why"><span lang="ru">Продакшн-токенизаторы LLM; передний край исследует бестокенные байтовые модели (ByT5).</span><span lang="en">Production LLM tokenizers; the frontier explores token-free byte models (ByT5).</span></p>
               </div>
             </li>
           </ol>
@@ -1154,7 +1154,7 @@
               <ul class="obj-list">
                 <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span class="term">[CLS]</span><span lang="ru"> — слот-сводка последовательности (классификация BERT).</span><span lang="en"> — sequence-summary slot (BERT classification).</span></span></li>
                 <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span class="term">[SEP]</span><span lang="ru"> — разделяет два сегмента, напр. <em>запрос | документ</em> в реранкере BERT.</span><span lang="en"> — separates two segments, e.g. <em>query | document</em> in a BERT reranker.</span></span></li>
-                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span class="term">[PAD]</span><span lang="ru"> — заполнитель батча, маскируется в лоссе.</span><span lang="en"> — batch filler, masked out of the loss.</span></span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span class="term">[PAD]</span><span lang="ru"> — заполнитель батча, маскируется в функции потерь.</span><span lang="en"> — batch filler, masked out of the loss.</span></span></li>
                 <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span class="term">[MASK]</span><span lang="ru"> — скрытая позиция, которую MLM должна предсказать (~15%).</span><span lang="en"> — hidden position the MLM must predict (~15%).</span></span></li>
                 <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span class="term">[UNK]</span>, BOS / EOS (<code>&lt;s&gt;</code> / <code>&lt;/s&gt;</code>).</span></li>
               </ul>
@@ -1245,7 +1245,7 @@ tok.encode(user_text, add_special_tokens=False)</code></pre>
             <div class="twocol-col">
               <h3><span lang="ru">Выбор формата = стоимость в токенах</span><span lang="en">Format choice = token cost</span></h3>
               <p><span lang="ru">YAML обычно требует <strong>меньше токенов</strong>, чем JSON, для тех же данных — меньше пунктуации (нет фигурных скобок, меньше кавычек и запятых).</span><span lang="en">YAML usually needs <strong>fewer tokens</strong> than JSON for the same data — less punctuation (no braces, fewer quotes/commas).</span></p>
-              <p class="small muted"><span lang="ru">Совет по prompt-engineering: для промптов, где важен каждый токен, предпочитай YAML или компактные форматы; каждый сэкономленный токен — это дешевле инференс и больше полезного контекста.</span><span lang="en">Prompt-engineering tip: for token-tight prompts, prefer YAML or compact formats; every saved token is cheaper inference and more usable context.</span></p>
+              <p class="small muted"><span lang="ru">Совет по промпт-инжинирингу: для промптов, где важен каждый токен, предпочитай YAML или компактные форматы; каждый сэкономленный токен — это более дешёвый инференс и больше полезного контекста.</span><span lang="en">Prompt-engineering tip: for token-tight prompts, prefer YAML or compact formats; every saved token is cheaper inference and more usable context.</span></p>
             </div>
           </div>
           <aside class="slide-notes">Two practical levers. First, indentation: if every space is its own token, a deeply nested function explodes in length and the model loses structure — so adding multi-space tokens directly improved code ability. Second, serialization format matters: JSON's braces, quotes and commas cost tokens that YAML avoids. These are cheap wins once you know the tokenizer is the bottleneck.</aside>
@@ -1294,7 +1294,7 @@ tok.encode(user_text, add_special_tokens=False)</code></pre>
               <h3><span lang="ru">Немецкие составные слова</span><span lang="en">German compounds</span></h3>
               <p class="small" style="word-break:break-all;font-family:var(--font-mono)">Donaudampfschifffahrts&shy;gesellschaftskapitän</p>
               <p>→ <code>Donau ##dampf ##schiff ##fahrt ##gesellschaft ##kapitän</code></p>
-              <p class="small muted"><span lang="ru">Одно орфографическое слово, шесть морфем («капитан общества дунайского парового судоходства»). Сабворды восстанавливают части, которые словарь целых слов пропустил бы.</span><span lang="en">One orthographic word, six morphemes ("Danube steamship company captain"). Subwords recover the parts a word vocabulary would miss.</span></p>
+              <p class="small muted"><span lang="ru">Одно орфографическое слово, шесть морфем («капитан общества дунайского парового судоходства»). Подслова восстанавливают части, которые словарь целых слов пропустил бы.</span><span lang="en">One orthographic word, six morphemes ("Danube steamship company captain"). Subwords recover the parts a word vocabulary would miss.</span></p>
             </div>
             <div class="twocol-col">
               <h3><span lang="ru">Арабский: корень + шаблон</span><span lang="en">Arabic: root + pattern</span></h3>
@@ -1327,7 +1327,7 @@ tok.encode(user_text, add_special_tokens=False)</code></pre>
         <section class="slide" data-type="misconception" data-screen-label="44 Glitch tokens">
           <div class="slide-header">
             <h2><span lang="ru">Частое заблуждение</span><span lang="en">Common misconception</span></h2>
-            <span class="slide-kicker"><span lang="ru">Развеиваем миф</span><span lang="en">Bust the myth</span></span>
+            <span class="slide-kicker"><span lang="ru">Развенчиваем миф</span><span lang="en">Bust the myth</span></span>
           </div>
           <div class="split-art">
             <div class="split-art__body">
@@ -1392,7 +1392,7 @@ tok.encode(user_text, add_special_tokens=False)</code></pre>
             </div>
             <div class="twocol-col">
               <h3><span lang="ru">Межъязыковое рассогласование единиц</span><span lang="en">Cross-lingual unit mismatch</span></h3>
-              <p><span lang="ru">"euthanasia" — <strong>один</strong> терм BM25, но XLM-R разбивает его на несколько сабвордов. Разреженные (BM25) и нейронные ретриверы тогда расходятся в единицах → это вредит гибридному слиянию.</span><span lang="en">"euthanasia" is <strong>one</strong> BM25 term, but XLM-R splits it into several subwords. Sparse (BM25) and neural retrievers then disagree on units → hurts hybrid fusion.</span></p>
+              <p><span lang="ru">"euthanasia" — <strong>один</strong> терм BM25, но XLM-R разбивает его на несколько подслов. Разреженные (BM25) и нейронные ретриверы тогда расходятся в единицах → это вредит гибридному слиянию.</span><span lang="en">"euthanasia" is <strong>one</strong> BM25 term, but XLM-R splits it into several subwords. Sparse (BM25) and neural retrievers then disagree on units → hurts hybrid fusion.</span></p>
               <p class="small muted"><span lang="ru">Многоязычная фертильность (Часть 3) также порождает <strong>риск обрезания</strong> и неравномерную полноту — проблему справедливости поиска между языками.</span><span lang="en">Multilingual fertility (Part 3) also drives <strong>truncation risk</strong> and uneven recall — a search-fairness problem across languages.</span></p>
             </div>
           </div>
@@ -1414,7 +1414,7 @@ tok.encode(user_text, add_special_tokens=False)</code></pre>
             </div>
             <details class="hidden-answer mt-4">
               <summary><span lang="ru">Показать объяснение</span><span lang="en">Reveal explanation</span></summary>
-              <div class="ha-content"><span lang="ru"><strong>A</strong>. Атом вычисления — это <em>токен</em>, а не символ — "strawberry" разбивается на <code>str</code>+<code>aw</code>+<code>berry</code> под cl100k, поэтому модель во время выполнения никогда не осматривает буквы; чтобы посчитать R, нужны запомненные написания каждого сабворда. B неверно (байтовый запасной вариант гарантирует покрытие, так что OOV "strawberry" случиться не может); C — это другой (реальный) баг.</span><span lang="en"><strong>A</strong>. The atom of computation is the <em>token</em>, not the character — "strawberry" is split into <code>str</code>+<code>aw</code>+<code>berry</code> under cl100k, so the model never inspects letters at run time; counting R's requires memorised spellings for every subword. B is false (byte-level fallback guarantees coverage, so an OOV "strawberry" can't happen); C is a different (real) bug.</span></div>
+              <div class="ha-content"><span lang="ru"><strong>A</strong>. Атом вычисления — это <em>токен</em>, а не символ — "strawberry" разбивается на <code>str</code>+<code>aw</code>+<code>berry</code> под cl100k, поэтому модель во время выполнения никогда не осматривает буквы; чтобы посчитать R, нужны запомненные написания каждого подслова. B неверно (байтовый запасной вариант гарантирует покрытие, так что OOV "strawberry" случиться не может); C — это другой (реальный) баг.</span><span lang="en"><strong>A</strong>. The atom of computation is the <em>token</em>, not the character — "strawberry" is split into <code>str</code>+<code>aw</code>+<code>berry</code> under cl100k, so the model never inspects letters at run time; counting R's requires memorised spellings for every subword. B is false (byte-level fallback guarantees coverage, so an OOV "strawberry" can't happen); C is a different (real) bug.</span></div>
             </details>
           </div>
           <aside class="slide-notes">Reinforces slide 45. The trap is B — students invoke OOV, but byte-level fallback means "strawberry" is always representable; the issue is granularity, not coverage.</aside>
@@ -1445,7 +1445,7 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
           <div>
             <div class="quote-mark">"</div>
             <blockquote><span lang="ru">Достаточно большой корпус справляется с этими проблемами<br />(почти) сам.</span><span lang="en">A large enough corpus handles these problems<br />(almost) by itself.</span></blockquote>
-            <div class="quote-attr"><span lang="ru">практическая соль · и фронтир: модели без токенизации (ByT5)</span><span lang="en">the practitioner's punchline · and the frontier: token-free models (ByT5)</span></div>
+            <div class="quote-attr"><span lang="ru">практическая соль · и передний край: модели без токенизации (ByT5)</span><span lang="en">the practitioner's punchline · and the frontier: token-free models (ByT5)</span></div>
           </div>
           <aside class="slide-notes">The reassuring close to Part 3: most corner cases soften when the tokenizer trains on a big, diverse, well-balanced corpus — the digit, code, and rare-word problems shrink, though the multilingual tax and the letter-counting limit are structural and persist. The frontier response is to drop tokenization entirely: token-free, byte-to-byte models like ByT5 are robust to any language and any input, at the cost of much longer sequences. Not yet the industrial standard, but a live research direction.</aside>
         </section>
@@ -1514,7 +1514,7 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
           </div>
           <table class="cmp-table">
             <thead>
-              <tr><th><span lang="ru">Если ваши данные…</span><span lang="en">If your data is…</span></th><th><span lang="ru">…и</span><span lang="en">…and</span></th><th><span lang="ru">тогда используйте</span><span lang="en">then use</span></th></tr>
+              <tr><th><span lang="ru">Если твои данные…</span><span lang="en">If your data is…</span></th><th><span lang="ru">…и</span><span lang="en">…and</span></th><th><span lang="ru">тогда используй</span><span lang="en">then use</span></th></tr>
             </thead>
             <tbody>
               <tr><td><span lang="ru">Текст / эмбеддинги</span><span lang="en">Text / embeddings</span> <span class="muted"><span lang="ru">(нечисловые)</span><span lang="en">(non-numerical)</span></span></td><td><span lang="ru">важно направление, а не длина</span><span lang="en">direction matters, length should not</span></td><td class="cell-good">Cosine</td></tr>
@@ -1598,7 +1598,7 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
           <div class="e2e-twin">
             <div class="e2e-panel e2e-math-panel">
               <div class="panel-head"><span lang="ru">Математика</span><span lang="en">Math</span></div>
-              <div class="e2e-step" data-step="0"><div class="step-formula">$$a=(1,2,2),\quad b=(2,0,1)$$</div><p class="step-caption"><span lang="ru">Два крошечных вектора в \(\mathbb{R}^{3}\). Нажмите →, чтобы вычислить \(\cos\theta\).</span><span lang="en">Two tiny vectors in \(\mathbb{R}^{3}\). Press → to compute \(\cos\theta\).</span></p></div>
+              <div class="e2e-step" data-step="0"><div class="step-formula">$$a=(1,2,2),\quad b=(2,0,1)$$</div><p class="step-caption"><span lang="ru">Два крошечных вектора в \(\mathbb{R}^{3}\). Нажми →, чтобы вычислить \(\cos\theta\).</span><span lang="en">Two tiny vectors in \(\mathbb{R}^{3}\). Press → to compute \(\cos\theta\).</span></p></div>
               <div class="e2e-step" data-step="1"><div class="step-formula">$$a\cdot b=\sum_i a_i b_i$$</div><p class="step-caption"><span lang="ru">Покомпонентное произведение, затем сумма.</span><span lang="en">Componentwise product, then sum.</span></p></div>
               <div class="e2e-step" data-step="2"><div class="step-formula">$$\lVert a\rVert=\sqrt{\textstyle\sum_i a_i^2},\quad \lVert b\rVert=\sqrt{\textstyle\sum_i b_i^2}$$</div><p class="step-caption"><span lang="ru">Длина каждого вектора.</span><span lang="en">Length of each vector.</span></p></div>
               <div class="e2e-step" data-step="3"><div class="step-formula">$$\cos\theta=\dfrac{a\cdot b}{\lVert a\rVert\,\lVert b\rVert}$$</div><p class="step-caption"><span lang="ru">Делим.</span><span lang="en">Divide.</span></p></div>
@@ -1668,7 +1668,7 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
               <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label is-highlight">\(\sqrt{(4-3)^2+(1-2)^2}=\sqrt{1+1}=\sqrt{2}\approx 1.414\)</span></div></div>
               <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label is-highlight">\(|3-2|+|5-9| = 1+4 = 5\)</span></div></div>
               <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label"><span lang="ru">то же \(P(2,9),Q(3,5)\):</span><span lang="en">same \(P(2,9),Q(3,5)\):</span></span></div><div class="step-calc-row"><span class="matrix-label">\(L_\infty=\max(1,4)=4\)</span></div></div>
-              <div class="e2e-step" data-step="4"><div class="step-calc-row"><span class="matrix-label"><span lang="ru">берите \(L_1\), когда масштабы различаются / мешают выбросы</span><span lang="en">use \(L_1\) when scales differ / outliers bite</span></span></div></div>
+              <div class="e2e-step" data-step="4"><div class="step-calc-row"><span class="matrix-label"><span lang="ru">бери \(L_1\), когда масштабы различаются / мешают выбросы</span><span lang="en">use \(L_1\) when scales differ / outliers bite</span></span></div></div>
             </div>
           </div>
           <div class="e2e-stepper">
@@ -1764,7 +1764,7 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
             </div>
             <div class="e2e-panel e2e-example-panel">
               <div class="panel-head"><span lang="ru">Выравнивание</span><span lang="en">Alignment</span></div>
-              <div class="e2e-step" data-step="0"><p class="step-caption"><span lang="ru">↓ Проследите самый дешёвый путь.</span><span lang="en">↓ Trace the cheapest path.</span></p></div>
+              <div class="e2e-step" data-step="0"><p class="step-caption"><span lang="ru">↓ Проследи самый дешёвый путь.</span><span lang="en">↓ Trace the cheapest path.</span></p></div>
               <div class="e2e-step" data-step="1"><div class="step-calc-row"><span class="matrix-label"><code>H O _ N D A _</code></span></div><div class="step-calc-row"><span class="matrix-label"><code>H Y U N D A I</code></span></div></div>
               <div class="e2e-step" data-step="2"><div class="step-calc-row"><span class="matrix-label"><span lang="ru">замена <code>O→Y</code>, вставка <code>U</code> … вставка <code>I</code></span><span lang="en">substitute <code>O→Y</code>, insert <code>U</code> … insert <code>I</code></span></span></div></div>
               <div class="e2e-step" data-step="3"><div class="step-calc-row"><span class="matrix-label is-highlight"><span lang="ru">редакционное расстояние = 3</span><span lang="en">edit distance = 3</span></span></div><p class="step-caption tiny"><span lang="ru">Применяется для проверки орфографии и нечёткого поиска.</span><span lang="en">Used for spell-check &amp; fuzzy matching.</span></p></div>
@@ -1788,7 +1788,7 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
             <div class="twocol-col">
               <h3><span lang="ru">Разреженные / множества</span><span lang="en">Sparse / sets</span></h3>
               <ul class="obj-list">
-                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Шингловые документы, пары «пользователь—объект», категориальные признаки.</span><span lang="en">Shingled documents, user-item pairs, categorical features.</span></span></li>
+                <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Документы, нарезанные на шинглы, пары «пользователь—объект», категориальные признаки.</span><span lang="en">Shingled documents, user-item pairs, categorical features.</span></span></li>
                 <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Jaccard</strong> + <strong>MinHash</strong> для дедупликации; LSH-бэндинг → сублинейный поиск почти-дубликатов.</span><span lang="en"><strong>Jaccard</strong> + <strong>MinHash</strong> for dedup; LSH banding → sublinear near-duplicate search.</span></span></li>
                 <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Важно, <em>какие</em> термы присутствуют, а не насколько плотный вектор.</span><span lang="en">You care <em>which</em> terms appear, not how dense the vector is.</span></span></li>
               </ul>
@@ -1854,7 +1854,7 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
           <div class="viz-frame">
             <img src="assets/img/L2/L2-64-anisotropy.png?v=1" alt="A narrow cone of arrows that all look similar versus a balanced whitened sphere of arrows" />
           </div>
-          <p class="viz-caption"><span lang="ru">Представления BERT / GPT-2 занимают <strong>узкий конус</strong> — <em>особенно в последних слоях</em> (крайне выражено в финальном слое GPT-2, куда слабее в BERT и в нижних слоях) — так что два <em>случайных</em> токена уже имеют высокий косинус (Ethayarajh 2019). Важно, из какого слоя вы читаете эмбеддинги; сырой косинус завышен. Исправление: отбеливание / стандартизация или контрастное обучение.</span><span lang="en">BERT / GPT-2 representations occupy a <strong>narrow cone</strong> — <em>especially in the last layers</em> (extreme in GPT-2's final layer, far milder in BERT and in lower layers) — so two <em>random</em> tokens already have high cosine (Ethayarajh 2019). Which layer you read embeddings from matters; raw cosine is inflated. Fix: whitening / standardization, or contrastive training.</span> <span class="muted"><span lang="ru">(Контекстные эмбеддинги из BERT/GPT-2 и контрастное обучение формально вводятся в L5&ndash;L6 — здесь мы лишь отмечаем их влияние на косинус.)</span><span lang="en">(Contextual embeddings from BERT/GPT-2 and contrastive learning are formally introduced in L5&ndash;L6 — here we only flag their effect on cosine.)</span></span></p>
+          <p class="viz-caption"><span lang="ru">Представления BERT / GPT-2 занимают <strong>узкий конус</strong> — <em>особенно в последних слоях</em> (крайне выражено в финальном слое GPT-2, куда слабее в BERT и в нижних слоях) — так что два <em>случайных</em> токена уже имеют высокий косинус (Ethayarajh 2019). Важно, из какого слоя ты читаешь эмбеддинги; сырой косинус завышен. Исправление: отбеливание / стандартизация или контрастное обучение.</span><span lang="en">BERT / GPT-2 representations occupy a <strong>narrow cone</strong> — <em>especially in the last layers</em> (extreme in GPT-2's final layer, far milder in BERT and in lower layers) — so two <em>random</em> tokens already have high cosine (Ethayarajh 2019). Which layer you read embeddings from matters; raw cosine is inflated. Fix: whitening / standardization, or contrastive training.</span> <span class="muted"><span lang="ru">(Контекстные эмбеддинги из BERT/GPT-2 и контрастное обучение формально вводятся в L5&ndash;L6 — здесь мы лишь отмечаем их влияние на косинус.)</span><span lang="en">(Contextual embeddings from BERT/GPT-2 and contrastive learning are formally introduced in L5&ndash;L6 — here we only flag their effect on cosine.)</span></span></p>
           <aside class="slide-notes">The embeddings themselves are the problem here. Contextual reps from BERT/GPT-2 are squeezed into a narrow cone in space, so even unrelated tokens sit at a small angle and cosine reports them as "similar". The effect is layer-dependent: lower layers are fairly isotropic, anisotropy is severe mainly in the upper layers — extreme in GPT-2's final layer (average random-token cosine near 1.0), much milder in BERT — so the choice of which layer you pool from is itself a calibration decision. This makes raw cosine on out-of-the-box LM embeddings misleading. Remedies push the cloud toward isotropy: whitening, BERT-flow, standardization, or contrastive objectives (sentence-transformers). Practical lesson: don't trust raw cosine on hidden states without calibration.</aside>
         </section>
 
@@ -1895,7 +1895,7 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
               <tr><th><span lang="ru">Задача</span><span lang="en">Task</span></th><th><span lang="ru">Мера</span><span lang="en">Measure</span></th><th><span lang="ru">Почему</span><span lang="en">Why</span></th></tr>
             </thead>
             <tbody>
-              <tr><td><span lang="ru">Семантический поиск / RAG</span><span lang="en">Semantic search / RAG</span></td><td class="cell-good">cosine (normalized) / dot</td><td><span lang="ru">плотные эмбеддинги; скалярное произведение для обученных dual-энкодеров</span><span lang="en">dense embeddings; dot for trained dual encoders</span></td></tr>
+              <tr><td><span lang="ru">Семантический поиск / RAG</span><span lang="en">Semantic search / RAG</span></td><td class="cell-good">cosine (normalized) / dot</td><td><span lang="ru">плотные эмбеддинги; скалярное произведение для обученных би-энкодеров</span><span lang="en">dense embeddings; dot for trained dual encoders</span></td></tr>
               <tr><td><span lang="ru">Почти-дубликаты / дедупликация</span><span lang="en">Near-duplicate / dedup</span></td><td class="cell-good">Jaccard via MinHash</td><td><span lang="ru">множества шинглов, веб-масштаб, сублинейно</span><span lang="en">sets of shingles, web-scale, sublinear</span></td></tr>
               <tr><td><span lang="ru">Плагиат</span><span lang="en">Plagiarism</span></td><td>containment + edit distance</td><td><span lang="ru">перекрытие шинглов, затем точное выравнивание строк</span><span lang="en">shingle overlap, then fine string alignment</span></td></tr>
               <tr><td><span lang="ru">Кластеризация</span><span lang="en">Clustering</span></td><td>sq-Euclidean / cosine</td><td><span lang="ru">k-means против сферического k-means</span><span lang="en">k-means vs spherical k-means</span></td></tr>
@@ -1910,7 +1910,7 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
         <section class="slide" data-type="two-col" data-screen-label="69 FAISS">
           <div class="slide-header">
             <h2><span lang="ru">На практике: FAISS, векторные БД, численные тонкости</span><span lang="en">In practice: FAISS, vector DBs, numerics</span></h2>
-            <span class="slide-kicker"><span lang="ru">подберите метрику под обучение</span><span lang="en">match the metric to the training</span></span>
+            <span class="slide-kicker"><span lang="ru">подбери метрику под обучение</span><span lang="en">match the metric to the training</span></span>
           </div>
           <div class="twocol">
             <div class="twocol-col">
@@ -1923,12 +1923,12 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
             </div>
             <div class="twocol-col">
               <h3><span lang="ru">Согласование и защита</span><span lang="en">Match &amp; guard</span></h3>
-              <p><span lang="ru">Выбирайте метрику векторной БД под то, как <strong>обучали</strong> модель эмбеддингов: большинство sentence-моделей → косинус; часть ретриверов → скалярное произведение.</span><span lang="en">Pick the vector-DB metric to match how the embedding model was <strong>trained</strong>: most sentence models → cosine; some retrievers → dot.</span></p>
+              <p><span lang="ru">Выбирай метрику векторной БД под то, как <strong>обучали</strong> модель эмбеддингов: большинство sentence-моделей → косинус; часть ретриверов → скалярное произведение.</span><span lang="en">Pick the vector-DB metric to match how the embedding model was <strong>trained</strong>: most sentence models → cosine; some retrievers → dot.</span></p>
               <div class="callout" data-kind="warn">
                 <div class="callout-icon">!</div>
                 <div class="callout-body">
                   <strong><span lang="ru">Численные тонкости</span><span lang="en">Numerics</span></strong>
-                  <p><span lang="ru">Косинус не определён для нулевого вектора (добавьте \(\varepsilon\)); KL требует сглаживания нулевых бинов; нормируйте один раз заранее и храните единичные векторы.</span><span lang="en">Cosine is undefined for a zero vector (add \(\varepsilon\)); KL needs smoothing for zero bins; pre-normalize once and store unit vectors.</span></p>
+                  <p><span lang="ru">Косинус не определён для нулевого вектора (добавь \(\varepsilon\)); KL требует сглаживания нулевых бинов; нормируй один раз заранее и храни единичные векторы.</span><span lang="en">Cosine is undefined for a zero vector (add \(\varepsilon\)); KL needs smoothing for zero bins; pre-normalize once and store unit vectors.</span></p>
                 </div>
               </div>
             </div>
@@ -1965,7 +1965,7 @@ len(enc.encode(hindi_text)) / len(enc.encode(english_text))  # fertility ratio</
             <li><span class="ref-body"><span class="ref-authors">Lundin, J. M. et al.</span> · <span class="ref-title">The Token Tax: Systematic Bias in Multilingual Tokenization</span> · <span class="ref-venue">arXiv:2509.05486</span></span><span class="ref-year">2025</span></li>
             <li><span class="ref-body"><span class="ref-authors">OpenAI / HuggingFace</span> · <span class="ref-title">tiktoken &amp; tokenizers documentation</span> · <span class="ref-venue">github.com/openai/tiktoken</span></span><span class="ref-year">2024</span></li>
           </ol>
-          <p class="small muted mt-2"><span lang="ru">Глубже про энтропию и сжатие — deep-dive <strong>«Прибор Шеннона»</strong> (L17): сколько стоит буква, и почему IDF — это самоинформация.</span><span lang="en">Deeper into entropy &amp; compression — the <strong>&ldquo;Shannon&rsquo;s Gauge&rdquo;</strong> deep-dive (L17): how much a letter is worth, and why IDF is self-information.</span></p>
+          <p class="small muted mt-2"><span lang="ru">Глубже про энтропию и сжатие — разбор <strong>«Прибор Шеннона»</strong> (L17): сколько стоит буква, и почему IDF — это самоинформация.</span><span lang="en">Deeper into entropy &amp; compression — the <strong>&ldquo;Shannon&rsquo;s Gauge&rdquo;</strong> deep-dive (L17): how much a letter is worth, and why IDF is self-information.</span></p>
           <aside class="slide-notes">Jurafsky &amp; Martin ch. 2 (tokenization) and ch. 6 (vector semantics) are the textbook spine; Sennrich and Kudo are the source papers for BPE and Unigram; Karpathy's minBPE is the best hands-on build; Steck 2024, Aggarwal 2001, and Ethayarajh 2019 back the high-dimensional caveats; Manning et al. for the IR similarity foundations we build on next week.</aside>
         </section>
 

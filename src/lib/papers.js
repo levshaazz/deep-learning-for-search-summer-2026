@@ -55,7 +55,7 @@ export const AREA_LABELS = {
     title: { en: 'Search as system design', ru: 'Поиск как проектирование системы', tt: 'Эзләү система дизайны буларак' },
     kicker: {
       en: 'Why a model is not a system: the vocabulary gap, query intent, technical debt.',
-      ru: 'Почему модель — это не система: разрыв словаря, намерение запроса, техдолг.',
+      ru: 'Почему модель — это не система: словарный разрыв, намерение запроса, техдолг.',
       tt: 'Ни өчен модель — система түгел: сүзлек аермасы, сорау максаты, техник бурыч.',
     },
   },
@@ -71,7 +71,7 @@ export const AREA_LABELS = {
     title: { en: 'Neural ranking & dense/sparse retrieval', ru: 'Нейронное ранжирование и плотный/разреженный поиск', tt: 'Нейрон ранжлау һәм тыгыз/сирәк эзләү' },
     kicker: {
       en: 'Bi-encoders, late interaction, learned sparse retrieval and learning-to-rank.',
-      ru: 'Би-энкодеры, поздняя интеракция, обученно-разреженный поиск и learning-to-rank.',
+      ru: 'Би-энкодеры, позднее взаимодействие, обученно-разреженный поиск и learning-to-rank.',
       tt: 'Би-энкодерлар, соңгы үзара тәэсир, өйрәнелгән сирәк эзләү һәм learning-to-rank.',
     },
   },
@@ -144,7 +144,7 @@ export const papersMeta = {
     search: { en: 'Search author, title or note…', ru: 'Поиск по автору, названию или заметке…', tt: 'Автор, исем яки искәрмә буенча эзләү…' },
     all: { en: 'All', ru: 'Все', tt: 'Барысы' },
     of: { en: 'of', ru: 'из', tt: 'дан' },
-    none: { en: 'No works match — try another word.', ru: 'Ничего не найдено — попробуйте другое слово.', tt: 'Туры килгәне юк — башка сүз кулланып карагыз.' },
+    none: { en: 'No works match — try another word.', ru: 'Ничего не найдено — попробуй другое слово.', tt: 'Туры килгәне юк — башка сүз кулланып карагыз.' },
     reset: { en: 'reset', ru: 'сбросить', tt: 'ташлау' },
     filterByArea: { en: 'Filter by research area', ru: 'Фильтр по области', tt: 'Өлкә буенча фильтр' },
   },

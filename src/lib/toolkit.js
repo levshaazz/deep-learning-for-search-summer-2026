@@ -71,8 +71,8 @@ export const TOOLKIT_UI = {
     tt: 'Бу тема буенча барысы — бер урында',
   },
   slides: { en: 'Slides', ru: 'Слайды', tt: 'Слайдлар' },
-  openSlides: { en: 'Open the deck', ru: 'Открыть колоду', tt: 'Слайдларны ач' },
-  figures: { en: 'Interactive figures', ru: 'Интерактивные фигуры', tt: 'Интерактив фигуралар' },
+  openSlides: { en: 'Open the deck', ru: 'Открыть слайды', tt: 'Слайдларны ач' },
+  figures: { en: 'Interactive figures', ru: 'Интерактивные демо', tt: 'Интерактив фигуралар' },
   assignment: { en: 'Assignment', ru: 'Задание', tt: 'Эш' },
   papers: { en: 'Papers', ru: 'Статьи', tt: 'Мәкаләләр' },
 };

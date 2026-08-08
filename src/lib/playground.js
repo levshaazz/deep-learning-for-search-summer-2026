@@ -70,7 +70,7 @@ export const TOPICS = [
   { id: 'transformers', title: { en: 'Attention & Transformers', ru: 'Внимание и трансформеры', tt: 'Игътибар һәм трансформерлар' } },
   { id: 'neural-ranking', title: { en: 'Neural ranking & late interaction', ru: 'Нейронное ранжирование и позднее взаимодействие', tt: 'Нейрон ранжлау һәм соңгы үзара тәэсир' } },
   { id: 'ann',          title: { en: 'ANN & vector search', ru: 'ANN и векторный поиск', tt: 'ANN һәм вектор эзләү' } },
-  { id: 'negatives',    title: { en: 'Contrastive learning & hard negatives', ru: 'Контрастное обучение и сложные негативы', tt: 'Контрастив өйрәнү һәм катлаулы негативлар' } },
+  { id: 'negatives',    title: { en: 'Contrastive learning & hard negatives', ru: 'Контрастное обучение и трудные негативы', tt: 'Контрастив өйрәнү һәм катлаулы негативлар' } },
   { id: 'evaluation',   title: { en: 'Evaluation & metrics', ru: 'Оценивание и метрики', tt: 'Бәяләү һәм метрикалар' } },
   { id: 'rag',          title: { en: 'RAG, agents & multimodal', ru: 'RAG, агенты и мультимодальность', tt: 'RAG, агентлар һәм мультимодальлек' } },
 ];

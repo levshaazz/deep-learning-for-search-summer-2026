@@ -332,7 +332,7 @@
     $$ S_{q,d} \;=\; \sum_{i \in q} \max_{j \in d} \; E_{q_i} \cdot E_{d_j} $$
   </div>
   <p class="def-where">where <b>S<sub>q,d</sub></b> = the query&ndash;document relevance score, <b>i</b> = a query token, <b>j</b> = a document token, <b>E<sub>q<sub>i</sub></sub></b> = the query token's embedding, <b>E<sub>d<sub>j</sub></sub></b> = the document token's embedding (both L2-normalized, so the dot is a cosine).</p>
-  <p class="small muted center mt-2"><span lang="ru">Векторы L2-нормированы, поэтому скалярное произведение — это косинус. Каждый токен запроса «салютует» <em>одному</em> токену документа, с которым совпадает лучше всего (\(\max_j\)); оценка — сумма этих лучших салютов. Не средний по всем парам — именно <strong>максимум</strong>, затем сумма (отсылка L2: косинус как линейка). MaxSim — это <strong>оценка</strong> релевантности, а не метрика: внутренний \(\max\) нарушает неравенство треугольника и несимметричен по запросу/документу, поэтому, в отличие от одного косинусного вектора, его нельзя проиндексировать обычным ANN в метрическом пространстве — именно поэтому PLAID (и L9) нужен особый много-векторный каскад поиска.</span><span lang="en">Vectors are L2-normalized, so the dot product is a cosine. Each query token "salutes" the <em>one</em> document token it matches best (\(\max_j\)); the score is the sum of those best salutes. Not an average over all pairs — a <strong>max</strong>, then a sum (callback L2: cosine as a ruler). MaxSim is a relevance <strong>score</strong>, not a metric: the inner \(\max\) breaks the triangle inequality and symmetry, so unlike a single cosine vector it cannot be indexed by a generic metric-space ANN — which is precisely why PLAID (and L9) need a special multi-vector retrieval cascade.</span></p>
+  <p class="small muted center mt-2"><span lang="ru">Векторы L2-нормированы, поэтому скалярное произведение — это косинус. Каждый токен запроса «салютует» <em>одному</em> токену документа, с которым совпадает лучше всего (\(\max_j\)); оценка — сумма этих лучших салютов. Не средний по всем парам — именно <strong>максимум</strong>, затем сумма (отсылка L2: косинус как линейка). MaxSim — это <strong>оценка</strong> релевантности, а не метрика: внутренний \(\max\) нарушает неравенство треугольника и несимметричен по запросу/документу, поэтому, в отличие от одного косинусного вектора, его нельзя проиндексировать обычным ANN в метрическом пространстве — именно поэтому PLAID (и L9) нужен особый многовекторный каскад поиска.</span><span lang="en">Vectors are L2-normalized, so the dot product is a cosine. Each query token "salutes" the <em>one</em> document token it matches best (\(\max_j\)); the score is the sum of those best salutes. Not an average over all pairs — a <strong>max</strong>, then a sum (callback L2: cosine as a ruler). MaxSim is a relevance <strong>score</strong>, not a metric: the inner \(\max\) breaks the triangle inequality and symmetry, so unlike a single cosine vector it cannot be indexed by a generic metric-space ANN — which is precisely why PLAID (and L9) need a special multi-vector retrieval cascade.</span></p>
   <aside class="slide-notes">MaxSim operator. L2-norm → dot = cosine. Max-then-sum is the key: reward matching many query tokens, each to its best partner.</aside>
 </section>
 
@@ -385,7 +385,7 @@
     $$ \text{row maxes} = (0.20, 0.98, 0.12), \quad \text{MaxSim} = 0.20 + 0.98 + 0.12 = \mathbf{1.30} $$
     $$ \mathbf{2.35} \;>\; \mathbf{1.30} \quad\Longrightarrow\quad \textbf{BAM} $$
   </div>
-  <p class="small muted center mt-2"><span lang="ru">Финансовый документ совпадает с «bank» почти идеально (\(0{,}98\)) — но «river» и «flood» не находят пары (\(0{,}20, 0{,}12\)). MaxSim \(= \mathbf{1{,}30}\) проигрывает \(\mathbf{2{,}35}\): MaxSim награждает совпадение <em>многих</em> токенов, а не одного громкого. (Игрушечные векторы здесь нарочно контекстно-независимые — worst case <em>до</em> контекстуализации: настоящий BERT-энкодер развёл бы два «bank» ещё до MaxSim.)</span><span lang="en">The finance doc matches "bank" almost perfectly (\(0.98\)) — but "river" and "flood" find no partner (\(0.20, 0.12\)). MaxSim \(= \mathbf{1.30}\) loses to \(\mathbf{2.35}\): MaxSim rewards matching <em>many</em> tokens, not one loud one. (The toy vectors here are deliberately context-independent — the worst case <em>before</em> contextualization: a real BERT encoder would pull the two "bank"s apart even before MaxSim.)</span></p>
+  <p class="small muted center mt-2"><span lang="ru">Финансовый документ совпадает с «bank» почти идеально (\(0{,}98\)) — но «river» и «flood» не находят пары (\(0{,}20, 0{,}12\)). MaxSim \(= \mathbf{1{,}30}\) проигрывает \(\mathbf{2{,}35}\): MaxSim награждает совпадение <em>многих</em> токенов, а не одного громкого. (Игрушечные векторы здесь нарочно контекстно-независимые — худший случай <em>до</em> контекстуализации: настоящий BERT-энкодер развёл бы два «bank» ещё до MaxSim.)</span><span lang="en">The finance doc matches "bank" almost perfectly (\(0.98\)) — but "river" and "flood" find no partner (\(0.20, 0.12\)). MaxSim \(= \mathbf{1.30}\) loses to \(\mathbf{2.35}\): MaxSim rewards matching <em>many</em> tokens, not one loud one. (The toy vectors here are deliberately context-independent — the worst case <em>before</em> contextualization: a real BERT encoder would pull the two "bank"s apart even before MaxSim.)</span></p>
   <aside class="slide-notes">The BAM: a near-perfect single match (0.98 on bank) still loses, 1.30 < 2.35. Late interaction defeats the lexical trap. Note the caveat: the toy token vectors are deliberately context-independent, the worst case before contextualization — a real BERT-style encoder would already separate the river-"bank" from the finance-"bank", so the 0.98 is the adversarial setup, not what ColBERT would see. Gated against data/l8-colbert.json.</aside>
 </section>
 
@@ -411,7 +411,7 @@
 <section class="slide" data-type="viz" data-max-step="2" data-current-step="0" data-screen-label="14a NCD · the contraction moves late">
   <div class="slide-header">
     <h2><span lang="ru">Позднее взаимодействие на схеме</span><span lang="en">Late interaction, drawn</span></h2>
-    <span class="slide-kicker"><span lang="ru">шаг (&larr;/&rarr;): би-энкодер &rarr; кросс-энкодер &rarr; ColBERT &mdash; смотрите не на прямоугольники, а на ячейки</span><span lang="en">step (&larr;/&rarr;): bi-encoder &rarr; cross-encoder &rarr; ColBERT &mdash; don&rsquo;t count the boxes, count the cells</span></span>
+    <span class="slide-kicker"><span lang="ru">шаг (&larr;/&rarr;): би-энкодер &rarr; кросс-энкодер &rarr; ColBERT &mdash; смотри не на прямоугольники, а на ячейки</span><span lang="en">step (&larr;/&rarr;): bi-encoder &rarr; cross-encoder &rarr; ColBERT &mdash; don&rsquo;t count the boxes, count the cells</span></span>
   </div>
   <div class="widget-mount" data-widget="ncd-retrieval"></div>
   <script class="widget-data" type="application/json">
@@ -459,7 +459,7 @@
   }
 }
   </script>
-  <p class="viz-caption"><span lang="ru">Считайте не прямоугольники, а <strong>ячейки</strong>. У ColBERT кодировщик снова <strong>один</strong>, как у разведчика &mdash; переехало <strong>стягивание</strong>: оно ушло в самый конец, в MaxSim, токен против токена. И серые векторы вернулись не рядом, а <strong>сеткой</strong> &mdash; по вектору на каждый <em>токен</em> документа. Вот и всё позднее взаимодействие: деталь токенов без \(N\) прогонов BERT &mdash; а счёт за эту сетку выставит следующий слайд.</span><span lang="en">Don&rsquo;t count the boxes here &mdash; count the <strong>cells</strong>. ColBERT is back to <strong>one</strong> encoder, exactly like the Scout; what moved is the <strong>contraction</strong>: it slid to the very end, into MaxSim, token against token. And the grey vectors came back not as a row but as a <strong>grid</strong> &mdash; one vector per document <em>token</em>. That is late interaction, whole: token detail without \(N\) BERT passes &mdash; and the bill for that grid arrives on the next slide.</span></p>
+  <p class="viz-caption"><span lang="ru">Считай не прямоугольники, а <strong>ячейки</strong>. У ColBERT кодировщик снова <strong>один</strong>, как у разведчика &mdash; переехало <strong>стягивание</strong>: оно ушло в самый конец, в MaxSim, токен против токена. И серые векторы вернулись не рядом, а <strong>сеткой</strong> &mdash; по вектору на каждый <em>токен</em> документа. Вот и всё позднее взаимодействие: деталь токенов без \(N\) прогонов BERT &mdash; а счёт за эту сетку выставит следующий слайд.</span><span lang="en">Don&rsquo;t count the boxes here &mdash; count the <strong>cells</strong>. ColBERT is back to <strong>one</strong> encoder, exactly like the Scout; what moved is the <strong>contraction</strong>: it slid to the very end, into MaxSim, token against token. And the grey vectors came back not as a row but as a <strong>grid</strong> &mdash; one vector per document <em>token</em>. That is late interaction, whole: token detail without \(N\) BERT passes &mdash; and the bill for that grid arrives on the next slide.</span></p>
   <aside class="slide-notes">The same circuit L7 used to count encoder boxes, now stepped one further — and this time the thing to watch is not the boxes but the cells. Step zero is the bi-encoder, for calibration: one encoder box, on the query; a row of grey pre-encoded cells on each document card; a cheap cup per document. Step one is the cross-encoder, and the grey cells vanish — an empty dashed slot where the cache would have been, a full encoder box on every row, N of them. That is the wall Lecture 7 hit. Now step two, and read it as a diff against both. Against the cross-encoder: the vectors are BACK, so the corpus is precomputable again and the encoder count drops from N to one. Against the bi-encoder: the vectors have multiplied — each card now carries a GRID of grey cells, not a row, one per document token, and the query is encoded once into a grid of token vectors too. Nothing has been pooled into a single vector before the query meets the document. That is what late interaction actually means, in ink: the contraction did not disappear, it MOVED — from the moment of encoding to the moment of scoring, where it becomes MaxSim, each query token against its best document token. So the encoder count is the bi-encoder's, and the detail is the cross-encoder's. What did we pay? Look at the grid again: a vector per token, not per document. That is the storage bill, and it is exactly what the next slide prices — two hundred and eighty-six gibibytes, naive, on MS MARCO.</aside>
 </section>
 <section class="slide" data-type="viz" data-screen-label="15 The price of detail">
@@ -488,14 +488,14 @@
 <section class="slide" data-type="definition" data-screen-label="16 ColBERTv2">
   <div class="slide-header">
     <h2>ColBERTv2</h2>
-    <span class="slide-kicker"><span lang="ru">обесшумленный надзор + остаточное сжатие</span><span lang="en">denoised supervision + residual compression</span></span>
+    <span class="slide-kicker"><span lang="ru">очищенный обучающий сигнал + остаточное сжатие</span><span lang="en">denoised supervision + residual compression</span></span>
   </div>
   <div class="def-card">
     <span class="def-tag"><span lang="ru">Улучшение</span><span lang="en">The upgrade</span></span>
     <div class="def-term"><span lang="ru">Точнее обучен, в разы компактнее</span><span lang="en">Trained better, compressed many-fold</span></div>
     <div class="def-body">
       <ul class="obj-list">
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong><span lang="ru">Обесшумленный надзор</span><span lang="en">Denoised supervision</span></strong> — <span lang="ru">дистилляция из кросс-энкодера + трудные негативы (отсылка L7) чистят обучающий сигнал.</span><span lang="en">distil from a cross-encoder + hard negatives (callback L7) clean the training signal.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong><span lang="ru">Очищенный обучающий сигнал</span><span lang="en">Denoised supervision</span></strong> — <span lang="ru">дистилляция из кросс-энкодера + трудные негативы (отсылка L7) убирают шум из разметки.</span><span lang="en">distil from a cross-encoder + hard negatives (callback L7) clean the training signal.</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong><span lang="ru">Остаточное сжатие</span><span lang="en">Residual compression</span></strong> — <span lang="ru">центроид + маленький остаток: \(20\)–\(36\) байт/вектор против \(256\) (16-бит наивно) → сжатие \(6\)–\(10\times\). Это \(6\)–\(10\times\) — против полноразмерного 16-битного хранилища (\(256\) Б/вектор), отдельная база сравнения от 24-мерного индекса слайда 15: сокращения <em>не</em> перемножаются.</span><span lang="en">a centroid + a tiny residual: \(20\)–\(36\) bytes/vector vs \(256\) (naive 16-bit) → \(6\)–\(10\times\) compression. This \(6\)–\(10\times\) is vs a full-dimension 16-bit store (\(256\) B/vec), a separate baseline from slide 15's 24-dim index — the reductions are <em>not</em> multiplied together.</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Качество растёт: MS MARCO MRR@10 \(= 39{,}7\) (шкала 0–100; цит.: Santhanam и др., 2022).</span><span lang="en">Quality climbs: MS MARCO MRR@10 \(= 39.7\) (on a 0–100 scale; cited: Santhanam et al., 2022).</span></span></li>
       </ul>
@@ -515,8 +515,8 @@
     <div class="def-body">
       <ul class="obj-list">
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Кандидаты сперва отбираются по <strong>центроидам</strong>; полная остаточная декомпрессия — только для выживших.</span><span lang="en">Candidates are first pruned by <strong>centroids</strong>; full residual decompression runs only for survivors.</span></span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Представительно: ≈ \(6{,}8\times\) на GPU / \(45\times\) на CPU без потери качества (MS MARCO; зависит от датасета).</span><span lang="en">Representative: ≈ \(6.8\times\) on GPU / \(45\times\) on CPU with no quality loss (MS MARCO; dataset-dependent).</span></span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Мульти-векторный ANN — это уже L9: как сделать ColBERT и гибрид сублинейными.</span><span lang="en">Multi-vector ANN is L9: making ColBERT and hybrid sublinear.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Типично: ≈ \(6{,}8\times\) на GPU / \(45\times\) на CPU без потери качества (MS MARCO; зависит от датасета).</span><span lang="en">Representative: ≈ \(6.8\times\) on GPU / \(45\times\) on CPU with no quality loss (MS MARCO; dataset-dependent).</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Многовекторный ANN — это уже L9: как сделать ColBERT и гибрид сублинейными.</span><span lang="en">Multi-vector ANN is L9: making ColBERT and hybrid sublinear.</span></span></li>
       </ul>
     </div>
   </div>
@@ -534,7 +534,7 @@
     <div class="def-body">
       <ul class="obj-list">
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>✗</strong> Вектор на токен раздувает индекс (даже сжатый он больше одно-векторного).</span><span lang="en"><strong>✗</strong> A vector per token blows up the index (even compressed it's bigger than single-vector).</span></span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>✗</strong> Мульти-векторный ANN сложнее, чем поиск по одному вектору.</span><span lang="en"><strong>✗</strong> Multi-vector ANN is harder than single-vector search.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>✗</strong> Многовекторный ANN сложнее, чем поиск по одному вектору.</span><span lang="en"><strong>✗</strong> Multi-vector ANN is harder than single-vector search.</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>✓</strong> Бери ColBERT, когда бюджет позволяет и качество критично; иначе — гибрид (дальше) или выученная разрежённость.</span><span lang="en"><strong>✓</strong> Use ColBERT when the budget allows and quality matters; otherwise hybrid (next) or learned sparse.</span></span></li>
       </ul>
     </div>
@@ -743,7 +743,7 @@
       <ul class="obj-list">
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>✗</strong> Расширение добавляет термины в запрос → длиннее постинг-листы → выше задержка, чем у голого BM25.</span><span lang="en"><strong>✗</strong> Expansion adds query terms → longer posting lists → higher latency than bare BM25.</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>✗</strong> Слишком плотные веса убивают преимущество инвертированного индекса.</span><span lang="en"><strong>✗</strong> Too-dense weights kill the inverted-index advantage.</span></span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>✗</strong> Затраты часто диктует горстка частых терминов расширения с огромными постинг-листами — одной разрежённости мало; поэтому деплои отсекают по document frequency / impact-порогу.</span><span lang="en"><strong>✗</strong> The cost is often dominated by a handful of common expansion terms with huge posting lists — sparsity alone doesn't bound latency, so deployments prune by document frequency / impact threshold.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>✗</strong> Затраты часто диктует горстка частых терминов расширения с огромными постинг-листами — одной разрежённости мало; поэтому деплои отсекают по документной частоте / порогу влияния.</span><span lang="en"><strong>✗</strong> The cost is often dominated by a handful of common expansion terms with huge posting lists — sparsity alone doesn't bound latency, so deployments prune by document frequency / impact threshold.</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>✓</strong> Регуляризатор <strong>FLOPS</strong> — это ручка компромисса «разрежённость ↔ задержка»: настраивай под бюджет.</span><span lang="en"><strong>✓</strong> The <strong>FLOPS</strong> regularizer is the sparsity ↔ latency dial: tune it to your budget.</span></span></li>
       </ul>
     </div>
@@ -793,7 +793,7 @@
   </div>
   <div class="def-card">
     <span class="def-tag"><span lang="ru">Определение</span><span lang="en">Definition</span></span>
-    <div class="def-term"><span lang="ru">Два ранжировщика, один объединённый список</span><span lang="en">Two rankers, one merged list</span></div>
+    <div class="def-term"><span lang="ru">Два ранкера, один объединённый список</span><span lang="en">Two rankers, one merged list</span></div>
     <div class="def-body">
       <ul class="obj-list">
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Прогоняем запрос через <strong>разрежённую</strong> (BM25/SPLADE) и <strong>плотную</strong> (SBERT) системы независимо.</span><span lang="en">Run the query through a <strong>sparse</strong> (BM25/SPLADE) and a <strong>dense</strong> (SBERT) system independently.</span></span></li>
@@ -856,7 +856,7 @@
     $$ D_2 = \tfrac{1}{62}+\tfrac{1}{61} = \mathbf{0.0325}, \quad D_3 = \tfrac{1}{63}+\tfrac{1}{62} = \mathbf{0.0320}, \quad D_1 = \tfrac{1}{61}+\tfrac{1}{65} = \mathbf{0.0318} $$
     $$ D_4 = \mathbf{0.0315}, \quad D_5 = \mathbf{0.0310} \quad\Longrightarrow\quad D_2 > D_3 > D_1 > D_4 > D_5 $$
   </div>
-  <p class="small muted center mt-2"><span lang="ru">\(D_1\) — №1 у разрежённого ранжировщика (лексическое совпадение), но плотный ставит его <em>последним</em>; консенсусный \(D_2\) выигрывает \((\mathbf{0{,}0325})\), а \(D_1\) падает на 3-е место \((\mathbf{0{,}0318})\). RRF награждает согласие, а не однобокий громкий голос.</span><span lang="en">\(D_1\) is the sparse ranker's #1 (a lexical match), but dense ranks it <em>last</em>; the consensus \(D_2\) wins \((\mathbf{0.0325})\) and \(D_1\) falls to 3rd \((\mathbf{0.0318})\). RRF rewards agreement, not a lopsided loud vote.</span></p>
+  <p class="small muted center mt-2"><span lang="ru">\(D_1\) — №1 у разрежённого ранкера (лексическое совпадение), но плотный ставит его <em>последним</em>; консенсусный \(D_2\) выигрывает \((\mathbf{0{,}0325})\), а \(D_1\) падает на 3-е место \((\mathbf{0{,}0318})\). RRF награждает согласие, а не однобокий громкий голос.</span><span lang="en">\(D_1\) is the sparse ranker's #1 (a lexical match), but dense ranks it <em>last</em>; the consensus \(D_2\) wins \((\mathbf{0.0325})\) and \(D_1\) falls to 3rd \((\mathbf{0.0318})\). RRF rewards agreement, not a lopsided loud vote.</span></p>
   <aside class="slide-notes">REPRISE, not a re-derivation: the 1/(k+r) formula was derived in full in L3 (The Star Catalog, RRF fusion slide) — say so out loud and move straight to the application. Here we only apply it to L8's two new lists (sparse + dense). RRF by hand: D2 0.0325 wins, D1 (sparse #1) falls to 3rd at 0.0318. Fractions 1/(k+r) are coverage-free; scores gated vs data/l8-hybrid.json.</aside>
 </section>
 
@@ -914,7 +914,7 @@
     <div class="def-body">
       <ul class="obj-list">
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">RRF сливает <em>любое</em> число списков — добавь третьего партнёра: <strong>ColBERT</strong> (позднее взаимодействие, столп 1).</span><span lang="en">RRF fuses <em>any</em> number of lists — add a third partner: <strong>ColBERT</strong> (late interaction, pillar 1).</span></span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Разрежённый (BM25/SPLADE) + плотный (SBERT) + потокенный (ColBERT) → один объединённый кандидат-сет.</span><span lang="en">Sparse (BM25/SPLADE) + dense (SBERT) + per-token (ColBERT) → one merged candidate set.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Разрежённый (BM25/SPLADE) + плотный (SBERT) + потокенный (ColBERT) → один объединённый набор кандидатов.</span><span lang="en">Sparse (BM25/SPLADE) + dense (SBERT) + per-token (ColBERT) → one merged candidate set.</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Этот набор передаётся капитану на реранк — следующий столп.</span><span lang="en">That set is handed to the captain for reranking — the next pillar.</span></span></li>
       </ul>
     </div>
@@ -933,7 +933,7 @@
     <div class="def-body">
       <ul class="obj-list">
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>✗</strong> Комбинация по оценкам без калибровки даёт перекос — одна шкала забивает другую.</span><span lang="en"><strong>✗</strong> Score combination without calibration skews — one scale drowns the other.</span></span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>✗</strong> Если один ранжировщик стабильно лучше на твоём домене, гибрид может просто добавить шум.</span><span lang="en"><strong>✗</strong> If one ranker is consistently better on your domain, hybrid can just add noise.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>✗</strong> Если один ранкер стабильно лучше на твоём домене, гибрид может просто добавить шум.</span><span lang="en"><strong>✗</strong> If one ranker is consistently better on your domain, hybrid can just add noise.</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>✓</strong> RRF — безопасный дефолт (по рангам, без калибровки); проверяй прирост на своих данных.</span><span lang="en"><strong>✓</strong> RRF is the safe default (rank-based, no calibration); validate the gain on your own data.</span></span></li>
       </ul>
     </div>
@@ -1146,22 +1146,22 @@
       <tr><td>ListMLE</td><td><span lang="ru">правдоподобие перестановки (Плакетт–Люс)</span><span lang="en">permutation likelihood (Plackett–Luce)</span></td></tr>
     </tbody>
   </table>
-  <p class="small muted center mt-2"><span lang="ru">Listwise-методы оптимизируют распределение над <em>порядками</em>, а не отдельные пары — ближе к метрике, но дороже в обучении.</span><span lang="en">Listwise methods optimize a distribution over <em>orderings</em>, not single pairs — closer to the metric, costlier to train.</span></p>
+  <p class="small muted center mt-2"><span lang="ru">Списочные методы оптимизируют распределение над <em>порядками</em>, а не отдельные пары — ближе к метрике, но дороже в обучении.</span><span lang="en">Listwise methods optimize a distribution over <em>orderings</em>, not single pairs — closer to the metric, costlier to train.</span></p>
   <aside class="slide-notes">Listwise: ListNet (top-one perm), ListMLE (Plackett–Luce). No gated numbers.</aside>
 </section>
 
 <section class="slide" data-type="definition" data-screen-label="52 The modern Captain">
   <div class="slide-header">
     <h2><span lang="ru">Современный капитан</span><span lang="en">The modern Captain</span></h2>
-    <span class="slide-kicker"><span lang="ru">LLM-реранкеры как listwise-ветвь (отсылка L7)</span><span lang="en">LLM listwise rerankers (callback L7)</span></span>
+    <span class="slide-kicker"><span lang="ru">LLM-реранкеры как списочная ветвь (отсылка L7)</span><span lang="en">LLM listwise rerankers (callback L7)</span></span>
   </div>
   <div class="def-card">
     <span class="def-tag"><span lang="ru">Сегодня</span><span lang="en">Today</span></span>
     <div class="def-term"><span lang="ru">LLM упорядочивают список напрямую</span><span lang="en">LLMs order the list directly</span></div>
     <div class="def-body">
       <ul class="obj-list">
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>RankZephyr / RankGPT</strong> (L7) — это listwise-реранкеры: LLM читает короткий список и выдаёт перестановку.</span><span lang="en"><strong>RankZephyr / RankGPT</strong> (L7) are listwise rerankers: an LLM reads a short list and emits a permutation.</span></span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Та же listwise-идея, что у LambdaMART, но «функция» — это языковая модель; дорого, зато сильно (числа — в L7).</span><span lang="en">The same listwise idea as LambdaMART, but the "function" is a language model; expensive yet strong (the numbers live in L7).</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>RankZephyr / RankGPT</strong> (L7) — это списочные реранкеры: LLM читает короткий список и выдаёт перестановку.</span><span lang="en"><strong>RankZephyr / RankGPT</strong> (L7) are listwise rerankers: an LLM reads a short list and emits a permutation.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Та же списочная идея, что у LambdaMART, но «функция» — это языковая модель; дорого, зато сильно (числа — в L7).</span><span lang="en">The same listwise idea as LambdaMART, but the "function" is a language model; expensive yet strong (the numbers live in L7).</span></span></li>
       </ul>
     </div>
   </div>

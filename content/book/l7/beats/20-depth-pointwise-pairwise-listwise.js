@@ -7,8 +7,8 @@
           "**Listwise** optimizes the *whole list* toward the metric: LambdaRank weights the RankNet gradients by the nDCG change from a swap, and **LambdaMART** puts those gradients inside gradient-boosted trees — the long-standing workhorse of classic Learning-to-Rank. That RankNet → LambdaMART line is the bridge into **Lecture 8**.",
         ],
         ru: [
-          'Есть три способа научить Судью **порядку**. **Pointwise** оценивает каждую пару \\((q,d)\\) отдельно и сортирует — бинарная кросс-энтропия, ровно то, что делает кросс-энкодер. **Pairwise** учит, выше ли \\(d_i\\) чем \\(d_j\\), логистическим лоссом RankNet \\(\\log(1+e^{\\,s_j-s_i})\\) (duoT5).',
-          '**Listwise** оптимизирует *весь список* к метрике: LambdaRank взвешивает градиенты RankNet изменением nDCG от перестановки, а **LambdaMART** кладёт их в градиентный бустинг деревьев — давняя рабочая лошадка классического Learning-to-Rank. Линия RankNet → LambdaMART — это мост в **Лекцию 8**.',
+          'Есть три способа научить Судью **порядку**. **Поточечный** (pointwise) оценивает каждую пару \\((q,d)\\) отдельно и сортирует — бинарная кросс-энтропия, ровно то, что делает кросс-энкодер. **Попарный** (pairwise) учит, выше ли \\(d_i\\) чем \\(d_j\\), логистическим лоссом RankNet \\(\\log(1+e^{\\,s_j-s_i})\\) (duoT5).',
+          '**Списочный** (listwise) оптимизирует *весь список* к метрике: LambdaRank взвешивает градиенты RankNet изменением nDCG от перестановки, а **LambdaMART** кладёт их в градиентный бустинг деревьев — давняя рабочая лошадка классического Learning-to-Rank. Линия RankNet → LambdaMART — это мост в **Лекцию 8**.',
         ],
         tt: [
           'Судьяны **тәртипкә** өйрәтүнең өч юлы бар. **Pointwise** һәр \\((q,d)\\) парын аерым бәяли һәм сортлый — бинар кросс-энтропия, нәкъ кросс-энкодер эшләгәне. **Pairwise** \\(d_i\\) \\(d_j\\)\'дан өстенрәкме икәнен RankNet логистик югалтуы \\(\\log(1+e^{\\,s_j-s_i})\\) белән өйрәнә (duoT5).',
