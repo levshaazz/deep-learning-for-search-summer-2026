@@ -2155,6 +2155,19 @@ JOBS = [
      "geometry was fixed, the crowd was not. Hand-lettered 'two cures, two diseases'. Black ink + course-blue "
      "grid + one warm-orange hub-ring; Serega's green tübetey is the ONLY green. No lettered title bar. "
      "Fills ≥80% width."),
+    ("L18", "L18/L18-17-toll-gate.png", "16:9", True,
+     "the GATES OF ROME. SEREGA IS THE ONLY PERSON IN THIS PICTURE — draw exactly one human figure, no second "
+     "figure, no bystanders, nobody in the background, nobody peering in from a corner. He stands WHOLE and "
+     "complete in the middle of the frame, head, cap, body, both arms and both legs inside the canvas, "
+     "holding up an open ledger in both hands and looking at us. He is standing on a road that runs left to "
+     "right across the map. To his RIGHT the road is closed by one lowered striped barrier on its post, and "
+     "beyond it the road climbs into a big town of crowded roofs. To his LEFT a line of small empty carts "
+     "waits on the road, running off the left edge. In the far upper LEFT corner, three small houses joined "
+     "to the road by one thin new lane. The ONLY hand-lettered word anywhere in the frame is 'toll', small, "
+     "on the barrier — do NOT letter anything else, no captions, no arrow-labels, no explanations, and do NOT "
+     "reproduce any words from this instruction. Black ink + course-blue road, carts and houses + one "
+     "warm-orange striped barrier, every fill FLAT with no glow, halo or shading; Serega's green tübetey is "
+     "the ONLY green. No lettered title bar. Fills ≥85% width."),
     # ---- L19 "The Wiring Diagram" (neural circuit diagrams). Metaphor: Serega the SCHEMATIC-READER —
     #      he puts down the spec written in prose and picks up the wiring diagram of the same machine.
     #      Wires are axes; a solder joint (cup) is where an axis DIES; the bill is read off the drawing.

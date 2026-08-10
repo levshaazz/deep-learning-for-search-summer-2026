@@ -73,9 +73,9 @@ export const mountChunkSizeLaw = defineWidget({
     add('doc', el('line', { x1: refX, y1: DOC.y - 12, x2: menX, y2: DOC.y - 12, class: 'csl-gapline' }, svg));
     add('doc', el('text', { x: (refX + menX) / 2, y: DOC.y - 18, class: 'csl-gaplbl', 'text-anchor': 'middle' }, svg))
       .textContent = 'g = ' + g;
-    add('doc', el('text', { x: refX - 6, y: DOC.y + DOC.h + 18, class: 'csl-ptlbl', 'text-anchor': 'end' }, svg))
+    add('doc', el('text', { x: refX - 6, y: DOC.y + DOC.h + 18, class: 'csl-ptlbl is-ref', 'text-anchor': 'end' }, svg))
       .textContent = labels.refTag || 'Berlin';
-    add('doc', el('text', { x: menX + 6, y: DOC.y + DOC.h + 18, class: 'csl-ptlbl', 'text-anchor': 'start' }, svg))
+    add('doc', el('text', { x: menX + 6, y: DOC.y + DOC.h + 18, class: 'csl-ptlbl is-men', 'text-anchor': 'start' }, svg))
       .textContent = labels.menTag || '«Its …»';
 
     // the sliding chunk grid — redrawn every step into its own group

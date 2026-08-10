@@ -388,6 +388,33 @@ const CAPTURE = (rootSel, opt) => {
     domNodes.push({ key: keyOf(el, i), ...rel(b), hi: hiTok(el) });
   });
 
+  // FALLBACK for figures that step by REDRAWING values in place rather than revealing marked nodes:
+  // ru-paradigm / ru-normalize / ru-typos / postings-compression build plain tables whose cells carry
+  // no [data-step] — the selectors above find NOTHING, the capture sees one element, and every step
+  // reads as "dead". Those widgets are legitimate (a normalisation table is HTML by design). Capture
+  // their PAINTED LEAVES instead, the same way widget-render-check does; the salience signature folds
+  // TEXT in, so an in-place value change registers as real progression. Only fires when the marked-node
+  // pass came back empty, so SVG figures keep the stricter, geometry-based reading unchanged.
+  // Fires when the marked-node pass found nothing USABLE — zero nodes, or a single wrapper that can
+  // never show progression on its own (ru-paradigm reported 1→1→1→1→1→1 for a table that visibly
+  // changes every step).
+  if (domNodes.length < 2) {
+    let n = 0;
+    root.querySelectorAll('*').forEach((el, i) => {
+      if (n > 400) return;                                            // cheap guard on pathological trees
+      if (el.namespaceURI === 'http://www.w3.org/2000/svg') return;
+      if (el.querySelector && el.querySelector('*')) return;           // leaves only
+      if (el.classList && (el.classList.contains('wgt-caption') || el.classList.contains('wgt-counter'))) return;
+      if (isKatexArtifact(el, el.getBoundingClientRect())) return;
+      if (effOpacity(el) < OP) return;
+      const b = el.getBoundingClientRect();
+      if (b.width < MINBOX && b.height < MINBOX) return;
+      if (!(el.textContent || '').trim()) return;                      // must actually paint something readable
+      n++;
+      domNodes.push({ key: keyOf(el, i), ...rel(b), hi: hiTok(el) });
+    });
+  }
+
   // visible meaningful count + a salience signature (sorted visible keys + hi-state + TEXT + coarse box).
   // TEXT is folded in so an IN-PLACE value/caption update (a label whose geometry holds but whose
   // glyphs change — pagerank-power converging "0.3333"→"0.2148", a course-map narration advancing,

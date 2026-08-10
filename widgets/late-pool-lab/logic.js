@@ -72,6 +72,7 @@ export const mountLatePoolLab = defineWidget({
     layer('doc', 0);
     add('doc', el('text', { x: TOK_X0, y: 26, class: 'lpl-head' }, svg))
       .textContent = labels.docHead || 'one document, one boundary';
+    const tokVals = [];                                   // the (x, y) under each token — REWRITTEN at step 3
     for (let i = 0; i < n; i++) {
       const isB = i >= bnd;
       const cls = 'lpl-tok ' + (isB ? 'is-chunkb' : 'is-chunka') +
@@ -79,8 +80,8 @@ export const mountLatePoolLab = defineWidget({
       add('doc', el('rect', { x: tx(i), y: TOK_Y, width: TOK_W, height: TOK_H, rx: 7, class: cls }, svg));
       add('doc', el('text', { x: tcx(i), y: TOK_Y + 21, class: 'lpl-toklbl', 'text-anchor': 'middle' }, svg))
         .textContent = tokens[i];
-      add('doc', el('text', { x: tcx(i), y: TOK_Y + 38, class: 'lpl-tokval', 'text-anchor': 'middle' }, svg))
-        .textContent = pair(values[i]);
+      tokVals.push(add('doc', el('text', { x: tcx(i), y: TOK_Y + 38, class: 'lpl-tokval', 'text-anchor': 'middle' }, svg)));
+      tokVals[i].textContent = pair(values[i]);
     }
     // chunk brackets under the ribbon
     const brk = (i0, i1, key, fallback) => {
@@ -91,6 +92,16 @@ export const mountLatePoolLab = defineWidget({
     };
     brk(0, bnd - 1, 'chunkA', 'chunk A');
     brk(bnd, n - 1, 'chunkB', 'chunk B');
+
+    /* STEP 3 HAS TO DO SOMETHING (2026-08, slide-viz STEP-PROG HARD: "dead step 3 — identical to step 2,
+       31→31 marks, nothing revealed or moved"). The wall falls at step 2 and the arcs open; step 3 was
+       narrated as "now every token of chunk B averages the whole document" but drew NOTHING — the reader
+       was told the contextual vectors changed and shown the same picture. Now they change on screen: the
+       (x, y) printed under each chunk-B token is REWRITTEN from its raw value to ϑ (= the contextual
+       vector, data → pool.lateChunkVec), and this line says why. Pooling happens one step later, at 4. */
+    layer('ctx', 3);
+    const ctxNote = add('ctx', el('text', { x: (tx(bnd) + tx(n - 1) + TOK_W) / 2, y: TOK_Y + TOK_H + 50,
+      class: 'lpl-ctxnote', 'text-anchor': 'middle' }, svg));
 
     // ── 2 · the wall in the boundary (steps 0–1) and the attention arcs ──────────────────────────
     const wallX = tx(bnd) - TOK_GAP / 2;
@@ -181,6 +192,15 @@ export const mountLatePoolLab = defineWidget({
       note2.classList.toggle('is-hidden', k < 5);
       note.textContent = labels.legNote || 'same boundary, same model';
       note2.textContent = labels.legNote2 || 'only the moment of pooling moved';
+      // step 3 — the contextual rewrite: every chunk-B token now carries ϑ, the mean of all it may read.
+      // (Chunk A keeps its RAW values on purpose: they are the inputs the arcs are carrying into B.)
+      const ctxOn = k >= 3;
+      for (let i = bnd; i < n; i++) {
+        tokVals[i].textContent = ctxOn ? pair(vLate) : pair(values[i]);
+        tokVals[i].classList.toggle('is-context', ctxOn);
+      }
+      // no number in this line ON PURPOSE — ϑ's value is printed inside the token boxes right above it.
+      ctxNote.textContent = labels.ctxNote || 'each token of B now averages all four → ϑ';
       // chunk-A tokens dim once we are working inside chunk B
       host.dataset.phase = k >= 3 ? 'late' : (k >= 1 ? 'naive' : 'setup');
     };

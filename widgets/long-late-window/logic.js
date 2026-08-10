@@ -97,16 +97,22 @@ export const mountLongLateWindow = defineWidget({
     const rowsHead = el('text', { x: BAR.x, y: ROW_Y - 12, class: 'llw-head' }, svg);
 
     // ── the ledger ──────────────────────────────────────────────────────────────────────────────
+    /* TWO lines for the strategy, not one (2026-08, slide-viz OOB HARD): step 3's title used to carry its
+       own arithmetic inline — «стратегия 3 — длинное позднее чанкование (ω = 512, stride = 8 192 − 512 =
+       7 680)» — which measured 768 px inside a 663 px frame and ran clean off the right edge in RU (and by
+       36 px even in EN). The NAME stays on `strat`; the arithmetic drops to `stratSub` beneath it, so no
+       ledger line can outgrow the bar it belongs to. */
     const LY = ROW_Y + 3 * (ROW_H + ROW_GAP) + 24;
     const strat = el('text', { x: BAR.x, y: LY, class: 'llw-strat' }, svg);
-    const bill1 = el('text', { x: BAR.x, y: LY + 24, class: 'llw-bill' }, svg);
-    const bill2 = el('text', { x: BAR.x, y: LY + 46, class: 'llw-bill2' }, svg);
-    const caveat = el('text', { x: BAR.x, y: LY + 74, class: 'llw-caveat' }, svg);
+    const stratSub = el('text', { x: BAR.x, y: LY + 18, class: 'llw-stratsub' }, svg);
+    const bill1 = el('text', { x: BAR.x, y: LY + 40, class: 'llw-bill' }, svg);
+    const bill2 = el('text', { x: BAR.x, y: LY + 62, class: 'llw-bill2' }, svg);
+    const caveat = el('text', { x: BAR.x, y: LY + 88, class: 'llw-caveat' }, svg);
     caveat.textContent = labels.caveat || 'l_max and ω are our example values — the paper publishes none…';
-    const caveat2 = el('text', { x: BAR.x, y: LY + 92, class: 'llw-caveat' }, svg);
+    const caveat2 = el('text', { x: BAR.x, y: LY + 106, class: 'llw-caveat' }, svg);
     caveat2.textContent = labels.caveat2 || '…and the repository ships two different defaults.';
 
-    const H = frameHeightFor(LY + 100, 10);
+    const H = frameHeightFor(LY + 112, 10);
     svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
     const SVGNS = 'http://www.w3.org/2000/svg';
@@ -164,6 +170,7 @@ export const mountLongLateWindow = defineWidget({
       arc.classList.toggle('is-cut', k === 2);
       brokenArc.classList.toggle('is-hidden', k !== 2);
       drawRows(k);
+      stratSub.textContent = '';
       if (k === 0) {
         strat.textContent = labels.s0strat || 'a document four times longer than the window';
         bill1.textContent = thou(docT) + ' ' + (labels.tokens || 'tokens') + '  ·  ' +
@@ -175,12 +182,13 @@ export const mountLongLateWindow = defineWidget({
         bill2.textContent = labels.s1note || 'the answer-chunk at 14 000 is never indexed at all';
       } else if (k === 2) {
         strat.textContent = labels.s2strat || 'strategy 2 — cut naively (ω = 0)';
+        stratSub.textContent = 'ω = 0  ·  stride = ' + thou(lMax);
         bill1.textContent = (labels.encoded || 'tokens encoded:') + ' ' + thou(docT) +
           '  ·  ' + (labels.overheadTag || 'overhead:') + ' 0';
         bill2.textContent = labels.s2note || 'but the seam severs the dependency all over again';
       } else if (k === 3) {
-        strat.textContent = (labels.s3strat || 'strategy 3 — long late chunking') +
-          ' (ω = ' + om + ', stride = ' + thou(lMax) + ' − ' + om + ' = ' + thou(stride) + ')';
+        strat.textContent = labels.s3strat || 'strategy 3 — long late chunking';
+        stratSub.textContent = 'ω = ' + om + '  ·  stride = ' + thou(lMax) + ' − ' + om + ' = ' + thou(stride);
         bill1.textContent = nMacro + ' ' + (labels.macro || 'macro-chunks') + '  ·  ' +
           (labels.starts || 'starts:') + ' ' + starts.map(thou).join(' · ');
         bill2.textContent = labels.s3note || 'the token at the seam reads across it — the arc holds';

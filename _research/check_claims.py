@@ -677,6 +677,7 @@ def l16_deck_claims():
 #    differences the deck states in prose — computed here from data/, never re-typed. ──
 def l18_deck_claims():
     A, W, H = GEOM18["anisotropy"], GEOM18["whitenToy"], GEOM18["hubToll"]
+    OR = GEOM18["orthogonality"]
     HB, D = GEOM18["hubness"], GEOM18["anisotropyDial"]
     F = H["flipExample"]
     BA, BH, BF, BL = (BENCH18[k] for k in ("anisotropy", "hubness", "fixes", "lexicalLeak"))
@@ -696,6 +697,16 @@ def l18_deck_claims():
         C("dial snr mid",    D["snrGrid"][3],        "1.2247"),   # cos 0.6 ⇒ c/σ = √(0.6/0.4)
         C("dial snr last",   D["snrGrid"][7],        "9.9499"),   # cos 0.99 ⇒ c/σ = √99
         C("dial cos mid",    dial(D["snrGrid"][3], D["canonicalDim"]), "0.61", 5e-3),
+        # ── act 01 · the L9↔L18 misconception, MEASURED (late review §1): L2/L9's uniform [0,1]^d cloud
+        #    is itself a cone (mean pair cosine → 3/4 at every d), the gaussian N(0,I) is what actually
+        #    goes orthogonal (mean ≈ 0, spread 1/√d). The cv 0.4784 → 0.0187 on that slide stays, but is
+        #    now labelled for what L9 measured: EUCLIDEAN distance concentration (gated by l9_deck_claims). ──
+        C("ortho uniform d2",    OR["uniform"][0]["meanCos"],  "0.8312"),
+        C("ortho uniform d1000", OR["uniform"][3]["meanCos"],  "0.7496"),
+        C("ortho uniform limit", OR["uniformLimit"],           "0.75"),
+        C("ortho gauss maxabs",  OR["gaussianMaxAbsCos"],      "0.0065"),
+        C("ortho gauss sd d2",   OR["gaussian"][0]["sdCos"],   "0.7072"),
+        C("ortho gauss sd d1000", OR["gaussian"][3]["sdCos"],  "0.0317"),
         # ── act 01 · Timkey & van Schijndel 2021 Table 1 — the per-model/per-layer replication ──
         C("timkey xlnet",    REP["xlnetL11"],   "0.981"),
         C("timkey gpt2",     REP["gpt2Final"],  "0.885"),
@@ -784,6 +795,9 @@ def l18_deck_claims():
         C("flip 2d alt",     round(2 * F["dAlt"], 4),              "10.1640"),
         C("flip r sum alt",  round(F["rQuery"] + F["rAlt"], 4),    "10.6272"),
         C("flip d margin",   round(F["dAlt"] - F["dHub"], 4), "0.2609"),   # derived: the raw-distance edge
+        # the DOUBLED distance edge — the step the slide used to leave invisible, so a student subtracting
+        # 1.8829 − 0.2609 got 1.6220 and no printed number matched (late review §3). Now printed and gated.
+        C("flip 2d margin",  round(2 * (F["dAlt"] - F["dHub"]), 4), "0.5218"),  # derived
         C("flip r margin",   round(F["rAlt"] - F["rHub"], 4), "1.8829"),   # derived: the density penalty
         # ── act 04 · QB-Norm's mechanism check (the skew of k-occurrences on REAL cosine embeddings) ──
         C("qbnorm skew after", QB["skewAfter"], "0.509"),

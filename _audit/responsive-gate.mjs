@@ -39,7 +39,16 @@ function pageChecks() {
   // .wgt-svg/.wgt-panel/.cs-svg = interactive/scrolly figures; .beat-figure = a Book prose beat's
   // illustration plate (a prose+plate chapter like L15 has no widgets but MUST still lay its plates out
   // within the viewport). Counting plates here STRENGTHENS coverage (their responsiveness is now checked).
-  const figs = [...document.querySelectorAll('.wgt-svg, .wgt-panel, .cs-svg, .beat-figure')];
+  // A multi-panel widget may keep a panel `display:none` until a later step (ru-normalize's score
+  // comparison appears at step 6). Such a panel measures 0×0 at step 0 — that is the design, not a
+  // collapsed figure, and failing it would force widgets to render every panel up front. Skip the
+  // DISPLAY-HIDDEN ones only; a VISIBLE figure must still lay out and fit, so a genuinely collapsed
+  // figure is still caught.
+  const figs = [...document.querySelectorAll('.wgt-svg, .wgt-panel, .cs-svg, .beat-figure')]
+    // `display:none` usually sits on the PARENT panel, so testing the element's own computed style
+    // misses it. An element hidden anywhere up the chain produces NO client rects at all — that is
+    // the reliable discriminator, and a displayed-but-collapsed figure still returns one 0-width rect.
+    .filter((f) => f.getClientRects().length > 0);
   const figBox = figs.map((f) => f.getBoundingClientRect());
   const figOk = figBox.length > 0 && figBox.every((b) => b.width > 0 && b.right <= window.innerWidth + 1);
   // any element wider than the viewport?

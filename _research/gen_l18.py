@@ -9,6 +9,7 @@ Emits TWO structurally-distinct files (provenance must never blur):
       restores near-orthogonality; kNN hubness skew rises with dimension; CSLS flattens it back), NOT the
       papers' large-N magnitudes. Five blocks:
         anisotropy      — the cone toy (raw / centered / HONEST all-but-the-top) + its top PC's cone alignment
+        orthogonality   — the L9↔L18 misconception measured: uniform [0,1]^d (L9's own cloud) vs gaussian N(0,I)
         anisotropyDial  — the signal-to-noise grid behind widgets/cone-dial: E[cos] = c²/(c²+σ²), invariant in d
         whitenToy       — the four-cities whitening walk-through behind widgets/whiten-grid (exact arithmetic)
         hubness         — the classic d=2 vs d=20 reverse-kNN toy
@@ -174,6 +175,61 @@ def measure():
     abt_cos = mean_pairwise_cos(abt, random.Random(1))
     cone_align = round(abs(cos(pc1, cone)), 4)                  # the top PC IS the cone axis
 
+    # ── WHICH cloud is "random directions"? the L9↔L18 misconception, measured instead of asserted ──
+    # L2/L9's concentration toy is n=300 points drawn UNIFORMLY in [0,1]^d. Every coordinate is positive,
+    # so that cloud carries a LARGE shared mean (μ = (½,…,½), ‖μ‖² = d/4 against per-coordinate variance
+    # 1/12) — it is itself a cone, and its mean pairwise cosine sits at (1/4)/(1/4+1/12) = 3/4 at EVERY
+    # dimension. So it cannot be the "no shared mean ⇒ cosine → 0" example; it is a counter-example.
+    # The cloud that DOES go orthogonal is the gaussian N(0, I): mean cosine 0, spread ±1/√d. And the
+    # bridge is L18's own cure — centre the uniform cloud and it lands exactly on the gaussian curve
+    # (its mean cosine pinned at −1/(n−1) = −0.0033 by the centring itself, its spread at 1/√d).
+    # ALL pairs, no sampling. See _internal/reviews/L18-late-review.md §1.
+    ortho_n, ortho_dims = 300, [2, 10, 100, 1000]
+
+    def pair_cos_stats(vs):
+        ns = [norm(v) for v in vs]
+        xs = []
+        for i in range(len(vs)):
+            for j in range(i + 1, len(vs)):
+                xs.append(dot(vs[i], vs[j]) / (ns[i] * ns[j]) if ns[i] and ns[j] else 0.0)
+        m = sum(xs) / len(xs)
+        sd = math.sqrt(sum((x - m) ** 2 for x in xs) / len(xs))
+        return round(m, 4), round(sd, 4)
+
+    ortho = {"uniform": [], "uniformCentered": [], "gaussian": [], "invSqrtD": []}
+    for dim in ortho_dims:
+        ru = random.Random(0)
+        uni = [[ru.random() for _ in range(dim)] for _ in range(ortho_n)]
+        umu = mean_vec(uni)
+        cen = [sub(v, umu) for v in uni]
+        rg = random.Random(0)
+        gau = [gaussian(rg, dim) for _ in range(ortho_n)]
+        for key, cloud in (("uniform", uni), ("uniformCentered", cen), ("gaussian", gau)):
+            m, sd = pair_cos_stats(cloud)
+            ortho[key].append({"d": dim, "meanCos": m, "sdCos": sd})
+        ortho["invSqrtD"].append(round(1 / math.sqrt(dim), 4))
+
+    orthogonality = {
+        "_doc": "The L9↔L18 misconception, MEASURED. n=300 points per cloud, ALL 44 850 pairs, four "
+                "dimensions. uniform = the very cloud L2/L9 use for distance concentration ([0,1]^d, "
+                "seed 0) — all coordinates positive, so it carries a big shared mean and reads cos ≈ 3/4 "
+                "at EVERY d: it is a cone, not a bag of random directions. gaussian = N(0,I), the real "
+                "'random directions': mean cosine 0 with spread ±1/√d. uniformCentered = the same uniform "
+                "cloud after subtracting μ — it lands on the gaussian curve, which is L18's own cure "
+                "applied to L9's own picture (its mean is pinned at −1/(n−1) = −0.0033 by centring).",
+        "n": ortho_n, "seed": 0, "dims": ortho_dims, "pairs": ortho_n * (ortho_n - 1) // 2,
+        "uniform": ortho["uniform"], "uniformCentered": ortho["uniformCentered"],
+        "gaussian": ortho["gaussian"], "invSqrtD": ortho["invSqrtD"],
+        "uniformLimit": 0.75,
+        "_limitNote": "E[cos] → ‖μ‖²/(‖μ‖² + d·σ²) = (d/4)/(d/4 + d/12) = 3/4 for uniform [0,1]^d, "
+                      "independent of d — the same c²/(c²+σ²) law act 01 derives, with c/σ = √3.",
+        "gaussianMaxAbsCos": round(max(abs(r["meanCos"]) for r in ortho["gaussian"]), 4),
+        "centeredMeanPinned": round(-1.0 / (ortho_n - 1), 4),
+        "l9Cv": {"_doc": "what L9 actually measured on this cloud: the coefficient of variation of pairwise "
+                         "EUCLIDEAN distances (data/l2-highd.json), d = 2 → 1000. NOT a cosine statistic.",
+                 "d2": 0.4784, "d1000": 0.0187, "metric": "euclidean"},
+    }
+
     # ── the cone dial (widgets/cone-dial): E[cos] = c²/(c²+σ²) — signal-to-noise, NOT dimension ──
     snr_grid = [0.0, 0.5, 1.0, 1.2247, 2.0, 3.0, 5.0, 9.9499, 12.0]
     dial_dims = [2, 10, 100, 768]
@@ -313,6 +369,7 @@ def measure():
                      "HONEST all-but-the-top (project out the top PC of the RAW cloud, no centering) also "
                      "restores ~0 — and pc1ConeAlign shows why: that top PC IS the cone axis (|cos| ≈ 1).",
         },
+        "orthogonality": orthogonality,
         "anisotropyDial": {
             "_doc": "widgets/cone-dial. One knob: c/σ, the strength of the shared axis against the per-word "
                     "noise. Closed form E[cos] = c²/(c²+σ²) — the dimension CANCELS, which is exactly why "
@@ -564,9 +621,9 @@ def bench():
 
 
 if __name__ == "__main__":
-    (DATA / "l18-geometry.json").write_text(json.dumps(measure(), indent=2, ensure_ascii=False) + "\n")
+    m = measure()      # measured ONCE (the orthogonality block walks 44 850 pairs at d = 1000)
+    (DATA / "l18-geometry.json").write_text(json.dumps(m, indent=2, ensure_ascii=False) + "\n")
     (DATA / "l18-bench.json").write_text(json.dumps(bench(), indent=2, ensure_ascii=False) + "\n")
-    m = measure()
     a = m["anisotropy"]; h = m["hubness"]; t = m["hubToll"]["byDim"]["d20"]
     print(f"[gen_l18] wrote data/l18-geometry.json (aniso rawCos={a['rawCos']} -> centered={a['centeredCos']} "
           f"-> allButTop={a['allButTopCos']} (PC1·cone={a['pc1ConeAlign']}); hubness skew d2={h['d2']['skew']} "

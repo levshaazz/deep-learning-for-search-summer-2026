@@ -162,10 +162,34 @@ export const mountLetterEntropy = defineWidget({
     const hLbl = txt(LX, BASE, 'le-hlbl');
 
     /* ── two note lines under the frame: prose (i18n) + a numeric readout (data) ────────────────── */
+    // Two lines are RESERVED for the prose note, not grown on demand: the RU string is ~20 %
+    // longer than the EN one, so a one-line box that fits in English silently runs past the
+    // frame in Russian (it did: +29 px past a 449-px frame). Wrapping is measured, not guessed.
     const noteA = txt(PAD, BASE + 34, 'le-note');
-    const noteB = txt(PAD, BASE + 52, 'le-numnote');
+    const noteB = txt(PAD, BASE + 70, 'le-numnote');
+    const NOTE_MAXW = W - 2 * PAD;
+    const setNote = (t) => {
+      noteA.textContent = '';
+      const words = String(t || '').split(/\s+/).filter(Boolean);
+      if (!words.length) return;
+      const line = (s, dy) => {
+        const ts = el('tspan', { x: PAD, dy }, noteA);
+        ts.textContent = s;
+        return ts;
+      };
+      const probe = line(words.join(' '), 0);
+      // getComputedTextLength is the browser's own metric — no per-language char-width fudge
+      const wide = (() => { try { return probe.getComputedTextLength() > NOTE_MAXW; } catch { return false; } })();
+      if (!wide) return;
+      let cut = words.length >> 1;                       // balance the two lines by word count,
+      for (let i = cut; i < words.length; i++) {         // then prefer a clause break near it
+        if (/[—;:,]$/.test(words[i - 1])) { cut = i; break; }
+      }
+      probe.textContent = words.slice(0, cut).join(' ');
+      line(words.slice(cut).join(' '), 16);
+    };
 
-    const H = frameHeightFor(BASE + 52 + 4, 10);
+    const H = frameHeightFor(BASE + 70 + 4, 10);
     svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
     /* ── per-step configuration — pure lookups into `data`, nothing derived ─────────────────────── */
@@ -282,7 +306,7 @@ export const mountLetterEntropy = defineWidget({
         markLbl.textContent = c.markSym + ' = ' + num(c.mark, 2);
       }
 
-      noteA.textContent = c.note || '';
+      setNote(c.note);
       noteB.textContent = c.numB || '';
     };
   },

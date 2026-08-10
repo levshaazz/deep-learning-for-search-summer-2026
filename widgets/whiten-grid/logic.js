@@ -44,7 +44,9 @@ export const mountWhitenGrid = defineWidget({
     const rot = cen.map((p) => [p[0] * U[0][0] + p[1] * U[0][1], p[0] * U[1][0] + p[1] * U[1][1]]);
     const STAGE = [raw, cen, cen, rot, wht, wht];
     const SHOW_EIG = [false, false, true, true, false, false];
-    const COS_OF = [stages.raw, stages.centered, stages.centered, stages.centered, stages.whitened, stages.whitened];
+    // The LEDGER lags the DRAWING by one step on purpose: step 4 turns the rectangle into a square,
+    // step 5 reads the new cosines off it. (Step 5 used to repeat step 4 verbatim — a dead step.)
+    const COS_OF = [stages.raw, stages.centered, stages.centered, stages.centered, stages.centered, stages.whitened];
 
     const W = 700, H = 340;
     const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'wgt-svg wg-svg', role: 'img',
@@ -105,12 +107,21 @@ export const mountWhitenGrid = defineWidget({
       const sy = (v) => oy + side - ((v - lo) / (hi - lo)) * side;
       const zx = sx(0), zy = sy(0);
 
-      const want = Math.max(0.001, (hi - lo) / 9);       // grid pitch in data units
-      const pitch = [0.25, 0.5, 1, 2, 5, 10, 20].find((v) => v >= want) || 20;
-      for (let i = -GRID_N; i <= GRID_N; i += 1) {
-        const v = i * pitch;
-        gridH[i + GRID_N].setAttribute('d', `M ${ox} ${sy(v).toFixed(1)} L ${(ox + side).toFixed(1)} ${sy(v).toFixed(1)}`);
-        gridV[i + GRID_N].setAttribute('d', `M ${sx(v).toFixed(1)} ${oy} L ${sx(v).toFixed(1)} ${(oy + side).toFixed(1)}`);
+      // Grid pitch in data units. The window [lo, hi] is NOT symmetric about the origin (the raw
+      // cities all sit in the positive quadrant), so the old "draw i·pitch for i = −4…+4" loop drew
+      // lines far outside the window and they spilled out of the SVG frame (slide-viz OOB). Walk the
+      // multiples of `pitch` that actually FALL INSIDE [lo, hi] instead, and park the spare paths.
+      const want = Math.max(0.001, (hi - lo) / 8);
+      const P = Math.max([0.25, 0.5, 1, 2, 5, 10, 20].find((v) => v >= want) || 20, (hi - lo) / 8);
+      const iMin = Math.ceil(lo / P - 1e-9);
+      for (let j = 0; j < gridH.length; j += 1) {
+        const v = (iMin + j) * P;
+        if (v > hi + 1e-9) {                              // past the right/top edge — park it
+          gridH[j].setAttribute('d', ''); gridV[j].setAttribute('d', '');
+          continue;
+        }
+        gridH[j].setAttribute('d', `M ${ox} ${sy(v).toFixed(1)} L ${(ox + side).toFixed(1)} ${sy(v).toFixed(1)}`);
+        gridV[j].setAttribute('d', `M ${sx(v).toFixed(1)} ${oy} L ${sx(v).toFixed(1)} ${(oy + side).toFixed(1)}`);
       }
       axX.setAttribute('x1', ox); axX.setAttribute('y1', zy);
       axX.setAttribute('x2', ox + side); axX.setAttribute('y2', zy);
