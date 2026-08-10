@@ -1,0 +1,47 @@
+<section class="slide" data-type="formula" data-screen-label="73 Query clarity &mdash; difficulty, in bits">
+  <div class="slide-header" style="border:none; padding-bottom:0;">
+    <h2>
+      <span lang="ru">Clarity: сложность запроса &mdash; в битах, до единого клика</span>
+      <span lang="en">Clarity: query difficulty in bits, before a single click</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">пятый долг &middot; Cronen-Townsend, Zhou &amp; Croft, SIGIR 2002</span>
+      <span lang="en">the fifth debt &middot; Cronen-Townsend, Zhou &amp; Croft, SIGIR 2002</span>
+    </span>
+  </div>
+  <div class="formula-stage">
+    $$ \mathrm{clarity}(Q) \;=\; \sum_{w \in V} P(w \mid Q)\,\log_2 \frac{P(w \mid Q)}{P_{\text{coll}}(w)} \qquad [\text{бит}] $$
+  </div>
+  <div class="formula-caption">
+    <div class="var-block">
+      <div class="var-symbol">\(P(w\mid Q)\)</div>
+      <div class="var-desc">
+        <span lang="ru"><strong>Язык выдачи</strong><br />модель по документам, где есть терм запроса</span>
+        <span lang="en"><strong>The language of the results</strong><br />a model over the documents that match</span>
+      </div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">\(P_{\text{coll}}(w)\)</div>
+      <div class="var-desc">
+        <span lang="ru"><strong>Язык коллекции</strong><br />&laquo;как говорит корпус вообще&raquo;</span>
+        <span lang="en"><strong>The language of the collection</strong><br />&ldquo;how the corpus talks in general&rdquo;</span>
+      </div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">\(D_{\mathrm{KL}}\)</div>
+      <div class="var-desc">
+        <span lang="ru"><strong>Это KL с акта 5</strong><br />та же величина, другой источник и другая модель</span>
+        <span lang="en"><strong>It is act 5's KL</strong><br />same quantity, different source and model</span>
+      </div>
+    </div>
+  </div>
+  <p class="small muted center mt-2">
+    <span lang="ru">Числа: &laquo;prime lending rate&raquo; &mdash; <strong>2,85 бита</strong>, размытый описательный запрос &mdash; <strong>0,37</strong>. Рис.&nbsp;3 &mdash; не цепочка, а <em>решётка из двух ветвей</em> от общего корня <code>train</code> (0,33): собачья ветвь <code>train dog</code> 0,65 и железнодорожная <code>railroad train</code> 0,73, а внизу слева самый ясный запрос <code>obedience train dog</code> &mdash; <strong>2,43</strong>. Корреляция Спирмена со средней точностью на TREC-7 &mdash; <strong>0,577</strong>, порог: ниже \(\approx 1{,}1\) бита запрос почти наверняка отработает <em>хуже медианы</em>.</span>
+    <span lang="en">The numbers: &ldquo;prime lending rate&rdquo; scores <strong>2.85 bits</strong>, a vague descriptive query <strong>0.37</strong>. Figure&nbsp;3 is not a chain but a <em>two-branch lattice</em> off one root, <code>train</code> (0.33): the dog branch <code>train dog</code> 0.65 and the railroad branch <code>railroad train</code> 0.73, with the clearest query, <code>obedience train dog</code>, at <strong>2.43</strong> on the lower left. Spearman with average precision on TREC-7 is <strong>0.577</strong>, and below \(\approx 1.1\) bits a query will most likely land <em>under the median</em>.</span>
+  </p>
+  <p class="small muted center mt-2">
+    <span lang="ru">&#9888; <strong>И честный бейзлайн, целиком.</strong> Средний IDF обыгрывает clarity <em>ровно на одной строке из шести</em> в Table&nbsp;3 &mdash; на AP88+89 (0,409 против 0,368); на остальных пяти впереди clarity (TREC-7: <strong>0,577 против 0,467</strong>). А на Query Track, где 1804 запроса к одним и тем же 50 темам, средний IDF почти случаен: <strong>0,025 при p&nbsp;=&nbsp;0,14</strong> &mdash; против <strong>0,39</strong> у clarity. Метрика хорошая, но не чудо &mdash; и одна строка таблицы не бейзлайн.</span>
+    <span lang="en">&#9888; <strong>And the honest baseline, in full.</strong> Average IDF beats clarity on <em>exactly one row of six</em> in Table&nbsp;3 &mdash; AP88+89, 0.409 against 0.368; on the other five clarity leads (TREC-7: <strong>0.577 against 0.467</strong>). And on the Query track, 1804 queries over the same 50 topics, average IDF is near-random: <strong>0.025 at p&nbsp;=&nbsp;0.14</strong> &mdash; against clarity's <strong>0.39</strong>. A good predictor, not a miracle &mdash; and one row of a table is not a baseline.</span>
+  </p>
+  <aside class="slide-notes">Pays the fifth debt: entropy predicts query difficulty. Clarity is a KL, in bits, over the WHOLE vocabulary, between the language of the retrieved set and the language of the collection — a query is "clear" when its results talk unlike the corpus at large. Attribution matters: Cronen-Townsend, ZHOU & Croft, SIGIR 2002 pp.299–306 — very often miscited as "Zhai". Their numbers: prime lending rate 2.85 bits, vague query 0.37, Spearman 0.577 on TREC-7 and 0.536 on TREC-7+8, threshold ≈1.1 bits for below-median AP (the paper's own Bayes-optimal level is 1.09, its relevance-free automatic one 1.21). ⚠️ ДЕФЕКТ B10 ЗАКРЫТ: Fig. 3 — это ДВУХВЕТОЧНАЯ РЕШЁТКА, не цепочка, и подписи были перепутаны. Verbatim из статьи (Method-1 scores): train 0.33 → {train dog 0.65 | railroad train 0.73} → obedience train dog 2.43 (плюс railroad train dog 0.67 и railroad train caboose 1.46, которые мы не показываем). Запроса «obedience train» в статье НЕТ. ⚠️ ДЕФЕКТ S13 ЗАКРЫТ: «средний IDF обыгрывает clarity» верно ровно для ОДНОЙ строки Table 3 (AP88+89 0.409 vs 0.368); на пяти остальных clarity впереди (TREC-4 0.490/0.298, TREC-5 0.459/0.289, TREC-7 0.577/0.467, TREC-8 0.494/0.474, TREC-7+8 0.536/0.449), а на Query Track (Table 2 vs Table 4) средний IDF даёт 0.025 при p = 0.14 против clarity 0.39. Next slide is the negative result from the same paper.</aside>
+</section>

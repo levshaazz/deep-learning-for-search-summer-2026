@@ -1,0 +1,29 @@
+<section class="slide" data-type="definition" data-screen-label="33c Hubness inside the ANN graph">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Где именно хабность живёт в индексе L9</span>
+      <span lang="en">Where exactly hubness lives inside the L9 index</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">Munyampirwa 2024 &middot; хабы связаны с хабами &middot; запрос проходит через них в первые 5&ndash;10&nbsp;% шагов</span>
+      <span lang="en">Munyampirwa 2024 &middot; hubs link to hubs &middot; a query crosses them in the first 5&ndash;10% of steps</span>
+    </span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">
+      <span lang="ru">Граф соседей наследует перекос</span>
+      <span lang="en">The neighbour graph inherits the skew</span>
+    </span>
+    <div class="def-body">
+      <p class="small muted">
+        <span lang="ru">HNSW строится <em>из</em> тех самых списков \(k\)-соседей, чей \(N_k\) мы только что измерили, — значит, перекос переезжает прямо в рёбра. Измерено на реальных датасетах: хабы предпочтительно связаны с хабами, размер эффекта по P99 <strong>\(0{,}9305\)</strong> на NYTimes-256 и <strong>\(0{,}7642\)</strong> на GloVe-100. Жадный обход выходит на этот «хайвей» уже в первые \(5\)&ndash;\(10\,\%\) шагов. Обратная сторона та же самая: <strong>анти-хаб получает мало входящих рёбер</strong>, и обход до него просто не доходит — документ есть в индексе и недостижим.</span>
+        <span lang="en">HNSW is built <em>out of</em> the very \(k\)-neighbour lists whose \(N_k\) we just measured, so the skew moves straight into the edges. Measured on real datasets: hubs are preferentially connected to hubs, with a P99 effect size of <strong>\(0.9305\)</strong> on NYTimes-256 and <strong>\(0.7642\)</strong> on GloVe-100. A greedy walk reaches that "highway" within the first \(5\)&ndash;\(10\%\) of its steps. The flip side is the same fact: <strong>an anti-hub receives few incoming edges</strong>, so the walk never arrives &mdash; the document is in the index and unreachable.</span>
+      </p>
+    </div>
+  </div>
+  <p class="small muted center mt-2">
+    <span lang="ru">Отсюда важное следствие для L9: <strong>recall@k у ANN и хабность — одна и та же величина, увиденная с двух сторон</strong>. Понижая \(ef\), ты сильнее всего теряешь именно анти-хабы. А есть ли у этого хайвея польза — на слайде «когда хабы полезны».</span>
+    <span lang="en">Consequence for L9: <strong>ANN recall@k and hubness are one quantity seen from two sides</strong>. Lower \(ef\) and what you lose first is the anti-hubs. Whether that highway is also USEFUL is the "when hubs help" slide.</span>
+  </p>
+  <aside class="slide-notes">Plan NEW-21, from Book beat 13 plus Munyampirwa, Lakshman &amp; Coleman (arXiv 2412.01940). The link to L9 is structural, not metaphorical: an HNSW/NSW graph is constructed from k-neighbour lists, so an N_k skew is literally an in-degree skew of the graph. Their measurements: hubs are preferentially connected to hubs (P99 effect size 0.83–0.87 on ℓ₂ overall; NYTimes-256 = 0.9305, GloVe-100 = 0.7642) and queries traverse hubs within the first 5–10% of the walk. The anti-hub side is the same statement with the sign flipped: few incoming edges means a greedy search does not arrive, which is precisely the silent recall loss of the previous slide. Sets up the "when hubs help" boundary (removing the hierarchy saves 18–39% of peak build memory because the hubs already do its job).</aside>
+</section>

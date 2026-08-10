@@ -69,7 +69,13 @@ const WIDGET_EXPORTS = Object.fromEntries(
 );
 const payload = {
   beats: beats.filter((b) => b.kind === 'scrolly')
-    .map((b) => ({ id: b.id, widget: b.widget, data: DATA[b.data], labels: { ...b.labels, role: 'img' } })),
+    // `data` may name ONE data file or several: four widget manifests already declare two
+    // (letter-entropy needs data/l17-entropy.json for the letter frequencies AND data/l17-bench.json
+    // for Shannon's Fn ladder), and the deck passes them pre-merged in its inline widget-data JSON.
+    // The Book had no way to say that, so such a widget could only be mounted on a slide.
+    .map((b) => ({ id: b.id, widget: b.widget,
+                   data: Array.isArray(b.data) ? Object.assign({}, ...b.data.map((k) => DATA[k])) : DATA[b.data],
+                   labels: { ...b.labels, role: 'img' } })),
   exports: WIDGET_EXPORTS, // widget id → mount export name, resolved against the logic.js glob client-side
 };
 const proseText = (body) => (Array.isArray(body) ? body : [body]);

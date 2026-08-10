@@ -1,0 +1,50 @@
+<section class="slide" data-type="two-col" data-screen-label="31 Attention writes Berlin">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Attention вписывает &laquo;Berlin&raquo; в вектор слова &laquo;Its&raquo;</span>
+      <span lang="en">Attention writes &ldquo;Berlin&rdquo; into the vector of &ldquo;Its&rdquo;</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">неявное разрешение кореференции &mdash; и три следствия одного прохода</span>
+      <span lang="en">implicit coreference resolution &mdash; and three consequences of one forward pass</span>
+    </span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag">
+          <span lang="ru">Определение &middot; контекстный токен-вектор</span>
+          <span lang="en">Definition &middot; contextual token vector</span>
+        </span>
+        <div class="def-term">
+          $$ \vartheta_j = \text{Enc}\big(x_j \mid x_1,\dots,x_n\big) $$
+        </div>
+        <div class="def-body">
+          <p lang="ru">При <strong>позднем чанковании</strong> каждый токен-вектор \(\vartheta_j\) обусловлен <em>всем</em> документом. Слово &laquo;Its&raquo; через self-attention читает &laquo;Berlin&raquo; и <strong>впитывает его смысл</strong> &mdash; ещё до пулинга.</p>
+          <p lang="en">In <strong>late chunking</strong> each token vector \(\vartheta_j\) is conditioned on the <em>whole</em> document. The word &ldquo;Its&rdquo; attends to &ldquo;Berlin&rdquo; and <strong>absorbs its meaning</strong> &mdash; before any pooling.</p>
+          <p class="def-where">
+            <span lang="ru">против наивного: \(\vartheta_j^{\text{naive}} = \text{Enc}(x_j \mid \text{только чанк})\) &mdash; &laquo;Its&raquo; видит лишь свою фразу.</span>
+            <span lang="en">vs naive: \(\vartheta_j^{\text{naive}} = \text{Enc}(x_j \mid \text{chunk only})\) &mdash; &ldquo;Its&rdquo; sees only its own sentence.</span>
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag">
+          <span lang="ru">Три следствия одного forward-pass</span>
+          <span lang="en">Three consequences of one forward pass</span>
+        </span>
+        <div class="def-body">
+          <ul class="obj-list">
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru">Референт вписан в токен-вектор <strong>до</strong> пулинга &rarr; вектор чанка <em>условный</em>, а не i.i.d.</span><span lang="en">The referent is written into the token vector <strong>before</strong> pooling &rarr; each chunk vector is <em>conditional</em>, not i.i.d.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru">Ноль лишней цены на запросе: тот же проход, просто усреднение по сегментам. <strong>Никакого LLM</strong>, никакого переписывания местоимений.</span><span lang="en">Zero extra query-time cost: the same pass, just pooled per segment. <strong>No LLM</strong>, no pronoun rewriting.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&rsaquo;</span><span class="obj-text"><span lang="ru">И оборотная сторона: внимание подмешивает в вектор <em>всех</em> соседей &mdash; в том числе бесполезных. Это счёт, который придёт в акте 7.</span><span lang="en">And the flip side: attention mixes in <em>every</em> neighbour, useful or not. That bill arrives in act 7.</span></span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Это неявное разрешение кореференции &mdash; побочный продукт того же прохода, а не отдельный шаг.</span><span lang="en">This is implicit coreference resolution &mdash; a byproduct of the same pass, not a separate step.</span></p>
+  <aside class="slide-notes">The mechanism, merged (definition + consequences; the two used to repeat each other's first bullet verbatim). ϑ_j is conditioned on the whole document, so "Its"/"the city" absorb "Berlin" before pooling; the naive variant sees only its chunk. Three consequences: chunk vectors become conditional rather than i.i.d.; it costs nothing extra at query time (same forward pass, no LLM, no pronoun rewriting); and — the honest third one the old slide lacked — attention mixes in EVERY neighbour, which is precisely the failure mode of act 7.</aside>
+</section>

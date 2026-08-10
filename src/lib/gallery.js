@@ -816,6 +816,61 @@ export const scenes = [
         en: 'the fix flattens the map: whitening and contrastive training spread the vectors back out, so cosine means what it should again.',
         ru: 'лечение выпрямляет карту: отбеливание (whitening) и контрастное обучение снова разводят векторы, так что косинус опять значит то, что должен.',
         tt: 'дәвалау картаны турайта: whitening һәм контрастив өйрәнү векторларны яңадан җәя, шуңа косинус тагын тиеш булганны аңлата.' } },
+      { img: '/Lectures/assets/img/L18/L18-13-signal-noise-dial.png', concept: {
+        en: 'one knob behind the cone: the strength of the shared axis against each word’s own noise. Turn c/σ up and the cloud drifts off the origin, the wedge narrows, cosine climbs — the dimension never enters.',
+        ru: 'за конусом одна ручка: сила общей оси против собственного шума слова. Крути c/σ — облако уезжает от начала координат, клин сужается, косинус растёт; размерность в это не вмешивается.',
+        tt: 'конус артында бер тотка: уртак күчәрнең көче сүзнең үз шаукымына каршы. c/σ-ны бор — болыт башлангычтан ерагая, чөй тарая, косинус үсә; үлчәмлелек монда катнашмый.' } },
+      { img: '/Lectures/assets/img/L18/L18-14-whitening-returns.png', concept: {
+        en: 'whitening is the L5 tracing sheet laid over the map of meaning: centre it, turn it onto the cloud’s own axes, rescale — and the stretched diamond of four towns becomes a square.',
+        ru: 'отбеливание — это калька из L5, положенная на карту смысла: центрируй, поверни на собственные оси облака, растяни — и вытянутый ромб из четырёх городов станет квадратом.',
+        tt: 'агарту — мәгънә картасына салынган L5 күчермә кәгазе: үзәкләштер, болытның үз күчәрләренә бор, суз — һәм дүрт шәһәрнең сузылган ромбы квадратка әйләнә.' } },
+      { img: '/Lectures/assets/img/L18/L18-15-two-tolls.png', concept: {
+        en: 'the crowding toll: CSLS charges every candidate for how dense its own neighbourhood is, so a hub stops winning by living in a crowd.',
+        ru: 'пошлина за скученность: CSLS берёт с каждого кандидата плату за плотность его окрестности — и хаб перестаёт выигрывать просто потому, что живёт в толпе.',
+        tt: 'кысылу пошлинасы: CSLS һәр кандидаттан үз тирәлегенең тыгызлыгы өчен түләү ала — һәм хаб халык арасында яшәгәне өчен генә җиңүдән туктый.' } },
+      { img: '/Lectures/assets/img/L18/L18-16-flat-but-crowded.png', concept: {
+        en: 'the two distortions are independent: a map can be flattened (isotropic) and still crowded (hubbed) — which is why the two cures are complementary, not alternatives.',
+        ru: 'два искажения независимы: карту можно выпрямить (изотропия) и всё равно оставить скученной (хабы) — поэтому два лекарства дополняют друг друга, а не заменяют.',
+        tt: 'ике бозылу бер-берсенә бәйле түгел: картаны турайтып (изотропия) та, ул кысылган (хаблы) булып кала ала — шуңа ике дару бер-берсен алыштырмый, тулыландыра.' } },
+    ],
+  },
+  {
+    id: 'L20',
+    title: { en: 'Lecture 20 — Search in Russian', ru: 'Лекция 20 — Поиск на русском', tt: 'Лекция 20 — Русча эзләү' },
+    href: (lang, localizedPath) => localizedPath(lang, 'book/20'),
+    items: [
+      { img: '/Lectures/assets/img/L20/L20-00-morphology-strikes-back.png', concept: {
+        en: 'morphology strikes back: an English-first pipeline meets a language where one lexeme wears a dozen faces, and every default quietly stops working.',
+        ru: 'морфология наносит ответный удар: конвейер, собранный под английский, встречает язык, где одна лексема носит десяток лиц, — и каждый дефолт тихо перестаёт работать.',
+        tt: 'морфология каршы суга: инглиз өчен җыелган конвейер бер лексема унлаган йөз кия торган телгә юлыга — һәм һәр дефолт тыныч кына эшләүдән туктый.' } },
+      { img: '/Lectures/assets/img/L20/L20-01-token-tax.png', concept: {
+        en: 'the token tax: the same sentence costs several times more tokens in Russian, because the vocabulary was budgeted for English. You pay in context length and in money.',
+        ru: 'токен-налог: то же предложение стоит в разы больше токенов по-русски, потому что словарь закладывали под английский. Платишь длиной контекста и деньгами.',
+        tt: 'токен салымы: шул ук җөмлә русча берничә тапкыр күбрәк токен тора, чөнки сүзлек инглиз өчен уйланган. Түләвең — контекст озынлыгы һәм акча.' } },
+      { img: '/Lectures/assets/img/L20/L20-02-noun-paradigm.png', concept: {
+        en: 'one lexeme, ten strings: six cases times two numbers, and an un-normalized index opens a separate posting list for every one of them.',
+        ru: 'одна лексема — десять строк: шесть падежей на два числа, и индекс без нормализации заводит на каждую свой постинг-лист.',
+        tt: 'бер лексема — ун юл: алты килеш ике санга, ә нормальләштерүсез индекс һәрберсенә аерым кергәннәр исемлеге ача.' } },
+      { img: '/Lectures/assets/img/L20/L20-04-lemma-mill.png', concept: {
+        en: 'the lemma mill: run both the index and the query through a dictionary and the ten lists collapse into one — the ranking inverts, and the right answer comes first.',
+        ru: 'лемма-мельница: пропусти через словарь и индекс, и запрос — десять списков схлопнутся в один; ранжирование переворачивается, и верный ответ выходит первым.',
+        tt: 'лемма тегермәне: индексны да, сорауны да сүзлек аша уздыр — ун исемлек берсенә җыела; ранжлау әйләнә, дөрес җавап беренче була.' } },
+      { img: '/Lectures/assets/img/L20/L20-05-multilingual-space.png', concept: {
+        en: 'the dense arm sidesteps morphology: a multilingual encoder puts the forms of one word next to each other, so no lemmatizer is needed on that side.',
+        ru: 'плотное плечо обходит морфологию: мультиязычный энкодер кладёт формы одного слова рядом, и лемматизатор на этой стороне не нужен.',
+        tt: 'тыгыз як морфологияне урап уза: күп телле энкодер бер сүзнең формаларын янәшә куя, шуңа бу якта лемматизатор кирәкми.' } },
+      { img: '/Lectures/assets/img/L20/L20-06-small-cuts.png', concept: {
+        en: 'death by a thousand cuts: ё/е, case, transliteration, the wrong keyboard layout, a Latin twin letter — each one small, each one a silent zero-result.',
+        ru: 'смерть от тысячи порезов: ё/е, регистр, транслит, не та раскладка, латинская буква-двойник — каждый мелкий, и каждый даёт тихое «ничего не найдено».',
+        tt: 'мең кисемнән үлем: ё/е, регистр, транслит, ялгыш макет, латин игезәк хәрефе — һәрберсе вак, һәрберсе тавышсыз «бернәрсә табылмады».' } },
+      { img: '/Lectures/assets/img/L20/L20-14-homoglyph-mask.png', concept: {
+        en: 'the homoglyph mask: a word written with Latin look-alikes is pixel-identical to the real one and scores exactly zero — same shape, different bytes.',
+        ru: 'маска гомоглифа: слово, набранное латинскими двойниками, попиксельно совпадает с настоящим и получает ровно ноль — тот же вид, другие байты.',
+        tt: 'гомоглиф маскасы: латин игезәкләре белән язылган сүз чын сүз белән пикселгә кадәр туры килә һәм нәкъ нуль ала — шул ук кыяфәт, башка байтлар.' } },
+      { img: '/Lectures/assets/img/L20/L20-07-morphology-tamed.png', concept: {
+        en: 'morphology tamed: lemmatize both arms, fold ё, normalise confusables, and put a dense arm beside BM25 — the language stops being an obstacle and becomes a setting.',
+        ru: 'морфология укрощена: лемматизируй оба плеча, сверни ё, нормализуй confusables и поставь плотное плечо рядом с BM25 — и язык перестаёт быть препятствием, становясь настройкой.',
+        tt: 'морфология тыңлаучан: ике якны да леммалаштыр, ё-ны җый, confusables-ны нормальләштер һәм BM25 янына тыгыз як куй — тел киртә булудан туктап, көйләүгә әйләнә.' } },
     ],
   },
 ];

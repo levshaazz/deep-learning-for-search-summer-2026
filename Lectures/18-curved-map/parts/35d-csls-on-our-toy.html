@@ -1,0 +1,29 @@
+<section class="slide" data-type="table" data-screen-label="35d CSLS on our own toy">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">CSLS на нашей же игрушке: одно облако, два правила</span>
+      <span lang="en">CSLS on our own toy: one cloud, two rules</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">\(n{=}120\), \(d{=}20\), \(k{=}5\), \(K{=}10\) &middot; measured &middot; евклид</span>
+      <span lang="en">\(n{=}120\), \(d{=}20\), \(k{=}5\), \(K{=}10\) &middot; measured &middot; Euclidean</span>
+    </span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th><span lang="ru">величина</span><span lang="en">quantity</span></th>
+        <th><span lang="ru">сырой kNN</span><span lang="en">raw kNN</span></th>
+        <th><span lang="ru">после CSLS</span><span lang="en">after CSLS</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><span lang="ru">скос \(N_k\)</span><span lang="en">skew of \(N_k\)</span></td><td class="cell-bad"><span lang="ru">2,5904</span><span lang="en">2.5904</span></td><td class="cell-good"><span lang="ru">0,3923</span><span lang="en">0.3923</span></td></tr>
+      <tr><td><span lang="ru">самый занятой \((\max N_k)\)</span><span lang="en">busiest \((\max N_k)\)</span></td><td class="cell-bad">39</td><td class="cell-good">13</td></tr>
+      <tr><td><span lang="ru">доля анти-хабов \((N_k{=}0)\)</span><span lang="en">anti-hubs \((N_k{=}0)\)</span></td><td class="cell-bad"><span lang="ru">12,5%</span><span lang="en">12.5%</span></td><td class="cell-good"><span lang="ru">2,5%</span><span lang="en">2.5%</span></td></tr>
+      <tr><td><span lang="ru">для скольких запросов хаб #18 — top-1</span><span lang="en">queries for which hub #18 is top-1</span></td><td class="cell-bad">9 / 119</td><td class="cell-good">3 / 119</td></tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2"><span lang="ru">Скос упал <strong>в 6,6 раза</strong>, и почти весь «мёртвый» хвост вернулся в игру: из \(15\) невидимых документов осталось \(3\). Обрати внимание, чего <em>не</em> произошло: эмбеддинги не менялись, индекс не перестраивался, модель не дообучалась. Изменилось <strong>правило сравнения</strong>. Именно поэтому CSLS — самый дешёвый рычаг в этой лекции; его цена — в другом, и она на слайде «чего он стоит в проде».</span><span lang="en">The skew fell <strong>6.6×</strong> and almost the whole dead tail came back into play: of \(15\) invisible documents \(3\) remain. Note what did <em>not</em> happen: the embeddings did not change, the index was not rebuilt, the model was not fine-tuned. What changed is the <strong>comparison rule</strong>. That is why CSLS is the cheapest lever in this lecture &mdash; its cost lies elsewhere, on the "what it costs in production" slide.</span></p>
+  <aside class="slide-notes">The aggregate half of the missing bridge (plan F3, NEW-26). Same toy as act 03, same k, only the ranking rule swapped for CSLS in distance form: skew 2.5904 → 0.3923 (6.6×), max N_k 39 → 13, anti-hubs 12.5% → 2.5% (15 points → 3), and the hub stops being the top-1 answer for 9 of 119 queries and becomes it for 3. Emphasise what stayed fixed: identical vectors, identical index, no training — this is a scoring-time correction, which is exactly what makes it deployable and exactly what makes its production cost (a full-corpus r̄ precompute that goes stale, and no expression as a plain ANN query) worth a slide of its own. Values from data/l18-geometry.json → hubToll.byDim.d20.</aside>
+</section>

@@ -1,0 +1,51 @@
+<section class="slide" data-type="two-col" data-screen-label="18a Worked &middot; stemming doesn't fix it">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Руками: стемминг чинит не всё</span>
+      <span lang="en">By hand: stemming doesn&rsquo;t fix it</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">тот же корпус &middot; Snowball в обоих плечах &middot; рекомендованный дефолт под замером</span>
+      <span lang="en">same corpus &middot; Snowball in both arms &middot; the recommended default, measured</span>
+    </span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <table class="cmp-table">
+        <thead>
+          <tr>
+            <th><span lang="ru">терм (стем)</span><span lang="en">term (stem)</span></th>
+            <th>df</th>
+            <th>idf</th>
+            <th>bm25</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>котят</td><td class="cell-bad">0</td><td><span lang="ru">2,4849</span><span lang="en">2.4849</span></td><td class="cell-bad"><span lang="ru">0,0</span><span lang="en">0.0</span></td></tr>
+          <tr><td>игра</td><td>3</td><td><span lang="ru">0,539</span><span lang="en">0.539</span></td><td><span lang="ru">0,5291</span><span lang="en">0.5291</span></td></tr>
+          <tr><td><strong><span lang="ru">сумма</span><span lang="en">sum</span></strong></td><td></td><td></td><td class="cell-meh"><strong>0.5291</strong> &middot; #2 <span lang="ru">(ничья)</span><span lang="en">(tied)</span></td></tr>
+        </tbody>
+      </table>
+      <p class="small muted center mt-2">
+        <span lang="ru">Запрос стеммится в &laquo;котят игра&raquo;. Стем &laquo;котят&raquo; не встречается ни в одном документе: в золотом стоит &laquo;котенок&raquo;, в магазинном &mdash; &laquo;кот&raquo;. Совпал только глагол.</span>
+        <span lang="en">The query stems to &ldquo;котят игра&rdquo;. The stem &ldquo;котят&rdquo; occurs in no document: the gold has &ldquo;котенок&rdquo;, the shop has &ldquo;кот&rdquo;. Only the verb matched.</span>
+      </p>
+    </div>
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag">
+          <span lang="ru">Извлёк &mdash; но не туда поставил</span>
+          <span lang="en">Retrieved &mdash; and mis-ranked</span>
+        </span>
+        <div class="def-term"><span lang="ru">щенок <strong>0,5827</strong> &middot; #1 &nbsp;&gt;&nbsp; золотой <strong>0,5291</strong> &middot; #2 (ничья с дистрактором)</span><span lang="en">puppy <strong>0.5827</strong> &middot; #1 &nbsp;&gt;&nbsp; gold <strong>0.5291</strong> &middot; #2 (tied with the distractor)</span></div>
+        <div class="def-body">
+          <p lang="ru">Хорошая новость: извлечено уже <strong>три</strong> документа из пяти вместо одного &mdash; ответ вернулся в выдачу. Плохая: впереди него встал &laquo;щенок <strong>играл</strong> с мячом&raquo;, потому что документ короче, а совпал у обоих только общий глагол.</p>
+          <p lang="en">Good news: <strong>three</strong> of five documents are retrieved instead of one &mdash; the answer is back in the list. Bad news: &ldquo;щенок <strong>играл</strong> с мячом&rdquo; sits above it, because that document is shorter and the only shared term is the common verb.</p>
+          <p lang="ru">Лекция рекомендует стемминг быстрым дефолтом &mdash; и на её собственном корпусе он задачу <em>не решает</em>. Причина ровно та, что на прошлом слайде: три стема на одну лексему.</p>
+          <p lang="en">The lecture calls stemming the fast default &mdash; and on its own corpus it does <em>not</em> solve the task. The reason is the previous slide&rsquo;s: three stems for one lexeme.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <aside class="slide-notes">Worked-by-hand part 2, the pass the deck never used to measure. Same five documents, same BM25, Snowball applied symmetrically. The query becomes "котят игра". df(котят)=0 — the gold document stems to "котенок", the shop document to "кот" — so the noun contributes nothing and only the verb "игра" (df=3, idf=0.539) scores. The gold gets 0.5291 but the puppy document gets 0.5827 purely on length normalisation (4 tokens vs 5), so it ranks first. Retrieval improves from 1/5 to 3/5, ranking does not. This is the honest picture the recommendation needs: stemming is cheap and it helps a lot on real corpora (Savoy 2009 measured +83.6 % MAP for Snowball on Russian CLEF collections) but it cannot repair a stem alternation, and on this corpus only lemmatization does.</aside>
+</section>

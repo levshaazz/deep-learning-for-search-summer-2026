@@ -1,0 +1,31 @@
+<section class="slide" data-type="definition" data-screen-label="19c Over- and under-stemming, measured">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Пересечение и недорез &mdash; посчитанные</span>
+      <span lang="en">Over- and under-stemming, measured</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">не байки про стеммер, а его собственный вывод</span>
+      <span lang="en">not folklore about the stemmer &mdash; its own output</span>
+    </span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">
+      <span lang="ru">Две ошибки, обе тихие</span>
+      <span lang="en">Two errors, both silent</span>
+    </span>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Пересечение (over-stemming)</strong> &mdash; разные лексемы получают один стем: <code>стал</code>, <code>сталь</code>, <code>стали</code> &rarr; <code>стал</code>; <code>мир</code> и <code>мириться</code> &rarr; <code>мир</code>; <code>небо</code> и <code>нёбо</code> &rarr; <code>неб</code>; <code>банк</code> и <code>банка</code> &rarr; <code>банк</code>. Точность падает молча.</span><span lang="en"><strong>Over-stemming</strong> &mdash; unrelated lexemes get one stem: <code>стал</code>, <code>сталь</code>, <code>стали</code> &rarr; <code>стал</code>; <code>мир</code> and <code>мириться</code> &rarr; <code>мир</code>; <code>небо</code> and <code>нёбо</code> &rarr; <code>неб</code>; <code>банк</code> and <code>банка</code> &rarr; <code>банк</code>. Precision drops silently.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Недорез (under-stemming)</strong> &mdash; одна лексема расходится на несколько стемов: <code>котёнок</code>&nbsp;/&nbsp;<code>котята</code>&nbsp;/&nbsp;<code>котят</code> &rarr; <code>котенок</code>&nbsp;/&nbsp;<code>котят</code>&nbsp;/&nbsp;<code>кот</code>; инфинитив <code>стать</code> &rarr; <code>стат</code> отрывается от собственного прошедшего <code>стал</code>. Полнота падает молча.</span><span lang="en"><strong>Under-stemming</strong> &mdash; one lexeme splits across stems: <code>котёнок</code>&nbsp;/&nbsp;<code>котята</code>&nbsp;/&nbsp;<code>котят</code> &rarr; <code>котенок</code>&nbsp;/&nbsp;<code>котят</code>&nbsp;/&nbsp;<code>кот</code>; the infinitive <code>стать</code> &rarr; <code>стат</code> is torn off its own past tense <code>стал</code>. Recall drops silently.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>А расхожий пример &mdash; неверен.</strong> Говорят, будто стеммер склеивает &laquo;мир&raquo;, &laquo;мировой&raquo; и &laquo;мирный&raquo;. Snowball даёт <code>мир</code>, <code>миров</code>, <code>мирн</code> &mdash; три разных стема. Проверяй утверждения о стеммере на самом стеммере.</span><span lang="en"><strong>And the folk example is wrong.</strong> Stemmers are said to conflate &ldquo;мир&rdquo;, &ldquo;мировой&rdquo; and &ldquo;мирный&rdquo;. Snowball returns <code>мир</code>, <code>миров</code>, <code>мирн</code> &mdash; three different stems. Check claims about a stemmer against the stemmer.</span></span></li>
+      </ul>
+      <p class="small muted"><span lang="ru">Пара <code>стали</code>&nbsp;/&nbsp;<code>стать</code> &mdash; та самая омонимия со слайда &laquo;Стемминг против лемматизации&raquo;, только теперь видно, что стеммер ломает её с двух сторон сразу: сталь и глагол он склеивает, а глагол с самим собой разводит. Ровно поэтому меряют оба инструмента, а не выбирают по вере.</span><span lang="en">The <code>стали</code>&nbsp;/&nbsp;<code>стать</code> pair is the homonymy from &ldquo;Stemming vs lemmatization&rdquo;, now seen from the stemmer&rsquo;s side: it fuses the steel with the verb and splits the verb from itself. Which is exactly why you measure both tools instead of believing in one.</span></p>
+    </div>
+  </div>
+  <div class="viz-frame fig-fit" style="--fig-max:32cqh; --fig-w:42%; margin:.3rem auto 0;">
+    <img src="assets/img/L20/L20-11-stem-vs-lemma-fork.png?v=1" alt="Two pipes: the upper one carries an axe on its casing and sends three forms of one word into three different trays while two plainly different words drop into one shared tray; the lower one carries a dictionary-book and gathers every form into a single tray, though a question-mark shadow still sits on the book&#x27;s edge. S&#xE9;r&#xE9;ga stands between them comparing the trays; his green t&#xFC;betey is the only green." />
+  </div>
+
+  <aside class="slide-notes">The replacement for an invented example. The previous version of the deck claimed aggressive stemming conflates "мир", "мировой" and "мирный"; our stdlib port of Snowball Russian (asserted against a 36-word control list at generation time) returns мир / миров / мирн — three distinct stems, no conflation at all. The real conflations, computed rather than imagined: стал·сталь·стали → стал (past tense of «стать» sharing a stem with the noun for steel), мир·мириться → мир, небо·нёбо → неб (a minimal ё/е pair destroyed), банк·банка → банк. The real splits: котёнок/котята/котят → three stems, and стать → стат torn from its own past стал. Segalovich (2003) measured the same asymmetry at corpus scale: Snowball loses 487 valid conflations where Mystem loses 41.</aside>
+</section>

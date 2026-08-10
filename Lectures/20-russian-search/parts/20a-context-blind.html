@@ -1,0 +1,27 @@
+<section class="slide" data-type="definition" data-screen-label="20a The lemmatizer that cannot see the sentence">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Лемматизатор, который не видит предложения</span>
+      <span lang="en">The lemmatizer that cannot see the sentence</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">во сколько обходится контекстная слепота &mdash; в пунктах</span>
+      <span lang="en">what context-blindness costs &mdash; in points</span>
+    </span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">
+      <span lang="ru">Топ-1 разбор без контекста</span>
+      <span lang="en">The top-1 parse, out of context</span>
+    </span>
+    <div class="def-term"><code>том &rarr; тот</code> &middot; <span lang="ru">p&nbsp;=&nbsp;0,896 &middot; книжный &laquo;том&raquo; &mdash; третьим, p&nbsp;=&nbsp;0,006</span><span lang="en">p&nbsp;=&nbsp;0.896 &middot; the book &ldquo;том&rdquo; comes third, p&nbsp;=&nbsp;0.006</span></div>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Словарный анализатор возвращает список, а не решение.</strong> <code>parse()[0]</code> &mdash; это самый вероятный разбор изолированного слова, а не снятие омонимии. <code>стали &rarr; стать</code> с p&nbsp;=&nbsp;0,975: индекс на топ-1 леммах молча уничтожает запрос &laquo;первый том&raquo; и путает сталь с глаголом.</span><span lang="en"><strong>A dictionary analyzer returns a list, not a decision.</strong> <code>parse()[0]</code> is the most probable parse of an isolated word, not disambiguation. <code>стали &rarr; стать</code> at p&nbsp;=&nbsp;0.975: an index built on top-1 lemmas silently destroys the query &ldquo;первый том&rdquo; and confuses steel with a verb.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Цена измерена.</strong> На одних и тех же тестах PyMorphy2 даёт <strong>91,23&nbsp;%</strong> точности леммы, а оракул, выбирающий лучший разбор из выданного списка, &mdash; <strong>94,08&nbsp;%</strong>. Разрыв в три пункта &mdash; это ровно то, что лежит в снятии омонимии, и ровно то, чего словарный лемматизатор без контекста не берёт.</span><span lang="en"><strong>The price is measured.</strong> On one shared test set PyMorphy2 reaches <strong>91.23&nbsp;%</strong> lemma accuracy while an oracle that picks the best parse out of its own list reaches <strong>94.08&nbsp;%</strong>. That three-point gap is exactly what disambiguation is worth &mdash; and exactly what a context-free lemmatizer leaves on the table.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Что с этим делать.</strong> Для BM25 &mdash; чаще всего ничего: три пункта точности разбора почти не видны в ранжировании. Но если в индексе живут омонимы-сущности (том, банка, коса, ключ), либо ставь контекстный разбор (Stanza, spaCy), либо держи для них <code>keyword</code>-поле.</span><span lang="en"><strong>What to do.</strong> For BM25, usually nothing: three points of parse accuracy barely show up in ranking. But if your index is full of homonymous entities (том, банка, коса, ключ), either move to a context-aware parser (Stanza, spaCy) or keep a <code>keyword</code> field for them.</span></span></li>
+      </ul>
+    </div>
+  </div>
+  <aside class="slide-notes">The evidence behind slide 16's corrected cell. pymorphy2/pymorphy3 are context-free by construction: parse() returns a ranked list of analyses for an isolated token, and taking [0] is a prior, not a disambiguation. Live examples: том → тот at 0.896 with the book-volume reading third at 0.006; стали → стать at 0.975 with сталь at 0.011. The cost is measurable rather than rhetorical — Rubic2's 2025 comparison on one shared test set puts PyMorphy2 at 91.23 % top-1 and PyMorphy2* (an oracle allowed to pick the best of its OWN parse list) at 94.08 %, so ~3 points of lemma accuracy live entirely in disambiguation. Keep the engineering conclusion proportionate: for ranking this rarely matters, but for homonymous named entities it does, and then you either pay for a context-aware parser or keep an exact-match field.</aside>
+</section>

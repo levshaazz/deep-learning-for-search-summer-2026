@@ -45,6 +45,31 @@ function analyse(html) {
 
 function isSlide(html) { return /<section class="slide"/.test(html); }
 
+/* A deck-mounted widget draws labels the [lang]-span toggle CANNOT reach: the figure generates them
+   in JS. widgets/deck-adapter.js localises them only when the mount's payload carries an `i18n`
+   bundle — "Payloads without an `i18n` key are unchanged". So a mount whose widget ships Russian
+   strings but forwards no bundle renders ENGLISH inside a Russian deck, and every span-based check
+   (including the one above) passes it, because the surrounding prose is perfectly bilingual.
+   That is how three lectures shipped English widgets past a green gate. Ratcheted, not retro-fixed:
+   the existing debt is frozen in the baseline; a NEW un-bundled mount fails. */
+function widgetI18nGaps(dir) {
+  const gaps = new Set();
+  for (const f of readdirSync(join(dir, 'parts')).filter((x) => x.endsWith('.html'))) {
+    const html = readFileSync(join(dir, 'parts', f), 'utf8');
+    if (!html.includes('class="widget-mount"')) continue;
+    const hasBundle = /"i18n"\s*:/.test(html);
+    for (const m of html.matchAll(/data-widget="([a-z0-9-]+)"/g)) {
+      const id = m[1];
+      const i18nPath = join(ROOT, 'widgets', id, 'i18n.json');
+      if (!existsSync(i18nPath)) continue;
+      if (!/"ru"\s*:/.test(readFileSync(i18nPath, 'utf8'))) continue;   // nothing to localise
+      if (!hasBundle) gaps.add(id);
+    }
+  }
+  return [...gaps].sort();
+}
+
+
 // Per-deck: englishOnly = prose slides with NO Russian at all; enOnlySpans = lang="en" without a ru pair.
 function scanDeck(dir) {
   let englishOnly = 0, proseSlides = 0, enOnlySpans = 0;
@@ -66,7 +91,7 @@ function scanAll() {
   const out = {};
   for (const d of readdirSync(decksDir).filter((n) => /^\d\d-/.test(n))) {
     const dir = join(decksDir, d);
-    if (existsSync(join(dir, 'parts'))) out[d] = scanDeck(dir);
+    if (existsSync(join(dir, 'parts'))) out[d] = { ...scanDeck(dir), wIdx: widgetI18nGaps(dir) };
   }
   return out;
 }
@@ -83,6 +108,16 @@ function run() {
     const b = base[deck] != null ? base[deck] : 0;
     if (m.englishOnly > b) {
       report.push(`${deck}: ${m.englishOnly} English-only prose slides (baseline ${b}) — ${m.englishOnly - b} NEW untagged; wrap prose in <span lang="ru">…</span><span lang="en">…</span>`);
+    }
+  }
+  // widget-label gaps: baseline is the frozen LIST of un-bundled widget ids per deck
+  let wNew = 0;
+  for (const [deck, m] of Object.entries(scan)) {
+    const known = new Set((base[deck + '#widgets']) || []);
+    const fresh = (m.wIdx || []).filter((id) => !known.has(id));
+    if (fresh.length) {
+      wNew += fresh.length;
+      report.push(`${deck}: widget mount(s) without an i18n bundle → ENGLISH labels in the RU deck: ${fresh.join(', ')} — forward widgets/<id>/i18n.json as "i18n" in the widget-data payload`);
     }
   }
   console.log(`[deck-i18n] scanned ${Object.keys(scan).length} decks; ${totalEnglishOnly} English-only prose slides total (debt tracked in baseline)`);
@@ -106,6 +141,7 @@ function updateBaseline() {
   const scan = scanAll();
   const base = {};
   for (const [deck, m] of Object.entries(scan)) if (m.englishOnly > 0) base[deck] = m.englishOnly;
+  for (const [deck, m] of Object.entries(scanAll())) base[deck + '#widgets'] = m.wIdx || [];
   writeFileSync(BASELINE, JSON.stringify(base, null, 2) + '\n');
   console.log(`[deck-i18n] wrote baseline: ${Object.keys(base).length} decks with English-only debt → ${BASELINE.replace(ROOT + '/', '')}`);
   return 0;

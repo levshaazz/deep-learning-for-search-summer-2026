@@ -1,0 +1,57 @@
+<section class="slide" data-type="two-col" data-screen-label="41a Capstone · the config">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Конфиг, который чинит твой русский поиск</span>
+      <span lang="en">The config that fixes your Russian search</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">унеси с собой &middot; Elasticsearch + препроцессор запроса</span>
+      <span lang="en">take it with you &middot; Elasticsearch + the query preprocessor</span>
+    </span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">JSON &middot; settings.analysis</span><span class="badge" data-color="accent">index</span></div>
+        <pre><code class="language-json">"char_filter": {
+  "yo2e":   {"type":"mapping","mappings":["ё=&gt;е","Ё=&gt;Е"]},
+  "confus": {"type":"mapping",
+             "mappings":["a=&gt;а","c=&gt;с","e=&gt;е","o=&gt;о",
+                         "p=&gt;р","x=&gt;х","y=&gt;у"]}
+},
+"filter": {
+  "ru_stop": {"type":"stop","stopwords":["и","в","на","что"]},
+  "ru_stem": {"type":"stemmer","language":"russian"}
+},
+"analyzer": {
+  "ru": {
+    "char_filter": ["yo2e","confus"],
+    "tokenizer":   "standard",
+    "filter":      ["lowercase","ru_stop","ru_stem"]
+  }
+}</code></pre>
+      </div>
+      <p class="small mt-2"><span lang="ru"><code>char_filter</code> стоит <strong>перед</strong> стоп-фильтром &mdash; иначе &laquo;всё&raquo; переживёт удаление стоп-слов, а &laquo;все&raquo; нет. В <code>ru_stop</code> нет ни &laquo;не&raquo;, ни &laquo;ни&raquo;, ни &laquo;без&raquo;. Все <strong>семь</strong> строчных двойников перечислены: без «e», «x», «y» слово вроде «сера» проскочит. Confusables вешай только на русское поле.</span><span lang="en">The <code>char_filter</code> runs <strong>before</strong> the stop filter &mdash; otherwise &ldquo;всё&rdquo; survives stop-word removal and &ldquo;все&rdquo; does not. <code>ru_stop</code> contains no не, ни or без. All <strong>seven</strong> lowercase twins are listed: leave out e, x or y and a word like &ldquo;сера&rdquo; slips through. Hang confusables on the Russian field only.</span></p>
+    </div>
+    <div class="twocol-col">
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">JSON &middot; mappings</span><span class="badge" data-color="accent">field</span></div>
+        <pre><code class="language-json">"body": {"type":"text","analyzer":"ru",
+         "fields":{"exact":{"type":"keyword"}}}</code></pre>
+      </div>
+      <div class="code-block mt-2">
+        <div class="code-header"><span class="code-lang">Python &middot; query preprocessor</span><span class="badge" data-color="accent">query</span></div>
+        <pre><code class="language-python">q = restore_layout(q)                 # rjntyjr -&gt; котенок
+q = unicodedata.normalize("NFC", q)   # ё = один символ
+hits = es.search(index="docs", query=match(q, "ru"))</code></pre>
+      </div>
+      <div class="def-card mt-2">
+        <div class="def-term">
+          <span lang="ru">Одно правило: <strong>тот же аналайзер в обоих плечах.</strong></span>
+          <span lang="en">One rule: <strong>the same analyzer in both arms.</strong></span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <aside class="slide-notes">Capstone — the take-away configuration. Left: an Elasticsearch analyzer that puts a ё→е mapping char_filter and a confusables mapping BEFORE the stop filter (order matters: the Lucene stop list has no ё forms, so «всё» survives removal while «все» does not), then standard tokenizer, lowercase, a stop list with the negations не/ни/без removed, and the russian stemmer, which is Snowball. The confusables mapping lists all SEVEN lowercase Cyrillic letters that have a Latin twin (а с е о р х у) — an earlier draft listed only four, which let a fully homoglyphable word such as «сера» through. Confusables should be attached to the Russian field only, or it will mangle English text. The mapping adds a keyword sub-field for entities, where case and ё must be preserved. Right: three lines of query preprocessing — layout restoration, NFC normalization, and the same "ru" analyzer at search time. The rule the whole slide exists for: the same analyzer in both arms; a one-sided fix is worse than none.</aside>
+</section>

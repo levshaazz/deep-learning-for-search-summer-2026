@@ -42,16 +42,22 @@ TOC     = re.compile(r'class="toc-item"[^>]*href="#/(\d+)"|href="#/(\d+)"[^>]*cl
 ANYHASH = re.compile(r'href="#/(\d+)"')
 
 def parse(html):
-    slides = {}                                   # num -> data-type
+    """slides: the 1-based POSITION of each slide -> its data-type.
+
+    `#/N` is resolved BY POSITION, exactly as the deck engine does it (Lectures/js/deck.js
+    parseHash: `slide = N - 1` indexed into the slide list). It used to be resolved by the leading
+    integer of `data-screen-label`, which was equivalent only while every deck's labels ran 1..N with
+    no gaps. Decks now carry lettered inserts (`18a`, `30a`, `46a`) that share a label integer with
+    their neighbour, so the two numberings diverge — and the label-based reading silently blessed
+    agenda links that jump to the WRONG slide at runtime. Position is what the engine honours, so
+    position is what the gate checks.
+    """
+    slides = {}                                   # 1-based position -> data-type
     order = []
     for attrs in SECTION.findall(html):
-        m_lab = LABEL.search(attrs)
-        if not m_lab:
-            continue
-        n = int(m_lab.group(1))
         t = (DTYPE.search(attrs).group(1) if DTYPE.search(attrs) else "?")
-        slides[n] = t
-        order.append(n)
+        order.append(t)
+        slides[len(order)] = t
     total = len(order)
     agenda = [int(a or b) for a, b in TOC.findall(html)]
     allhash = [int(x) for x in ANYHASH.findall(html)]

@@ -1,0 +1,31 @@
+<section class="slide" data-type="formula" data-screen-label="75 The KL retrieval model &mdash; smoothing IS the IDF effect">
+  <div class="slide-header" style="border:none; padding-bottom:0;">
+    <h2>
+      <span lang="ru">Ранжирование по KL &mdash; и почему сглаживание <em>это</em> IDF</span>
+      <span lang="en">Ranking by KL &mdash; and why smoothing <em>is</em> the IDF effect</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">Lafferty &amp; Zhai, SIGIR 2001 &middot; развязка акта</span>
+      <span lang="en">Lafferty &amp; Zhai, SIGIR 2001 &middot; the act's payoff</span>
+    </span>
+  </div>
+  <div class="formula-stage">
+    <span lang="ru">
+      $$ s(D,Q) \;=\; -D_{\mathrm{KL}}(\theta_Q \,\|\, \theta_D) \;=\; \underbrace{\sum_w p(w\mid\theta_Q)\log p(w\mid\theta_D)}_{-\,H(\theta_Q,\theta_D)\ \text{— МИНУС кросс-энтропия}} \;-\; \underbrace{\sum_w p(w\mid\theta_Q)\log p(w\mid\theta_Q)}_{\text{не зависит от } D} $$
+      $$ \sum_{i:\, c(q_i,D)>0} \log\frac{p_s(q_i\mid D)}{\alpha_D\, p(q_i\mid C)} \;+\; \dots \qquad \Longleftarrow\ \text{IDF-эффект живёт в знаменателе} $$
+    </span>
+    <span lang="en">
+      $$ s(D,Q) \;=\; -D_{\mathrm{KL}}(\theta_Q \,\|\, \theta_D) \;=\; \underbrace{\sum_w p(w\mid\theta_Q)\log p(w\mid\theta_D)}_{-\,H(\theta_Q,\theta_D)\ \text{— MINUS the cross-entropy}} \;-\; \underbrace{\sum_w p(w\mid\theta_Q)\log p(w\mid\theta_Q)}_{\text{independent of } D} $$
+      $$ \sum_{i:\, c(q_i,D)>0} \log\frac{p_s(q_i\mid D)}{\alpha_D\, p(q_i\mid C)} \;+\; \dots \qquad \Longleftarrow\ \text{the IDF effect lives in the denominator} $$
+    </span>
+  </div>
+  <p class="small muted center mt-2">
+    <span lang="ru">Первая строка: ранжировать по \(-D_{\mathrm{KL}}\) &mdash; то же самое, что ранжировать по <strong>минус кросс-энтропии</strong>, \(-H(\theta_Q,\theta_D)\), потому что энтропия запроса одинакова для всех документов. Следи за знаком: наверх поднимается документ с <em>наименьшей</em> кросс-энтропией, то есть тот, под чьей моделью запрос дешевле закодировать. &#9888; Эквивалентность верна <em>только внутри одного запроса</em>: при фильтрации, где счета сравнивают <em>между</em> запросами, KL и кросс-энтропия ведут себя по-разному.</span>
+    <span lang="en">First line: ranking by \(-D_{\mathrm{KL}}\) is the same as ranking by <strong>minus the cross-entropy</strong>, \(-H(\theta_Q,\theta_D)\), because the query's own entropy is identical for every document. Watch the sign: the document that rises to the top is the one with the <em>smallest</em> cross-entropy &mdash; the model under which the query is cheapest to encode. &#9888; The equivalence holds <em>within one query only</em>: in filtering, where scores are compared <em>across</em> queries, KL and cross-entropy behave differently.</span>
+  </p>
+  <p class="small muted center mt-2">
+    <span lang="ru">Вторая строка &mdash; развязка всего акта. Перепиши query-likelihood со сглаживанием по коллекции &mdash; и в знаменателе окажется \(p(q_i \mid C)\), вероятность терма в коллекции. Частый терм там велик, вклад мал; редкий &mdash; наоборот. <strong>IDF-эффект не добавляли руками: он <em>возник</em> из сглаживания.</strong> Мост из акта 5 замкнулся: то, что там было налогом за неверную модель, здесь стало весом терма.</span>
+    <span lang="en">The second line is the act's payoff. Rewrite query-likelihood with collection smoothing and the denominator holds \(p(q_i \mid C)\), the term's probability in the collection. A common term makes it large and the contribution small; a rare one does the opposite. <strong>Nobody added an IDF: it <em>emerged</em> from the smoothing.</strong> The bridge from act 5 closes: what was a wrong-model tax there is a term weight here.</span>
+  </p>
+  <aside class="slide-notes">Lafferty & Zhai, SIGIR 2001 (risk minimisation), as presented in Zhai's FnTIR survey §5.2. Two moves. (1) s(D,Q) = −D(θ_Q‖θ_D) decomposes into MINUS a cross-entropy term plus the query's own entropy, which is constant across documents — so ranking by −KL and by −cross-entropy are the same ORDER, i.e. the top document is the one of SMALLEST cross-entropy. ⚠️ ДЕФЕКТ B8 ЗАКРЫТ: под фигурной скобкой стоит +Σ p_Q log p_D, а это −H(θ_Q,θ_D), то есть МИНУС кросс-энтропия; скобка была подписана «кросс-энтропия» и переворачивала знак. Проговори знак вслух. Zhai's own footnote is worth repeating: this holds within a single query; in filtering/TDT, where scores are compared across queries, they differ. (2) Query-likelihood with collection smoothing rewrites as Σ log[p_s(q_i|D) / (α_D p(q_i|C))] + …, so the collection probability sits in the DENOMINATOR — the IDF effect is derived, not assumed. That is the cleanest possible answer to "why does IDF work": in the language-modelling view it is not a heuristic at all, it is what smoothing does.</aside>
+</section>

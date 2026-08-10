@@ -14,7 +14,7 @@
      node scripts/build-deck-widgets.mjs            (also wired into `npm run build`)
    ========================================================= */
 import { build } from 'esbuild';
-import { copyFileSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -43,12 +43,26 @@ const DECK_WIDGETS = ['course-map',
   'ncd-retrieval',                              // L7 bi- vs cross-encoder (+ L8 ColBERT, step 2)
   'ncd-ann',                                    // L9 exact vs approximate: the broadcast that shrank
   'ncd-rag',                                    // L10 retrieve → rerank → generate
+  // The four deep-dives L16–L20 shipped with ZERO interactive figures — the reader could only read
+  // ABOUT the idea. These are the dials that let them turn it themselves (one per act's climb).
+  'late-pool-lab', 'chunk-size-law', 'long-late-window',   // L16 late chunking: pool AFTER, size law, the window seam
+  'entropy-gauge', 'letter-entropy', 'huffman-build',      // L17 entropy: surprise needle, the floor, the code tree
+  'postings-compression',                                 // L17 act 6 reuses L3's figure — the postings gaps ARE a source
+  'cone-dial', 'whiten-grid', 'hub-toll',                  // L18 geometry: the cone, whitening, the hub toll
+  'ru-paradigm', 'ru-normalize', 'ru-typos',               // L20 Russian: paradigm blow-up, stem vs lemma, the cuts
   'ncd-multihead', 'ncd-causal', 'ncd-kvcache', 'ncd-block',   // L15 transformer internals
   'ncd-atlas',                                  // L0 the map: the whole course as one funnel of shapes
   'ncd-debug',                                  // L6 the exercise: three broken circuits
   'ncd-embedding', 'ncd-posenc', 'ncd-chain'];  // L19 mounts the WHOLE family — the notation lecture
 
-for (const id of DECK_WIDGETS) {
+// A widget may be REGISTERED here before its directory lands (a lecture being authored in parallel).
+// Crashing the whole course build on that is the wrong trade: warn, skip, ship the rest. A
+// registered-but-missing widget stays loud — in this log and in widget-render-check.
+const MISSING = DECK_WIDGETS.filter((id) => !existsSync(join(ROOT, 'widgets', id, 'logic.js')));
+if (MISSING.length) console.warn(`[deck-widgets] SKIPPED (no widgets/<id>/ yet): ${MISSING.join(', ')}`);
+const PRESENT = DECK_WIDGETS.filter((id) => !MISSING.includes(id));
+
+for (const id of PRESENT) {
   await build({
     entryPoints: [join(ROOT, 'widgets', id, 'logic.js')],
     outfile: join(JS, `${id}.classic.js`),
@@ -120,10 +134,10 @@ const mountRule =
   '.slide .widget-mount .ncd-lg-h    { font-size: calc(var(--fs-small) * 0.50); }\n' +
   '.slide .widget-mount .wgt-caption, .slide .widget-mount .wgt-counter { display: none; }\n';
 const cssParts = [mountRule, readFileSync(join(ROOT, 'widgets', '_base.css'), 'utf8')];
-for (const id of DECK_WIDGETS) cssParts.push(readFileSync(join(ROOT, 'widgets', id, 'style.css'), 'utf8'));
+for (const id of PRESENT) cssParts.push(readFileSync(join(ROOT, 'widgets', id, 'style.css'), 'utf8'));
 writeFileSync(join(CSS, 'deck-widgets.css'),
-  '/* AUTO-GENERATED — widgets/_base.css + ' + DECK_WIDGETS.join('/') +
+  '/* AUTO-GENERATED — widgets/_base.css + ' + PRESENT.join('/') +
   ' style.css for deck-mounted figures. Do not edit. Rebuild: node scripts/build-deck-widgets.mjs */\n' +
   cssParts.join('\n'));
 
-console.log(`[deck-widgets] ${DECK_WIDGETS.join(', ')} → Lectures/js/*.classic.js + deck-adapter.js + css/deck-widgets.css`);
+console.log(`[deck-widgets] ${PRESENT.length}/${DECK_WIDGETS.length} widget(s) → Lectures/js/*.classic.js + deck-adapter.js + css/deck-widgets.css`);

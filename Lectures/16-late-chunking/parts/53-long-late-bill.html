@@ -1,0 +1,44 @@
+<section class="slide" data-type="two-col" data-screen-label="53 The long-late bill">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Счёт длинного late: документ на 20&nbsp;000 токенов</span>
+      <span lang="en">The long-late bill: a 20&nbsp;000-token document</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">\(l_{\max}=8192\), \(\omega=512\) &mdash; наши значения для примера, у авторов не опубликованы</span>
+      <span lang="en">\(l_{\max}=8192\), \(\omega=512\) &mdash; our example values; the authors publish none</span>
+    </span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <table class="cmp-table">
+        <thead><tr>
+          <th><span lang="ru">строка счёта</span><span lang="en">line of the bill</span></th>
+          <th><span lang="ru">арифметика</span><span lang="en">the arithmetic</span></th>
+        </tr></thead>
+        <tbody>
+          <tr><td>stride</td><td>8192 &minus; 512 = <strong>7&nbsp;680</strong></td></tr>
+          <tr><td><span lang="ru">макро-чанков</span><span lang="en">macro-chunks</span></td><td>&lceil;(20&nbsp;000 &minus; 512) / 7&nbsp;680&rceil; = <strong>3</strong></td></tr>
+          <tr><td><span lang="ru">старты</span><span lang="en">starts</span></td><td>0 &middot; 7&nbsp;680 &middot; 15&nbsp;360</td></tr>
+          <tr><td><span lang="ru">покрытие</span><span lang="en">coverage</span></td><td>15&nbsp;360 + 8192 = 23&nbsp;552 &ge; 20&nbsp;000 &check;</td></tr>
+          <tr><td><span lang="ru">закодировано</span><span lang="en">tokens encoded</span></td><td>8192 + 8192 + 4&nbsp;640 = <strong>21&nbsp;024</strong></td></tr>
+          <tr><td class="cell-meh"><span lang="ru">переплата</span><span lang="en">overhead</span></td><td class="cell-meh">21&nbsp;024 &minus; 20&nbsp;000 = <strong>1&nbsp;024</strong> = (3&minus;1) &times; 512</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag">
+          <span lang="ru">Как это читать</span>
+          <span lang="en">How to read it</span>
+        </span>
+        <div class="def-body">
+          <p><span lang="ru">Переплата &mdash; ровно <strong>&omega; за шов</strong>, а не &laquo;ещё один проход по документу&raquo;. Здесь это около <strong>5&nbsp;%</strong> лишних токенов на индексации и <strong>ноль</strong> на запросе: индекс всё так же хранит по одному вектору на чанк.</span><span lang="en">The overhead is exactly <strong>&omega; per seam</strong>, not &ldquo;one more pass over the document&rdquo;. Here that is about <strong>5&nbsp;%</strong> extra tokens at index time and <strong>zero</strong> at query time: the index still stores one vector per chunk.</span></p>
+          <p><span lang="ru">Хочешь дешевле &mdash; уменьшай &omega;; хочешь длиннее связи через шов &mdash; увеличивай. Ручка одна, и она линейна: переплата = (число швов) &times; &omega;.</span><span lang="en">Want it cheaper &mdash; shrink &omega;; want longer links across the seam &mdash; grow it. One knob, and it is linear: overhead = (number of seams) &times; &omega;.</span></p>
+          <p class="small muted"><span lang="ru">Внимание по-прежнему квадратично по длине окна &mdash; но окно фиксировано, поэтому счёт растёт <em>линейно</em> по длине документа. (В &sect;3.1 статьи написано &laquo;экспоненциально&raquo;; это опечатка &mdash; память внимания квадратична.)</span><span lang="en">Attention is still quadratic in the window length &mdash; but the window is fixed, so the bill grows <em>linearly</em> with document length. (&sect;3.1 of the paper says &ldquo;exponentially&rdquo;; that is a slip &mdash; attention memory is quadratic.)</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <aside class="slide-notes">Worked-3, all integers so nothing new needs gating. stride = l_max − ω = 7 680; macro-chunks = ⌈(20 000 − 512)/7 680⌉ = 3; starts 0 / 7 680 / 15 360; coverage 15 360 + 8192 = 23 552 ≥ 20 000; encoded 8192 + 8192 + 4 640 = 21 024; overhead 1 024 = (3−1) × 512 — exactly ω per seam. About 5 % more tokens at index time, nothing at query time. Two corrections worth saying out loud: the cost is ω per seam (not a second full pass), and §3.1's "memory increases exponentially" is wrong — attention memory is quadratic in the window, and since the window is fixed the total is linear in document length.</aside>
+</section>

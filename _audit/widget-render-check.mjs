@@ -159,7 +159,11 @@ const PROBE = (beatId, opt) => {
     svgCount++;
     const b = sv.getBoundingClientRect();
     const a = b.width * b.height;
-    if (figKind !== 'svg' || a > bestArea) { figBox = b; figKind = 'svg'; bestArea = a; }
+    // Pick the LARGEST box among {host, every svg} — not "any svg beats the host". A widget may
+    // carry a decorative or zero-sized <svg> beside a real DOM figure (ru-normalize, ru-typos:
+    // normalisation tables are HTML by design); letting that svg win reported a 0×0 viewport for a
+    // figure that was painting 49→147 marks. Emptiness is still caught: both boxes must be tiny.
+    if (a > bestArea) { figBox = b; figKind = 'svg'; bestArea = a; }
   });
   const figArea = figBox.width * figBox.height;
 

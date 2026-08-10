@@ -5,8 +5,8 @@
       <span lang="en">Contrastive losses build isotropy into the map itself</span>
     </h2>
     <span class="slide-kicker">
-      <span lang="ru">reported &middot; SimCSE (Gao 2021) &middot; STS avg, \(\rho\times 100\)</span>
-      <span lang="en">reported &middot; SimCSE (Gao 2021) &middot; STS avg, \(\rho\times 100\)</span>
+      <span lang="ru">reported &middot; SimCSE (Gao 2021), Табл. 5 &middot; 7 задач STS, \(\rho\times 100\) &middot; <strong>каждой строке — свой бейзлайн</strong></span>
+      <span lang="en">reported &middot; SimCSE (Gao 2021), Table 5 &middot; 7 STS tasks, \(\rho\times 100\) &middot; <strong>each row against its own baseline</strong></span>
     </span>
   </div>
   <table class="cmp-table">
@@ -15,30 +15,39 @@
         <th><span lang="ru">Модель</span><span lang="en">Model</span></th>
         <th><span lang="ru">Позитивы</span><span lang="en">Positives</span></th>
         <th><span lang="ru">STS avg</span><span lang="en">STS avg</span></th>
-        <th><span lang="ru">Источник</span><span lang="en">Source</span></th>
+        <th><span lang="ru">Прибавка</span><span lang="en">Gain</span></th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td><span lang="ru">Прежний SOTA (до SimCSE)</span><span lang="en">Prev SOTA (pre-SimCSE)</span></td>
+        <td><span lang="ru">CT-BERT<sub>base</sub> — прежний лучший <strong>без учителя</strong></span><span lang="en">CT-BERT<sub>base</sub> — previous best <strong>unsupervised</strong></span></td>
         <td><span lang="ru">—</span><span lang="en">—</span></td>
-        <td>72.05</td>
-        <td><span lang="ru">reported &middot; Gao 2021</span><span lang="en">reported &middot; Gao 2021</span></td>
+        <td><span lang="ru">72,05</span><span lang="en">72.05</span></td>
+        <td><span lang="ru">бейзлайн</span><span lang="en">baseline</span></td>
       </tr>
       <tr>
         <td><span lang="ru">SimCSE (без учителя)</span><span lang="en">SimCSE (unsup)</span></td>
         <td><span lang="ru">дропаут как аугментация</span><span lang="en">dropout as augmentation</span></td>
-        <td class="cell-good">76.3</td>
-        <td><span lang="ru">reported &middot; Gao 2021</span><span lang="en">reported &middot; Gao 2021</span></td>
+        <td class="cell-good"><span lang="ru">76,25</span><span lang="en">76.25</span></td>
+        <td class="cell-good"><span lang="ru">+4,2</span><span lang="en">+4.2</span></td>
+      </tr>
+      <tr>
+        <td><span lang="ru">CT-SBERT<sub>base</sub> — прежний лучший <strong>с учителем</strong></span><span lang="en">CT-SBERT<sub>base</sub> — previous best <strong>supervised</strong></span></td>
+        <td><span lang="ru">размеченные пары</span><span lang="en">labelled pairs</span></td>
+        <td><span lang="ru">79,39</span><span lang="en">79.39</span></td>
+        <td><span lang="ru">бейзлайн</span><span lang="en">baseline</span></td>
       </tr>
       <tr>
         <td><span lang="ru">SimCSE (с учителем)</span><span lang="en">SimCSE (sup)</span></td>
-        <td><span lang="ru">пары NLI (entailment)</span><span lang="en">NLI entailment pairs</span></td>
-        <td class="cell-good">81.6</td>
-        <td><span lang="ru">reported &middot; Gao 2021</span><span lang="en">reported &middot; Gao 2021</span></td>
+        <td><span lang="ru">пары NLI (логическое следование)</span><span lang="en">NLI entailment pairs</span></td>
+        <td class="cell-good"><span lang="ru">81,57</span><span lang="en">81.57</span></td>
+        <td class="cell-good"><span lang="ru">+2,2</span><span lang="en">+2.2</span></td>
       </tr>
     </tbody>
   </table>
-  <p class="small muted center mt-4"><span lang="ru">Контрастное обучение <strong>уплощает сингулярный спектр</strong>: изотропия не залатана постфактум, а выучена вместе с картой. Без учителя \(76{,}3\), с учителем \(81{,}6\) — против прежнего потолка \(72{,}05\).</span><span lang="en">Contrastive training <strong>flattens the singular spectrum</strong>: isotropy is learned with the map, not patched on afterward. Unsup \(76.3\), sup \(81.6\) — versus the prior ceiling of \(72.05\).</span></p>
-  <aside class="slide-notes">Gao 2021 SimCSE, reported STS average Spearman ρ×100: prev SOTA 72.05 → SimCSE unsup 76.3 (dropout as the only augmentation) → SimCSE sup 81.6 (NLI entailment pairs as positives). Mechanism: the contrastive objective flattens the singular-value spectrum of the representation matrix, so isotropy is trained IN rather than restored by post-hoc whitening. All numbers reported (Gao 2021), not our toy.</aside>
+  <p class="small muted center mt-4"><span lang="ru">Контрастное обучение <strong>уплощает сингулярный спектр</strong>: изотропия не залатана постфактум, а выучена вместе с картой. Но сравнивай строку с <em>её</em> бейзлайном: без учителя честная прибавка <strong>+4,2</strong>, с учителем — <strong>+2,2</strong>. Поставить \(81{,}57\) против \(72{,}05\) значит раздуть выигрыш до \(9{,}52\) и сравнить учителя с его отсутствием.</span><span lang="en">Contrastive training <strong>flattens the singular spectrum</strong>: isotropy is learned with the map, not patched on afterward. But read each row against <em>its own</em> baseline: unsupervised the honest gain is <strong>+4.2</strong>, supervised it is <strong>+2.2</strong>. Putting \(81.57\) next to \(72.05\) inflates it to \(9.52\) and compares a teacher against no teacher at all.</span></p>
+  <div class="viz-frame fig-fit" style="--fig-max:32cqh; --fig-w:34%;">
+    <img src="assets/img/L18/L18-06-contrastive.png?v=1" alt="Séréga in his green tübetey pulls two paired survey stakes together on the map while pushing all the unrelated stakes apart with a long rake, so the towns spread evenly across the sheet instead of crowding into one wedge — isotropy trained in rather than patched on." />
+  </div>
+  <aside class="slide-notes">Gao 2021 SimCSE, reported STS average Spearman ρ×100 from Table 5 ("all" setting) — REWRITTEN after the source check (plan §1.0 F0-b). The deck used to print one "Prev SOTA 72.05" header over BOTH SimCSE rows. 72.05 (CT-BERT_base) is the previous best WITHOUT a teacher; the previous best WITH one is CT-SBERT_base 79.39. The paper's own deltas are +4.2 (76.25 − 72.05) and +2.2 (81.57 − 79.39); the old single-baseline framing inflated the supervised gain from 2.2 to 9.52 points. Exact values are 76.25 and 81.57 (the deck rounded to 76.3/81.6). Mechanism: the contrastive objective flattens the singular-value spectrum of the representation matrix, so isotropy is trained IN rather than restored post-hoc — but see the "whitening didn't lose on isotropy" slide: flattening the spectrum is NOT what makes SimCSE win. All numbers reported, from data/l18-bench.json → fixes.simcse.</aside>
 </section>

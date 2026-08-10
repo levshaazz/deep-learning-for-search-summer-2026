@@ -195,6 +195,32 @@ COST19     = load(DATA, "l19-cost.json")     # DERIVED by gen_l19.py from the GL
 L20RU      = load(DATA, "l20-ru.json")       # toy: token tax 1.0→5.8 tok/word; BM25 surface gold 0.0 (rank 2) → lemma gold 1.3884 (rank 1); distractor 1.3608; kitten idf 0.8755 / bm25 0.8594
 L20B       = load(DATA, "l20-bench.json")    # CITED: MIRACL (2210.09984), mMARCO (2108.13897), ruMTEB/RoSBERTa (2408.12503), BGE-M3 (2402.03216), mE5 (2402.05672), LaBSE (2007.01852), tokenizer unfairness ×15 (2305.15425)
 
+# ── L18 "The Curved Map" (supplementary deep-dive: anisotropy & hubness) — toy = stdlib-reproducible
+#    (gen_l18.py: the cone toy + its HONEST all-but-the-top, the cone dial's c/σ grid, the four-cities
+#    whitening walk-through, the reverse-kNN hubness toy and the same cloud under CSLS); bench = the
+#    transcribed published numbers, each carrying the exact table it came from. Like L14/L15/L16/L20,
+#    now FULLY gated: l18_deck_claims() pins every displayed ≥2-dp value deck==data (deck:L18 coverage
+#    baseline 17 → 0; book:L18 stays frozen until the Book's own numbers are anchored). ──
+GEOM18     = load(DATA, "l18-geometry.json") # toy: cone 0.8985 → centered −0.0323 → honest ABT −0.0313 (PC1·cone 0.9997); dial c/σ grid; whitenToy 0.9504 → 0.60 → 0.0000; hubness skew 0.0299→2.5904; CSLS 2.5904→0.3923
+BENCH18    = load(DATA, "l18-bench.json")    # CITED: Ethayarajh 2019, Timkey 2021 (replication + rogue dims), Rudman 2022 (IsoScore), Tsukagoshi 2025, Radovanović 2010, Feldbauer 2019, Munyampirwa 2024, Li 2020, Su 2021, Gao 2021, Conneau 2018, Bogolin 2022, Kusupati 2022, Diera 2025, Ren 2025 (preprint)
+# ── L16 "Late Chunking" (supplementary deep-dive) — toy + three widget blocks are stdlib-reproducible
+#    (gen_l16.py: set-overlap cosines, the 4-token pooling toy, the gap law min(1,g/s), the Algorithm-2
+#    ledger); bench = transcribed published numbers, each with its source. l16_deck_claims() pins EVERY
+#    displayed ≥2-dp value deck==data (deck:L16 coverage → 0, was a frozen baseline of 9). ──
+L16CH      = load(DATA, "l16-chunk.json")    # toy: gold 0.5164→0.7071 (rank 2→1) under distractor 0.5774;
+                                             # pool (0,2)→(1,1), cos 0→0.7071; gapLaw min(1,40/s); longLate
+                                             # stride 7680 × 3 macro-chunks, +1024 tokens = ω per seam
+L16B       = load(DATA, "l16-bench.json")    # REPORTED: Berlin cosines, ACME Table 4 (all 5 rows), BeIR
+                                             # averages + the 33:2:1 record + the single loss cell, Table 3
+                                             # span pooling, Table 6 overlap, the No-Chunking column,
+                                             # Merola & Singh 2025 replication, ColBERTv2 §5.3, Anthropic
+ENT17      = load(DATA, "l17-entropy.json")  # COMPUTED by gen_l17.py (stdlib math.log2): the coin, the
+                                             # dyadic + non-dyadic Huffman codes, block coding, Markov 1913
+                                             # conditional entropy, the letter-frequency entropies, IDF in bits
+BENCH17    = load(DATA, "l17-bench.json")    # REPORTED: Shannon 1948/1951, Cover-King 1978, Brown 1992,
+                                             # Yaglom 1973 (ru), Spärck Jones 1972, Robertson 2004,
+                                             # Church & Gale 1995, Pibiri & Venturini 2020, clarity 2002
+
 # frozen run-once Ollama artifacts (REAL measured numbers; provenance recomputes the data/ "real" blocks from these)
 def load_research(name):
     try:
@@ -579,7 +605,195 @@ def claims():
              anchor=r"\b(32\.3)\s*%", must=True),
         dict(id="top-3 %",   deck="L1", value=CLICK["top3Pct"], tol=0.2,
              anchor=r"\b(60\.6)\b", must=True),
-    ] + l3_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims() + l11_deck_claims() + l12_deck_claims() + l13_deck_claims() + l14_deck_claims() + l15_deck_claims() + l19_deck_claims() + l20_deck_claims()
+    ] + l3_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims() + l11_deck_claims() + l12_deck_claims() + l13_deck_claims() + l14_deck_claims() + l15_deck_claims() + l16_deck_claims() + l17_deck_claims() + l18_deck_claims() + l19_deck_claims() + l20_deck_claims()
+
+# ── L16 "Late Chunking" — every displayed ≥2-decimal value, pinned deck == data/ ─────────────────────
+#    Anchors are DIGIT LOCATORS (RU comma OR EN dot), not context sniffers: the deck prints each number
+#    twice (a `lang="ru"` span with a comma and a `lang="en"` span with a dot), and a context anchor would
+#    have to be written twice and would rot on any re-wording. Drift is still caught in both directions —
+#    if data/ moves, `value` moves and the located digits mismatch (DRIFT, HARD); if the SLIDE is edited,
+#    the locator finds nothing (NOT FOUND, HARD, because must=True). ──
+def l16_deck_claims():
+    ac = {r["n"]: r for r in L16B["acme"]["rows"]}
+    be, rep, nc = L16B["beir"], L16B["replication"], {r["dataset"]: r for r in L16B["noChunking"]["rows"]}
+    ber = L16B["berlin"]["rows"]
+    lit = lambda s: r'(?<![\d.,])(' + re.escape(s).replace(r'\.', '[.,]') + r')(?![\d])'
+    C = lambda id, value, s, tol=1e-4: dict(id="L16 " + id, deck="L16", value=value, tol=tol,
+                                            anchor=lit(s), must=True)
+    return [
+        # ── Table 4 (ACME), all five rows — the three cells per row the deck now prints in full ──
+        C("acme r1 naive",      ac[1]["naive"],      "0.8505"),
+        C("acme r1 late",       ac[1]["late"],       "0.8305"),
+        C("acme r1 contextual", ac[1]["contextual"], "0.8069"),
+        C("acme r2 late",       ac[2]["late"],       "0.8516"),
+        C("acme r3 late",       ac[3]["late"],       "0.8424"),
+        C("acme r3 contextual", ac[3]["contextual"], "0.8546"),
+        C("acme r5 late",       ac[5]["late"],       "0.8022"),
+        # ── Fig.1/Table 1 (Berlin) + the Δ column the lift slide now carries ──
+        C("berlin naming naive", ber[0]["naive"], "0.8486"),
+        C("berlin naming late",  ber[0]["late"],  "0.8495"),
+        C("berlin city naive",   ber[2]["naive"], "0.7535"),
+        C("berlin city late",    ber[2]["late"],  "0.8498"),
+        C("berlin city delta",   round(ber[2]["late"] - ber[2]["naive"], 4), "0.0963"),
+        # ── the gap law (widget W2 + the by-hand table) ──
+        C("gap law s=128", L16CH["gapLaw"]["orphanFraction"][2], "0.3125"),
+        # ── Merola & Singh 2025 (arXiv:2504.19754) — the independent replication ──
+        C("repl passages late", rep["passages"]["late"],      "0.503"),
+        C("repl h2h late",      rep["headToHead"]["late"],    "0.309"),
+        C("repl h2h ctx",       rep["headToHead"]["contextual"], "0.317"),
+        # ── the No-Chunking column (v1 + the repository README) ──
+        C("quora identity",  nc["Quora"]["naive"],     "87.19"),
+        C("treccovid late",  nc["TRECCOVID"]["late"],  "64.70"),
+        C("treccovid none",  nc["TRECCOVID"]["none"],  "65.18"),
+        C("nfcorpus late",   nc["NFCorpus"]["late"],   "29.98"),
+        C("nfcorpus none",   nc["NFCorpus"]["none"],   "30.40"),
+        # ── §4.1's rounded prose vs its own Table 2, recomputed ──
+        C("beir semantic delta recomputed", be["semanticRecomputedDelta"], "1.41",   1e-3),
+        # ── Table 3 (span pooling), Table 5 (chunking-vs-not), Anthropic's price ──
+        C("span pooling worst", abs(L16B["spanPooling"]["worstGain"]), "0.02"),
+        # S10: Table 3 has THREE regressions; printing only the mildest read as "never worse"
+        C("span pooling regression 1", abs(L16B["spanPooling"]["regressions"][0]), "0.28"),
+        C("span pooling regression 2", abs(L16B["spanPooling"]["regressions"][1]), "0.09"),
+
+        C("chunking rel gain",  L16B["context"]["chunkHelpsRelGainPct"], "24.47", 1e-3),
+        C("anthropic usd/Mtok", L16B["anthropic"]["usdPerMillionDocTokens"], "1.02", 1e-3),
+    ]
+
+
+# ── [C] L18 DECK CLAIMS: every displayed ≥2-dp value in "The Curved Map", pinned deck == data/.
+#    L18 used to be baseline-frozen at 17 un-gated numbers, which is exactly how it shipped SIX wrong
+#    figures/attributions (the CSLS row was cross-lingual SENTENCE retrieval mislabelled as word-translation
+#    P@1; SimCSE's supervised gain was compared against the UNSUPERVISED previous best; Su 2021's 71.34 is
+#    the transductive "(target)" row; Radovanović's skews are Euclidean, k=5, from a footnote; Ethayarajh's
+#    0.99 is read off a figure, not written; and the toy's "all-but-the-top" was not all-but-the-top).
+#    Freezing a count catches NEW drift and nothing else. Gating the values catches both — and it is what
+#    lets the deck grow from 49 to 76 slides without the coverage-guard turning into a rubber stamp.
+#
+#    Anchors are DIGIT LOCATORS (RU comma OR EN dot), the L16/L20 pattern: every number is printed twice,
+#    once per language span, so a context anchor would have to be written twice and would rot on any
+#    re-wording. If data/ moves, `value` moves and the located digits mismatch (DRIFT, HARD); if the slide
+#    is edited away, the locator finds nothing (NOT FOUND, HARD, because must=True). Values marked `abs`
+#    are displayed without their sign (a correlation, a Δ, a mean activation). Values marked `derived` are
+#    differences the deck states in prose — computed here from data/, never re-typed. ──
+def l18_deck_claims():
+    A, W, H = GEOM18["anisotropy"], GEOM18["whitenToy"], GEOM18["hubToll"]
+    HB, D = GEOM18["hubness"], GEOM18["anisotropyDial"]
+    F = H["flipExample"]
+    BA, BH, BF, BL = (BENCH18[k] for k in ("anisotropy", "hubness", "fixes", "lexicalLeak"))
+    REP, ROG, ISO, MOD = BA["replication"], BA["rogueDims"], BA["isoScore"], BA["modern2026"]
+    SU, SC, WH, CS, QB, MU, MRL = (BF[k] for k in ("bertWhiteningStsB", "simcse", "whiteningHurts",
+                                                   "cslsSentRetrievalP1", "qbNorm", "muViswanathD", "matryoshka"))
+    dial = lambda snr, dim: next(c for c in D["cells"] if c["snr"] == snr and c["dim"] == dim)["meanPairCos"]
+    lit = lambda s: r'(?<![\d.,])(' + re.escape(s).replace(r'\.', '[.,]') + r')(?![\d])'
+    C = lambda id, value, s, tol=1e-4: dict(id="L18 " + id, deck="L18", value=value, tol=tol,
+                                            anchor=lit(s), must=True)
+    return [
+        # ── act 01 · the cone toy, its HONEST all-but-the-top, and the dial behind widgets/cone-dial ──
+        C("toy rawCos",      A["rawCos"],            "0.8985"),
+        C("toy centeredCos", abs(A["centeredCos"]),  "0.0323"),
+        C("toy abtCos",      abs(A["allButTopCos"]), "0.0313"),   # HONEST ABT (was −0.0352, see plan F1)
+        C("toy PC1·cone",    A["pc1ConeAlign"],      "0.9997"),
+        C("dial snr mid",    D["snrGrid"][3],        "1.2247"),   # cos 0.6 ⇒ c/σ = √(0.6/0.4)
+        C("dial snr last",   D["snrGrid"][7],        "9.9499"),   # cos 0.99 ⇒ c/σ = √99
+        C("dial cos mid",    dial(D["snrGrid"][3], D["canonicalDim"]), "0.61", 5e-3),
+        # ── act 01 · Timkey & van Schijndel 2021 Table 1 — the per-model/per-layer replication ──
+        C("timkey xlnet",    REP["xlnetL11"],   "0.981"),
+        C("timkey gpt2",     REP["gpt2Final"],  "0.885"),
+        C("timkey roberta",  REP["robertaL12"], "0.745"),
+        C("timkey gpt2 L11", REP["gpt2L11"],    "0.640"),
+        C("timkey bert",     REP["bertL11"],    "0.506"),
+        C("timkey bert 2dp", REP["bertL11"],    "0.51", 5e-3),    # the checklist rounds it
+        C("timkey w2v",      REP["word2vec"],   "0.130"),
+        C("timkey glove",    REP["glove"],      "0.104"),
+        C("rogue mean act",  abs(ROG["otherDimsMeanAct"]), "0.084"),
+        C("ethayarajh last", BA["gpt2Last"],    "0.99", 5e-3),    # also IsoScore's avg-cosine upper cell
+        C("isoscore avgcos lo", ISO["avgCosLo"], "0.97"),
+        C("isoscore e5-large",  MOD["e5Large"],  "0.2022"),
+        # ── act 01 · Li 2020 Table 6 + Table 1 — the lexical leak and the frequency signature ──
+        C("li raw",       abs(BL["corrLexical"]),      "50.49"),
+        C("li gold",      abs(BL["corrGoldEdit"]),     "24.61"),
+        C("li flow",      abs(BL["corrFlowInduced"]),  "28.01"),
+        C("li ratio",     BL["ratio"],                 "2.05"),
+        C("li norm rare", BL["normByFreq"]["normRare"], "1.45"),
+        # ── act 02 · the four-cities whitening walk-through (exact arithmetic) ──
+        C("whiten strangers raw", W["stages"]["raw"]["cosines"]["cos"][0], "0.9692"),
+        C("whiten loosest raw",   W["stages"]["raw"]["cosines"]["min"],    "0.8824"),
+        C("whiten sqrt lambda1",  round(math.sqrt(W["eigenvalues"][0]), 4), "2.8284"),
+        # ── act 02 · Su 2021 Table 1 (transductive vs inductive) and Li 2020's flow gain ──
+        C("su raw pooled",  SU["raw"],               "59.04"),
+        C("su truly raw",   SU["trulyRawBertBase"],  "47.29"),
+        C("su inductive",   SU["whitenedInductive"], "68.19"),
+        C("su target",      SU["whitenedTarget"],    "71.34"),
+        C("su sickr",       SU["sickRBefore"],       "63.75"),
+        C("su transduction gap", round(SU["whitenedTarget"] - SU["whitenedInductive"], 2), "3.15"),  # derived
+        C("flow avg gain",  BF["bertFlowAvgGain"],   "8.16"),
+        # ── act 02 · SimCSE Table 5 — each row against ITS OWN baseline ──
+        C("simcse prev unsup", SC["prevSotaUnsup"], "72.05"),
+        C("simcse prev sup",   SC["prevSotaSup"],   "79.39"),
+        C("simcse unsup",      SC["unsup"],         "76.25"),
+        C("simcse sup",        SC["sup"],           "81.57"),
+        C("simcse inflated",   round(SC["sup"] - SC["prevSotaUnsup"], 2), "9.52"),   # derived: the WRONG delta
+        # ── act 02 · all-but-the-top's honest counter-cell, and the 2024–26 dose-response ──
+        C("abt rg65 before", MU["rg65Before"], "76.96"),
+        C("abt rg65 after",  MU["rg65After"],  "74.36"),
+        C("whiten hurts me5", abs(WH["me5LargeInstruct"]), "5.18"),
+        C("whiten hurts bge", abs(WH["bgeBaseEnV15"]),     "1.79"),
+        # ── act 02 · Matryoshka: the trained prefix vs variance-ordered axes, and a published curve ──
+        C("mrl 8d 1nn",  MRL["mrl8Nn"],  "62.19"),
+        C("mrl svd 8d",  MRL["svd8Nn"],  "19.14"),
+        C("nomic 768",   MRL["nomic768"], "62.28"),
+        C("nomic 256",   MRL["nomic256"], "61.04"),
+        C("nomic 64",    MRL["nomic64"],  "56.10"),
+        # ── act 03 · Radovanović 2010 (footnote 5 / Fig. 1, S_{N₅}, n = 10 000, EUCLIDEAN) ──
+        C("radov unif d3",    BH["skewUniform"]["d3"],   "0.121"),
+        C("radov norm d3",    BH["skewNormal"]["d3"],    "0.118"),
+        # The RU twin of these three renders as «1,541»/«2,055»/«5,445», which num() cannot tell from a
+        # thousands group (1541). So they are pinned to the EN span explicitly instead of via lit().
+        dict(id="L18 radov unif d20", deck="L18", value=BH["skewUniform"]["d20"], tol=1e-4, must=True,
+             anchor=r'lang="en">(1\.541)<'),
+        dict(id="L18 radov norm d20", deck="L18", value=BH["skewNormal"]["d20"], tol=1e-4, must=True,
+             anchor=r'lang="en">(2\.055)<'),
+        dict(id="L18 radov unif d100", deck="L18", value=BH["skewUniform"]["d100"], tol=1e-4, must=True,
+             anchor=r'lang="en">(5\.445)<'),
+        C("radov norm d100",  BH["skewNormal"]["d100"],  "19.21"),
+        C("feldbauer skewmax", BH["reduction"]["skewMax"], "15.5188"),
+        C("feldbauer skewmin", abs(BH["reduction"]["skewMin"]), "0.1156"),
+        C("isoscore invariant", ISO["isoScoreAllRotations"], "0.216"),   # the same cloud, four rotations
+        C("highway nytimes",   BH["highway"]["effectNytimes"], "0.9305"),
+        # ── act 03 · our own reverse-kNN toy (Euclidean, n = 120, k = 5) ──
+        C("toy skew d2",   HB["d2"]["skew"],           "0.0299"),   # also covers the rounded 0.03
+        C("toy skew d20",  HB["d20"]["skew"],          "2.5904"),   # also covers the rounded 2.59
+        C("toy corr d20",  HB["d20"]["corrToCentroid"], "0.81", 5e-3),
+        # ── act 04 · the same cloud under CSLS, and the by-hand rank flip ──
+        C("csls skew d20",   H["byDim"]["d20"]["csls"]["skew"], "0.3923"),
+        C("flip d hub",      F["dHub"],  "4.8211"),
+        C("flip r mean",     F["rMean"], "4.7083"),
+        C("flip d alt",      F["dAlt"],  "5.0820"),
+        C("flip r query",    F["rQuery"], "5.0559"),
+        C("flip r hub",      F["rHub"],   "3.6884"),
+        C("flip r alt",      F["rAlt"],   "5.5713"),
+        C("flip csls hub",   F["cslsHub"], "0.8979"),
+        C("flip csls alt",   abs(F["cslsAlt"]), "0.4631"),
+        C("flip margin",     F["margin"], "1.3611"),
+        C("flip r min",      F["rMin"],   "3.6305"),
+        # the four intermediates of the by-hand CSLS line. They were INVISIBLE to the coverage-guard
+        # until a raw "<" in that slide's KaTeX (\;<\;) was escaped to &lt; — the tag-stripper had been
+        # swallowing the rest of the formula as if it were a tag. Gated now, so they cannot drift.
+        C("flip 2d hub",     round(2 * F["dHub"], 4),              "9.6422"),
+        C("flip r sum hub",  round(F["rQuery"] + F["rHub"], 4),    "8.7443"),
+        C("flip 2d alt",     round(2 * F["dAlt"], 4),              "10.1640"),
+        C("flip r sum alt",  round(F["rQuery"] + F["rAlt"], 4),    "10.6272"),
+        C("flip d margin",   round(F["dAlt"] - F["dHub"], 4), "0.2609"),   # derived: the raw-distance edge
+        C("flip r margin",   round(F["rAlt"] - F["rHub"], 4), "1.8829"),   # derived: the density penalty
+        # ── act 04 · QB-Norm's mechanism check (the skew of k-occurrences on REAL cosine embeddings) ──
+        C("qbnorm skew after", QB["skewAfter"], "0.509"),
+        # ── act 01 · IsoScore's punchline: the mean vector's coordinate range, i.e. distance from origin ──
+        C("isoscore meanvec max", ISO["gpt2MeanVecMax"], "198.19"),
+        # keep the CSLS headline pinned to the CORRECT task block (Table 3, sentence retrieval)
+        C("csls sent nn",   CS["nn"],   "42.6", 5e-2),
+        C("csls sent csls", CS["csls"], "66.1", 5e-2),
+    ]
+
 
 # ── L20 "Search in Russian" — the worked BM25 surface-vs-lemma inversion (data/l20-ru.json, gen_l20.py).
 #    Every displayed ≥2-dp value is pinned deck==data here, so deck:L20 coverage stays 0 (like L14/L15). ──
@@ -588,11 +802,99 @@ def l20_deck_claims():
     gw = b["lemma"]["goldWork"]      # [{t:"котёнок", idf, bm25}, {t:"играть", idf, bm25}]
     C = lambda id, value, anchor, tol=1e-4: dict(id="L20 " + id, deck="L20", value=value, tol=tol, anchor=anchor, must=True)
     return [
-        C("surface distractor", b["surface"]["scores"]["d2_distractor"], r'cell-meh">([\d.]+) &middot; #1'),      # 1.3608 (rank 1 surface)
-        C("lemma gold sum",     b["lemma"]["goldScore"],                 r'cell-good"><strong>([\d.]+)</strong></td>'),  # 1.3884 (rank 1 lemma)
-        C("lemma kitten idf",   gw[0]["idf"],                            r'котёнок</td><td>2</td><td>([\d.]+)</td>'),     # 0.8755
-        C("lemma kitten bm25",  gw[0]["bm25"],                           r'котёнок</td><td>2</td><td>0\.8755</td><td>([\d.]+)</td>'),  # 0.8594
-    ]
+        C("surface distractor", b["surface"]["scores"]["d2_distractor"],
+          r'&ldquo;дети играют во дворе&rdquo;</span></td><td class="cell-meh">(?:<span lang="ru">[^<]*</span><span lang="en">)?([\d.]+) &middot; #1'),   # 1.3608 (rank 1 surface, slide 18)
+        C("lemma gold sum",     b["lemma"]["goldScore"],
+          r'<td></td><td></td><td class="cell-good">(?:<span lang="ru"><strong>[^<]*</strong></span><span lang="en">)?<strong>([\d.]+)</strong>'),   # 1.3884 (lemma sum row, slide 19)
+        C("lemma kitten idf",   gw[0]["idf"],                            r'котёнок</td><td>2</td><td>(?:<span lang="ru">[^<]*</span><span lang="en">)?([\d.]+)</span>?</td>'),     # 0.8755
+        C("lemma kitten bm25",  gw[0]["bm25"],                           r'котёнок</td><td>2</td><td>(?:<span lang="ru">[^<]*</span><span lang="en">)?0\.8755</span>?</td><td>(?:<span lang="ru">[^<]*</span><span lang="en">)?([\d.]+)</span>?</td>'),  # 0.8594
+    ] + l20_depth_claims()
+
+# ── [C] L20 DEPTH PASS (2026-08): the deepened deck displays ~70 further grounded numbers — the cited
+#    benchmark tables (fertility per tokenizer, the MTEB(rus, v1.1) leaderboard, MIRACL-ru, RusBEIR and
+#    its length regime, Savoy 2009's MAP ladder) and the new MEASURED toys (the Snowball third pass, the
+#    ё/е recall ladder). deck:L20's coverage baseline is 0, so every one of them must be gated.
+#
+#    HOW THESE ANCHORS WORK (and why they are honest): a table cell carries no stable textual neighbour —
+#    the surrounding literals are RU/EN span pairs that shift whenever the wording is edited — so instead
+#    of pinning a POSITION we pin the LITERAL, generated from the data/ value by _dec_pin(). The value
+#    still comes from data/ and nowhere else; if data/ changes, the generated pattern no longer occurs in
+#    the deck and the claim HARD-fails as NOT FOUND. That catches exactly what matters here (deck drifting
+#    away from data/) at the cost of not localising WHICH cell drifted — a trade the older positional
+#    anchors above still cover for the flagship worked example. _dec_pin accepts the RU comma and the EN
+#    dot alike (the deck renders both), and `dp` is the DISPLAYED precision (75.2 → "75.20").
+def _dec_pin(value, dp):
+    """The DOT rendering of `value` at `dp` displayed decimals, pinned so no longer number contains it.
+
+    Dot only, on purpose: every bilingual surface renders the EN (dot) form beside the RU (comma) one,
+    and a captured "1,227" is genuinely ambiguous (RU decimal vs EN thousands) — pinning the dot keeps
+    the check exact. The RU rendering is still WATCHED, by the coverage-guard, which canonicalises both.
+    """
+    i, f = f"{value:.{dp}f}".split(".")
+    return r"(?<![\d.,])(" + i + r"\." + f + r")(?![\d])"
+
+def l20_depth_claims():
+    B, RU = L20B, L20RU
+    F, LB, RL, MR, RB = B["fertility"], B["ruLeaderboard"], B["rusbeirLength"], B["miraclRu"], B["rusbeir"]
+    SV, TW, YO = B["savoy2009"], RU["threeWay"], RU["yoLadder"]
+    P = lambda id, value, dp, tol=1e-4: dict(id="L20 " + id, deck="L20", value=value, tol=tol,
+                                             anchor=_dec_pin(value, dp), must=True)
+    out = []
+    # ── Act 1 · fertility per tokenizer (slides 12 / 25a) — the seven rows the deck shows ──────────
+    for i in (0, 1, 2, 4, 5, 7, 8):
+        r = F["rows"][i]
+        tag = r["tokenizer"].split()[0]
+        out += [P(f"fert {tag} en", r["en"], 3), P(f"fert {tag} ru", r["ru"], 3),
+                P(f"fert {tag} premium", r["premium"], 2)]
+    out += [P("byte premium", F["bytePremium"], 3), P("char premium", F["charPremium"], 3),
+            P("cyrillic bytes/char", F["cyrillicBytesPerChar"], 3)]
+    # ── Act 2 · the third pass + Savoy's MAP ladder ───────────────────────────────────────────────
+    out += [P("stem gold score", TW["stem"]["goldScore"], 4),
+            P("stem puppy score", TW["stem"]["scores"]["d4_puppy"], 4),
+            P("stem kitten idf", TW["stem"]["goldWork"][0]["idf"], 4),
+            P("lemma verb idf", TW["lemma"]["goldWork"][1]["idf"], 3),
+            P("savoy none", SV["mapNone"], 4), P("savoy light", SV["mapLight"], 4),
+            P("savoy snowball", SV["mapSnowball"], 4), P("savoy 4gram", SV["mapNgram4"], 4)]
+    # ── Act 3 · MIRACL-ru, the leaderboard, RusBEIR and the length regime ─────────────────────────
+    out += [P("miracl bm25", MR["ndcgBm25"], 3), P("miracl dense", MR["ndcgDense"], 3),
+            P("miracl hybrid", MR["ndcgHybrid"], 3), P("miracl r@100 bm25", MR["recallBm25"], 3),
+            P("miracl r@100 dense", MR["recallDense"], 3), P("miracl r@100 hybrid", MR["recallHybrid"], 3),
+            P("miracl gain over bm25", MR["hybridOverBm25"], 3),
+            P("miracl gain over dense", MR["hybridOverDense"], 3),
+            P("mmarco bleu r2", B["mmarcoRu"]["bleuQualityR2"], 2),
+            P("rusbeir bm25", RB["ndcgBm25"], 2), P("rusbeir bm25+rr", RB["ndcgBm25Rerank"], 2),
+            P("rusbeir bgem3", RB["ndcgBgeM3"], 2), P("rusbeir bgem3+rr", RB["ndcgBgeM3Rerank"], 2),
+            P("rusbeir mmarco-ru bm25", RB["mmarcoRuBm25"], 2),
+            P("berta gap", LB["bertaGapToQwen8b"], 2)]
+    for i in (0, 1, 2, 3, 5, 6, 7):                      # the 26a leaderboard table
+        r = LB["rows"][i]
+        tag = r["model"].split("/")[-1]
+        out += [P(f"lb {tag} params", r["paramsB"], 3 if r["paramsB"] < 0.2 else 2),
+                P(f"lb {tag} avg", r["avg"], 2), P(f"lb {tag} retrieval", r["retrieval"], 2)]
+    for i in (8, 9, 10, 11, 12, 13):                     # retrieval-only mentions (26 / 28 / 31a)
+        r = LB["rows"][i]
+        out += [P(f"lb {r['model'].split('/')[-1]} retrieval", r["retrieval"], 2)]
+    for w in RL["windows"]:                              # the length regime, 32b + 33 + 43b
+        tag = w["window"]
+        for k in ("bm25", "me5Large", "bgeM3", "frida"):
+            if k in w:
+                out += [P(f"len {tag} {k}", w[k], 2)]
+    # ── Act 4 · ё statistics and the recall ladder (displayed to 3 dp) ────────────────────────────
+    out += [P("yo share of letters", B["yoStats"]["yoShareOfLettersPct"], 3),
+            P("yo share among yo+e", B["yoStats"]["yoShareAmongYoEPct"], 2),
+            P("yo ladder raw", YO["ladder"]["raw"], 3, tol=1e-3),
+            P("yo ladder both arms", YO["ladder"]["yoBoth"], 3, tol=1e-3),
+            P("yo ladder + stem", YO["ladder"]["yoPlusStem"], 3, tol=1e-3),
+            P("gost number", B["gost779"]["standardNumber"], 2)]
+    # ── Act 2 · the price of context-blindness (slide 20a; the Book restates it in `snowball-inside`) ──
+    byForm = {r["form"]: r for r in B["pymorphyBlind"]["rows"]}
+    byModel = {r["model"]: r for r in B["lemmaAccuracy"]["rows"]}
+    out += [P("pymorphy tom p", byForm["том"]["p"], 3),
+            P("pymorphy tom lost", byForm["том"]["pLost"], 3),
+            P("pymorphy stali p", byForm["стали"]["p"], 3),
+            P("lemma acc pymorphy2", byModel["PyMorphy2"]["rnc"], 2),
+            P("lemma acc oracle", byModel["PyMorphy2* (oracle)"]["rnc"], 2)]
+    return out
 
 # ── [C] BOOK CLAIMS: the built Book PROSE must show the same flagship numbers as data/ ───────────
 # The Book restates the decks' worked examples in its own prose/KaTeX, so the deck anchors do NOT
@@ -711,6 +1013,7 @@ def l20_book_claims():
         dict(id="book L20 surface distractor", deck="L20", value=b["surface"]["scores"]["d2_distractor"], tol=1e-4,
              anchor=r'\\\((1\.3608)\\\)', must=True),
     ]
+
 
 # ── [C] L13 BOOK CLAIMS: the built Book PROSE restates TAS-B's achieved MS MARCO MRR@10 (≈ 0.34) — the only
 #    NEW ≥2-dp number this depth pass adds to the Book. Gating it keeps book:L13 coverage at 0 (ANCE's 0.33 is
@@ -1334,8 +1637,14 @@ COVERAGE_BASELINE = {
     # deck:L5/L18 TIGHTENED (2026-07): the new l15_deck_claims() gated values coincide with a couple of
     # previously-grandfathered un-gated numbers on those surfaces (softmax/temperature decimals reused), so
     # the global gated set now covers them → ratchet down (strictly stronger; never raised).
-    "deck:L0": 0, "deck:L1": 1, "deck:L2": 6, "deck:L3": 41, "deck:L4": 26, "deck:L5": 37, "deck:L6": 22,
-    "book:L0": 0, "book:L1": 0, "book:L2": 8,  "book:L3": 9,  "book:L4": 15, "book:L5": 10,
+    # TIGHTENED again after the L20 depth pass (2026-08): l20_depth_claims() gates ~90 further values
+    # (the fertility table, the MTEB(rus, v1.1) leaderboard, MIRACL-ru, RusBEIR + its length regime,
+    # Savoy 2009's MAP ladder, the Snowball third pass, the ё/е recall ladder). They are matched
+    # GLOBALLY, so they ALSO cover a handful of numbers L2-L6 displayed but had never gated (shared
+    # ratios and MAP-scale decimals) — the un-gated counts dropped, so the ratchet is lowered to match
+    # (strictly stronger; never raised). deck/book:L16-L18 are left to their own owners' passes.
+    "deck:L0": 0, "deck:L1": 1, "deck:L2": 5, "deck:L3": 36, "deck:L4": 20, "deck:L5": 34, "deck:L6": 19,
+    "book:L0": 0, "book:L1": 0, "book:L2": 8,  "book:L3": 8,  "book:L4": 12, "book:L5": 8,
     # book:L6 — RAISED 6 → 37 when the L06 climb became `ncd-chain`, the end-to-end worked example.
     # Its ten scroll-step captions ARE Book prose, and they walk the whole computation: every
     # embedding row, every scaled score, the exponentials, the row sums, the context cells, the pooled
@@ -1345,7 +1654,7 @@ COVERAGE_BASELINE = {
     # exist in that widget's own data/ file — all of them, not the handful a C() claim happens to pin —
     # and `_research/gen_l6_chain.py` ASSERTS at generation time that the chain reproduces
     # data/l6-attention.json to the digit. A number here cannot drift without one of those two failing.
-    "book:L6": 30,
+    "book:L6": 26,
     "deck:L12": 2, "book:L12": 2,
     # deck:L14 "The Artificer's Quill" — all displayed toy numbers are now gated in l14_deck_claims() → 0.
     "deck:L14": 0,
@@ -1359,22 +1668,26 @@ COVERAGE_BASELINE = {
     # value). Any FUTURE ungated ≥2-dp number HARD-fails until gated. Goes beyond siblings L16–L18 (baseline-frozen).
     "deck:L15": 0,
     "book:L15": 0,
-    # deck:L16 "Late Chunking" — displayed numbers come from the reproducible generator gen_l16.py
-    # (data/l16-chunk.json, the MEASURED coreference toy: toy cosines 0.5164/0.7071/0.5774/0.2887) and the
-    # cited REPORTED bench (data/l16-bench.json: Berlin 0.8486/0.7084/0.7535/0.8249/0.8498, BeIR 52.4/54.3…,
-    # ACME) — provenance lives in those data files + gen_l16.py, not in individual [C] anchors. Baseline
-    # frozen at the current count so the guard still HARD-fails any FUTURE ungated number added beyond these.
-    "deck:L16": 9,
-    # book:L16 mirrors the deck's Late-Chunking numbers in prose (Berlin 0.7084/0.8249…, the ACME toy 0.5164/
-    # 0.7071, BeIR 52.4/54.3) — same reproducible-generator + cited-bench provenance as deck:L16.
-    "book:L16": 10,
-    # deck:L17 "Shannon Entropy" — numbers from gen_l17.py (data/l17-entropy.json: coin H=0.8113, dyadic code
-    # H=avgLen=1.75, toy-phrase entropy) and the cited REPORTED bench (data/l17-bench.json: Shannon 1951 Fn table
-    # 4.70/4.76/4.03/4.14…, human bounds 0.6/1.3, 79/102, redundancy 50/75, 'E' 12.7, Cover-King 1.3, Brown 1.75).
-    # Count net-unchanged at 18: slide 33's worked cross-entropy adds KL=0.1887 (+1; data/l17-entropy.json coin.klQ —
-    # a wrong fair-coin q pays H(p,q)=1.0>H(p)=0.8113, perplexity 2 vs floor ≈1.75), while Cover-King 1.25→1.3 drops a
-    # 2-dp literal (−1). Provenance lives in those data files + gen_l17.py. Frozen so future ungated additions HARD-fail.
-    "deck:L17": 18,
+    # deck:L16 "Late Chunking" — TIGHTENED 9 → 0 (2026-08). Was baseline-frozen with no [C] anchors at all;
+    # the deepening pass replaced that with l16_deck_claims(), which pins EVERY displayed ≥2-dp value
+    # deck == data/ (ACME Table 4 in full, the Berlin cosines + the Δ column, the gap law, the Merola &
+    # Singh replication, the No-Chunking column, Table 3's span-pooling regression, Table 5's +24.47 % and
+    # Anthropic's $1.02/Mtok), backed by provenance_l16() which RE-DERIVES the pooling toy, the gap law and
+    # the Algorithm-2 ledger and pins the bench's structural invariants. Strictly stronger; never raised.
+    "deck:L16": 0,
+    # book:L16 — TIGHTENED 10 → 1 (2026-08): l16_deck_claims() gates the values the Book prose reuses
+    # (Berlin, the ACME toy, Quora's 87.19, the recomputed +1.41), so only one grandfathered prose decimal
+    # is left uncovered. Strictly stronger; never raised.
+    "book:L16": 1,
+    # deck:L17 "Shannon Entropy" — TIGHTENED 18 → 0 by the depth pass (2026-08). The deck went 45 → 84 slides
+    # and every ≥2-dp number it displays is now pinned deck==data by l17_deck_claims(): the computed side against
+    # data/l17-entropy.json (gen_l17.py — the coin, Markov 1913 conditional entropy/mutual information, the
+    # non-dyadic Huffman gap, the block-coding ladder, Kraft, the EN/RU letter-frequency entropies, IDF in bits)
+    # and the reported side against data/l17-bench.json (Shannon 1951 Fn + units, Cover-King 1.34, text8 bpc,
+    # WSJ perplexities, Yaglom's Russian ladder, Spärck Jones, Church & Gale, Pibiri & Venturini, clarity).
+    # The 18 grandfathered numbers were not deleted — they were GATED, so the ratchet only moves down. A NEW
+    # ungated ≥2-dp number on this surface now HARD-fails immediately.
+    "deck:L17": 0,
     # book:L17 mirrors the deck's Shannon numbers in prose (coin 0.811, code 1.75, 79/102, Fn 4.76/4.03,
     # bounds 0.6/1.3, 'E' 12.7) — same gen_l17.py + cited-bench provenance as deck:L17.
     "book:L17": 8,
@@ -1382,7 +1695,16 @@ COVERAGE_BASELINE = {
     # 0.8985/-0.0323/-0.0352, hubness skew/maxNk/corr) + cited bench (data/l18-bench.json: GPT-2 0.6/0.99,
     # Radovanović skew 0.121/1.541/5.445/19.21, Su STS-B 59.04/71.34, SimCSE 76.3/81.6, CSLS 42.6/66.1,
     # Li -50.49/-24.61). Provenance in those files + gen_l18.py; frozen so future ungated additions HARD-fail.
-    "deck:L18": 17,
+    # deck:L18 "The Curved Map" — NOW FULLY GATED (2026-08): l18_deck_claims() pins every displayed ≥2-dp
+    # value deck==data across the deepened 76-slide deck — the cone toy + its corrected all-but-the-top
+    # (0.8985 / −0.0323 / −0.0313, PC1·cone 0.9997), the c/σ dial, the four-cities whitening walk-through,
+    # the reverse-kNN toy and the same cloud under CSLS (2.5904 → 0.3923), plus every cited table it now
+    # displays (Timkey's replication, IsoScore, Radovanović with its real provenance, Su's transductive vs
+    # inductive split, SimCSE against BOTH its baselines, Conneau's corrected task, QB-Norm, Feldbauer,
+    # Hub Highway, Matryoshka). Baseline 17 → 0: any FUTURE ungated ≥2-dp number HARD-fails.
+    "deck:L18": 0,
+    # book:L18 mirrors the deck's numbers in trilingual prose; still baseline-frozen (the Book's own
+    # anchors are not written yet), so a NEW ungated Book number beyond these still HARD-fails.
     "book:L18": 10,
 }
 _COV_DEC   = re.compile(r'(?<![\d.,])\d+[.,]\d{2,}(?!\d)')# grounded signature: a decimal (dot OR RU comma), ≥2 fractional digits
@@ -1425,6 +1747,84 @@ def coverage_guard(report, text, book):
         total = sum(len(_coverage_uncovered(surfaces[s], gated)) for s in surfaces)
         report.append(("OK", f"coverage-guard: {len(surfaces)} surfaces ≤ baseline; {total} grandfathered un-gated "
                              f"number(s) — a NEW number, or any number in a NEW unit (baseline 0), HARD-fails until gated ✓"))
+
+# ── [P] PROVENANCE (L16 "Late Chunking"): gen_l16 emits data/ directly (stdlib, no RAW twin). Recompute
+#    every DERIVED block — the pooling toy, the gap law, the Algorithm-2 ledger — and pin the structural
+#    invariants of the transcribed bench. The last group is the load-bearing one: it re-derives the three
+#    BeIR deltas from the averages the deck prints, so the widget's law-test anchors (+1.9 > +1.8 > +1.4)
+#    cannot silently disagree with the table they are supposed to be predicting. ──
+def provenance_l16(report):
+    ch, be = L16CH, L16B["beir"]
+    P, G, L = ch["pool"], ch["gapLaw"], ch["longLate"]
+    checks = [
+        # W1 — the pooling toy: cos(q, (1,1)) = 1/√2, and naive is exactly orthogonal to the query
+        ("pool.lateCos==1/√2", P["lateCos"], round(1 / math.sqrt(2), 4), 1e-4),
+        ("pool.naiveCos==0",   P["naiveCos"], 0.0, 1e-9),
+        # W2 — the gap law is min(1, g/s), rounded half-UP to 4 places (NOT Python's half-to-even round)
+        *[(f"gapLaw[{s}]==min(1,g/s)", G["orphanFraction"][i],
+           math.floor(min(1.0, G["gapTokens"] / s) * 10000 + 0.5) / 10000, 1e-9)
+          for i, s in enumerate(G["sizes"])],
+        # W3 — Algorithm 2's ledger, every line re-derived from (docTokens, lMax, omega)
+        ("longLate.stride==lMax−ω",  L["stride"], L["lMax"] - L["omega"], 0),
+        ("longLate.macroChunks",     L["macroChunks"], math.ceil((L["docTokens"] - L["omega"]) / L["stride"]), 0),
+        ("longLate.overhead==(n−1)ω", L["overheadTokens"], (L["macroChunks"] - 1) * L["omega"], 0),
+        ("longLate.encoded==doc+ovh", L["tokensEncoded"], L["docTokens"] + L["overheadTokens"], 0),
+        # the three BeIR deltas the widget uses as its law-test anchors == the table the deck prints
+        ("gapLaw.anchor.sentence", G["anchors"]["sentence"], round(be["sentenceLateAvg"] - be["sentenceNaiveAvg"], 1), 1e-9),
+        ("gapLaw.anchor.fixed256", G["anchors"]["fixed256"], round(be["fixed256LateAvg"] - be["fixed256NaiveAvg"], 1), 1e-9),
+        ("gapLaw.anchor.semantic", G["anchors"]["semantic"], round(be["semanticLateAvg"] - be["semanticNaiveAvg"], 1), 1e-9),
+        # §4.1's prose rounds to 1.5 %; the recomputed SEMANTIC delta is 1.41 — the deck quotes the latter
+        ("beir.semanticRecomputedDelta", be["semanticRecomputedDelta"],
+         round(be["semanticRecomputedLate"] - be["semanticRecomputedNaive"], 2), 1e-9),
+        # and the recomputed pair must round to the published semantic row, not to the fixed-size one
+        ("beir.semanticRecomputedNaive~row", round(be["semanticRecomputedNaive"], 1), be["semanticNaiveAvg"], 1e-9),
+        ("beir.semanticRecomputedLate~row",  round(be["semanticRecomputedLate"], 1),  be["semanticLateAvg"],  1e-9),
+    ]
+    bad = 0
+    for name, a, b, tol in checks:
+        if abs(a - b) > tol:
+            bad += 1
+            report.append(("HARD", f"provenance-L16({name}): data/ disagree/invariant broken — {a} vs {b}"))
+    flags = []
+    def need(cond, name):
+        if not cond:
+            flags.append(name)
+            report.append(("HARD", f"provenance-L16({name}): structural invariant broken"))
+    # the toy's whole point: naively a GENERIC DISTRACTOR outranks the answer, late chunking inverts that.
+    # The header chunk must stay a WEAKER third rival in both columns — an earlier docstring claimed the
+    # header did the burying, which is what D-1 of the audit caught.
+    need(ch["distractorNaive"] > ch["goldNaive"], "naive: distractor > gold")
+    need(ch["goldLate"] > ch["distractorLate"], "late: gold > distractor")
+    need(ch["headerNaive"] < ch["goldNaive"] and ch["headerLate"] < ch["goldLate"], "header is never the burier")
+    need(ch["goldRankNaive"] == 2 and ch["goldRankLate"] == 1, "rank inversion 2 → 1")
+    # the law's ORDER prediction — smaller chunks, bigger delta — must hold for the three reported anchors
+    need(G["anchors"]["sentence"] > G["anchors"]["fixed256"] > G["anchors"]["semantic"], "law predicts the Δ order")
+    # the record adds up, and the losing cell really is a loss
+    rec = be["record"]
+    need(rec["wins"] + rec["ties"] + rec["losses"] == rec["cells"], "BeIR record sums to 36 cells")
+    need(be["lossCell"]["late"] < be["lossCell"]["naive"], "the loss cell is a loss")
+    need(all(t["late"] == t["naive"] for t in be["tieCells"]), "the tie cells are ties")
+    # ACME Table 4: naive buries the gold row below the header; late and contextual both surface it at #1
+    rows = L16B["acme"]["rows"]
+    gold = next(r for r in rows if r["n"] == L16B["acme"]["goldRow"])
+    rank = lambda key: sorted(rows, key=lambda r: -r[key]).index(gold) + 1
+    need(rank("naive") == 2 and rank("late") == 1 and rank("contextual") == 1, "ACME 2 → 1 under both fixes")
+    need(gold["contextual"] > gold["late"], "ACME: contextual edges late out (the paper does not hide it)")
+    # Quora is an identity by construction (documents shorter than one chunk) — nothing to restore
+    q = next(r for r in L16B["noChunking"]["rows"] if r["dataset"] == "Quora")
+    need(q["naive"] == q["late"] == q["none"], "Quora: naive == late == no-chunking")
+    # the independent replication really is a REGRESSION on both of its first two rows
+    rp = L16B["replication"]
+    need(rp["collapse"]["late"] < rp["collapse"]["early"], "replication: BGE-M3 collapses")
+    need(rp["passages"]["late"] < rp["passages"]["early"], "replication: early wins on passages")
+    need(rp["headToHead"]["contextual"] > rp["headToHead"]["late"], "replication: contextual wins head-to-head")
+    # ColBERTv2 at its default (2-bit) really is at parity with a single-vector index — the F-10 repair
+    cb = L16B["colbert"]
+    need(cb["v2TwoBitGiB"] == cb["singleVectorGiB"], "ColBERTv2 2-bit == single-vector index (parity)")
+    need(cb["v1GiB"] > cb["v2TwoBitGiB"] > cb["v2OneBitGiB"], "ColBERT v1 > v2/2-bit > v2/1-bit")
+    if not bad and not flags:
+        report.append(("OK", f"provenance-L16: {len(checks)} recompute + 16 structural invariants consistent ✓"))
+
 
 # ── [P] PROVENANCE (L7 self-consistency): gen_l7 emits data/ directly (no RAW twin), so — like L3–L6 —
 #    we recompute the stdlib-reproducible toy numbers and pin cross-file + structural invariants. ──
@@ -2555,6 +2955,121 @@ def l19_deck_claims():
     ]
 
 
+
+# ── [C] L17 DECK CLAIMS: "Shannon Entropy" after the depth pass. The deck grew from 45 to 84 slides and
+#    now DISPLAYS every worked number the generator computes (conditional entropy on Markov's 1913 counts,
+#    the non-dyadic Huffman gap, the block-coding ladder, the letter-frequency entropies of English and
+#    Russian, IDF re-read in bits) plus the reported literature it argues from. Each is pinned deck==data
+#    here — value from data/l17-entropy.json (ours) or data/l17-bench.json (cited) — so the coverage-guard
+#    baseline for deck:L17 can be ratcheted DOWN rather than raised. Anchors quote the display site, so
+#    rewording a slide without re-checking its number fails loudly. ────────────────────────────────────
+def l17_deck_claims():
+    # DIGIT LOCATORS, not context sniffers (same rationale as l16_deck_claims): every displayed number
+    # now exists TWICE — a `lang="ru"` span with the comma and a `lang="en"` span with the dot (§2 of
+    # narrative/style-ru.md) — so an anchor that quoted the surrounding markup matched one surface only
+    # and rotted the moment a cell was split by language. The locator IS the literal value, guarded on
+    # both sides, so drift in data/ still fails loudly (value moves, the literal no longer equals it).
+    C = lambda id, value, anchor, tol=1e-3: dict(id=id, deck="L17", value=value, tol=tol, anchor=anchor, must=True)
+    return [
+        C("L17 huffman blocks excess 3", ENT17["huffman"]["blocks"]["excess"][3], r"""(?<![\d.,])(0[.,]0071)(?![\d])"""),
+        C("L17 huffman blocks excess 2", ENT17["huffman"]["blocks"]["excess"][2], r"""(?<![\d.,])(0[.,]0116)(?![\d])"""),
+        # S13: the clarity-vs-average-IDF baseline, told in full (Table 1/3 + Table 2/4)
+        C("L17 search clarityIdfTrec7", BENCH17["search"]["clarityIdfTrec7"], r"""(?<![\d.,])(0[.,]467)(?![\d])"""),
+        C("L17 search clarityQueryTrack", BENCH17["search"]["clarityQueryTrack"], r"""(?<![\d.,])(0[.,]39)(?![\d])"""),
+        C("L17 search clarityIdfQueryTrack", BENCH17["search"]["clarityIdfQueryTrack"], r"""(?<![\d.,])(0[.,]025)(?![\d])"""),
+        # S4: log2(31) — the ceiling of a Russian alphabet with ё and ъ DROPPED (they are merged, not dropped)
+        C("L17 ru ceiling31", BENCH17["ru"]["ceiling31"], r"""(?<![\d.,])(4\.954)(?![\d])"""),
+        # S15: both operands of the ITU Morse efficiency, now printed on the slide
+        C("L17 morse ituUnitsOptimal", BENCH17["morse"]["ituUnitsOptimal"], r"""(?<![\d.,])(5[.,]6616)(?![\d])"""),
+        C("L17 morse ituUnitsMorse", BENCH17["morse"]["ituUnitsMorse"], r"""(?<![\d.,])(6[.,]0054)(?![\d])"""),
+        C("L17 fn wordFreqOf", BENCH17["fn"]["wordFreqOf"], r"""\s+/>of\s+\&mdash;\s+(0,034)"""),
+        # B7: 11.82 is REPORTED, not implied — the recomputation the slide now prints alongside it
+        #     (digit locators: the RU span writes the comma, the EN span the dot)
+        C("L17 fn zipfSum", BENCH17["fn"]["zipfSum"], r"""(?<![\d.,])(0[.,]9651)(?![\d])"""),
+        C("L17 fn zipfH", BENCH17["fn"]["zipfH"], r"""(?<![\d.,])(9[.,]1353)(?![\d])"""),
+        C("L17 fn zipfHNormalised", BENCH17["fn"]["zipfHNormalised"], r"""(?<![\d.,])(9[.,]4141)(?![\d])"""),
+        C("L17 fn wordFreqThe", BENCH17["fn"]["wordFreqThe"], r"""(?<![\d.,])(0[.,]071)(?![\d])"""),
+        C("L17 huffman nonDyadic probs I", ENT17["huffman"]["nonDyadic"]["probs"]["I"], r"""iddot;\s+I\&nbsp;(0,08)"""),
+        C("L17 search churchGalePoissonH", BENCH17["search"]["churchGalePoissonH"], r"""вских\s+<strong>(0,092)"""),
+        C("L17 search churchGaleSomewhatH", BENCH17["search"]["churchGaleSomewhatH"], r"""t</b>\s+sits\s+at\s+(0\.093)"""),
+        C("L17 robertson p 1", ENT17["robertson"]["p"][1], r"""I_2\s+=\s+\-\\log_2\s+(0[.,]11)"""),
+        C("L17 robertson selfInfo 0", ENT17["robertson"]["selfInfo"][0], r"""\.89\s+=\s+\\mathbf\{(0[.,]1681)"""),
+        C("L17 coin klQ", ENT17["coin"]["klQ"], r"""(?<![\d.,])(0[.,]1887)(?![\d])"""),
+        C("L17 coin klReverse", ENT17["coin"]["klReverse"], r"""\|p\)\s+=\s+\\mathbf\{(0[.,]2075)"""),
+        C("L17 phraseHuffman entropyGap", ENT17["phraseHuffman"]["entropyGap"], r"""(?<![\d.,])(0[.,]2393)(?![\d])"""),
+        C("L17 coin contrib 1", ENT17["coin"]["contrib"][1], r"""\.415\)\s+=\s+0\.5\s+\+\s+(0\.311)"""),
+        C("L17 search clarityAp88", BENCH17["search"]["clarityAp88"], r"""0\.409\s+against\s+(0\.368)"""),
+        C("L17 markovOnegin pVowel", ENT17["markovOnegin"]["pVowel"], r"""cdot\s+0\.6631\s+=\s+(0[.,]4319)"""),
+        C("L17 huffman nonDyadic gallagerBound", ENT17["huffman"]["nonDyadic"]["gallagerBound"], r"""P_1\s+\+\s+0\.086\s+=\s+(0\.436)"""),
+        C("L17 markovOnegin HgivenVowel", ENT17["markovOnegin"]["HgivenVowel"], r"""\}\)\s+=\s+0\.4319\\,\((0[.,]5514)"""),
+        C("L17 search claritySeries 1", BENCH17["search"]["claritySeries"][1], r"""(?<![\d.,])(0[.,]65)(?![\d])"""),
+        C("L17 idfBits natsL3", ENT17["idfBits"]["natsL3"], r"""(?<![\d.,])(0[.,]6931)(?![\d])"""),
+        C("L17 modern text8Llmzip", BENCH17["modern"]["text8Llmzip"], r"""and\s+stands\s+at\s+(0\.709)"""),
+        C("L17 markovOnegin Hconditional", ENT17["markovOnegin"]["Hconditional"], r""";=\\;\s+0\.9866\s+\-\s+(0[.,]7618)"""),
+        C("L17 coin H", ENT17["coin"]["H"], r"""coin\s+by\s+hand:\s+(0\.811)"""),
+        C("L17 coin H", ENT17["coin"]["H"], r"""5\\\)\s+gives\s+\\\(H=(0[.,]8113)"""),
+        C("L17 robertson p 0", ENT17["robertson"]["p"][0], r"""\s+\$\$\s+p_1\s+=\s+(0[.,]89)"""),
+        C("L17 markovOnegin H", ENT17["markovOnegin"]["H"], r"""=\s+H\(0\.4319\)\s+=\s+(0[.,]9866)"""),
+        C("L17 modern text8AdaptiveSpan", BENCH17["modern"]["text8AdaptiveSpan"], r"""1\.08\s+\&middot;\s+(1[.,]07)"""),
+        C("L17 modern text8TransformerXL", BENCH17["modern"]["text8TransformerXL"], r"""(?<![\d.,])(1[.,]08)(?![\d])"""),
+        C("L17 estimates coverKing1978Capital", BENCH17["estimates"]["coverKing1978Capital"], r"""n">\\\(\\approx\\!(1[.,]34)"""),
+        C("L17 natsBits natInBits", ENT17["natsBits"]["natInBits"], r"""нат\s+=\s+<strong>(1,4427)"""),
+        C("L17 huffman nonDyadic idealLen E", ENT17["huffman"]["nonDyadic"]["idealLen"]["E"], r"""(?<![\d.,])(1[.,]5146)(?![\d])"""),
+        C("L17 source4 H", ENT17["source4"]["H"], r"""(?<![\d.,])(1[.,]75)(?![\d])"""),
+        C("L17 idfBits natsRareTerm", ENT17["idfBits"]["natsRareTerm"], r"""(?<![\d.,])(2[.,]0794)(?![\d])"""),
+        C("L17 fn Fword_27", BENCH17["fn"]["Fword_27"], r"""\\,0\.818\s+\\;=\\;\s+(2[.,]14)"""),
+        C("L17 huffman nonDyadic H", ENT17["huffman"]["nonDyadic"]["H"], r"""(?<![\d.,])(2[.,]1531)(?![\d])"""),
+        C("L17 huffman nonDyadic avgCodeLen", ENT17["huffman"]["nonDyadic"]["avgCodeLen"], r"""(?<![\d.,])(2[.,]2000)(?![\d])"""),
+        C("L17 huffman nonDyadic idealLen A", ENT17["huffman"]["nonDyadic"]["idealLen"]["A"], r"""(?<![\d.,])(2[.,]3219)(?![\d])"""),
+        C("L17 search claritySeries 3", BENCH17["search"]["claritySeries"][3], r"""(?<![\d.,])(2[.,]43)(?![\d])"""),
+        C("L17 log2 6 (fair die)", round(math.log2(6), 3), r"""r\s+die\s+\(\&\#8776;(2\.585)"""),
+        C("L17 search clarityPrimeLendingRate", BENCH17["search"]["clarityPrimeLendingRate"], r"""dash;\s+<strong>(2,85)"""),
+        C("L17 search gov2Bic", BENCH17["search"]["gov2Bic"], r"""ts\s+in\s+<strong>(2[.,]94)"""),
+        C("L17 ru H3", BENCH17["ru"]["H3"], r"""(?<![\d.,])(3\.006)(?![\d])"""),
+        C("L17 search gov2GapEntropy", BENCH17["search"]["gov2GapEntropy"], r"""docID\s+gaps\s+is\s+(3[.,]02)"""),
+        C("L17 huffman nonDyadic idealLen O", ENT17["huffman"]["nonDyadic"]["idealLen"]["O"], r"""(?<![\d.,])(3[.,]0589)(?![\d])"""),
+        C("L17 search gov2Pef", BENCH17["search"]["gov2Pef"], r"""or\s+scale:\s+PEF\s+(3[.,]12)"""),
+        C("L17 robertson selfInfo 1", ENT17["robertson"]["selfInfo"][1], r"""\.11\s+=\s+\\mathbf\{(3[.,]1844)"""),
+        C("L17 ru enH2", BENCH17["ru"]["enH2"], r"""(?<![\d.,])(3\.319)(?![\d])"""),
+        C("L17 fn F2_27", BENCH17["fn"]["F2_27"], r"""(?<![\d.,])(3[.,]32)(?![\d])"""),
+        C("L17 ru H2", BENCH17["ru"]["H2"], r"""(?<![\d.,])(3\.521)(?![\d])"""),
+        C("L17 fn F2_26", BENCH17["fn"]["F2_26"], r"""(?<![\d.,])(3[.,]56)(?![\d])"""),
+        C("L17 search gov2OptPfor", BENCH17["search"]["gov2OptPfor"], r"""dot;\s+Opt\-PFor\s+(3,63)"""),
+        C("L17 huffman nonDyadic idealLen I", ENT17["huffman"]["nonDyadic"]["idealLen"]["I"], r"""(?<![\d.,])(3[.,]6439)(?![\d])"""),
+        C("L17 phrase H", ENT17["phrase"]["H"], r"""(?<![\d.,])(3[.,]6676)(?![\d])"""),
+        C("L17 phrase H", ENT17["phrase"]["H"], r"""(?<![\d.,])(3[.,]67)(?![\d])""", tol=0.003),
+        C("L17 phraseHuffman avgCodeLen", ENT17["phraseHuffman"]["avgCodeLen"], r"""(?<![\d.,])(3[.,]6923)(?![\d])"""),
+        C("L17 search gov2EliasDelta", BENCH17["search"]["gov2EliasDelta"], r"""Elias\-\&delta;\s+(3[.,]74)"""),
+        C("L17 letterFreq en26 meanPct", ENT17["letterFreq"]["en26"]["meanPct"], r"""ly\s+\\\(100/26\s+=\s+(3[.,]85)"""),
+        C("L17 phrase uniformH", ENT17["phrase"]["uniformH"], r"""=\s+\\log_2\s+15\s+=\s+(3[.,]9069)"""),
+        C("L17 phrase uniformH", ENT17["phrase"]["uniformH"], r"""iform\s+ceiling\s+(3[.,]91)""", tol=0.004),
+        C("L17 ru enH1", BENCH17["ru"]["enH1"], r"""(?<![\d.,])(4\.029)(?![\d])"""),
+        C("L17 fn F1_27", BENCH17["fn"]["F1_27"], r"""(?<![\d.,])(4[.,]03)(?![\d])"""),
+        C("L17 search gov2Rice", BENCH17["search"]["gov2Rice"], r"""\&middot;\s+Rice\s+(4[.,]08)"""),
+        C("L17 fn F1_26", BENCH17["fn"]["F1_26"], r"""(?<![\d.,])(4[.,]14)(?![\d])"""),
+        C("L17 letterFreq en26 H", ENT17["letterFreq"]["en26"]["H"], r"""лийского\s+даёт\s+(4,1758)"""),
+        C("L17 ru H1", BENCH17["ru"]["H1"], r"""(?<![\d.,])(4\.348)(?![\d])"""),
+        C("L17 letterFreq ru33 H", ENT17["letterFreq"]["ru33"]["H"], r"""F_1\s+=\s+\\mathbf\{(4[.,]4626)"""),
+        C("L17 fn F0_26", BENCH17["fn"]["F0_26"], r"""аёт\s+4,1758\s+из\s+(4,70)"""),
+        C("L17 letterFreq en26 uniformH", ENT17["letterFreq"]["en26"]["uniformH"], r"""аёт\s+4,1758\s+из\s+(4,7004)"""),
+        C("L17 fn ceiling27", BENCH17["fn"]["ceiling27"], r"""\\\(\\log_2\s+27\s+=\s+(4\.755)"""),
+        C("L17 fn F0_27", BENCH17["fn"]["F0_27"], r"""ong>:\s+\\\(1\-1\.0/(4[.,]76)"""),
+        C("L17 letterFreq ru33 uniformH", ENT17["letterFreq"]["ru33"]["uniformH"], r"""\\\(\\log_2\s+33\s+=\s+(5\.044)"""),
+        C("L17 letterFreq ru33 uniformH", ENT17["letterFreq"]["ru33"]["uniformH"], r"""\s+33\s+=\s+\\mathbf\{(5[.,]0444)"""),
+        C("L17 search churchGaleSomewhatIdf", BENCH17["search"]["churchGaleSomewhatIdf"], r"""\s+\(IDF\s+<strong>(6[.,]45)"""),
+        C("L17 perplexity wsjBitsTrigram", BENCH17["perplexity"]["wsjBitsTrigram"], r"""(?<![\d.,])(6[.,]77)(?![\d])"""),
+        C("L17 search churchGaleBoycottIdf", BENCH17["search"]["churchGaleBoycottIdf"], r"""\s+\(IDF\s+<strong>(6[.,]98)"""),
+        C("L17 search sjSmoothAt3", BENCH17["search"]["sjSmoothAt3"], r"""(?<![\d.,])(7[.,]06)(?![\d])"""),
+        C("L17 perplexity shannonWordBits", BENCH17["perplexity"]["shannonWordBits"], r"""(?<![\d.,])(7[.,]15)(?![\d])"""),
+        C("L17 perplexity wsjBitsBigram", BENCH17["perplexity"]["wsjBitsBigram"], r"""(?<![\d.,])(7[.,]41)(?![\d])"""),
+        C("L17 modern enwikCeilingBits", BENCH17["modern"]["enwikCeilingBits"], r"""\(\\log_2\s+206\s+=\s+(7\.687)"""),
+        C("L17 search gov2VByte", BENCH17["search"]["gov2VByte"], r"""middot;\s+VByte\s+(8[.,]81)"""),
+        C("L17 perplexity wsjBitsUnigram", BENCH17["perplexity"]["wsjBitsUnigram"], r"""(?<![\d.,])(9[.,]91)(?![\d])"""),
+        C("L17 fn wordBitsPerWord", BENCH17["fn"]["wordBitsPerWord"], r"""\s+\$\$\s+\\frac\{(11[.,]82)"""),
+        C("L17 perplexity gpt3Ptb", BENCH17["perplexity"]["gpt3Ptb"], r"""(?<![\d.,])(20[.,]50)(?![\d])"""),
+        C("L17 perplexity gpt2Ptb", BENCH17["perplexity"]["gpt2Ptb"], r"""(?<![\d.,])(35[.,]76)(?![\d])"""),
+    ]
+
 def main():
     text = {k: p.read_text() for k, p in DECKS.items()}
     book = load_book()                              # built Book HTML (empty if docs/ not built)
@@ -2572,6 +3087,7 @@ def main():
     provenance_l10(report)                           # [P] L10 toy-recompute (RAG kMax/chunking containment/rewrite RR+recall)
     provenance_l11(report)                           # [P] L11 toy-recompute (RAGAS metrics/judge rubric+Goodhart flip/agentic) + REAL judge rates
     provenance_l12(report)                           # [P] L12 toy-recompute (GraphRAG multi-hop/CLIP cosine matrix) + REAL hallucination demo
+    provenance_l16(report)                           # [P] L16 late-chunking: the 3 widget blocks re-derived + the bench's structural invariants (incl. the F-10 ColBERTv2 parity and the 33:2:1 record)
     provenance_l14(report)                           # [P] L14 toy-recompute (query-rewrite cosines/ranks/RR + RRF k=60 + step-back + p^n; deep-dive #2)
     for c in claims():                              # [C] deck == data/
         report.append(check_claim(c, text[c["deck"]]))

@@ -26,6 +26,8 @@ VERSION_WORDS = {
     "bert", "gpt", "claude", "phi", "gemma", "deepseek", "grok",
     "версия", "версии", "версию", "версией", "версиях",
     "v", "V", "top", "beir", "trec", "unicode",
+    # standard numbers are identifiers too: «ГОСТ 7.79-2000», «ISO 9:1995», «ИСО 9».
+    "гост", "iso", "исо", "стандарт", "стандарта",
     "wav2vec", "word2vec", "doc2vec", "seq2seq",
 }
 
@@ -50,6 +52,11 @@ def _guarded(seg, m):
     # sweep silently breaks every citation id it touches (it did: 31 ids, Aug 2026).
     if s > 0 and seg[s - 1] in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._/:":
         return "ident"
+    # A section reference — «§4.1», «&sect;3.2» — is not a decimal: papers number their
+    # sections with dots in every language. Look back past spaces for the section sign.
+    back = seg[max(0, s - 12):s]
+    if back.rstrip().endswith("§") or back.rstrip().endswith("&sect;"):
+        return "section-ref"
     pw = _prev_word(seg, s).rstrip(".-").lower()
     if pw in VERSION_WORDS:
         return "version-word:%s" % pw

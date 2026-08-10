@@ -5,8 +5,8 @@
       <span lang="en">The gotchas and their cures &mdash; roundup</span>
     </h2>
     <span class="slide-kicker">
-      <span lang="ru">каждая &mdash; одна строчка предобработки, в обоих плечах</span>
-      <span lang="en">each one line of preprocessing, in both arms</span>
+      <span lang="ru">каждая &mdash; одна строчка предобработки, и у каждой есть своё место</span>
+      <span lang="en">each one line of preprocessing, and each has its own place</span>
     </span>
   </div>
   <table class="cmp-table">
@@ -14,15 +14,19 @@
       <th><span lang="ru">грабли</span><span lang="en">gotcha</span></th>
       <th><span lang="ru">пример</span><span lang="en">example</span></th>
       <th><span lang="ru">починка</span><span lang="en">the cure</span></th>
+      <th><span lang="ru">где чинить</span><span lang="en">where to fix</span></th>
     </tr></thead>
     <tbody>
-      <tr><td><span lang="ru">ё / е</span><span lang="en">yo / ye</span></td><td>ёлка = елка</td><td class="cell-good"><span lang="ru">нормализация ё&rarr;е</span><span lang="en">normalize ё&rarr;е</span></td></tr>
-      <tr><td><span lang="ru">регистр</span><span lang="en">case</span></td><td>москва = Москва</td><td class="cell-good"><span lang="ru">нижний регистр (+ поле сущностей)</span><span lang="en">lowercase (+ entity field)</span></td></tr>
-      <tr><td><span lang="ru">транслит</span><span lang="en">translit</span></td><td>Москва = Moskva</td><td class="cell-good"><span lang="ru">расширение вариантами / мультиязычный вектор</span><span lang="en">variant expansion / multilingual vector</span></td></tr>
-      <tr><td><span lang="ru">раскладка</span><span lang="en">layout</span></td><td>ghbdtn = привет</td><td class="cell-good"><span lang="ru">карта ЙЦУКЕН&harr;QWERTY</span><span lang="en">ЙЦУКЕН&harr;QWERTY map</span></td></tr>
-      <tr><td><span lang="ru">дефис / пробел</span><span lang="en">hyphen / space</span></td><td><span lang="ru">по-русски = по русски</span><span lang="en">по-русски = по русски</span></td><td class="cell-good"><span lang="ru">нормализация дефисов</span><span lang="en">hyphen normalization</span></td></tr>
+      <tr><td><span lang="ru">ё / е</span><span lang="en">yo / ye</span></td><td>ёлка = елка</td><td class="cell-good"><span lang="ru"><code>char_filter</code> ё&rarr;е</span><span lang="en"><code>char_filter</code> ё&rarr;е</span></td><td><span lang="ru">оба плеча</span><span lang="en">both arms</span></td></tr>
+      <tr><td><span lang="ru">регистр</span><span lang="en">case</span></td><td>москва = Москва</td><td class="cell-good"><span lang="ru">нижний регистр + <code>keyword</code>-поле</span><span lang="en">lowercase + a <code>keyword</code> field</span></td><td><span lang="ru">оба плеча</span><span lang="en">both arms</span></td></tr>
+      <tr><td>NFC / NFD</td><td><span lang="ru">ё = U+0435 U+0308</span><span lang="en">ё = U+0435 U+0308</span></td><td class="cell-good"><span lang="ru">NFC на входе</span><span lang="en">NFC on input</span></td><td><span lang="ru">оба плеча</span><span lang="en">both arms</span></td></tr>
+      <tr><td><span lang="ru">гомоглифы</span><span lang="en">homoglyphs</span></td><td>сосна &ne; cocнa</td><td class="cell-good"><span lang="ru">confusables (UTS&nbsp;#39)</span><span lang="en">confusables (UTS&nbsp;#39)</span></td><td><span lang="ru">оба плеча</span><span lang="en">both arms</span></td></tr>
+      <tr><td><span lang="ru">транслит (ГОСТ)</span><span lang="en">translit (GOST)</span></td><td>щука = shhuka = shchuka</td><td class="cell-good"><span lang="ru">словарь вариантов + плотное плечо</span><span lang="en">variant dictionary + the dense arm</span></td><td><span lang="ru">препроцессор запроса</span><span lang="en">query preprocessor</span></td></tr>
+      <tr><td><span lang="ru">раскладка</span><span lang="en">layout</span></td><td>ghbdtn = привет</td><td class="cell-good"><span lang="ru">карта ЙЦУКЕН&harr;QWERTY</span><span lang="en">ЙЦУКЕН&harr;QWERTY map</span></td><td><span lang="ru">препроцессор запроса</span><span lang="en">query preprocessor</span></td></tr>
+      <tr><td><span lang="ru">стоп-слова и &laquo;не&raquo;</span><span lang="en">stop words and &ldquo;не&rdquo;</span></td><td><span lang="ru">&laquo;карта не работает&raquo; = &laquo;карта работает&raquo;</span><span lang="en">&ldquo;карта не работает&rdquo; = &ldquo;карта работает&rdquo;</span></td><td class="cell-good"><span lang="ru">вычесть не/ни/без из стоп-листа</span><span lang="en">subtract не/ни/без from the list</span></td><td><span lang="ru">аналайзер индекса</span><span lang="en">index analyzer</span></td></tr>
+      <tr><td><span lang="ru">дефис / пробел</span><span lang="en">hyphen / space</span></td><td>по-русски = по русски</td><td class="cell-good"><span lang="ru">нормализация дефисов</span><span lang="en">hyphen normalization</span></td><td><span lang="ru">оба плеча</span><span lang="en">both arms</span></td></tr>
     </tbody>
   </table>
-  <p class="small muted center mt-2"><span lang="ru">Общий принцип &mdash; тот же, что весь час: приведи запрос и корпус к <em>одной</em> форме, <em>одним</em> кодом, в <em>обоих</em> плечах. Мелочи дёшевы поодиночке и дороги в сумме.</span><span lang="en">The shared principle &mdash; the whole hour&rsquo;s theme: fold query and corpus to <em>one</em> form, with <em>one</em> code path, in <em>both</em> arms. The small things are cheap alone and costly in aggregate.</span></p>
-  <aside class="slide-notes">Roundup of Act 4 as one reference table: ё/е (normalize ё→е), case (lowercase plus an entity field), transliteration (variant expansion or a multilingual vector), keyboard layout (ЙЦУКЕН↔QWERTY map), and hyphen/space normalization (по-русски = по русски). Every cure is one line of preprocessing, and the unifying principle is the whole lecture's: fold query and corpus to one form, with one code path, applied symmetrically in both arms. Each is trivial alone; together they are a measurable recall difference in production.</aside>
+  <p class="small muted center mt-2"><span lang="ru">Столбец &laquo;где чинить&raquo; важнее столбца &laquo;починка&raquo;: строчка не на своём плече &mdash; хуже, чем её отсутствие.</span><span lang="en">The &ldquo;where&rdquo; column matters more than the &ldquo;cure&rdquo; column: a line applied to one arm only is worse than no line at all.</span></p>
+  <aside class="slide-notes">Act 4 as one reference table, now with the column that carries the lesson: where each cure belongs. ё/е (char_filter, both arms), case (lowercase plus a keyword field, both arms), NFC/NFD (normalize on input, both arms), homoglyphs (UTS #39 confusables, both arms), transliteration (variant dictionary plus the dense arm, query preprocessor), keyboard layout (ЙЦУКЕН↔QWERTY map, query preprocessor), stop words and negation (subtract не/ни/без from the list, index analyzer), hyphen/space (both arms). The closing line replaces the old restatement of the thesis: the "where" column matters more than the "cure" column, because a one-sided fix is measurably worse than no fix — that is exactly the 0.000 row of the ё/е ladder.</aside>
 </section>

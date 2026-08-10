@@ -1,26 +1,30 @@
-<section class="slide" data-type="definition" data-screen-label="36 Case &amp; the capital trap">
+<section class="slide" data-type="definition" data-screen-label="36 Case, Unicode &amp; NFC">
   <div class="slide-header">
     <h2>
-      <span lang="ru">Регистр и ловушка заглавных</span>
-      <span lang="en">Case &amp; the capital trap</span>
+      <span lang="ru">Регистр и Unicode: одна хорошая новость и одна плохая</span>
+      <span lang="en">Case &amp; Unicode: one good news, one bad</span>
     </h2>
     <span class="slide-kicker">
-      <span lang="ru">нижний регистр помогает&hellip; кроме случаев, когда мешает</span>
-      <span lang="en">lowercasing helps&hellip; except when it hurts</span>
+      <span lang="ru">русская версия ловушки избыточной нормализации из L2</span>
+      <span lang="en">the Russian version of L2&rsquo;s over-normalization trap</span>
     </span>
   </div>
   <div class="def-card">
     <span class="def-tag">
-      <span lang="ru">Понижать регистр или нет</span>
-      <span lang="en">To lowercase or not</span>
+      <span lang="ru">Что проверено по таблицам Unicode</span>
+      <span lang="en">What the Unicode tables actually say</span>
     </span>
+    <div class="def-term">
+      <span lang="ru">Правило на слайд: <strong>NFC на входе, всегда</strong> &mdash; и в индексе, и в запросе.</span>
+      <span lang="en">The rule: <strong>NFC on input, always</strong> &mdash; index arm and query arm alike.</span>
+    </div>
     <div class="def-body">
       <ul class="obj-list">
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Обычно &mdash; в нижний регистр.</strong> Пользователь пишет &laquo;москва&raquo;, документ &mdash; &laquo;Москва&raquo;. Нижний регистр в обоих плечах чинит совпадение.</span><span lang="en"><strong>Usually lowercase.</strong> The user types &ldquo;москва&rdquo;, the document has &ldquo;Москва&rdquo;. Lowercasing both arms fixes the match.</span></span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Ловушка.</strong> Регистр иногда несёт смысл: &laquo;<strong>МИР</strong>&raquo; (организация/аббревиатура) против &laquo;<strong>мир</strong>&raquo; (согласие, вселенная). Слепое приведение к нижнему регистру их склеит.</span><span lang="en"><strong>The trap.</strong> Case sometimes carries meaning: &ldquo;<strong>МИР</strong>&rdquo; (an org/acronym) vs &ldquo;<strong>мир</strong>&rdquo; (peace/world). Blind lowercasing conflates them.</span></span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Практика.</strong> Понижай регистр по умолчанию, но держи отдельное поле для сущностей/аббревиатур, если регистр важен для домена.</span><span lang="en"><strong>Practice.</strong> Lowercase by default, but keep a separate entity/acronym field where case matters for your domain.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Ловушку ты уже видел.</strong> В <strong>L2-15</strong> избыточная нормализация склеила <code>US</code> и <code>us</code>. Русская версия: &laquo;<strong>МИР</strong>&raquo; против &laquo;<strong>мир</strong>&raquo;. Лечение прежнее &mdash; нижний регистр плюс <code>keyword</code>-поле для сущностей.</span><span lang="en"><strong>You have met this trap.</strong> In <strong>L2-15</strong> over-normalization glued <code>US</code> to <code>us</code>. The Russian version: &ldquo;<strong>МИР</strong>&rdquo; versus &ldquo;<strong>мир</strong>&rdquo;. Same cure &mdash; lowercase plus a <code>keyword</code> field for entities.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Хорошая новость.</strong> В <code>SpecialCasing.txt</code> &mdash; <strong>0</strong> кириллических записей; в <code>CaseFolding.txt</code> &mdash; <strong>0</strong> записей со статусом F или T. Аналога турецкой &laquo;I&raquo; в кириллице нет: отображение регистра 1:1 и не зависит от локали. Об этом можно не думать.</span><span lang="en"><strong>The good news.</strong> <code>SpecialCasing.txt</code> has <strong>0</strong> Cyrillic entries; <code>CaseFolding.txt</code> has <strong>0</strong> entries with status F or T. Cyrillic has no analogue of the Turkish &ldquo;I&rdquo;: case mapping is 1:1 and locale-independent. One thing you need not think about.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Плохая новость &mdash; NFC/NFD.</strong> <code>ё</code> U+0451 раскладывается в <code>U+0435 U+0308</code>, <code>й</code> U+0439 &mdash; в <code>U+0438 U+0306</code>; ни одна не входит в <code>CompositionExclusions.txt</code>. Фраза &laquo;мой ёжик&raquo; &mdash; <strong>8</strong> кодовых точек в NFC и <strong>10</strong> в NFD. macOS отдаёт NFD прямо из файловой системы, и строки перестают совпадать.</span><span lang="en"><strong>The bad news &mdash; NFC/NFD.</strong> <code>ё</code> U+0451 decomposes to <code>U+0435 U+0308</code>, <code>й</code> U+0439 to <code>U+0438 U+0306</code>; neither is in <code>CompositionExclusions.txt</code>. The phrase &ldquo;мой ёжик&rdquo; is <strong>8</strong> code points in NFC and <strong>10</strong> in NFD. macOS hands you NFD straight from the file system, and the strings stop matching.</span></span></li>
       </ul>
     </div>
   </div>
-  <aside class="slide-notes">Gotcha 2 — case. Lowercasing both arms fixes the common mismatch (user "москва" vs document "Москва"), and it is a standard analyzer step. The trap: Russian case occasionally distinguishes meaning — acronyms and named entities (МИР the payment system/organization vs мир "peace/world") — so blind lowercasing conflates them. Practice: lowercase by default for recall, but keep a case-preserving entity or acronym field when your domain (finance, legal, named-entity search) needs the distinction.</aside>
+  <aside class="slide-notes">Gotcha 2 — case and Unicode, explicitly bridged to L2-15. The over-normalization trap is the same one students already saw on US/us; the Russian instance is МИР (the payment system) vs мир, and the cure is unchanged: lowercase by default plus a case-preserving keyword field for entities. The genuinely new content is two Unicode facts. Reassuring: zero Cyrillic entries in SpecialCasing.txt and zero F/T entries in CaseFolding.txt — there is no Turkish-I problem in Cyrillic, case mapping is 1:1 and locale-independent. Dangerous: ё (U+0451) and й (U+0439) both decompose under NFD and are not composition exclusions, so "мой ёжик" is 8 code points in NFC and 10 in NFD; macOS serves NFD from the file system, which breaks real pipelines. The rule to carry away: NFC on input, always, in both arms.</aside>
 </section>

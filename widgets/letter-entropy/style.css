@@ -1,0 +1,51 @@
+/* letter-entropy — themed via ROLE TOKENS only (light + dark come for free; every declaration keeps a
+   light-theme literal as its var() fallback so the figure still reads if the token sheet is missing).
+   Two panels on one vertical band: a sorted letter-probability bar chart (left) and a bits/symbol
+   thermometer (right). Category by FILL ONLY — never a stroke on a <text> node, so the double-paint
+   detector stays silent. The FLOOR rule is the course red (#D7522C = --c-red), and it is the only red
+   in the figure: whatever the red line touches is the entropy you actually have to pay. */
+.le-svg { width: 100%; height: auto; display: block; }
+
+/* ── type ──────────────────────────────────────────────────────────────────────────────────────── */
+.le-head { font: 700 13px var(--font-mono, monospace); fill: var(--ink-2, #3D434E); }
+.le-sub { font: 600 12px var(--font-mono, monospace); fill: var(--ink-3, #6B7280); }
+.le-letter { font: 600 12px var(--font-mono, monospace); fill: var(--ink-2, #3D434E); }
+.le-ticklbl { font: 600 11px var(--font-mono, monospace); fill: var(--ink-3, #6B7280); }
+.le-note { font: 600 11px var(--font-mono, monospace); fill: var(--ink-3, #6B7280); }
+.le-numnote { font: 700 11px var(--font-mono, monospace); fill: var(--ink-2, #3D434E); }
+
+/* ── frame: divider, baseline, gridline extensions ─────────────────────────────────────────────── */
+.le-div { stroke: var(--rule, #DDD7C7); stroke-width: 1; }
+.le-axis { stroke: var(--rule-strong, #B8B19E); stroke-width: 1.5; }
+.le-grid { stroke: var(--rule, #DDD7C7); stroke-width: 1; stroke-dasharray: 2 5; }
+
+/* ── left panel · sorted probability bars (the top 8 are the labelled ones, so they carry the warm) ─
+   NEVER `opacity` here: `.le-bar.is-top` would tie `.wgt-fade .is-hidden{opacity:0}` on specificity and,
+   being later in the cascade, WIN — the "hidden" top-8 bars then survive into the staircase step. That
+   bug shipped in the first render; fill-opacity is a different property, so the fade always wins. */
+.le-bar { fill: var(--accent, #2A6FDB); fill-opacity: 0.55; }
+.le-bar.is-top { fill: var(--warm, #E8743B); fill-opacity: 1; }
+
+/* ── left panel · the F-staircase (step 4) ─────────────────────────────────────────────────────── */
+.le-tread { stroke: var(--accent, #2A6FDB); stroke-width: 3; stroke-linecap: round; }
+.le-riser { stroke: var(--accent, #2A6FDB); stroke-width: 1.5; stroke-dasharray: 3 3; stroke-opacity: 0.7; }
+.le-stairval { font: 700 11px var(--font-mono, monospace); fill: var(--accent-ink, #1B4FA0); }
+.le-band { fill: var(--c-red-soft, #FBE3D8); stroke: var(--c-red, #D7522C); stroke-width: 1.5;
+           stroke-dasharray: 4 3; }
+
+/* ── right panel · the thermometer ─────────────────────────────────────────────────────────────── */
+.le-track { fill: var(--bg-inset, #EBE7DA); stroke: var(--rule, #DDD7C7); stroke-width: 1; }
+.le-merc { fill: var(--rule-strong, #B8B19E); fill-opacity: 0.55; }   /* the grey column of paid bits */
+.le-tick { stroke: var(--rule-strong, #B8B19E); stroke-width: 1; }
+
+/* the ghost CEILING (uniform log₂A) — dashed, quiet: a limit, not a measurement */
+.le-ceil { stroke: var(--ink-4, #9CA3AF); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.le-ceillbl { font: 600 11px var(--font-mono, monospace); fill: var(--ink-3, #6B7280); }
+
+/* an intermediate marker (F₁ at step 2) — blue, present but not the punchline */
+.le-mark { stroke: var(--accent, #2A6FDB); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.le-marklbl { font: 600 11px var(--font-mono, monospace); fill: var(--accent-ink, #1B4FA0); }
+
+/* THE FLOOR — the course red, the only saturated line in the figure */
+.le-hrule { stroke: var(--c-red, #D7522C); stroke-width: 2.5; stroke-linecap: round; }
+.le-hlbl { font: 800 11px var(--font-mono, monospace); fill: var(--c-red, #D7522C); }

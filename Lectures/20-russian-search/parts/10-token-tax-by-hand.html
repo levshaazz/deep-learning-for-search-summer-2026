@@ -5,24 +5,45 @@
       <span lang="en">The token tax, by hand</span>
     </h2>
     <span class="slide-kicker">
-      <span lang="ru">наш BPE на смеси 9:1 EN:RU &middot; измерено генератором</span>
-      <span lang="en">our BPE on a 9:1 EN:RU mix &middot; measured by the generator</span>
+      <span lang="ru">замер из L2 &rarr; наша игрушка объясняет причину</span>
+      <span lang="en">the L2 measurement &rarr; our toy explains why</span>
     </span>
   </div>
   <div class="twocol">
     <div class="twocol-col">
       <div class="def-card">
         <span class="def-tag">
-          <span lang="ru">Та же фраза, два языка</span>
-          <span lang="en">Same sentence, two languages</span>
+          <span lang="ru">Это уже измерено &mdash; в L2</span>
+          <span lang="en">Already measured &mdash; back in L2</span>
         </span>
         <div class="def-body">
-          <p lang="ru">Обучили символьный BPE на англо-перекошенной смеси (как реальный веб) и токенизировали параллельную пару. Английское <code>search</code> &rarr; <strong>1</strong> токен. Русское <code>запроса</code> &rarr; <code>з&middot;а&middot;п&middot;р&middot;о&middot;с&middot;а</code> = <strong>7</strong> кусков: слияний для него не нашлось.</p>
-          <p lang="en">We trained a character BPE on an English-skewed mix (like the real web) and tokenized a parallel pair. English <code>search</code> &rarr; <strong>1</strong> token. Russian <code>запроса</code> &rarr; <code>з&middot;а&middot;п&middot;р&middot;о&middot;с&middot;а</code> = <strong>7</strong> pieces: no merges existed for it.</p>
+          <p lang="ru">Слово <code>привет</code> стоило <strong>12</strong> байтовых токенов. Мы растили словарь <em>в 16 раз</em> &mdash; и число не сдвинулось ни на единицу.</p>
+          <p lang="en">The word <code>привет</code> cost <strong>12</strong> byte-level tokens. We grew the vocabulary <em>16-fold</em> &mdash; and the number did not move by one.</p>
         </div>
       </div>
+      <table class="cmp-table">
+        <thead><tr>
+          <th><span lang="ru">словарь BPE</span><span lang="en">BPE vocabulary</span></th>
+          <th><code>привет</code></th>
+        </tr></thead>
+        <tbody>
+          <tr><td><span lang="ru">1000</span><span lang="en">1,000</span></td><td class="cell-bad">12</td></tr>
+          <tr><td><span lang="ru">4000</span><span lang="en">4,000</span></td><td class="cell-bad">12</td></tr>
+          <tr><td><span lang="ru">16&nbsp;000</span><span lang="en">16,000</span></td><td class="cell-bad">12</td></tr>
+        </tbody>
+      </table>
     </div>
     <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag">
+          <span lang="ru">Почему рост словаря не помог</span>
+          <span lang="en">Why growing the vocabulary did nothing</span>
+        </span>
+        <div class="def-body">
+          <p lang="ru">Наш BPE на смеси 9:1&nbsp;EN:RU: <code>search</code> &rarr; <strong>1</strong> токен, <code>запроса</code> &rarr; <code>з&middot;а&middot;п&middot;р&middot;о&middot;с&middot;а</code> = <strong>7</strong> кусков. Все новые слияния достались английскому &mdash; кириллице не досталось ни одного.</p>
+          <p lang="en">Our BPE on a 9:1&nbsp;EN:RU mix: <code>search</code> &rarr; <strong>1</strong> token, <code>запроса</code> &rarr; <code>з&middot;а&middot;п&middot;р&middot;о&middot;с&middot;а</code> = <strong>7</strong> pieces. Every new merge went to English &mdash; Cyrillic got none.</p>
+        </div>
+      </div>
       <table class="cmp-table">
         <thead>
           <tr>
@@ -34,17 +55,17 @@
         <tbody>
           <tr><td><span lang="ru">слов</span><span lang="en">words</span></td><td>8</td><td>4</td></tr>
           <tr><td><span lang="ru">токенов</span><span lang="en">tokens</span></td><td class="cell-good">8</td><td class="cell-bad">23</td></tr>
-          <tr><td><span lang="ru">токенов / слово</span><span lang="en">tokens / word</span></td><td class="cell-good">1.0</td><td class="cell-bad">5.8</td></tr>
+          <tr><td><span lang="ru">токенов / слово</span><span lang="en">tokens / word</span></td><td class="cell-good"><span lang="ru">1,0</span><span lang="en">1.0</span></td><td class="cell-bad"><span lang="ru">5,8</span><span lang="en">5.8</span></td></tr>
         </tbody>
       </table>
       <p class="small muted center mt-2">
-        <span lang="ru">Тот же смысл, <strong>&times;5,8</strong> токенов. Это налог: окно контекста, латентность и цена API растут на ровном месте.</span>
-        <span lang="en">Same meaning, <strong>&times;5.8</strong> the tokens. That is the tax: context window, latency and API cost all rise for nothing.</span>
+        <span lang="ru">Тот же смысл, <strong>&times;5,8</strong> токенов.</span>
+        <span lang="en">Same meaning, <strong>&times;5.8</strong> the tokens.</span>
       </p>
     </div>
   </div>
-  <div class="viz-frame fig-fit" style="--fig-max:20cqh; --fig-w:24%; margin:.3rem auto 0;">
+  <div class="viz-frame fig-fit" style="--fig-max:26cqh; --fig-w:34%; margin:.3rem auto 0;">
     <img src="assets/img/L20/L20-01-token-tax.png?v=1" alt="Séréga watches Tokenosaurus swallow the English word 'search' in one bite while the Russian word 'запроса' shatters into seven crumbs on a tally meter reading times 5.8. His green tübetey is the only green." />
   </div>
-  <aside class="slide-notes">Worked-by-hand on our measured toy (data/l20-ru.json, gen_l20.py): a character BPE trained on a 9:1 English:Russian mix, then applied to a parallel sentence. English "search" stays one token; Russian "запроса" falls all the way back to its seven characters because no merges were learned for it. Totals: EN 8 words → 8 tokens (1.0/word), RU 4 words → 23 tokens (5.8/word) — a ×5.8 tax on the same content. The direction and order are the point, not the exact ratio; production tokenizers show a smaller but real premium (next slide). This is not a bug — it is what an English-trained tokenizer does to a morphologically rich language.</aside>
+  <aside class="slide-notes">Start from the number the class already owns: in L2 we trained byte-level BPE at vocabulary 1,000, 4,000 and 16,000 and the Russian word "привет" cost 12 tokens at every size — a sixteen-fold vocabulary bought exactly nothing. This slide supplies the missing "why". Our own toy (data/l20-ru.json, gen_l20.py) trains a character BPE on a 9:1 English:Russian mix: English "search" stays one token, Russian "запроса" falls all the way back to its seven characters, because every merge the algorithm could afford went to an English pair. Totals: EN 8 words → 8 tokens (1.0/word), RU 4 words → 23 tokens (5.8/word). The direction is the lesson, not the exact ratio — production tokenizers show a smaller but real premium, measured two slides on.</aside>
 </section>

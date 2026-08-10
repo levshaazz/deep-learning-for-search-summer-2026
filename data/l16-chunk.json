@@ -1,5 +1,5 @@
 {
-  "_doc": "MEASURED on a constructed coreference corpus (stdlib set-overlap cosine). Reproduces the ORDERING INVERSION (naive ranks the header chunk above the answer; late ranks the answer first), not the paper's magnitudes. Generator: _research/gen_l16.py.",
+  "_doc": "MEASURED on a constructed coreference corpus (stdlib set-overlap cosine). Reproduces the ORDERING INVERSION — naively a GENERIC DISTRACTOR that merely repeats the query words outranks the answer chunk (0.5774 > 0.5164); late chunking binds 'it' -> 'acme' into the answer chunk and it takes rank 1 (0.7071). The header chunk is a weaker third rival (0.2887) and never buries the answer. Not the paper's magnitudes. Blocks `pool`, `gapLaw` and `longLate` are pure arithmetic feeding the three L16 widgets. Generator: _research/gen_l16.py.",
   "query": [
     "acme",
     "revenue",
@@ -38,7 +38,98 @@
   "goldRankLate": 1,
   "goldNaive": 0.5164,
   "goldLate": 0.7071,
+  "distractorNaive": 0.5774,
+  "distractorLate": 0.5774,
   "headerNaive": 0.2887,
   "headerLate": 0.2887,
-  "inversion": true
+  "inversion": true,
+  "pool": {
+    "_doc": "W1 (widgets/late-pool-lab). A 4-token document where ONLY the order of {cut, attend} moves. ONE rule applied twice: a token's vector is the average of the tokens it may read — naive reads its own chunk, late reads the whole document. Mean-pool the same segment either way: the chunk vector turns from (0,2) to (1,1) and cos(q,·) goes 0 -> 1/sqrt(2) = 0.7071. It also gets shorter (2 -> sqrt(2)): reading more spreads the average thinner — the same dilution that sinks late chunking on Needle tasks.",
+    "tokens": [
+      "Berlin",
+      "is",
+      "Its",
+      "residents"
+    ],
+    "values": [
+      [
+        4,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "boundary": 2,
+    "query": [
+      1,
+      0
+    ],
+    "naiveTheta": [
+      0.0,
+      2.0
+    ],
+    "lateTheta": [
+      1.0,
+      1.0
+    ],
+    "naiveChunkVec": [
+      0.0,
+      2.0
+    ],
+    "lateChunkVec": [
+      1.0,
+      1.0
+    ],
+    "naiveCos": 0.0,
+    "lateCos": 0.7071
+  },
+  "gapLaw": {
+    "_doc": "W2 (widgets/chunk-size-law). DERIVED, not measured: with a referent g tokens behind a mention and a chunk grid of size s at a uniform offset, the chunk holds its own referent with probability max(0, 1 - g/s), so the orphaned fraction is min(1, g/s). The `anchors` are the REPORTED BeIR deltas (Table 2 averages, Guenther et al. 2024) and exist to TEST the law: the law says smaller chunks -> bigger delta, and the three published strategies order exactly that way (sentence > fixed-256 > semantic). The SHAPE of Figure 3 agrees; its numeric values are not published, so they are not here.",
+    "gapTokens": 40,
+    "sizes": [
+      32,
+      64,
+      128,
+      256,
+      512
+    ],
+    "orphanFraction": [
+      1.0,
+      0.625,
+      0.3125,
+      0.1563,
+      0.0781
+    ],
+    "anchors": {
+      "sentence": 1.9,
+      "fixed256": 1.8,
+      "semantic": 1.4
+    }
+  },
+  "longLate": {
+    "_doc": "W3 (widgets/long-late-window). Algorithm 2: cut the document into macro-chunks of l_max tokens overlapping by omega, encode each, and DISCARD the embeddings of the overlapping tokens (line 14) so every token lands in exactly one chunk. l_max and omega are OUR example values: the paper publishes no hyper-parameters and the repository ships two different defaults (omega = 256 and omega = 512).",
+    "docTokens": 20000,
+    "lMax": 8192,
+    "omega": 512,
+    "stride": 7680,
+    "macroChunks": 3,
+    "starts": [
+      0,
+      7680,
+      15360
+    ],
+    "tokensEncoded": 21024,
+    "overheadTokens": 1024,
+    "overheadPct": 5.12
+  }
 }

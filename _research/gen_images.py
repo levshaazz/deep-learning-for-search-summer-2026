@@ -1827,6 +1827,72 @@ JOBS = [
      "book). Earned, warm send-off; a small takeaway feel of 'change WHEN you pool, not the model'. Black ink "
      "+ course-blue + thin warm-orange memory-threads; Serega's green tübetey is the ONLY green. No lettered "
      "title bar. Fills ≥85% width."),
+    # -- L16 wave 2 (depth pass): the four gaps the deepened deck opened — what a torn card actually
+    #    loses, the gap/size law, character-offsets → token-offsets, and the long-document machinery. --
+    ("L16", "L16/L16-12-broken-references.png", "4:3", True,
+     "THE BROKEN REFERENCES. Serega at a card-catalogue drawer holding up FOUR torn index-cards, each with its "
+     "subject-word torn off and drifting away as a faint grey ghost-word just out of reach: one card reads 'Its "
+     "3.85M residents...', one 'The city is also...', one 'the ratio rose to 3%' with the column-header gone, "
+     "one 'she declined' with the name gone. A small hand-lettered tag floats by each ghost-word: 'pronoun', "
+     "'definite', 'table header', 'ellipsis'. Serega reaches after them with a rueful look. Black ink + "
+     "course-blue cards + one thin warm-orange thread trying to reconnect a ghost-word to its card; Serega's "
+     "green tübetey is the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L16", "L16/L16-13-gap-law.png", "4:3", True,
+     "THE GAP LAW, AS A SIDE-BY-SIDE PAIR. The frame is split into TWO EQUAL HALVES by one vertical "
+     "hand-drawn divider line, and BOTH halves must be fully drawn — never leave the right half empty, "
+     "blank or unfinished. LEFT HALF: a page with a NARROW course-blue chunk-window laid over it, and its "
+     "own round dial whose single warm-orange needle points HIGH; hand-lettered under it 'small chunk - "
+     "big gap'. RIGHT HALF: the SAME page with a WIDE course-blue chunk-window about four times wider, and "
+     "its own round dial of the same size whose single warm-orange needle points LOW; hand-lettered under "
+     "it 'big chunk - small gap'. The fraction 'g / s' is chalked once above the divider. Serega stands at "
+     "the bottom centre astride the divider, one hand pointing at each dial. Serega is drawn WHOLE and "
+     "WHOLE-BODIED: one head, one torso, EXACTLY TWO arms each growing visibly from a shoulder and ending "
+     "in EXACTLY ONE hand, and EXACTLY TWO legs ending in two feet, all joined by continuous unbroken "
+     "outlines. Draw NO floating fist, NO hand without an arm, NO arm without a shoulder, NO third limb; "
+     "where a prop or ruler crosses him it passes BEHIND him and his outline stays continuous, never "
+     "chopping his body into separate pieces. Draw his tunic ONCE — one garment, one hem, never a second "
+     "skirt. His head-covering is a small round GREEN skullcap (tuebetey) sitting flat on the crown — "
+     "never a fez, never a cone, never a tall hat, never olive or brown. Black ink + course-blue windows "
+     "and dials + warm-orange needles; Serega's green tuebetey is the ONLY green. No lettered title bar. "
+     "Fills >=80% width."),
+    ("L16", "L16/L16-14-offsets.png", "4:3", True,
+     "CHARACTERS TO TOKENS. TWO rulers lie one above and one below the same short line of text, both "
+     "floating clear of any figure. The UPPER ruler is ticked very FINELY — MANY narrow ticks crowded "
+     "close together, one per LETTER, because that is where the chunker cut. The LOWER ruler is ticked "
+     "COARSELY — FEW WIDE ticks, one per TOKEN, each token-tick spanning several of the letter-ticks above "
+     "it, because that is where the model actually reads. The line of text BETWEEN the two rulers carries NO "
+     "real words: draw it as a row of plain wavy squiggles that are clearly NOT letters, in no alphabet at "
+     "all — never Cyrillic, never English, never invented words. Serega stands entirely TO ONE SIDE of the "
+     "rulers, so that NEITHER ruler crosses his body, and reaches across with one hand to pencil a single "
+     "letter-mark DOWN onto the nearest token-mark — a small warm-orange tick where the two meet. A small "
+     "square tag lettered 'CLS' sits at the LEFT end of the text line and a square tag lettered 'SEP' at "
+     "the RIGHT end, both simply resting there. Hand-lettered 'characters' above the upper ruler and "
+     "'tokens' below the lower one. Serega is drawn WHOLE and WHOLE-BODIED: one head, one torso, EXACTLY "
+     "TWO arms each growing visibly from a shoulder and ending in EXACTLY ONE hand, and EXACTLY TWO legs "
+     "ending in two feet, all joined by continuous unbroken outlines. Draw NO floating fist, NO hand "
+     "without an arm, NO arm without a shoulder, NO third limb; where a prop or ruler crosses him it "
+     "passes BEHIND him and his outline stays continuous, never chopping his body into separate pieces. "
+     "Draw his tunic ONCE — one garment, one hem, never a second skirt. His head-covering is a small round "
+     "GREEN skullcap (tuebetey) sitting flat on the crown — never a fez, never a cone, never a tall hat, "
+     "never olive or brown. Black ink + course-blue rulers + one warm-orange alignment tick; Serega's "
+     "green tuebetey is the ONLY green. No lettered title bar. Fills >=80% width."),
+    ("L16", "L16/L16-15-too-big-for-the-desk.png", "4:3", True,
+     "THE BOOK THAT OUTGREW THE DESK. A colossal volume far wider than Serega's reading desk; he keeps "
+     "THREE overlapping desk-widths of it open at a time, and warm-orange BRIDGE-CLIPS are pinched across "
+     "the two seams. Beside the desk a small waste-basket, into which DUPLICATE overlap pages are dropping "
+     "— read once, filed once. TEXT RULE, absolute: the ONLY lettering anywhere in this image is the "
+     "single short tag 'read the overlap - file it once', hand-lettered once, horizontally, below the "
+     "desk. Every page, every book surface and every clip is BLANK — draw page content as plain wavy "
+     "squiggles that are NOT letters. Do NOT write a sentence, a caption, a title or any English words "
+     "inside or on the book. Serega is drawn WHOLE and WHOLE-BODIED: one head, one torso, EXACTLY TWO arms "
+     "each growing visibly from a shoulder and ending in EXACTLY ONE hand, and EXACTLY TWO legs ending in "
+     "two feet, all joined by continuous unbroken outlines. Draw NO floating fist, NO hand without an arm, "
+     "NO arm without a shoulder, NO third limb; where a prop or ruler crosses him it passes BEHIND him and "
+     "his outline stays continuous, never chopping his body into separate pieces. Draw his tunic ONCE — "
+     "one garment, one hem, never a second skirt. His head-covering is a small round GREEN skullcap "
+     "(tuebetey) sitting flat on the crown — never a fez, never a cone, never a tall hat, never olive or "
+     "brown. Black ink + course-blue desk and book + warm-orange seam-clips; Serega's green tuebetey is "
+     "the ONLY green. No lettered title bar. Fills >=80% width."),
 
     # ---- L17 "Shannon Entropy" (the entropy of language; strong historical flavour). Metaphor: Serega as a
     #      1948 Bell-Labs TELEGRAPH OPERATOR measuring SURPRISE on a bits gauge; a recurring red "entropy floor"
@@ -1892,6 +1958,89 @@ JOBS = [
      "entropy of English' FLOOR line; the needle sits just above it, unable to dip under. A calm, wise send-"
      "off — 'you can get close; you can't get under'. Black ink + course-blue gauge + the single red floor "
      "line; Serega's green tübetey is the ONLY green. No lettered title bar. Fills ≥85% width."),
+    # -- L17 wave 2 (depth pass): conditional entropy, Kraft's shelf, block coding, IDF in bits,
+    #    and perplexity as a proxy. The red floor line stays an allowed diagram rule (see L17-08). --
+    ("L17", "L17/L17-12-conditional-entropy.png", "4:3", True,
+     "CONDITIONAL ENTROPY. The two gauges STAND ON THE DESK, not in anybody's hands. On the LEFT of the "
+     "desk the BIG gauge, hand-lettered 'before context', its single needle standing HIGH near the top of "
+     "its dial. On the RIGHT of the desk a SMALLER gauge, hand-lettered 'after', its single needle "
+     "standing plainly LOW. Read the two needles as clock hands: the BIG gauge's needle points to ELEVEN "
+     "o'clock, high up its dial; the SMALL gauge's needle points to SEVEN o'clock, plainly DOWN near the "
+     "bottom of its dial, so that at a glance the second reading is visibly LOWER than the first. Between "
+     "the two gauges EXACTLY ONE thin warm-orange bracket carries the hand-lettered note 'what the last "
+     "letter already told me' — that bracket and that note appear ONCE in the whole image, never repeated "
+     "above and below the gauges. Serega stands behind the desk, both hands resting on "
+     "its front edge, a course-blue telegraph key on the desk beside him, an open book and TWO course-blue "
+     "baskets on it, one tagged with the single capital 'V' and one tagged with the single capital 'C'. Do "
+     "NOT draw any chain, row or scatter of letter-tiles anywhere — the ONLY letters in the whole image "
+     "are the short labels just named. Serega is drawn WHOLE and WHOLE-BODIED: one head, one torso, "
+     "EXACTLY TWO arms each growing visibly from a shoulder and ending in EXACTLY ONE hand, and EXACTLY "
+     "TWO legs ending in two feet, all joined by continuous unbroken outlines. Draw NO floating fist, NO "
+     "hand without an arm, NO arm without a shoulder, NO third limb; where a prop or ruler crosses him it "
+     "passes BEHIND him and his outline stays continuous, never chopping his body into separate pieces. "
+     "Draw his tunic ONCE — one garment, one hem, never a second skirt. His head-covering is a small round "
+     "GREEN skullcap (tuebetey) sitting flat on the crown — never a fez, never a cone, never a tall hat, "
+     "never olive or brown. Black ink + course-blue key, baskets and gauges + one warm-orange bracket; no "
+     "brass, no gold, no ochre anywhere. Serega's green tuebetey is the ONLY green. No lettered title bar. "
+     "Fills >=80% width."),
+    ("L17", "L17/L17-13-kraft-shelf.png", "4:3", True,
+     "KRAFT'S INEQUALITY. Serega lays code-tags out along a SHELF that is exactly one unit long, and their "
+     "WIDTHS HALVE down the row — this proportion is the whole point and must be drawn exactly. The FIRST tag "
+     "is as wide as HALF the entire shelf and is hand-lettered '1 bit'. The SECOND tag is HALF AS WIDE AGAIN, "
+     "a QUARTER of the shelf, hand-lettered '2 bits'. The THIRD is HALF AS WIDE AGAIN, an EIGHTH of the shelf, "
+     "hand-lettered '3 bits'. Together those three exactly fill the shelf end to end with nothing left over. "
+     "Serega tries to squeeze in one more small tag — and it does NOT fit, it slides off the end and tips "
+     "downward. Hand-lettered 'the shelf is exactly full'. Every label "
+     "is short, lower-case, thin hand-lettering — never bold block capitals, never a parenthetical. Every "
+     "shape is a FLAT even fill of one colour with a uniform thin black outline: no marker streaks, no "
+     "visible brush texture, no shading or gradient inside any fill. Black ink + course-blue tags + one "
+     "warm-orange shelf-edge; Serega's green tübetey is the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L17", "L17/L17-14-block-coding.png", "4:3", True,
+     "BLOCK CODING, LEFT TO RIGHT AND GROWING. Along the bottom, THREE bundles of coin-flips in a row, and "
+     "the count must GROW from left to right and never shrink: the LEFTMOST bundle holds EXACTLY TWO "
+     "coins, the MIDDLE bundle EXACTLY THREE, the RIGHTMOST bundle EXACTLY FOUR. Count them before drawing "
+     "them. On the right stands ONE thermometer: a single straight vertical tube of constant width with a "
+     "rounded bulb at the bottom, drawn as ONE closed continuous outline — never two half-tubes, never a "
+     "tube that changes width, bends or breaks apart. Inside it a filled column, and THREE short "
+     "horizontal marker lines across the tube, each LOWER than the one before, matching the three bundles; "
+     "below them all a solid RED horizontal floor line the column never reaches. Hand-lettered 'tie them "
+     "in bundles' once. Serega stands at the left, tying the two-coin bundle. Serega is drawn WHOLE and "
+     "WHOLE-BODIED: one head, one torso, EXACTLY TWO arms each growing visibly from a shoulder and ending "
+     "in EXACTLY ONE hand, and EXACTLY TWO legs ending in two feet, all joined by continuous unbroken "
+     "outlines. Draw NO floating fist, NO hand without an arm, NO arm without a shoulder, NO third limb; "
+     "where a prop or ruler crosses him it passes BEHIND him and his outline stays continuous, never "
+     "chopping his body into separate pieces. Draw his tunic ONCE — one garment, one hem, never a second "
+     "skirt. His head-covering is a small round GREEN skullcap (tuebetey) sitting flat on the crown — "
+     "never a fez, never a cone, never a tall hat, never olive or brown. Black ink + course-blue bundles "
+     "and thermometer + the single red floor line (this red line is allowed — it is a diagram rule, not a "
+     "figure) + one warm-orange pointer; Serega's green tuebetey is the ONLY green. No lettered title bar. "
+     "Fills >=80% width."),
+    ("L17", "L17/L17-15-idf-gremlin.png", "4:3", True,
+     "IDF IN BITS. One round gauge stands in the middle, its dial carrying two hand-lettered marks, '0 bits' "
+     "at the left end and '3 bits' at the right end, with a single warm-orange needle swung right over to the "
+     "'3 bits' mark. Serega holds up TWO flat rectangular tickets, one in each hand, both held straight and "
+     "level so their lettering is perfectly HORIZONTAL and upright: the LEFT ticket is hand-lettered 'the' and "
+     "the RIGHT ticket is hand-lettered 'rare'. Draw EXACTLY ONE Lexical Gremlin — one gremlin only, never a "
+     "second — and he sits astride the 'the' ticket, grinning, because that word does no ranking at all. The "
+     "gremlin is BARE-HEADED, blue, with no green on him anywhere. Black ink + course-blue tickets + one "
+     "warm-orange needle; Serega's green tübetey is the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L17", "L17/L17-16-perplexity-goodhart.png", "4:3", True,
+     "PERPLEXITY AS A PROXY. A single round gauge stands on a stand between two figures; its one rim "
+     "carries TWO scales, hand-lettered 'x2' on the outside and 'xe' on the inside, and the two readings "
+     "disagree. Serega stands at the LEFT as a FULL figure with both feet on the ground, pointing at the "
+     "gauge with one hand while the other rests at his side. Goodhart the trickster stands at the RIGHT, "
+     "also a FULL figure with a head, a torso, TWO arms and TWO legs, one hand reaching in to BEND the "
+     "needle rather than improve the source behind it. Draw no floating fist and no hand without an arm on "
+     "either figure. Hand-lettered 'same loss, two numbers' once. Goodhart is BARE-HEADED, blue, with no "
+     "green on him anywhere. Serega is drawn WHOLE and WHOLE-BODIED: one head, one torso, EXACTLY TWO arms "
+     "each growing visibly from a shoulder and ending in EXACTLY ONE hand, and EXACTLY TWO legs ending in "
+     "two feet, all joined by continuous unbroken outlines. Draw NO floating fist, NO hand without an arm, "
+     "NO arm without a shoulder, NO third limb; where a prop or ruler crosses him it passes BEHIND him and "
+     "his outline stays continuous, never chopping his body into separate pieces. Draw his tunic ONCE — "
+     "one garment, one hem, never a second skirt. His head-covering is a small round GREEN skullcap "
+     "(tuebetey) sitting flat on the crown — never a fez, never a cone, never a tall hat, never olive or "
+     "brown. Black ink + course-blue scales + one warm-orange pointer; Serega's green tuebetey is the ONLY "
+     "green. No lettered title bar. Fills >=80% width."),
 
     # ---- L18 "The Curved Map" (anisotropy & hubness). Metaphor: Serega the CARTOGRAPHER of a warped world;
     #      the embedding space is a distorted map projection (Mercator). Anisotropy = every town squashed into
@@ -1961,6 +2110,51 @@ JOBS = [
      "Earned, warm send-off — 'straight-line distance lies on a curved map; so straighten the map'. Black ink "
      "+ course-blue even grid + thin warm-orange meridians; Serega's green tübetey is the ONLY green. No "
      "lettered title bar. Fills ≥85% width."),
+    # -- L18 wave 2 (depth pass): random-vs-real directions, the signal/noise dial, whitening = the L5
+    #    move returning, the two tolls of CSLS, and the flat-but-still-crowded map. --
+    ("L18", "L18/L18-12-two-rulers.png", "4:3", True,
+     "TWO DIFFERENT BEASTS. Serega stands between two drafting tables. On the LEFT table a cloud of arrows "
+     "flying off in every direction like a hedgehog, and a protractor frozen at a wide right angle; a small "
+     "hand-lettered sign on the table reads 'random directions'. On the RIGHT table the SAME number of arrows, "
+     "but all pinched into one thin wedge, and a second protractor showing a tiny sliver of an angle; its sign "
+     "reads 'real embeddings'. Serega holds a ruler in each hand and looks at us with a 'these are two "
+     "different animals' expression. He is the ONLY character in the picture — no bystanders, no second "
+     "figure, nobody peering in from a corner, and nothing is cropped by the canvas border. Black ink + "
+     "course-blue arrows + one warm-orange protractor arc, every fill FLAT with no glow, halo or shading; "
+     "Serega's green tübetey is the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L18", "L18/L18-13-signal-noise-dial.png", "4:3", True,
+     "THE CONE DIAL. Serega the cartographer stands WHOLE and complete beside his table — his full head, cap, "
+     "body, both arms and both legs are inside the frame, nothing of him cropped by the canvas border — with "
+     "one hand resting on the knob of a large instrument on the table. The instrument is ONE big round dial "
+     "marked not in numbers but with the hand-lettered word 'noise' at its left end and the hand-lettered "
+     "words 'one shared axis' at its right end, its single warm-orange needle standing hard against the right "
+     "end. A thin linkage runs from the instrument to two small panels beside it: the nearer panel shows the "
+     "towns as a wide half-round cloud, the farther panel shows the same towns closed into a thin wedge, the "
+     "two joined by one plain curved arrow of motion. Black ink + course-blue instrument, panels and towns + "
+     "one warm-orange needle — no brass, no gold, no ochre, every fill FLAT with no shading. Serega's green "
+     "tübetey is the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L18", "L18/L18-14-whitening-returns.png", "4:3", True,
+     "THE OLD TRACING RETURNS. Serega at his table lays a faded old tracing-sheet, marked in one corner with a "
+     "small hand-lettered 'L5' and a sketched ellipse of axes, over a fresh map of meanings — and the SAME "
+     "grid shows through both sheets. A pantograph in his hand. On the table beside him four little brass "
+     "town-pins stuck through the paper in a stretched slanted diamond, and a separate strip where the same "
+     "four pins form a perfect square. Hand-lettered 'same move, new map'. Black ink + course-blue grid + one "
+     "warm-orange axis; Serega's green tübetey is the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L18", "L18/L18-15-two-tolls.png", "4:3", True,
+     "TWO TOLLS, ONE THAT MATTERS. A road scene drawn on the map: a toll-gate on the way OUT of the crowded "
+     "hub town, weighed down by a heavy counterweight stamped with a hand-lettered 'r' so the road visibly "
+     "sags under it; and a SECOND toll-gate at the entrance to the query's town whose barrier is raised and "
+     "chained permanently open — it exists but stops nobody. Serega stands between them with a ledger, "
+     "pointing at the useless second gate. Hand-lettered 'this one reorders' / 'this one does nothing'. Black "
+     "ink + course-blue roads + one warm-orange toll-stamp; Serega's green tübetey is the ONLY green. No "
+     "lettered title bar. Fills ≥80% width."),
+    ("L18", "L18/L18-16-flat-but-crowded.png", "4:3", True,
+     "FLAT, AND STILL CROWDED. Serega holds up an already-STRAIGHTENED map — the grid is perfect, the wedge is "
+     "gone — and he is frowning: on that flawless grid ONE town is still swollen and every road still drains "
+     "into it. Behind him on the wall hangs the old warped map, crossed out. The point of the frame: the "
+     "geometry was fixed, the crowd was not. Hand-lettered 'two cures, two diseases'. Black ink + course-blue "
+     "grid + one warm-orange hub-ring; Serega's green tübetey is the ONLY green. No lettered title bar. "
+     "Fills ≥80% width."),
     # ---- L19 "The Wiring Diagram" (neural circuit diagrams). Metaphor: Serega the SCHEMATIC-READER —
     #      he puts down the spec written in prose and picks up the wiring diagram of the same machine.
     #      Wires are axes; a solder joint (cup) is where an axis DIES; the bill is read off the drawing.
@@ -2096,6 +2290,85 @@ JOBS = [
      "BARE-HEADED (blue + orange, no green). The ONLY hand-lettering anywhere is the single short phrase 'one "
      "form, both arms'. Black ink + course-blue + one warm-orange #1 highlight; Serega's green tübetey is the "
      "ONLY green. No lettered title bar. Fills ≥85% width."),
+    # -- L20 wave 2 (depth pass): the zero-overlap hook, the morphology typology, the Snowball cascade,
+    #    the stem/lemma fork, the empty postings drawer, the vocabulary arc, homoglyphs, and the launch
+    #    checklist. Cameos: Tokenosaurus + the Lexical Gremlin, both bare-headed and green-free. --
+    ("L20", "L20/L20-08-zero-shared-letters.png", "16:9", True,
+     "ZERO SHARED LETTERS. Two big text-cards lie side by side on Serega's desk; he runs a magnifying glass "
+     "over them hunting for even ONE letter they share, and finds none. Between the cards a taut string with a "
+     "little hand-lettered tag '0 shared' sags and SNAPS. Out at the margin a tiny Lexical Gremlin gleefully "
+     "bangs down a rubber stamp reading 'no match'. The gremlin is BARE-HEADED, blue, with no green on him. "
+     "Black ink + course-blue cards; warm-orange only on the stamp; Serega's green tübetey is the ONLY green. "
+     "No lettered title bar. Fills ≥85% width."),
+    ("L20", "L20/L20-09-three-morphologies.png", "16:9", True,
+     "THREE WORKBENCHES. There is EXACTLY ONE Serega in this picture — one single figure, drawn ONCE, standing "
+     "at the LEFT edge of the scene with an arm sweeping along the row; never two Seregas, never three, never "
+     "one per bench, no twin, no clone, no repeated figure of any kind. To his right stand three benches in a "
+     "row. FIRST bench, hand-lettered 'fused': one word-blank with a single multi-notched plate FUSED into it, "
+     "three meanings stamped on that one inseparable plate. SECOND bench, hand-lettered 'glued': the same "
+     "word-blank with THREE separate washers threaded onto it in a row, each carrying one meaning, each easily "
+     "slid off. THIRD bench, hand-lettered 'apart': the word-blank bare, its three meanings lying beside it as "
+     "three separate little word-cards. Black ink + course-blue benches + one warm-orange accent on the fused "
+     "plate; Serega's green tübetey is the ONLY green. No lettered title bar. Fills ≥85% width."),
+    ("L20", "L20/L20-10-snowball-cascade.png", "4:3", True,
+     "THE CASCADE. A word-blank enters the top of a vertical run of FOUR slanted sieve-chutes; on each sieve a "
+     "shaved-off tail-piece stays behind while the word drops on, shorter each time. Beside the chutes a tall "
+     "vertical ruler with three hand-lettered marks, 'RV', 'R1', 'R2', showing below which line the cutter is "
+     "allowed to cut. At the bottom a short stub lands in a tray — and it is plainly NOT a word any more. "
+     "Serega stands to one side steadying the ruler. Black ink + course-blue chutes + one warm-orange cut-line; "
+     "Serega's green tübetey is the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L20", "L20/L20-11-stem-vs-lemma-fork.png", "16:9", True,
+     "THE FORK. Two pipes, one above the other, each ending in trays on the right. The UPPER pipe carries a "
+     "small AXE on its casing and is hand-lettered 'cut' ONCE, on the pipe itself: out of it three different "
+     "forms of ONE word drop into THREE separate trays (they should have met), while two plainly DIFFERENT "
+     "words drop together into ONE shared tray (they should not have). The LOWER pipe carries a plain closed "
+     "BOOK on its casing — the book's cover is completely BLANK, with no lettering, no title and no marks of "
+     "any kind on it — and the pipe is hand-lettered 'look it up' ONCE: out of it every form converges into a "
+     "single tray, though one lone question mark hangs over that tray. Serega stands between the two pipes "
+     "comparing the trays. The ONLY lettering anywhere in the image is the two short labels 'cut' and 'look it "
+     "up', each written once, horizontally, in lower case. Black ink + course-blue pipes + warm-orange rims on "
+     "the WRONG trays only; Serega's green tübetey is the ONLY green. No lettered title bar. Fills ≥85% width."),
+    ("L20", "L20/L20-12-empty-postings.png", "4:3", True,
+     "THE EMPTY DRAWER. A card-catalogue of the inverted index, its drawers labelled with different forms of "
+     "one word. Serega pulls one drawer fully open and it is ABSOLUTELY empty — bare boards and a cobweb. On "
+     "the desk nearby lies exactly the document he wanted, and between that drawer and the document there is "
+     "NOT ONE thread, while every neighbouring drawer has threads running out to documents. A small "
+     "hand-lettered tag on the empty drawer reads 'df = 0'. Tokenosaurus peers down into the empty drawer and "
+     "snorts, disappointed. Tokenosaurus is BARE-HEADED (blue + orange, no green). Black ink + course-blue "
+     "cabinet + one warm-orange thread; Serega's green tübetey is the ONLY green. No lettered title bar. "
+     "Fills ≥80% width."),
+    ("L20", "L20/L20-13-vocab-arc.png", "16:9", True,
+     "THE VOCABULARY ARC. Three hand-mills stand in a row, each with a short label on its own body: '50k', "
+     "'100k', '200k'. The SAME blank word-slab drops into each from above. Out of the first pours a handful of "
+     "tiny crumbs; out of the second, three clean slices; out of the third, one whole piece. Under each mill a "
+     "measuring flask whose level falls from left to right. Serega stands at the third mill giving a "
+     "thumbs-up; Tokenosaurus at the first is choking on the crumbs. The ONLY lettering in the entire image is "
+     "the three mill labels '50k', '100k' and '200k' — do NOT name or caption any object or character, do NOT "
+     "write 'Serega', 'Tokenosaurus', 'word', 'flask' or any other word anywhere, and add no numbers beyond "
+     "those three labels. Tokenosaurus is BARE-HEADED (blue + orange, no green). Black ink + course-blue mills "
+     "+ one warm-orange flask level; Serega's green tübetey is the ONLY green. No lettered title bar. "
+     "Fills ≥85% width."),
+    ("L20", "L20/L20-14-homoglyph-mask.png", "4:3", True,
+     "THE IMPOSTOR LETTERS. A row of SEVEN big capital letters hangs on a wall like plaques, and every one of "
+     "them is the SAME shape: seven identical capital letter 'A' plaques side by side, indistinguishable at a "
+     "glance. Serega shines a small lamp along the row, and inside the warm-orange beam THREE of the seven "
+     "letters are revealed filled solid course-blue while the other four stay plain black outline — the three "
+     "blue ones are the impostors hiding among their neighbours. Under every letter hangs a small blank tally "
+     "tag: the four tags under the black letters each carry two short tally strokes, the three tags under the "
+     "blue letters each carry three, so the impostors' tags plainly differ. Nearby the Lexical Gremlin, "
+     "wearing a small domino eye-mask, tips a wink and tries to slip past. The revealed tint is course-blue "
+     "and never green. The ONLY letters drawn anywhere are the seven identical capital A plaques; write no "
+     "words, no captions and no numbers. The gremlin is BARE-HEADED, blue, with no green on him. Black ink + "
+     "course-blue letters + one warm-orange lamp-beam; Serega's green tübetey is the ONLY green. No lettered "
+     "title bar. Fills ≥80% width."),
+    ("L20", "L20/L20-15-launch-checklist.png", "16:9", True,
+     "THE LAUNCH DESK. Serega at the control desk of a Russian search stack: a tall CHECKLIST clipped to a "
+     "board, ten line-items, nine already ticked, and he is ticking the tenth right now beside the single "
+     "hand-lettered line 'measure on your own data'. Behind the desk two big levers — one for the index side, "
+     "one for the query side — are COUPLED by a single tie-rod so neither can move without the other. A calm, "
+     "well-fed Tokenosaurus dozes beside the desk. Tokenosaurus is BARE-HEADED (blue + orange, no green). "
+     "Black ink + course-blue desk + warm-orange tick-marks; Serega's green tübetey is the ONLY green. No "
+     "lettered title bar. Fills ≥85% width."),
 ]
 
 H = {"Authorization": f"Bearer {API_KEY}"}

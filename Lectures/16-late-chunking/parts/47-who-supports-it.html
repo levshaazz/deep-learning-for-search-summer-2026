@@ -1,0 +1,46 @@
+<section class="slide" data-type="two-col" data-screen-label="47 Who supports it today">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Кто это поддерживает сегодня</span>
+      <span lang="en">Who supports it today</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">и одна ловушка в API, на которой ты потеряешь полдня</span>
+      <span lang="en">and one API trap that will cost you half a day</span>
+    </span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <table class="cmp-table">
+        <thead><tr>
+          <th><span lang="ru">инструмент</span><span lang="en">tool</span></th>
+          <th><span lang="ru">что реально есть</span><span lang="en">what is actually there</span></th>
+        </tr></thead>
+        <tbody>
+          <tr><td><span lang="ru">Jina Embeddings API</span><span lang="en">Jina Embeddings API</span></td><td class="cell-good"><code>late_chunking=true</code> &mdash; <span lang="ru">флаг из коробки</span><span lang="en">a first-class flag</span></td></tr>
+          <tr><td>Chonkie <code>LateChunker</code></td><td class="cell-good"><span lang="ru">библиотека; только модели SentenceTransformer</span><span lang="en">a library; SentenceTransformer models only</span></td></tr>
+          <tr><td><span lang="ru">Weaviate / Elasticsearch / Qdrant</span><span lang="en">Weaviate / Elasticsearch / Qdrant</span></td><td class="cell-meh"><span lang="ru">рецепты в блогах, <strong>не</strong> нативная поддержка</span><span lang="en">blog recipes, <strong>not</strong> native support</span></td></tr>
+          <tr><td><span lang="ru">API, отдающие один вектор</span><span lang="en">one-vector-only APIs</span></td><td class="cell-bad"><span lang="ru">невозможно в принципе &mdash; нечего усреднять</span><span lang="en">impossible in principle &mdash; nothing to pool</span></td></tr>
+        </tbody>
+      </table>
+      <p class="small muted center mt-2">
+        <span lang="ru">&laquo;Late chunking встроен в X&raquo; чаще всего означает &laquo;в блоге X есть рецепт&raquo;. Проверяй по документации, а не по посту.</span>
+        <span lang="en">&ldquo;Late chunking is built into X&rdquo; usually means &ldquo;X&rsquo;s blog has a recipe&rdquo;. Check the docs, not the post.</span>
+      </p>
+    </div>
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag">
+          <span lang="ru">Ловушка &middot; 8192 на весь массив</span>
+          <span lang="en">The trap &middot; 8192 for the whole array</span>
+        </span>
+        <div class="def-body">
+          <p><span lang="ru">С флагом <code>late_chunking=true</code> лимит в <strong>8192 токена</strong> начинает считаться <em>на весь массив</em> <code>input</code>, а не на каждую строку. Иначе и быть не может: чтобы усреднять поздно, сервис <strong>склеивает вход в один текст</strong> и прогоняет его одним проходом.</span><span lang="en">With <code>late_chunking=true</code> the <strong>8192-token</strong> limit applies to the <em>whole</em> <code>input</code> array, not per string. It cannot be otherwise: to pool late the service <strong>concatenates your input into one text</strong> and runs a single pass.</span></p>
+          <p><span lang="ru">Отсюда два следствия, которые ломают наивную миграцию: батч, который вчера проходил, сегодня отваливается по лимиту; и <strong>порядок строк в массиве становится значимым</strong> &mdash; соседние чанки теперь влияют друг на друга.</span><span lang="en">Two consequences break a naive migration: a batch that passed yesterday now trips the limit; and <strong>the order of the strings starts to matter</strong> &mdash; neighbouring chunks now influence one another.</span></p>
+          <p class="small muted"><span lang="ru">Не клади в один запрос чанки из <em>разных</em> документов &mdash; иначе внимание честно свяжет их между собой.</span><span lang="en">Never put chunks from <em>different</em> documents in one call &mdash; attention will dutifully bind them together.</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <aside class="slide-notes">The practical availability slide. Jina's API has late_chunking=true as a flag; Chonkie ships a LateChunker (SentenceTransformer models only); Weaviate / Elasticsearch / Qdrant have blog recipes, NOT native support — say that plainly, the folklore says otherwise. One-vector APIs cannot do it at all. The trap is the one that costs real time: with the flag on, the 8192-token budget applies to the WHOLE input array rather than per string, because the service concatenates the array into one text to pool late. Hence batches that used to fit now fail, the order of the array becomes semantically meaningful, and mixing chunks from different documents into one call makes attention bind unrelated documents together.</aside>
+</section>

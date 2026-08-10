@@ -1,0 +1,38 @@
+<section class="slide" data-type="two-col" data-screen-label="33e Boundaries &middot; when hubs help">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Границы: когда хабы <em>полезны</em></span>
+      <span lang="en">Boundaries: when hubs <em>help</em></span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">Hub Highway Hypothesis &middot; убивать хабы в индексе и лечить их в ранжировании — разные решения</span>
+      <span lang="en">the Hub Highway Hypothesis &middot; killing hubs in the index and taxing them at ranking are different decisions</span>
+    </span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag">
+          <span lang="ru">Хабы как хайвей</span>
+          <span lang="en">Hubs as a highway</span>
+        </span>
+        <div class="def-body">
+          <p><span lang="ru">В NSW-графе хабы образуют «хайвей», который делает <strong>ту же работу, что иерархия слоёв HNSW</strong>: даёт обходу дальние прыжки. Убери иерархию — и пиковая память построения падает на <strong>\(38\,\%\)</strong> (BigANN), <strong>\(39\,\%\)</strong> (Yandex-DEEP), <strong>\(18\,\%\)</strong> (MS-SpaceV) <em>при той же полноте (recall) и той же латентности</em>.</span><span lang="en">In an NSW graph the hubs form a "highway" doing <strong>the same job as HNSW's layer hierarchy</strong>: they give the walk its long jumps. Drop the hierarchy and peak build memory falls by <strong>\(38\%\)</strong> (BigANN), <strong>\(39\%\)</strong> (Yandex-DEEP), <strong>\(18\%\)</strong> (MS-SpaceV) <em>at the same recall and latency</em>.</span></p>
+        </div>
+      </div>
+    </div>
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag">
+          <span lang="ru">Панч: зачем иерархия вообще</span>
+          <span lang="en">The punchline: why a hierarchy at all</span>
+        </span>
+        <div class="def-body">
+          <p><span lang="ru">В <strong>низкой</strong> размерности иерархия существует, <em>чтобы изготовить хабы</em> — их там не хватает. В <strong>высокой</strong> размерность отдаёт их даром. То самое явление, которое ломает выдачу, держит на себе обход графа.</span><span lang="en">In <strong>low</strong> dimension the hierarchy exists <em>in order to manufacture hubs</em> &mdash; there are not enough of them. In <strong>high</strong> dimension the dimension supplies them for free. The very phenomenon that breaks the result list is what carries the graph walk.</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Отсюда правило: <strong>лечи хабность там, где она вредит — в ранжировании, а не в структуре индекса</strong>. Вырезать хабы из графа значит платить памятью и латентностью за исправление, которое дешевле сделать баллом. И обратная сторона медали: хабность же — корневая причина тяжёлого хвоста латентности (SIGMOD 2026), потому что изолированные анти-хабы ломают жадный обход.</span><span lang="en">Hence the rule: <strong>treat hubness where it hurts &mdash; in the ranking, not in the index structure</strong>. Cutting hubs out of the graph means paying memory and latency for a repair that is cheaper to make with a score. And the other side of the coin: hubness is also the root cause of heavy latency tails (SIGMOD 2026), because isolated anti-hubs break the greedy walk.</span></p>
+  <aside class="slide-notes">Plan NEW-23 (R3) — the "when NOT to fix it" that turns hubness from a villain into a trade-off. Munyampirwa, Lakshman &amp; Coleman (arXiv 2412.01940; ICML 2025 VecDB oral, ECIR 2026): the Hub Highway Hypothesis says hubs form a connected sub-network that performs HNSW's hierarchy's function, and removing the hierarchy saves 38% / 39% / 18% of peak build memory on BigANN / Yandex-DEEP / MS-SpaceV at unchanged recall and latency. Appendix D.1's punchline is the one to say aloud: in LOW dimension the hierarchy exists to manufacture hubs; in high dimension dimensionality supplies them for free. The design lesson is the separation of concerns — CSLS and friends act at scoring time and leave the index alone, which is exactly why act 04's cure is a ranking rule rather than a graph edit. Counterweight (Xu, Dai, Li et al., PACMMOD 4(3) / SIGMOD 2026, DOI 10.1145/3802120): hubness is also the root cause of heavy latency tails, since isolated anti-hubs strand the greedy walk; no extractable numbers, so it is stated qualitatively.</aside>
+</section>

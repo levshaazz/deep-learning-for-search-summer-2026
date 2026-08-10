@@ -1,0 +1,143 @@
+<section class="slide" data-type="two-col" data-max-step="3" data-current-step="0" data-screen-label="71 Index compression &mdash; the same floor">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Сжатие индекса &mdash; тот же пол, только по постингам</span>
+      <span lang="en">Index compression &mdash; the same floor, over postings</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">второй долг из пяти &middot; data/l3-compression.json &mdash; числа уже загейчены</span>
+      <span lang="en">the second of the five debts &middot; data/l3-compression.json &mdash; already gated numbers</span>
+    </span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag">
+          <span lang="ru">Наш собственный список из L3 &mdash; шаг (&larr;/&rarr;)</span>
+          <span lang="en">Our own list from L3 &mdash; step (&larr;/&rarr;)</span>
+        </span>
+        <div class="def-body">
+          <div class="widget-mount" data-widget="postings-compression"></div>
+          <script class="widget-data" type="application/json">
+{
+  "data": {
+    "_doc": "Postings-compression worked example: a sorted docID list, its gaps (delta), and variable-byte (7 data bits/byte) byte counts vs naive 32-bit ints.",
+    "_source": "_research/gen_l3.py · 20 Newsgroups (sci.space, rec.sport.hockey), 8 shortest docs, deterministic · self-contained worked example",
+    "docIds": [
+      3,
+      8,
+      12,
+      30
+    ],
+    "gaps": [
+      3,
+      5,
+      4,
+      18
+    ],
+    "rawBytesPerId": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "rawBytesTotal": 16,
+    "varbyteBytesPerGap": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "varbyteBytesTotal": 4,
+    "compressionRatio": 4.0,
+    "note": "gaps are small → 1 varbyte each (<128); 16 bytes naive → 4 bytes gap+varbyte (4×).",
+    "byteLayout": {
+      "bitsPerByte": 7,
+      "continuationBit": 1,
+      "maxGapPerByte": 127,
+      "note": "1 byte = 1 continuation bit + 7 data bits ⇒ encodes 0–127; every gap here ≤18 < 128 → fits in one byte."
+    }
+  },
+  "labels": {
+    "alt": "Postings-list compression: a sorted document-ID list becomes small gaps, each packed into a single variable-byte, shrinking the index several-fold.",
+    "rawHead": "Raw doc IDs · 32-bit each",
+    "gapHead": "Gaps (Δ between IDs)",
+    "vbyteHead": "Variable-byte · 7 data bits + 1 continuation",
+    "bytesLabel": "bytes",
+    "naiveLabel": "naive",
+    "packedLabel": "packed",
+    "contLabel": "cont",
+    "dataLabel": "7 data bits",
+    "s0": "A postings list is sorted doc IDs: 3, 8, 12, 30. Stored naively, each is a full 32-bit integer — four bytes apiece, sixteen bytes for four documents, and most of those bits are zero.",
+    "s1": "Because the list is sorted, keep the first ID and then only the gaps between neighbours: 3, +5, +4, +18. The huge numbers collapse into a handful of tiny ones — same information, far less of it.",
+    "s2": "Now pack each gap with variable-byte coding: one byte = 1 continuation bit + 7 data bits, so it encodes 0–127. Every gap here is below 128, so each fits in a single byte — continuation bit 0, no second byte needed.",
+    "s3": "Add it up: sixteen naive bytes became four. That is a clean 4× compression on this list — and on a popular word's much longer list the ratio climbs far higher, so more of it fits in cache and the lookup hits memory, not disk."
+  },
+  "i18n": {
+    "en": {
+      "alt": "Postings-list compression: a sorted document-ID list becomes small gaps, each packed into a single variable-byte, shrinking the index several-fold.",
+      "rawHead": "Raw doc IDs · 32-bit each",
+      "gapHead": "Gaps (Δ between IDs)",
+      "vbyteHead": "Variable-byte · 7 data bits + 1 continuation",
+      "bytesLabel": "bytes",
+      "naiveLabel": "naive",
+      "packedLabel": "packed",
+      "contLabel": "cont",
+      "dataLabel": "7 data bits",
+      "s0": "A postings list is sorted doc IDs: 3, 8, 12, 30. Stored naively, each is a full 32-bit integer — four bytes apiece, sixteen bytes for four documents, and most of those bits are zero.",
+      "s1": "Because the list is sorted, keep the first ID and then only the gaps between neighbours: 3, +5, +4, +18. The huge numbers collapse into a handful of tiny ones — same information, far less of it.",
+      "s2": "Now pack each gap with variable-byte coding: one byte = 1 continuation bit + 7 data bits, so it encodes 0–127. Every gap here is below 128, so each fits in a single byte — continuation bit 0, no second byte needed.",
+      "s3": "Add it up: sixteen naive bytes became four. That is a clean 4× compression on this list — and on a popular word's much longer list the ratio climbs far higher, so more of it fits in cache and the lookup hits memory, not disk."
+    },
+    "ru": {
+      "alt": "Сжатие списка постингов: отсортированный список ID документов превращается в маленькие разности, каждая упакована в один variable-byte, сжимая индекс в несколько раз.",
+      "rawHead": "Сырые ID документов · по 32 бита",
+      "gapHead": "Разности (Δ между ID)",
+      "vbyteHead": "Переменный байт · 7 бит данных + 1 продолжения",
+      "bytesLabel": "байт",
+      "naiveLabel": "наивно",
+      "packedLabel": "сжато",
+      "contLabel": "прод",
+      "dataLabel": "7 бит данных",
+      "s0": "Список постингов — это отсортированные ID документов: 3, 8, 12, 30. Наивно каждый — это полное 32-битное целое: по четыре байта, шестнадцать байт на четыре документа, и почти все эти биты — нули.",
+      "s1": "Раз список отсортирован, храни первый ID, а дальше — только разности между соседями: 3, +5, +4, +18. Большие числа схлопываются в горстку крошечных — та же информация, но её куда меньше.",
+      "s2": "Теперь упакуй каждую разность переменным байтом: один байт = 1 бит продолжения + 7 бит данных, так что он кодирует 0–127. Все разности здесь меньше 128, поэтому каждая влезает в один байт — бит продолжения 0, второй байт не нужен.",
+      "s3": "Сложи: шестнадцать наивных байт стали четырьмя. Это честное сжатие в 4× на этом списке — а на куда более длинном списке популярного слова отношение растёт гораздо выше, так что больше списка влезает в кэш и поиск бьёт по памяти, а не по диску."
+    },
+    "tt": {
+      "alt": "Постинг-исемлеген кысу: тәртипләнгән документ ID исемлеге кечкенә аермаларга әйләнә, һәрберсе бер variable-byte эченә салына, индексны берничә тапкыр кыса.",
+      "rawHead": "Чи документ ID'лары · һәрберсе 32 бит",
+      "gapHead": "Аралыклар (ID'лар арасында Δ)",
+      "vbyteHead": "Үзгәрүчән байт · 7 мәгълүмат биты + 1 дәвам",
+      "bytesLabel": "байт",
+      "naiveLabel": "беркатлы",
+      "packedLabel": "кысылган",
+      "contLabel": "дәв",
+      "dataLabel": "7 мәгълүмат биты",
+      "s0": "Постинглар исемлеге — бу тәртипләнгән документ ID'лары: 3, 8, 12, 30. Беркатлы итеп саклаганда һәрберсе тулы 32 битлы бөтен сан: дүртәр байт, дүрт документка уналты байт, һәм бу битларның күбесе — нульләр.",
+      "s1": "Исемлек тәртипләнгән булгач, беренче ID'ны сакла, аннары — бары тик күршеләр арасындагы аралыкларны: 3, +5, +4, +18. Зур саннар бер уч кечкенәгә кысыла — шул ук мәгълүмат, әмма аннан күпкә азрак.",
+      "s2": "Хәзер һәр аралыкны үзгәрүчән байт белән кыс: бер байт = 1 дәвам биты + 7 мәгълүмат биты, шулай итеп ул 0–127 кодлый. Биредәге һәр аралык 128'дән кимрәк, шуңа күрә һәрберсе бер байтка сыя — дәвам биты 0, икенче байт кирәкми.",
+      "s3": "Кушып чыгар: уналты беркатлы байт дүрткә әйләнде. Бу — бу исемлектә чын 4× кысу — ә популяр сүзнең күпкә озынрак исемлегендә нисбәт күпкә югарырак күтәрелә, шулай итеп исемлекнең күбрәге кэшка сыя һәм эзләү дискка түгел, хәтергә бәрә."
+    }
+  }
+}
+          </script>
+        </div>
+      </div>
+    </div>
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag">
+          <span lang="ru">И где здесь пол</span>
+          <span lang="en">And where the floor is</span>
+        </span>
+        <div class="def-body">
+          <p><span lang="ru">Сжимается не &laquo;список&raquo;, а <strong>распределение разностей</strong>. Ниже его энтропии не уйти &mdash; ровно та же теорема, что и для букв. Для случайного подмножества из \(n\) чисел в диапазоне \(U\) граница \(\log_2\binom{U}{n}\) даёт примерно</span><span lang="en">What compresses is not &ldquo;the list&rdquo; but the <strong>distribution of the gaps</strong>. You cannot go under its entropy &mdash; the same theorem as for letters. For a random \(n\)-subset of a universe \(U\), the bound \(\log_2\binom{U}{n}\) gives about</span></p>
+          <span lang="ru">$$ \log_2\!\frac{U}{n} \;+\; 1{,}4427 \ \text{бита на разность} $$</span><span lang="en">$$ \log_2\!\frac{U}{n} \;+\; 1.4427 \ \text{bits per gap} $$</span>
+          <p class="small muted"><span lang="ru">Второе слагаемое &mdash; это \(\log_2 e\), тот самый переводной множитель нат&rarr;бит со слайда про перплексию. Одна и та же константа держит и лосс языковой модели, и размер твоего инвертированного индекса. <em>Pagh 2001</em>.</span><span lang="en">That second term is \(\log_2 e\) &mdash; the very nat&rarr;bit factor from the perplexity slide. One constant props up both a language model's loss and the size of your inverted index. <em>Pagh 2001</em>.</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <aside class="slide-notes">Pays the second of the five debts promised on slide 06, using numbers the facts-gate already pins (data/l3-compression.json): docIDs [3, 8, 12, 30] → gaps [3, 5, 4, 18]; 4 × 32 = 128 bits raw, 4 × 8 = 32 bits varbyte, 4:1. The point is not the ratio — students met that in L3 — but that this is the SAME theorem: a postings list is a source, its gaps are the symbols, and the entropy of the gap distribution is the floor. The combinatorial bound log2 C(U,n) ≈ n(log2(U/n) + log2 e) makes the connection concrete, and log2 e = 1.4427 is literally the nats↔bits constant from act 5. Next slide shows a codec that appears to beat this floor — and why it does not. ⚠️ СМОНТИРОВАН ВИДЖЕТ: статическая таблица слева заменена на widgets/postings-compression (L3, четыре шага: сырые ID → разности → varbyte → счёт). Ни строки нового кода — виджет и данные уже существовали, не хватало только маунта; числа те же, что печатала таблица, и они уже загейчены через data/l3-compression.json.</aside>
+</section>

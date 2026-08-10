@@ -1,0 +1,34 @@
+<section class="slide" data-type="misconception" data-screen-label="74 The entropy of the result list does NOT predict">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Наивная энтропия выдачи <em>не работает</em></span>
+      <span lang="en">The naive entropy of the result list does <em>not</em> work</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">прививка от &laquo;посчитаем энтропию &mdash; будет хорошо&raquo;</span>
+      <span lang="en">a vaccine against &ldquo;let's compute an entropy, it'll be great&rdquo;</span>
+    </span>
+  </div>
+  <div class="misc-card">
+    <div class="misc-label">
+      <span lang="ru">Соблазнительное убеждение</span>
+      <span lang="en">The tempting belief</span>
+    </div>
+    <p class="misc-statement">
+      <span lang="ru">&laquo;Если clarity работает, то и любая энтропия из выдачи сработает: посчитаем \(-H\big(P(D\mid Q)\big)\) &mdash; энтропию распределения по документам. Размазанная выдача = трудный запрос, острая = лёгкий&raquo;.</span>
+      <span lang="en">&ldquo;If clarity works, any entropy off the result list will work: compute \(-H\big(P(D\mid Q)\big)\), the entropy of the distribution over documents. A flat result list means a hard query, a peaked one an easy query.&rdquo;</span>
+    </p>
+    <button class="misc-reveal-btn" type="button">
+      <span lang="ru">Показать правду</span><span lang="en">Reveal truth</span>
+    </button>
+    <div class="misc-truth">
+      <span lang="ru">Авторы <em>той же статьи</em> это проверили. Дословно, §5: рассматривая отрицательную энтропию \(P(D\mid Q)\) как предсказатель качества запроса, они находят <strong>&laquo;no appreciable rank correlation with average precision, <em>except at extremely high and low values of the entropy</em>&raquo;</strong> &mdash; никакой заметной ранговой корреляции, <em>кроме как на самых краях шкалы энтропии</em>. Обрежь цитату на &laquo;average precision&raquo; &mdash; и &laquo;почти нигде&raquo; станет &laquo;нигде&raquo;. Хвост, впрочем, ничего не спасает: на краю работает вырождение, а не предсказание &mdash; максимальная энтропия \(P(D\mid Q)\) означает почти равномерную выдачу, а она высокой средней точности <em>не даёт никогда</em>. Работает <strong>KL на уровне термов против коллекции</strong>, а не энтропия ранжирования.</span>
+      <span lang="en">The authors of the <em>same paper</em> tested it. Verbatim, §5: taking the negative entropy of \(P(D\mid Q)\) as a predictor of query performance, they find <strong>&ldquo;no appreciable rank correlation with average precision, <em>except at extremely high and low values of the entropy</em>&rdquo;</strong>. Cut the quote at &ldquo;average precision&rdquo; and you have turned &ldquo;almost nowhere&rdquo; into &ldquo;nowhere&rdquo;. The tail rescues nothing, though: what shows up at the edge is degeneracy, not prediction &mdash; a maximal entropy of \(P(D\mid Q)\) means a near-uniform result list, and such a list <em>never</em> yields high average precision. What works is the <strong>term-level KL against the collection</strong>, not the entropy of the ranking.</span>
+      <p class="misc-anchor">
+        <span lang="ru"><strong>Почему.</strong> Энтропия выдачи меряет, насколько уверенно <em>твой оценщик</em> расставил документы &mdash; свойство оценщика, а не запроса. Clarity меряет, насколько язык найденного отличается от языка коллекции &mdash; свойство <em>запроса относительно корпуса</em>. Первое можно обмануть, подкрутив температуру оценивания; второе &mdash; нет. Формула из теории информации не делает метрику осмысленной; осмысленной её делает <em>правильно выбранное пространство событий</em> &mdash; ровно то, о чём предупреждал Robertson три слайда назад.</span>
+        <span lang="en"><strong>Why.</strong> The entropy of the result list measures how confidently <em>your scorer</em> ordered the documents &mdash; a property of the scorer, not of the query. Clarity measures how far the language of the retrieved set departs from the collection's &mdash; a property of the <em>query relative to the corpus</em>. The first can be faked by turning a temperature knob; the second cannot. An information-theoretic formula does not make a metric meaningful; a correctly chosen <em>event space</em> does &mdash; exactly Robertson's warning three slides ago.</span>
+      </p>
+    </div>
+  </div>
+  <aside class="slide-notes">The negative result that keeps act 6 honest, and it comes from the very paper that introduced clarity (Cronen-Townsend, Zhou & Croft, SIGIR 2002, §5): "we consider the negative of the entropy of P(D|Q) as a predictor of query performance. For this predictor we find no appreciable rank correlation with average precision, EXCEPT AT EXTREMELY HIGH AND LOW VALUES OF THE ENTROPY." ⚠️ ДЕФЕКТ B9 ЗАКРЫТ: цитата обрывалась на "average precision", и обрыв переворачивал вывод из «почти нигде» в «нигде». Хвост восстановлен — и обезврежен авторским же объяснением двумя строками ниже: на верхнем краю высокая энтропия P(D|Q) означает почти равномерное распределение по документам, которое "never leads to a high average precision". То есть край шкалы — вырождение, а не работающее предсказание. Same corpus, same team, same year — and the naive version predicts nothing. The diagnosis ties the act together: the entropy of a RANKING describes the scorer, while clarity's KL over the vocabulary describes the query against the collection. Choosing the event space is the whole game, which is the same lesson Robertson taught about IDF. This slide is the deck's inoculation against information-theatre.</aside>
+</section>

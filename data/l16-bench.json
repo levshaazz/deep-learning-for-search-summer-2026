@@ -27,7 +27,48 @@
     ]
   },
   "acme": {
-    "_doc": "Table4 — fictional ACME Corp doc, query='ACME revenue growth for Q2 2023'. Naive ranks the relevant chunk BELOW the header; late (and Anthropic contextual) surface it.",
+    "_doc": "Table4 — fictional ACME Corp doc, ALL FIVE chunks, query verbatim. Naive ranks the relevant chunk BELOW the document header; late and Anthropic contextual both surface it (and contextual edges late out, 0.8590 > 0.8516). n = 1, the document is invented, and the authors are the authors of the method: an anecdote, not an evaluation.",
+    "query": "What is ACME Corp's revenue growth for Q2 2023?",
+    "encoder": "jina-embeddings-v2-small-en",
+    "contextGenerator": "claude-3-haiku-20240307",
+    "goldRow": 2,
+    "rows": [
+      {
+        "n": 1,
+        "role": "header",
+        "naive": 0.8505,
+        "late": 0.8305,
+        "contextual": 0.8069
+      },
+      {
+        "n": 2,
+        "role": "gold",
+        "naive": 0.6343,
+        "late": 0.8516,
+        "contextual": 0.859
+      },
+      {
+        "n": 3,
+        "role": "supporting",
+        "naive": 0.6169,
+        "late": 0.8424,
+        "contextual": 0.8546
+      },
+      {
+        "n": 4,
+        "role": "outlook",
+        "naive": 0.5191,
+        "late": 0.7997,
+        "contextual": 0.8234
+      },
+      {
+        "n": 5,
+        "role": "boilerplate",
+        "naive": 0.6007,
+        "late": 0.8022,
+        "contextual": 0.8061
+      }
+    ],
     "relevantNaive": 0.6343,
     "relevantLate": 0.8516,
     "relevantContextual": 0.859,
@@ -35,7 +76,7 @@
     "headerLate": 0.8305
   },
   "beir": {
-    "_doc": "Table2 — BeIR nDCG@10 [%], averaged over 3 long-context models (jina-v2-small, jina-v3, nomic-v1) x 4 datasets (SciFact, NFCorpus, FiQA, TRECCOVID). Naive vs late.",
+    "_doc": "Table2 — BeIR nDCG@10 [%], averaged over 3 long-context models (jina-v2-small, jina-v3, nomic-v1) x 4 datasets (SciFact, NFCorpus, FiQA, TRECCOVID). Naive vs late. `record` is the win/tie/loss count over all 36 cells of the table; `lossCell` is the SINGLE cell late loses. NOTE the paper's own prose (§4.1) rounds a lift to '1.5% absolute'; the 12 SEMANTIC-chunking cells recompute to 52.417 -> 53.825 = +1.41 (the fixed-size row is a different pair, 52.2 -> 54.0 = +1.8). Read the table, not the abstract.",
     "sentenceNaiveAvg": 52.4,
     "sentenceLateAvg": 54.3,
     "fixed256NaiveAvg": 52.2,
@@ -43,10 +84,166 @@
     "semanticNaiveAvg": 52.4,
     "semanticLateAvg": 53.8,
     "nfcorpusJ2sNaive": 23.5,
-    "nfcorpusJ2sLate": 30.0
+    "nfcorpusJ2sLate": 30.0,
+    "record": {
+      "wins": 33,
+      "ties": 2,
+      "losses": 1,
+      "cells": 36
+    },
+    "lossCell": {
+      "model": "nomic-embed-text-v1",
+      "dataset": "SciFact",
+      "strategy": "fixed-256",
+      "naive": 70.7,
+      "late": 70.6
+    },
+    "semanticRecomputedNaive": 52.417,
+    "semanticRecomputedLate": 53.825,
+    "semanticRecomputedDelta": 1.41,
+    "paperRoundedAbsPct": 1.5,
+    "tieCells": [
+      {
+        "model": "nomic-embed-text-v1",
+        "dataset": "NFCorpus",
+        "strategy": "fixed-256",
+        "naive": 35.3,
+        "late": 35.3
+      },
+      {
+        "model": "nomic-embed-text-v1",
+        "dataset": "NFCorpus",
+        "strategy": "semantic",
+        "naive": 35.3,
+        "late": 35.3
+      }
+    ]
+  },
+  "spanPooling": {
+    "_doc": "§3.2 + Table3 — the paper ALSO proposes TRAINING for late chunking (span pooling): triples (query, document, <start,end>) with the SAME InfoNCE loss as L13. The lift over mean pooling after training is small and not uniform: best +0.82 nDCG (jina-v3 / FiQA), and THREE regressions: -0.28, -0.09, -0.02. The batch/step numbers are jina-v3's hyper-parameters, not both models'. Training-free is true; the ceiling is a little higher than training-free.",
+    "datasets": [
+      "FEVER",
+      "TriviaQA"
+    ],
+    "pairsThousands": 470,
+    "batchSize": 512,
+    "steps": 500,
+    "loss": "InfoNCE",
+    "bestGain": 0.82,
+    "regressions": [
+      -0.28,
+      -0.09,
+      -0.02
+    ],
+    "bestCell": "jina-embeddings-v3 / FiQA",
+    "worstGain": -0.02
+  },
+  "overlap": {
+    "_doc": "Table6 (Appendix A.2, v3 only) — 16-token overlap on 256-token chunks, jina-v2-small. The paper's verdict is 'no clear advantage', for BOTH methods. Read column by column: the NAIVE pipeline is helped 3 datasets out of 4, the LATE pipeline is a coin flip (1 of 4). NOTE the paper's §4.1 says 'in all experiments the chunks are non-overlapping', yet the fixed-size row of Table 2 equals the 'w/ Overlap' column here — an internal contradiction of the published text.",
+    "overlapTokens": 16,
+    "chunkTokens": 256,
+    "rows": [
+      {
+        "dataset": "SciFact",
+        "naiveWith": 64.2,
+        "naiveWithout": 61.7,
+        "lateWith": 66.1,
+        "lateWithout": 65.9
+      },
+      {
+        "dataset": "NFCorpus",
+        "naiveWith": 23.5,
+        "naiveWithout": 22.8,
+        "lateWith": 30.0,
+        "lateWithout": 30.5
+      },
+      {
+        "dataset": "FiQA",
+        "naiveWith": 33.3,
+        "naiveWithout": 32.8,
+        "lateWith": 33.8,
+        "lateWithout": 34.0
+      },
+      {
+        "dataset": "TRECCOVID",
+        "naiveWith": 63.4,
+        "naiveWithout": 64.5,
+        "lateWith": 64.7,
+        "lateWithout": 64.9
+      }
+    ]
+  },
+  "noChunking": {
+    "_doc": "The 'No Chunking' column — present in v1 and in the repository README, dropped from v2/v3. Two lessons: on Quora (documents of ~62 characters) naive = late = no-chunking to the digit, because there is nothing to restore; and on 2 of 5 datasets NOT chunking at all beats late chunking.",
+    "rows": [
+      {
+        "dataset": "Quora",
+        "naive": 87.19,
+        "late": 87.19,
+        "none": 87.19
+      },
+      {
+        "dataset": "TRECCOVID",
+        "late": 64.7,
+        "none": 65.18
+      },
+      {
+        "dataset": "NFCorpus",
+        "late": 29.98,
+        "none": 30.4
+      }
+    ]
+  },
+  "replication": {
+    "_doc": "INDEPENDENT replication — Merola & Singh, 'Reconstructing Context', arXiv:2504.19754 (KEIR @ ECIR 2025, code MIT). NDCG@5. Not a confirmation: on BGE-M3/NFCorpus late chunking does not merely fail to help, it collapses; on MS MARCO passages early pooling wins outright; and head-to-head against Contextual Retrieval late chunking loses on all six reported metrics. Authors' conclusion, verbatim: 'Late Chunking does not consistently outperform the Early approach across all models and datasets.'",
+    "cite": "Merola & Singh 2025",
+    "_source": "arXiv:2504.19754",
+    "collapse": {
+      "model": "BGE-M3",
+      "dataset": "NFCorpus",
+      "early": 0.246,
+      "late": 0.07
+    },
+    "passages": {
+      "model": "Stella-V5",
+      "dataset": "MS MARCO",
+      "early": 0.63,
+      "late": 0.503
+    },
+    "headToHead": {
+      "model": "Jina-V3",
+      "dataset": "NFCorpus",
+      "late": 0.309,
+      "contextual": 0.317
+    }
+  },
+  "colbert": {
+    "_doc": "ColBERTv2 §5.3 (Santhanam et al., arXiv:2112.01488), MS MARCO ~8.8 M passages — the numbers that retire the folklore 'a ColBERT index is a hundred times bigger'. With 2-bit residuals ColBERTv2 sits at PARITY with an ordinary 768-d fp32 single-vector index. The real mirror between the two 'lates' is not storage, it is the QUERY: MaxSim is paid by every query, pooling is paid once at index time.",
+    "cite": "Santhanam et al. 2022 (ColBERTv2)",
+    "_source": "arXiv:2112.01488",
+    "passagesMillions": 8.8,
+    "v1GiB": 154,
+    "v2TwoBitGiB": 25,
+    "v2OneBitGiB": 16,
+    "singleVectorGiB": 25,
+    "maxsimMsLow": 50,
+    "maxsimMsHigh": 250
+  },
+  "anthropic": {
+    "_doc": "Anthropic, 'Introducing Contextual Retrieval' (+ the cookbook). The comparison baseline of Table 4 — and a UNITS warning: Anthropic reports a RELATIVE reduction of the top-20 failure rate on its own internal mixture, Jina reports ABSOLUTE nDCG@10 on BeIR. The two numbers are not comparable. The prepended context also grows each chunk by ~100 tokens, which silently TRUNCATES it on models with a hard input limit.",
+    "cite": "Anthropic 2024",
+    "model": "claude-3-haiku-20240307",
+    "usdPerMillionDocTokens": 1.02,
+    "failureDropPct": [
+      35,
+      49,
+      67
+    ],
+    "chunkGrowthTokens": 100,
+    "inlineWholeCorpusBelowTokens": 200000
   },
   "context": {
-    "_doc": "Method/context facts. contextWindow = jina-v2 max tokens; chunkHelpsRelGain = avg relative nDCG gain from chunking a long doc (Table5, 512-tok chunks).",
+    "_doc": "Method/context facts. contextWindow = jina-v2 max tokens; chunkHelpsRelGain = avg relative nDCG gain from CHUNKING a long doc at all vs one long vector (Table5, 512-tok chunks) — it is NOT the gain of late chunking, however often the web says so.",
     "contextWindowTokens": 8192,
     "chunkHelpsRelGainPct": 24.47,
     "overlapTokens": 16

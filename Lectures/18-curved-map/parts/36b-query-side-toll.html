@@ -1,0 +1,38 @@
+<section class="slide" data-type="misconception" data-screen-label="36b Misconception &middot; the query-side toll changes the ranking">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">«Штраф за запрос тоже меняет ранжирование»</span>
+      <span lang="en">&ldquo;The query-side toll changes the ranking too&rdquo;</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">симметричная формула, несимметричный эффект &middot; экономия для того, кто это реализует</span>
+      <span lang="en">a symmetric formula, an asymmetric effect &middot; a saving for whoever implements it</span>
+    </span>
+  </div>
+  <div class="misc-card">
+    <div class="misc-label">
+      <span lang="ru">Соблазнительное убеждение</span>
+      <span lang="en">The tempting belief</span>
+    </div>
+    <p class="misc-statement">
+      <span lang="ru">«\(\mathrm{CSLS} = 2\cos - r_T(x) - r_S(y)\) симметрична, значит оба штрафа одинаково важны: надо считать плотность и для запроса тоже».</span>
+      <span lang="en">&ldquo;\(\mathrm{CSLS} = 2\cos - r_T(x) - r_S(y)\) is symmetric, so both penalties matter equally: you must compute the query's density as well.&rdquo;</span>
+    </p>
+    <button class="misc-reveal-btn" type="button">
+      <span lang="ru">Показать правду</span><span lang="en">Reveal truth</span>
+    </button>
+    <div class="misc-truth">
+      <span lang="ru">При ранжировании кандидатов под <strong>один</strong> запрос \(r(q)\) — <strong>константа</strong>. Она вычитается из каждого балла одинаково и ранг не меняет: \(\arg\max \mathrm{CSLS}(q,\cdot) = \arg\max\,[\,2\cos(q,\cdot) - r(\cdot)\,]\).</span>
+      <span lang="en">When ranking candidates for <strong>one</strong> query, \(r(q)\) is a <strong>constant</strong>. It is subtracted from every score alike and cannot change the order: \(\arg\max \mathrm{CSLS}(q,\cdot) = \arg\max\,[\,2\cos(q,\cdot) - r(\cdot)\,]\).</span>
+      <p class="misc-anchor">
+        <span lang="ru">Член запроса важен ровно там, где баллы сравниваются <strong>между запросами</strong>: пороги отсечения, «нет ответа», двунаправленный матчинг, индукция билингвального лексикона — там обе стороны множества, и обе надо нормировать. Практическое следствие: <strong>в обычном ретривере считай только \(r(d)\) по корпусу</strong>. Заметь и связь с Частью 01: член запроса — это калибровка шкалы, ровно та вещь, которую ломает анизотропия.</span>
+        <span lang="en">The query term matters exactly where scores are compared <strong>across queries</strong>: cut-off thresholds, abstention, bidirectional matching, bilingual lexicon induction &mdash; there both sides are sets and both need normalising. Practical consequence: <strong>in an ordinary retriever, precompute only \(r(d)\) over the corpus</strong>. Note the link back to act 01: the query term is scale calibration, precisely the thing anisotropy breaks.</span>
+      </p>
+    </div>
+  </div>
+  <div class="viz-frame fig-fit" style="--fig-max:34cqh; --fig-w:34%; margin:.3rem auto 0;">
+    <img src="assets/img/L18/L18-15-two-tolls.png?v=1" alt="Two toll-gates on the map: the one leaving the crowded hub town is weighed down by a counterweight stamped r, so the road sags under it, while the one at the entrance to the query&#x27;s town stands with its barrier raised and chained permanently open. S&#xE9;r&#xE9;ga stands between them with a ledger, pointing at the useless second gate. His green t&#xFC;betey is the only green." />
+  </div>
+
+  <aside class="slide-notes">Plan F6 — a defect with a direct cost in engineer-hours. The deck's old slide 37 said the symmetric r_T(x) + r_S(y) "taxes both a hub target and a hub query", which reads as if both terms always do work. Ranking candidates under a single query makes r(q) a constant added to every candidate's score, so argmax CSLS = argmax [2cos(q,d) − r(d)] and the query term is inert. It becomes load-bearing only when scores are compared BETWEEN queries — thresholds, abstention, bidirectional matching, and bilingual lexicon induction (which is Conneau's own setting, where both sides are sets, which is why the formula is written symmetrically in the first place). Implementation note worth saying aloud: this is what lets a production retriever precompute r(d) over the corpus and skip a per-query density pass entirely.</aside>
+</section>

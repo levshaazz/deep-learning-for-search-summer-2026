@@ -63,5 +63,766 @@
       "cite": "Korobov 2015",
       "what": "OpenCorpora-dictionary morphological analyzer (Python)"
     }
+  },
+  "savoy2009": {
+    "_doc": "The single most important number in the lecture: what NOT normalizing Russian costs. CLEF 2005-2008, 94 topics, mean MAP over 6 retrieval models (Table 6). Differences against 'no normalization' are always significant; the differences AMONG the stemmers are not. Caveat the authors raise themselves: the collections are short (19 and 15 distinct terms per document), so part of the gain is a short-document effect.",
+    "cite": "Dolamic & Savoy, JASIST 60(12):2540-2547, 2009",
+    "mapNone": 0.0898,
+    "mapLight": 0.171,
+    "mapAggressive": 0.1684,
+    "mapSnowball": 0.165,
+    "mapNgram4": 0.1644,
+    "gainLightPct": 90.3,
+    "gainSnowballPct": 83.6,
+    "gainNgramPct": 83.0,
+    "lossOfNotNormalizingPct": 47.5,
+    "stopwordEffectPct": 2,
+    "crossLanguageGainPct": {
+      "en": 4,
+      "nl": 4.1,
+      "es": 7,
+      "fr": 9,
+      "it": 15,
+      "de": 19,
+      "sv": 29,
+      "fi": 40,
+      "ru": 90.3
+    },
+    "elasticsearch": {
+      "russian": "Snowball",
+      "light_russian": "Savoy light stemmer",
+      "lemmatizerBuiltIn": false
+    },
+    "note": "search snippets circulate a '+96 %' figure; the paper says +90.3 % — do not repeat it"
+  },
+  "miraclRu": {
+    "_doc": "MIRACL's RUSSIAN dev split — the missing THIRD SCORE of the lecture. Hybrid (BM25 + mDPR fusion) beats both arms; this is the only published Russian number that justifies the deck's 'hybrid is the production baseline' claim.",
+    "cite": "Zhang et al., TACL 2023, arXiv:2210.09984",
+    "devQueries": 1252,
+    "judgements": 13100,
+    "corpusPassages": 9543918,
+    "articles": 1476045,
+    "dump": "2019-02-01",
+    "annotators": 31,
+    "ndcgBm25": 0.334,
+    "ndcgDense": 0.407,
+    "ndcgHybrid": 0.532,
+    "recallBm25": 0.661,
+    "recallDense": 0.797,
+    "recallHybrid": 0.874,
+    "hybridOverBm25": 0.198,
+    "hybridOverDense": 0.125,
+    "hybridKind": "BM25 + mDPR score fusion (NOT RRF — no RRF number for Russian is published)"
+  },
+  "mmarcoRu": {
+    "_doc": "mMARCO's Russian split — machine-translated, hence the translationese caveat. The authors' own finding: BLEU correlates weakly with retrieval quality, and synonymous translation breaks lexical overlap, which hurts BM25 specifically.",
+    "cite": "Bonifacio et al. 2021, arXiv:2108.13897",
+    "passages": 8841823,
+    "devQueries": 6980,
+    "mrrBm25": 0.124,
+    "mrrMiniLM": 0.251,
+    "mrrMt5": 0.263,
+    "translators": [
+      "Helsinki OPUS-MT",
+      "Google Translate"
+    ],
+    "bleuQualityR2": 0.33
+  },
+  "rumtebComposition": {
+    "_doc": "What ruMTEB actually contains — 23 tasks in 7 categories, of which only THREE are retrieval. The average over 23 tasks is not your metric (the L4 lesson). Version matters: v1 is superseded_by v1.1, whose retrieval tasks were swapped for HardNegatives.v2 — v1 and v1.1 numbers are NOT comparable.",
+    "cite": "Snegirev et al., NAACL 2025, arXiv:2408.12503 (+ the mteb sources)",
+    "tasks": 23,
+    "categories": 7,
+    "byCategory": {
+      "classification": 9,
+      "clustering": 3,
+      "multilabel": 2,
+      "pairClassification": 1,
+      "reranking": 2,
+      "retrieval": 3,
+      "sts": 3
+    },
+    "retrievalTasks": [
+      "MIRACLRetrieval",
+      "RiaNewsRetrieval",
+      "RuBQRetrieval"
+    ],
+    "version": "MTEB(rus, v1.1)",
+    "taskSizes": {
+      "RuBQ": {
+        "docs": 56826,
+        "queries": 1692,
+        "relPerQuery": 1.68
+      },
+      "RiaNews": {
+        "docs": 704344,
+        "queries": 10000,
+        "relPerQuery": 1.0
+      },
+      "MIRACLru": {
+        "docs": 9543918,
+        "queries": 1252,
+        "relPerQuery": 2.84
+      }
+    }
+  },
+  "ruLeaderboard": {
+    "_doc": "A snapshot of MTEB(rus, v1.1) restricted to models with FULL coverage of all 23 tasks. Two showcase facts: BERTA at 128 M parameters lands 2 points behind an 8 B model, and the two encoders the deck used to recommend (sbert_large_nlu_ru, LaBSE) are near the BOTTOM on retrieval — they are not retrievers.",
+    "cite": "MTEB leaderboard backend, snapshot 2026-08-09",
+    "bertaGapToQwen8b": 2.03,
+    "bertaSizeRatioToQwen8b": 59,
+    "rows": [
+      {
+        "model": "ai-sage/Giga-Embeddings-instruct",
+        "paramsB": 3.23,
+        "dim": 2048,
+        "avg": 74.16,
+        "retrieval": 81.41
+      },
+      {
+        "model": "Qwen/Qwen3-Embedding-8B",
+        "paramsB": 7.57,
+        "dim": 4096,
+        "avg": 71.42,
+        "retrieval": 78.19
+      },
+      {
+        "model": "ai-forever/FRIDA",
+        "paramsB": 0.82,
+        "dim": 1536,
+        "avg": 70.95,
+        "retrieval": 76.38
+      },
+      {
+        "model": "sergeyzh/BERTA",
+        "paramsB": 0.128,
+        "dim": 768,
+        "avg": 69.39,
+        "retrieval": 73.79
+      },
+      {
+        "model": "google/embeddinggemma-300m",
+        "paramsB": 0.31,
+        "dim": 768,
+        "avg": 65.19,
+        "retrieval": 71.5
+      },
+      {
+        "model": "deepvk/USER-bge-m3",
+        "paramsB": 0.36,
+        "dim": 1024,
+        "avg": 62.86,
+        "retrieval": 74.12
+      },
+      {
+        "model": "ai-forever/ru-en-RoSBERTa",
+        "paramsB": 0.4,
+        "dim": 1024,
+        "avg": 61.85,
+        "retrieval": 67.53
+      },
+      {
+        "model": "BAAI/bge-m3",
+        "paramsB": 0.57,
+        "dim": 1024,
+        "avg": 61.63,
+        "retrieval": 75.2
+      },
+      {
+        "model": "deepvk/USER2-base",
+        "paramsB": 0.15,
+        "dim": 768,
+        "avg": 61.24,
+        "retrieval": 66.13
+      },
+      {
+        "model": "intfloat/multilingual-e5-base",
+        "paramsB": 0.28,
+        "dim": 768,
+        "avg": 58.37,
+        "retrieval": 67.39
+      },
+      {
+        "model": "intfloat/multilingual-e5-small",
+        "paramsB": 0.12,
+        "dim": 384,
+        "avg": 57.25,
+        "retrieval": 66.19
+      },
+      {
+        "model": "sentence-transformers/LaBSE",
+        "paramsB": 0.47,
+        "dim": 768,
+        "avg": 49.07,
+        "retrieval": 31.53,
+        "legacy": true
+      },
+      {
+        "model": "ai-forever/sbert_large_nlu_ru",
+        "paramsB": 0.43,
+        "dim": 1024,
+        "avg": 45.71,
+        "retrieval": 11.0,
+        "legacy": true
+      },
+      {
+        "model": "cointegrated/rubert-tiny2",
+        "paramsB": 0.03,
+        "dim": 312,
+        "avg": 42.72,
+        "retrieval": 11.21,
+        "legacy": true
+      }
+    ]
+  },
+  "rusbeir": {
+    "_doc": "RusBEIR — the Russian BEIR the deck did not know about. Its BM25 baseline is built on exactly this lecture's Act-2 conclusion: the Elasticsearch analyzer is TURNED OFF and replaced by lowercase → punctuation → tokenize → pymorphy3 lemmatization → stop-words.",
+    "cite": "Kovalev et al., arXiv:2504.12879 (Dialogue 2025) and arXiv:2511.05079",
+    "datasetsV1": 17,
+    "datasetsV2": 27,
+    "ndcgBm25": 52.16,
+    "ndcgMe5Large": 60.12,
+    "ndcgBgeM3": 61.13,
+    "ndcgBm25Rerank": 59.87,
+    "ndcgBgeM3Rerank": 65.85,
+    "bestSingleModel": {
+      "model": "FRIDA",
+      "ndcg": 51.33,
+      "onDatasets": 27
+    },
+    "rerankerGainPoints": 9,
+    "bm25PlusReranker": 50.66,
+    "bgeM3Alone": 50.99,
+    "mmarcoRuBm25": 15.25
+  },
+  "rusbeirLength": {
+    "_doc": "The table that overturns 'dense always wins': the SAME content re-cut into longer windows. BM25 trails by >15 points on sentence-length chunks and OVERTAKES every dense model on full articles. Which arm wins is a function of document length — the direct bridge to L10/L16 chunking.",
+    "cite": "Kovalev et al., arXiv:2511.05079, Table 5",
+    "windows": [
+      {
+        "window": "sentences",
+        "words": 17.6,
+        "bm25": 13.58,
+        "me5Large": 16.7,
+        "bgeM3": 17.3,
+        "frida": 20.79
+      },
+      {
+        "window": "w2",
+        "words": 35.3,
+        "bm25": 21.27,
+        "me5Large": 24.98,
+        "bgeM3": 25.56,
+        "frida": 28.84
+      },
+      {
+        "window": "w4",
+        "words": 70.5,
+        "bm25": 27.48,
+        "me5Large": 29.09,
+        "bgeM3": 29.03,
+        "frida": 30.71
+      },
+      {
+        "window": "w6",
+        "words": 105.8,
+        "bm25": 31.54,
+        "me5Large": 31.42,
+        "bgeM3": 31.15,
+        "frida": 32.09
+      },
+      {
+        "window": "full-articles",
+        "words": 2059,
+        "bm25": 74.95,
+        "me5Large": 60.62
+      }
+    ]
+  },
+  "fertility": {
+    "_doc": "Tokens per word on FLORES-200 (dev+devtest, 2009 parallel sentences) — the same corpus Petrov et al. used; our reproduction matched their published values to within 2 tokens. Three punchlines: OpenAI's own arc x5.74 → x2.49 → x1.42 (the tax is a CHOICE, not a law); BGE-M3 and multilingual-E5 share XLM-R's 250k vocabulary, so one number covers all three; and ruBERT is the only tokenizer where Russian is CHEAPER than English.",
+    "cite": "measured on FLORES-200; Petrov et al. arXiv:2305.15425; Arnett et al. arXiv:2403.00686",
+    "rows": [
+      {
+        "tokenizer": "GPT-2 / r50k",
+        "vocabK": 50,
+        "en": 1.227,
+        "ru": 7.773,
+        "premium": 5.74
+      },
+      {
+        "tokenizer": "BERT-base-uncased",
+        "vocabK": 30,
+        "en": 1.227,
+        "ru": 6.006,
+        "premium": 4.43
+      },
+      {
+        "tokenizer": "cl100k_base (GPT-3.5/4)",
+        "vocabK": 100,
+        "en": 1.233,
+        "ru": 3.388,
+        "premium": 2.49
+      },
+      {
+        "tokenizer": "Llama 2",
+        "vocabK": 32,
+        "en": 1.415,
+        "ru": 2.555,
+        "premium": 1.64
+      },
+      {
+        "tokenizer": "Llama 3.1",
+        "vocabK": 128,
+        "en": 1.232,
+        "ru": 2.209,
+        "premium": 1.62
+      },
+      {
+        "tokenizer": "o200k_base (GPT-4o)",
+        "vocabK": 200,
+        "en": 1.22,
+        "ru": 1.915,
+        "premium": 1.42
+      },
+      {
+        "tokenizer": "Gemma 2",
+        "vocabK": 256,
+        "en": 1.232,
+        "ru": 1.889,
+        "premium": 1.39
+      },
+      {
+        "tokenizer": "XLM-R = BGE-M3 = mE5",
+        "vocabK": 250,
+        "en": 1.392,
+        "ru": 1.804,
+        "premium": 1.17
+      },
+      {
+        "tokenizer": "ruBERT",
+        "vocabK": 120,
+        "en": 1.949,
+        "ru": 1.444,
+        "premium": 0.67
+      }
+    ],
+    "cyrillicTokensInVocab": {
+      "r50k": 17,
+      "r50kMultiChar": 0,
+      "cl100k": 729,
+      "o200k": 14211
+    },
+    "r50kCyrillicList": "о а е и т р с н л к у в я м д ы ь",
+    "bytePremium": 1.984,
+    "charPremium": 1.089,
+    "cyrillicBytesPerChar": 1.824,
+    "claudeCaveat": "no public Claude tokenizer; its docs warn tiktoken under-counts by 15-20 % and more on non-English — do NOT extrapolate this table to Claude"
+  },
+  "lemmaAccuracy": {
+    "_doc": "Top-1 lemmatization accuracy on one shared test set — the only recent head-to-head. Two lessons the deck needs: real accuracy is 89-95 %, not the '<1 % errors' folklore (that figure measured the RECALL of the parse SET, not top-1); and the gap between PyMorphy2 and PyMorphy2* (an oracle over all its parses) is EXACTLY the price of context-blindness — 3-4 points.",
+    "cite": "Rubic2, BSNLP / ACL 2025",
+    "rows": [
+      {
+        "model": "MyStem",
+        "rnc": 91.6,
+        "fiction": 91.64,
+        "news": 91.65,
+        "social": 91.98,
+        "wiki": 89.56,
+        "caps": 78.9
+      },
+      {
+        "model": "PyMorphy2",
+        "rnc": 91.23,
+        "fiction": 95.21,
+        "news": 94.1,
+        "social": 93.76,
+        "wiki": 89.35,
+        "caps": 80.15
+      },
+      {
+        "model": "Stanza",
+        "rnc": 93.79,
+        "fiction": 97.65,
+        "news": 97.32,
+        "social": 95.1,
+        "wiki": 89.7,
+        "caps": 59.24
+      },
+      {
+        "model": "PyMorphy2* (oracle)",
+        "rnc": 94.08,
+        "fiction": 97.56,
+        "news": 95.79,
+        "social": 96.97,
+        "wiki": 90.25,
+        "caps": 83.25
+      },
+      {
+        "model": "Rubic2 (neural)",
+        "rnc": 99.05,
+        "fiction": 99.39,
+        "news": 99.69,
+        "social": 97.86,
+        "wiki": 96.36,
+        "caps": 82.87
+      }
+    ],
+    "oracleGapRnc": 2.85,
+    "oracleGapSocial": 3.21
+  },
+  "pymorphyBlind": {
+    "_doc": "pymorphy3's top-1 parse WITHOUT context — the concrete proof that a dictionary lemmatizer does not disambiguate. An index built on these lemmas silently destroys the query «первый том».",
+    "cite": "pymorphy3 2.0.6, OpenCorpora dictionary",
+    "rows": [
+      {
+        "form": "том",
+        "top1": "тот",
+        "p": 0.896,
+        "lost": "том (a volume)",
+        "pLost": 0.006
+      },
+      {
+        "form": "банка",
+        "top1": "банк",
+        "p": 0.955,
+        "lost": "банка (a jar)",
+        "pLost": 0.045
+      },
+      {
+        "form": "стали",
+        "top1": "стать",
+        "p": 0.975,
+        "lost": "сталь (steel)",
+        "pLost": 0.011
+      },
+      {
+        "form": "жгут",
+        "top1": "жечь",
+        "p": 0.6,
+        "lost": "жгут (a tourniquet)",
+        "pLost": 0.2
+      },
+      {
+        "form": "белки",
+        "top1": "белка",
+        "p": 0.3,
+        "lost": "белок (protein)",
+        "pLost": 0.3
+      }
+    ]
+  },
+  "toolStatus": {
+    "_doc": "The state of the Russian normalization tooling in 2026 — the deck used to recommend an unmaintained package (pymorphy2) and a non-free binary (Mystem) with no licence warning. Both are corrected here.",
+    "cite": "PyPI / GitHub / vendor licences, snapshot 2026-08",
+    "rows": [
+      {
+        "tool": "pymorphy2",
+        "version": "0.9.1",
+        "released": "2020-09-26",
+        "context": false,
+        "licence": "MIT",
+        "maintained": false,
+        "wordsPerSec": 11000
+      },
+      {
+        "tool": "pymorphy3",
+        "version": "2.0.6",
+        "released": "2025-10-09",
+        "context": false,
+        "licence": "MIT",
+        "maintained": true,
+        "python": "3.9-3.14",
+        "wordsPerSec": 11000
+      },
+      {
+        "tool": "Mystem 3.1",
+        "version": "3.1",
+        "released": "2019-06-20",
+        "context": true,
+        "licence": "non-free (non-commercial, 2011 agreement)",
+        "maintained": false,
+        "wordsPerSec": 62000
+      },
+      {
+        "tool": "Snowball ru",
+        "version": "stable",
+        "released": "2018-03-16",
+        "context": false,
+        "licence": "BSD",
+        "maintained": true,
+        "wordsPerSec": 33000,
+        "foldsYo": true
+      },
+      {
+        "tool": "spaCy ru_core_news",
+        "version": "3.8.0",
+        "released": "2024",
+        "context": "partial",
+        "licence": "MIT",
+        "maintained": true,
+        "wordsPerSec": 2300,
+        "lemmatizerIs": "pymorphy3"
+      },
+      {
+        "tool": "Stanza / UDPipe 2",
+        "version": "1.x",
+        "released": "2024",
+        "context": true,
+        "licence": "Apache / CC",
+        "maintained": true,
+        "wordsPerSec": 800
+      },
+      {
+        "tool": "Natasha / Slovnet",
+        "version": "1.x",
+        "released": "2023",
+        "context": "morphotag",
+        "licence": "MIT",
+        "maintained": true,
+        "wordsPerSec": 5000
+      }
+    ],
+    "segalovich2003": {
+      "snowballLostConflations": 487,
+      "mystemLostConflations": 41,
+      "ratio": 12
+    }
+  },
+  "rerankersRu": {
+    "_doc": "Rerankers for Russian, honestly: the multilingual cross-encoders do not publish a Russian number, and the one ru-only cross-encoder was trained on machine-translated mMARCO with no published evaluation at all. The only citable Russian reranker result is RusBEIR's, and it is for bge-reranker-v2-m3.",
+    "cite": "model cards + RusBEIR arXiv:2511.05079",
+    "rows": [
+      {
+        "model": "bge-reranker-v2-m3",
+        "paramsB": 0.6,
+        "licence": "Apache-2.0",
+        "ruNumber": "RusBEIR only"
+      },
+      {
+        "model": "jina-reranker-v2-base-multilingual",
+        "paramsB": 0.278,
+        "licence": "CC-BY-NC (non-commercial)",
+        "ruNumber": null
+      },
+      {
+        "model": "Qwen3-Reranker-0.6B",
+        "paramsB": 0.6,
+        "licence": "Apache-2.0",
+        "context": 32768,
+        "ruNumber": null
+      },
+      {
+        "model": "DiTy/cross-encoder-russian-msmarco",
+        "paramsB": 0.18,
+        "licence": "MIT",
+        "trainedOn": "machine-translated mmarco-ru",
+        "ruNumber": null
+      }
+    ]
+  },
+  "yoStats": {
+    "_doc": "MEASURED on FLORES-ru (231 992 Cyrillic letters): how rare ё is in professionally written Russian, and how inconsistent it is INSIDE ONE corpus. The token price is the sting: writing the letter doubles the cost of the word.",
+    "cite": "measured on FLORES-200 ru; token counts on cl100k_base",
+    "yoShareOfLettersPct": 0.163,
+    "yoShareAmongYoEPct": 1.93,
+    "cyrillicLetters": 231992,
+    "pairs": [
+      {
+        "e": "все",
+        "eCount": 60,
+        "yo": "всё",
+        "yoCount": 29
+      },
+      {
+        "e": "еще",
+        "eCount": 27,
+        "yo": "ещё",
+        "yoCount": 23
+      },
+      {
+        "e": "ее",
+        "eCount": 28,
+        "yo": "её",
+        "yoCount": 18
+      },
+      {
+        "e": "чем",
+        "eCount": 57,
+        "yo": "чём",
+        "yoCount": 0
+      }
+    ],
+    "tokensVse": 1,
+    "tokensVsyo": 2
+  },
+  "luceneStop": {
+    "_doc": "The trap the pipeline slide used to recommend without warning. In Elasticsearch the `russian` analyzer chain is standard → lowercase → russian_stop → russian_keywords → russian_stemmer: the STOP filter runs BEFORE the stemmer, and the stop list has no ё forms at all. So «всё» survives stop-word removal while «все» does not — one lexeme, two behaviours, because of an optional pair of dots. Cure: a ё→е char_filter BEFORE the stop filter.",
+    "cite": "Lucene russian_stop.txt / NLTK / spaCy sources",
+    "luceneEntries": 159,
+    "nltkEntries": 151,
+    "spacyEntries": 768,
+    "luceneYoEntries": 0,
+    "chain": [
+      "standard",
+      "lowercase",
+      "russian_stop",
+      "russian_keywords",
+      "russian_stemmer"
+    ],
+    "examples": [
+      {
+        "inList": "все",
+        "notInList": "всё"
+      },
+      {
+        "inList": "еще",
+        "notInList": "ещё"
+      },
+      {
+        "inList": "его",
+        "notInList": "её"
+      },
+      {
+        "inList": "чем",
+        "notInList": "чём"
+      }
+    ]
+  },
+  "confusables": {
+    "_doc": "Unicode's own confusables data — the source of truth for homoglyph normalization.",
+    "cite": "UTS #39 confusables.txt 17.0.0 (2025-07-22)",
+    "cyrillicConfusables": 141,
+    "lowerPairs": 7,
+    "upperPairs": 12,
+    "idnAttack": {
+      "year": 2017,
+      "author": "Xudong Zheng",
+      "domain": "xn--80ak6aa92e.com",
+      "displayed": "аpple.com",
+      "fixedIn": "Chrome 58"
+    },
+    "tokenCost": {
+      "real": "Москва",
+      "realTokens": 1,
+      "fake": "Mocквa",
+      "fakeTokens": 4
+    }
+  },
+  "unicodeRu": {
+    "_doc": "Two Unicode facts about Russian, one reassuring and one dangerous. Reassuring: there is NO Turkish-I problem in Cyrillic — zero special-casing entries, so case folding is 1:1 and locale-independent. Dangerous: ё and й both DECOMPOSE under NFD, so the same text can be two different byte strings. Rule: NFC on input, always.",
+    "cite": "UnicodeData.txt / SpecialCasing.txt / CaseFolding.txt",
+    "specialCasingCyrillic": 0,
+    "caseFoldingFTCyrillic": 0,
+    "decompositions": [
+      {
+        "char": "ё",
+        "cp": "U+0451",
+        "nfd": [
+          "U+0435",
+          "U+0308"
+        ]
+      },
+      {
+        "char": "й",
+        "cp": "U+0439",
+        "nfd": [
+          "U+0438",
+          "U+0306"
+        ]
+      }
+    ],
+    "phrase": {
+      "text": "мой ёжик",
+      "nfcCodepoints": 8,
+      "nfdCodepoints": 10
+    },
+    "compositionExclusion": false
+  },
+  "gost779": {
+    "_doc": "Transliteration standards, and the correction the deck needs: the widely repeated 'GOST 7.79 gives щ → shch' is WRONG. System B gives shh, system A (= ISO 9) gives ŝ; shch is the BGN / passport spelling. A user types none of the three.",
+    "cite": "GOST 7.79-2000 (ISO 9:1995); FMS order No. 211 of 2014-03-26 (ICAO Doc 9303)",
+    "standardNumber": 7.79,
+    "systemA": {
+      "щ": "ŝ",
+      "ш": "š",
+      "ж": "ž",
+      "ч": "č",
+      "х": "h",
+      "ё": "ë",
+      "ю": "û",
+      "я": "â"
+    },
+    "systemB": {
+      "щ": "shh",
+      "ш": "sh",
+      "ж": "zh",
+      "ч": "ch",
+      "х": "x",
+      "ц": "cz/c",
+      "ё": "yo",
+      "ю": "yu",
+      "я": "ya",
+      "й": "j",
+      "ы": "y'",
+      "э": "e'"
+    },
+    "pike": {
+      "iso9": "ŝuka",
+      "gostB": "shhuka",
+      "bgn": "shchuka"
+    },
+    "surprise": {
+      "word": "хорошо",
+      "gostB": "xorosho"
+    }
+  },
+  "yandexTypos": {
+    "_doc": "The source for 'layout typos are massive in web search' the deck asserted without one.",
+    "cite": "Yandex research, «Самые частые орфографические ошибки в поисковых запросах», H1 2012",
+    "queriesPerDayMillions": 150,
+    "shareWithAnError": 0.1,
+    "shareOfErrorsThatAreTypos": 0.5,
+    "thailandYPct": 85,
+    "agentstvoLostTPct": 25
+  },
+  "opencorpora": {
+    "_doc": "Russian morphology in one number: ~12.5 surface forms per lexeme. That is BM25's problem stated arithmetically — one lexeme's df is smeared across ~12 terms, so idf lies.",
+    "cite": "OpenCorpora dictionary / pymorphy docs",
+    "lexemes": 400000,
+    "wordforms": 5000000,
+    "paradigms": 3000,
+    "formsPerLexeme": 12.5,
+    "ramMb": 15
+  },
+  "bpeVocabGrowth": {
+    "_doc": "L2's own measurement, reused here as the mechanism explanation: growing the vocabulary 16-fold changed NOTHING for a Russian word, because no Cyrillic merges were learned.",
+    "cite": "measured in L2 — _research/data/bpe_demo_tokens.json",
+    "word": "привет",
+    "vocabSizes": [
+      1000,
+      4000,
+      16000
+    ],
+    "tokens": [
+      12,
+      12,
+      12
+    ]
+  },
+  "frontier": {
+    "_doc": "The frontier slide used to name ByT5 (2021) and CANINE (2021) — history, not frontier. What is actually moving in 2026: vocabulary budgets sized per language, byte-level fallbacks inside production tokenizers, and instruction-tuned multilingual embedders where the Russian gap is closed by data, not by architecture.",
+    "cite": "field survey, 2026-08",
+    "history": [
+      {
+        "model": "ByT5",
+        "year": 2021
+      },
+      {
+        "model": "CANINE",
+        "year": 2021
+      }
+    ]
   }
 }

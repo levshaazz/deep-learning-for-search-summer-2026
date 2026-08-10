@@ -1,0 +1,37 @@
+<section class="slide" data-type="definition" data-screen-label="25 Algorithm 1 verbatim">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Алгоритм 1 дословно &mdash; и что такое \(o_i\)</span>
+      <span lang="en">Algorithm 1 verbatim &mdash; and what \(o_i\) actually is</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">G&uuml;nther et al. 2024, Algorithm 1 (v3) &middot; строки 5&ndash;13 &mdash; всё, что важно</span>
+      <span lang="en">G&uuml;nther et al. 2024, Algorithm 1 (v3) &middot; lines 5&ndash;13 are the whole story</span>
+    </span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">
+      <span lang="ru">Входы, выходы и три вектора-помощника</span>
+      <span lang="en">Inputs, outputs, and three helper arrays</span>
+    </span>
+    <div class="def-body">
+      <table class="cmp-table">
+        <thead><tr>
+          <th><span lang="ru">имя</span><span lang="en">name</span></th>
+          <th><span lang="ru">что это</span><span lang="en">what it is</span></th>
+          <th><span lang="ru">зачем оно нужно</span><span lang="en">why it is there</span></th>
+        </tr></thead>
+        <tbody>
+          <tr><td>\(T,\ S\)</td><td><span lang="ru">текст и список чанков</span><span lang="en">the text and the list of chunks</span></td><td><span lang="ru">входы: чанкер уже отработал</span><span lang="en">the inputs: the chunker has already run</span></td></tr>
+          <tr><td>\(\tau_i\)</td><td><span lang="ru">id \(i\)-го токена</span><span lang="en">the id of token \(i\)</span></td><td><span lang="ru">то, что уходит в модель</span><span lang="en">what goes into the model</span></td></tr>
+          <tr><td class="cell-good">\(o_i\)</td><td class="cell-good"><span lang="ru"><strong>длина токена \(i\) в символах</strong></span><span lang="en"><strong>the length of token \(i\) in characters</strong></span></td><td class="cell-good"><span lang="ru">мост: символы чанкера &rarr; токены модели</span><span lang="en">the bridge: chunker characters &rarr; model tokens</span></td></tr>
+          <tr><td>\(\vartheta_i\)</td><td><span lang="ru">контекстный эмбеддинг токена \(i\)</span><span lang="en">the contextual embedding of token \(i\)</span></td><td><span lang="ru">то, что мы будем усреднять</span><span lang="en">what we are going to average</span></td></tr>
+          <tr><td>\(\mathrm{cue}_{start},\ \mathrm{cue}_{end}\)</td><td><span lang="ru">граничные подсказки в токенах</span><span lang="en">the boundary cues, in tokens</span></td><td><span lang="ru">результат строк 5&ndash;13</span><span lang="en">the output of lines 5&ndash;13</span></td></tr>
+        </tbody>
+      </table>
+      <p class="math-display">$$ e_i \;\leftarrow\; \frac{\sum_{j=\mathrm{cue}_{start}}^{\mathrm{cue}_{end}} \vartheta_j}{(\mathrm{cue}_{end}+1)-\mathrm{cue}_{start}} $$</p>
+      <p><span lang="ru"><strong>Строки 5&ndash;13:</strong> копим \(o_{\text{chunk}} \mathrel{+}= o_i\), пока длина в <em>символах</em> не догнала \(|c_j|\) &mdash; тогда закрываем чанк и обнуляем счётчик. Это перевод символьных границ в токенные, и только он.</span><span lang="en"><strong>Lines 5&ndash;13:</strong> accumulate \(o_{\text{chunk}} \mathrel{+}= o_i\) until the <em>character</em> length reaches \(|c_j|\), then close the chunk and reset. That is the translation of character boundaries into token boundaries, and nothing else.</span></p>
+    </div>
+  </div>
+  <aside class="slide-notes">Algorithm 1 read out properly, which the deck never did. The load-bearing detail is o_i: it is NOT an offset, it is the LENGTH OF EACH TOKEN IN CHARACTERS, and lines 5–13 accumulate it until it reaches |c_j| — that is the entire mechanism by which a chunker that cut characters tells a model that lives in tokens where to pool. The pooled mean is over [cue_start, cue_end] inclusive, hence the (cue_end + 1) − cue_start denominator. Next slide turns this into ten lines of real code.</aside>
+</section>

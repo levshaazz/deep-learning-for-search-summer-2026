@@ -67,6 +67,15 @@ TOKEN = re.compile("[%s%s’'ʼ]+" % (CYR, LAT))
 # Legitimate: a Cyrillic word carrying a subscript index — докᵢ, документᵢ. Notation, not mojibake.
 ADJ_OK = [re.compile('^[%s]+[ᵢⁱⱼₖ]$' % CYR)]
 
+# INTENTIONAL — the ONE place where mixed script is the CONTENT, not a defect: L20 «Поиск на русском»
+# teaches the Unicode-confusables attack (UTS #39), so it has to SHOW a homoglyph string. These three
+# are the demonstration itself and they are exactly what gen_l20.py computes
+# (data/l20-ru.json → homoglyphs.demo / l20-bench.json → confusables.idnAttack): «cocнa» against
+# «сосна», «Mocквa» against «Москва», and Zheng's 2017 IDN domain rendered «аpple.com». Scoped to that
+# lecture's slides so the rule keeps biting everywhere else.
+ADJ_DEMO = {'cocнa', 'Mocквa', 'аpple'}
+ADJ_DEMO_SCOPE = os.path.join('Lectures', '20-russian-search')
+
 # QUARANTINE — script-mixing that predates this rule and sits outside the NCD family. token → owner.
 # NOT a pardon: it prints on every run, and a stale entry HARD-fails so the list can never rot.
 ADJ_DEBT = {
@@ -143,6 +152,8 @@ def main():
             hard += 1
             print(f"  ✗ [HARD] {label}: found {sub!r} in {rel}")
         for w in mixed_tokens(t):                                   # [A]
+            if w in ADJ_DEMO and ADJ_DEMO_SCOPE in rel:
+                continue
             if w in ADJ_DEBT:
                 debt_seen[w] = debt_seen.get(w, 0) + 1
                 continue

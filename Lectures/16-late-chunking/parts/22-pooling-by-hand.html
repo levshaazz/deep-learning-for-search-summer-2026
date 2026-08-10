@@ -1,0 +1,43 @@
+<section class="slide" data-type="formula" data-screen-label="22 Pooling by hand">
+  <div class="slide-header" style="border:none; padding-bottom:0;">
+    <h2>
+      <span lang="ru">Усреднение руками: из (0, 2) в (1, 1)</span>
+      <span lang="en">Pooling by hand: from (0, 2) to (1, 1)</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">четыре токена, две оси, одно правило &mdash; применённое дважды</span>
+      <span lang="en">four tokens, two axes, one rule &mdash; applied twice</span>
+    </span>
+  </div>
+  <div class="formula-stage">
+    $$ \vartheta_j=\operatorname{mean}\{\,v_i : i \in \mathrm{readable}(j)\,\},\qquad e_B=\tfrac12\left(\vartheta_3+\vartheta_4\right) $$
+  </div>
+  <div class="formula-caption">
+    <div class="var-block">
+      <div class="var-symbol"><span lang="ru">наивно</span><span lang="en">naive</span></div>
+      <div class="var-desc">
+        <span lang="ru">читает только чанк B: \(\vartheta_3=\vartheta_4=\tfrac12[(0,0)+(0,4)]=(0,2)\)<br />\(e_B=(0,2)\), \(\cos(q,e_B)=0\)</span>
+        <span lang="en">reads chunk B only: \(\vartheta_3=\vartheta_4=\tfrac12[(0,0)+(0,4)]=(0,2)\)<br />\(e_B=(0,2)\), \(\cos(q,e_B)=0\)</span>
+      </div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol"><span lang="ru">поздно</span><span lang="en">late</span></div>
+      <div class="var-desc">
+        <span lang="ru">читает весь документ: \(\vartheta_3=\vartheta_4=\tfrac14[(4,0)+(0,0)+(0,0)+(0,4)]=(1,1)\)<br />\(e_B=(1,1)\), \(\cos(q,e_B)=\tfrac{1}{\sqrt2}=0{,}7071\)</span>
+        <span lang="en">reads the whole document: \(\vartheta_3=\vartheta_4=\tfrac14[(4,0)+(0,0)+(0,0)+(0,4)]=(1,1)\)<br />\(e_B=(1,1)\), \(\cos(q,e_B)=\tfrac{1}{\sqrt2}=0.7071\)</span>
+      </div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol"><span lang="ru">что сдвинулось</span><span lang="en">what moved</span></div>
+      <div class="var-desc">
+        <span lang="ru"><strong>ничего</strong>, кроме порядка двух операций &mdash; ни веса, ни границы, ни число векторов</span>
+        <span lang="en"><strong>nothing</strong> but the order of two operations &mdash; not a weight, not a boundary, not a vector count</span>
+      </div>
+    </div>
+  </div>
+  <p class="small muted center mt-2">
+    <span lang="ru">Документ: <code>Berlin | is | Its | residents</code>, оси &mdash; &laquo;Berlin-ность&raquo; и &laquo;население&raquo;, запрос \(q=(1,0)\). Вектор встал ровно под 45&deg; &mdash; между &laquo;про Berlin&raquo; и &laquo;про население&raquo;. И заметь вторую половину: он <strong>укоротился</strong> с 2 до \(\sqrt2\). Читать больше &mdash; значит размазывать среднее тоньше; в акте 7 ровно это и утопит приём.</span>
+    <span lang="en">Document: <code>Berlin | is | Its | residents</code>, axes &ldquo;Berlin-ness&rdquo; and &ldquo;population&rdquo;, query \(q=(1,0)\). The vector lands at exactly 45&deg; &mdash; halfway between &ldquo;about Berlin&rdquo; and &ldquo;about population&rdquo;. And note the other half: it got <strong>shorter</strong>, from 2 to \(\sqrt2\). Reading more spreads the average thinner &mdash; in act 7 that is precisely what sinks the trick.</span>
+  </p>
+  <aside class="slide-notes">Worked-1, on the toy from data/l16-chunk.json → pool. ONE rule applied twice: a token's contextual vector is the mean of the tokens it may read. Naive (chunk B alone) → (0,2), cos = 0. Late (whole document) → (1,1), cos = 1/√2 = 0.7071. Nothing in the model changed, the boundary did not move, the output is still one vector — only the ORDER of {cut, attend} moved. Say the second half out loud too: the vector's length falls from 2 to √2, i.e. attention over more text dilutes; that same dilution is the Needle-in-a-Haystack failure mode in act 7. Write the denominator as √2, never as a decimal.</aside>
+</section>

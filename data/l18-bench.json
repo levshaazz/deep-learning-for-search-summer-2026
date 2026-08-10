@@ -1,15 +1,63 @@
 {
   "_doc": "REPORTED published numbers (transcribed). Provenance labels, NOT our toy.",
   "anisotropy": {
-    "_doc": "Ethayarajh 2019 — average cosine between random words (isotropy = 0).",
+    "_doc": "Ethayarajh 2019 — average cosine between random words (isotropy = 0). The 0.6 figure is written in the TEXT ('roughly 0.6 in layers 2 through 8'); the last-layer figure is NOT: the text says only 'almost perfect cosine similarity' and 0.99 is read off Figure 1.",
     "cite": "Ethayarajh 2019",
     "gpt2Mid": 0.6,
     "gpt2Last": 0.99,
-    "mevAfterAdjustPct": 5
+    "_gpt2LastNote": "read off Fig. 1; the paper's text says only 'almost perfect cosine similarity'.",
+    "mevAfterAdjustPct": 5,
+    "_mevDoc": "Ethayarajh 2019: <5% of the variance IN A WORD'S CONTEXTUALISED REPRESENTATIONS is explained by their first principal component (MEV — the ceiling on how well one static vector can replace the contextual ones for that word). NOT a statement about the first principal component of the SPACE. Raw MEV is <5% for every ELMo/BERT layer but ≈30% for GPT-2 layers 2–11.",
+    "gpt2RawMevPct": 30,
+    "replication": {
+      "_doc": "Timkey & van Schijndel, EMNLP 2021 (arXiv 2109.04404) Table 1 — independent replication on 85k Wikipedia tokens / 500k pairs. Confirms the effect is model-dependent: BERT's anisotropy is roughly HALF of GPT-2's, and the static baselines are near-isotropic.",
+      "cite": "Timkey 2021",
+      "gpt2Final": 0.885,
+      "gpt2L11": 0.64,
+      "bertL11": 0.506,
+      "robertaL12": 0.745,
+      "xlnetL11": 0.981,
+      "word2vec": 0.13,
+      "glove": 0.104
+    },
+    "rogueDims": {
+      "_doc": "Timkey & van Schijndel 2021 — the COMPETING mechanism: 1–5 'rogue dimensions' dominate cosine. XLNet layer 11: ONE coordinate contributes 99.6% of the expected cosine (dimension 667 has mean activation 180.0 vs −0.084, σ=0.77 for every other). Remove 5 dimensions and Â never exceeds 0.25 in any layer of any model. And in GPT-2/RoBERTa layers 2–11 two tokens at POSITION 0 read >0.99 vs 0.623/0.564 elsewhere — the famous 0.99 is largely a positional artefact.",
+      "cite": "Timkey 2021",
+      "xlnetOneDimSharePct": 99.6,
+      "xlnetRogueMeanAct": 180.0,
+      "otherDimsMeanAct": -0.084,
+      "afterDropping5Max": 0.25,
+      "gpt2Pos0": 0.99,
+      "gpt2OtherPos": 0.623,
+      "robertaOtherPos": 0.564
+    },
+    "isoScore": {
+      "_doc": "Rudman et al., IsoScore (Findings ACL 2022) Table 3 — the killer counter-example: ONE point cloud, rotated four ways. IsoScore returns 0.216 every time; the average-cosine measure returns 0.97–0.99. Average cosine fails 4 of the paper's 6 requirements and essentially measures DISTANCE FROM THE ORIGIN, not how much of the space is filled (GPT-2's mean vector has coordinates from −32.36 to +198.19).",
+      "cite": "Rudman 2022",
+      "isoScoreAllRotations": 0.216,
+      "avgCosLo": 0.97,
+      "avgCosHi": 0.99,
+      "requirementsFailed": 4,
+      "requirementsTotal": 6,
+      "gpt2MeanVecMin": -32.36,
+      "gpt2MeanVecMax": 198.19
+    },
+    "modern2026": {
+      "_doc": "IsoScore of deployed encoders — Tsukagoshi & Sasano, Findings ACL 2025 (arXiv 2506.01435) Tables 1–2. Every 2024–25 encoder sits in 0.005–0.44; none is near 1. Contrastive training moves the needle but does not finish the job.",
+      "cite": "Tsukagoshi 2025",
+      "bertLarge": 0.0186,
+      "unsupSimcse": 0.1611,
+      "e5Large": 0.2022,
+      "e5Small": 0.4419
+    }
   },
   "hubness": {
     "_doc": "Radovanović et al. 2010 — N_k skewness of i.i.d. data as dimension grows.",
+    "_provenance": "JMLR 11:2487–2531, FOOTNOTE 5 on p. 2492 referring to Figure 1 (not Table 1, which reports 50 real datasets). These are S_{N₅} — k = 5, not 10 — at n = 10 000.",
+    "_metricNote": "EUCLIDEAN distance. The paper itself flags COSINE as the exception on Fig. 1, and Munyampirwa et al. 2024 measure it directly: 'cosine distance does not have a dramatic skew, even for d ∈ {1024, 1536}'. This lecture is a COSINE lecture — so the table below is a statement about the metric, not a law of embedding space.",
     "cite": "Radovanović 2010",
+    "k": 5,
+    "n": 10000,
     "skewUniform": {
       "d3": 0.121,
       "d20": 1.541,
@@ -20,30 +68,178 @@
       "d20": 2.055,
       "d100": 19.21
     },
-    "dimSkewCorr": 0.62
+    "dimSkewCorr": 0.62,
+    "reduction": {
+      "_doc": "Feldbauer & Flexer 2019, Knowledge and Information Systems 59(1):137–166, 'A comprehensive empirical comparison of hubness reduction in high-dimensional spaces' — 12 methods + 2 baselines on 50 datasets. Real S_{N₁₀} spans −0.1156 … 15.5188. DisSimLocal wins on the hubness metric; Local Scaling wins on kNN classification (the only method significantly beating both baselines). OPERATING RULE: the gain only appears above S_{N₁₀} ≈ 1.4 — measure before you treat. Mutual Proximity is CUBIC and does not scale; LS/NICDM/DSL are quadratic.",
+      "cite": "Feldbauer 2019",
+      "skewMin": -0.1156,
+      "skewMax": 15.5188,
+      "treatThreshold": 1.4
+    },
+    "highway": {
+      "_doc": "Munyampirwa, Lakshman & Coleman (arXiv 2412.01940) — the Hub Highway Hypothesis: in NSW graphs hubs form a 'highway' that does the job of HNSW's layer hierarchy. Hubs are preferentially connected to hubs (P99 effect size 0.83–0.87 on ℓ₂); queries traverse hubs within the first 5–10% of steps. Dropping the hierarchy saves peak build memory with no recall/latency cost. In LOW dimension the hierarchy exists in order to MANUFACTURE hubs; in high dimension the dimension supplies them for free.",
+      "cite": "Munyampirwa 2024",
+      "effectNytimes": 0.9305,
+      "effectGlove": 0.7642,
+      "memSavedBigannPct": 38,
+      "memSavedDeepPct": 39,
+      "memSavedSpacevPct": 18
+    },
+    "adversarial": {
+      "_doc": "Zhang et al. (arXiv 2412.14113) — the measured price of a hub: a natural hub on CUB-200/OpenCLIP is genuinely relevant to 28 queries but is returned for up to 100 (≈72 false hits per hub); an ADVERSARIAL hub reaches top-1 for 21 136 of 25 000 queries against 102 for the best natural one (×207). QB-Norm kills universal hubs (85.1% → 0.0%) but barely touches concept-specific ones (100% → 95.3%).",
+      "cite": "Zhang 2024",
+      "relevantTo": 28,
+      "returnedFor": 100,
+      "adversarialTop1": 21136,
+      "naturalTop1": 102
+    }
   },
   "fixes": {
     "_doc": "Correction methods — reported STS Spearman / retrieval numbers.",
     "bertWhiteningStsB": {
+      "_doc": "Su et al. 2021 (arXiv 2103.15316) Table 1. THREE cautions the lecture must state: (a) 59.04 is BERTbase-FIRST-LAST-AVG, already a pooling choice — the truly raw BERT-base STS-B is 47.29 (Li et al. 2020); (b) 71.34 is the '(target)' variant — μ and W are fitted on the train+dev+TEST sentences, i.e. TRANSDUCTIVE; the inductive number (fitted on NLI) is 68.19, 3.15 points lower; (c) whitening HURTS SICK-R in the same table: 63.75 → 60.6.",
+      "cite": "Su 2021",
       "raw": 59.04,
-      "whitened": 71.34,
-      "cite": "Su 2021"
+      "pooling": "first-last-avg",
+      "trulyRawBertBase": 47.29,
+      "whitenedInductive": 68.19,
+      "whitenedTarget": 71.34,
+      "sickRBefore": 63.75,
+      "sickRAfter": 60.6
     },
     "bertFlowAvgGain": 8.16,
-    "simcseUnsup": 76.3,
-    "simcseSup": 81.6,
-    "simcsePrevSota": 72.05,
-    "cslsWordTransP1": {
+    "simcse": {
+      "_doc": "Gao, Yao & Chen 2021 Table 5 (7 STS tasks, Spearman, 'all' setting). The previous best WITHOUT a teacher was CT-BERT_base 72.05; the previous best WITH one was CT-SBERT_base 79.39. The paper's own deltas are +4.2 (76.25 − 72.05) and +2.2 (81.57 − 79.39) — comparing 81.57 against 72.05 inflates the supervised gain from 2.2 to 9.55 points.",
+      "cite": "Gao 2021",
+      "prevSotaUnsup": 72.05,
+      "prevSotaSup": 79.39,
+      "unsup": 76.25,
+      "sup": 81.57,
+      "gainUnsup": 4.2,
+      "gainSup": 2.2
+    },
+    "simcseUnsup": 76.25,
+    "simcseSup": 81.57,
+    "diagnosticPlane": {
+      "_doc": "Gao 2021 Fig. 3 — the alignment/uniformity plane, with each point's STS average. Flow and whitening BUY uniformity by SPENDING alignment; STS measures alignment. And SimCSE §5/Fig. F.1: BERT-flow and BERT-whitening flatten the singular spectrum EVEN HARDER than SimCSE does — so whitening did not lose on isotropy. Isotropy is not the goal.",
+      "cite": "Gao 2021",
+      "avgBert": 56.7,
+      "bertFlow": 66.6,
+      "bertWhitening": 66.3,
+      "sbert": 74.9,
+      "unsupSimcse": 76.3,
+      "sbertWhitening": 77.0,
+      "supSimcse": 81.6
+    },
+    "whiteningHurts": {
+      "_doc": "PREPRINT (⚠ not peer-reviewed). Ren, Sun & Liang (arXiv 2511.11041) Table 2 on MMTEB — the dose-response curve: removing the mean DIRECTION and ABTT-1/2 are positive, but FULL PCA whitening is negative on 5 of 5 modern embedders. Their one-directional correction is significant on 29/38 models with ZERO significant losses. Forooghi et al. (arXiv 2407.12886) Table 1 find degradation for every model and every dataset without exception, growing with dimension (768-d ≈ −3, 4096-d ≈ −15; LLaMA on CR 90.36 → 60.80).",
+      "cite": "Ren 2025 (preprint)",
+      "preprint": true,
+      "me5LargeInstruct": -5.18,
+      "bgeBaseEnV15": -1.79,
+      "nomicEmbedTextV1": -0.7,
+      "snowflakeArcticEmbedM": -0.64,
+      "allMiniLmL6V2": -0.64,
+      "forooghiBert": -3.19,
+      "forooghiSimcse": -3.45,
+      "forooghiLlama": -15.21
+    },
+    "whiteningStillWins": {
+      "_doc": "Diera, Galke & Scherp, 'Isotropy Matters: Soft-ZCA Whitening for Semantic Code Search' (arXiv 2411.17538, ESANN 2025) Tables 2–3 — the one place whitening still pays, and its own caveat: NON-contrastive models gain hugely, the CONTRASTIVELY pre-trained CodeT5+ gains essentially nothing. Plain ZCA (ε=0) 'decreased performance on most datasets'; a regulariser ε ∈ {0.1, 0.01} is required. Optimal IsoScore for the base models is 0.2–0.8, NOT 1.0. ⚠ their whitening matrices are fitted on the full test set.",
+      "cite": "Diera 2025",
+      "codebertMrrMin": 0.077,
+      "codebertMrrMax": 0.25,
+      "codellamaMrrMax": 0.476,
+      "codet5pMrrMax": 0.007,
+      "isoScoreOptLo": 0.2,
+      "isoScoreOptHi": 0.8
+    },
+    "cslsSentRetrievalP1": {
+      "_doc": "Conneau et al. 2018 (arXiv 1710.04087) TABLE 3 — CROSS-LINGUAL SENTENCE RETRIEVAL on Europarl: 2 000 query sentences against 200 000 target sentences, idf-weighted bag of words, supervised Procrustes, NN vs CSLS. This is a RETRIEVAL task, NOT word-translation P@1 (the deck used to label it so). Reverse direction it→en: 53.5 → 69.5.",
+      "cite": "Conneau 2018",
+      "task": "cross-lingual sentence retrieval (Europarl), en→it, P@1",
       "nn": 42.6,
       "csls": 66.1,
-      "cite": "Conneau 2018"
+      "nnReverse": 53.5,
+      "cslsReverse": 69.5
     },
-    "muViswanathTopD": "d/100"
+    "cslsWordTranslationP1": {
+      "_doc": "Conneau et al. 2018 TABLE 1 — the actual WORD-translation P@1 (fastText/Wikipedia, 1 500 queries, 200k vocabulary, K = 10; stable for K ∈ {5, 10, 50}), NN vs CSLS. The authors name the motivation themselves: CSLS is 'a cross-domain similarity adaptation to mitigate the so-called hubness problem'.",
+      "cite": "Conneau 2018",
+      "enEs": {
+        "nn": 77.4,
+        "csls": 81.4
+      },
+      "enDe": {
+        "nn": 68.4,
+        "csls": 73.5
+      },
+      "enRu": {
+        "nn": 47.0,
+        "csls": 51.7
+      },
+      "enZh": {
+        "nn": 40.6,
+        "csls": 42.7
+      }
+    },
+    "qbNorm": {
+      "_doc": "Bogolin et al., QB-Norm (CVPR 2022) — the production form of CSLS via a query bank. R@1 gains on cross-modal retrieval, and the mechanism confirmed (Table 3: the skew of k-occurrences falls). THE BOUNDARY (Table 2, MSR-VTT/TT-CE+): no normalisation 14.9 → CSLS 16.8 → inverted softmax 17.1, but with a query bank from a FOREIGN domain CSLS collapses to 13.4 and IS to 11.6 — BELOW doing nothing. Table 1: a bank drawn from the training set captures ~97% of the oracle gain, so this is not transduction.",
+      "cite": "Bogolin 2022",
+      "msrvttBefore": 29.6,
+      "msrvttAfter": 33.3,
+      "didemoBefore": 21.6,
+      "didemoAfter": 24.2,
+      "mscocoBefore": 30.3,
+      "mscocoAfter": 34.8,
+      "cubBefore": 64.4,
+      "cubAfter": 64.8,
+      "skewBefore": 0.939,
+      "skewAfter": 0.509,
+      "didemoSkewBefore": 1.21,
+      "didemoSkewAfter": 0.39,
+      "baselineNoNorm": 14.9,
+      "cslsSameDomain": 16.8,
+      "cslsForeignBank": 13.4,
+      "isForeignBank": 11.6
+    },
+    "muViswanathTopD": "d/100",
+    "muViswanathD": {
+      "_doc": "Mu & Viswanath 2018 — the D actually used in their experiments at d = 300: D = 3 for word2vec, D = 2 for GloVe; Timkey & van Schijndel take D = 7 at d = 768. And the honest cell: GloVe on RG65 goes DOWN, 76.96 → 74.36.",
+      "cite": "Mu 2018",
+      "word2vecD": 3,
+      "gloveD": 2,
+      "timkeyD": 7,
+      "rg65Before": 76.96,
+      "rg65After": 74.36
+    },
+    "matryoshka": {
+      "_doc": "Kusupati et al., NeurIPS 2022. Table 1 (ResNet50/ImageNet-1K linear probe) at 8 dimensions: MRL 66.63 vs random-LP 4.56 and SVD 2.34; Table 2 (1-NN) at 8 dimensions: MRL 62.19 vs FF+SVD 19.14 and a JL projection 0.11. The famous '14×' is a CASCADE number (§4.2: 36.26 expected dimensions ≈ FF-512) — Appendix D.1 puts the total-dimension figure at 62, i.e. 8.2×. Deployment curve with a PUBLISHED table: nomic-embed-text-v1.5.",
+      "cite": "Kusupati 2022",
+      "mrl8LinearProbe": 66.63,
+      "mrl8Nn": 62.19,
+      "svd8Nn": 19.14,
+      "jl8Nn": 0.11,
+      "nomic768": 62.28,
+      "nomic512": 61.96,
+      "nomic256": 61.04,
+      "nomic128": 59.34,
+      "nomic64": 56.1
+    }
   },
   "lexicalLeak": {
-    "_doc": "Li 2020 Table 6 — Spearman ρ vs edit-distance: raw BERT cosine −50.49, GOLD human similarity labels only −24.61. BERT clings to string surface ~2× harder than the gold judgements do (its ρ with meaning itself is ≈ +59, cf. STS-B raw 59.04).",
+    "_doc": "Li 2020 Table 6 — Spearman ρ×100 against EDIT DISTANCE (a surface measure). Raw BERT cosine −50.49; the GOLD human similarity labels −24.61. BOTH are negative: more edits → less similar, so string surface LEGITIMATELY explains part of similarity. The finding is the RATIO 50.49/24.61 = 2.05 — BERT leans on the surface twice as hard as the human judgements do. BERT-flow drops it to −28.01, almost down to the human level.",
     "cite": "Li 2020",
     "corrLexical": -50.49,
-    "corrGoldEdit": -24.61
+    "corrGoldEdit": -24.61,
+    "corrFlowInduced": -28.01,
+    "ratio": 2.05,
+    "normByFreq": {
+      "_doc": "Li 2020 Table 1 — the frequency signature inside BERT: mean ℓ₂ norm of the embedding rises with rarity 0.95 → 1.45, and the mean distance to the 3 nearest neighbours rises 0.77 → 1.30. Rare words sit further out AND further apart.",
+      "normFrequent": 0.95,
+      "normRare": 1.45,
+      "knnDistFrequent": 0.77,
+      "knnDistRare": 1.3
+    }
   }
 }

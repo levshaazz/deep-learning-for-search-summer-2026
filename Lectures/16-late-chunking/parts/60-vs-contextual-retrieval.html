@@ -1,0 +1,46 @@
+<section class="slide" data-type="table" data-screen-label="60 vs Contextual Retrieval &middot; all five rows">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">ACME из статьи &mdash; все пять чанков</span>
+      <span lang="en">The paper&rsquo;s ACME table &mdash; all five chunks</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">reported &middot; Table 4 &middot; jina-embeddings-v2-small-en &middot; контекст писал claude-3-haiku-20240307</span>
+      <span lang="en">reported &middot; Table 4 &middot; jina-embeddings-v2-small-en &middot; contexts written by claude-3-haiku-20240307</span>
+    </span>
+  </div>
+  <p class="small muted center" style="margin:.2em 0 .6em;">
+    <span lang="ru">Запрос дословно: <em>&laquo;What is ACME Corp&rsquo;s revenue growth for Q2 2023?&raquo;</em></span>
+    <span lang="en">The query, verbatim: <em>&ldquo;What is ACME Corp&rsquo;s revenue growth for Q2 2023?&rdquo;</em></span>
+  </p>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th><span lang="ru">чанк</span><span lang="en">chunk</span></th>
+        <th><span lang="ru">наивно</span><span lang="en">naive</span></th>
+        <th><span lang="ru">поздно</span><span lang="en">late</span></th>
+        <th><span lang="ru">contextual</span><span lang="en">contextual</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td><span lang="ru">шапка документа</span><span lang="en">the document header</span></td><td class="cell-meh"><span lang="ru">0,8505</span><span lang="en">0.8505</span></td><td><span lang="ru">0,8305</span><span lang="en">0.8305</span></td><td><span lang="ru">0,8069</span><span lang="en">0.8069</span></td></tr>
+      <tr><td>2</td><td class="cell-good"><strong><span lang="ru">ОТВЕТ &mdash; рост выручки</span><span lang="en">THE ANSWER &mdash; the revenue growth</span></strong></td><td class="cell-bad"><span lang="ru">0,6343</span><span lang="en">0.6343</span></td><td class="cell-good"><span lang="ru">0,8516</span><span lang="en">0.8516</span></td><td class="cell-good"><span lang="ru">0,8590</span><span lang="en">0.8590</span></td></tr>
+      <tr><td>3</td><td><span lang="ru">поддерживающий</span><span lang="en">supporting</span></td><td class="cell-bad"><span lang="ru">0,6169</span><span lang="en">0.6169</span></td><td><span lang="ru">0,8424</span><span lang="en">0.8424</span></td><td><span lang="ru">0,8546</span><span lang="en">0.8546</span></td></tr>
+      <tr><td>4</td><td><span lang="ru">прогноз</span><span lang="en">outlook</span></td><td class="cell-bad"><span lang="ru">0,5191</span><span lang="en">0.5191</span></td><td><span lang="ru">0,7997</span><span lang="en">0.7997</span></td><td><span lang="ru">0,8234</span><span lang="en">0.8234</span></td></tr>
+      <tr><td>5</td><td><span lang="ru">общие слова</span><span lang="en">boilerplate</span></td><td class="cell-bad"><span lang="ru">0,6007</span><span lang="en">0.6007</span></td><td><span lang="ru">0,8022</span><span lang="en">0.8022</span></td><td><span lang="ru">0,8061</span><span lang="en">0.8061</span></td></tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2">
+    <span lang="ru">Наивно ответ &mdash; лишь <strong>#2</strong>, под шапкой, которая всего-навсего повторяет название. Оба метода это чинят и ставят его на <strong>#1</strong>. И заметь: contextual тут <em>впереди</em> позднего чанкования (0,8590 против 0,8516) &mdash; статья не прячет это, а вот пересказы обычно прячут.</span>
+    <span lang="en">Naively the answer is only <strong>#2</strong>, under a header that merely repeats the company name. Both methods fix that and put it at <strong>#1</strong>. And note: contextual is <em>ahead</em> of late chunking here (0.8590 vs 0.8516) &mdash; the paper does not hide that; retellings usually do.</span>
+  </p>
+  <p class="small muted center mt-2">
+    <span lang="ru"><strong>Как это читать честно:</strong> \(n = 1\), документ <em>вымышленный</em>, а авторы измерения &mdash; авторы метода. Это <strong>анекдот, а не оценка</strong>. Ценность у него иллюстративная: видно, что почти <em>все</em> чанки поднялись, а не только золотой, &mdash; контекст добавляется всему документу сразу.</span>
+    <span lang="en"><strong>How to read it honestly:</strong> \(n = 1\), the document is <em>invented</em>, and the people who measured it invented the method. This is an <strong>anecdote, not an evaluation</strong>. Its value is illustrative: notice that nearly <em>every</em> chunk rose, not just the gold one &mdash; context is added to the whole document at once.</span>
+  </p>
+  <div class="viz-frame fig-fit" style="--fig-max:30cqh; --fig-w:26%;">
+    <img src="assets/img/L16/L16-07-vs-llm.png?v=1" alt="Two desks. On the left a costly robot-scribe stamps an extra CONTEXT paragraph onto each torn page, little coins raining out because it charges per stamp. On the right S&#xE9;r&#xE9;ga in his green t&#xFC;betey simply reads the whole bound book first and gives a thumbs-up &#x2014; no coins at all. Between their two finished cards sits a small equals sign: the same quality either way." />
+  </div>
+  <aside class="slide-notes">Table 4 restored to all five rows (the deck used to show three and lose the plot). Provenance now stated: the query verbatim, the encoder jina-embeddings-v2-small-en, and the context generator claude-3-haiku-20240307. Naive puts the answer at rank 2, below a header that just repeats the company name; late and contextual both lift it to rank 1 — and contextual is slightly ahead of late (0.8590 > 0.8516), which the paper prints and most retellings omit. Say the caveat out loud: n = 1, fictional document, authors of the method measuring their own method — an anecdote, not an evaluation. The genuinely instructive detail is that ALL chunks rise, because context is added to the whole document at once.</aside>
+</section>

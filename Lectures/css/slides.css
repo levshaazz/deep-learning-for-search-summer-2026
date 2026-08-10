@@ -1181,6 +1181,17 @@ svg [data-arch-step][data-arch-color="red"].is-arch-current    { stroke: var(--c
   color: var(--ink-3);
   width: 280px;
 }
+/* …but NEVER uppercase rendered maths. text-transform is inherited, so the label column silently
+   rewrote KaTeX output: \tau_i → Τ_I, o_i → O_I, \vartheta_i → Θ_I, \mathrm{cue}_{start} → CUE_START.
+   The deck then contradicted itself — its own headline said "what o_i is" above a table saying O_I —
+   and the paper's notation was misquoted. A symbol is not a label: opt maths out of the transform
+   (and out of the label letter-spacing, which shreds subscripts). Found on L16 s25, fixed globally
+   because every deck's first column is exposed to it. */
+.cmp-table tbody td:first-child .katex,
+.cmp-table thead th:first-child .katex {
+  text-transform: none;
+  letter-spacing: normal;
+}
 .cmp-table .cell-good { color: var(--c-green-ink); font-weight: 600; }
 .cmp-table .cell-bad  { color: var(--c-red); font-weight: 600; }
 .cmp-table .cell-meh  { color: var(--c-amber-ink); font-weight: 600; }

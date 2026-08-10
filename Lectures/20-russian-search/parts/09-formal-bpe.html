@@ -1,27 +1,24 @@
-<section class="slide" data-type="definition" data-screen-label="09 Formal · BPE splits, morphemes don't align">
+<section class="slide" data-type="definition" data-screen-label="09 Formal · merges follow the training corpus">
   <div class="slide-header">
     <h2>
       <span lang="ru">Почему BPE рвёт русское слово</span>
       <span lang="en">Why BPE shreds a Russian word</span>
     </h2>
     <span class="slide-kicker">
-      <span lang="ru">слияния учатся на частотах корпуса обучения</span>
-      <span lang="en">merges are learned from the training corpus frequencies</span>
+      <span lang="ru">слияние выигрывает частота, а частоты считаны не на твоём корпусе</span>
+      <span lang="en">frequency wins the merge &mdash; and it was counted on someone else&rsquo;s corpus</span>
     </span>
   </div>
   <div class="def-card">
     <span class="def-tag">
-      <span lang="ru">Механизм</span>
-      <span lang="en">The mechanism</span>
+      <span lang="ru">Один тезис</span>
+      <span lang="en">One claim</span>
     </span>
     <div class="def-body">
-      <p><span lang="ru">BPE (L2) начинает с символов и жадно сливает самые частые пары в корпусе обучения. Что корпус видел часто &mdash; станет одним токеном; что видел редко &mdash; останется по буквам.</span><span lang="en">BPE (L2) starts from characters and greedily merges the most frequent pairs in its training corpus. What the corpus saw often becomes one token; what it saw rarely stays as characters.</span></p>
-      <ul class="obj-list">
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Корпус обучения в основном английский</strong> &mdash; веб перекошен к английскому, поэтому английские подслова получают слияния, а русские окончания и основы &mdash; нет.</span><span lang="en"><strong>The training corpus is mostly English</strong> &mdash; the web is English-skewed, so English sub-words earn merges while Russian endings and stems do not.</span></span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Границы токенов &ne; границы морфем.</strong> BPE режет по частоте, не по грамматике: он не знает, что &laquo;-ами&raquo; &mdash; морфема, и разорвёт её пополам.</span><span lang="en"><strong>Token boundaries &ne; morpheme boundaries.</strong> BPE cuts by frequency, not grammar: it does not know &ldquo;-ами&rdquo; is a morpheme and will split it in half.</span></span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Кириллица в UTF-8 &mdash; два байта на символ.</strong> Байтовый BPE начинает с ещё более мелких кусков, усугубляя дробление.</span><span lang="en"><strong>Cyrillic is two bytes per character in UTF-8.</strong> A byte-level BPE starts from even smaller pieces, compounding the fragmentation.</span></span></li>
-      </ul>
+      <p class="center">$$ (a,b)^{\star} \;=\; \arg\max_{(a,b)} \; \mathrm{count}_{\mathcal{C}}(a,b) $$</p>
+      <p><span lang="ru">BPE (L2) на каждом шаге сливает пару, самую частую в <em>корпусе обучения токенизатора</em> \(\mathcal{C}\). Если \(\mathcal{C}\) перекошен к английскому &mdash; а веб перекошен, &mdash; кириллическая пара не выигрывает этот argmax <strong>ни разу</strong>. Слияний для русских основ и окончаний просто не появляется, и слово откатывается к отдельным символам.</span><span lang="en">At every step BPE (L2) merges the pair that is most frequent in the <em>tokenizer&rsquo;s training corpus</em> \(\mathcal{C}\). If \(\mathcal{C}\) is English-skewed &mdash; and the web is &mdash; a Cyrillic pair never wins that argmax <strong>even once</strong>. No merges appear for Russian stems and endings, and the word falls back to single characters.</span></p>
     </div>
   </div>
-  <aside class="slide-notes">The formal cause, tied back to L2. BPE learns merges by pair frequency in its training corpus; the web is English-skewed, so the tokenizer accumulates rich English sub-word merges and few Russian ones. Two consequences: token boundaries follow frequency, not morphology (so a grammatical ending gets split mid-morpheme), and Cyrillic's two-byte UTF-8 encoding means a byte-level BPE starts from even smaller units. Net effect: Russian falls back toward characters. The next slide measures it on our own trained toy tokenizer.</aside>
+  <p class="small muted center mt-2"><span lang="ru">Отсюда правило: словарь токенизатора &mdash; это <em>слепок чужого корпуса</em>, а не свойство языка. Дальше &mdash; счёт в байтах и настоящие цифры фертильности.</span><span lang="en">Hence the rule: a tokenizer&rsquo;s vocabulary is a <em>cast of someone else&rsquo;s corpus</em>, not a property of the language. Next: the bill in bytes, then the real fertility numbers.</span></p>
+  <aside class="slide-notes">The formal cause, in one line. BPE's merge rule is an argmax over pair counts in the tokenizer's training corpus C — not in your data. English-skewed C means Cyrillic pairs never win, so no Russian merges are learned and Russian falls back toward characters. Two consequences that used to live on this slide have moved where they are actually demonstrated: the two-bytes-per-Cyrillic-character head start goes to the byte-count slide right after the toy, and "token boundaries ≠ morpheme boundaries" belongs to Act 2, where the Snowball cascade shows real morpheme boundaries being missed. Keep this slide short — it is the hinge, not the evidence.</aside>
 </section>

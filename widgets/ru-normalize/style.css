@@ -1,0 +1,233 @@
+/* ru-normalize — L20 act 2 climax: one Russian corpus, three normalisation modes.
+   Colour grammar (tokens only, no literals): --warm = the query and whatever the query currently
+   matches; --c-red = the split / the un-retrieved gold; --c-amber = the middle pass (stemming);
+   --c-green = the result that works (lemmas, retrieved); --ink… / --rule… = structure.
+   Responsive: every row wraps, width:100%, never overflows a narrow (390px) column. */
+
+.rn-panel {
+  padding: var(--ws-3, 1.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ws-2, 1rem);
+  width: 100%;
+  min-width: 0;
+}
+
+/* ── mode strip ───────────────────────────────────────────────────────────── */
+.rn-modes { display: flex; flex-wrap: wrap; gap: 8px; }
+.rn-mode {
+  padding: 3px 12px;
+  border-radius: var(--r-pill, 999px);
+  border: var(--hairline, 1.5px) solid var(--rule);
+  background: var(--bg-inset);
+  font-family: var(--font-sans, system-ui);
+  font-size: var(--fz-small, .9rem);
+  font-weight: 700;
+  color: var(--ink-4);
+  transition: color var(--dur, 220ms) var(--ease), background var(--dur, 220ms) var(--ease),
+    border-color var(--dur, 220ms) var(--ease);
+}
+.rn-mode.is-done { color: var(--ink-3); border-color: var(--rule-strong); }
+.rn-mode--surface.is-on { color: var(--c-red); border-color: var(--c-red); background: var(--c-red-soft); }
+.rn-mode--stem.is-on { color: var(--c-amber-ink); border-color: var(--c-amber); background: var(--c-amber-soft); }
+.rn-mode--lemma.is-on { color: var(--c-green-ink); border-color: var(--c-green); background: var(--c-green-soft); }
+
+/* ── generic block: a tag line + a body ───────────────────────────────────── */
+.rn-block { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.rn-block.is-hidden { display: none; }
+.rn-tag {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-tiny, .8rem);
+  font-weight: 700;
+  letter-spacing: .5px;
+  color: var(--ink-3);
+}
+.rn-body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.rn-query .rn-body, .rn-maprow, .rn-postrow, .rn-doc-text { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px; }
+.rn-query .rn-body { display: flex; }
+.rn-maprow, .rn-postrow { display: flex; }
+
+/* ── chips ────────────────────────────────────────────────────────────────── */
+.rn-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: var(--r-sm, 8px);
+  border: var(--hairline, 1.5px) solid var(--rule);
+  background: var(--bg-card);
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-small, .9rem);
+  color: var(--ink);
+  white-space: nowrap;
+}
+.rn-chip.is-idle { color: var(--ink-3); }
+.rn-src { color: var(--ink-2); }
+.rn-arr { color: var(--ink-4); font-weight: 700; }
+.rn-dst { font-weight: 700; color: var(--ink); }
+
+.rn-chip--q { border-color: var(--warm); background: var(--warm-soft); }
+.rn-chip--q .rn-dst { color: var(--warm-ink); }
+.rn-chip--term { border-color: var(--warm); background: var(--warm-soft); font-weight: 700; color: var(--warm-ink); }
+.rn-chip--id { border-style: dashed; color: var(--ink-2); }
+
+.rn-chip--map.is-hit { border-color: var(--c-green); background: var(--c-green-soft); }
+.rn-chip--map.is-hit .rn-dst { color: var(--c-green-ink); }
+.rn-chip--map.is-split { border-color: var(--c-red); background: var(--c-red-soft); }
+.rn-chip--map.is-split .rn-dst { color: var(--c-red); }
+
+.rn-chip--w { border-color: transparent; background: var(--bg-inset); color: var(--ink-2); }
+.rn-chip--w.is-hit { border-color: var(--warm); background: var(--warm-soft); color: var(--warm-ink); font-weight: 700; }
+.rn-chip--w.is-hit .rn-src { color: var(--warm-ink); }
+.rn-chip--w.is-hit .rn-dst { color: var(--warm-ink); }
+
+/* ── the split / collapse note beside a map row ───────────────────────────── */
+.rn-note {
+  font-family: var(--font-sans, system-ui);
+  font-size: var(--fz-tiny, .8rem);
+  font-weight: 700;
+}
+.rn-note.is-bad { color: var(--c-red); }
+.rn-note.is-good { color: var(--c-green-ink); }
+
+/* ── postings ─────────────────────────────────────────────────────────────── */
+.rn-postrow {
+  padding: 4px 8px;
+  border-radius: var(--r-sm, 8px);
+  background: var(--bg-inset);
+}
+.rn-postrow.is-empty { background: var(--c-red-soft); }
+.rn-df {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-tiny, .8rem);
+  color: var(--ink-3);
+}
+.rn-empty { font-family: var(--font-mono, monospace); font-weight: 700; color: var(--c-red); }
+
+/* ── document rows ────────────────────────────────────────────────────────── */
+.rn-doc {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 10px;
+  border-radius: var(--r-md, 14px);
+  border: var(--hairline, 1.5px) solid var(--rule);
+  background: var(--bg-card);
+  transition: border-color var(--dur, 220ms) var(--ease), opacity var(--dur, 220ms) var(--ease);
+}
+.rn-doc.is-gold { border-color: var(--accent); }
+.rn-doc.is-got { background: var(--bg-card); }
+.rn-doc.is-out { opacity: .48; }
+.rn-doc.is-gold.is-out { opacity: 1; border-color: var(--c-red); background: var(--c-red-soft); }
+.rn-doc-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+.rn-doc-id {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-tiny, .8rem);
+  font-weight: 700;
+  letter-spacing: .5px;
+  color: var(--ink-3);
+}
+.rn-gold-tag {
+  font-family: var(--font-sans, system-ui);
+  font-size: var(--fz-tiny, .8rem);
+  font-weight: 700;
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+  border-radius: var(--r-pill, 999px);
+  padding: 1px 8px;
+}
+.rn-doc-rank {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-small, .9rem);
+  font-weight: 700;
+  color: var(--ink-2);
+}
+.rn-doc-rank.is-out {
+  font-family: var(--font-sans, system-ui);
+  color: var(--c-red);
+}
+.rn-doc-score {
+  margin-left: auto;
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-small, .9rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.rn-doc-score.is-idle { font-family: var(--font-sans, system-ui); font-weight: 400; color: var(--ink-4); }
+
+/* ── the gold document's per-term work table ──────────────────────────────── */
+.rn-table { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.rn-trow {
+  display: grid;
+  /* the numeric columns never fall below the width of a 4-decimal value, so a score can't wrap
+     mid-number in a narrow (390px) Book column */
+  grid-template-columns: minmax(0, 2fr) repeat(4, minmax(3.1rem, 1fr));
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: var(--r-sm, 8px);
+  background: var(--bg-inset);
+}
+.rn-trow--head { background: transparent; }
+.rn-trow--head .rn-tcell { color: var(--ink-3); font-weight: 700; }
+.rn-trow.is-zero .rn-tcell { color: var(--c-red); }
+.rn-tcell {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-tiny, .8rem);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+/* ── verdict ──────────────────────────────────────────────────────────────── */
+.rn-verdict {
+  font-family: var(--font-sans, system-ui);
+  font-size: var(--fz-small, .9rem);
+  font-weight: 700;
+  color: var(--ink-2);
+}
+.rn-verdict.is-idle { font-weight: 400; color: var(--ink-3); }
+.rn-verdict.is-bad { color: var(--c-red); }
+.rn-verdict.is-mid { color: var(--c-amber-ink); }
+.rn-verdict.is-good { color: var(--c-green-ink); }
+
+/* ── the three-mode comparison ────────────────────────────────────────────── */
+.rn-cmp { display: flex; flex-direction: column; gap: 8px; width: 100%; min-width: 0; }
+.rn-cmp.is-hidden { display: none; }
+.rn-svg { width: 100%; height: auto; padding: 0; }
+.rn-cmp-lab {
+  font-family: var(--font-sans, system-ui);
+  font-size: var(--fz-small, 13px);
+  font-weight: 700;
+  fill: var(--ink-2);
+}
+.rn-cmp-val {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-small, 13px);
+  font-weight: 700;
+  fill: var(--ink);
+}
+.rn-cmp-track { fill: var(--bg-inset); }
+.rn-cmp-bar--surface { fill: var(--c-red); }
+.rn-cmp-bar--stem { fill: var(--c-amber); }
+.rn-cmp-bar--lemma { fill: var(--c-green); }
+
+.rn-cost { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.rn-cost-k {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fz-tiny, .8rem);
+  font-weight: 700;
+  color: var(--ink-3);
+}
+.rn-cost-c {
+  padding: 2px 10px;
+  border-radius: var(--r-pill, 999px);
+  border: var(--hairline, 1.5px) solid var(--rule);
+  font-family: var(--font-sans, system-ui);
+  font-size: var(--fz-tiny, .8rem);
+  font-weight: 700;
+  color: var(--ink-2);
+}
+.rn-cost-c--surface { border-color: var(--c-red); color: var(--c-red); }
+.rn-cost-c--stem { border-color: var(--c-amber); color: var(--c-amber-ink); }
+.rn-cost-c--lemma { border-color: var(--c-green); color: var(--c-green-ink); }

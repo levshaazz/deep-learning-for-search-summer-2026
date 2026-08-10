@@ -1,0 +1,32 @@
+<section class="slide" data-type="table" data-screen-label="24d Boundaries &middot; when whitening hurts">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Когда отбеливание <em>вредит</em> — и единственное место, где оно ещё живо</span>
+      <span lang="en">When whitening <em>hurts</em> &mdash; and the one place it still wins</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">2024&ndash;2026 &middot; &#9888; препринты, помечены &middot; та же операция, обратный знак</span>
+      <span lang="en">2024&ndash;2026 &middot; &#9888; preprints, marked &middot; the same operation, opposite sign</span>
+    </span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th><span lang="ru">модель</span><span lang="en">model</span></th>
+        <th><span lang="ru">полное PCA-отбеливание, \(\Delta\) пункта</span><span lang="en">full PCA whitening, \(\Delta\) points</span></th>
+        <th><span lang="ru">чем она была обучена</span><span lang="en">how it was trained</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>mE5-large-instruct</td><td class="cell-bad"><span lang="ru">&minus;5,18</span><span lang="en">&minus;5.18</span></td><td><span lang="ru">контрастно</span><span lang="en">contrastively</span></td></tr>
+      <tr><td>bge-base-en-v1.5</td><td class="cell-bad"><span lang="ru">&minus;1,79</span><span lang="en">&minus;1.79</span></td><td><span lang="ru">контрастно</span><span lang="en">contrastively</span></td></tr>
+      <tr><td>nomic-embed-text-v1</td><td class="cell-bad"><span lang="ru">&minus;0,70</span><span lang="en">&minus;0.70</span></td><td><span lang="ru">контрастно</span><span lang="en">contrastively</span></td></tr>
+      <tr><td>Snowflake-arctic-embed-m</td><td class="cell-bad"><span lang="ru">&minus;0,64</span><span lang="en">&minus;0.64</span></td><td><span lang="ru">контрастно</span><span lang="en">contrastively</span></td></tr>
+      <tr><td>all-MiniLM-L6-v2</td><td class="cell-bad"><span lang="ru">&minus;0,64</span><span lang="en">&minus;0.64</span></td><td><span lang="ru">контрастно</span><span lang="en">contrastively</span></td></tr>
+      <tr><td><strong>CodeBERT</strong> (Soft-ZCA)</td><td class="cell-good">&plus;0.077 &hellip; &plus;0.250 MRR</td><td><span lang="ru"><strong>не</strong> контрастно</span><span lang="en"><strong>not</strong> contrastively</span></td></tr>
+      <tr><td><strong>CodeT5+</strong> (Soft-ZCA)</td><td class="cell-meh">&plus;0.007 &mdash; <span lang="ru">ноль</span><span lang="en">nothing</span></td><td><span lang="ru">контрастно</span><span lang="en">contrastively</span></td></tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2"><span lang="ru">Одна линия объясняет всю таблицу. В 2018&ndash;2021 доминирующие направления были <strong>частотными артефактами</strong>, и стирать их было бесплатно. К 2024&ndash;2026 контрастное обучение потратило эти направления <strong>на смысл</strong> — и стирать их стало разрушением. Та же операция, обратный знак, потому что энкодер под ней поменялся. Правило одной строкой: <strong>снимай среднее направление, не отбеливай ковариацию</strong> (снятие среднего и ABTT-1/2 в той же таблице положительны). У Forooghi деградация без единого исключения и растёт с размерностью: 768-мерные \(\approx -3\), 4096-мерные \(\approx -15\). &#9888; препринты.</span><span lang="en">One line explains the whole table. In 2018&ndash;2021 the dominant directions were <strong>frequency artefacts</strong>, so erasing them was free. By 2024&ndash;2026 contrastive training had spent those directions <strong>on meaning</strong>, so erasing them is destruction. The same operation, opposite sign, because the encoder underneath it changed. One-line rule: <strong>remove the mean direction, do not whiten the covariance</strong> (mean removal and ABTT-1/2 are positive in the same table). Forooghi report degradation with no exception at all, growing with dimension: 768-d \(\approx -3\), 4096-d \(\approx -15\). &#9888; preprints.</span></p>
+  <aside class="slide-notes">The boundaries slide act 02 never had (plan R4, NEW-15+16 merged). ⚠ Ren, Sun &amp; Liang (arXiv 2511.11041, PREPRINT) Table 2 on MMTEB gives the dose-response curve: removing the mean DIRECTION and ABTT-1/ABTT-2 are positive, full PCA whitening is negative on 5 of 5 modern embedders (mE5-large-instruct −5.18, bge-base-en-v1.5 −1.79, nomic −0.70, arctic −0.64, MiniLM −0.64); their one-directional correction is significant on 29 of 38 models with zero significant losses, and the size of the gain correlates with the mean vector's norm at r = +0.72. ⚠ Forooghi et al. (arXiv 2407.12886) Table 1: degradation for every model and dataset without exception, growing with dimension (LLaMA on CR collapses 90.36 → 60.80). The surviving niche is Diera, Galke &amp; Scherp (ESANN 2025) Soft-ZCA for code search — where NON-contrastive models gain hugely (CodeBERT ΔMRR +0.077…+0.250, Code Llama up to +0.476) and the contrastively pretrained CodeT5+ gains essentially nothing (+0.007 at best); plain ZCA needed a regulariser ε, and their optimal IsoScore is 0.2–0.8, not 1.0. Note their whitening matrices are fitted on the full test set — the transduction critique from slide 18b applies. NOT used, deliberately: the folklore "BEIR 0.235 → 0.297 nDCG@10 with whitening" appears in no paper and is untraceable.</aside>
+</section>

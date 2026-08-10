@@ -1,0 +1,44 @@
+<section class="slide" data-type="table" data-screen-label="48 When the code MISSES the floor">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Когда код <em>не</em> садится на пол &mdash; то есть почти всегда</span>
+      <span lang="en">When the code does <em>not</em> land on the floor &mdash; i.e. nearly always</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">E&nbsp;0,35 &middot; T&nbsp;0,25 &middot; A&nbsp;0,20 &middot; O&nbsp;0,12 &middot; I&nbsp;0,08 &middot; посчитано вручную</span>
+      <span lang="en">E&nbsp;0.35 &middot; T&nbsp;0.25 &middot; A&nbsp;0.20 &middot; O&nbsp;0.12 &middot; I&nbsp;0.08 &middot; computed by hand</span>
+    </span>
+  </div>
+
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th><span lang="ru">символ</span><span lang="en">symbol</span></th>
+        <th>\(p\)</th>
+        <th><span lang="ru">идеал \(-\log_2 p\)</span><span lang="en">ideal \(-\log_2 p\)</span></th>
+        <th><span lang="ru">код Хаффмана</span><span lang="en">Huffman code</span></th>
+        <th><span lang="ru">длина</span><span lang="en">length</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>E</td><td><span lang="ru">0,35</span><span lang="en">0.35</span></td><td class="cell-good"><span lang="ru">1,5146</span><span lang="en">1.5146</span></td><td><code>11</code></td><td class="cell-meh">2</td></tr>
+      <tr><td>T</td><td><span lang="ru">0,25</span><span lang="en">0.25</span></td><td><span lang="ru">2,0000</span><span lang="en">2.0000</span></td><td><code>10</code></td><td class="cell-good">2</td></tr>
+      <tr><td>A</td><td><span lang="ru">0,20</span><span lang="en">0.20</span></td><td><span lang="ru">2,3219</span><span lang="en">2.3219</span></td><td><code>00</code></td><td>2</td></tr>
+      <tr><td>O</td><td><span lang="ru">0,12</span><span lang="en">0.12</span></td><td><span lang="ru">3,0589</span><span lang="en">3.0589</span></td><td><code>011</code></td><td>3</td></tr>
+      <tr><td>I</td><td><span lang="ru">0,08</span><span lang="en">0.08</span></td><td><span lang="ru">3,6439</span><span lang="en">3.6439</span></td><td><code>010</code></td><td>3</td></tr>
+      <tr>
+        <td colspan="2" class="cell-good"><span lang="ru">энтропия \(H\) &middot; средняя длина \(\bar L\)</span><span lang="en">entropy \(H\) &middot; average length \(\bar L\)</span></td>
+        <td class="cell-good"><span lang="ru">2,1531</span><span lang="en">2.1531</span></td>
+        <td class="cell-meh"><span lang="ru">2,2000</span><span lang="en">2.2000</span></td>
+        <td class="cell-bad"><span lang="ru">+0,0469</span><span lang="en">+0.0469</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="small muted center mt-4">
+    <span lang="ru">Промах &mdash; <strong>0,0469 бита, 2,2&nbsp;%</strong>, и он неустраним: идеальная длина для <b>E</b> &mdash; 1,5146 бита, а код умеет платить только целыми. Диадический источник с прошлого слайда &mdash; счастливое исключение, где все \(-\log_2 p\) оказались целыми. Именно этот остаток и съедает арифметическое кодирование. &#9888; Граница Галлагера (1978) туже, чем \(H+1\): переплата \(\le P_1 + 0{,}086 = 0{,}436\) &mdash; наши 0,0469 в неё укладываются с огромным запасом.</span>
+    <span lang="en">The miss is <strong>0.0469 bit, 2.2&nbsp;%</strong>, and it is irreducible: the ideal length for <b>E</b> is 1.5146 bits and a code can only pay whole ones. The dyadic source on the previous slide was the happy exception where every \(-\log_2 p\) happened to be an integer. This residue is exactly what arithmetic coding eats. &#9888; Gallager's 1978 bound is far tighter than \(H+1\): the overpay is \(\le P_1 + 0.086 = 0.436\) &mdash; our 0.0469 sits well inside it.</span>
+  </p>
+
+  <aside class="slide-notes">Worked by hand on data/l17-entropy.json huffman.nonDyadic. ⚠️ ДЕФЕКТ S16 ЗАКРЫТ: таблица несла E 00 / T 01 / A 10 / O 110 / I 111, а виджет на соседнем слайде 29a рисует ТО ЖЕ дерево как E 11 / T 10 / A 00 / O 011 / I 010. Оба кода валидны и одинаковой длины, но одна фигура не может давать два ответа. Кодовые слова теперь ВЫВОДЯТСЯ генератором из merge-лога (gen_l17.py codewords(), левое ребро = 0) в data/l17-entropy.json huffman.nonDyadic.code — тем же чтением, что и logic.js виджета. The old deck showed ONLY the dyadic source, i.e. precisely the case where nothing interesting happens. Here H = 2.1531, Huffman gives L̄ = 2.2000, so the code overpays by 0.0469 bit (2.2 %). The cause is visible in the idealLen column: E "wants" 1.5146 bits and gets 2. Two things to say aloud: (1) this is why arithmetic/range coding exists — it escapes integer codeword lengths by coding the whole message at once; (2) the textbook bound L̄ &lt; H+1 is very loose — Gallager 1978 Thm 2 gives r ≤ P₁ + σ with σ = 1 − log2 e + log2(log2 e) ≈ 0.086, i.e. ≤ 0.436 here, and we land at 0.047.</aside>
+</section>

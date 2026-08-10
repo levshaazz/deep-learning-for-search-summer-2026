@@ -1,0 +1,54 @@
+<section class="slide" data-type="two-col" data-screen-label="26 Ten lines of transformers">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Десять строк на <code>transformers</code></span>
+      <span lang="en">Ten lines of <code>transformers</code></span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">приём &mdash; &laquo;одна строка отличия&raquo;; вот эта строка</span>
+      <span lang="en">the trick is &ldquo;one line of difference&rdquo;; here is the line</span>
+    </span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">Python &middot; late_chunk.py</span><span class="badge" data-color="accent">transformers</span></div>
+        <pre><code class="language-python">enc = tok(text, return_offsets_mapping=True,
+          return_tensors="pt")
+H = model(input_ids=enc.input_ids).last_hidden_state[0]
+
+offs = enc.offset_mapping[0].tolist()      # (start, end) per token
+real = lambda s, e: e &gt; s                  # &lt;- (0,0) = [CLS]/[SEP], skip them
+def span(a, b):                            # chars -> token span
+    i = next(k for k, (s, e) in enumerate(offs) if real(s, e) and e &gt; a)
+    j = max(k for k, (s, e) in enumerate(offs) if real(s, e) and s &lt; b)
+    return i, j
+
+vecs = []
+for n, (a, b) in enumerate(char_spans):    # from YOUR chunker
+    i, j = span(a, b)
+    if n == 0:            i = 0            # &lt;- [CLS] + task prefix: chunk 0
+    if n == len(char_spans) - 1: j = len(offs) - 1   # &lt;- [SEP]: last chunk
+    v = H[i:j + 1].mean(dim=0)             # &lt;- pool AFTER attention
+    vecs.append(F.normalize(v, dim=-1))    # &lt;- L2 AFTER the mean</code></pre>
+      </div>
+    </div>
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag">
+          <span lang="ru">Три места, где ошибаются</span>
+          <span lang="en">Three places people get it wrong</span>
+        </span>
+        <div class="def-body">
+          <ul class="obj-list">
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">1</span><span class="obj-text"><span lang="ru"><strong>L2-нормировка &mdash; после усреднения</strong>, не до. Нормируешь токены до &mdash; получаешь среднее направлений, а не центр масс.</span><span lang="en"><strong>L2-normalise after the mean</strong>, not before. Normalise the tokens first and you get a mean of directions, not a centre of mass.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">2</span><span class="obj-text"><span lang="ru"><strong>Служебные токены и ловушка <code>(0,&nbsp;0)</code>.</strong> HF-токенизаторы дают <code>[CLS]</code> и <code>[SEP]</code> спан <code>(0,&nbsp;0)</code> &mdash; без фильтра <code>e&nbsp;&gt;&nbsp;s</code> условие <code>s&nbsp;&lt;&nbsp;b</code> у хвостового <code>[SEP]</code> истинно всегда, и каждый чанк дотягивается до конца документа. Отфильтруй их, а потом верни руками: по &sect;4.1 <code>[CLS]</code> и инструкционный префикс идут в пулинг <em>первого</em> чанка, <code>[SEP]</code> &mdash; <em>последнего</em>.</span><span lang="en"><strong>Special tokens and the <code>(0,&nbsp;0)</code> trap.</strong> HF tokenizers give <code>[CLS]</code> and <code>[SEP]</code> the span <code>(0,&nbsp;0)</code> &mdash; without the <code>e&nbsp;&gt;&nbsp;s</code> guard the test <code>s&nbsp;&lt;&nbsp;b</code> is true for the trailing <code>[SEP]</code> every time, and every chunk silently pools to the end of the document. Filter them out, then put them back by hand: per &sect;4.1 <code>[CLS]</code> and the instruction prefix go into the <em>first</em> chunk&rsquo;s pooling, <code>[SEP]</code> into the <em>last</em>.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">3</span><span class="obj-text"><span lang="ru"><strong>Один forward-pass на документ</strong>, а не на чанк. Если ты вызываешь модель в цикле по чанкам &mdash; ты снова написал наивный метод.</span><span lang="en"><strong>One forward pass per document</strong>, not per chunk. Call the model inside the chunk loop and you have re-implemented the naive method.</span></span></li>
+          </ul>
+          <p class="small muted"><span lang="ru">У <code>jina-embeddings-v3</code> и <code>nomic-embed-text-v1</code> есть ещё префикс задачи (query/document) &mdash; он тоже токены, и он тоже попадает в первый чанк.</span><span lang="en">Both <code>jina-embeddings-v3</code> and <code>nomic-embed-text-v1</code> also carry a task prefix (query/document) &mdash; those are tokens too, and they land in the first chunk.</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <aside class="slide-notes">The single code block of the lecture — because "one line of difference" is exactly the claim ten lines of Python can settle and three paragraphs cannot. return_offsets_mapping=True is the practical form of o_i. The three failure modes are the ones that actually bite: L2 AFTER the mean (not before); the (0,0) offsets of [CLS]/[SEP] — without the `e > s` guard the trailing [SEP] satisfies `s < b` for EVERY chunk, so max() returns the last token and every chunk pools to the end of the document (verified on toy offsets: spans (0,8) and (9,20) over six tokens returned (1,5) and (3,5) instead of (1,2) and (3,4)) — plus the §4.1 rule that puts [CLS]/prefix in chunk 0 and [SEP] in the last; and calling the encoder once per DOCUMENT rather than once per chunk (the last one silently re-implements naive chunking while looking like late chunking). Source: §4.1 + the jina-ai/late-chunking repository.</aside>
+</section>

@@ -1,0 +1,27 @@
+<section class="slide" data-type="definition" data-screen-label="22a Stop-words eat the negation">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Стоп-слова съедают &laquo;не&raquo;</span>
+      <span lang="en">Stop-words eat the negation</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">последний фильтр той самой цепочки &mdash; и он молча меняет смысл</span>
+      <span lang="en">the last filter of that very chain &mdash; and it silently flips the meaning</span>
+    </span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">
+      <span lang="ru">Два противоположных запроса становятся одним</span>
+      <span lang="en">Two opposite queries become one</span>
+    </span>
+    <div class="def-term"><code>&laquo;карта не работает&raquo; &rarr; [карта, работает]</code> &nbsp;=&nbsp; <code>&laquo;карта работает&raquo; &rarr; [карта, работает]</code></div>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>&laquo;не&raquo;, &laquo;ни&raquo;, &laquo;без&raquo;, &laquo;нет&raquo; входят в стандартный русский стоп-лист</strong> &mdash; и в Lucene, и в NLTK. Пользователь написал жалобу, а индекс получил похвалу.</span><span lang="en"><strong>&laquo;не&raquo;, &laquo;ни&raquo;, &laquo;без&raquo;, &laquo;нет&raquo; are in the standard Russian stop list</strong> &mdash; Lucene&rsquo;s and NLTK&rsquo;s alike. The user wrote a complaint; the index received a compliment.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Три починки.</strong> Вычесть отрицания из стоп-листа &mdash; одна строка конфигурации; индексировать биграммы с отрицанием (<code>не_работает</code>) через shingle-фильтр; отдать отрицание плотному плечу &mdash; эмбеддер его видит, BM25 нет.</span><span lang="en"><strong>Three cures.</strong> Subtract the negations from the list &mdash; one line of config; index negation bigrams (<code>не_работает</code>) with a shingle filter; or let the dense arm carry it &mdash; an embedder sees negation, BM25 does not.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Честная оговорка.</strong> В среднем стоп-слова на русском почти ничего не решают: у Savoy 2009 эффект около <strong>2&nbsp;%</strong> MAP. Ловушка не в средней полноте, а в узком классе запросов с отрицанием &mdash; там ошибка катастрофическая и тихая.</span><span lang="en"><strong>An honest caveat.</strong> On average stop-words barely matter in Russian: Savoy 2009 measured roughly a <strong>2&nbsp;%</strong> MAP effect. The trap is not average recall but a narrow class of queries &mdash; negation &mdash; where the failure is catastrophic and silent.</span></span></li>
+      </ul>
+    </div>
+  </div>
+  <aside class="slide-notes">The warning the pipeline slide owed you. Its recommended chain ends in stop-word removal, and the standard Russian stop list contains не, ни, без, нет — so «карта не работает» and «карта работает» reduce to the identical token list (measured in gen_l20.py, data/l20-ru.json → stopwords). Two queries with opposite meaning become byte-identical before BM25 ever runs, and nothing in the logs shows it. Three cures, in ascending cost: subtract the negations from the list; index negation bigrams with a shingle filter; or route negation to the dense arm, which represents it. The caveat keeps us honest: Dolamic & Savoy 2009 found stop-word removal moves Russian MAP by about 2 %, so this is not a plea to drop stop lists — it is a plea to look at WHICH words you drop.</aside>
+</section>
