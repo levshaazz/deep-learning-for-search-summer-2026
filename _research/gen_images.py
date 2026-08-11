@@ -751,6 +751,17 @@ JOBS = [
      "hand-lettered label reads 'TEAM WINS'. Serega's green tübetey is the ONLY green; warm-orange ONLY "
      "on the handed shortlist; crew + bench + road black ink + course-blue on off-white. Fills ≥85% of "
      "canvas width."),
+    ("L7", "L7/L7-13-the-judge-enters.png", "16:9", True,
+     "THE JUDGE ENTERS — the lecture's second protagonist finally gets a curtain. A tall, imposing "
+     "JUDGE figure (long robe, stern calm face — NOT a courtroom wig, a wise examiner) sits at a "
+     "high desk and reads TWO papers held TOGETHER in one hand — a query sheet and a document sheet "
+     "overlapping — through one magnifying lens: the whole point, the pair is judged JOINTLY. "
+     "SEREGA stands below the desk, presenting the paired sheets upward with both hands, a little "
+     "in awe. A queue of small scout figures waits behind Serega, each holding single sheets (the "
+     "candidates the Scout retrieved). Black ink + course-blue on off-white; warm-orange ONLY on "
+     "the joined pair of papers in the Judge's hand. One short hand-lettered label reads 'ONE PAIR, "
+     "ONE VERDICT'. Serega's green tübetey the ONLY green. No lettered title bar. Reads 'slow, "
+     "careful, sees both texts at once'. Fills ≥85% of canvas width."),
     ("L7", "L7/L7-09-embedder-zoo.png", "16:9", True,
      "THE EMBEDDER ZOO — Serega chooses a Scout from a whole family. A ROSTER / line-up of many SCOUT "
      "figures of visibly DIFFERENT builds and sizes (tall, short, broad, lean — a varied species of "
