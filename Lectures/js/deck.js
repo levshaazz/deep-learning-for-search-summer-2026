@@ -420,7 +420,13 @@
 
     if (scale < 1) {
       const FLOOR = 0.5;
-      let s = Math.max(FLOOR, scale);
+      /* The single-pass estimate is the LOWER BOUND for everything below. Prose gets shorter in a
+         wider column, so the convergence walks UP from here — but a slide built around a figure
+         that scales with its container gets TALLER as the column widens, and for those the naive
+         fixed point walks DOWN instead, all the way to the floor. Clamping at s0 keeps such slides
+         exactly where they rendered before this change: the iteration may only ever improve. */
+      const s0 = Math.max(FLOOR, scale);
+      let s = s0;
       body.style.transformOrigin = 'top left';
 
       /* The first estimate is measured at the body's NATURAL width, but applying it also
@@ -445,7 +451,7 @@
       for (let i = 0; i < 3 && s < 1; i++) {
         const h = body.scrollHeight;                 // unscaled height at the CURRENT width
         if (!h) break;
-        const next = Math.min(1, Math.max(FLOOR, availH / h));
+        const next = Math.min(1, Math.max(s0, availH / h));   // never worse than the estimate
         if (Math.abs(next - s) < 0.005) break;       // converged
         s = next;
         apply(s);
@@ -459,7 +465,7 @@
         const overW = body.scrollWidth * s > availW + 2 ? availW / (body.scrollWidth * s) : 1;
         const k = Math.min(overH, overW);
         if (k >= 1) break;
-        s = Math.max(FLOOR, s * k);
+        s = Math.max(s0, s * k);
         apply(s);
       }
       slide.dataset.autoFit = s.toFixed(3);
