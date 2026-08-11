@@ -21,6 +21,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # The masters live in LFS; materialise them cache-first (same plumbing as site-ci) —
+      # without this the build receives pointer stubs and the image optimizer dies with
+      # "unsupported image format" (it did, on the first dispatch after the migration).
+      - name: LFS assets (cache-first)
+        run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-manifest
+      - uses: actions/cache@v4
+        with:
+          path: .git/lfs
+          key: lfs-${{ hashFiles('.lfs-manifest') }}
+          restore-keys: lfs-
+      - name: Materialise LFS files
+        run: git lfs pull
       - uses: actions/setup-node@v4
         with:
           node-version: 22
