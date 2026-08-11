@@ -192,23 +192,23 @@
               <span class="toc-num">01</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Би-энкодер — Разведчик</span><span lang="en">The bi-encoder — the Scout</span></span><span class="toc-sub">two towers &middot; cosine &middot; precompute &middot; the embedder zoo</span></span>
             </a>
-            <a class="toc-item" href="#/25">
+            <a class="toc-item" href="#/29">
               <span class="toc-num">02</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Кросс-энкодер — Судья</span><span lang="en">The cross-encoder — the Judge</span></span><span class="toc-sub">joint input &middot; one score &middot; uncacheable &middot; the reranker family</span></span>
             </a>
-            <a class="toc-item" href="#/39">
+            <a class="toc-item" href="#/40">
               <span class="toc-num">03</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Обучение</span><span lang="en">Training</span></span><span class="toc-sub">contrastive &middot; in-batch &amp; hard negatives &middot; distillation</span></span>
             </a>
-            <a class="toc-item" href="#/46">
+            <a class="toc-item" href="#/47">
               <span class="toc-num">04</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Офлайн: индекс</span><span lang="en">Offline: the index</span></span><span class="toc-sub">data prep &middot; embed corpus &middot; ANN &middot; build- vs query-time</span></span>
             </a>
-            <a class="toc-item" href="#/50">
+            <a class="toc-item" href="#/51">
               <span class="toc-num">05</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Каскад · пайплайн · RAG</span><span lang="en">Cascade · pipeline · RAG</span></span><span class="toc-sub">retrieve &rarr; rerank &middot; vector DBs &middot; hybrid &middot; grounding</span></span>
             </a>
-            <a class="toc-item" href="#/55">
+            <a class="toc-item" href="#/56">
               <span class="toc-num">06</span>
               <span class="toc-text"><span class="toc-title"><span lang="ru">Пределы и прод</span><span lang="en">Limits &amp; production</span></span><span class="toc-sub">recall floor &middot; rerank depth vs SLA &middot; dense &ne; free</span></span>
             </a>
@@ -762,6 +762,17 @@
             </div>
           </div>
           <aside class="slide-notes">The corner case that bites every team. The MTEB leaderboard is an average over generic benchmarks; a model that wins there can lose on your corpus, because dense retrievers degrade out of domain — that is the central BEIR finding. Be precise about whose number is whose: BM25's zero-shot average nDCG is 0.43, and the famous 0.23 belongs to the original DPR checkpoint, which was trained on question-answering datasets, not MS MARCO; MS MARCO-trained encoders like ANCE and TAS-B land around zero-point-four — much better, yet on average still below BM25. Add the other traps: documents longer than the token limit get silently truncated, and an English-only model fails on other languages. The fixes are the throughline of the rest of the lecture — measure on your own domain, adapt with fine-tuning or generative pseudo-labeling, or hybridize with the lexical signal of BM25.</aside>
+        </section>
+        <section class="slide" data-type="divider" data-screen-label="24a Divider · The Judge">
+          <div class="divider-content">
+            <div class="divider-num"><span lang="ru">Второй герой лекции</span><span lang="en">The lecture's second protagonist</span></div>
+            <h1><span lang="ru">Выходит Судья</span><span lang="en">Enter the Judge</span></h1>
+            <p class="divider-sub"><span lang="ru">Разведчик быстр, потому что читает запрос и документ <em>порознь</em>. Судья медлителен ровно по той же причине наоборот: он читает пару <strong>вместе</strong>&nbsp;&mdash; и потому видит то, что двум отдельным векторам не видно в принципе.</span><span lang="en">The Scout is fast because it reads query and document <em>apart</em>. The Judge is slow for exactly the mirrored reason: it reads the pair <strong>together</strong>&nbsp;&mdash; and therefore sees what two separate vectors cannot see at all.</span></p>
+          </div>
+          <div class="viz-frame fig-fit" style="--fig-max:64cqh; --fig-w:60%;">
+            <img src="assets/img/L7/L7-13-the-judge-enters.png?v=1" alt="A tall judge at a high desk reads a query sheet and a document sheet held together through one lens while S&#xE9;r&#xE9;ga presents the pair from below and a queue of scouts waits behind him with single sheets — the cross-encoder scores the pair jointly" />
+          </div>
+          <aside class="slide-notes">The missing curtain. Every other agenda item of this lecture opens on its own divider; the cross-encoder — the second protagonist of a lecture literally titled "bi- and cross-encoders" — used to start mid-act, and the agenda link had nowhere honest to land. Say the mirrored trade out loud before any architecture appears: the Scout's speed comes from reading apart (precompute everything, compare cheaply), the Judge's quality comes from reading together (full token-level interaction between query and document inside one forward pass) — and reading together is exactly what cannot be precomputed. The next slide opens the architecture.</aside>
         </section>
         <section class="slide" data-type="viz" data-screen-label="25 The Cross-encoder (Judges)">
           <div class="slide-header">

@@ -35,6 +35,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # The illustration masters live in LFS; checkout leaves pointer stubs. Restore the
+      # objects from the actions cache (seeded by the lfs-warm workflow) and pull only the
+      # delta — never the full 380 MB per job, which would burn the free LFS bandwidth.
+      - name: LFS assets (cache-first)
+        run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-manifest
+      - uses: actions/cache@v4
+        with:
+          path: .git/lfs
+          key: lfs-${{ hashFiles('.lfs-manifest') }}
+          restore-keys: lfs-
+      - name: Materialise LFS files
+        run: git lfs pull
       - uses: actions/configure-pages@v5
       - uses: actions/setup-node@v4
         with:

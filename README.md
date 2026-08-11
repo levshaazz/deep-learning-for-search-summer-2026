@@ -124,6 +124,24 @@ e.g. `node parity-gate.mjs`, `node wbw-check.mjs`, `node offline-deck.mjs`.
 
 ---
 
+## 📥 Cloning
+
+The AI-illustration **masters** (`Lectures/assets/img/`, ~380 MB of PNG) live in **Git LFS**,
+so a plain `git clone` stays light and pulls them on demand. Pick the clone that fits your task:
+
+```bash
+# full working copy — decks, site build, pptx export (LFS pulls the masters automatically)
+git clone https://github.com/levshaazz/deep-learning-for-search-summer-2026.git
+
+# writing/reviewing only (scripts, book, gates) — skip the masters entirely, ~10× lighter
+GIT_LFS_SKIP_SMUDGE=1 git clone --filter=blob:none \
+  https://github.com/levshaazz/deep-learning-for-search-summer-2026.git
+# …and materialise them later if needed:  git lfs pull
+```
+
+> ⚠️ **History was rewritten in Aug 2026** (masters moved to LFS, pre-1920px versions purged).
+> If you hold a clone from before that date, re-clone — do not pull over it.
+
 ## 🗂️ Repository layout
 
 ```text

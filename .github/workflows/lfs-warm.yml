@@ -1,0 +1,36 @@
+# Seed the actions cache with the LFS objects — ONE download instead of one per job.
+#
+# Why this exists: the illustration masters (~380 MB) live in LFS, and GitHub's free LFS
+# bandwidth is 1 GiB/month. Every CI job needs the real files, so on a cold cache a single
+# push would spend jobs × 380 MB ≈ 2 GB — twice the monthly quota — before the first cache save
+# lands. This workflow pulls ONCE and saves the cache all other jobs restore from.
+#
+# When to dispatch it manually:
+#   · right after the Aug 2026 history rewrite (the one cold start), and
+#   · after force-updating many plates at once, if you want the next push to be cheap.
+# Ordinary single-plate changes don't need it: every job falls back to the previous cache
+# via restore-keys and pulls only the few-MB delta.
+name: lfs-warm
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  warm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4          # lfs stays false: pointers only, no bandwidth yet
+      - name: LFS manifest (cache key)
+        run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-manifest
+      - uses: actions/cache@v4
+        with:
+          path: .git/lfs
+          key: lfs-${{ hashFiles('.lfs-manifest') }}
+          restore-keys: lfs-
+      - name: Pull LFS objects (the one paid download)
+        run: git lfs pull
+      - name: Report
+        run: du -sh .git/lfs && git lfs ls-files | wc -l
