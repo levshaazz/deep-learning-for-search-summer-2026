@@ -14,12 +14,26 @@
    Usage:  node viz-probe-gate.mjs            (working-directory _audit; needs ../docs built)
            node viz-probe-gate.mjs --selftest (pure classifier on planted records — must FIRE on each) */
 import { chromium } from 'playwright';
-import { readdirSync, existsSync } from 'node:fs';
+import { readdirSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));   // _audit/ → repo root
 const DOCS_LECT = join(ROOT, 'docs', 'Lectures');
+const TINY_REL = '_audit/baselines/viz-tiny-text.json';
+const TINY_BASE = join(ROOT, '_audit', 'baselines', 'viz-tiny-text.json');
+const TINY_META = {
+  gate: 'viz-probe (G13) — tiny-text ratchet',
+  note: 'Per figure (deck#screen-label): the worst count of sub-16px text nodes seen across '
+      + 'languages and steps. Anything NEW or WORSE than this HARD-fails; the frozen counts stay '
+      + 'WARN until they are fixed and the entry is deleted. Re-freeze with --update-tiny-baseline '
+      + 'ONLY to record a reduction — raising a number here is how the debt would grow back.',
+};
+function loadTinyBaseline() {
+  if (!existsSync(TINY_BASE)) return null;
+  try { return JSON.parse(readFileSync(TINY_BASE, 'utf8')); } catch { return null; }
+}
+
 const TINY_PX = 16, OVERLAP_FRAC = 0.30, HARD_OVERLAP_FRAC = 0.50, OFF_PAD = 2, IMG_MIN = 40;
 // overlap severity split: a SEVERE box cover (>= HARD_OVERLAP_FRAC) is a real label COLLISION
 // (illegible — the "наложение" defect) and HARD-fails; mild crowding (OVERLAP_FRAC..HARD) stays
@@ -38,7 +52,20 @@ export function classify(rec) {
     if (o.frac >= HARD_OVERLAP_FRAC) hard.push(msg + ` (SEVERE ≥${HARD_OVERLAP_FRAC} — labels collide)`);
     else warn.push(msg);
   }
-  if ((rec.tinyText || []).length) warn.push(`${where}: ${rec.tinyText.length} sub-${TINY_PX}px text (min ${rec.minTextPx})`);
+  /* Sub-16px labels INSIDE figures. readability-gate (G20) guards the raw authored font of prose
+     and deliberately does not look here — figures fit-scale by design — so for a long time nobody
+     gated this at all, and 244 such labels accumulated across 40 figure-states. They are now
+     ratcheted: whatever the frozen baseline already carries stays a WARN, anything NEW or WORSE
+     is HARD. `tinyBase` is injected by the runner (see loadTinyBaseline); with no baseline the
+     check stays a pure WARN, exactly as before. */
+  const tiny = (rec.tinyText || []).length;
+  if (tiny) {
+    const msg = `${where}: ${tiny} sub-${TINY_PX}px text (min ${rec.minTextPx})`;
+    const base = rec.tinyBase;
+    if (base == null && rec.tinyGated) hard.push(msg + ' — NEW tiny-text figure, raise the label size');
+    else if (base != null && tiny > base) hard.push(msg + ` — WORSE than baselined ${base}`);
+    else warn.push(msg);
+  }
   return { hard, warn };
 }
 
@@ -131,6 +158,29 @@ async function main() {
   if (process.argv.includes('--selftest')) return selftest();
   if (!existsSync(DOCS_LECT)) { console.log('[viz-probe-gate] docs/ not built — run `npm run build` first. SKIPPED.'); return; }
   const records = await run();
+
+  /* Ratchet the tiny-text debt. Keyed by deck#label — the SCREEN LABEL, never the ordinal, so
+     inserting a slide does not present a dozen pieces of old debt as brand new (the mistake
+     legibility-baseline.json had to be rescued from). One entry per figure, holding the worst
+     count seen across languages and steps: RU labels run longer than EN, and a later step can
+     reveal more of them, so anything less would let debt in through the back door. */
+  const tinyKey = (r) => `${r.deck}#${r.label}`;
+  const baseline = loadTinyBaseline();
+  if (process.argv.includes('--update-tiny-baseline')) {
+    const fresh = {};
+    for (const r of records) {
+      const n = (r.tinyText || []).length;
+      if (n) fresh[tinyKey(r)] = Math.max(fresh[tinyKey(r)] || 0, n);
+    }
+    writeFileSync(TINY_BASE, JSON.stringify({ _meta: TINY_META, entries: fresh }, null, 2) + '\n');
+    console.log(`[viz-probe-gate] wrote tiny-text baseline: ${Object.keys(fresh).length} figure(s) → ${TINY_REL}`);
+    return;
+  }
+  for (const r of records) {
+    r.tinyGated = !!baseline;                      // no baseline yet ⇒ stay WARN-only, as before
+    if (baseline) r.tinyBase = baseline.entries[tinyKey(r)];
+  }
+
   let hard = [], warn = [];
   for (const rec of records) { const c = classify(rec); hard.push(...c.hard); warn.push(...c.warn); }
   for (const h of hard) console.log('  ✗ [HARD] ' + h);
@@ -149,6 +199,22 @@ function selftest() {
     { name: 'severe overlap (≥0.5 → HARD)', rec: { lang: 'en', slide: 5, step: 0, maxStep: 0, overlaps: [{ a: 'p', b: 'q', frac: 0.6 }] }, mustHard: true, mustWarn: false },
     { name: 'mild overlap (0.3–0.5 → WARN)', rec: { lang: 'en', slide: 5, step: 1, maxStep: 1, overlaps: [{ a: 'p', b: 'q', frac: 0.4 }] }, mustHard: false, mustWarn: true },
     { name: 'clean slide', rec: { lang: 'en', slide: 6, step: 0, maxStep: 0, imgs: {} }, mustHard: false, mustWarn: false },
+    // the tiny-text ratchet — all four states it can be in
+    { name: 'tiny text, no baseline yet (WARN only)',
+      rec: { lang: 'en', slide: 7, step: 0, maxStep: 0, tinyText: [{ t: 'a', px: 12 }], minTextPx: 12 },
+      mustHard: false, mustWarn: true },
+    { name: 'tiny text, NEW figure under a baseline (HARD)',
+      rec: { lang: 'en', slide: 8, step: 0, maxStep: 0, tinyText: [{ t: 'a', px: 12 }], minTextPx: 12, tinyGated: true },
+      mustHard: true, mustWarn: false },
+    { name: 'tiny text at baseline (WARN, grandfathered)',
+      rec: { lang: 'en', slide: 9, step: 0, maxStep: 0, tinyText: [{ t: 'a', px: 12 }, { t: 'b', px: 13 }], minTextPx: 12, tinyGated: true, tinyBase: 2 },
+      mustHard: false, mustWarn: true },
+    { name: 'tiny text WORSE than baseline (HARD)',
+      rec: { lang: 'en', slide: 10, step: 0, maxStep: 0, tinyText: [{ t: 'a', px: 12 }, { t: 'b', px: 13 }, { t: 'c', px: 11 }], minTextPx: 11, tinyGated: true, tinyBase: 2 },
+      mustHard: true, mustWarn: false },
+    { name: 'figure fixed below its baseline (WARN, ready to ratchet)',
+      rec: { lang: 'en', slide: 11, step: 0, maxStep: 0, tinyText: [{ t: 'a', px: 12 }], minTextPx: 12, tinyGated: true, tinyBase: 4 },
+      mustHard: false, mustWarn: true },
   ];
   let ok = true;
   for (const f of fixtures) {

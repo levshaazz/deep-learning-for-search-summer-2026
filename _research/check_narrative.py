@@ -35,7 +35,12 @@ DECKS = {
     f"L{int(p.name[:2])}": p
     for p in sorted((ROOT / "Lectures").glob("[0-9][0-9]-*.html"))
 }
-SECTION = re.compile(r'<section class="slide"([^>]*)>')
+# Any section whose class list CONTAINS `slide` — which is what deck.js selects (`.slide`).
+# The old pattern demanded class="slide" exactly and so skipped every modifier-carrying slide
+# (`class="slide slide--wide"`): 49 of L5's 58 sections were counted, and `#/N` was therefore
+# resolved against a list nine entries short. That is precisely the silent mis-resolution this
+# gate exists to prevent, so it was condemning correct anchors and blessing wrong ones.
+SECTION = re.compile(r'<section\b([^>]*\bclass="[^"]*\bslide\b[^"]*"[^>]*)>')
 DTYPE   = re.compile(r'data-type="([^"]*)"')
 LABEL   = re.compile(r'data-screen-label="(\d+)')
 TOC     = re.compile(r'class="toc-item"[^>]*href="#/(\d+)"|href="#/(\d+)"[^>]*class="toc-item"')

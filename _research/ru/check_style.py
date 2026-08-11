@@ -61,6 +61,10 @@ CHECKS = [
     # Fires only on <noun>, что <finite verb> — the slot «который» would fill.
     # NB: excludes изъяснительное «что» (after a verb of speech/knowledge: «знаешь, что…»)
     # and substantivised superlatives («единственное, что…») — §9.1 forbids touching those.
+    # A relative «что» where «который» belongs. NOT fired after a substantivised adjective or a
+    # quantifier — «единственное, что читает индекс», «лучшее, что может дать модель», «всё, что
+    # впитала» are idiomatic Russian, and «который» there would be an ERROR. The detector used to
+    # flag all seven of those in the course, which is how a linter teaches people to ignore it.
     ("W-CHTO", "W", re.compile(
         r"\b(?!(?:[а-яё]*(?:ешь|ишь|айте|ай|и|ь|ть|ти|ла|ло|ли|ет|ит))\b)"
         r"[а-яё]{4,}(?:а|ы|о|е|ь|й|я|и|ов|ей|ам|ах|ом)\s*,\s*что\s+"
@@ -102,6 +106,39 @@ GLOSS = re.compile(r"(?:полнот\w+|точност\w+)\s*\((?:recall|precisi
 MATHY = re.compile(r"\\text\{[^}]*\}|\\\(|\\\)|\$\$")
 
 
+# A substantivised adjective or quantifier takes «что», never «который»: «единственное, что
+# читает индекс», «лучшее, что может дать модель», «всего, что впитала». The head word is the
+# text BEFORE the comma, so this has to be checked on the match, not with a lookbehind.
+CHTO_OK = re.compile(r"(?:единственн|лучш|худш|наименьш|наибольш|перв|последн|главн|"
+                     r"вс[её]|всег|мног|мал|нов|стар|прост|сложн|важн|интересн|"
+                     # …and изъяснительное «что» after a verb/participle of deciding, knowing or
+                     # saying: «цепочка, решающая, что хватит» — «который» is impossible there.
+                     r"решающ|решивш|знающ|понимающ|считающ|полагающ|говорящ|видящ|"
+                     r"замечающ|доказывающ|показывающ|утверждающ|проверяющ|определяющ)"
+                     r"[а-яё]*\s*,\s*что",
+                     re.I)
+
+
+def _chto_ok(m):
+    return bool(CHTO_OK.match(m.group(0)))
+
+
+# A CONTRASTIVE ё-pair is not a ё-less spelling, it is the lesson: «*еще* есть, *ещё* — нет»
+# is L20 teaching that the ё-less form is what users actually type. Fires only when the ё-form
+# of the very same word stands within a few dozen characters.
+YO_PAIR = {"еще": "ещё", "объем": "объём", "трехмерн": "трёхмерн", "четк": "чётк",
+           "звездн": "звёздн", "трудоемк": "трудоёмк", "переучет": "переучёт"}
+
+
+def _yo_ok(seg, m):
+    w = m.group(0).lower()
+    for bare, yo in YO_PAIR.items():
+        if w.startswith(bare):
+            near = seg[max(0, m.start() - 60):m.end() + 60].lower()
+            return yo in near
+    return False
+
+
 def _lat_ok(seg, m):
     if any(g.start() <= m.start() < g.end() for g in GLOSS.finditer(seg)):
         return True
@@ -110,8 +147,25 @@ def _lat_ok(seg, m):
     if "\\text{" in left or MATHY.search(left) or MATHY.search(right):
         return True
     # enumeration of metric names: "precision, recall, MAP, nDCG"
-    return bool(re.search(r"(?:MAP|nDCG|MRR|precision|recall)\s*[,–—]\s*$", left) or
-                re.match(r"\s*[,–—]\s*(?:MAP|nDCG|MRR|precision|recall)", right))
+    if re.search(r"(?:MAP|nDCG|MRR|precision|recall)\s*[,–—]\s*$", left) or \
+       re.match(r"\s*[,–—]\s*(?:MAP|nDCG|MRR|precision|recall)", right):
+        return True
+    # A metric IDENTIFIER, which §7-тер of the style guide keeps in Latin on purpose:
+    #   recall@1 · precision@10        — the @k form
+    #   R-precision · MAP-precision    — hyphenated proper names
+    #   context precision · average precision · context recall — multi-word metric names
+    # These were being reported as calques, which is backwards: the guide REQUIRES the Latin
+    # here, so the warning trained the eye to ignore the linter instead of to fix the prose.
+    if re.match(r"\s*@\s*\d", right) or re.match(r"\s*\d", right):
+        return True
+    # Sitting INSIDE a Latin phrase — "rank-biased precision", "16-bit precision", "context
+    # recall", or an English quotation embedded in RU prose. The word is then part of a term,
+    # not a Russian sentence choosing a calque over «полнота». A genuine calque reads
+    # «при precision и recall», where the left context is Cyrillic — still caught.
+    # (`R-` is one letter, hence the separate hyphen branch: "R-precision" is a metric name.)
+    if re.search(r"[A-Za-z]{2,}[\s-]$", left) or re.search(r"[A-Za-z]-$", left):
+        return True
+    return False
 
 
 def lint_segment(seg, relpath, base_line, findings, is_l17, is_beats):
@@ -120,6 +174,10 @@ def lint_segment(seg, relpath, base_line, findings, is_l17, is_beats):
             if code in ("E-MASCOT", "W-LAT") and _in_link(seg, m.start()):
                 continue
             if code == "W-LAT" and _lat_ok(seg, m):
+                continue
+            if code == "W-CHTO" and _chto_ok(m):
+                continue
+            if code == "W-YO" and _yo_ok(seg, m):
                 continue
             findings.append((sev, code, relpath, base_line(m.start()),
                              m.group(0)[:60], note))

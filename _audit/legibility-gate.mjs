@@ -43,9 +43,13 @@ const VIEW = { width: 1920, height: 1080 };
 // CI. To stay robust across environments, the gate's HARD line is TARGET minus a rendering MARGIN;
 // it enforces "not GENUINELY squished", while the 0.65 target is held at authoring time by pre-flight
 // + keeping this baseline empty. (Raising the base font or trimming a slide moves it well clear of both.)
+// MARGIN was 0.05 (FLOOR 0.60) and that turned out to be too generous to be useful: a slide
+// authored at 0.61 passed in silence here, then read ~0.585 on CI's Linux Chromium and failed
+// there instead — twice in one session (L13's title, then L17 s33 + L20 s68). The floor is now
+// 0.62, and the band between it and TARGET is no longer silent: see WARN below.
 const TARGET = 0.65;
-const MARGIN = 0.05;
-const FLOOR = +(TARGET - MARGIN).toFixed(2);   // 0.60 — hard gate line for a NEW slide
+const MARGIN = 0.03;
+const FLOOR = +(TARGET - MARGIN).toFixed(2);   // 0.62 — hard gate line for a NEW slide
 // Decks default to RU, and Russian runs ~15% longer than English, so many prose slides cluster just
 // above the floor; with CI's font-rendering downshift (~0.045) they'd flip below it and spuriously
 // re-fail. So the BASELINE grandfathers everything under TARGET (not just under FLOOR), and a
@@ -100,30 +104,52 @@ const loadBaseline = () => (existsSync(BASELINE) ? JSON.parse(readFileSync(BASEL
    `12`. Debt should be identified by WHICH slide it is, never by where the slide happens to sit. */
 const key = (deck, label) => `${deck}#${label}`;
 
+/* The whole verdict in one pure function, so the self-test can assert every branch without a
+   browser. `base` is the baselined fit for this slide, or null/undefined if it is not baselined. */
+export function classify(fit, base) {
+  if (fit >= TARGET) return base != null ? 'ratchet' : 'ok';
+  if (fit >= FLOOR) return 'band';
+  if (base == null) return 'hard-new';
+  if (fit < base - WORSEN) return 'hard-worse';
+  return 'baselined';
+}
+
 async function run() {
   const R = makeReporter('legibility');
   const baseline = loadBaseline();
   const byDeck = await measureAll();
-  let prose = 0, baselined = 0, ratchet = [];
+  let prose = 0, baselined = 0, ratchet = [], band = [];
   for (const [deck, slides] of Object.entries(byDeck)) {
     for (const s of slides) {
       prose++;
-      if (s.fit >= FLOOR) {
-        if (baseline[key(deck, s.label)] != null) ratchet.push(`${deck} s${s.n} now fit ${s.fit} — remove from baseline`);
-        continue;
-      }
       const base = baseline[key(deck, s.label)];
-      if (base == null) {
-        R.err(`${deck} · slide ${s.n} "${s.label}" [${s.type}] — auto-fit ${s.fit} < ${FLOOR} (content squished → too small in a hall) — NEW, trim/split`);
-      } else if (s.fit < base - WORSEN) {
-        R.err(`${deck} · slide ${s.n} "${s.label}" — auto-fit ${s.fit}, WORSE than baselined ${base}`);
-      } else { baselined++; }
+      switch (classify(s.fit, base)) {
+        // Genuinely comfortable. Only HERE is a baseline entry stale — clearing it at the old
+        // `>= FLOOR` line would have retired debt that is still inside the warn band.
+        case 'ratchet':
+          ratchet.push(`${deck} s${s.n} "${s.label}" now fit ${s.fit} ≥ ${TARGET} — remove from baseline`); break;
+        // The WARN band: not illegible, but in debt. This band used to be silent, which is how
+        // slides drifted to the floor unnoticed and then failed on CI instead of here.
+        case 'band':
+          band.push(`${deck} · s${s.n} "${s.label}" [${s.type}] fit ${s.fit} — under target ${TARGET}${base == null ? ' — NEW debt' : ''}`); break;
+        case 'hard-new':
+          R.err(`${deck} · slide ${s.n} "${s.label}" [${s.type}] — auto-fit ${s.fit} < ${FLOOR} (content squished → too small in a hall) — NEW, trim/split`); break;
+        case 'hard-worse':
+          R.err(`${deck} · slide ${s.n} "${s.label}" — auto-fit ${s.fit}, WORSE than baselined ${base}`); break;
+        case 'baselined': baselined++; break;
+        default: break;                                        // 'ok'
+      }
     }
   }
-  console.log(`\n[legibility] measured ${prose} prose slides across ${Object.keys(byDeck).length} decks; min auto-fit floor ${FLOOR}`);
-  console.log(`[legibility] baselined debt still sub-floor: ${baselined}` + (ratchet.length ? ` · ${ratchet.length} baselined slide(s) now PASS — ratchet the baseline:` : ''));
+  console.log(`\n[legibility] measured ${prose} prose slides across ${Object.keys(byDeck).length} decks; HARD floor ${FLOOR}, author target ${TARGET}`);
+  console.log(`[legibility] baselined debt still sub-floor: ${baselined}` + (ratchet.length ? ` · ${ratchet.length} baselined slide(s) now clear ${TARGET} — ratchet the baseline:` : ''));
   ratchet.slice(0, 40).forEach((r) => console.log(`   ↑ ${r}`));
-  console.log(`[legibility] HARD(new/worsened sub-floor)=${R.errors}`);
+  if (band.length) {
+    console.log(`\n──────── WARN band ${FLOOR}–${TARGET} (readable, but in debt — trim before it reaches the floor) ────────`);
+    band.slice(0, 60).forEach((b) => R.warn(b));
+    if (band.length > 60) console.log(`   … +${band.length - 60} more`);
+  }
+  console.log(`[legibility] HARD(new/worsened sub-floor)=${R.errors}  WARN(in band ${FLOOR}–${TARGET})=${band.length}`);
   return R.errors ? 1 : 0;
 }
 
@@ -170,9 +196,28 @@ async function selftest() {
   const ok = res.find((s) => s.label === 'ok');
   const squished = res.find((s) => s.label === 'squished');
   const exempt = !res.find((s) => s.label === 'figure exempt'); // viz excluded entirely
-  const pass = ok && ok.fit >= FLOOR && squished && squished.fit < FLOOR && exempt;
-  console.log(`[selftest] ok=fit ${ok?.fit}(≥${FLOOR}) squished=fit ${squished?.fit}(<${FLOOR}) viz-exempt=${exempt}`);
-  console.log('[selftest]', pass ? 'PASS — squished prose fires, comfortable silent, figure types exempt' : 'FAIL');
+  const measured = ok && ok.fit >= FLOOR && squished && squished.fit < FLOOR && exempt;
+
+  /* Every verdict branch, asserted on the pure classifier — including the WARN band, which is the
+     whole point of the 0.62 floor: a slide at 0.63 must be REPORTED but must NOT fail the build,
+     and a baselined slide must stay baselined until it genuinely clears the 0.65 target. */
+  const cases = [
+    ['comfortable, unbaselined',      0.90, null, 'ok'],
+    ['comfortable, stale baseline',   0.90, 0.55, 'ratchet'],
+    ['in band, new debt',             0.63, null, 'band'],
+    ['in band, already baselined',    0.63, 0.55, 'band'],
+    ['just under target',             0.649, null, 'band'],
+    ['exactly at floor is NOT hard',  FLOOR, null, 'band'],
+    ['below floor, unbaselined',      0.55, null, 'hard-new'],
+    ['below floor, baselined, stable', 0.55, 0.57, 'baselined'],
+    ['below floor, regressed hard',   0.40, 0.55, 'hard-worse'],
+  ];
+  const bad = cases.filter(([, fit, base, want]) => classify(fit, base) !== want);
+  bad.forEach(([n, fit, base, want]) => console.log(`  ✗ ${n}: classify(${fit}, ${base}) = ${classify(fit, base)}, expected ${want}`));
+
+  const pass = measured && bad.length === 0;
+  console.log(`[selftest] ok=fit ${ok?.fit}(≥${FLOOR}) squished=fit ${squished?.fit}(<${FLOOR}) viz-exempt=${exempt} · classifier ${cases.length - bad.length}/${cases.length}`);
+  console.log('[selftest]', pass ? `PASS — squished prose fires, band ${FLOOR}–${TARGET} warns without failing, comfortable silent, figure types exempt` : 'FAIL');
   return pass ? 0 : 1;
 }
 

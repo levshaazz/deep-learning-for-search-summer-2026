@@ -1,0 +1,57 @@
+# Freeze the LINUX paint-signature baseline for widget-render-check (G10).
+#
+# Why this workflow exists: a widget's paint signature depends on how the OS renders fonts, so a
+# baseline frozen on macOS can only gate macOS. With a darwin-only baseline the drift check
+# switched ITSELF OFF on CI — which is exactly where a regression reaches other people. This job
+# runs the gate on the same ubuntu image CI uses and freezes `widget-viz.linux.json`.
+#
+# Manual on purpose (workflow_dispatch): re-freezing a baseline is how visual debt gets laundered
+# in, so it must be a deliberate act with a reviewable diff — the file is uploaded as an artifact,
+# never auto-committed. Download it, eyeball the diff, commit it yourself.
+name: widget-viz-baseline
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  freeze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci
+
+      - name: Cache optimized images (WebP)
+        uses: actions/cache@v4
+        with:
+          path: .cache/webp
+          key: webp-${{ hashFiles('Lectures/assets/img/**/*.png') }}
+          restore-keys: webp-
+
+      # The gate mounts the BOOK's scroll-step widgets, so the site must be built first.
+      - name: Build site (assemble chapters + decks + render)
+        run: npm run build
+
+      - name: Freeze the linux baseline
+        working-directory: _audit
+        run: node widget-render-check.mjs --update-baseline
+
+      # Prove the frozen file actually gates on this platform: a second run must be clean.
+      - name: Verify the frozen baseline is stable
+        working-directory: _audit
+        run: node widget-render-check.mjs
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: widget-viz-linux-baseline
+          path: _audit/baselines/widget-viz.linux.json
+          if-no-files-found: error

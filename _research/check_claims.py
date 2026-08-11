@@ -1657,8 +1657,13 @@ COVERAGE_BASELINE = {
     # GLOBALLY, so they ALSO cover a handful of numbers L2-L6 displayed but had never gated (shared
     # ratios and MAP-scale decimals) — the un-gated counts dropped, so the ratchet is lowered to match
     # (strictly stronger; never raised). deck/book:L16-L18 are left to their own owners' passes.
-    "deck:L0": 0, "deck:L1": 1, "deck:L2": 5, "deck:L3": 36, "deck:L4": 20, "deck:L5": 34, "deck:L6": 19,
-    "book:L0": 0, "book:L1": 0, "book:L2": 8,  "book:L3": 8,  "book:L4": 12, "book:L5": 8,
+    # TIGHTENED (2026-08 debt sweep): the gate had been WARNing for ten surfaces that their real
+    # un-gated count sat below the frozen ratchet — the L16–L20 expansion gated numbers that these
+    # older units also display. A ratchet wider than the fact is not a ratchet: it silently licenses
+    # new un-gated numbers up to the old slack. Every value below is the count the gate itself
+    # measured; nothing was raised.
+    "deck:L0": 0, "deck:L1": 1, "deck:L2": 4, "deck:L3": 31, "deck:L4": 18, "deck:L5": 31, "deck:L6": 17,
+    "book:L0": 0, "book:L1": 0, "book:L2": 5,  "book:L3": 7,  "book:L4": 12, "book:L5": 8,
     # book:L6 — RAISED 6 → 37 when the L06 climb became `ncd-chain`, the end-to-end worked example.
     # Its ten scroll-step captions ARE Book prose, and they walk the whole computation: every
     # embedding row, every scaled score, the exponentials, the row sums, the context cells, the pooled
@@ -1668,7 +1673,7 @@ COVERAGE_BASELINE = {
     # exist in that widget's own data/ file — all of them, not the handful a C() claim happens to pin —
     # and `_research/gen_l6_chain.py` ASSERTS at generation time that the chain reproduces
     # data/l6-attention.json to the digit. A number here cannot drift without one of those two failing.
-    "book:L6": 26,
+    "book:L6": 22,
     "deck:L12": 2, "book:L12": 2,
     # deck:L14 "The Artificer's Quill" — all displayed toy numbers are now gated in l14_deck_claims() → 0.
     "deck:L14": 0,
@@ -1704,7 +1709,7 @@ COVERAGE_BASELINE = {
     "deck:L17": 0,
     # book:L17 mirrors the deck's Shannon numbers in prose (coin 0.811, code 1.75, 79/102, Fn 4.76/4.03,
     # bounds 0.6/1.3, 'E' 12.7) — same gen_l17.py + cited-bench provenance as deck:L17.
-    "book:L17": 8,
+    "book:L17": 1,
     # deck:L18 / book:L18 "The Curved Map" — numbers from gen_l18.py (data/l18-geometry.json toy: aniso
     # 0.8985/-0.0323/-0.0352, hubness skew/maxNk/corr) + cited bench (data/l18-bench.json: GPT-2 0.6/0.99,
     # Radovanović skew 0.121/1.541/5.445/19.21, Su STS-B 59.04/71.34, SimCSE 76.3/81.6, CSLS 42.6/66.1,
@@ -1719,7 +1724,7 @@ COVERAGE_BASELINE = {
     "deck:L18": 0,
     # book:L18 mirrors the deck's numbers in trilingual prose; still baseline-frozen (the Book's own
     # anchors are not written yet), so a NEW ungated Book number beyond these still HARD-fails.
-    "book:L18": 10,
+    "book:L18": 0,
 }
 _COV_DEC   = re.compile(r'(?<![\d.,])\d+[.,]\d{2,}(?!\d)')# grounded signature: a decimal (dot OR RU comma), ≥2 fractional digits
 _COV_ARXIV = re.compile(r'^\d{4}[.,]\d{4,}$')             # arXiv id (e.g. 1901.04085) — not data

@@ -79,18 +79,6 @@ ADJ_DEMO_SCOPE = os.path.join('Lectures', '20-russian-search')
 # QUARANTINE — script-mixing that predates this rule and sits outside the NCD family. token → owner.
 # NOT a pardon: it prints on every run, and a stale entry HARD-fails so the list can never rot.
 ADJ_DEBT = {
-    'Séréга':     'content/book/l13,l15,l16,l17,l18 beats — RU/TT image alt-text: Latin "Séré" + Cyrillic "га". Canon: «Серёга» (RU/TT), "Séréga" (EN).',
-    'кунa':       'widgets/block-geometry/i18n.json — Latin a in «куна».',
-    'сакланa':    'widgets/block-geometry/i18n.json — Latin a in «саклана».',
-    'тыелa':      'widgets/block-geometry/i18n.json — Latin a in «тыела».',
-    'ясa':        'content/book/l10/beats/40-adaptive-rag.js — Latin a in «яса».',
-    'кыланa':     'content/book/l14/beats/08-hyde-idea.js — Latin a in «кылана».',
-    'ткачlyk':    'content/book/l15/beats/04-self-attention.js — Latin "lyk" spliced into «ткачлык».',
-    'таракcыз':   'content/book/l15/beats/05-multi-head.js — Latin c in «таракcыз».',
-    'embeddlә':   'content/book/l16/beats/02-why-small-chunks.js — Latin stem, no apostrophe (canon: embed’лә).',
-    'datasetлар': 'content/book/l16/beats/10-evidence.js — Latin stem, no apostrophe (canon: dataset’лар).',
-    'bitларда':   'content/book/l17/beats/01-hook-telegraph.js — Latin stem, no apostrophe (canon: bit’ларда).',
-    'bitка':      'content/book/l17/beats/01-hook-telegraph.js — Latin stem, no apostrophe (canon: bit’ка).',
 }
 
 # ── [B] «свёртка» inside the NCD family ──────────────────────────────────────────────────────────

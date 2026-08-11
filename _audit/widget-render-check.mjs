@@ -277,9 +277,17 @@ function emptyVerdict(probe) {
    pass-through; an INTENTIONAL visual change is re-frozen the same way, after a diff
    review. The comparison is pure (diffEntry) so --selftest can plant drift offline.
    ========================================================================= */
+/* PER-PLATFORM baselines, side by side. A paint signature depends on how the OS renders fonts,
+   so ONE frozen file can only gate the platform it was frozen on — and with a darwin-only file
+   the drift check silently switched itself off on CI's ubuntu, which is where it matters most
+   (the `whiten-grid` grid-overflow + dead-step regression of Aug 2026 would have sailed through).
+   So: widget-viz.json stays the darwin baseline, widget-viz.linux.json is its Linux twin, and
+   each platform gates against its own. Freeze the Linux one with the `widget-viz-baseline`
+   workflow (`--update-baseline` on an ubuntu runner), which uploads the file for review. */
 const BDIR = join(ROOT, '_audit', 'baselines');
-const BFILE = join(BDIR, 'widget-viz.json');
-const BREL = '_audit/baselines/widget-viz.json';
+const BNAME = process.platform === 'linux' ? 'widget-viz.linux.json' : 'widget-viz.json';
+const BFILE = join(BDIR, BNAME);
+const BREL = `_audit/baselines/${BNAME}`;
 
 function loadBaseline() {
   if (!existsSync(BFILE)) return null;

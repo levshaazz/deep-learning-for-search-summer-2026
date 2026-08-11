@@ -420,17 +420,58 @@
 
     if (scale < 1) {
       const FLOOR = 0.5;
-      const s = Math.max(FLOOR, scale);
+      let s = Math.max(FLOOR, scale);
       body.style.transformOrigin = 'top left';
-      body.style.transform = `scale(${s})`;
-      body.style.width = (100 / s) + '%';
+
+      /* The first estimate is measured at the body's NATURAL width, but applying it also
+         re-expands the body to 100/s % — a WIDER column, in which prose re-wraps into fewer
+         lines and the content becomes substantially shorter than the estimate assumed. The
+         old single-pass code shipped that stale estimate, so text-heavy slides were scaled
+         to ~0.61 while their content actually fit at ~0.85: tiny type floating above a band
+         of empty slide. (It also made trimming feel useless — cutting two lines of prose
+         moved the printed auto-fit by nothing, because the number never described the
+         rendering anyone was looking at.)
+
+         So converge instead. renderedHeight(s) = scrollHeight(at width 100/s) × s is
+         monotonically increasing in s, so the fixed-point step s ← availH / h(s) walks up
+         to the largest scale that still fits, in 2–3 layouts. The final guard shrinks back
+         if we overshot: fitting is not negotiable, filling the frame is the bonus. */
+      const apply = (v) => {
+        body.style.transform = `scale(${v})`;
+        body.style.width = (100 / v) + '%';
+        void body.offsetHeight;
+      };
+      apply(s);
+      for (let i = 0; i < 3 && s < 1; i++) {
+        const h = body.scrollHeight;                 // unscaled height at the CURRENT width
+        if (!h) break;
+        const next = Math.min(1, Math.max(FLOOR, availH / h));
+        if (Math.abs(next - s) < 0.005) break;       // converged
+        s = next;
+        apply(s);
+      }
+      /* Overshoot guard: never leave content past the frame on EITHER axis (overflow:hidden
+         clips it). Width matters as much as height here — the convergence above only chases
+         height, so on a slide where WIDTH was the binding constraint (a wide table) it could
+         otherwise walk the scale up past what the width allows. */
+      for (let i = 0; i < 5 && s > FLOOR; i++) {
+        const overH = body.scrollHeight * s > availH + 2 ? availH / (body.scrollHeight * s) : 1;
+        const overW = body.scrollWidth * s > availW + 2 ? availW / (body.scrollWidth * s) : 1;
+        const k = Math.min(overH, overW);
+        if (k >= 1) break;
+        s = Math.max(FLOOR, s * k);
+        apply(s);
+      }
       slide.dataset.autoFit = s.toFixed(3);
       /* If the content WANTED to shrink below the floor, scaling stops at
          FLOOR and the excess is clipped by the slide's overflow:hidden —
          silently. Flag it so the pre-flight overlay can raise a visible
          ERROR (not just a density warning) telling the lecturer content is
          being cut off, not merely small. */
-      if (scale < FLOOR) {
+      /* Judge CLIPPING on the CONVERGED render, not on the first estimate: a slide whose
+         naive estimate lands under the floor usually fits comfortably once the wider column
+         re-wraps it, and flagging that as "being cut off" would cry wolf on healthy slides. */
+      if (s <= FLOOR + 1e-6 && body.scrollHeight * s > availH + 2) {
         slide.dataset.autoFitClipped = 'true';
         console.error(
           `[deck] Slide ${(slide.dataset.index | 0) + 1} (${slide.dataset.type})`,
