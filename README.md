@@ -130,14 +130,20 @@ The AI-illustration **masters** (`Lectures/assets/img/`, ~380 MB of PNG) live in
 so a plain `git clone` stays light and pulls them on demand. Pick the clone that fits your task:
 
 ```bash
-# full working copy — decks, site build, pptx export (LFS pulls the masters automatically)
-git clone https://github.com/levshaazz/deep-learning-for-search-summer-2026.git
-
-# writing/reviewing only (scripts, book, gates) — skip the masters entirely, ~10× lighter
+# DEFAULT — light clone (~40 MB, ~30 s): everything except the masters.
+# Enough for writing, reviewing, gates, the Book — the site build only needs
+# the masters for the image pipeline.
 GIT_LFS_SKIP_SMUDGE=1 git clone --filter=blob:none \
   https://github.com/levshaazz/deep-learning-for-search-summer-2026.git
-# …and materialise them later if needed:  git lfs pull
+
+# …materialise the masters later, only when you actually need them:
+git lfs pull            # decks offline, site build, pptx export
 ```
+
+> 💸 A full `git clone` (or `git lfs pull`) downloads ~640 MB of LFS objects and
+> **spends that much of the repo's monthly LFS bandwidth** (1 GiB on the free plan).
+> CI is unaffected — it restores the masters from the actions cache — but don't
+> re-clone casually; keep one working copy and `git pull` it.
 
 > ⚠️ **History was rewritten in Aug 2026** (masters moved to LFS, pre-1920px versions purged).
 > If you hold a clone from before that date, re-clone — do not pull over it.
