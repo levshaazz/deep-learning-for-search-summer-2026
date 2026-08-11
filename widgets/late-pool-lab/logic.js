@@ -107,7 +107,9 @@ export const mountLatePoolLab = defineWidget({
     const wallX = tx(bnd) - TOK_GAP / 2;
     layer('wall', 0);
     add('wall', el('line', { x1: wallX, y1: TOK_Y - 30, x2: wallX, y2: TOK_Y + TOK_H + 6, class: 'lpl-wall' }, svg));
-    add('wall', el('text', { x: wallX, y: TOK_Y - 36, class: 'lpl-walllbl', 'text-anchor': 'middle' }, svg))
+    // beside the wall line, not above it: at the bumped 15px label size the old centred spot
+    // (y = TOK_Y − 36) collided with the head line — G13 flags that as a label overlap.
+    add('wall', el('text', { x: wallX + 8, y: TOK_Y - 20, class: 'lpl-walllbl', 'text-anchor': 'start' }, svg))
       .textContent = labels.wall || 'the wall';
 
     // arcs: from each chunk-B token up and over to "Berlin" (token 0). Blocked ones stop at the wall.

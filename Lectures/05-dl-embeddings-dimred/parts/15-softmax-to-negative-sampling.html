@@ -61,7 +61,9 @@
             .w2v-slide .e2e-step { display: none; }
             .w2v-slide .e2e-step.is-current { display: block; animation: w2vIn var(--dur,.4s) var(--ease,ease) both; }
             .w2v-slide .e2e-step .step-formula { font-size: 21px; margin: 0 0 var(--sp-2); }
-            .w2v-slide .e2e-step .step-caption { font-size: 16px; line-height: 1.42; color: var(--ink-2); margin: 0 0 var(--sp-2); }
+            /* 17px (was 16): under the slide auto-fit the RU step-3 caption rendered a hair under the
+               16px viz floor (G13 tiny-text ratchet) — one extra raw px keeps it above with margin. */
+            .w2v-slide .e2e-step .step-caption { font-size: 17px; line-height: 1.42; color: var(--ink-2); margin: 0 0 var(--sp-2); }
             /* SGNS chip table: positive (pull) vs negatives (push) */
             .w2v-slide .sgns-tab { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 14.5px; margin: var(--sp-2) 0; }
             .w2v-slide .sgns-tab th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); text-align: right; padding: 2px 7px; font-weight: 600; }
@@ -216,7 +218,9 @@
               // widgets/_layout.js). A faithful extraction of the former inline 160-iter fan: same width
               // metric (len×8), same minGap=17 / dx=11 / clamp [y+12, y+h−4] → identical label positions.
               var RECT={x:BX.x,y:BX.y,w:BX.w,h:BX.h};
-              var LP=DeckLayout.placeLabels(f.p.map(function(p){ return {x:SC.sx(p[1]),y:SC.sy(p[2]),text:p[0]}; }), RECT);
+              // charW/minGap follow the label font bump 17→19 (tiny-text ratchet): width metric keeps
+              // the same 0.47em/char ratio (8@17 → 9@19), vertical gap tracks the new line height.
+              var LP=DeckLayout.placeLabels(f.p.map(function(p){ return {x:SC.sx(p[1]),y:SC.sy(p[2]),text:p[0]}; }), RECT, {minGap:19,charW:9,dx:12});
               var L=LP.map(function(lp){ return {cx:lp.anchorX,cy:lp.anchorY,lx:lp.x,ly:lp.y,right:lp.right}; });
               f.p.forEach(function(p,i){
                 var l=L[i], hue=HUE[p[3]];
@@ -230,7 +234,7 @@
                 if(Math.abs(l.ly-(l.cy+4))>6){ var ln=document.createElementNS(NS,'line'); ln.setAttribute('x1',l.cx);ln.setAttribute('y1',l.cy);ln.setAttribute('x2',l.lx+(l.right?2:-2));ln.setAttribute('y2',l.ly-3);ln.setAttribute('stroke',hue);ln.setAttribute('stroke-width',0.8);ln.setAttribute('opacity',0.4); g.appendChild(ln); }
                 var t=document.createElementNS(NS,'text');
                 t.setAttribute('x',l.lx);t.setAttribute('y',l.ly);
-                t.setAttribute('font-size',(isKing||isLoves)&&opts.markKing?19:17);
+                t.setAttribute('font-size',(isKing||isLoves)&&opts.markKing?21:19);
                 t.setAttribute('fill',(isKing||isLoves)&&opts.markKing?'var(--ink)':'var(--ink-2)');
                 t.setAttribute('font-family','var(--font-mono)');
                 t.setAttribute('font-weight',(isKing||isLoves)&&opts.markKing?'700':'400');

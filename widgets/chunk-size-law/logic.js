@@ -126,7 +126,7 @@ export const mountChunkSizeLaw = defineWidget({
       [labels.aFixed || 'fixed-256 (middle)', anch.fixed256],
       [labels.aSemantic || 'semantic (largest)', anch.semantic],
     ];
-    const barX = DOC.x + 300, barU = 72;
+    const barX = DOC.x + 320, barU = 72;   // 320 (was 300): at the 17px row font the longest RU row label ran to the bar's old left edge
     rows.forEach((r, i) => {
       const y = AY + 24 + i * 24;
       add('anchors', el('text', { x: DOC.x, y: y, class: 'csl-arow' }, svg)).textContent = r[0];
@@ -167,9 +167,13 @@ export const mountChunkSizeLaw = defineWidget({
       // the curve grows one point per step
       const shown = Math.max(0, Math.min(N, k));
       dots.forEach((d, i) => {
+        const isCur = i === idx || (idx === sizes.length && i === N - 1);
         d.classList.toggle('is-hidden', i >= shown);
-        dotLbls[i].classList.toggle('is-hidden', i >= shown);
-        d.classList.toggle('is-current', i === idx || (idx === sizes.length && i === N - 1));
+        // only the CURRENT dot carries its % label (the letter-entropy thinning move): at the bumped
+        // 15px label size the tail values sit 16px apart vertically and would crowd; the past values
+        // live in the step captions and the readout, so the curve stays clean.
+        dotLbls[i].classList.toggle('is-hidden', i >= shown || !isCur);
+        d.classList.toggle('is-current', isCur);
       });
       path.setAttribute('d', shown < 2 ? '' :
         allFrac.slice(0, shown).map((v, i) => (i ? 'L' : 'M') + cx(i) + ' ' + cy(v)).join(' '));

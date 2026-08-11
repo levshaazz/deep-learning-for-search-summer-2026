@@ -40,8 +40,10 @@ const SCALE_FILE = 'Lectures/css/template.css';
 
 /* FROZEN BASELINE — the raw-font-size count in Lectures/css/*.css at the moment this gate was
    authored (2026-06-11). live > BASELINE is a HARD fail. When you burn literals down, set this
-   to the new (lower) live count so the ratchet only ever tightens. */
-const BASELINE = 204;
+   to the new (lower) live count so the ratchet only ever tightens.
+   2026-08-11 (T14): 204 → 50 — literals migrated to the --fs-* scale (new label/fine
+   sub-scales in template.css; values identical to the former literals). */
+const BASELINE = 50;
 
 /* ── scanners ─────────────────────────────────────────────────────────────── */
 const stripComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');

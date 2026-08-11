@@ -151,7 +151,15 @@ export const mountLongLateWindow = defineWidget({
         const y = ROW_Y + i * (ROW_H + ROW_GAP);
         const end = Math.min(docT, s + lMax);
         box(sx(s), sx(end) - sx(s), y, 'llw-mc');
-        tag(sx(s) + 6, y, thou(s) + ' – ' + thou(end), 'llw-mclbl');
+        // at the bumped 14px label font the LAST chunk's range label ran past the right frame edge;
+        // when it would, flip it to end-anchored at the chunk's right edge (each chunk owns its row,
+        // so the flipped label extends into that row's empty left half, colliding with nothing).
+        const rangeTxt = thou(s) + ' – ' + thou(end);
+        const rangeTag = tag(sx(s) + 6, y, rangeTxt, 'llw-mclbl');
+        if (sx(s) + 6 + rangeTxt.length * 8.6 > BAR.x + BAR.w) {
+          rangeTag.setAttribute('x', sx(end) - 6);
+          rangeTag.setAttribute('text-anchor', 'end');
+        }
         if (k >= 3 && i > 0) {                          // the overlap band this chunk re-reads
           const ov = box(sx(s), sx(s + om) - sx(s), y, 'llw-ov' + (k >= 4 ? ' is-dropped' : ''));
           ov.setAttribute('rx', 2);

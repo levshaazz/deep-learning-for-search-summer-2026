@@ -301,12 +301,13 @@
               // definition) — so positions may shift slightly, but overprint is now un-authorable. Its own
               // constants are passed through (minGap 16, charW 7.5, dx 10, topPad 10).
               var GRECT={x:TBX.x,y:TBX.y,w:TBX.w,h:TBX.h};
-              var GLP=DeckLayout.placeLabels(cp.map(function(p){ return {x:gsx(p[1]),y:gsy(p[2]),text:p[0]}; }), GRECT, {minGap:16,charW:7.5,dx:10,topPad:10});
+              // label font 14→16 (tiny-text ratchet): charW/minGap keep the same per-px ratios (7.5@14 → 8.6@16).
+              var GLP=DeckLayout.placeLabels(cp.map(function(p){ return {x:gsx(p[1]),y:gsy(p[2]),text:p[0]}; }), GRECT, {minGap:18,charW:8.6,dx:10,topPad:10});
               var GL=GLP.map(function(lp){ return {cx:lp.anchorX,cy:lp.anchorY,lx:lp.x,ly:lp.y,right:lp.right}; });
               cp.forEach(function(p,i){ var l=GL[i],hue=GHUE[p[3]];
                 var c=document.createElementNS(GNS,'circle'); c.setAttribute('cx',l.cx);c.setAttribute('cy',l.cy);c.setAttribute('r',6);c.setAttribute('fill',hue);c.setAttribute('stroke','var(--bg-card)');c.setAttribute('stroke-width',1.4); gtraj.appendChild(c);
                 if(Math.abs(l.ly-(l.cy+4))>6){ var ln=document.createElementNS(GNS,'line'); ln.setAttribute('x1',l.cx);ln.setAttribute('y1',l.cy);ln.setAttribute('x2',l.lx+(l.right?2:-2));ln.setAttribute('y2',l.ly-3);ln.setAttribute('stroke',hue);ln.setAttribute('stroke-width',0.8);ln.setAttribute('opacity',0.4); gtraj.appendChild(ln);}
-                var t=document.createElementNS(GNS,'text'); t.setAttribute('x',l.lx);t.setAttribute('y',l.ly);t.setAttribute('font-size',14);t.setAttribute('fill','var(--ink-2)');t.setAttribute('font-family','var(--font-mono)');t.setAttribute('text-anchor',l.right?'start':'end');t.setAttribute('stroke','none'); t.textContent=p[0]; gtraj.appendChild(t); });
+                var t=document.createElementNS(GNS,'text'); t.setAttribute('x',l.lx);t.setAttribute('y',l.ly);t.setAttribute('font-size',16);t.setAttribute('fill','var(--ink-2)');t.setAttribute('font-family','var(--font-mono)');t.setAttribute('text-anchor',l.right?'start':'end');t.setAttribute('stroke','none'); t.textContent=p[0]; gtraj.appendChild(t); });
             }
             // loss collapse polyline (data/l5-glove.json → trajectory.lossCurve)
             var GLC=[[0,18.039],[50,1.506],[100,0.531],[150,0.397],[200,0.296],[250,0.171],[300,0.076],[350,0.034],[400,0.018],[450,0.012],[500,0.009],[550,0.006],[600,0.005]];
@@ -509,8 +510,8 @@
                 t.textContent=p.w; gEl.appendChild(t);
               });
             }
-            // FULL map (step 2): frame 60,56,820,430
-            drawMap(document.getElementById('gob-mapdots'), {x:70,y:66,w:800,h:410}, 6, 15);
+            // FULL map (step 2): frame 60,56,820,430 — label font 16 (was 15; tiny-text ratchet margin)
+            drawMap(document.getElementById('gob-mapdots'), {x:70,y:66,w:800,h:410}, 6, 16);
             // COMPACT map (step 3): frame 60,52,820,296 → bx with margin, smaller dots/labels.
             // First lay a faint ghost of the RANDOM-INIT cloud (projected through the same basis) so
             // step 3 literally reads "random init → converged"; then the converged dots on top.
@@ -530,7 +531,7 @@
               var glLn=document.createElementNS(NS,'line'); glLn.setAttribute('x1',blobX);glLn.setAttribute('y1',blobY);glLn.setAttribute('x2',b3.x+b3.w*0.62);glLn.setAttribute('y2',b3.y+16);glLn.setAttribute('stroke','var(--ink-3)');glLn.setAttribute('stroke-width',0.7);glLn.setAttribute('opacity',0.28);glLn.setAttribute('stroke-dasharray','3 3'); g3.appendChild(glLn);
               var gl=document.createElementNS(NS,'text'); gl.setAttribute('x',b3.x+b3.w*0.62);gl.setAttribute('y',b3.y+12);gl.setAttribute('font-size',15);gl.setAttribute('fill','var(--ink-3)');gl.setAttribute('opacity',0.8);gl.setAttribute('text-anchor','middle');gl.setAttribute('font-family','var(--font-mono)');gl.setAttribute('stroke','none');gl.textContent='random init'; g3.appendChild(gl);
             }
-            drawMap(g3, {x:72,y:64,w:796,h:276}, 5, 13);
+            drawMap(g3, {x:72,y:64,w:796,h:276}, 5, 15); // label font 15 (was 13) — the compact map's labels sat under the 16px viz floor
             // loss polyline (data/l5-glove.json → loss.history) in its OWN bottom lane (y 406..500),
             // separated from the compact map above → never overprints the scatter.
             var hist=[[0,18.0391],[50,1.5063],[100,0.5311],[150,0.3969],[200,0.2961],[250,0.1705],[300,0.0756],[350,0.0339],[400,0.0183],[450,0.0118],[500,0.0085],[550,0.0065],[600,0.005]];

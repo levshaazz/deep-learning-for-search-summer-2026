@@ -31,7 +31,12 @@ VERSION_WORDS = {
     "wav2vec", "word2vec", "doc2vec", "seq2seq",
 }
 
-DEC_RE = re.compile(r"(?<![\d.,])(\d+)\.(\d+)(?![\d.])")
+# Trailing guard is `(?!\d|\.\d)`, NOT `(?![\d.])`: both reject version tails ("1.2.3" — the
+# match "1.2" is followed by ".3"), but the old form ALSO rejected a decimal at the end of a
+# sentence — "ловушка падает до 0.16." — because the sentence period follows the number. That
+# made every sentence-final decimal invisible to E-DEC and to the sweep (found Aug 2026: a
+# reviewer caught 0.16 in L14 that three full lint passes had silently skipped).
+DEC_RE = re.compile(r"(?<![\d.,])(\d+)\.(\d+)(?!\d|\.\d)")
 # thousands: 32,768 / 1,000,000 — integer groups of exactly 3 after commas
 THOU_RE = re.compile(r"(?<![\d.,])(\d{1,3})((?:,\d{3})+)(?![\d])")
 # LaTeX thousands written with {,}: 32{,}768  (>=10 int part or '000' fraction)
