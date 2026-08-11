@@ -19,6 +19,7 @@
    Usage:  node build-vendor.mjs
    ========================================================= */
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -84,7 +85,23 @@ async function gfonts() {
   let css = await getText(GFONTS, { 'User-Agent': UA });
   const urls = [...new Set([...css.matchAll(/url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)/g)].map(m => m[1]))];
   const named = urls.map((u, i) => ({ u, name: `gf-${i}-${u.split('/').pop().split('?')[0]}` }));
-  await Promise.all(named.map(async ({ u, name }) => out('fonts/' + name, await getBuf(u, { 'User-Agent': UA }))));
+  /* Google rotates the hashed woff2 filenames without warning, and when it does, a URL that its
+     OWN css2 response just handed us can already 404 (it did: Newsreader v26, Aug 2026 — red CI
+     on a commit that touched no fonts). The vendored copies are committed, so an upstream
+     rotation must not break the build: keep the file we already have and say so loudly. Only a
+     font we have NEVER vendored is a real failure. */
+  let reused = 0;
+  await Promise.all(named.map(async ({ u, name }) => {
+    try {
+      await out('fonts/' + name, await getBuf(u, { 'User-Agent': UA }));
+    } catch (e) {
+      const local = join(VENDOR, 'fonts', name);
+      if (!existsSync(local)) throw new Error(`${name}: upstream ${String(e).slice(0, 80)} and no vendored copy exists`);
+      reused++;
+      console.warn(`[vendor] ⚠ ${name}: upstream 404/err — keeping the vendored copy (Google rotated the hash)`);
+    }
+  }));
+  if (reused) console.warn(`[vendor] ⚠ ${reused} font(s) served from the vendored copy, not refreshed`);
   for (const { u, name } of named) css = css.split(u).join('./' + name);
   await out('fonts/fonts.css', css);
   log(`Google Fonts: css + ${named.length} woff2`);
