@@ -28,6 +28,22 @@ import { frameHeightFor } from '../_plot-util.js';
 
 const W = 620;
 const TOK_Y = 74, TOK_H = 46, TOK_W = 120, TOK_GAP = 14, TOK_X0 = 34;
+
+/* Shrink a text node's font just enough to fit maxW — measured by the browser, not estimated.
+   Font metrics differ per platform (a label that fits on macOS exited the frame by 8px on CI's
+   Linux), so any eyeballed size is a bet; getComputedTextLength is the only honest ruler. */
+function fitText(node, maxW) {
+  try {
+    const w = node.getComputedTextLength();
+    if (w > maxW && w > 0) {
+      const fs = parseFloat(getComputedStyle(node).fontSize) || 14;
+      // inline STYLE, not the font-size presentation attribute — the classes here set the CSS
+      // `font:` shorthand, and any CSS rule beats a presentation attribute, so the attribute
+      // form silently did nothing (the book note kept exiting the frame by the same 9px).
+      node.style.fontSize = Math.max(10, Math.floor(fs * maxW / w * 10) / 10) + 'px';
+    }
+  } catch { /* not rendered yet — the un-clamped size stays, same as before this helper */ }
+}
 const PLANE = { x: 86, y: 208, w: 216, h: 216 };   // 2-D reading plane (origin at its bottom-left)
 const UNIT = PLANE.h / 2.5;                        // px per axis unit (domain 0…2.5)
 
@@ -133,7 +149,15 @@ export const mountLatePoolLab = defineWidget({
     add('plane', el('line', { x1: ox, y1: oy, x2: ox, y2: PLANE.y, class: 'lpl-axis' }, svg));
     add('plane', el('text', { x: ox + PLANE.w, y: oy + 18, class: 'lpl-axislbl', 'text-anchor': 'end' }, svg))
       .textContent = labels.axisX || 'Berlin-ness';
-    add('plane', el('text', { x: ox - 8, y: PLANE.y + 4, class: 'lpl-axislbl', 'text-anchor': 'end' }, svg))
+    /* The y-axis label runs VERTICALLY along its axis. It used to sit horizontal, end-anchored
+       at ox−8 and growing left — «население» at the enlarged font was wider than the ox-margin
+       on Linux font metrics, and exited the frame on CI while still fitting on macOS. A rotated
+       label's horizontal footprint is one line-height, so no language and no font stack can push
+       it out; runtime measuring is no substitute here — the widget mounts hidden, and there is
+       nothing to measure until it is too late. */
+    const ayx = ox - 12, ayy = PLANE.y + PLANE.h / 2;
+    add('plane', el('text', { x: ayx, y: ayy, class: 'lpl-axislbl', 'text-anchor': 'middle',
+      transform: `rotate(-90 ${ayx} ${ayy})` }, svg))
       .textContent = labels.axisY || 'population';
     // the query ray q = (1,0)
     const qEnd = [ox + PLANE.w - 6, oy];
@@ -194,6 +218,10 @@ export const mountLatePoolLab = defineWidget({
       note2.classList.toggle('is-hidden', k < 5);
       note.textContent = labels.legNote || 'same boundary, same model';
       note2.textContent = labels.legNote2 || 'only the moment of pooling moved';
+      // Both ledger notes start at LX and run right toward the frame edge; the EN one cleared it
+      // on macOS and exited by 9px on Linux. Clamp on every rewrite — the text just changed.
+      fitText(note, W - 8 - LX);
+      fitText(note2, W - 8 - LX);
       // step 3 — the contextual rewrite: every chunk-B token now carries ϑ, the mean of all it may read.
       // (Chunk A keeps its RAW values on purpose: they are the inputs the arcs are carrying into B.)
       const ctxOn = k >= 3;

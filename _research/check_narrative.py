@@ -81,7 +81,11 @@ def check(deck, html):
             continue                               # already reported as broken
         t = slides[n]
         last = (i == len(agenda) - 1)
-        ok = (t == "divider") or (last and t in ("final", "refs", "divider"))
+        # Decks spell the references type BOTH ways — L19 uses data-type="references", older decks
+        # "refs". The gate only knew "refs", so an agenda item correctly pointing at a references
+        # slide (L19 #56) was flagged as landing mid-act. Accept both spellings; this widens the
+        # vocabulary to what the decks actually use, not the rule itself.
+        ok = (t == "divider") or (last and t in ("final", "refs", "references", "divider"))
         if not ok:
             issues.append(("WARN", f'{deck}: AGENDA-TARGET #/{n} → type="{t}" (expected divider'
                                    f'{"/final/refs" if last else ""})'))
