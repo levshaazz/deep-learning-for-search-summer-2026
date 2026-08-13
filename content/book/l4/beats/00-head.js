@@ -1,9 +1,12 @@
-// content/book/l4.js — "The Proving Grounds" (L4): Ranking Metrics + Significance + Online Eval.
-// Beats match narrative/L4.md. The five offline metrics are one stepped ranking-metrics figure on
-// L3's real BM25 ranking; significance & online are prose beats (no new widgets).
-// EN canonical + RU; TT falls back. NARRATIVE_METHOD applies; Goodhart the Trickster returns.
+// content/book/l4.js — "How Much Is a Letter Worth?" (L4): Shannon Entropy — the entropy of language.
+// Chapter 04 of the course: it sits between L3 (Classical IR) and L5 (Ranking Metrics). L3 leaned on an
+// IDF weight and on compressed postings without ever saying where that logarithm came from — this chapter
+// puts the number under both, and hands L5 the habit of measuring. History-forward. Metaphor: Séréga the
+// 1948 Bell-Labs telegraph operator with a surprise meter (bits) and a red entropy-floor line.
+// PROSE qualitative; numbers gated in the deck + data/.
+// EN canonical + native RU + native TT. Séréga plates (nano-banana-pro).
 
 export default {
   id: '04',
-  catchphrase: 'The Proving Grounds',
+  catchphrase: 'How Much Is a Letter Worth?',
   beats: [

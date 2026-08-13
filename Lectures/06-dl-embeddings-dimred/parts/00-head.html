@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lecture 6 — The Map of Meaning · Embeddings &amp; Dimensionality Reduction</title>
+
+  <!-- Apply saved theme/lang BEFORE first paint to avoid a flash of the
+       wrong theme. Mirrors tools.js prefs key. -->
+  <script>
+    try {
+      var __p = JSON.parse(localStorage.getItem('lecture.template.prefs.v1') || '{}');
+      var __de = document.documentElement;
+      if (__p.theme === 'dark' || __p.theme === 'light') __de.setAttribute('data-theme', __p.theme);
+      if (__p.lang === 'ru' || __p.lang === 'en') {
+        __de.setAttribute('data-lang', __p.lang);
+        __de.setAttribute('lang', __p.lang);
+      }
+    } catch (e) {}
+  </script>
+
+  <!-- Asset-load failure banner. -->
+  <script>
+    window.__assetFail = (function () {
+      var failed = [];
+      return function (name) {
+        if (failed.indexOf(name) !== -1) return;
+        failed.push(name);
+        function show() {
+          if (!document.body) { document.addEventListener('DOMContentLoaded', show); return; }
+          var el = document.getElementById('__asset-banner');
+          if (!el) {
+            el = document.createElement('div');
+            el.id = '__asset-banner';
+            el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:2147483647;' +
+              'background:#D7522C;color:#fff;font:600 15px/1.4 system-ui,sans-serif;' +
+              'padding:10px 16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.3)';
+            el.addEventListener('click', function () { el.remove(); });
+            document.body.appendChild(el);
+          }
+          el.textContent = 'Не загрузились ресурсы: ' + failed.join(', ') +
+            '. Формулы/подсветка/QR могут не отрисоваться — запустите офлайн-файл ' +
+            '«Lecture Template (Standalone).html». · Failed to load: ' + failed.join(', ') +
+            ' — use the Standalone file. (клик чтобы скрыть)';
+        }
+        show();
+      };
+    })();
+  </script>
+
+  <!-- Fonts — vendored locally. -->
+  <link href="vendor/fonts/fonts.css" rel="stylesheet"
+        onerror="window.__assetFail&&window.__assetFail('Шрифты/Fonts')" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/template.css?v=6" />
+  <link rel="stylesheet" href="css/slides.css?v=6" />
+  <link rel="stylesheet" href="css/components.css?v=6" />
+  <link rel="stylesheet" href="css/presenter.css?v=6" />
+  <link rel="stylesheet" href="css/tweaks.css?v=6" />
+  <link rel="stylesheet" href="css/e2e.css?v=6" />
+  <link rel="stylesheet" href="css/lab.css?v=6" />
+  <link rel="stylesheet" href="css/archflow.css?v=6" />
+  <link rel="stylesheet" href="css/sysdesign.css?v=6" />
+  <link rel="stylesheet" href="css/preflight.css?v=6" />
+  <link rel="stylesheet" href="css/wbw-art.css?v=1" />
+  <link rel="stylesheet" href="css/autofit.css?v=1" />
+  <!-- deck-mounted widget styles (widgets/_base.css + course-map style.css). BUILD OUTPUT (scripts/build-deck-widgets.mjs). -->
+  <link rel="stylesheet" href="css/deck-widgets.css?v=1" />
+
+
+  <!-- KaTeX — vendored locally. -->
+  <link rel="stylesheet" href="vendor/katex/katex.min.css"
+        onerror="window.__assetFail&&window.__assetFail('KaTeX')">
+  <script defer src="vendor/katex/katex.min.js"
+        onerror="window.__assetFail&&window.__assetFail('KaTeX')"></script>
+  <script defer src="vendor/katex/auto-render.min.js"
+    onerror="window.__assetFail&&window.__assetFail('KaTeX')"
+    onload="renderMathInElement(document.body, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '\\[', right: '\\]', display: true },
+        { left: '\\(', right: '\\)', display: false }
+      ],
+      throwOnError: false,
+      strict: 'ignore'
+    });
+    document.dispatchEvent(new CustomEvent('katex:done'));"></script>
+
+  <!-- Prism — vendored. -->
+  <script src="vendor/prism/prism-core.min.js"
+        onerror="window.__assetFail&&window.__assetFail('Prism')"></script>
+  <script src="vendor/prism/prism-python.min.js"></script>
+  <script src="vendor/prism/prism-bash.min.js"></script>
+  <script src="vendor/prism/prism-yaml.min.js"></script>
+  <script src="vendor/prism/prism-json.min.js"></script>
+
+  <!-- QR code generator — vendored. -->
+  <script src="vendor/qrcode/qrcode.js"
+        onerror="window.__assetFail&&window.__assetFail('QR')"></script>
+
+  <!-- R8 deck auto-layout primitives → window.DeckLayout (esbuild of widgets/_layout.js).
+       Synchronous + in <head> so it is defined before any slide IIFE runs on parse. -->
+  <script src="js/layout.js"
+        onerror="window.__assetFail&&window.__assetFail('DeckLayout')"></script>
+
+  <!-- Deck-local style: the cosine-vs-angle demo (slide 19) reuses the function-plot
+       engine with the gradient-descent algorithm pinned (lr=0, iters=0) so the red
+       marker sits exactly at (θ, cos θ). Those two pinned knobs + the "steps" readout
+       are inert here, so we hide them — the slide reads cleanly as "move the angle θ,
+       watch cos θ". The <param>/<readout> elements stay in the DOM so the engine still
+       sees lr=0 / iters=0 (keeping the marker pinned); only their generated controls
+       are visually removed. Scoped to this one slide via .demo-cos-angle. -->
+  <style>
+    .demo-cos-angle .demo-knob:has([data-demo-p="lr"]),
+    .demo-cos-angle .demo-knob:has([data-demo-p="iters"]),
+    .demo-cos-angle .demo-readout:has([data-demo-r="iters_used"]) { display: none !important; }
+  </style>
+</head>
+
+<body>
+  <!-- Bundler thumbnail -->
+  <template id="__bundler_thumbnail">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="var(--bg, #FBFAF6)"/>
+          <stop offset="1" stop-color="var(--accent-soft, #DCE8F8)"/>
+        </linearGradient>
+      </defs>
+      <rect width="600" height="600" fill="url(#bg)"/>
+      <g transform="translate(180,180)">
+        <rect x="0" y="0" width="240" height="240" rx="20" fill="var(--accent, #2A6FDB)"/>
+        <text x="120" y="160" font-family="Georgia, serif" font-size="120" font-weight="500"
+              text-anchor="middle" fill="white">∇</text>
+      </g>
+      <text x="300" y="490" font-family="Georgia, serif" font-size="40" font-weight="500"
+            text-anchor="middle" fill="var(--ink, #14181F)">Lecture Template</text>
+      <text x="300" y="528" font-family="ui-monospace, monospace" font-size="18"
+            text-anchor="middle" fill="var(--ink-3, #6B7280)" letter-spacing="3">LOADING…</text>
+    </svg>
+  </template>
+
+  <!-- Logo template -->
+  <template id="tpl-logo">
+    <div class="logo-mark">DLS</div>
+    <span>
+      INNOPOLIS UNIVERSITY
+    </span>
+  </template>
+
+  <!-- Deck -->
+  <div class="deck">
+    <div class="stage">
+      <div class="slides" data-course-ru="Deep Learning for Search · Summer 2026" data-course-en="Deep Learning for Search · Summer 2026">
+
+<!-- ============================================ 01 · TITLE ============================================ -->
+        

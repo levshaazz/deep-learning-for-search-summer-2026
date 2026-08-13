@@ -1,0 +1,43 @@
+<section class="slide" data-type="table" data-screen-label="38 Memory bites first &middot; 6.3 MB &rarr; 25.8 GB">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Память кусается первой</span>
+      <span lang="en">Memory bites first</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">счёт за память приходит раньше счёта за операции</span>
+      <span lang="en">the memory bill arrives before the flop bill</span>
+    </span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th><span lang="ru">Длина</span><span lang="en">Length</span></th>
+        <th><span lang="ru">Доля внимания во flops</span><span lang="en">Attention&rsquo;s share of flops</span></th>
+        <th><span lang="ru">Коробка \(n\times n\) в памяти: \(h\cdot n^2\cdot 2\) байта <span style="white-space:nowrap">(\(h=12\), fp16)</span></span><span lang="en">The \(n\times n\) box in memory: \(h\cdot n^2\cdot 2\) bytes <span style="white-space:nowrap">(\(h=12\), fp16)</span></span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>512</strong></td>
+        <td class="cell-good">10.0&thinsp;%</td>
+        <td class="cell-good"><span lang="ru">6,3 МБ</span><span lang="en">6.3 MB</span></td>
+      </tr>
+      <tr>
+        <td><strong>4096</strong></td>
+        <td class="cell-meh">47.1&thinsp;%</td>
+        <td class="cell-bad"><span lang="ru">403 МБ</span><span lang="en">403 MB</span></td>
+      </tr>
+      <tr>
+        <td><strong>32768</strong></td>
+        <td class="cell-bad">87.7&thinsp;%</td>
+        <td class="cell-bad"><span lang="ru">25,8 ГБ</span><span lang="en">25.8 GB</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2">
+    <span lang="ru">Читай строку 4096: внимание всё ещё <em>меньше половины</em> счёта за операции&nbsp;&mdash; а коробка уже <strong>403 МБ на один слой</strong>. У flops есть с чем делить счёт (линейная половина держит долю внизу); у памяти конкурента <strong>нет</strong>: коробка растёт как \(n^2\) в одиночку. Поэтому OOM приходит раньше, чем &laquo;слишком медленно&raquo;&nbsp;&mdash; и это те же 6,3&nbsp;МБ &rarr; 403&nbsp;МБ &rarr; 25,8&nbsp;ГБ, которые печатали L7 и L15.</span>
+    <span lang="en">Read the 4096 row: attention is still <em>under half</em> the flop bill &mdash; and the box is already <strong>403 MB for one layer</strong>. Flops have something to share the bill with (the linear half keeps the share down); memory has <strong>no competitor</strong> &mdash; the box grows as \(n^2\) alone. Which is why OOM arrives before &ldquo;too slow&rdquo; does &mdash; and these are the same 6.3&nbsp;MB &rarr; 403&nbsp;MB &rarr; 25.8&nbsp;GB that L7 and L8 already print.</span>
+  </p>
+  <aside class="slide-notes">Второй счёт, и он приходит раньше первого. Коробка n×n — это не абстракция, это тензор, который реально лежит в памяти: на каждую голову, в fp16, то есть h·n²·2 байта. При n = 512 это 6.3 МБ — пустяк. При 4096 — 403 МБ на ОДИН слой. При 32768 — 25.8 ГБ, и это уже вся видеокарта. Ключевое наблюдение, ради которого таблица двухколоночная: при 4096 внимание всё ещё меньше половины счёта за операции (47.1%), а память уже катастрофична. Почему так: у flops есть конкурент — линейная половина 24nd², которая держит долю квадратичного члена внизу. У памяти конкурента нет; коробка растёт как n² в одиночку. Отсюда практический закон: длинный контекст — это сначала проблема ПАМЯТИ и только потом проблема скорости. Числа выведены в gen_l19.py из того же глифа и ПРОВЕРЕНЫ assert-ом против data/l15-attention.json, поэтому лекция, которая их выводит, не может разойтись с двумя, которые их печатают. data/l19-cost.json → scoreBox.512.mb = 6.3, scoreBox.4096.mb = 403, scoreBox.32768.gb (25.77, печатается как 25.8 — data/l15-attention.json → memory.gb32kx12).</aside>
+</section>

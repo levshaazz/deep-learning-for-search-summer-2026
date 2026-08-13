@@ -1,9 +1,9 @@
-// content/book/l5.js — "The Map of Meaning" (L5): word embeddings + dimensionality reduction.
-// Beats match narrative/L5.md (15, in order). Widgets: embedding-space (the analogy story) and
-// dimred-projection (PCA → variance → t-SNE). Every displayed NUMBER comes from
-// data/l5-embeddings.json + data/l5-dimred.json (facts-gate). EN canonical + RU + TT (all written).
+// content/book/l4.js — "The Proving Grounds" (L5): Ranking Metrics + Significance + Online Eval.
+// Beats match narrative/L4.md. The five offline metrics are one stepped ranking-metrics figure on
+// L3's real BM25 ranking; significance & online are prose beats (no new widgets).
+// EN canonical + RU; TT falls back. NARRATIVE_METHOD applies; Goodhart the Trickster returns.
 
 export default {
   id: '05',
-  catchphrase: 'The Map of Meaning',
+  catchphrase: 'The Proving Grounds',
   beats: [

@@ -1,13 +1,12 @@
-// content/book/l7.js — "Scouts and Judges" (L7): bi-encoders (DPR, SBERT), cross-encoders &
-// reranking, and multi-stage pipelines. Beats match narrative/L7.md (41, in order). Scrolly widgets:
-// biencoder (l7-biencoder), crossencoder (l7-crossencoder), neural-cascade (l7-cascade),
-// in-batch-negatives (l7-train), rag-pipeline (l7-rag).
-// Every displayed NUMBER comes from data/l7-biencoder.json + data/l7-crossencoder.json +
-// data/l7-cascade.json + data/l7-msmarco.json (toy = stdlib-reproducible; real = frozen SBERT /
-// cross-encoder), plus callbacks to data/l3-benchmarks.json + data/l4-metrics.json (facts-gate).
-// EN canonical + RU + TT. KaTeX uses \lt/\gt, never a literal < or > inside math.
+// content/book/l6.js — "The Council of Attention" (L7): contextual embeddings, the Transformer,
+// attention, positional encoding, the full encoder block, BERT pooling, and contrastive learning.
+// Beats match narrative/L6.md (16, in order). Scrolly widgets: ncd-chain (l6-chain),
+// positional-enc (l6-positional), transformer-block (no data), contrastive-space (l6-contrastive).
+// Every displayed NUMBER comes from data/l6-attention.json + data/l6-positional.json +
+// data/l6-contrastive.json (facts-gate). EN canonical + RU + TT (all written). KaTeX uses \lt/\gt,
+// never a literal < or > inside math. Papers cite real links from data/papers.json.
 
 export default {
   id: '07',
-  catchphrase: 'Scouts and Judges',
+  catchphrase: 'The Council of Attention',
   beats: [

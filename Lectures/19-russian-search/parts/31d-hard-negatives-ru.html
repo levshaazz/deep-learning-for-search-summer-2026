@@ -1,0 +1,27 @@
+<section class="slide" data-type="definition" data-screen-label="31d Hard negatives in Russian">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Трудные негативы на русском</span>
+      <span lang="en">Hard negatives in Russian</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">мост к L11: чем майнишь, то и чини первым</span>
+      <span lang="en">bridge to L11: fix the arm you mine with</span>
+    </span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">
+      <span lang="ru">Лексическое плечо решает, чему научится плотное</span>
+      <span lang="en">The lexical arm decides what the dense one learns</span>
+    </span>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Как майнят.</strong> Трудный негатив (hard negative) из L11 обычно добывают BM25: берут топ выдачи по запросу, выкидывают золотой документ, остальное объявляют негативами. Значит, качество обучающих пар задаёт <em>лексический</em> поиск.</span><span lang="en"><strong>How they are mined.</strong> The hard negatives of L11 are usually mined with BM25: take the top of the ranking for a query, drop the gold document, call the rest negatives. So the quality of your training pairs is set by the <em>lexical</em> retriever.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Без нормализации майнить нечем.</strong> Акт&nbsp;2: постинг-лист по форме &laquo;котята&raquo; пуст, df&nbsp;=&nbsp;0 &mdash; BM25 возвращает не трудные негативы, а случайный шум. Модель учится отличать золотое от произвольного, то есть ничему.</span><span lang="en"><strong>Without normalization there is nothing to mine.</strong> Act&nbsp;2: the postings list for the surface form &ldquo;котята&rdquo; is empty, df&nbsp;=&nbsp;0 &mdash; BM25 returns random noise instead of hard negatives. The model learns to tell gold from arbitrary, which is nothing.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>С нормализацией приходят ложные негативы.</strong> Snowball склеивает &laquo;стал&raquo;, &laquo;сталь&raquo; и &laquo;стали&raquo; в один стем &laquo;стал&raquo;, а словарный лемматизатор без контекста выбирает &laquo;стать&raquo; и теряет &laquo;сталь&raquo;. Документ про металл попадает в негативы к запросу про металл &mdash; и ты <em>учишь</em> энкодер отталкивать правильный ответ.</span><span lang="en"><strong>With normalization come false negatives.</strong> Snowball conflates &ldquo;стал&rdquo;, &ldquo;сталь&rdquo; and &ldquo;стали&rdquo; into one stem &ldquo;стал&rdquo;, while a context-blind dictionary lemmatizer picks &ldquo;стать&rdquo; and loses &ldquo;сталь&rdquo;. A document about the metal lands among the negatives of a query about the metal &mdash; and you are <em>teaching</em> the encoder to push the right answer away.</span></span></li>
+      </ul>
+      <p class="small muted"><span lang="ru">Порядок работ: сначала чинишь лексическое плечо, потом майнишь им негативы, и только потом дообучаешь ретривер (L11).</span><span lang="en">Order of work: fix the lexical arm first, mine negatives with it second, fine-tune the retriever (L11) only third.</span></p>
+    </div>
+  </div>
+  <aside class="slide-notes">The bridge from Act 2 to L11 that makes the whole lecture load-bearing for anyone who fine-tunes. Hard negatives are mined with BM25, so the lexical arm silently authors your training set. In Russian this fails twice. Un-normalized, the postings list for an inflected query form is empty — df = 0, the Act 2 result — so BM25 returns noise and the "hard" negatives are trivially easy; the contrastive objective collapses. Normalized, the conflations of Act 2 turn into false negatives: Snowball maps стал / сталь / стали onto the single stem стал, and a context-blind lemmatizer resolves стали to стать, dropping the steel reading. A genuinely relevant document then enters the negative set and gradient descent pushes it away from its own query. So: fix the lexical arm, then mine, then train.</aside>
+</section>

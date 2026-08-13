@@ -9,7 +9,7 @@
  *
  *   node _audit/composition-gate.mjs            # audit every Lectures/*.html (needs a build)
  *   node _audit/composition-gate.mjs --selftest # a planted overflow must fire
- *   node _audit/composition-gate.mjs --contact 13-crucible-of-negatives.html  # render slides to PNGs for review
+ *   node _audit/composition-gate.mjs --contact 11-crucible-of-negatives.html  # render slides to PNGs for review
  *
  * Exit: non-zero whenever HARD > 0.
  */

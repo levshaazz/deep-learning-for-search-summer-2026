@@ -11,8 +11,8 @@ Instructor: **Albert Nasybullin** · `a.nasibullin@innopolis.university`
 [![Deploy](https://github.com/levshaazz/deep-learning-for-search-summer-2026/actions/workflows/deploy.yml/badge.svg)](https://github.com/levshaazz/deep-learning-for-search-summer-2026/actions/workflows/deploy.yml)
 [![Gates](https://github.com/levshaazz/deep-learning-for-search-summer-2026/actions/workflows/site-ci.yml/badge.svg)](https://github.com/levshaazz/deep-learning-for-search-summer-2026/actions/workflows/site-ci.yml)
 
-![Lectures](https://img.shields.io/badge/lectures-19-3A8A5C)
-![Widgets](https://img.shields.io/badge/interactive_widgets-67-7D5BA6)
+![Lectures](https://img.shields.io/badge/lectures-21-3A8A5C)
+![Widgets](https://img.shields.io/badge/interactive_widgets-92-7D5BA6)
 ![Languages](https://img.shields.io/badge/decks-EN·RU-2A6FDB) ![Book](https://img.shields.io/badge/book-EN·RU·TT-E0A82E)
 ![Offline](https://img.shields.io/badge/decks-offline·file%3A%2F%2F-6B7280)
 ![Built with Astro](https://img.shields.io/badge/built_with-Astro-BC52EE?logo=astro&logoColor=white)
@@ -31,9 +31,9 @@ Instructor: **Albert Nasybullin** · `a.nasibullin@innopolis.university`
 
 | | Surface | What it is |
 |---|---|---|
-| 🎞️ | **Lecture decks** | 19 offline-standalone HTML slideshows (`file://`, zero network, 1920×1080, EN/RU toggle). |
+| 🎞️ | **Lecture decks** | 21 offline-standalone HTML slideshows (`file://`, zero network, 1920×1080, EN/RU toggle). |
 | 📖 | **The Book** | A trilingual (en / ru / tt) scrollytelling companion — one chapter per lecture, widgets mounted inline and advanced by scroll. |
-| 🎛️ | **67 widgets** | Vanilla-JS SVG figures — one figure powers a deck slide **and** a Book beat **and** a free-play [Playground](https://levshaazz.github.io/deep-learning-for-search-summer-2026/en/playground/) card. |
+| 🎛️ | **92 widgets** | Vanilla-JS SVG figures — one figure powers a deck slide **and** a Book beat **and** a free-play [Playground](https://levshaazz.github.io/deep-learning-for-search-summer-2026/en/playground/) card. |
 | 🖼️ | **Gallery** | A [visual glossary](https://levshaazz.github.io/deep-learning-for-search-summer-2026/en/gallery/) — the recurring character cast + key scenes, lecture by lecture. |
 | 📄 | **Papers** | The [full bibliography](https://levshaazz.github.io/deep-learning-for-search-summer-2026/en/papers/) — every work cited anywhere in the course, with a canonical link and a note on why it earns its place. |
 | 🎓 | **Syllabus · schedule · assignments** | The course logistics, all built from the same single-source catalog. |
@@ -44,31 +44,34 @@ Navigate a deck with `←` / `→` / `Space`, `O` for overview, `T` for the tool
 
 ## 📚 Lectures
 
-**13 core lectures (L0–L12)** trace the arc from classical IR to RAG; **6 deep-dives & supplements
-(L13–L18)** go under the hood. Each deck is interactive and **offline-standalone** — open it in any
-browser with no network.
+**21 lectures (L0–L20)** in one dependency-ordered course — from classical IR through neural
+retrieval to RAG, Russian-language search and ethics. There is no core/optional split: every
+lecture has its place in the order. Each deck is interactive and **offline-standalone** — open it
+in any browser with no network.
 
 | # | Lecture | |
 |--:|---------|:--|
-| 00 | [Course Introduction](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/00-introduction.html) | 🧭 |
-| 01 | [Search & IR · ML System Design](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/01-search-ir-ml-system-design.html) | |
+| 00 | [Course Introduction](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/00-introduction.html) | |
+| 01 | [Search & Information Retrieval · ML System Design](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/01-search-ir-ml-system-design.html) | |
 | 02 | [NLP · Tokenization · Measures of Similarity](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/02-nlp-tokenization-similarity.html) | |
-| 03 | [Classical IR (TF-IDF, BM25, inverted index) · Rank Fusion](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/03-classical-ir-fulltext-fusion.html) | |
-| 04 | [Ranking Metrics (Recall@k, P@k, MRR, MAP, nDCG)](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/04-ranking-metrics.html) | |
-| 05 | [DL for Search · Word Embeddings · Dimensionality Reduction](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/05-dl-embeddings-dimred.html) | |
-| 06 | [Dense & Contextual Embeddings · Contrastive Learning · Transformers](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/06-contextual-attention-transformers.html) | |
-| 07 | [Bi-encoders (DPR, SBERT) · Cross-encoders & Reranking · Cascades](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/07-bi-cross-encoders-reranking.html) | |
-| 08 | [Late Interaction (ColBERT) · SPLADE · Hybrid · Learning to Rank](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/08-colbert-splade-ltr.html) | |
-| 09 | [ANN: HNSW, IVF, PQ · FAISS · Vector DBs · Production](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/09-ann-faiss-vector-db-production.html) | |
-| 10 | [RAG Fundamentals · Chunking · Query Understanding & Rewriting](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/10-rag-chunking-query-understanding.html) | |
-| 11 | [RAG Evaluation (RAGAS, LLM-as-judge) · Agentic RAG (ReAct, Self-RAG, CRAG)](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/11-rag-eval-agentic.html) | |
-| 12 | [Advanced RAG (multi-hop, GraphRAG) · Multimodal (CLIP, ColPali) · Ethics](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/12-advanced-rag-multimodal-ethics.html) | |
-| 13 | [The Crucible of Negatives — hard-negative mining in contrastive retrieval](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/13-crucible-of-negatives.html) | 🔬 deep-dive |
-| 14 | [The Artificer's Quill — advanced query rewriting & decomposition](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/14-artificers-quill.html) | 🔬 deep-dive |
-| 15 | [BERT & other Transformers — from attention to RLHF](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/15-bert-transformers.html) | ➕ supplement |
-| 16 | [Late Chunking — contextual chunk embeddings for long documents](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/16-late-chunking.html) | 🔬 deep-dive |
-| 17 | [Shannon Entropy — the entropy of language](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/17-shannon-entropy.html) | 🔬 deep-dive |
-| 18 | [The Curved Map — geometry of meaning: anisotropy & hubness](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/18-curved-map.html) | 🔬 deep-dive |
+| 03 | [Classical IR (TF-IDF, BM25, inverted index) · Full-text Ranking & Rank Fusion](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/03-classical-ir-fulltext-fusion.html) | |
+| 04 | [Shannon Entropy — the entropy of language](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/04-shannon-entropy.html) | |
+| 05 | [Ranking Metrics (Recall@k, Precision@k, MRR, MAP, nDCG)](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/05-ranking-metrics.html) | |
+| 06 | [Intro to DL for Search · Word Embeddings · Dimensionality Reduction](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/06-dl-embeddings-dimred.html) | |
+| 07 | [Dense & Contextual Embeddings · Contrastive Learning · Transformers & Attention](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/07-contextual-attention-transformers.html) | |
+| 08 | [BERT & other Transformers — from attention to RLHF](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/08-bert-transformers.html) | |
+| 09 | [The Wiring Diagram — neural circuit diagrams: the axes, and the bill](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/09-wiring-diagram.html) | |
+| 10 | [Bi-encoders (DPR, SBERT) · Cross-encoders & Reranking · Multi-stage Pipelines](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/10-bi-cross-encoders-reranking.html) | |
+| 11 | [The Crucible of Negatives — hard negative mining in contrastive dense retrieval](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/11-crucible-of-negatives.html) | |
+| 12 | [Late Interaction (ColBERT) · SPLADE · Hybrid · Learning to Rank](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/12-colbert-splade-ltr.html) | |
+| 13 | [ANN: HNSW, IVF, PQ · FAISS · Vector DBs · Production](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/13-ann-faiss-vector-db-production.html) | |
+| 14 | [The Curved Map — geometry of meaning: anisotropy & hubness](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/14-curved-map.html) | |
+| 15 | [RAG Fundamentals · Chunking · Query Understanding & Rewriting](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/15-rag-chunking-query-understanding.html) | |
+| 16 | [RAG Evaluation (RAGAS, LLM-as-judge) · Agentic RAG (ReAct, Self-RAG, CRAG)](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/16-rag-eval-agentic.html) | |
+| 17 | [The Artificer's Quill — advanced query rewriting & decomposition](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/17-artificers-quill.html) | |
+| 18 | [Late Chunking — contextual chunk embeddings for long documents](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/18-late-chunking.html) | |
+| 19 | [Search in Russian — morphology strikes back](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/19-russian-search.html) | |
+| 20 | [Advanced RAG (multi-hop, GraphRAG) · Multimodal (CLIP, ColPali) · Ethics & Safety](https://levshaazz.github.io/deep-learning-for-search-summer-2026/Lectures/20-advanced-rag-multimodal-ethics.html) | |
 
 The shipped `Lectures/NN-*.html` decks are **build output**: `npm run build` reassembles each one
 byte-identically from its `Lectures/<slug>/parts/*.html` fragments (the tracked source you edit).

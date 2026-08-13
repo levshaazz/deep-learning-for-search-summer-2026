@@ -618,7 +618,7 @@ def l16_deck_claims():
     be, rep, nc = L16B["beir"], L16B["replication"], {r["dataset"]: r for r in L16B["noChunking"]["rows"]}
     ber = L16B["berlin"]["rows"]
     lit = lambda s: r'(?<![\d.,])(' + re.escape(s).replace(r'\.', '[.,]') + r')(?![\d])'
-    C = lambda id, value, s, tol=1e-4: dict(id="L16 " + id, deck="L16", value=value, tol=tol,
+    C = lambda id, value, s, tol=1e-4: dict(id="L16 " + id, deck="L18", value=value, tol=tol,
                                             anchor=lit(s), must=True)
     return [
         # ── Table 4 (ACME), all five rows — the three cells per row the deck now prints in full ──
@@ -686,7 +686,7 @@ def l18_deck_claims():
                                                    "cslsSentRetrievalP1", "qbNorm", "muViswanathD", "matryoshka"))
     dial = lambda snr, dim: next(c for c in D["cells"] if c["snr"] == snr and c["dim"] == dim)["meanPairCos"]
     lit = lambda s: r'(?<![\d.,])(' + re.escape(s).replace(r'\.', '[.,]') + r')(?![\d])'
-    C = lambda id, value, s, tol=1e-4: dict(id="L18 " + id, deck="L18", value=value, tol=tol,
+    C = lambda id, value, s, tol=1e-4: dict(id="L18 " + id, deck="L14", value=value, tol=tol,
                                             anchor=lit(s), must=True)
     return [
         # ── act 01 · the cone toy, its HONEST all-but-the-top, and the dial behind widgets/cone-dial ──
@@ -760,11 +760,11 @@ def l18_deck_claims():
         C("radov norm d3",    BH["skewNormal"]["d3"],    "0.118"),
         # The RU twin of these three renders as «1,541»/«2,055»/«5,445», which num() cannot tell from a
         # thousands group (1541). So they are pinned to the EN span explicitly instead of via lit().
-        dict(id="L18 radov unif d20", deck="L18", value=BH["skewUniform"]["d20"], tol=1e-4, must=True,
+        dict(id="L18 radov unif d20", deck="L14", value=BH["skewUniform"]["d20"], tol=1e-4, must=True,
              anchor=r'lang="en">(1\.541)<'),
-        dict(id="L18 radov norm d20", deck="L18", value=BH["skewNormal"]["d20"], tol=1e-4, must=True,
+        dict(id="L18 radov norm d20", deck="L14", value=BH["skewNormal"]["d20"], tol=1e-4, must=True,
              anchor=r'lang="en">(2\.055)<'),
-        dict(id="L18 radov unif d100", deck="L18", value=BH["skewUniform"]["d100"], tol=1e-4, must=True,
+        dict(id="L18 radov unif d100", deck="L14", value=BH["skewUniform"]["d100"], tol=1e-4, must=True,
              anchor=r'lang="en">(5\.445)<'),
         C("radov norm d100",  BH["skewNormal"]["d100"],  "19.21"),
         C("feldbauer skewmax", BH["reduction"]["skewMax"], "15.5188"),
@@ -814,7 +814,7 @@ def l18_deck_claims():
 def l20_deck_claims():
     b  = L20RU["bm25"]
     gw = b["lemma"]["goldWork"]      # [{t:"котёнок", idf, bm25}, {t:"играть", idf, bm25}]
-    C = lambda id, value, anchor, tol=1e-4: dict(id="L20 " + id, deck="L20", value=value, tol=tol, anchor=anchor, must=True)
+    C = lambda id, value, anchor, tol=1e-4: dict(id="L20 " + id, deck="L19", value=value, tol=tol, anchor=anchor, must=True)
     return [
         C("surface distractor", b["surface"]["scores"]["d2_distractor"],
           r'&ldquo;дети играют во дворе&rdquo;</span></td><td class="cell-meh">(?:<span lang="ru">[^<]*</span><span lang="en">)?([\d.]+) &middot; #1'),   # 1.3608 (rank 1 surface, slide 18)
@@ -851,7 +851,7 @@ def l20_depth_claims():
     B, RU = L20B, L20RU
     F, LB, RL, MR, RB = B["fertility"], B["ruLeaderboard"], B["rusbeirLength"], B["miraclRu"], B["rusbeir"]
     SV, TW, YO = B["savoy2009"], RU["threeWay"], RU["yoLadder"]
-    P = lambda id, value, dp, tol=1e-4: dict(id="L20 " + id, deck="L20", value=value, tol=tol,
+    P = lambda id, value, dp, tol=1e-4: dict(id="L20 " + id, deck="L19", value=value, tol=tol,
                                              anchor=_dec_pin(value, dp), must=True)
     out = []
     # ── Act 1 · fertility per tokenizer (slides 12 / 25a) — the seven rows the deck shows ──────────
@@ -1005,7 +1005,7 @@ def book_claims():
     # Book-ONLY prose numbers with no deck twin → value sourced STRAIGHT from data/ (the deck never shows them).
     # ch.6 within-sense cosine 0.9466 (two money-bank uses) is displayed only in the Book; it lives in
     # data/l6-contextual.json — gating it here makes that file a real consumer (its number drives the prose).
-    out.append(dict(id="book L6 within-sense", deck="L6", value=CTX["cosines"]["withinSense"], tol=1e-4,
+    out.append(dict(id="book L6 within-sense", deck="L7", value=CTX["cosines"]["withinSense"], tol=1e-4,
                     anchor=r'cheque"\) sit at \\\(([\d.]+)\\\), nearly on top', must=True))
     out += l7_book_claims()
     out += l8_book_claims()
@@ -1022,9 +1022,9 @@ def book_claims():
 def l20_book_claims():
     b = L20RU["bm25"]
     return [
-        dict(id="book L20 lemma gold", deck="L20", value=b["lemma"]["goldScore"], tol=1e-4,
+        dict(id="book L20 lemma gold", deck="L19", value=b["lemma"]["goldScore"], tol=1e-4,
              anchor=r'\\\((1\.3884)\\\)', must=True),
-        dict(id="book L20 surface distractor", deck="L20", value=b["surface"]["scores"]["d2_distractor"], tol=1e-4,
+        dict(id="book L20 surface distractor", deck="L19", value=b["surface"]["scores"]["d2_distractor"], tol=1e-4,
              anchor=r'\\\((1\.3608)\\\)', must=True),
     ]
 
@@ -1034,7 +1034,7 @@ def l20_book_claims():
 #    already gated == MS MARCO denseDPR). Value from BENCH13["tasb"]["mrr"]; anchored to the topic-aware beat. ──
 def l13_book_claims():
     return [
-        dict(id="book L13 tasb mrr", deck="L13", value=BENCH13["tasb"]["mrr"], tol=1e-4,
+        dict(id="book L13 tasb mrr", deck="L11", value=BENCH13["tasb"]["mrr"], tol=1e-4,
              anchor=r"MS MARCO MRR@10 (?:&asymp;|≈) ([\d.]+) on a single 11", must=True),
     ]
 
@@ -1043,7 +1043,7 @@ def l13_book_claims():
 #    values also COVER any Book restatement (coverage-guard's gated set is claims()+book_claims()). ──
 def l7_deck_claims():
     R, L = BENCH7["rerankers"], BENCH7["llmRerankers"]
-    C = lambda id, value, anchor: dict(id=id, deck="L7", value=value, tol=1e-4, anchor=anchor, must=True)
+    C = lambda id, value, anchor: dict(id=id, deck="L10", value=value, tol=1e-4, anchor=anchor, must=True)
     return [
         # slide 31 — small cross-encoder MRR@10 (the L6≈L12, ~2× cost punchline)
         C("L7 rr L6 MRR",  R["miniLM6"]["mrrDev"],  r"<strong>([\d.]+)</strong> · 1800"),
@@ -1067,7 +1067,7 @@ def l8_deck_claims():
     rel, irr = cb["docRel"], cb["docIrr"]
     qw, dw, tm = sp["query"]["weights"], sp["doc"]["weights"], sp["terms"]
     hs = {f["id"]: f["score"] for f in HYBRID8["fused"]}
-    C = lambda id, value, anchor, tol=1e-4: dict(id=id, deck="L8", value=value, tol=tol, anchor=anchor, must=True)
+    C = lambda id, value, anchor, tol=1e-4: dict(id=id, deck="L12", value=value, tol=tol, anchor=anchor, must=True)
     return [
         # ── ColBERT worked (slide 12 relevant / 13 lexical-trap): row-maxes + MaxSim ──
         C("L8 cb relMax0", rel["rowMax"][0], r"row maxes\} = \(([\d.]+), 0\.50, 0\.95\)"),
@@ -1114,7 +1114,7 @@ def l8_deck_claims():
 #    claims are filtered by `c["deck"] in book` in main(), so an empty list is safe until content/book/l8
 #    is built (Phase 4); anchors are added alongside the beat prose. ──
 def l8_book_claims():
-    C = lambda id, value, anchor, tol=1e-4: dict(id="book " + id, deck="L8", value=value, tol=tol, anchor=anchor, must=True)
+    C = lambda id, value, anchor, tol=1e-4: dict(id="book " + id, deck="L12", value=value, tol=tol, anchor=anchor, must=True)
     cb, sp, lt = COLBERT8["toy"], SPLADE8["toy"], LTR8["toy"]
     cbr = COLBERT8["real"]   # frozen real ColBERTv2 MaxSim (gen_l8_real.py, heavy step) — surfaced in depth-maxsim-math
     hs = {f["id"]: f["score"] for f in HYBRID8["fused"]}
@@ -1138,7 +1138,7 @@ def l8_book_claims():
 #    value sourced STRAIGHT from data/l7-*.json + the reused l3/l4 callback files. Generic ([\d.]+)
 #    capture pinned by stable surrounding literals → a drifted number is captured + flagged, not missed. ──
 def l7_book_claims():
-    C = lambda id, value, anchor, tol=1e-4: dict(id="book " + id, deck="L7", value=value, tol=tol, anchor=anchor, must=True)
+    C = lambda id, value, anchor, tol=1e-4: dict(id="book " + id, deck="L10", value=value, tol=tol, anchor=anchor, must=True)
     return [
         # bi-encoder: toy cos 0.8165, real SBERT cosRel 0.6838 > cosIrr 0.4082
         C("L7 toy cosRel",  BIENC["toy"]["cosRel"],  r"\\sqrt6 \\approx \\mathbf\{([\d.]+)\}"),
@@ -1238,46 +1238,46 @@ def l4_claims():
     N = r"([\d.]+)"
     return [
         # MRR / MAP over two queries (mean ≠ either query)
-        dict(id="L4 MRR",      deck="L4", value=MULTIQ["mrr"], tol=1e-4,
+        dict(id="L4 MRR",      deck="L5", value=MULTIQ["mrr"], tol=1e-4,
              anchor=r"\\mathrm\{MRR\} = \\dfrac\{0\.5 \+ 1\.0\}\{2\} = "+N, must=True),
-        dict(id="L4 MAP",      deck="L4", value=MULTIQ["map"], tol=1e-4,
+        dict(id="L4 MAP",      deck="L5", value=MULTIQ["map"], tol=1e-4,
              anchor=r"MAP \\\(=\\\)</span><span class=\"matrix-label is-highlight\">\\\("+N+r"\\\)", must=True),
         # graded nDCG: linear 0.6622, exponential 0.6563 (same ranking, two gain functions)
-        dict(id="L4 nDCG lin", deck="L4", value=GRADED["linear"]["ndcg"], tol=1e-4,
+        dict(id="L4 nDCG lin", deck="L5", value=GRADED["linear"]["ndcg"], tol=1e-4,
              anchor=r"<td>\\\(5\.8235\\\)</td><td class=\"cell-good\">\\\("+N+r"\\\)", must=True),
-        dict(id="L4 nDCG exp", deck="L4", value=GRADED["exponential"]["ndcg"], tol=1e-4,
+        dict(id="L4 nDCG exp", deck="L5", value=GRADED["exponential"]["ndcg"], tol=1e-4,
              anchor=r"8\.1029 / 12\.3472 = "+N, must=True),
         # binary-gain nDCG: honest 0.6766, gamed 0.5434 (Goodhart)
-        dict(id="L4 nDCG hon", deck="L4", value=METRICS["ndcg"], tol=1e-4,
+        dict(id="L4 nDCG hon", deck="L5", value=METRICS["ndcg"], tol=1e-4,
              anchor=r"1\.7333/2\.5616 = "+N, must=True),
-        dict(id="L4 nDCG gam", deck="L4", value=METRICS["gamed"]["ndcg"], tol=1e-4,
+        dict(id="L4 nDCG gam", deck="L5", value=METRICS["gamed"]["ndcg"], tol=1e-4,
              anchor=r"1\.3919/2\.5616 = "+N, must=True),
         # significance: paired t = 2.275; precise p-values; 95% CI [0.0023, 0.0772]
-        dict(id="L4 t-stat",   deck="L4", value=SYSTEMS["pairedTTest"]["t"], tol=5e-3,
+        dict(id="L4 t-stat",   deck="L5", value=SYSTEMS["pairedTTest"]["t"], tol=5e-3,
              anchor=r"0\.0676/\\sqrt\{15\}\)="+N, must=True),
-        dict(id="L4 p t-test", deck="L4", value=SYSTEMS["pairedTTest"]["p"], tol=1e-5,
+        dict(id="L4 p t-test", deck="L5", value=SYSTEMS["pairedTTest"]["p"], tol=1e-5,
              anchor=r"\\\(p="+N+r"\\\) from the \\\(t_\{14\}", must=True),
-        dict(id="L4 p wilcox", deck="L4", value=SYSTEMS["wilcoxon"]["p"], tol=1e-5,
+        dict(id="L4 p wilcox", deck="L5", value=SYSTEMS["wilcoxon"]["p"], tol=1e-5,
              anchor=r"\\\(p="+N+r"\\\) \(table value\)", must=True),
-        dict(id="L4 p perm",   deck="L4", value=SYSTEMS["permutation"]["p"], tol=1e-5,
+        dict(id="L4 p perm",   deck="L5", value=SYSTEMS["permutation"]["p"], tol=1e-5,
              anchor=r"\}/32768="+N, must=True),
-        dict(id="L4 CI lo",    deck="L4", value=SYSTEMS["ci95"][0], tol=1e-4,
+        dict(id="L4 CI lo",    deck="L5", value=SYSTEMS["ci95"][0], tol=1e-4,
              anchor=r"\\sqrt\{15\}\} = \[\\,"+N+r",\\ 0\.0772\\,\]", must=True),
-        dict(id="L4 CI hi",    deck="L4", value=SYSTEMS["ci95"][1], tol=1e-4,
+        dict(id="L4 CI hi",    deck="L5", value=SYSTEMS["ci95"][1], tol=1e-4,
              anchor=r"\\sqrt\{15\}\} = \[\\,0\.0023,\\ "+N+r"\\,\]", must=True),
         # A/B test: z = 2.557, p = 0.01056, +10% relative lift
-        dict(id="L4 AB z",     deck="L4", value=ONLINE["abTest"]["z"], tol=1e-3,
+        dict(id="L4 AB z",     deck="L5", value=ONLINE["abTest"]["z"], tol=1e-3,
              anchor=r"\{0\.00469\} = "+N+r" \\;\\Rightarrow", must=True),
-        dict(id="L4 AB p",     deck="L4", value=ONLINE["abTest"]["p"], tol=1e-5,
+        dict(id="L4 AB p",     deck="L5", value=ONLINE["abTest"]["p"], tol=1e-5,
              anchor=r"\\Rightarrow\\; p = "+N+r"\$\$", must=True),
-        dict(id="L4 AB lift",  deck="L4", value=ONLINE["abTest"]["relativeLiftPct"], tol=1e-3,
+        dict(id="L4 AB lift",  deck="L5", value=ONLINE["abTest"]["relativeLiftPct"], tol=1e-3,
              anchor=r"\\frac\{0\.012\}\{0\.12\} = (\d+)\\%", must=True),
         # interleaving: team-draft totals A=9, B=16; preference 16/25 = 0.64 (B wins via clicks, canonical 3/3 draft)
-        dict(id="L4 IL totA",  deck="L4", value=ONLINE["interleaving"]["totalCreditA"], tol=0,
+        dict(id="L4 IL totA",  deck="L5", value=ONLINE["interleaving"]["totalCreditA"], tol=0,
              anchor=r"over 5 queries: \} A=(\d+),\\ B=16", must=True),
-        dict(id="L4 IL totB",  deck="L4", value=ONLINE["interleaving"]["totalCreditB"], tol=0,
+        dict(id="L4 IL totB",  deck="L5", value=ONLINE["interleaving"]["totalCreditB"], tol=0,
              anchor=r"over 5 queries: \} A=9,\\ B=(\d+)", must=True),
-        dict(id="L4 IL pref",  deck="L4", value=ONLINE["interleaving"]["preferenceForB"], tol=0.001,
+        dict(id="L4 IL pref",  deck="L5", value=ONLINE["interleaving"]["preferenceForB"], tol=0.001,
              anchor=r"\\frac\{16\}\{9\+16\} = ([\d.]+)", must=True),
     ]
 
@@ -1292,46 +1292,46 @@ def l5_claims():
     pca = DIMRED["pca"]
     return [
         # analogy king−man+woman→queen: answer cosine 0.861 (+ runner-up prince 0.764)
-        dict(id="L5 analogy cos", deck="L5", value=EMB["analogy"]["answerCos"], tol=1e-3,
+        dict(id="L5 analogy cos", deck="L6", value=EMB["analogy"]["answerCos"], tol=1e-3,
              anchor=r'queen</div><div class="arch-shape">\\\(\\cos = ([\d.]+)\\\)', must=True),
-        dict(id="L5 runner-up",   deck="L5", value=round(EMB["analogy"]["top"][1]["cos"], 3), tol=1e-3,
+        dict(id="L5 runner-up",   deck="L6", value=round(EMB["analogy"]["top"][1]["cos"], 3), tol=1e-3,
              anchor=r"queen 0\.861 &middot; prince ([\d.]+) &middot; throne", must=True),
         # capital paris−france+italy→rome: 0.838
-        dict(id="L5 capital cos", deck="L5", value=EMB["capitalAnalogy"]["top"][0]["cos"], tol=1e-3,
+        dict(id="L5 capital cos", deck="L6", value=EMB["capitalAnalogy"]["top"][0]["cos"], tol=1e-3,
              anchor=r'<td class="cell-good"><code>rome</code></td><td class="cell-good">([\d.]+)</td>', must=True),
         # pairwise cosines (the headline "nearness = meaning" table)
-        dict(id="L5 cos cat·dog", deck="L5", value=pp[("cat", "dog")], tol=1e-3,
+        dict(id="L5 cos cat·dog", deck="L6", value=pp[("cat", "dog")], tol=1e-3,
              anchor=r'<code>cat &middot; dog</code></td><td class="cell-good">([\d.]+)</td>', must=True),
-        dict(id="L5 cos cat·kit", deck="L5", value=pp[("cat", "kitten")], tol=1e-3,
+        dict(id="L5 cos cat·kit", deck="L6", value=pp[("cat", "kitten")], tol=1e-3,
              anchor=r'<code>cat &middot; kitten</code></td><td>([\d.]+)</td>', must=True),
-        dict(id="L5 cos cat·air", deck="L5", value=pp[("cat", "airplane")], tol=1e-3,
+        dict(id="L5 cos cat·air", deck="L6", value=pp[("cat", "airplane")], tol=1e-3,
              anchor=r'<code>cat &middot; airplane</code></td><td class="cell-bad">([\d.]+)</td>', must=True),
-        dict(id="L5 cos kng·qn",  deck="L5", value=pp[("king", "queen")], tol=1e-3,
+        dict(id="L5 cos kng·qn",  deck="L6", value=pp[("king", "queen")], tol=1e-3,
              anchor=r'<code>king &middot; queen</code></td><td>([\d.]+)</td>', must=True),
-        dict(id="L5 cos kng·cmp", deck="L5", value=pp[("king", "computer")], tol=1e-3,
+        dict(id="L5 cos kng·cmp", deck="L6", value=pp[("king", "computer")], tol=1e-3,
              anchor=r'<code>king &middot; computer</code></td><td class="cell-bad">([\d.]+)</td>', must=True),
         # PCA 2-D explained variance: PC1 19.6% + PC2 18.1% = 37.7% (data ratios ×100)
-        dict(id="L5 PCA PC1",     deck="L5", value=round(pca["explainedVarRatio"][0]*100, 1), tol=0.05,
+        dict(id="L5 PCA PC1",     deck="L6", value=round(pca["explainedVarRatio"][0]*100, 1), tol=0.05,
              anchor=r"→ PC1 ([\d.]+)% \+ PC2 18\.1% = 37\.7%", must=True),
-        dict(id="L5 PCA PC2",     deck="L5", value=round(pca["explainedVarRatio"][1]*100, 1), tol=0.05,
+        dict(id="L5 PCA PC2",     deck="L6", value=round(pca["explainedVarRatio"][1]*100, 1), tol=0.05,
              anchor=r"→ PC1 19\.6% \+ PC2 ([\d.]+)% = 37\.7%", must=True),
-        dict(id="L5 PCA 2-D",     deck="L5", value=pca["var2dPct"], tol=0.05,
+        dict(id="L5 PCA 2-D",     deck="L6", value=pca["var2dPct"], tol=0.05,
              anchor=r"→ PC1 19\.6% \+ PC2 18\.1% = ([\d.]+)%", must=True),
         # slide-33 kicker breadcrumb "… → 2-D (97.21%)" — the 3-D→2-D rotation toy's variance kept
         # (l5-pca-rotate.json, distinct from the 44-word DIMRED PCA's 37.7%). [\d.,] captures the RU
         # "97,21%" too; num() normalises both to 97.21. Gating it covers both lang spans for the guard.
-        dict(id="L5 PCA 2-D kick", deck="L5", value=PCAROT["var2dPct"], tol=0.05,
+        dict(id="L5 PCA 2-D kick", deck="L6", value=PCAROT["var2dPct"], tol=0.05,
              anchor=r"2-D \(([\d.,]+)%\)", must=True),
         # dataset shape: 44 words, 7 clusters, t-SNE perplexity 14
-        dict(id="L5 nWords",      deck="L5", value=DIMRED["nWords"], tol=0,
+        dict(id="L5 nWords",      deck="L6", value=DIMRED["nWords"], tol=0,
              anchor=r"PCA на ([\d.]+) словах", must=True),
-        dict(id="L5 nClusters",   deck="L5", value=len(DIMRED["clusters"]), tol=0,
+        dict(id="L5 nClusters",   deck="L6", value=len(DIMRED["clusters"]), tol=0,
              anchor=r"нарисованная: ([\d.]+) кластеров", must=True),
         # the 44-word map's t-SNE perplexity = 14 (l5-dimred.json). NOTE the anchor is pinned to the
         # "44 words" kicker: the deck now ALSO shows perplexity \(=5\) on the 9-word t-SNE-math slides
         # (l5-tsne-math.json, checked separately below), so a bare `perplexity \(=…\)` regex would
         # collide on the 5 and false-flag. The "44 слова · " prefix is unique to slide 42.
-        dict(id="L5 perplexity",  deck="L5", value=DIMRED["tsne"]["perplexity"], tol=0,
+        dict(id="L5 perplexity",  deck="L6", value=DIMRED["tsne"]["perplexity"], tol=0,
              anchor=r"44 слова · perplexity \\\(=([\d.]+)\\\)", must=True),
     ] + l5_glove_claims() + l5_tsne_claims() + l5_enrichment_claims()
 
@@ -1347,32 +1347,32 @@ def l5_glove_claims():
     N  = r"([\d.]+)"
     return [
         # the worked king·queen entry — the four flagship chips on slide 31 (X, log X, f(X), model)
-        dict(id="L5G X count",   deck="L5", value=round(kq["X"], 3), tol=1e-3,
+        dict(id="L5G X count",   deck="L6", value=round(kq["X"], 3), tol=1e-3,
              anchor=r'<span class="gob-clab">X \(count\)</span><span class="gob-cval">'+N+r"</span>", must=True),
-        dict(id="L5G logX",      deck="L5", value=round(-kq["logX"], 3), tol=1e-3,  # chip prints &minus;0.406
+        dict(id="L5G logX",      deck="L6", value=round(-kq["logX"], 3), tol=1e-3,  # chip prints &minus;0.406
              anchor=r'<span class="gob-clab">log X \(target\)</span><span class="gob-cval">&minus;'+N+r"</span>", must=True),
-        dict(id="L5G f(X)",      deck="L5", value=round(kq["f"], 3), tol=1e-3,
+        dict(id="L5G f(X)",      deck="L6", value=round(kq["f"], 3), tol=1e-3,
              anchor=r'<span class="gob-clab">f\(X\) \(weight\)</span><span class="gob-cval">'+N+r"</span>", must=True),
-        dict(id="L5G model",     deck="L5", value=round(-kq["model"], 3), tol=1e-3,  # chip prints &minus;0.408
+        dict(id="L5G model",     deck="L6", value=round(-kq["model"], 3), tol=1e-3,  # chip prints &minus;0.408
              anchor=r'<span class="gob-clab">model \(fit\)</span><span class="gob-cval">&minus;'+N+r"</span>", must=True),
         # the same king·queen X echoed in the slide-30 matrix callout
-        dict(id="L5G X callout", deck="L5", value=round(kq["X"], 3), tol=1e-3,
+        dict(id="L5G X callout", deck="L6", value=round(kq["X"], 3), tol=1e-3,
              anchor=r'<text x="700" y="228"[^>]*>X = '+N+r"</text>", must=True),
         # loss collapse 18.04 → 0.005 (−99.97% over 600 AdaGrad iters), slide 31 (re-laid-out inset).
         # ROBUST anchors: pin on a STABLE nearby TEXTUAL label + the number (not the old exact
         # <tspan fill=…/font-weight=…> chain, which the enrichment rewrote). "least-squares loss:" is
         # the inset's caption label; "18.04\to" is the math-prose collapse transition (RU+EN); the drop
         # rides the "% over 600 AdaGrad iters" trailing label — all survive a future re-layout.
-        dict(id="L5G loss before",deck="L5", value=g["loss"]["before"], tol=1e-2,
+        dict(id="L5G loss before",deck="L6", value=g["loss"]["before"], tol=1e-2,
              anchor=r"least-squares loss:.{0,80}?>"+N+r"</tspan>", must=True),
-        dict(id="L5G loss after", deck="L5", value=g["loss"]["after"], tol=1e-4,
+        dict(id="L5G loss after", deck="L6", value=g["loss"]["after"], tol=1e-4,
              anchor=r"18\.04\\to"+N+r"\\", must=True),
-        dict(id="L5G drop %",     deck="L5", value=g["loss"]["dropPct"], tol=1e-2,
+        dict(id="L5G drop %",     deck="L6", value=g["loss"]["dropPct"], tol=1e-2,
              anchor=r"\("+N+r"% over 600 AdaGrad iters\)", must=True),
         # weighting hyper-params: x_max=10 (amber marker) and α=0.75 (the f(x) exponent, both langs)
-        dict(id="L5G x_max",      deck="L5", value=g["xMax"], tol=0,
+        dict(id="L5G x_max",      deck="L6", value=g["xMax"], tol=0,
              anchor=r'<text x="455.5" y="556"[^>]*>x_max='+N+r"</text>", must=True),
-        dict(id="L5G alpha",      deck="L5", value=g["alpha"], tol=1e-9,
+        dict(id="L5G alpha",      deck="L6", value=g["alpha"], tol=1e-9,
              anchor=r"f\(x\)=\(x/x_\{\\max\}\)\^\{"+N+r"\}", must=True),
     ]
 
@@ -1387,47 +1387,47 @@ def l5_tsne_claims():
     N = r"([\d.]+)"
     return [
         # σ ≈ 2.003 (SVG annotation + the step-2 caption, both anchored)
-        dict(id="L5T sigma svg",  deck="L5", value=c["sigma"], tol=1e-3,
+        dict(id="L5T sigma svg",  deck="L6", value=c["sigma"], tol=1e-3,
              anchor=r'<tspan font-weight="700">&#963; = '+N+r"</tspan>", must=True),
-        dict(id="L5T sigma cap",  deck="L5", value=c["sigma"], tol=1e-3,
+        dict(id="L5T sigma cap",  deck="L6", value=c["sigma"], tol=1e-3,
              anchor=r"here \\\(\\sigma\\approx"+N+r"\\\)", must=True),
         # perplexity = 5 (the tuning target): the SVG annotation + the slide-43 kicker
-        dict(id="L5T perp svg",   deck="L5", value=c["perplexity"], tol=0,
+        dict(id="L5T perp svg",   deck="L6", value=c["perplexity"], tol=0,
              anchor=r'<tspan>the row has </tspan><tspan font-weight="700">perplexity = '+N+r"</tspan>", must=True),
-        dict(id="L5T perp kick",  deck="L5", value=t["targetPerplexity"], tol=0,
+        dict(id="L5T perp kick",  deck="L6", value=t["targetPerplexity"], tol=0,
              anchor=r"anchor <code>cat</code> · perplexity \\\(="+N+r"\\\)", must=True),
         # the anchor's Gaussian conditional p_{j|i} row (the headline affinities, slide-43 caption)
-        dict(id="L5T p dog",      deck="L5", value=round(c["pRow"][2], 3), tol=1e-3,
+        dict(id="L5T p dog",      deck="L6", value=round(c["pRow"][2], 3), tol=1e-3,
              anchor=r"\. <code>dog</code> \\\("+N+r"\\\), <code>puppy</code> \\\(0\.196", must=True),
-        dict(id="L5T p puppy",    deck="L5", value=round(c["pRow"][3], 3), tol=1e-3,
+        dict(id="L5T p puppy",    deck="L6", value=round(c["pRow"][3], 3), tol=1e-3,
              anchor=r"<code>dog</code> \\\(0\.405\\\), <code>puppy</code> \\\("+N+r"\\\)", must=True),
-        dict(id="L5T p lion",     deck="L5", value=round(c["pRow"][4], 3), tol=1e-3,
+        dict(id="L5T p lion",     deck="L6", value=round(c["pRow"][4], 3), tol=1e-3,
              anchor=r"<code>puppy</code> \\\(0\.196\\\), <code>lion</code> \\\("+N+r"\\\)", must=True),
-        dict(id="L5T p kitten",   deck="L5", value=round(c["pRow"][1], 3), tol=1e-3,
+        dict(id="L5T p kitten",   deck="L6", value=round(c["pRow"][1], 3), tol=1e-3,
              anchor=r"<code>lion</code> \\\(0\.140\\\), <code>kitten</code> \\\("+N+r"\\\)", must=True),
-        dict(id="L5T p throne",   deck="L5", value=round(c["pRow"][8], 3), tol=1e-3,
+        dict(id="L5T p throne",   deck="L6", value=round(c["pRow"][8], 3), tol=1e-3,
              anchor=r"<code>kitten</code> \\\(0\.136\\\), … <code>throne</code> \\\("+N+r"\\\)", must=True),
         # the dog/throne worked numbers in the slide-43 low-D box (p_{j|i} → q, both displayed)
-        dict(id="L5T near p svg", deck="L5", value=round(c["pRow"][2], 3), tol=1e-3,
+        dict(id="L5T near p svg", deck="L6", value=round(c["pRow"][2], 3), tol=1e-3,
              anchor=r'<tspan fill="var\(--accent-ink\)">dog</tspan><tspan>  \(near\): p='+N, must=True),
-        dict(id="L5T near q svg", deck="L5", value=round(t["lowD"]["Q"][0][2], 3), tol=1e-3,
+        dict(id="L5T near q svg", deck="L6", value=round(t["lowD"]["Q"][0][2], 3), tol=1e-3,
              anchor=r"\(near\): p=0\.405  &rarr;  q="+N, must=True),
-        dict(id="L5T far p svg",  deck="L5", value=round(c["pRow"][8], 3), tol=1e-3,
+        dict(id="L5T far p svg",  deck="L6", value=round(c["pRow"][8], 3), tol=1e-3,
              anchor=r'<tspan fill="var\(--ink-3\)">throne</tspan><tspan> \(far\):  p='+N, must=True),
         # high-D squared distances cat→dog (3.55) and cat→throne (43.88), slide-43 step-0 caption
-        dict(id="L5T d2 dog",     deck="L5", value=round(t["highD"]["anchorSqDist"][2], 2), tol=5e-3,
+        dict(id="L5T d2 dog",     deck="L6", value=round(t["highD"]["anchorSqDist"][2], 2), tol=5e-3,
              anchor=r"nearest \(\\\(d\^2="+N+r"\\\)\)", must=True),
-        dict(id="L5T d2 throne",  deck="L5", value=round(t["highD"]["anchorSqDist"][8], 2), tol=5e-3,
+        dict(id="L5T d2 throne",  deck="L6", value=round(t["highD"]["anchorSqDist"][8], 2), tol=5e-3,
              anchor=r"farthest \(\\\("+N+r"\\\)\)", must=True),
         # the symmetrised joint p_ij and Student-t q_ij for cat–dog (slide-44 JS arrays, index 1)
-        dict(id="L5T joint p_ij", deck="L5", value=t["joint"]["P"][0][2], tol=1e-4,
+        dict(id="L5T joint p_ij", deck="L6", value=t["joint"]["P"][0][2], tol=1e-4,
              anchor=r"var p=\[0\.022072, "+N+r",", must=True),
-        dict(id="L5T q_ij",       deck="L5", value=t["lowD"]["Q"][0][2], tol=1e-5,
+        dict(id="L5T q_ij",       deck="L6", value=t["lowD"]["Q"][0][2], tol=1e-5,
              anchor=r"var q=\[0\.011766, "+N+r",", must=True),
         # KL(P‖Q) ≈ 0.0411 — the single cost number (SVG annotation + the step-1 KaTeX caption)
-        dict(id="L5T KL svg",     deck="L5", value=round(t["kl"], 4), tol=1e-4,
+        dict(id="L5T KL svg",     deck="L6", value=round(t["kl"], 4), tol=1e-4,
              anchor=r"KL\(P‖Q\) = &#931; p log\(p/q\) = "+N, must=True),
-        dict(id="L5T KL cap",     deck="L5", value=round(t["kl"], 4), tol=1e-4,
+        dict(id="L5T KL cap",     deck="L6", value=round(t["kl"], 4), tol=1e-4,
              anchor=r"\\frac\{p_\{ij\}\}\{q_\{ij\}\}=\\mathbf\{"+N+r"\}", must=True),
     ]
 
@@ -1445,19 +1445,19 @@ def l5_enrichment_claims():
     N = r"([\d.]+)"
     return [
         # word2vec/SGNS loss curve endpoints: 4.85 (random init) → 2.63 (epoch 150, −46%)
-        dict(id="L5W loss before", deck="L5", value=w["loss"]["before"], tol=1e-2,
+        dict(id="L5W loss before", deck="L6", value=w["loss"]["before"], tol=1e-2,
              anchor=r"loss "+N+r" (?:&rarr;|→) 2\.63", must=True),
-        dict(id="L5W loss after",  deck="L5", value=w["loss"]["after"],  tol=1e-2,
+        dict(id="L5W loss after",  deck="L6", value=w["loss"]["after"],  tol=1e-2,
              anchor=r"loss \\\("+N+r"\\\), &minus;46%", must=True),
         # REAL-UMAP dials shown in the slide kicker (n_neighbors = perplexity analogue; min_dist packing)
-        dict(id="L5U n_neighbors", deck="L5", value=p["nNeighbors"], tol=0,
+        dict(id="L5U n_neighbors", deck="L6", value=p["nNeighbors"], tol=0,
              anchor=r"n_neighbors="+N+r" ", must=True),
-        dict(id="L5U min_dist",    deck="L5", value=p["minDist"], tol=1e-9,
+        dict(id="L5U min_dist",    deck="L6", value=p["minDist"], tol=1e-9,
              anchor=r"min_dist="+N+r" ", must=True),
         # within/between tightness collapse 0.147 → 0.061 over the 500-epoch optimisation (init→converged)
-        dict(id="L5U tightness init", deck="L5", value=round(snap[0]["tightness"], 3), tol=1e-3,
+        dict(id="L5U tightness init", deck="L6", value=round(snap[0]["tightness"], 3), tol=1e-3,
              anchor=r"drops \\\("+N+r"\\to0\.061\\\)", must=True),
-        dict(id="L5U tightness final",deck="L5", value=round(snap[500]["tightness"], 3), tol=1e-3,
+        dict(id="L5U tightness final",deck="L6", value=round(snap[500]["tightness"], 3), tol=1e-3,
              anchor=r"drops \\\(0\.147\\to"+N+r"\\\)", must=True),
     ]
 
@@ -1471,35 +1471,35 @@ def l6_claims():
     neg = CONTRA["sims"]["negatives"]
     return [
         # scaled dot-product scale √d_k = 2.0 (d_k=4): shown in the var-block and the prose
-        dict(id="L6 √d_k var",    deck="L6", value=ATTN["sqrtdk"], tol=1e-9,
+        dict(id="L6 √d_k var",    deck="L7", value=ATTN["sqrtdk"], tol=1e-9,
              anchor=r'<span lang="en">here \\\(=([\d.]+)\\\)</span>', must=True),
-        dict(id="L6 √d_k prose",  deck="L6", value=ATTN["sqrtdk"], tol=1e-9,
+        dict(id="L6 √d_k prose",  deck="L7", value=ATTN["sqrtdk"], tol=1e-9,
              anchor=r"so \\\(\\sqrt\{d_k\}=([\d.]+)\\\)", must=True),
         # full softmax attention matrix — every displayed row (each sums to 1)
-        dict(id="L6 w[the][0]",   deck="L6", value=w[0][0], tol=1e-3,
+        dict(id="L6 w[the][0]",   deck="L7", value=w[0][0], tol=1e-3,
              anchor=r"\\\(\[([\d.]+),\\,0\.155,\\,0\.422\]\\\)", must=True),
-        dict(id="L6 w[cat][cat]", deck="L6", value=w[1][1], tol=1e-3,
+        dict(id="L6 w[cat][cat]", deck="L7", value=w[1][1], tol=1e-3,
              anchor=r"puts <strong>([\d.]+)</strong> on itself", must=True),
-        dict(id="L6 w[sat][sat]", deck="L6", value=w[2][2], tol=1e-3,
+        dict(id="L6 w[sat][sat]", deck="L7", value=w[2][2], tol=1e-3,
              anchor=r"\\\(\[0\.212,\\,0\.212,\\,([\d.]+)\]\\\)", must=True),
         # cat's output (context) vector = output[1] = [0.579, 1.996, 0.91, 0.425]
-        dict(id="L6 out[cat][0]", deck="L6", value=ATTN["output"][1][0], tol=1e-3,
+        dict(id="L6 out[cat][0]", deck="L7", value=ATTN["output"][1][0], tol=1e-3,
              anchor=r"<code>out = \[([\d.]+), 1\.996, 0\.91, 0\.425\]</code>", must=True),
         # InfoNCE: positive softmax prob 0.8877 and loss −log = 0.1191. Slide 47/48 is now a dynamic
         # InfoNCE diagram (re-laid-out), so we ROBUSTLY anchor on the STABLE KaTeX labels rather than
         # the old div/step-caption markup chain: p⁺ rides its symbol `\(p^{+}=N\)`, and the loss rides
         # the `\mathcal{L}=-\log … =\mathbf{N}` identity — both survive a re-layout of the surrounding box.
-        dict(id="L6 InfoNCE p+",  deck="L6", value=CONTRA["infoNCE"]["pPositive"], tol=1e-4,
+        dict(id="L6 InfoNCE p+",  deck="L7", value=CONTRA["infoNCE"]["pPositive"], tol=1e-4,
              anchor=r"\\\(p\^\{\+\}=([\d.]+)\\\)", must=True),
-        dict(id="L6 InfoNCE loss",deck="L6", value=CONTRA["infoNCE"]["loss"], tol=1e-4,
+        dict(id="L6 InfoNCE loss",deck="L7", value=CONTRA["infoNCE"]["loss"], tol=1e-4,
              anchor=r"\\mathcal\{L\}=-\\log[^=]*=\\mathbf\{([\d.]+)\}", must=True),
         # temperature τ = 0.1 (shown in the E2E kicker)
-        dict(id="L6 τ",           deck="L6", value=CONTRA["tau"], tol=1e-9,
+        dict(id="L6 τ",           deck="L7", value=CONTRA["tau"], tol=1e-9,
              anchor=r"positive <code>kitten</code>, \\\(\\tau=([\d.]+)\\\)", must=True),
         # contrastive cosines to anchor cat — the two negatives not shared with L5's pair table
-        dict(id="L6 cos cmp",     deck="L6", value=neg["computer"], tol=1e-3,
+        dict(id="L6 cos cmp",     deck="L7", value=neg["computer"], tol=1e-3,
              anchor=r'<code>computer</code></td><td>[^<]*<span lang="ru">[^<]*</span><span lang="en">[^<]*</span></td><td class="cell-bad">([\d.]+)</td>', must=True),
-        dict(id="L6 cos france",  deck="L6", value=neg["france"], tol=1e-3,
+        dict(id="L6 cos france",  deck="L7", value=neg["france"], tol=1e-3,
              anchor=r'<code>france</code></td><td>[^<]*<span lang="ru">[^<]*</span><span lang="en">[^<]*</span></td><td class="cell-bad">([\d.]+)</td>', must=True),
     ] + l6_enrichment_claims()
 
@@ -1520,14 +1520,14 @@ def l6_enrichment_claims():
         # slide-41 cross-sense cos(bank,bank): embed-layer (block 0) ≈ 0.957 → final block ≈ 0.647
         # `value` is the data/ canonical (raw, un-rounded); `tol`=1e-3 absorbs the deck's 3-dp display
         # rounding (0.9572→0.957, 0.6465→0.647) while still catching a real drift in the 2nd/3rd decimal.
-        dict(id="L6 stack cos init",  deck="L6", value=s["crossSenseCosByLayer"][0], tol=1e-3,
+        dict(id="L6 stack cos init",  deck="L7", value=s["crossSenseCosByLayer"][0], tol=1e-3,
              anchor=r"cross-sense cos\(bank, bank\) = "+N, must=True),
-        dict(id="L6 stack cos final", deck="L6", value=s["finalCrossSenseCos"], tol=1e-3,
+        dict(id="L6 stack cos final", deck="L7", value=s["finalCrossSenseCos"], tol=1e-3,
              anchor=r"final: cos = "+N+r"  &mdash;", must=True),
         # slide-47 InfoNCE loss-trajectory endpoints: untuned 3.31 → tuned 0.1191 (the animated curve)
-        dict(id="L6 traj loss start", deck="L6", value=cp["untuned"]["loss"], tol=1e-2,
+        dict(id="L6 traj loss start", deck="L7", value=cp["untuned"]["loss"], tol=1e-2,
              anchor=r"loss is high: \\\(\\mathcal\{L\}="+N+r"\\\)", must=True),
-        dict(id="L6 traj loss end",   deck="L6", value=cp["tuned"]["loss"], tol=1e-4,
+        dict(id="L6 traj loss end",   deck="L7", value=cp["tuned"]["loss"], tol=1e-4,
              anchor=r"InfoNCE loss falls from 3\.31 to 0\.86 to "+N+r"\.", must=True),
     ]
 
@@ -1662,8 +1662,8 @@ COVERAGE_BASELINE = {
     # older units also display. A ratchet wider than the fact is not a ratchet: it silently licenses
     # new un-gated numbers up to the old slack. Every value below is the count the gate itself
     # measured; nothing was raised.
-    "deck:L0": 0, "deck:L1": 1, "deck:L2": 4, "deck:L3": 31, "deck:L4": 18, "deck:L5": 31, "deck:L6": 17,
-    "book:L0": 0, "book:L1": 0, "book:L2": 5,  "book:L3": 7,  "book:L4": 12, "book:L5": 8,
+    "deck:L0": 0, "deck:L1": 1, "deck:L2": 4, "deck:L3": 31, "deck:L5": 18, "deck:L6": 31, "deck:L7": 17,
+    "book:L0": 0, "book:L1": 0, "book:L2": 5,  "book:L3": 7,  "book:L5": 12, "book:L6": 8,
     # book:L6 — RAISED 6 → 37 when the L06 climb became `ncd-chain`, the end-to-end worked example.
     # Its ten scroll-step captions ARE Book prose, and they walk the whole computation: every
     # embedding row, every scaled score, the exponentials, the row sums, the context cells, the pooled
@@ -1673,10 +1673,10 @@ COVERAGE_BASELINE = {
     # exist in that widget's own data/ file — all of them, not the handful a C() claim happens to pin —
     # and `_research/gen_l6_chain.py` ASSERTS at generation time that the chain reproduces
     # data/l6-attention.json to the digit. A number here cannot drift without one of those two failing.
-    "book:L6": 22,
-    "deck:L12": 2, "book:L12": 2,
+    "book:L7": 22,
+    "deck:L20": 2, "book:L20": 2,
     # deck:L14 "The Artificer's Quill" — all displayed toy numbers are now gated in l14_deck_claims() → 0.
-    "deck:L14": 0,
+    "deck:L17": 0,
     # deck:L15 "BERT & other Transformers" — NOW FULLY GROUNDED (2026-07): the worked-example numbers are
     # emitted by gen_l15.py (stdlib math.exp/sin/cos → data/l15-attention.json) and the reported benchmarks are
     # cited in data/l15-bench.json (each `cite` a data/papers.json id). l15_deck_claims() pins EVERY displayed
@@ -1685,19 +1685,19 @@ COVERAGE_BASELINE = {
     # (0.770/0.896/0.972)+top-k(0.731)+temperature(0.829/0.375), and O(n²) memory 0.52 MB / 2.15 GB. Un-gated
     # count → 0 (was 14 "imported/self-contained"); book:L15 → 0 (the global gated set covers the one prose
     # value). Any FUTURE ungated ≥2-dp number HARD-fails until gated. Goes beyond siblings L16–L18 (baseline-frozen).
-    "deck:L15": 0,
-    "book:L15": 0,
+    "deck:L8": 0,
+    "book:L8": 0,
     # deck:L16 "Late Chunking" — TIGHTENED 9 → 0 (2026-08). Was baseline-frozen with no [C] anchors at all;
     # the deepening pass replaced that with l16_deck_claims(), which pins EVERY displayed ≥2-dp value
     # deck == data/ (ACME Table 4 in full, the Berlin cosines + the Δ column, the gap law, the Merola &
     # Singh replication, the No-Chunking column, Table 3's span-pooling regression, Table 5's +24.47 % and
     # Anthropic's $1.02/Mtok), backed by provenance_l16() which RE-DERIVES the pooling toy, the gap law and
     # the Algorithm-2 ledger and pins the bench's structural invariants. Strictly stronger; never raised.
-    "deck:L16": 0,
+    "deck:L18": 0,
     # book:L16 — TIGHTENED 10 → 1 (2026-08): l16_deck_claims() gates the values the Book prose reuses
     # (Berlin, the ACME toy, Quora's 87.19, the recomputed +1.41), so only one grandfathered prose decimal
     # is left uncovered. Strictly stronger; never raised.
-    "book:L16": 1,
+    "book:L18": 1,
     # deck:L17 "Shannon Entropy" — TIGHTENED 18 → 0 by the depth pass (2026-08). The deck went 45 → 84 slides
     # and every ≥2-dp number it displays is now pinned deck==data by l17_deck_claims(): the computed side against
     # data/l17-entropy.json (gen_l17.py — the coin, Markov 1913 conditional entropy/mutual information, the
@@ -1706,10 +1706,10 @@ COVERAGE_BASELINE = {
     # WSJ perplexities, Yaglom's Russian ladder, Spärck Jones, Church & Gale, Pibiri & Venturini, clarity).
     # The 18 grandfathered numbers were not deleted — they were GATED, so the ratchet only moves down. A NEW
     # ungated ≥2-dp number on this surface now HARD-fails immediately.
-    "deck:L17": 0,
+    "deck:L4": 0,
     # book:L17 mirrors the deck's Shannon numbers in prose (coin 0.811, code 1.75, 79/102, Fn 4.76/4.03,
     # bounds 0.6/1.3, 'E' 12.7) — same gen_l17.py + cited-bench provenance as deck:L17.
-    "book:L17": 1,
+    "book:L4": 1,
     # deck:L18 / book:L18 "The Curved Map" — numbers from gen_l18.py (data/l18-geometry.json toy: aniso
     # 0.8985/-0.0323/-0.0352, hubness skew/maxNk/corr) + cited bench (data/l18-bench.json: GPT-2 0.6/0.99,
     # Radovanović skew 0.121/1.541/5.445/19.21, Su STS-B 59.04/71.34, SimCSE 76.3/81.6, CSLS 42.6/66.1,
@@ -1721,10 +1721,10 @@ COVERAGE_BASELINE = {
     # displays (Timkey's replication, IsoScore, Radovanović with its real provenance, Su's transductive vs
     # inductive split, SimCSE against BOTH its baselines, Conneau's corrected task, QB-Norm, Feldbauer,
     # Hub Highway, Matryoshka). Baseline 17 → 0: any FUTURE ungated ≥2-dp number HARD-fails.
-    "deck:L18": 0,
+    "deck:L14": 0,
     # book:L18 mirrors the deck's numbers in trilingual prose; still baseline-frozen (the Book's own
     # anchors are not written yet), so a NEW ungated Book number beyond these still HARD-fails.
-    "book:L18": 0,
+    "book:L14": 0,
 }
 _COV_DEC   = re.compile(r'(?<![\d.,])\d+[.,]\d{2,}(?!\d)')# grounded signature: a decimal (dot OR RU comma), ≥2 fractional digits
 _COV_ARXIV = re.compile(r'^\d{4}[.,]\d{4,}$')             # arXiv id (e.g. 1901.04085) — not data
@@ -2485,7 +2485,7 @@ def l9_deck_claims():
     iv2 = IVF9["toy2"]                                             # nprobe sweep (20 pts / 5 cells)
     pq, aw, mc, ck = PQ9["scale"], PQ9["adcWorked"], PQ9["memoryConfigs"]["configs"], PQ9["codebookTrain"]
     dim = {h["d"]: h for h in HIGHD["dims"]}                       # curse-of-dimensionality cv collapse
-    C = lambda id, value, anchor, tol=1e-4: dict(id=id, deck="L9", value=value, tol=tol, anchor=anchor, must=True)
+    C = lambda id, value, anchor, tol=1e-4: dict(id=id, deck="L13", value=value, tol=tol, anchor=anchor, must=True)
     return [
         # ── exact-dies: curse of dimensionality cv = σ/μ collapse over d = 2 / 10 / 100 / 1000 ──
         C("L9 deck hd mu2",  dim[2]["mean"],  r"d=2:\\ \\mu=([\d.]+),"),
@@ -2508,21 +2508,21 @@ def l9_deck_claims():
         C("L9 deck m d2 l2",   rk["d2"]["l2"],     r"\\lVert q-d_2\\rVert=([\d.]+)\\\), \\\(\\lVert q-d_3"),
         C("L9 deck m d3 l2",   rk["d3"]["l2"],     r"\\lVert q-d_3\\rVert=([\d.]+)\\\)\. The smallest"),
         # ── HNSW toy: greedy n0→n2 (kept, still rendered) ──
-        dict(id="L9 deck hnsw n0", deck="L9", value=d2("n0"), tol=0.006, anchor=r"d\(n_0,q\)=([\d.]+)", must=True),
-        dict(id="L9 deck hnsw n1", deck="L9", value=d2("n1"), tol=0.006, anchor=r"d\(n_1,q\)=([\d.]+)", must=True),
-        dict(id="L9 deck hnsw n3", deck="L9", value=d2("n3"), tol=0.006, anchor=r"d\(n_3,q\)=([\d.]+)", must=True),
-        dict(id="L9 deck hnsw nn", deck="L9", value=H["bruteForce"]["dist"], tol=1e-4, anchor=r"d\(n_2,q\)=\\mathbf\{([\d.]+)\}", must=True),
-        dict(id="L9 deck hnsw n4", deck="L9", value=d2("n4"), tol=0.006, anchor=r"d\(n_4,q\)=([\d.]+)", must=True),
-        dict(id="L9 deck hnsw n5", deck="L9", value=d2("n5"), tol=0.006, anchor=r"d\(n_5,q\)=([\d.]+)", must=True),
+        dict(id="L9 deck hnsw n0", deck="L13", value=d2("n0"), tol=0.006, anchor=r"d\(n_0,q\)=([\d.]+)", must=True),
+        dict(id="L9 deck hnsw n1", deck="L13", value=d2("n1"), tol=0.006, anchor=r"d\(n_1,q\)=([\d.]+)", must=True),
+        dict(id="L9 deck hnsw n3", deck="L13", value=d2("n3"), tol=0.006, anchor=r"d\(n_3,q\)=([\d.]+)", must=True),
+        dict(id="L9 deck hnsw nn", deck="L13", value=H["bruteForce"]["dist"], tol=1e-4, anchor=r"d\(n_2,q\)=\\mathbf\{([\d.]+)\}", must=True),
+        dict(id="L9 deck hnsw n4", deck="L13", value=d2("n4"), tol=0.006, anchor=r"d\(n_4,q\)=([\d.]+)", must=True),
+        dict(id="L9 deck hnsw n5", deck="L13", value=d2("n5"), tol=0.006, anchor=r"d\(n_5,q\)=([\d.]+)", must=True),
         # ── HNSW toy2: the two-layer climb's descent lands on b9 = brute-force NN (1.4142) ──
         C("L9 deck hnsw2 b9", t2["bruteForce"]["dist"], r"d\(b_9,q\)=\\mathbf\{([\d.]+)\}=\\text\{brute-force NN\}"),
         # ── IVF toy: nprobe=1 finds 2/3 → recall 0.6667 (kept) ──
-        dict(id="L9 deck ivf recall1", deck="L9", value=IVF9["toy"]["probe"]["1"]["recall"], tol=1e-4, anchor=r"2/3.{0,70}?\\mathbf\{([\d.]+)\}", must=True),
+        dict(id="L9 deck ivf recall1", deck="L13", value=IVF9["toy"]["probe"]["1"]["recall"], tol=1e-4, anchor=r"2/3.{0,70}?\\mathbf\{([\d.]+)\}", must=True),
         # ── IVF toy2: nprobe sweep recall 0.6 → 0.8 → 1.0 across the 3 nearest cells ──
         C("L9 deck ivf2 r1", iv2["sweep"][0]["recall"], r"recall@5\}=\\mathbf\{([\d.]+)\} \$\$"),
         C("L9 deck ivf2 r2", iv2["sweep"][1]["recall"], r"4/5 \\;\\Longrightarrow\\; \\mathbf\{([\d.]+)\};"),
         # ── PQ: representative recall@1 (kept) + the ADC worked lookup (35 vs exact 37) ──
-        dict(id="L9 deck pq recall", deck="L9", value=PQ9["recallRepresentative"]["m4"], tol=1e-4, anchor=r"PQ-m4\)\} \\approx \\mathbf\{([\d.]+)\}", must=True),
+        dict(id="L9 deck pq recall", deck="L13", value=PQ9["recallRepresentative"]["m4"], tol=1e-4, anchor=r"PQ-m4\)\} \\approx \\mathbf\{([\d.]+)\}", must=True),
         C("L9 deck pq adc", aw["adcDistance"], r"\\textrm\{code\}_j\]=2\+0\+20\+13=\\mathbf\{(\d+)\}", tol=1e-9),
         C("L9 deck pq exact", aw["exactDistance"], r"The exact distance is \\\((\d+)\\\)", tol=1e-9),
         # ── PQ memory ledger: compression 32× / 16× / 64× (768-d) + 64× (128-d) ──
@@ -2553,10 +2553,10 @@ def l10_deck_claims():
     rt  = ROUTING10                                                # query-routing cosines
     dc  = DECOMP10                                                 # query decomposition recalls
     lv  = RAPTOR10["tree"]["levels"]                               # RAPTOR tree level sizes
-    C = lambda id, value, anchor, tol=1e-4: dict(id=id, deck="L10", value=value, tol=tol, anchor=anchor, must=True)
+    C = lambda id, value, anchor, tol=1e-4: dict(id=id, deck="L15", value=value, tol=tol, anchor=anchor, must=True)
     return [
         # ── RAG token budget: kMax = ⌊3354/256⌋ = 13 (the anchor trace) ──
-        dict(id="L10 deck kMax", deck="L10", value=R["kMax"], tol=1e-9, anchor=r"3354.{0,40}?\\mathbf\{(\d+)\}", must=True),
+        dict(id="L10 deck kMax", deck="L15", value=R["kMax"], tol=1e-9, anchor=r"3354.{0,40}?\\mathbf\{(\d+)\}", must=True),
         # ── budget sweep across real context windows: kMax 13 / 29 / 125 / 497 (windows table) ──
         C("L10 deck budget 8k",   win[8192],   r"<tr><td>8192</td><td>(\d+)</td>", tol=1e-9),
         C("L10 deck budget 32k",  win[32768],  r"<tr><td>32768</td><td>(\d+)</td>", tol=1e-9),
@@ -2582,10 +2582,10 @@ def l10_deck_claims():
         C("L10 deck raptor mid",  lv[1]["n"], r"leaf chunks (?:&rarr;|→) (\d+) cluster summaries", tol=1e-9),
         C("L10 deck raptor root", lv[2]["n"], r"cluster summaries (?:&rarr;|→) (\d+) root", tol=1e-9),
         # ── query rewrite: RR 0.125 → 0.5, multi-query recall@5 0.4 → 0.8 (the by-hand slides, kept) ──
-        dict(id="L10 deck rr orig", deck="L10", value=W["original"]["rr"], tol=1e-4, anchor=r"1/8 = \\mathbf\{([\d.]+)\}", must=True),
-        dict(id="L10 deck rr hyde", deck="L10", value=W["hyde"]["rr"], tol=1e-4, anchor=r"1/2 = \\mathbf\{([\d.]+)\}", must=True),
-        dict(id="L10 deck mq single", deck="L10", value=W["multiQuery"]["recallAt5Single"], tol=1e-4, anchor=r"2/5 \\Rightarrow \\mathbf\{([\d.]+)\}", must=True),
-        dict(id="L10 deck mq union", deck="L10", value=W["multiQuery"]["recallAt5Union"], tol=1e-4, anchor=r"4/5 \\Rightarrow \\mathbf\{([\d.]+)\}", must=True),
+        dict(id="L10 deck rr orig", deck="L15", value=W["original"]["rr"], tol=1e-4, anchor=r"1/8 = \\mathbf\{([\d.]+)\}", must=True),
+        dict(id="L10 deck rr hyde", deck="L15", value=W["hyde"]["rr"], tol=1e-4, anchor=r"1/2 = \\mathbf\{([\d.]+)\}", must=True),
+        dict(id="L10 deck mq single", deck="L15", value=W["multiQuery"]["recallAt5Single"], tol=1e-4, anchor=r"2/5 \\Rightarrow \\mathbf\{([\d.]+)\}", must=True),
+        dict(id="L10 deck mq union", deck="L15", value=W["multiQuery"]["recallAt5Union"], tol=1e-4, anchor=r"4/5 \\Rightarrow \\mathbf\{([\d.]+)\}", must=True),
     ]
 
 
@@ -2596,7 +2596,7 @@ def l10_deck_claims():
 def l11_deck_claims():
     rqc = RAGAS11["reverseQuestionCos"]                            # [0.92, 0.88, 0.31] — paraphrase→original cosines
     gh  = JUDGE11["goodhart"]                                      # honest A 4.3333 vs length-biased gamed C 4.25
-    C = lambda id, value, anchor, tol=1e-4: dict(id=id, deck="L11", value=value, tol=tol, anchor=anchor, must=True)
+    C = lambda id, value, anchor, tol=1e-4: dict(id=id, deck="L16", value=value, tol=tol, anchor=anchor, must=True)
     return [
         # ── RAGAS answer-relevance: mean[0.92, 0.88, 0.31] = 2.11/3 = 0.7033 (the reverse-question cosines) ──
         C("L11 deck rqc0",  rqc[0], r"\\operatorname\{mean\}\[([\d.]+), 0\.88, 0\.31\]"),
@@ -2618,7 +2618,7 @@ def l11_deck_claims():
 #    Values from data globals (cosineMatrix cells, matchedMeanCos, contrastiveGap). ──
 def l12_deck_claims():
     M = CLIP12["cosineMatrix"]                                     # 3×3 image×text cosines (diagonal = matched pairs)
-    C = lambda id, value, anchor, tol=1e-4: dict(id=id, deck="L12", value=value, tol=tol, anchor=anchor, must=True)
+    C = lambda id, value, anchor, tol=1e-4: dict(id=id, deck="L20", value=value, tol=tol, anchor=anchor, must=True)
     return [
         # ── CLIP cosine matrix off-diagonals: pinned by each cell's row/column neighbours in the bmatrix ──
         C("L12 deck m01", M[0][1], r"\\mathbf\{0\.9974\} & ([\d.]+) & 0\.171"),
@@ -2642,7 +2642,7 @@ def l12_deck_claims():
 #    69.1/78.0 are coverage-safe but gated here too for correctness. ──
 def l13_deck_claims():
     DPR, RQ, RC = BENCH13["dprTable3"], BENCH13["rocketqaAblation"], NEG13["recallAt10"]
-    C = lambda id, value, anchor, tol=0.005: dict(id=id, deck="L13", value=value, tol=tol, anchor=anchor, must=True)
+    C = lambda id, value, anchor, tol=0.005: dict(id=id, deck="L11", value=value, tol=tol, anchor=anchor, must=True)
     return [
         # DPR Table 3 (NQ top-20, reported) — negative selection, not architecture, is decisive
         C("L13 deck dpr inbatch", DPR["goldInbatch"],    r"gold-7 in-batch <strong>([\d.]+)</strong>", 0.05),
@@ -2699,7 +2699,7 @@ def l9_book_claims():
     t2, ev = HNSW9["toy2"], HNSW9["efSweep"]
     bo = {h["at"]: h["atDist"] for h in t2["hopTable"]["baseOnly"]}   # base-only trap path distances
     ck = PQ9["codebookTrain"]
-    C = lambda id, value, anchor, tol=1e-4: dict(id="book "+id, deck="L9", value=value, tol=tol, anchor=anchor, must=True)
+    C = lambda id, value, anchor, tol=1e-4: dict(id="book "+id, deck="L13", value=value, tol=tol, anchor=anchor, must=True)
     return [
         # ── metrics beat: the by-hand √7 L2, √6 norm, and the ranking-disagreement candidate distances ──
         C("L9 m sqrt7",   m["l2"],          r"\\sqrt\{7\} = ([\d.]+)\\\)\. <strong>Cosine"),
@@ -2709,12 +2709,12 @@ def l9_book_claims():
         C("L9 m d3 l2",   rk["d3"]["l2"],     r"\(7,4,0,0\)\\\): L2 \\\(= ([\d.]+)\\\), dot \\\(= 22"),
         C("L9 m d3 cos",  rk["d3"]["cosine"], r"dot \\\(= 22\\\), cosine \\\(= ([\d.]+)\\\)"),
         # ── HNSW toy: greedy n0→n2 (n0 anchor TIGHTENED to the entry-node site, not the toy2 baseOnly b0) ──
-        dict(id="book L9 hnsw n0", deck="L9", value=d2("n0"), tol=0.006, anchor=r"entry \\\(n_0\\\) \(distance \\\(([\d.]+)\\\) to", must=True),
-        dict(id="book L9 hnsw n1", deck="L9", value=d2("n1"), tol=0.006, anchor=r"\\\(n_1\\\) at \\\(([\d.]+)\\\)", must=True),
-        dict(id="book L9 hnsw n3", deck="L9", value=d2("n3"), tol=0.006, anchor=r"\\\(n_3\\\) at \\\(([\d.]+)\\\)", must=True),
-        dict(id="book L9 hnsw nn", deck="L9", value=nn, tol=1e-4, anchor=r"neighbour \\\(n_2\\\) is at \\\(([\d.]+)\\\)", must=True),
-        dict(id="book L9 hnsw n4", deck="L9", value=d2("n4"), tol=0.006, anchor=r"\\\(n_4\\\) at \\\(([\d.]+)\\\)", must=True),
-        dict(id="book L9 hnsw n5", deck="L9", value=d2("n5"), tol=0.006, anchor=r"\\\(n_5\\\) at \\\(([\d.]+)\\\)", must=True),
+        dict(id="book L9 hnsw n0", deck="L13", value=d2("n0"), tol=0.006, anchor=r"entry \\\(n_0\\\) \(distance \\\(([\d.]+)\\\) to", must=True),
+        dict(id="book L9 hnsw n1", deck="L13", value=d2("n1"), tol=0.006, anchor=r"\\\(n_1\\\) at \\\(([\d.]+)\\\)", must=True),
+        dict(id="book L9 hnsw n3", deck="L13", value=d2("n3"), tol=0.006, anchor=r"\\\(n_3\\\) at \\\(([\d.]+)\\\)", must=True),
+        dict(id="book L9 hnsw nn", deck="L13", value=nn, tol=1e-4, anchor=r"neighbour \\\(n_2\\\) is at \\\(([\d.]+)\\\)", must=True),
+        dict(id="book L9 hnsw n4", deck="L13", value=d2("n4"), tol=0.006, anchor=r"\\\(n_4\\\) at \\\(([\d.]+)\\\)", must=True),
+        dict(id="book L9 hnsw n5", deck="L13", value=d2("n5"), tol=0.006, anchor=r"\\\(n_5\\\) at \\\(([\d.]+)\\\)", must=True),
         # ── HNSW toy2: the true NN b9 (1.4142) + the base-only trap path b0(17.088)→b1(14.3178) ──
         C("L9 hnsw2 nn",  t2["bruteForce"]["dist"], r"true nearest neighbour is \\\(b_9\\\) at distance \\\(([\d.]+)\\\)"),
         C("L9 hnsw2 b0",  bo["b0"], r"walk at \\\(b_0 = \(0,0\)\\\), distance \\\(([\d.]+)\\\) to", tol=0.006),
@@ -2722,8 +2722,8 @@ def l9_book_claims():
         # ── efSweep: the worst-case brute-force NN distance (node 5 at 5.831) ──
         C("L9 efsweep nn", ev["bruteForce"]["dist"], r"nearest neighbour is node 5, at distance \\\(([\d.]+)\\\)", tol=0.006),
         # ── IVF toy: nprobe=1 → recall@3 0.6667; PQ representative recall@1 0.70 ──
-        dict(id="book L9 ivf recall1", deck="L9", value=ivf1, tol=1e-4, anchor=r"recall@3 = ([\d.]+)</strong>\. With", must=True),
-        dict(id="book L9 pq recall", deck="L9", value=pqr, tol=1e-4, anchor=r"exact search is <strong>≈ ([\d.]+)", must=True),
+        dict(id="book L9 ivf recall1", deck="L13", value=ivf1, tol=1e-4, anchor=r"recall@3 = ([\d.]+)</strong>\. With", must=True),
+        dict(id="book L9 pq recall", deck="L13", value=pqr, tol=1e-4, anchor=r"exact search is <strong>≈ ([\d.]+)", must=True),
         # ── PQ codebook training: Lloyd centroids 6.75 → (1.3333, 8.3333), inertia 20.6875 → 2.6667 ──
         C("L9 cb c1x",      ck["iterations"][1]["centroids"][1][0], r"\\\(c_1=\(([\d.]+),6\.5\)\\\)"),
         C("L9 cb inertia1", ck["iterations"][1]["inertia"], r"Inertia drops to \\\(\\mathbf\{([\d.]+)\}\\\)"),
@@ -2743,22 +2743,22 @@ def l10_book_claims():
     fz  = {s["id"]: s for s in FUSION10["scores"]}
     return [
         # ── RAG token budget: kMax = ⌊3354/256⌋ = 13 + the budget sweep across windows (29 / 125 / 497) ──
-        dict(id="book L10 kMax", deck="L10", value=R["kMax"], tol=1e-9, anchor=r"3354/256 \\rfloor = \\mathbf\{(\d+)\}", must=True),
-        dict(id="book L10 budget 8k",   deck="L10", value=win[8192],   tol=1e-9, anchor=r"\\lfloor 7450/256 \\rfloor = \\mathbf\{(\d+)\}", must=True),
-        dict(id="book L10 budget 32k",  deck="L10", value=win[32768],  tol=1e-9, anchor=r"\\lfloor 32026/256 \\rfloor = \\mathbf\{(\d+)\}", must=True),
-        dict(id="book L10 budget 128k", deck="L10", value=win[128000], tol=1e-9, anchor=r"\\lfloor 127258/256 \\rfloor = \\mathbf\{(\d+)\}", must=True),
+        dict(id="book L10 kMax", deck="L15", value=R["kMax"], tol=1e-9, anchor=r"3354/256 \\rfloor = \\mathbf\{(\d+)\}", must=True),
+        dict(id="book L10 budget 8k",   deck="L15", value=win[8192],   tol=1e-9, anchor=r"\\lfloor 7450/256 \\rfloor = \\mathbf\{(\d+)\}", must=True),
+        dict(id="book L10 budget 32k",  deck="L15", value=win[32768],  tol=1e-9, anchor=r"\\lfloor 32026/256 \\rfloor = \\mathbf\{(\d+)\}", must=True),
+        dict(id="book L10 budget 128k", deck="L15", value=win[128000], tol=1e-9, anchor=r"\\lfloor 127258/256 \\rfloor = \\mathbf\{(\d+)\}", must=True),
         # ── retrieval-math: cos4 = dot/(‖q‖·‖d‖) reproduces the trace scores (√-denominators pin each) ──
-        dict(id="book L10 cos cardiac", deck="L10", value=rm["doc_cardiac_cycle"]["cos4"], tol=1e-4, anchor=r"\\dfrac\{10\}\{\\sqrt\{15\}\\,\\sqrt\{10\}\} = \\mathbf\{([\d.]+)\}", must=True),
-        dict(id="book L10 cos circ",    deck="L10", value=rm["doc_circulatory"]["cos4"],   tol=1e-4, anchor=r"\\dfrac\{11\}\{\\sqrt\{15\}\\,\\sqrt\{13\}\} = \\mathbf\{([\d.]+)\}", must=True),
-        dict(id="book L10 cos valves",  deck="L10", value=rm["doc_valves"]["cos4"],        tol=1e-4, anchor=r"\\dfrac\{15\}\{\\sqrt\{15\}\\,\\sqrt\{30\}\} = \\mathbf\{([\d.]+)\}", must=True),
+        dict(id="book L10 cos cardiac", deck="L15", value=rm["doc_cardiac_cycle"]["cos4"], tol=1e-4, anchor=r"\\dfrac\{10\}\{\\sqrt\{15\}\\,\\sqrt\{10\}\} = \\mathbf\{([\d.]+)\}", must=True),
+        dict(id="book L10 cos circ",    deck="L15", value=rm["doc_circulatory"]["cos4"],   tol=1e-4, anchor=r"\\dfrac\{11\}\{\\sqrt\{15\}\\,\\sqrt\{13\}\} = \\mathbf\{([\d.]+)\}", must=True),
+        dict(id="book L10 cos valves",  deck="L15", value=rm["doc_valves"]["cos4"],        tol=1e-4, anchor=r"\\dfrac\{15\}\{\\sqrt\{15\}\\,\\sqrt\{30\}\} = \\mathbf\{([\d.]+)\}", must=True),
         # ── RRF fusion: consensus doc 0.0325 > sparse-#1 doc 0.0323 ──
-        dict(id="book L10 rrf consensus", deck="L10", value=fz["doc_cardiac_cycle"]["rrf"], tol=1e-4, anchor=r"\\frac\{1\}\{62\} \+ \\frac\{1\}\{61\} = \\mathbf\{([\d.]+)\}", must=True),
-        dict(id="book L10 rrf sparse1",   deck="L10", value=fz["doc_circulatory"]["rrf"],   tol=1e-4, anchor=r"\\frac\{1\}\{61\} \+ \\frac\{1\}\{63\} = \\mathbf\{([\d.]+)\}", must=True),
+        dict(id="book L10 rrf consensus", deck="L15", value=fz["doc_cardiac_cycle"]["rrf"], tol=1e-4, anchor=r"\\frac\{1\}\{62\} \+ \\frac\{1\}\{61\} = \\mathbf\{([\d.]+)\}", must=True),
+        dict(id="book L10 rrf sparse1",   deck="L15", value=fz["doc_circulatory"]["rrf"],   tol=1e-4, anchor=r"\\frac\{1\}\{61\} \+ \\frac\{1\}\{63\} = \\mathbf\{([\d.]+)\}", must=True),
         # ── query rewrite: RR 0.125 → 0.5, multi-query recall@5 0.4 → 0.8 (kept) ──
-        dict(id="book L10 rr orig", deck="L10", value=W["original"]["rr"], tol=1e-4, anchor=r"1/8 = \\mathbf\{([\d.]+)\}", must=True),
-        dict(id="book L10 rr hyde", deck="L10", value=W["hyde"]["rr"], tol=1e-4, anchor=r"1/2 = \\mathbf\{([\d.]+)\}", must=True),
-        dict(id="book L10 mq single", deck="L10", value=W["multiQuery"]["recallAt5Single"], tol=1e-4, anchor=r"2/5.{0,45}?\\mathbf\{([\d.]+)\}", must=True),
-        dict(id="book L10 mq union", deck="L10", value=W["multiQuery"]["recallAt5Union"], tol=1e-4, anchor=r"4/5.{0,45}?\\mathbf\{([\d.]+)\}", must=True),
+        dict(id="book L10 rr orig", deck="L15", value=W["original"]["rr"], tol=1e-4, anchor=r"1/8 = \\mathbf\{([\d.]+)\}", must=True),
+        dict(id="book L10 rr hyde", deck="L15", value=W["hyde"]["rr"], tol=1e-4, anchor=r"1/2 = \\mathbf\{([\d.]+)\}", must=True),
+        dict(id="book L10 mq single", deck="L15", value=W["multiQuery"]["recallAt5Single"], tol=1e-4, anchor=r"2/5.{0,45}?\\mathbf\{([\d.]+)\}", must=True),
+        dict(id="book L10 mq union", deck="L15", value=W["multiQuery"]["recallAt5Union"], tol=1e-4, anchor=r"4/5.{0,45}?\\mathbf\{([\d.]+)\}", must=True),
     ]
 
 
@@ -2769,7 +2769,7 @@ def l10_book_claims():
 def l11_book_claims():
     rqc = RAGAS11["reverseQuestionCos"]
     gh  = JUDGE11["goodhart"]
-    C = lambda id, value, anchor, tol=1e-4: dict(id="book "+id, deck="L11", value=value, tol=tol, anchor=anchor, must=True)
+    C = lambda id, value, anchor, tol=1e-4: dict(id="book "+id, deck="L16", value=value, tol=tol, anchor=anchor, must=True)
     return [
         # ── RAGAS answer relevance: \([\,0.92,\ 0.88,\ 0.31\,]\) → 2.11/3 = 0.7033 ──
         C("L11 rqc0",  rqc[0], r"question \\\(q\\\): \\\(\[\\,([\d.]+),\\ 0\.88"),
@@ -2789,7 +2789,7 @@ def l11_book_claims():
 #    each gated to its data source (l14-rewrite.json) so deck==data and the coverage-guard stays at 0. ──
 def l14_deck_claims():
     R = REWRITE14; T = R["techniques"]; SB = R["stepBack"]; MQ = R["multiQueryRRF"]; DC = R["decomposition"]
-    C = lambda id, value, anchor, tol=0.01: dict(id=id, deck="L14", value=value, tol=tol, anchor=anchor, must=True)
+    C = lambda id, value, anchor, tol=0.01: dict(id=id, deck="L17", value=value, tol=tol, anchor=anchor, must=True)
     n = lambda s: r"(?<![\d.])(" + s + r")(?!\d)"     # a standalone decimal (not a fragment of a longer number)
     return [
         C("L14 raw cosGold",         T["raw"]["cosGold"],        n(r"0\.22")),   # trap outranks gold on the raw query
@@ -2812,7 +2812,7 @@ def l14_deck_claims():
 def l15_deck_claims():
     A, S, P, Pa, Cc, D, Mem = (ATTN15[k] for k in
         ("attention", "sqrtScale", "posEnc", "params", "causal", "decoding", "memory"))
-    C = lambda id, value, anchor, tol=1e-3: dict(id=id, deck="L15", value=value, tol=tol, anchor=anchor, must=True)
+    C = lambda id, value, anchor, tol=1e-3: dict(id=id, deck="L8", value=value, tol=tol, anchor=anchor, must=True)
     return [
         # Example 1 — self-attention forward: softmax(1,0,3) weights + context output Y1
         C("L15 ex1 w0", A["weights"][0], r"A_1=\((0\.114),\\,0\.042,\\,0\.844\)"),
@@ -2944,7 +2944,7 @@ def provenance_l14(report):
 #    from its own generator without a single gate saying a word. ──────────────────────────────────
 def l19_deck_claims():
     F, X, S, K = (COST19[k] for k in ("flops", "crossover", "scoreBox", "kvCache"))
-    C = lambda id, value, anchor, tol=1e-3: dict(id=id, deck="L19", value=value, tol=tol, anchor=anchor, must=True)
+    C = lambda id, value, anchor, tol=1e-3: dict(id=id, deck="L9", value=value, tol=tol, anchor=anchor, must=True)
     return [
         # the punchline: attention is 10 % of a block at the length everyone actually trains at, and 88 % at 32k
         C("L19 share 512",    F["512"]["attnSharePct"],     r"доля внимания в блоке: ([\d.]+)%"),
@@ -2988,7 +2988,7 @@ def l17_deck_claims():
     # narrative/style-ru.md) — so an anchor that quoted the surrounding markup matched one surface only
     # and rotted the moment a cell was split by language. The locator IS the literal value, guarded on
     # both sides, so drift in data/ still fails loudly (value moves, the literal no longer equals it).
-    C = lambda id, value, anchor, tol=1e-3: dict(id=id, deck="L17", value=value, tol=tol, anchor=anchor, must=True)
+    C = lambda id, value, anchor, tol=1e-3: dict(id=id, deck="L4", value=value, tol=tol, anchor=anchor, must=True)
     return [
         C("L17 huffman blocks excess 3", ENT17["huffman"]["blocks"]["excess"][3], r"""(?<![\d.,])(0[.,]0071)(?![\d])"""),
         C("L17 huffman blocks excess 2", ENT17["huffman"]["blocks"]["excess"][2], r"""(?<![\d.,])(0[.,]0116)(?![\d])"""),

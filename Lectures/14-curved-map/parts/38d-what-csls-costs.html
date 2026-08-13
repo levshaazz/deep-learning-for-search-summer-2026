@@ -1,0 +1,30 @@
+<section class="slide" data-type="definition" data-screen-label="38d What CSLS costs in production">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Чего CSLS стоит в проде: он не выражается как обычный ANN-запрос</span>
+      <span lang="en">What CSLS costs in production: it is not an ordinary ANN query</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">связь с L13 &middot; предпосчёт, протухание, где именно он живёт в конвейере</span>
+      <span lang="en">the L13 connection &middot; precompute, staleness, and where it actually sits in the pipeline</span>
+    </span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">
+      <span lang="ru">Три счёта, которые придут</span>
+      <span lang="en">Three bills that will arrive</span>
+    </span>
+    <div class="def-body">
+      <p class="small muted">
+        <span lang="ru"><strong>1. Предпосчёт.</strong> \(r(d)\) — средняя близость к \(K\) соседям — нужна <em>для каждого документа корпуса</em>. Это полный проход kNN по индексу: один раз дёшево, каждый день — уже статья расходов.<br />
+        <strong>2. Протухание.</strong> Добавил документы — соседства сдвинулись, \(r\) устарела. Никакого «посчитал и забыл»: нужен регламент пересчёта, как у любого офлайн-признака.<br />
+        <strong>3. Форма запроса.</strong> \(2\cos(q,d) - r(d)\) — <em>не</em> максимизация косинуса, поэтому HNSW/IVF (L13) искать по нему напрямую <strong>не умеют</strong>. Два честных выхода: (а) переранжировать top-\(N\) уже после ANN, потеряв то, что в top-\(N\) не попало; (б) вшить \(-r(d)/2\) в сам вектор или в скалярное смещение индекса, если движок это позволяет.</span>
+        <span lang="en"><strong>1. Precompute.</strong> \(r(d)\) — mean similarity to the \(K\) nearest — is needed <em>for every document in the corpus</em>. That is a full kNN pass over the index: cheap once, a budget line every day.<br />
+        <strong>2. Staleness.</strong> Add documents and the neighbourhoods shift, so \(r\) is out of date. There is no compute-and-forget: it needs a refresh schedule like any offline feature.<br />
+        <strong>3. Query shape.</strong> \(2\cos(q,d) - r(d)\) is <em>not</em> a cosine maximisation, so HNSW/IVF (L13) <strong>cannot</strong> search it directly. Two honest routes: (a) rerank the top-\(N\) after ANN, forfeiting whatever never made the top-\(N\); (b) fold \(-r(d)/2\) into the stored vector or into a per-document score offset, if your engine supports one.</span>
+      </p>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Заметь ловушку в варианте (а): именно анти-хабы <em>по определению</em> не попадают в top-\(N\) сырого ANN — то есть переранжирование чинит хабов, но <strong>не возвращает призраков</strong>. Половину пользы CSLS даёт только там, где он влияет на сам отбор кандидатов.</span><span lang="en">Note the trap in route (a): anti-hubs are <em>by definition</em> the ones that never enter the raw ANN top-\(N\) — so reranking demotes hubs but <strong>does not bring the ghosts back</strong>. Half of CSLS's value exists only where it touches candidate selection itself.</span></p>
+  <aside class="slide-notes">Plan N3 — the cost slide act 04 never had, and the one that matters most to a student who has just built HNSW/IVF in L9. Three bills: (1) r(d) is a full-corpus kNN precompute; (2) it goes stale on every index update, so it needs a refresh policy; (3) 2cos(q,d) − r(d) is not a maximum-inner-product/cosine query, so no graph or cell index searches it natively — you either rerank top-N or bake −r(d)/2 into the stored representation / a per-document offset. The trap is worth stating explicitly: anti-hubs are precisely the points that do not reach the raw top-N, so a rerank-only deployment fixes the loud half of hubness (bad hubs) and leaves the silent half (unreachable documents) untouched. This is also why the "when hubs help" slide argued for treating hubness in the score rather than in the graph — and why the anti-hub half sometimes needs a graph-level answer (mutual-kNN symmetrisation) instead.</aside>
+</section>

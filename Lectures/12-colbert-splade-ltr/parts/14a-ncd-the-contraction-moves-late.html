@@ -1,0 +1,54 @@
+<section class="slide" data-type="viz" data-max-step="2" data-current-step="0" data-screen-label="14a NCD · the contraction moves late">
+  <div class="slide-header">
+    <h2><span lang="ru">Позднее взаимодействие на схеме</span><span lang="en">Late interaction, drawn</span></h2>
+    <span class="slide-kicker"><span lang="ru">шаг (&larr;/&rarr;): би-энкодер &rarr; кросс-энкодер &rarr; ColBERT &mdash; смотри не на прямоугольники, а на ячейки</span><span lang="en">step (&larr;/&rarr;): bi-encoder &rarr; cross-encoder &rarr; ColBERT &mdash; don&rsquo;t count the boxes, count the cells</span></span>
+  </div>
+  <div class="widget-mount" data-widget="ncd-retrieval"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "msmarco": { "BM25": 0.187, "denseDPR": 0.33, "ColBERT": 0.36 }
+  },
+  "i18n": {
+    "ru": {
+      "alt": "Запрос оценивается против игрушечного корпуса из четырёх документов, нарисовано как neural circuit diagram. Корпус — это broadcast-ось N; каждый ретривер выполняет свою операцию на документ. Bi-encoder: на карточке каждого документа лежит ряд серых предвычисленных ячеек вектора, поэтому на документ идёт лишь дешёвое скалярное произведение (один прогон кодировщика — для запроса). Cross-encoder: серые векторы исчезли — там, где лежал бы кэшированный вектор, остался пустой пунктирный слот, потому что полный кодировщик обязан прогоняться на запрос+документ для каждого документа (N прогонов), читая их вместе. ColBERT: серые векторы возвращаются сеткой, по одному на токен документа, и на документ идёт токенный MaxSim. Полоски-оценки ранжируют документы; top-k подсвечены.",
+      "legMap": "карточка документа · операция на документ · полоска-оценка · top-k ✓",
+      "query": "нейросети для поиска",
+      "lblQuery": "запрос", "lblCorpus": "N · корпус (4 док.)", "lblScore": "оценка", "lblTopk": "top-k",
+      "lblPre": "предвыч.", "noPre": "предвычислить нечего",
+      "opBi": "q · dᵢ", "opCol": "MaxSim",
+      "doc1": "Плотный поиск · DPR", "doc2": "Рецепт борща", "doc3": "Инвертированный индекс", "doc4": "ColBERT · late interaction",
+      "tagBi": "N: дешёвый dot на документ", "tagCross": "N: ПОЛНЫЙ кодировщик на документ", "tagCol": "N: токенный MaxSim на документ",
+      "costBi": "1 прогон кодировщика / запрос", "costCross": "N прогонов кодировщика / запрос", "costCol": "1 кодирование + N дешёвых MaxSim",
+      "lgTitle": "стоимость и качество",
+      "lgEnc": "кодировщик / запрос", "lgPre": "предпосчёт", "lgPer": "на документ",
+      "lgPerBi": "q·dᵢ", "lgPerCross": "полный BERT", "lgPreTok": "по токенам",
+      "lgYes": "да", "lgNo": "нет", "lgMrr": "MRR@10 · MS MARCO",
+      "lgN0": "Один прогон кодировщика — на запросе. Векторы документов посчитаны офлайн, поэтому в момент запроса корпус вообще не трогают — вот почему bi-encoder масштабируется на миллиарды. 0.33 (DPR-класс плотного ретривера) против 0.187 у BM25.",
+      "lgN1": "Посчитайте прямоугольники кодировщика: их N. Кодировщик читает запрос и документ ВМЕСТЕ, поэтому предпосчитать нечего. Качество лучшее — и при корпусе в миллион это миллион прогонов BERT на каждый запрос. Поэтому он живёт только в реранке.",
+      "lgN2": "Один прогон на запрос, как у bi-encoder — но стягивание ПОЗДНЕЕ: MaxSim сравнивает токен с токеном. Платите хранением (вектор на каждый токен документа), получаете 0.36 — выше одновекторного плотного (0.33)."
+    },
+    "en": {
+      "alt": "A query scored against a toy corpus of four documents, drawn as a neural circuit diagram. The corpus is the broadcast axis N; each retriever runs a different operation per document. Bi-encoder: each document card carries a row of grey pre-encoded vector cells, so only a cheap dot product runs per document (one encoder pass, for the query). Cross-encoder: the grey vectors are gone — an empty dashed slot sits where the cached vector would be, because a full encoder must run on query+document for every document (N passes), reading both together. ColBERT: the grey vectors return as a grid, one per document token, and a token-level MaxSim runs per document. Score bars rank the documents; top-k are highlighted.",
+      "legMap": "document card · operation run per document · score bar · top-k ✓",
+      "query": "neural nets for search",
+      "lblQuery": "query", "lblCorpus": "N · corpus (4 docs)", "lblScore": "score", "lblTopk": "top-k",
+      "lblPre": "pre-encoded", "noPre": "nothing to pre-compute",
+      "opBi": "q · dᵢ", "opCol": "MaxSim",
+      "doc1": "Dense retrieval · DPR", "doc2": "Borscht recipe", "doc3": "Inverted index", "doc4": "ColBERT · late interaction",
+      "tagBi": "N: cheap dot per doc", "tagCross": "N: a FULL encoder per doc", "tagCol": "N: token MaxSim per doc",
+      "costBi": "1 encoder pass / query", "costCross": "N encoder passes / query", "costCol": "1 encode + N cheap MaxSim",
+      "lgTitle": "cost & quality",
+      "lgEnc": "encoder / query", "lgPre": "precomputable", "lgPer": "per document",
+      "lgPerBi": "q·dᵢ", "lgPerCross": "full BERT", "lgPreTok": "per token",
+      "lgYes": "yes", "lgNo": "no", "lgMrr": "MRR@10 · MS MARCO",
+      "lgN0": "One encoder pass, on the query. The document vectors were computed offline, so nothing in the corpus is touched at query time — this is why a bi-encoder scales to billions. 0.33 (a DPR-style dense retriever) against BM25’s 0.187.",
+      "lgN1": "Count the encoder boxes: there are N. The encoder reads query and document TOGETHER, so there is nothing to precompute. Best quality — and on a million-document corpus, a million BERT passes per query. That is why it only ever runs as a reranker.",
+      "lgN2": "One pass on the query, like the bi-encoder — but the contraction is LATE: MaxSim compares token to token. You pay in storage (a vector per document token) and you get 0.36, above the single-vector dense retriever’s 0.33."
+    }
+  }
+}
+  </script>
+  <p class="viz-caption"><span lang="ru">Считай не прямоугольники, а <strong>ячейки</strong>. У ColBERT кодировщик снова <strong>один</strong>, как у разведчика &mdash; переехало <strong>стягивание</strong>: оно ушло в самый конец, в MaxSim, токен против токена. И серые векторы вернулись не рядом, а <strong>сеткой</strong> &mdash; по вектору на каждый <em>токен</em> документа. Вот и всё позднее взаимодействие: деталь токенов без \(N\) прогонов BERT &mdash; а счёт за эту сетку выставит следующий слайд.</span><span lang="en">Don&rsquo;t count the boxes here &mdash; count the <strong>cells</strong>. ColBERT is back to <strong>one</strong> encoder, exactly like the Scout; what moved is the <strong>contraction</strong>: it slid to the very end, into MaxSim, token against token. And the grey vectors came back not as a row but as a <strong>grid</strong> &mdash; one vector per document <em>token</em>. That is late interaction, whole: token detail without \(N\) BERT passes &mdash; and the bill for that grid arrives on the next slide.</span></p>
+  <aside class="slide-notes">The same circuit L10 used to count encoder boxes, now stepped one further — and this time the thing to watch is not the boxes but the cells. Step zero is the bi-encoder, for calibration: one encoder box, on the query; a row of grey pre-encoded cells on each document card; a cheap cup per document. Step one is the cross-encoder, and the grey cells vanish — an empty dashed slot where the cache would have been, a full encoder box on every row, N of them. That is the wall Lecture 10 hit. Now step two, and read it as a diff against both. Against the cross-encoder: the vectors are BACK, so the corpus is precomputable again and the encoder count drops from N to one. Against the bi-encoder: the vectors have multiplied — each card now carries a GRID of grey cells, not a row, one per document token, and the query is encoded once into a grid of token vectors too. Nothing has been pooled into a single vector before the query meets the document. That is what late interaction actually means, in ink: the contraction did not disappear, it MOVED — from the moment of encoding to the moment of scoring, where it becomes MaxSim, each query token against its best document token. So the encoder count is the bi-encoder's, and the detail is the cross-encoder's. What did we pay? Look at the grid again: a vector per token, not per document. That is the storage bill, and it is exactly what the next slide prices — two hundred and eighty-six gibibytes, naive, on MS MARCO.</aside>
+</section>

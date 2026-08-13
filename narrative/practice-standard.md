@@ -245,7 +245,7 @@ print("сверка с Ex8 пройдена: все значения совпа�
 | роль | корпус | лицензия |
 |---|---|---|
 | **хребет** | EnterpriseRAG-Bench | MIT |
-| русская линия (L20, RU-поиск) | `d0rj/geo-reviews-dataset-2023` | MIT |
+| русская линия (L19, RU-поиск) | `d0rj/geo-reviews-dataset-2023` | MIT |
 | русский retrieval с qrels | `ai-forever/rubq-retrieval` | CC-BY-SA-4.0 |
 | классика IR, статистика языка | 20 Newsgroups | де-факто свободный |
 | статические векторы | GloVe 6B | ODC-PDDL 1.0 |

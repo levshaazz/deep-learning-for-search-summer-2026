@@ -1,0 +1,67 @@
+<section class="slide" data-type="archflow" data-max-step="4" data-current-step="0" data-screen-label="20 Climb · LLM-as-judge">
+  <div class="slide-header">
+    <h2><span lang="ru">Восхождение судьи — рубрика, вердикт и переворот</span><span lang="en">The judge climb — rubric, verdict, and the flip</span></h2>
+    <span class="slide-kicker"><span lang="ru">листай от поточечных оценок к перевороту Гудхарта (&larr;/&rarr;)</span><span lang="en">step from pointwise scores to the Goodhart flip (&larr;/&rarr;)</span></span>
+  </div>
+  <div class="widget-mount" data-widget="llm-judge"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "_src": "toy rubric arithmetic (gen_l11.py) + REAL frozen llama3.1:8b judge runs",
+    "rubric": { "criteria": ["relevance", "grounding", "completeness"], "scaleMin": 1, "scaleMax": 5 },
+    "answers": [
+      { "id": "A", "scores": [5, 4, 3], "mean": 4.0 },
+      { "id": "B", "scores": [4, 2, 2], "mean": 2.6667 }
+    ],
+    "pairwiseWinner": "A",
+    "goodhart": {
+      "honest": { "good": 4.3333, "gamed": 4.0, "winner": "A" },
+      "lengthBiased": { "good": 4.0, "gamed": 4.25, "winner": "C" },
+      "goodScores": [5, 5, 3],
+      "gamedScores": [4, 3, 5],
+      "note": "Honest mean: A (4.3333) > C (4.0). Over-weight 'completeness' ×2 (a proxy for length) and C (4.25) beats A (4.0): the metric became a target. This is Goodhart's law — L1→L5→L11."
+    },
+    "real": {
+      "_model": "llama3.1:8b",
+      "accuracyClear": 1.0,
+      "nClear": 6,
+      "positionFollowRateTie": 0.6667,
+      "positionAnchoredTie": 4,
+      "nTie": 6,
+      "verbosityPreferenceRate": 1.0,
+      "verbosityLongerWins": 10,
+      "nVerbosity": 5,
+      "faithfulnessCaughtPlanted": true,
+      "note": "Real llama3.1:8b judge (temp 0, seed 42). Accurate when quality is CLEAR (1.0), but anchors to slot under a TIE (0.6667) and ALWAYS prefers the longer answer (1.0) — Goodhart, measured."
+    }
+  },
+  "labels": {
+    "alt": "An LLM-as-a-judge scorecard: a three-criterion rubric scoring two answers, their pointwise means as bars, a pairwise verdict, a Goodhart flip where over-weighting length makes a worse verbose answer win, and three measured bias bars — accurate when quality is clear, but anchored to slot under a tie and always preferring the longer answer.",
+    "rubricHead": "rubric · per-criterion scores",
+    "crit_relevance": "relevance",
+    "crit_grounding": "grounding",
+    "crit_completeness": "completeness",
+    "answer": "answer",
+    "scaleNote": "scale",
+    "pointwiseHead": "pointwise mean score",
+    "pairwiseHead": "pairwise verdict — A vs B",
+    "winsPrefix": "winner:",
+    "goodAns": "honest answer",
+    "gamedAns": "verbose answer",
+    "honestJudge": "honest judge",
+    "lengthJudge": "length-biased judge",
+    "realHead": "measured judge behaviour (real model)",
+    "rAccuracy": "accuracy when quality is clear",
+    "rPosition": "follows first slot on a tie",
+    "rVerbosity": "prefers the longer answer",
+    "s0": "Instead of a single label, we hand the judge a rubric: relevance, grounding, completeness. It scores each answer on every criterion. Answer A reads strong across the board; answer B is weaker on grounding and completeness. This is pointwise scoring — each answer judged alone, criterion by criterion.",
+    "s1": "Average the criteria and each answer gets one pointwise number. A clears the rubric comfortably; B lags well behind. The means look clean and decisive — which is exactly why a single rubric score feels trustworthy. Hold that thought: the same judge can be steered.",
+    "s2": "Pairwise comparison asks a cleaner question: not “what score,” but “which is better, A or B?” The judge picks A. Comparing two answers side by side is usually more reliable than asking for an absolute number — there is no shared scale to drift. So far the judge agrees with us.",
+    "s3": "Now Goodhart strikes. An honest judge prefers the truly better answer over a longer, padded one. But tweak the judge to over-weight length, and the verdict flips: the worse, verbose answer now wins. The moment a score becomes a target — “write longer to score higher” — it stops measuring quality and starts measuring length.",
+    "s4": "These biases are not hypothetical — they are measured on a real, frozen judge model. When quality is clearly different, it judges perfectly. But on a genuine tie it anchors to whichever answer sits in the first slot, and across the verbosity tests it picks the longer answer every single time. Use a judge — but audit it for exactly these biases."
+  }
+}
+  </script>
+  <p class="viz-caption"><span lang="ru">Поточечно (ответы A/B): A = 4,0 обходит B = 2,6667. Попарно: побеждает A. Затем переворот на отдельной паре честный/многословный — переоцени длину, и многословный ответ (4,25) обходит честный (4,0 при судье со смещением к длине). Последний шаг показывает смещения, <em>измеренные</em> на настоящем замороженном судье.</span><span lang="en">Pointwise (answers A/B): A = 4.0 beats B = 2.6667. Pairwise: A wins. Then the flip on a separate honest/verbose pair — over-weight length and the verbose answer (4.25) beats the honest answer (4.0 under the length-biased judge). The last step shows the biases <em>measured</em> on a real frozen judge.</span></p>
+  <aside class="slide-notes">climb-judge master figure (llm-judge on l11-judge). Steps 0–2 = rubric → pointwise means (A 4.0, B 2.6667) → pairwise (A). Step 3 = the Goodhart flip (length-biased winner C 4.25 > A 4.0). Step 4 = real llama3.1:8b biases. All numbers from data/l11-judge.json. The flip is the villain's setup; Act 3 names it.</aside>
+</section>

@@ -1,13 +1,13 @@
-// content/book/l15.js — "The Loom of Attention" (L15): BERT & other Transformers — from
-// attention to RLHF. A supplementary deep-dive re-homed from an external lecture: the DECK is bilingual
-// RU/EN, this Book chapter is trilingual en/ru/tt. Metaphor: Séréga is a WEAVER at a great loom — words
-// are threads, ATTENTION is where every thread crosses every other; the Transformer block is the loom
-// machine; BERT weaves seeing the whole cloth (bidirectional), GPT weaves forward one thread at a time
-// (autoregression), decoding chooses the next thread, efficient attention weaves in blocks (O(n²)), and
-// RLHF adjusts the pattern to the wearer's taste. Séréga illustration plates (nano-banana-pro). PROSE
-// carries the story; EN canonical + native RU + native TT.
+// content/book/l10.js — "The Oracle" (L15): RAG fundamentals, chunking, query understanding & rewriting.
+// The rag-pipeline widget is the recurring ANCHOR figure: it mounts as the master on climb-rag, then
+// returns with one stage in focus (focusStage:'chunk') on the chunking turn, poisoned (mode:'poisoned')
+// on the catch, and all-green (mode:'all-green') on the payoff — beat-level labels override the i18n.
+// New scrolly widgets: chunking-demo (l10-chunking), query-rewrite (l10-rewrite). Every displayed NUMBER
+// comes from data/l10-rag.json + data/l10-chunking.json + data/l10-rewrite.json (toy = stdlib-reproducible,
+// recomputed by provenance_l10) and data/l10-bench.json (cited). EN canonical + RU (native) + TT.
+// KaTeX uses \lt/\gt, never a literal < or > inside math.
 
 export default {
   id: '15',
-  catchphrase: 'The Loom of Attention',
+  catchphrase: 'The Oracle',
   beats: [

@@ -1,14 +1,16 @@
-// content/book/l11.js — "Judging the Oracle" (L11): RAG evaluation (RAGAS, LLM-as-judge) + agentic RAG.
-// The spine returns to MEASURE for the generative era: how to grade an Oracle that sounds confident
-// whether it is right or wrong, and how to make the Ship critique and correct itself. Three exact
-// climbs anchor the chapter — ragas-metrics (l11-ragas), llm-judge (l11-judge), agentic-loop
-// (l11-agentic) — and the rag-control-flow widget returns (l10-selfrag) as the CRAG/Self-RAG callback.
-// Goodhart, the Measure-territory villain (L1→L4), gets his definitive scene: optimise the judge and
-// it games itself. Every displayed NUMBER comes from data/l11-ragas.json + data/l11-judge.json +
-// data/l11-agentic.json (toy = stdlib-reproducible; real = frozen llama3.1:8b, temp 0, seed 42) and
-// data/l11-bench.json (cited). EN canonical + RU (native) + TT. KaTeX uses \lt/\gt, never < or >.
+// content/book/l11.js — "The Crucible of Negatives" (L11): hard negative mining in contrastive
+// learning for dense retrieval. Chapter 11 of the course: L10 built the Scout (bi-encoder) and showed
+// in-batch negatives in passing; this chapter is about WHICH negatives, and why that choice decides the
+// edge. It hands a sharpened dense retriever to L12 (The Alliance), where it marches beside sparse.
+// Metaphor: Séréga is a blade forged in a crucible; negatives are the sparring opponents that give it
+// an edge. Four scrolly
+// widgets anchor the climbs — infonce-calc, hardness-sphere, mining-comparator, impostor-denoise —
+// each reading data/l13-negatives.json (toy = frozen-toolchain-reproducible; the spine block is a
+// pedagogical lineup, the recall block is measured over 20 seeds). PROSE carries the story
+// QUALITATIVELY; every NUMBER is shown by the mounted widgets (so it stays a single source). EN
+// canonical + RU (native) + TT. KaTeX uses \lt/\gt and never a literal < or > inside math.
 
 export default {
   id: '11',
-  catchphrase: 'Judging the Oracle',
+  catchphrase: 'The Crucible of Negatives',
   beats: [

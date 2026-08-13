@@ -134,45 +134,45 @@ const TH = {
 // ───────────────────────── targets ─────────────────────────
 // Deck targets are addressed by 1-based slide index (== the screen-label number in these decks).
 const DECK_TARGETS = [
-  { deck: '05-dl-embeddings-dimred.html', slide: 17, name: 'L5 s17 skip-gram archflow' },
-  { deck: '05-dl-embeddings-dimred.html', slide: 30, name: 'L5 s30 GloVe co-occurrence' }, // title-over-header / header-over-subtitle (Detector B)
-  { deck: '05-dl-embeddings-dimred.html', slide: 31, name: 'L5 s31 GloVe objective' },     // arch-step <text> double-paint (Detector A)
-  { deck: '05-dl-embeddings-dimred.html', slide: 36, name: 'L5 s36 PCA-as-rotation' },
-  { deck: '05-dl-embeddings-dimred.html', slide: 47, name: 'L5 s47 cross-domain' },
-  { deck: '06-contextual-attention-transformers.html', slide: 19, name: 'L6 s19 attention-pull' },
-  { deck: '06-contextual-attention-transformers.html', slide: 37, name: 'L6 s37 block archflow' },
-  { deck: '06-contextual-attention-transformers.html', slide: 38, name: 'L6 s38 LayerNorm' },
+  { deck: '06-dl-embeddings-dimred.html', slide: 17, name: 'L6 s17 skip-gram archflow' },
+  { deck: '06-dl-embeddings-dimred.html', slide: 30, name: 'L6 s30 GloVe co-occurrence' }, // title-over-header / header-over-subtitle (Detector B)
+  { deck: '06-dl-embeddings-dimred.html', slide: 31, name: 'L6 s31 GloVe objective' },     // arch-step <text> double-paint (Detector A)
+  { deck: '06-dl-embeddings-dimred.html', slide: 36, name: 'L6 s36 PCA-as-rotation' },
+  { deck: '06-dl-embeddings-dimred.html', slide: 47, name: 'L6 s47 cross-domain' },
+  { deck: '07-contextual-attention-transformers.html', slide: 19, name: 'L7 s19 attention-pull' },
+  { deck: '07-contextual-attention-transformers.html', slide: 37, name: 'L7 s37 block archflow' },
+  { deck: '07-contextual-attention-transformers.html', slide: 38, name: 'L7 s38 LayerNorm' },
   // the earlier-modified stepped slides forced "full at step 0":
-  { deck: '06-contextual-attention-transformers.html', slide: 26, name: 'L6 s26 multi-head walkthrough' },
-  { deck: '06-contextual-attention-transformers.html', slide: 36, name: 'L6 s36 feed-forward (def)' },
+  { deck: '07-contextual-attention-transformers.html', slide: 26, name: 'L7 s26 multi-head walkthrough' },
+  { deck: '07-contextual-attention-transformers.html', slide: 36, name: 'L7 s36 feed-forward (def)' },
 ];
 // Book widgets: beat id in the built chapter → friendly name. Driven via window.__figs[beat].setStep
 // (the same hook + mount path the existing targets use — load the built chapter, drive setStep(k),
-// capture each step). The list now covers EVERY scrolly (non-prose) widget that mounts in the L5/L6
+// capture each step). The list now covers EVERY scrolly (non-prose) widget that mounts in the L6/L7
 // book chapters, so the double-paint / overprint / step-progression detectors run on ALL of them and
 // the contrastive-space class of bug (a colored stroke double-painting SVG <text>) can't recur
-// unnoticed in any book widget. Beats verified against the built docs/{en}/book/{05,06}/ payloads.
+// unnoticed in any book widget. Beats verified against the built docs/{en}/book/{06,07}/ payloads.
 const BOOK_TARGETS = [
-  // ── chapter 05 ──
-  { chapter: '05', beat: 'climb-word2vec-net', widget: 'skipgram-net' },
-  { chapter: '05', beat: 'climb-analogy', widget: 'embedding-space' },
-  { chapter: '05', beat: 'climb-glove', widget: 'glove-cooccur' },
-  { chapter: '05', beat: 'aside-domains-viz', widget: 'embedding-domains' },
-  { chapter: '05', beat: 'climb-pca', widget: 'dimred-projection' },
-  { chapter: '05', beat: 'climb-pca-rotate', widget: 'pca-rotate' },
-  { chapter: '05', beat: 'climb-tsne-steps', widget: 'tsne-steps' },
-  { chapter: '05', beat: 'climb-tsne-migrate', widget: 'tsne-migrate' },
   // ── chapter 06 ──
-  { chapter: '06', beat: 'climb-attention', widget: 'attention-e2e' },
-  { chapter: '06', beat: 'climb-attention-geo', widget: 'attention-geometry' },
-  { chapter: '06', beat: 'climb-positional', widget: 'positional-enc' },
-  { chapter: '06', beat: 'climb-block', widget: 'transformer-block' },
-  { chapter: '06', beat: 'climb-block-geo', widget: 'block-geometry' },
-  { chapter: '06', beat: 'climb-layernorm', widget: 'layernorm-viz' },
-  { chapter: '06', beat: 'depth-residual-viz', widget: 'residual-stream' },
+  { chapter: '06', beat: 'climb-word2vec-net', widget: 'skipgram-net' },
+  { chapter: '06', beat: 'climb-analogy', widget: 'embedding-space' },
+  { chapter: '06', beat: 'climb-glove', widget: 'glove-cooccur' },
+  { chapter: '06', beat: 'aside-domains-viz', widget: 'embedding-domains' },
+  { chapter: '06', beat: 'climb-pca', widget: 'dimred-projection' },
+  { chapter: '06', beat: 'climb-pca-rotate', widget: 'pca-rotate' },
+  { chapter: '06', beat: 'climb-tsne-steps', widget: 'tsne-steps' },
+  { chapter: '06', beat: 'climb-tsne-migrate', widget: 'tsne-migrate' },
+  // ── chapter 07 ──
+  { chapter: '07', beat: 'climb-attention', widget: 'attention-e2e' },
+  { chapter: '07', beat: 'climb-attention-geo', widget: 'attention-geometry' },
+  { chapter: '07', beat: 'climb-positional', widget: 'positional-enc' },
+  { chapter: '07', beat: 'climb-block', widget: 'transformer-block' },
+  { chapter: '07', beat: 'climb-block-geo', widget: 'block-geometry' },
+  { chapter: '07', beat: 'climb-layernorm', widget: 'layernorm-viz' },
+  { chapter: '07', beat: 'depth-residual-viz', widget: 'residual-stream' },
   // climb-contrastive (contrastive-space) — the beat whose colored-stroke label double-paint
   // slipped through because it was NOT in this list. Now targeted so DETECTOR A guards it.
-  { chapter: '06', beat: 'climb-contrastive', widget: 'contrastive-space' },
+  { chapter: '07', beat: 'climb-contrastive', widget: 'contrastive-space' },
 ];
 
 // ───────────────────────── static servers ─────────────────────────
@@ -1570,7 +1570,7 @@ async function main() {
 
   // `--scan-all` = report mode (discover + run but never fail, for triage). The DEFAULT/`--strict`
   // run now ALSO auto-discovers every figure — the gate covers the WHOLE project, not just the
-  // curated L5/L6 DECK_TARGETS/BOOK_TARGETS (kept below as a documented reference + discovery
+  // curated L6/L7 DECK_TARGETS/BOOK_TARGETS (kept below as a documented reference + discovery
   // fallback). Adding a unit (L7…) needs ZERO target edits — discovery globs it in. A new figure
   // either passes HARD=0 or fails the gate; there is no longer an un-gated figure on the project.
   const scanAll = argv.includes('--scan-all');
@@ -1709,7 +1709,7 @@ async function main() {
    AUTO-DISCOVERY (report mode, `--scan-all`): enumerate EVERY stepped deck
    slide (data-max-step ≥ 1, all decks 00–06) and EVERY mounted scrolly book
    widget (window.__figs, all chapters), so the detectors run over the whole
-   project — not just the curated L5/L6 DECK_TARGETS/BOOK_TARGETS. This drives
+   project — not just the curated L6/L7 DECK_TARGETS/BOOK_TARGETS. This drives
    the T1 triage: real defects vs detector false-positives on the un-tuned
    00–04 reveal mechanisms. It is ADDITIVE — the default/`--strict` run still
    uses the curated lists (HARD=0 WARN=26 baseline), unchanged.

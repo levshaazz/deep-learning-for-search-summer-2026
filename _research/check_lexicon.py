@@ -24,7 +24,7 @@ HARD — unambiguous, language-agnostic-wrong, and currently ZERO in the tree (s
   • [B] the stem «свёрт»/«сверт», SCOPED to widgets/ncd-*: the NCD family's canon for a contraction is
     «стягивание». A repo-wide ban is impossible — ~43 files use «свёртка/сворачивать» legitimately —
     but INSIDE this family the word is not merely off-canon, it is dangerous: «свёртка» is also the
-    Russian for CONVOLUTION. Lectures/06-*/parts/47-vit-patches-as-tokens.html tells the student
+    Russian for CONVOLUTION. Lectures/07-*/parts/47-vit-patches-as-tokens.html tells the student
     «Никаких свёрток: 196 патчей…» while ncd-einsum used to tell the same student, in the same block,
     «внимание — это ДВЕ свёртки». One literature gloss survives so the term is still findable in the
     papers, and it is capped at one — see NCD_SVERT_GLOSS.
@@ -67,14 +67,15 @@ TOKEN = re.compile("[%s%s’'ʼ]+" % (CYR, LAT))
 # Legitimate: a Cyrillic word carrying a subscript index — докᵢ, документᵢ. Notation, not mojibake.
 ADJ_OK = [re.compile('^[%s]+[ᵢⁱⱼₖ]$' % CYR)]
 
-# INTENTIONAL — the ONE place where mixed script is the CONTENT, not a defect: L20 «Поиск на русском»
+# INTENTIONAL — the ONE place where mixed script is the CONTENT, not a defect: L19 «Поиск на русском»
 # teaches the Unicode-confusables attack (UTS #39), so it has to SHOW a homoglyph string. These three
 # are the demonstration itself and they are exactly what gen_l20.py computes
-# (data/l20-ru.json → homoglyphs.demo / l20-bench.json → confusables.idnAttack): «cocнa» against
-# «сосна», «Mocквa» against «Москва», and Zheng's 2017 IDN domain rendered «аpple.com». Scoped to that
-# lecture's slides so the rule keeps biting everywhere else.
+# (data/l20-ru.json → homoglyphs.demo / l20-bench.json → confusables.idnAttack — data/ and the
+# generators deliberately keep PRODUCTION numbering, so those names stay l20 while the deck moved to
+# 19): «cocнa» against «сосна», «Mocквa» against «Москва», and Zheng's 2017 IDN domain rendered
+# «аpple.com». Scoped to that lecture's slides so the rule keeps biting everywhere else.
 ADJ_DEMO = {'cocнa', 'Mocквa', 'аpple'}
-ADJ_DEMO_SCOPE = os.path.join('Lectures', '20-russian-search')
+ADJ_DEMO_SCOPE = os.path.join('Lectures', '19-russian-search')
 
 # QUARANTINE — script-mixing that predates this rule and sits outside the NCD family. token → owner.
 # NOT a pardon: it prints on every run, and a stale entry HARD-fails so the list can never rot.
@@ -209,7 +210,7 @@ def selftest():
     ok.append(('[B] the single literature gloss is allowed', ng == [] and gl == 1))
     ok.append(('[B] a SECOND gloss breaches the cap',
                len(NCD_SVERT_GLOSS.findall(ncd_ok * 2)) > NCD_SVERT_GLOSS_MAX))
-    ok.append(('[B] the ban is SCOPED — L06’s legitimate «Никаких свёрток» is out of scope',
+    ok.append(('[B] the ban is SCOPED — L07’s legitimate «Никаких свёрток» is out of scope',
                NCD_SCOPE in os.path.join('widgets', 'ncd-einsum', 'i18n.json')
                and NCD_SCOPE not in os.path.join('Lectures', '06-vit', 'parts', '47.html')))
 

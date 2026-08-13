@@ -1,10 +1,14 @@
-// content/book/l20.js — "Morphology Strikes Back" (L20): Search in Russian — the token tax, lemmas vs
-// sub-words for BM25, and Russian / multilingual embedders. Supplementary deep-dive. Metaphor: a Russian
-// word carries case/number inside itself, so the English-trained Tokenosaurus chokes on it and pays a token
-// tax; lemmatization folds the forms; dense retrieval matches meaning. Numbers shown/gated in the deck +
-// data/l20-*.json (gen_l20.py). EN canonical + native RU + native TT. Séréga plates (nano-banana-pro).
+// content/book/l12.js — "The Deep Field" (L20): advanced RAG (multi-hop / GraphRAG), multimodal
+// (CLIP, ColPali), and ethics & safety. The FINAL territory chapter — arc-level payoff: Séréga
+// maps the deep field and readies the helm handoff to the student (bridge → the Defense).
+// Two recurring scrolly widgets anchor the climbs: graphrag (l12-graphrag) mounts on the GraphRAG
+// climb; clip-matrix (l12-clip) mounts on the CLIP climb. Sir Cosine returns from L2/L6 to rule the
+// shared cross-modal space. Every displayed NUMBER comes from data/l12-graphrag.json,
+// data/l12-clip.json, data/l12-ethics.json (toy = stdlib-reproducible + REAL Ollama runs) and
+// data/l12-bench.json (cited). EN canonical + RU (native) + TT. KaTeX uses \lt/\gt, never a literal
+// < or > inside math.
 
 export default {
   id: '20',
-  catchphrase: 'Morphology Strikes Back',
+  catchphrase: 'The Deep Field',
   beats: [
