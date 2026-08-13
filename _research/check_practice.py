@@ -486,24 +486,47 @@ def selftest():
                and any('Замер без модели' in x for x in w)
                and any('<details>' in x for x in w)))
 
-    # The discriminator itself must reproduce on the real reference set, not just on fixtures.
-    ref = sorted(glob.glob(os.path.join(glob.escape(ROOT), 'tmp', '*.ipynb')))
-    if ref:
-        ratios = {os.path.basename(f): measure(load(f))['analysis_ratio'] for f in ref}
-        top = max(ratios.values())
-        rest = sorted(ratios.values())[:-1]
-        ok.append((f'калибровка на эталонах: лучший {top:.0%} ≥ порога, остальные ниже '
-                   f'({min(rest):.0%}–{max(rest):.0%})',
-                   top >= MIN_ANALYSIS_RATIO and max(rest) < MIN_ANALYSIS_RATIO))
-        # Check #1 is the discriminator and the others are NOT interchangeable with it. Three of the
-        # five below-bar notebooks clear the prose-share threshold outright — if a future session
-        # ever "simplifies" the gate down to word counts, this case fails and says why.
-        shares = {os.path.basename(f): measure(load(f))['md_prose_share'] for f in ref}
-        weak_but_wordy = [n for n, sh in shares.items()
-                          if sh >= MIN_MD_PROSE_SHARE and ratios[n] < MIN_ANALYSIS_RATIO]
-        ok.append((f'доля прозы НЕ разделяет: {len(weak_but_wordy)} ноутбук(а/ов) ниже планки '
-                   f'проходят порог №2 — разделяет только «разбор после замера»',
-                   len(weak_but_wordy) >= 2))
+    # The discriminator must hold on the REAL reference set, not only on fixtures. The six
+    # notebooks live in gitignored tmp/ (another course's material), so CI cannot see them — the
+    # measurements are frozen in _research/baselines/practice-calibration.json instead. Without
+    # that file this case would SKIP in CI, and a skipped case reads exactly like a passing one.
+    cal = os.path.join(ROOT, '_research', 'baselines', 'practice-calibration.json')
+    frozen = json.load(open(cal, encoding='utf-8'))['notebooks']
+    ok.append(('калибровочный базлайн на месте (иначе случай молча пропустится в CI)',
+               len(frozen) == 6))
+
+    ratios = {n: v['analysis_ratio'] for n, v in frozen.items()}
+    top_n = max(ratios, key=ratios.get)
+    rest = [r for n, r in ratios.items() if n != top_n]
+    ok.append((f'калибровка: эталон {ratios[top_n]:.0%} ≥ порога, остальные пять ниже '
+               f'({min(rest):.0%}–{max(rest):.0%}) — порог измерен, а не назначен',
+               ratios[top_n] >= MIN_ANALYSIS_RATIO and max(rest) < MIN_ANALYSIS_RATIO))
+
+    # Check #1 is the discriminator and the others are NOT interchangeable with it. Three of the
+    # five below-bar notebooks clear the prose-share threshold outright — if a future session ever
+    # "simplifies" the gate down to word counts, this case fails and says why.
+    wordy = [n for n, v in frozen.items()
+             if v['md_prose_share'] >= MIN_MD_PROSE_SHARE and ratios[n] < MIN_ANALYSIS_RATIO]
+    ok.append((f'доля прозы НЕ разделяет: {len(wordy)} ноутбука ниже планки проходят порог №2 — '
+               f'разделяет только «разбор после замера»', len(wordy) >= 2))
+
+    # When the sources ARE present, re-measure: the frozen numbers must still fall out of the
+    # detectors. This turns the calibration from a one-time observation into a regression test.
+    live = sorted(glob.glob(os.path.join(glob.escape(ROOT), 'tmp', '*.ipynb')))
+    if live:
+        drift = []
+        for f in live:
+            name = os.path.basename(f)
+            if name not in frozen:
+                continue
+            m = measure(load(f))
+            for key in ('analysis_ratio', 'md_prose_share', 'md_code_ratio'):
+                if abs(m[key] - frozen[name][key]) > 0.005:
+                    drift.append(f'{name}:{key} {m[key]:.3f}≠{frozen[name][key]:.3f}')
+        ok.append((f'детектор не поехал — пересчёт {len(live)} исходников совпал с базлайном'
+                   + (f' · РАСХОЖДЕНИЯ: {drift[:3]}' if drift else ''), not drift))
+    else:
+        print('  · [инфо] tmp/*.ipynb недоступны (gitignore) — сверка с базлайном без пересчёта')
 
     for label, passed in ok:
         print(f"  {'✓' if passed else '✗'} {label}")
