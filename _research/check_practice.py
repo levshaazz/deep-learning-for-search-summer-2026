@@ -38,6 +38,11 @@ MIN_MD_CODE_RATIO = 1.40    # exemplar 96/57 = 1.68
 MIN_TASKS, MAX_TASKS = 3, 5
 MIN_TRAPS, MIN_TRAP_TYPES = 8, 4
 ANALYSIS_WORDS_LO, ANALYSIS_WORDS_HI = 100, 150
+# §8 «Порог объёма (120 минут)»: 8 000–11 000 слов прозы, из них в ВЕРХНЕМ слое не более половины.
+# §15 не перечислил его среди десяти HARD, поэтому он WARN — но молчать о нём нельзя: первый же
+# семинар, прошедший все десять HARD, вышел на 3 605 слов (45 % пола) с нижним слоем в 10 %.
+PROSE_WORDS_LO, PROSE_WORDS_HI = 8000, 11000
+MAX_UPPER_LAYER_SHARE = 0.5
 BUDGET_TOL_MIN = 10         # part budgets may miss the declared total by this many minutes
 
 # A markdown cell counts as ANALYSIS only past this length — a bare heading reads a result no more
@@ -61,10 +66,15 @@ TRAP_CYR = re.compile(r'⚠️?\s*Ловушка\s+([АВЕС])\b')
 NO_MODEL = re.compile(r'Замер без модели', re.I)
 PINS_CELL = re.compile(r'^\s*#\s*ПИНЫ\b', re.M)
 EX_ID = re.compile(r'\bEx(\d{1,3})\b')
-SEED_SET = [re.compile(r'\bSEED\s*='),
-            re.compile(r'random\.seed\s*\('),
-            re.compile(r'np(?:\.random)?\.random\.seed\s*\(|numpy\.random\.seed\s*\('),
-            re.compile(r'torch\.manual_seed\s*\(')]
+# Seeding is required for every RNG library the notebook ACTUALLY imports — demanding
+# torch.manual_seed from a BM25 seminar would force an unused import, which rule 7.4 forbids
+# ("каждый пакет в ноутбуке обязан быть нужен для результата").
+SEED_CONST = re.compile(r'\bSEED\s*=')
+SEED_BY_LIB = {
+    'random': re.compile(r'random\.seed\s*\('),
+    'numpy': re.compile(r'np(?:\.random)?\.random\.seed\s*\(|numpy\.random\.seed\s*\('),
+    'torch': re.compile(r'torch\.manual_seed\s*\('),
+}
 FORBIDDEN = [('#@param', re.compile(r'#@param')),
              ('files.upload', re.compile(r'files\.upload\s*\(')),
              ('google.colab.output', re.compile(r'google\.colab\.output|from\s+google\.colab\s+import\s+output')),
@@ -170,6 +180,9 @@ def measure(nb):
     if total_min is not None and total_min in parts:
         parts.remove(total_min)
 
+    # §8: the lower layer is everything inside <details>; the upper layer is what is spoken aloud.
+    lower = ''.join(re.findall(r'<details>[\s\S]*?</details>', md_text))
+    prose_total = ru_words(md_text)
     traps = TRAP.findall(all_text)
     traps_cyr = TRAP_CYR.findall(all_text)
     return {
@@ -183,12 +196,16 @@ def measure(nb):
         'tasks': tasks,
         'forbidden': [name for name, pat in FORBIDDEN if pat.search(all_text)],
         'unpinned': unpinned, 'has_pins': bool(pins),
-        'seed_ok': all(p.search(code_text) for p in SEED_SET),
+        'seed_missing': ([] if SEED_CONST.search(code_text) else ['константа SEED'])
+                        + [lib for lib, pat in SEED_BY_LIB.items()
+                           if lib in imported and not pat.search(code_text)],
         'ex_ids': sorted(set(EX_ID.findall(all_text)), key=int),
         'budget_total': total_min, 'budget_parts': parts,
         'traps': len(traps), 'trap_types': len(set(traps)), 'traps_cyr': len(traps_cyr),
         'no_model': bool(NO_MODEL.search(all_text)),
         'details': all_text.count('<details'),
+        'prose_words': prose_total,
+        'upper_share': (prose_total - ru_words(lower)) / max(1, prose_total),
     }
 
 
@@ -227,8 +244,9 @@ def check(rel, m, known_ex):
         hard.append(f"запрещённая колаб-UI-идиома {name!r} — интерфейс VS Code её не отрисует")
     for mod in m['unpinned']:                                                               # 7
         hard.append(f"импорт {mod!r} отсутствует в ячейке «# ПИНЫ» — версия не зафиксирована")
-    if not m['seed_ok']:                                                                    # 8
-        hard.append("SEED не зафиксирован для всех трёх источников (random / numpy / torch)")
+    if m['seed_missing']:                                                                   # 8
+        hard.append("SEED не зафиксирован: " + ', '.join(m['seed_missing'])
+                    + " — источник случайности импортирован, но не засеян")
     for ex in m['ex_ids']:                                                                  # 9
         if ex not in known_ex:
             hard.append(f"Ex{ex} не найден ни в одном data/*.json — сцепка с лекцией висит на прозе")
@@ -256,6 +274,13 @@ def check(rel, m, known_ex):
                         f"{ANALYSIS_WORDS_LO}–{ANALYSIS_WORDS_HI}")
     if not m['details']:
         warn.append("ни одного <details> — двухслойность не реализована")
+    elif m['upper_share'] > MAX_UPPER_LAYER_SHARE:
+        warn.append(f"верхний слой {m['upper_share']:.0%} прозы (§8: не более "
+                    f"{MAX_UPPER_LAYER_SHARE:.0%}) — нижний слой почти пуст, "
+                    f"двухслойность заявлена, но не наполнена")
+    if not (PROSE_WORDS_LO <= m['prose_words'] <= PROSE_WORDS_HI):
+        warn.append(f"объём прозы {m['prose_words']} слов вне коридора §8 "
+                    f"{PROSE_WORDS_LO}–{PROSE_WORDS_HI} для 120-минутного занятия")
     return hard, warn
 
 
@@ -461,7 +486,16 @@ def selftest():
     # #8 SEED — all three sources, not just the constant.
     ns = mutate(clean_nb(), 'torch.manual_seed', 'code', 'SEED = 42')
     h, _ = run(ns)
-    ok.append(('#8 SEED задан, но не разведён по random/numpy/torch', any('SEED' in x for x in h)))
+    ok.append(('#8 SEED задан, но импортированные random/numpy/torch не засеяны',
+               any('SEED не зафиксирован' in x for x in h)))
+    # …and the mirror case: a seminar that never imports torch must NOT be asked to seed it,
+    # or the gate would force an unused import — exactly what rule 7.4 forbids.
+    tf = mutate(clean_nb(), 'torch.manual_seed', 'code',
+                'SEED = 42\nimport random\nrandom.seed(SEED)\nnp.random.seed(SEED)')
+    tf = mutate(tf, '# ПИНЫ', 'code', '# ПИНЫ\n!pip install -q numpy==1.26.4\nimport numpy as np')
+    h, _ = run(tf)
+    ok.append(('#8 torch не импортирован — torch.manual_seed не требуется (правило 7.4)',
+               not any('SEED' in x for x in h)))
 
     # #9 an Ex-id the lecture data does not publish.
     ex = clean_nb()
