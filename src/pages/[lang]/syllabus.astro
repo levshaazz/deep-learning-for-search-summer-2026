@@ -9,8 +9,9 @@ export function getStaticPaths() {
 }
 const { lang } = Astro.params;
 const m = course.meta;
-const coreLectures = course.lectures.filter((l) => l.track !== 'deep-dive');
-const deepDives = course.lectures.filter((l) => l.track === 'deep-dive');
+// One course, one list. The old split (track:"deep-dive" → a second table below) died with the
+// Aug-2026 reorder: every former satellite now sits at the position that needs it.
+const lectures = course.lectures;
 const showFallbackNotice = lang === 'tt';
 ---
 <BaseLayout lang={lang} page="syllabus" title={t(ui.nav.syllabus, lang)}>
@@ -22,7 +23,6 @@ const showFallbackNotice = lang === 'tt';
       {showFallbackNotice && <p class="notice">{t(ui.translationInProgress, lang)}</p>}
       <div class="meta">
         <div><div class="k">{t(ui.labels.instructor, lang)}</div><div class="v">{m.instructor}</div></div>
-        <div><div class="k">{t(ui.labels.firstLecture, lang)}</div><div class="v">{t(m.firstLecture, lang)}</div></div>
       </div>
     </section>
 
@@ -31,7 +31,7 @@ const showFallbackNotice = lang === 'tt';
       <table>
         <thead><tr><th>#</th><th>{t(ui.labels.topics, lang)}</th><th>{t(ui.labels.week, lang)}</th></tr></thead>
         <tbody>
-          {coreLectures.map((lec) => (
+          {lectures.map((lec) => (
             <tr>
               <td>{lec.id}</td>
               <td>
@@ -45,29 +45,6 @@ const showFallbackNotice = lang === 'tt';
         </tbody>
       </table>
     </section>
-
-    {deepDives.length > 0 && (
-      <section class="block deepdives">
-        <h2>{t(ui.sections.deepdives, lang)}</h2>
-        <div class="kicker">{t(ui.sections.deepdivesKicker, lang)}</div>
-        <table>
-          <thead><tr><th>#</th><th>{t(ui.labels.topics, lang)}</th><th>{t(ui.labels.week, lang)}</th></tr></thead>
-          <tbody>
-            {deepDives.map((lec) => (
-              <tr>
-                <td>{lec.id}</td>
-                <td>
-                  <strong>{t(lec.title, lang)}</strong><br />
-                  <span style="color:var(--ink-3);font-size:var(--fz-tiny)">{lec.catchphrase} · {t(lec.blurb, lang)}</span>
-                  {lec.status === 'ready' && lec.deckFile && <> · <a href={withBase('/' + lec.deckFile)}>{t(ui.labels.openSlides, lang)}</a></>}
-                </td>
-                <td class="d">{t(lec.when, lang)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
-    )}
 
     <section class="block">
       <h2>{t(ui.sections.assessment, lang)}</h2>

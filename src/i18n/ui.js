@@ -22,17 +22,11 @@ export const ui = {
 
   sections: {
     lectures: { en: 'Lectures', ru: 'Лекции', tt: 'Лекцияләр' },
-    deepdives: { en: 'Additional topics', ru: 'Дополнительные темы', tt: 'Өстәмә темалар' },
-    deepdivesKicker: {
-      en: 'Optional deep-dive lectures · beyond the core syllabus · taken after the main course',
-      ru: 'Необязательные углублённые лекции · вне основной программы · после основного курса',
-      tt: 'Сайланма тирәнәйтелгән лекцияләр · төп программадан тыш · төп курстан соң',
-    },
     assignments: { en: 'Labs & Homework', ru: 'Лабораторные и домашние задания', tt: 'Лаборатор һәм өй эшләре' },
     assignmentsKicker: {
-      en: 'Lecture 03–04 · Classical IR & Ranking Metrics · implement by hand, measure, compare',
-      ru: 'Лекции 03–04 · Классический IR и метрики ранжирования · реализуй руками, измеряй, сравнивай',
-      tt: '03–04 лекцияләр · Классик IR һәм ранжлау метрикалары · кулдан эшлә, үлчә, чагыштыр',
+      en: '7 activities · weeks 3–14 · 3 labs, 3 homeworks and the final project · implement by hand, measure, compare',
+      ru: '7 работ · недели 3–14 · 3 лабораторные, 3 домашние и финальный проект · реализуй руками, измеряй, сравнивай',
+      tt: '7 эш · 3–14 атналар · 3 лаборатор, 3 өй эше һәм финал проекты · кулдан эшлә, үлчә, чагыштыр',
     },
     lecturesKicker: {
       en: 'Interactive slide decks · open in any browser · ← / → to navigate · O for overview',
@@ -90,13 +84,14 @@ export const ui = {
     next: { en: 'Next', ru: 'След.', tt: 'Киләсе' },
     openSlides: { en: 'Open slides', ru: 'Открыть слайды', tt: 'Слайдларны ачу' },
     readBook: { en: 'Read in the Book', ru: 'Читать в Книге', tt: 'Китапта уку' },
-    deepdiveTag: { en: 'Deep-dive', ru: 'Доп. тема', tt: 'Өстәмә' },
     institution: { en: 'Institution', ru: 'Учебное заведение', tt: 'Оешма' },
     instructor: { en: 'Instructor', ru: 'Преподаватель', tt: 'Укытучы' },
     term: { en: 'Term', ru: 'Семестр', tt: 'Семестр' },
-    firstLecture: { en: 'First lecture', ru: 'Первая лекция', tt: 'Беренче лекция' },
     week: { en: 'Week', ru: 'Неделя', tt: 'Атна' },
-    date: { en: 'Date', ru: 'Дата', tt: 'Дата' },
+    // The course runs on abstract weeks, not a calendar — two 2-hour sessions per week, so a schedule
+    // row is addressed by (week, session), never by a date. The `date` label was retired with the
+    // calendar; nothing rendered it any more.
+    session: { en: 'Session', ru: 'Занятие', tt: 'Дәрес' },
     topics: { en: 'Topics & milestones', ru: 'Темы и вехи', tt: 'Темалар һәм этаплар' },
     component: { en: 'Component', ru: 'Компонент', tt: 'Компонент' },
     weight: { en: 'Weight', ru: 'Вес', tt: 'Өлеш' },
