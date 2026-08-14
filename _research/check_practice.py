@@ -108,6 +108,32 @@ STDLIB = {
 }
 
 
+# Имя пакета в pip и имя модуля в import — разные вещи, и на этом гейт ложно срабатывал.
+# Нормализация снимает дефис/подчёркивание/регистр; алиасы закрывают случаи, где имена
+# не совпадают вовсе. Список алиасов может только расти — он убирает ложные срабатывания,
+# а не пропускает настоящие: незапиненный сторонний модуль по-прежнему не найдётся ни под каким
+# из своих имён.
+DIST_ALIASES = {
+    'sklearn': 'scikit-learn', 'PIL': 'pillow', 'cv2': 'opencv-python', 'yaml': 'pyyaml',
+    'bs4': 'beautifulsoup4', 'dateutil': 'python-dateutil', 'faiss': 'faiss-cpu',
+    'psycopg2': 'psycopg2-binary', 'Crypto': 'pycryptodome', 'serial': 'pyserial',
+    'attr': 'attrs', 'jwt': 'pyjwt', 'OpenSSL': 'pyopenssl', 'usb': 'pyusb',
+}
+
+
+def _norm(name):
+    return name.lower().replace('-', '').replace('_', '')
+
+
+def pinned(mod, pins_text):
+    """Модуль считается запиненным, если в ячейке пинов есть он сам или его дистрибутив."""
+    p = _norm(pins_text)
+    if _norm(mod) in p:
+        return True
+    alias = DIST_ALIASES.get(mod)
+    return bool(alias) and _norm(alias) in p
+
+
 def cell_src(cell):
     s = cell.get('source', '')
     return s if isinstance(s, str) else ''.join(s)
@@ -177,7 +203,7 @@ def measure(nb):
         top = (m.group(1) or m.group(2)).split('.')[0]
         if top not in STDLIB:
             imported.add(top)
-    unpinned = sorted(m for m in imported if m not in pins)
+    unpinned = sorted(m for m in imported if not pinned(m, pins))
 
     # ── #10 the declared budget must equal the sum of its parts ──
     tot = BUDGET_TOTAL.search(md_text)
@@ -486,6 +512,20 @@ def selftest():
     unp['cells'].append({'cell_type': 'code', 'source': 'import faiss'})
     h, _ = run(unp)
     ok.append(('#7 незапиненный импорт', any("'faiss'" in x for x in h)))
+    # Дистрибутивное имя в пинах засчитывается: pip знает scikit-learn, import знает sklearn.
+    alias_nb = mutate(clean_nb(), '# ПИНЫ', 'code',
+                      '# ПИНЫ\n!pip install -q scikit-learn==1.4.2 sentence-transformers==2.7.0')
+    alias_nb['cells'].append({'cell_type': 'code',
+                              'source': 'import sklearn\nimport sentence_transformers'})
+    h, _ = run(alias_nb)
+    ok.append(('#7 дистрибутивное имя в пинах засчитывается (scikit-learn -> sklearn)',
+               not any('sklearn' in x or 'sentence_transformers' in x for x in h)))
+    # ...и это не открывает дыру: чужой модуль не найдётся ни под каким именем.
+    hole = mutate(clean_nb(), '# ПИНЫ', 'code', '# ПИНЫ\n!pip install -q scikit-learn==1.4.2')
+    hole['cells'].append({'cell_type': 'code', 'source': 'import lightgbm'})
+    h, _ = run(hole)
+    ok.append(('#7 алиасы не маскируют настоящий незапиненный импорт',
+               any("'lightgbm'" in x for x in h)))
     ok.append(('#7 стандартная библиотека пинов не требует',
                not any('json' in x for x in run(nb(*[('code', 'import json')] ))[0]
                        if 'ПИНЫ' in x or 'пин' in x)))
