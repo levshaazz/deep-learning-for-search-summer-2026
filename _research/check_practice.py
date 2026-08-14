@@ -98,6 +98,13 @@ STDLIB = {
     'hashlib', 'heapq', 'html', 'io', 'itertools', 'json', 'logging', 'math', 'os', 'pathlib',
     'pickle', 'pprint', 'random', 're', 'shutil', 'string', 'subprocess', 'sys', 'tempfile',
     'textwrap', 'time', 'timeit', 'typing', 'unicodedata', 'urllib', 'uuid', 'warnings', 'zipfile',
+    # Added when a real seminar tripped the check on a stdlib name that was simply missing here.
+    # A stdlib entry can never mask a third-party import, so the list may only grow.
+    'array', 'binascii', 'calendar', 'cmath', 'concurrent', 'ctypes', 'dbm', 'errno', 'fnmatch',
+    'fractions', 'ftplib', 'getpass', 'hmac', 'importlib', 'inspect', 'ipaddress', 'linecache',
+    'locale', 'mimetypes', 'multiprocessing', 'numbers', 'operator', 'os.path', 'platform',
+    'queue', 'secrets', 'shlex', 'signal', 'socket', 'sqlite3', 'ssl', 'statistics', 'struct',
+    'threading', 'traceback', 'types', 'unittest', 'weakref', 'zoneinfo',
 }
 
 
