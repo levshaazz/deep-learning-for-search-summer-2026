@@ -70,8 +70,24 @@ def _guarded(seg, m):
     s = m.start()
     # ':' belongs here too — without it "arXiv:2409.04701" reads as a decimal and the
     # sweep silently breaks every citation id it touches (it did: 31 ids, Aug 2026).
-    if s > 0 and seg[s - 1] in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._/:":
-        return "ident"
+    if s > 0 and seg[s - 1] in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz._/:":
+        # …unless those letters are a LaTeX control word: `\to0.005`, `\approx2.003`, `\cdot1.3333`
+        # are an operator meeting its operand, not a name meeting a version. Reading them as
+        # identifiers hid 13 more decimals — and only in ru math, where the separator matters.
+        a = s
+        while a > 0 and seg[a - 1].isalpha():
+            a -= 1
+        if not (a > 0 and seg[a - 1] == "\\" and a < s):
+            return "ident"
+    # A hyphen is BOTH an identifier joiner ("GPT-3.5", "Apache-2.0") and a minus sign
+    # ("(1-0.75)", "=-0.406", "{-2.0}"). Treating it as always-identifier hid 26 real decimals in
+    # ru regions — every negative number and every subtraction in the corpus. What separates them
+    # is the character BEFORE the hyphen: a letter means a name, anything else means arithmetic.
+    if s > 1 and seg[s - 1] == "-":
+        if seg[s - 2].isalpha():
+            return "ident"
+    elif s == 1 and seg[0] == "-":
+        pass          # segment starts with a minus: arithmetic by construction
     # A section reference — «§4.1», «&sect;3.2» — is not a decimal: papers number their
     # sections with dots in every language. Look back past spaces for the section sign.
     back = seg[max(0, s - 12):s]

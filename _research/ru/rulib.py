@@ -294,8 +294,12 @@ def _chapter_dir(path):
 
 def subject_chapter(root, rule, _cache={}):
     """Absolute path of the single chapter that OWNS `rule`'s subject. Raises if not exactly one."""
-    if rule in _cache:
-        return _cache[rule]
+    # Key the cache by (root, rule), never by rule alone: both callers accept --root, and a
+    # rule-only cache would answer a second tree with the first tree's chapter — the very
+    # "right answer for the wrong unit" failure this helper exists to prevent.
+    key = (os.path.normcase(os.path.abspath(root)), rule)
+    if key in _cache:
+        return _cache[key]
     marker = SUBJECT_MARKERS[rule]
     hits = []
     for head in sorted(glob.glob(os.path.join(
@@ -308,7 +312,7 @@ def subject_chapter(root, rule, _cache={}):
             "    An exemption that cannot name its unit must not silently apply to none or many.\n"
             "    Fix the marker in rulib.SUBJECT_MARKERS, or the chapter head it looks for."
             % (rule, len(hits), marker.pattern))
-    _cache[rule] = hits[0]
+    _cache[key] = hits[0]
     return hits[0]
 
 
