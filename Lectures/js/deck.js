@@ -259,6 +259,12 @@
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(fitAllSlides).catch(() => {});
     }
+    /* …and after IMAGES. Fonts and KaTeX were hooked; images were not, so every fit was
+       computed against <img> boxes that had not resolved their intrinsic size yet — the
+       slide measured taller than it finally renders, and the scale froze at that stale,
+       pessimistic value with nothing to correct it. Cost: one extra pass per deck load. */
+    if (document.readyState === 'complete') fitAllSlides();
+    else window.addEventListener('load', fitAllSlides, { once: true });
   }
 
   /* Re-measure & fit every slide. Used after KaTeX typesets and after fonts
