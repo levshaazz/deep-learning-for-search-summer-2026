@@ -22,7 +22,7 @@ widgets/*/i18n.json. Codes:
     W-QUOTE   straight "quotes" around cyrillic text
     W-DASH    ' - ' used as a dash in ru prose
     W-YO      common ё-less spellings (еще, объем, трехмерн-, четк-)
-    W-BIT     narrative «бит» outside l17 (canon: такт)
+    W-BIT     narrative «бит» outside the chapter that owns the subject (canon: такт)
 
 Usage: python3 check_style.py [--strict] [--full] [--codes E-DEC,W-VY] [--root PATH]
 """
@@ -168,7 +168,7 @@ def _lat_ok(seg, m):
     return False
 
 
-def lint_segment(seg, relpath, base_line, findings, is_l17, is_beats):
+def lint_segment(seg, relpath, base_line, findings, owns_bit, is_beats):
     for code, sev, rx, note in CHECKS:
         for m in rx.finditer(seg):
             if code in ("E-MASCOT", "W-LAT") and _in_link(seg, m.start()):
@@ -184,7 +184,7 @@ def lint_segment(seg, relpath, base_line, findings, is_l17, is_beats):
     for m in GENDER_RE.finditer(seg):
         findings.append(("W", "W-GENDER", relpath, base_line(m.start()),
                          m.group(0)[:80], "финал без гендер-маркировки (§1)"))
-    if is_beats and not is_l17:
+    if is_beats and not owns_bit:
         for m in BIT_RE.finditer(seg):
             findings.append(("W", "W-BIT", relpath, base_line(m.start()),
                              m.group(0)[:60], "→ такт (§7)"))
@@ -201,7 +201,10 @@ def lint_segment(seg, relpath, base_line, findings, is_l17, is_beats):
 def process(path, root, kind, findings):
     text = rulib.read(path)
     relpath = rulib.rel(root, path)
-    is_l17 = "/l17/" in relpath.replace("\\", "/")
+    # W-BIT is off in the chapter that OWNS the subject "bit" — resolved by content, never by path.
+    # This used to read `"/l17/" in relpath`, which the Aug-2026 renumbering turned into a guard
+    # over the wrong chapter (see rulib.subject_chapter for the full account).
+    owns_bit = rulib.owns_subject(root, path, "bit")
     if kind in ("beats", "widgets"):
         regions = [(s, e) for lang, s, e in rulib.lang_string_spans(text) if lang == "ru"]
     else:
@@ -210,7 +213,7 @@ def process(path, root, kind, findings):
         seg = text[rs:re_]
         lint_segment(seg, relpath,
                      lambda off, rs=rs: rulib.line_of(text, rs + off),
-                     findings, is_l17, kind == "beats")
+                     findings, owns_bit, kind == "beats")
 
 
 def main(argv=None):

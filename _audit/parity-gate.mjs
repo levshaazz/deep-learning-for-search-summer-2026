@@ -38,9 +38,13 @@ const median = (a) => { if (!a.length) return 0; const s = [...a].sort((x, y) =>
 // Decks are bilingual: <span lang="ru">…</span><span lang="en">…</span>. Count ONE language so the
 // measure reflects what a reader sees, not RU+EN doubled — else translating a deck spuriously
 // doubles its char counts. Strip the RU spans (keep EN + untagged); speaker notes are excluded too.
+/* …and the RU twin may be a BLOCK, not only a span. Stripping `<span lang="ru">` alone left four
+   decks measured with RU+EN counted together — 08 552→461, 09 975→913, 18 971→953, 19 865→846.
+   No verdict changed (all four sit far under the ceiling), which is why it survived: a measure can
+   be wrong for a long time while the threshold it feeds stays right. */
 const stripLangDupes = (html) => html
   .replace(/<aside class="slide-notes"[\s\S]*?<\/aside>/g, ' ')
-  .replace(/<span lang="ru">[\s\S]*?<\/span>/g, ' ');
+  .replace(/<(span|p|li|div|h2|h3|td|th)\s+lang="ru"[^>]*>[\s\S]*?<\/\1>/g, ' ');
 const textLen = (html) => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().length;
 
 function visibleChars(slideHtml) { return textLen(stripLangDupes(slideHtml)); }
@@ -74,6 +78,17 @@ export function auditDeck(file, html) {
 
 function run() {
   const decks = readdirSync(DECKDIR).filter((f) => /^\d.*\.html$/.test(f)).sort();
+  /* An exception keyed by a NAME must prove its name still exists. Three defects in this repo came
+     from exactly this class: `is_l17 = "/l17/"` in check_style kept guarding after the chapter it
+     named moved, ADJ_DEMO_SCOPE pointed at a renamed deck, slide-viz carried stale slugs. A stale
+     key here fails safe — the override stops applying and the gate goes red — but red for a reason
+     nobody can read is nearly as expensive as green for the wrong one. */
+  const orphan = Object.keys(OVERRIDES).filter((k) => !decks.includes(k));
+  if (orphan.length) {
+    console.log(`[parity] ✗ OVERRIDES names ${orphan.length} deck(s) that do not exist: ${orphan.join(', ')}`);
+    console.log('    An override outlived the file it excuses — point it at the current name or drop it.');
+    process.exit(1);
+  }
   let hard = 0;
   console.log(`[parity] floors: slides>=${SLIDE_FLOOR}, median<=${MEDIAN_CEIL} chars, objectives+references present`);
   for (const f of decks) {

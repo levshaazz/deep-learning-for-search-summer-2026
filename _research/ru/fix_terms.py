@@ -14,7 +14,8 @@ Rules (each narrow, reviewed via --dry-run):
   T05 жёсткие/сложные негативы -> трудные       (ru; declension-mapped)
   T06 лексический разрыв -> словарный разрыв    (ru; mascot name untouched)
   T07 embed-verb forms -> кодировать-forms      (ru; explicit form map)
-  T08 narrative «бит» -> «такт»                 (ru beats only, l17 excluded)
+  T08 narrative «бит» -> «такт»                 (ru beats; the chapter that OWNS the
+      subject "bit" is exempt — resolved by content, never by path)
   T09 расплата -> развязка (payoff beats)       (exact needles)
   T10 перепись/переписыватель -> переписывание/переписчик (exact needles)
   T11 Однашаговый -> одношаговый                (widgets/graphrag i18n)
@@ -74,7 +75,10 @@ def _bit_repl(m):
 
 # rule = (id, kind, langs, scopes, pattern, repl, path_filter)
 #   kind: "re" | "exact";  scopes subset of {"beats","parts","widgets"}
-#   path_filter(relpath) -> bool (None = all)
+#   path_filter(root, path) -> bool (None = all)
+#   NB: a filter gets root+path, never a bare relpath, so it can address a unit by WHAT IT IS
+#   (rulib.owns_subject) instead of where it sits. T08's filter used to test `"/l17/" not in rp`
+#   and the Aug-2026 renumbering pointed it at the wrong chapter without turning anything red.
 RULES = [
     ("T01", "re", ("ru",), ("beats", "parts"),
      re.compile(r"([Вв])ыбелив"),
@@ -116,7 +120,7 @@ RULES = [
 
     ("T08", "re", ("ru",), ("beats",),
      BIT_RE, _bit_repl,
-     lambda rp: "/l17/" not in rp.replace("\\", "/")),
+     lambda root, path: not rulib.owns_subject(root, path, "bit")),
 
     ("T09", "exact", ("ru",), ("beats",), [
         ("Перед расплатой — последнее предостережение",
@@ -178,7 +182,7 @@ def process_file(path, root, kind, reporter, only):
             continue
         if kind not in scopes:
             continue
-        if pfilter and not pfilter(relpath):
+        if pfilter and not pfilter(root, path):
             continue
         for lang, rs, re_ in regions:
             if lang not in langs:

@@ -36,11 +36,26 @@ VERSION_WORDS = {
 # sentence — "ловушка падает до 0.16." — because the sentence period follows the number. That
 # made every sentence-final decimal invisible to E-DEC and to the sweep (found Aug 2026: a
 # reviewer caught 0.16 in L14 that three full lint passes had silently skipped).
-DEC_RE = re.compile(r"(?<![\d.,])(\d+)\.(\d+)(?!\d|\.\d)")
-# thousands: 32,768 / 1,000,000 — integer groups of exactly 3 after commas
-THOU_RE = re.compile(r"(?<![\d.,])(\d{1,3})((?:,\d{3})+)(?![\d])")
-# LaTeX thousands written with {,}: 32{,}768  (>=10 int part or '000' fraction)
-THOU_TEX_RE = re.compile(r"(?<![\d.,])(\d{1,3})\{,\}(\d{3})(?![\d])")
+#
+# The LEADING guard has the same history one step later. It was `(?<![\d.,])`, and the `,` in that
+# class rejected every decimal preceded by a comma — which in LaTeX means every element of a tuple
+# after the first: `\((0{,}829,\,0.112,\,0.041)\)`. So a formula could mix both separators and E-DEC
+# saw none of it. `(?<![\d.])(?<!,\d)` keeps the two cases the comma was there for — thousands
+# groups (`32,768`) and version tails — while letting a tuple element through.
+DEC_RE = re.compile(r"(?<![\d.])(?<!,\d)(\d+)\.(\d+)(?!\d|\.\d)")
+# thousands: 1,000,000 — TWO OR MORE comma groups only.
+#
+# A SINGLE group is not decidable by shape: in Russian canon the comma IS the decimal separator,
+# so `50,625` is avgdl = 50.625 and `0,000` is a recall of zero — both identical in form to an
+# English thousands group. This rule used to accept one group, and on the corpus of Aug-2026 that
+# produced 12 proposed edits of which **12 were wrong**: avgdl 50,625 → "50 625", H₀ 5,000 →
+# "5 000", recall 0,000 → "0 000", distance 17,088 → "17 088". Nobody had run --apply, so the
+# damage stayed potential — but the fixer was one command away from corrupting five decks.
+# Two groups cannot be a decimal, so that is where automatic rewriting is safe; a single group
+# needs a human who knows whether the number is a vocabulary size or a measurement.
+THOU_RE = re.compile(r"(?<![\d.,])(\d{1,3})((?:,\d{3}){2,})(?![\d])")
+# Same reasoning for the LaTeX form: `50{,}625` is avgdl, not fifty thousand.
+THOU_TEX_RE = re.compile(r"(?<![\d.,])(\d{1,3})((?:\{,\}\d{3}){2,})(?![\d])")
 
 URL_HINT_RE = re.compile(r"(?:https?:|www\.|://|\.(?:com|org|io|ai|py|js|html|json))", re.I)
 
@@ -86,8 +101,9 @@ def convert_segment(seg, is_math, thousands_sep):
                 continue
             edits.append((m.start(), m.end(), "%s{,}%s" % (m.group(1), m.group(2)), "math"))
         for m in THOU_TEX_RE.finditer(seg):
-            if int(m.group(1)) >= 10 or m.group(2) == "000":
-                edits.append((m.start(), m.end(), "%s\\,%s" % (m.group(1), m.group(2)), "tex-thousands"))
+            groups = m.group(2).split("{,}")[1:]
+            edits.append((m.start(), m.end(),
+                          m.group(1) + "".join("\\," + g for g in groups), "tex-thousands"))
     else:
         for m in DEC_RE.finditer(seg):
             if _guarded(seg, m):
@@ -98,11 +114,12 @@ def convert_segment(seg, is_math, thousands_sep):
             if (m.start() > 0 and seg[m.start() - 1] in "[("
                     and m.end() < len(seg) and seg[m.end()] in "])"):
                 continue
+            # No `int(head) >= 10` / `frac == ",000"` heuristics here any more: those were what
+            # let avgdl `50,625` and recall `0,000` be read as thousands. Two groups is the only
+            # shape a Russian decimal cannot take, and the regex already requires it.
             groups = m.group(2).split(",")[1:]
-            multi = len(groups) >= 2
-            if multi or int(m.group(1)) >= 10 or m.group(2) == ",000":
-                rep = m.group(1) + "".join(thousands_sep + g for g in groups)
-                edits.append((m.start(), m.end(), rep, "thousands"))
+            rep = m.group(1) + "".join(thousands_sep + g for g in groups)
+            edits.append((m.start(), m.end(), rep, "thousands"))
             # else: ambiguous (e.g. 2,718 could be a decimal) — leave to editors
     return edits
 

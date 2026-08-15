@@ -14,6 +14,7 @@ Both return raw offsets into the file text; editing is done by splicing
 non-overlapping replacements (apply_edits).
 """
 import bisect
+import glob
 import io
 import os
 import re
@@ -260,6 +261,61 @@ def write(path, text):
 
 def rel(root, path):
     return os.path.relpath(path, root)
+
+
+# ------------------------------------------------- content-addressed rule scoping
+"""Some rules must be switched off for ONE unit, and the key to that unit may never be its path.
+
+W-BIT ("бит" → "такт") is the case that taught this: the narrative word "бит" is prose debt
+everywhere EXCEPT the information-theory chapter, where a bit is the SUBJECT. That exemption was
+written as `"/l17/" in relpath`, because Shannon was L17 when it was written. The Aug-2026
+renumbering moved Shannon to content/book/l4 and gave l17 to "The Artificer's Quill" — so the
+exemption began protecting a chapter about query rewriting and left the chapter it exists for
+exposed. Nothing went red: the gate stayed green while guarding the wrong unit. It was the third
+such defect in one session (ADJ_DEMO_SCOPE pinned to a deck slug, stale slugs in slide-viz).
+
+Hence the rule this implements: an exemption is addressed by what the unit IS, not by where it
+sits — and the lookup FAILS LOUDLY when it resolves to zero or to more than one unit, so the next
+rename cannot silently disarm it.
+"""
+SUBJECT_MARKERS = {
+    # rule → regex identifying the one chapter whose head declares it owns this subject
+    "bit": re.compile(r"Shannon\s+Entropy", re.I),
+}
+
+
+def _chapter_dir(path):
+    """content/book/<stem>/beats/NN-x.js → content/book/<stem> (None for non-beats paths)."""
+    beats = os.path.dirname(os.path.abspath(path))
+    if os.path.basename(beats) != "beats":
+        return None
+    return os.path.dirname(beats)
+
+
+def subject_chapter(root, rule, _cache={}):
+    """Absolute path of the single chapter that OWNS `rule`'s subject. Raises if not exactly one."""
+    if rule in _cache:
+        return _cache[rule]
+    marker = SUBJECT_MARKERS[rule]
+    hits = []
+    for head in sorted(glob.glob(os.path.join(
+            glob.escape(root), "content", "book", "*", "beats", "00-head.js"))):
+        if marker.search(read(head)):
+            hits.append(os.path.dirname(os.path.dirname(head)))
+    if len(hits) != 1:
+        raise SystemExit(
+            "[rulib] scoping FAILED for rule '%s': %d chapter(s) match %s, expected exactly 1.\n"
+            "    An exemption that cannot name its unit must not silently apply to none or many.\n"
+            "    Fix the marker in rulib.SUBJECT_MARKERS, or the chapter head it looks for."
+            % (rule, len(hits), marker.pattern))
+    _cache[rule] = hits[0]
+    return hits[0]
+
+
+def owns_subject(root, path, rule):
+    """True when `path` belongs to the chapter that owns `rule`'s subject."""
+    ch = _chapter_dir(path)
+    return ch is not None and os.path.normcase(ch) == os.path.normcase(subject_chapter(root, rule))
 
 
 # ------------------------------------------------------------- math splitting
