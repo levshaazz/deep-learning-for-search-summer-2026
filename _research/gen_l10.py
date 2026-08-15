@@ -434,7 +434,7 @@ def main():
             "actions": {"correct": "use retrieved context as-is",
                         "ambiguous": "combine retrieved + corrective web search",
                         "wrong": "discard, fall back to web search / query rewrite"},
-            "source": "Yan, Gu, Zhu, Ling, Cao & Zhang, 'Corrective Retrieval Augmented Generation', arXiv:2401.15884 (2024)",
+            "source": "Yan, Gu, Zhu & Ling, 'Corrective Retrieval Augmented Generation', arXiv:2401.15884 (2024)",
         },
         "selfRag": {
             "reflectionTokens": ["Retrieve", "IsRel", "IsSup", "IsUse"],
@@ -519,7 +519,7 @@ def main():
                      "source": "Zheng, Mishra, Chen, Cheng, Chi, Le & Zhou, 'Take a Step Back: Evoking Reasoning via "
                                "Abstraction in Large Language Models', arXiv:2310.06117 (2023)"},
         "crag": {"method": "lightweight retrieval evaluator grades correct/ambiguous/wrong → keep / web-augment / discard",
-                 "source": "Yan, Gu, Zhu, Ling, Cao & Zhang, 'Corrective Retrieval Augmented Generation', "
+                 "source": "Yan, Gu, Zhu & Ling, 'Corrective Retrieval Augmented Generation', "
                            "arXiv:2401.15884 (2024)"},
         "selfRag": {"method": "LM emits reflection tokens (Retrieve/IsRel/IsSup/IsUse) to gate retrieval + self-critique",
                     "source": "Asai, Wu, Wang, Sil & Hajishirzi, 'Self-RAG: Learning to Retrieve, Generate, and "

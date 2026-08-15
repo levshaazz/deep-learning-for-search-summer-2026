@@ -124,7 +124,7 @@
               <div class="af-note" data-step="3" data-label="attn">
                 <div class="af-note-head"><span lang="ru">Внимание + Add&amp;Norm</span><span lang="en">Attention + Add&amp;Norm</span></div>
                 <div class="af-formula">$$H=\mathrm{LayerNorm}\big(X' + \mathrm{MHA}(X')\big)$$</div>
-                <p><span lang="ru">Внимание <strong>смешивает</strong> токены (тянет вместе). Толстая магистраль несёт \(X'\) <strong>в обход</strong> — это \(x+\mathrm{attn}(x)\); LayerNorm масштабирует на единичную сферу.</span><span lang="en">Attention <strong>blends</strong> tokens (pulls them together). The thick highway carries \(X'\) <strong>around</strong> &mdash; that is \(x+\mathrm{attn}(x)\); LayerNorm rescales onto the unit sphere.</span></p>
+                <p><span lang="ru">Внимание <strong>смешивает</strong> токены (тянет вместе). Толстая магистраль несёт \(X'\) <strong>в обход</strong> — это \(x+\mathrm{attn}(x)\); LayerNorm приводит дисперсию к единице &mdash; вектор садится на сферу радиуса \(\sqrt{d}\).</span><span lang="en">Attention <strong>blends</strong> tokens (pulls them together). The thick highway carries \(X'\) <strong>around</strong> &mdash; that is \(x+\mathrm{attn}(x)\); LayerNorm rescales variance to one &mdash; the vector lands on the sphere of radius \(\sqrt{d}\).</span></p>
               </div>
               <div class="af-note" data-step="4" data-label="ffn">
                 <div class="af-note-head">FFN</div>
@@ -155,7 +155,7 @@
         <section class="slide lnv-slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="39 What LayerNorm does">
           <style>
             /* scoped: data-arch-step groups SWAP (only the current step's bars/arrow/readout show)
-               so the SAME vector visibly recentres then rescales onto the unit circle. */
+               so the SAME vector visibly recentres then rescales onto the √d sphere. */
             .lnv-slide svg [data-arch-step] { display: none; }
             .lnv-slide svg [data-arch-step].is-arch-current { display: block; }
             .lnv-slide .lnv-cap[data-arch-step] { display: none; }
@@ -182,10 +182,10 @@
           </style>
           <div class="slide-header">
             <h2><span lang="ru">Что делает LayerNorm — геометрически</span><span lang="en">What LayerNorm actually does &mdash; geometrically</span></h2>
-            <span class="slide-kicker"><span lang="ru">центрировать &rarr; масштаб &rarr; на единичную сферу &rarr; \(\gamma,\beta\)</span><span lang="en">recentre &rarr; rescale &rarr; onto the unit sphere &rarr; \(\gamma,\beta\)</span></span>
+            <span class="slide-kicker"><span lang="ru">центрировать &rarr; масштаб &rarr; на сферу радиуса \(\sqrt{d}\) &rarr; \(\gamma,\beta\)</span><span lang="en">recentre &rarr; rescale &rarr; onto the \(\sqrt{d}\) sphere &rarr; \(\gamma,\beta\)</span></span>
           </div>
           <div class="viz-frame">
-            <svg viewBox="0 0 1600 720" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="The 4-dimensional attention-output vector for the cat token (0.579, 1.996, 0.91, 0.425) with mean 0.98 and variance 0.38 is recentred to mean 0, rescaled to variance 1 — landing on the unit circle — then bent by the learned scale gamma and shift beta, with the exact per-dimension arithmetic shown at each step">
+            <svg viewBox="0 0 1600 720" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="The 4-dimensional attention-output vector for the cat token (0.579, 1.996, 0.91, 0.425) with mean 0.98 and variance 0.38 is recentred to mean 0, rescaled to variance 1 — landing on the sphere of radius √d — then bent by the learned scale gamma and shift beta, with the exact per-dimension arithmetic shown at each step">
               <defs>
                 <marker id="lnvNorm" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker>
               </defs>
@@ -231,7 +231,7 @@
                   <text x="575" y="405" font-size="22" fill="var(--warm-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.07</text>
                   <text x="735" y="487" font-size="22" fill="var(--warm-ink)" font-weight="700" text-anchor="middle" stroke="none" font-family="var(--font-mono)">&minus;0.55</text>
                 </g>
-                <!-- STEP 2 · normed ((x − μ)/σ): zero baseline y=370, 110 px/unit; lands on the unit sphere -->
+                <!-- STEP 2 · normed ((x − μ)/σ): zero baseline y=370, 110 px/unit; lands on the √d sphere -->
                 <g data-arch-step="2">
                   <line x1="172" y1="370" x2="828" y2="370" stroke="var(--warm)" stroke-width="2.5" stroke-dasharray="8 5"/>
                   <text x="172" y="361" font-size="20" fill="var(--warm-ink)" font-weight="800" text-anchor="start" stroke="none" font-family="var(--font-mono)">&mu; = 0</text>
@@ -268,7 +268,7 @@
                 <!-- UNIT-CIRCLE PANEL — GATED to step ≥ 2 (data-step="2"). HIDDEN at steps 0–1 so step 0
                      shows the raw bars + readout ONLY; ARRIVES at step 2 when the vector lands on the sphere. -->
                 <g data-step="2">
-                  <text x="1230" y="142" font-size="26" fill="var(--ink-2)" font-weight="800" text-anchor="middle" stroke="none" font-family="var(--font-mono)">the vector on the unit sphere</text>
+                  <text x="1230" y="142" font-size="26" fill="var(--ink-2)" font-weight="800" text-anchor="middle" stroke="none" font-family="var(--font-mono)">the vector on the √d sphere</text>
                   <circle cx="1230" cy="320" r="140" fill="none" stroke="var(--rule-strong)" stroke-width="1.8"/>
                   <line x1="1078" y1="320" x2="1382" y2="320" stroke="var(--rule)" stroke-width="1.2"/>
                   <line x1="1230" y1="168" x2="1230" y2="472" stroke="var(--rule)" stroke-width="1.2"/>
@@ -296,7 +296,7 @@
           <p class="viz-caption">
             <span class="lnv-cap" data-arch-step="0"><span lang="ru">Тот же вектор: строка выхода внимания для <code>cat</code> = \([0{,}579,\,1{,}996,\,0{,}91,\,0{,}425]\) — \(\mu=0{,}98\), \(\sigma^2=0{,}38\). Сырые значения смещены: среднее не ноль.</span><span lang="en">The same vector: <code>cat</code>&rsquo;s attention-output row \([0.579,\,1.996,\,0.91,\,0.425]\) &mdash; \(\mu=0.98\), \(\sigma^2=0.38\). The raw values sit off-centre: the mean is not zero.</span></span>
             <span class="lnv-cap" data-arch-step="1"><span lang="ru">Вычитаем среднее: базовая линия съезжает \(0{,}98\to 0\), бары перецентрированы вокруг нуля. Дисперсия пока та же (\(0{,}38\)).</span><span lang="en">Subtract the mean: the baseline slides \(0.98\to 0\), the bars recentre on zero. Variance is still \(0.38\) for now.</span></span>
-            <span class="lnv-cap" data-arch-step="2"><span lang="ru">Делим на \(\sigma=0{,}61\): дисперсия \(0{,}38\to 1\). Вектор приземляется <strong>точно на единичную сферу</strong> — это и есть нормализация.</span><span lang="en">Divide by \(\sigma=0.61\): the variance goes \(0.38\to 1\). The vector lands <strong>exactly on the unit sphere</strong> &mdash; that is the normalisation.</span></span>
+            <span class="lnv-cap" data-arch-step="2"><span lang="ru">Делим на \(\sigma=0{,}61\): дисперсия \(0{,}38\to 1\). Вектор приземляется <strong>точно на сферу радиуса \(\sqrt{d}\)</strong> (здесь \(d=4\), значит длина 2) — это и есть нормализация.</span><span lang="en">Divide by \(\sigma=0.61\): the variance goes \(0.38\to 1\). The vector lands <strong>exactly on the sphere of radius \(\sqrt{d}\)</strong> (here \(d=4\), so length 2) &mdash; that is the normalisation.</span></span>
             <span class="lnv-cap" data-arch-step="3"><span lang="ru">Обучаемые \(\gamma\) (масштаб) и \(\beta\) (сдвиг) по каждому измерению слегка изгибают бары — сеть возвращает себе свободу после нормализации.</span><span lang="en">Learned \(\gamma\) (scale) and \(\beta\) (shift) per dimension bend the bars slightly &mdash; the network buys back freedom after the normalisation.</span></span>
           </p>
           <div class="step-controls">
@@ -304,7 +304,7 @@
             <span class="step-counter">0/3</span>
             <button data-step-act="next" aria-label="Next step">&rarr;</button>
           </div>
-          <aside class="slide-notes">The named gap — what LayerNorm actually does, made geometric, ported from the book's layernorm widget, and driven by the SAME vector the rest of the lecture has used: cat's attention-output row, zero point five seven nine, one point nine nine six, zero point nine one, zero point four two five — four dimensions. Step zero: the raw values sit off-centre, with mean zero point nine eight and variance zero point three eight; on the right, the vector as an arrow pokes out past the unit circle. Step one: subtract the mean — the dashed baseline slides from zero point nine eight down to zero and the bars recentre, negatives now hanging below in warm colour; the variance is unchanged at zero point three eight. Step two: divide by the standard deviation, zero point six one — the variance collapses to one, and the arrow lands exactly on the unit circle (length two, which is root d). That is the whole normalisation: recentre to mean zero, rescale to unit variance, which is the same as putting the vector on a sphere. Step three: the learned gamma scales and beta shifts each dimension, bending the bars a little, so the network is not forced to stay perfectly normalised — it buys back expressive freedom. That is LayerNorm, applied to the very vector we built with attention.</aside>
+          <aside class="slide-notes">The named gap — what LayerNorm actually does, made geometric, ported from the book's layernorm widget, and driven by the SAME vector the rest of the lecture has used: cat's attention-output row, zero point five seven nine, one point nine nine six, zero point nine one, zero point four two five — four dimensions. Step zero: the raw values sit off-centre, with mean zero point nine eight and variance zero point three eight; on the right, the vector as an arrow pokes out past the √d circle the figure draws. Step one: subtract the mean — the dashed baseline slides from zero point nine eight down to zero and the bars recentre, negatives now hanging below in warm colour; the variance is unchanged at zero point three eight. Step two: divide by the standard deviation, zero point six one — the variance collapses to one, and the arrow lands exactly on the sphere of radius root d (here d=4, so length two). That is the whole normalisation: recentre to mean zero, rescale to unit variance, which is the same as putting the vector on a sphere. Step three: the learned gamma scales and beta shifts each dimension, bending the bars a little, so the network is not forced to stay perfectly normalised — it buys back expressive freedom. That is LayerNorm, applied to the very vector we built with attention.</aside>
         </section>
 
         <!-- ============================================ 38 · FORMULA · the block as one equation ============================================ -->
