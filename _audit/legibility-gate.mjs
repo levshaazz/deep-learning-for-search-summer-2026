@@ -153,11 +153,42 @@ async function run() {
   return R.errors ? 1 : 0;
 }
 
+/* Same one-way rule as viz-probe's tiny-text ratchet, and for the same reason: "baselines may only
+   shrink" (CLAUDE.md) was enforced nowhere, so the tool that maintains the debt list could also
+   quietly enlarge it — re-freezing a slide that got WORSE turns a red gate green with one command.
+   Here a HIGHER fit is better, so a legal re-freeze only raises values or drops keys. */
+export function baselineRatchet(oldBase, newBase, eps = 1e-9) {
+  const added = [], worsened = [], improved = [], dropped = [];
+  for (const [k, fit] of Object.entries(newBase)) {
+    const was = oldBase[k];
+    if (was == null) added.push(`${k}: fit ${fit.toFixed?.(3) ?? fit} (not previously baselined)`);
+    else if (fit < was - eps) worsened.push(`${k}: ${was.toFixed(3)} → ${fit.toFixed(3)}`);
+    else if (fit > was + eps) improved.push(`${k}: ${was.toFixed(3)} → ${fit.toFixed(3)}`);
+  }
+  for (const k of Object.keys(oldBase)) if (newBase[k] == null) dropped.push(`${k}: ${oldBase[k].toFixed(3)} → clears ${CAPTURE}`);
+  return { added, worsened, improved, dropped, ok: added.length === 0 && worsened.length === 0 };
+}
+
 async function updateBaseline() {
   const byDeck = await measureAll();
   const base = {};
   for (const [deck, slides] of Object.entries(byDeck))
     for (const s of slides) if (s.fit < CAPTURE) base[key(deck, s.label)] = s.fit;
+  const d = baselineRatchet(loadBaseline(), base);
+  for (const s of d.improved) console.log(`  ↑ ${s}`);
+  for (const s of d.dropped) console.log(`  ↑ ${s}`);
+  if (!d.ok) {
+    for (const s of d.added) console.log(`  ✗ ${s}`);
+    for (const s of d.worsened) console.log(`  ✗ ${s}`);
+    console.log(`\n[legibility] REFUSED to write: ${d.added.length} new + ${d.worsened.length} worsened slide(s).`);
+    console.log('    A baseline may only SHRINK. Re-freezing a slide that got tighter is how this debt');
+    console.log(`    grew before — raise the slide back over ${TARGET} instead of recording the loss.`);
+    return 1;
+  }
+  if (!d.improved.length && !d.dropped.length) {
+    console.log(`[legibility] baseline already matches reality (${Object.keys(base).length} slides) — nothing to write`);
+    return 0;
+  }
   writeFileSync(BASELINE, JSON.stringify(base, null, 2) + '\n');
   console.log(`[legibility] wrote baseline: ${Object.keys(base).length} sub-floor slides → ${BASELINE.replace(ROOT + '/', '')}`);
   return 0;
@@ -215,9 +246,22 @@ async function selftest() {
   const bad = cases.filter(([, fit, base, want]) => classify(fit, base) !== want);
   bad.forEach(([n, fit, base, want]) => console.log(`  ✗ ${n}: classify(${fit}, ${base}) = ${classify(fit, base)}, expected ${want}`));
 
-  const pass = measured && bad.length === 0;
-  console.log(`[selftest] ok=fit ${ok?.fit}(≥${FLOOR}) squished=fit ${squished?.fit}(<${FLOOR}) viz-exempt=${exempt} · classifier ${cases.length - bad.length}/${cases.length}`);
-  console.log('[selftest]', pass ? `PASS — squished prose fires, band ${FLOOR}–${TARGET} warns without failing, comfortable silent, figure types exempt` : 'FAIL');
+  /* The write side: --update-baseline may only record an IMPROVEMENT. Without this the gate is
+     one command away from being talked out of any red it reports. */
+  const ratchetCases = [
+    ['slide improved — writable',        { 'a#1': 0.55 }, { 'a#1': 0.60 }, true],
+    ['slide cleared capture — writable', { 'a#1': 0.55 }, {},              true],
+    ['unchanged — writable (no-op)',     { 'a#1': 0.55 }, { 'a#1': 0.55 }, true],
+    ['slide WORSENED — refused',         { 'a#1': 0.55 }, { 'a#1': 0.50 }, false],
+    ['NEW slide added — refused',        { 'a#1': 0.55 }, { 'a#1': 0.55, 'b#2': 0.60 }, false],
+    ['one gain cannot buy one loss',     { 'a#1': 0.55, 'b#2': 0.55 }, { 'a#1': 0.60, 'b#2': 0.50 }, false],
+  ];
+  const badRatchet = ratchetCases.filter(([, o, n, want]) => baselineRatchet(o, n).ok !== want);
+  badRatchet.forEach(([n]) => console.log(`  ✗ ratchet: ${n}`));
+
+  const pass = measured && bad.length === 0 && badRatchet.length === 0;
+  console.log(`[selftest] ok=fit ${ok?.fit}(≥${FLOOR}) squished=fit ${squished?.fit}(<${FLOOR}) viz-exempt=${exempt} · classifier ${cases.length - bad.length}/${cases.length} · baseline-ratchet ${ratchetCases.length - badRatchet.length}/${ratchetCases.length}`);
+  console.log('[selftest]', pass ? `PASS — squished prose fires, band ${FLOOR}–${TARGET} warns without failing, comfortable silent, figure types exempt, baseline one-way` : 'FAIL');
   return pass ? 0 : 1;
 }
 

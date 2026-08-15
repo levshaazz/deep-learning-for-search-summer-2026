@@ -30,9 +30,40 @@ const TINY_META = {
       + 'ONLY to record a reduction — raising a number here is how the debt would grow back.',
   platform: process.platform,   // sub-pixel text metrics are per-platform; see the `tol` note in classify()
 };
+/* The baseline file is what ARMS this check, so a missing or corrupt one is a gate failure, never a
+   quiet downgrade to WARN. It used to return null on both, and `tinyGated = !!baseline` then turned
+   the whole sub-16px rule back into the advisory it had been for 244 labels — i.e. `rm` on one
+   gitignore-shaped path silently disarmed the ratchet, and a truncated JSON did it by accident. */
 function loadTinyBaseline() {
-  if (!existsSync(TINY_BASE)) return null;
-  try { return JSON.parse(readFileSync(TINY_BASE, 'utf8')); } catch { return null; }
+  const bail = (why) => {
+    console.log(`[viz-probe-gate] ✗ ${why}`);
+    console.log(`    ${TINY_REL} is the ratchet's arming pin: without it every sub-${TINY_PX}px label`);
+    console.log('    silently drops to WARN. Restore it from git (`git checkout -- ' + TINY_REL + '`).');
+    process.exit(1);
+  };
+  if (!existsSync(TINY_BASE)) bail('tiny-text baseline MISSING — refusing to run disarmed');
+  let parsed;
+  try { parsed = JSON.parse(readFileSync(TINY_BASE, 'utf8')); }
+  catch (e) { bail(`tiny-text baseline UNREADABLE (${e.message}) — refusing to run disarmed`); }
+  if (!parsed || typeof parsed.entries !== 'object' || parsed.entries === null)
+    bail('tiny-text baseline has no `entries` object — refusing to run disarmed');
+  return parsed;
+}
+
+/* "Baselines may only shrink" (CLAUDE.md) was prose-only: --update-tiny-baseline wrote whatever it
+   measured, so the documented one-way ratchet could be reversed by the very tool that maintains it.
+   This diff makes the direction mechanical — a re-freeze that ADDS a figure or RAISES a count is
+   refused, and the operator is told to fix the figure instead. */
+export function ratchetDiff(oldEntries, newEntries) {
+  const added = [], grown = [], shrunk = [], removed = [];
+  for (const [k, n] of Object.entries(newEntries)) {
+    const was = oldEntries[k];
+    if (was == null) added.push(`${k}: ${n} (new figure)`);
+    else if (n > was) grown.push(`${k}: ${was} → ${n}`);
+    else if (n < was) shrunk.push(`${k}: ${was} → ${n}`);
+  }
+  for (const k of Object.keys(oldEntries)) if (newEntries[k] == null) removed.push(`${k}: ${oldEntries[k]} → 0`);
+  return { added, grown, shrunk, removed, ok: added.length === 0 && grown.length === 0 };
 }
 
 const TINY_PX = 16, OVERLAP_FRAC = 0.30, HARD_OVERLAP_FRAC = 0.50, OFF_PAD = 2, IMG_MIN = 40;
@@ -57,8 +88,9 @@ export function classify(rec) {
      and deliberately does not look here — figures fit-scale by design — so for a long time nobody
      gated this at all, and 244 such labels accumulated across 40 figure-states. They are now
      ratcheted: whatever the frozen baseline already carries stays a WARN, anything NEW or WORSE
-     is HARD. `tinyBase` is injected by the runner (see loadTinyBaseline); with no baseline the
-     check stays a pure WARN, exactly as before. */
+     is HARD. `tinyBase` is injected by the runner (see loadTinyBaseline). There is no longer an
+     unbaselined state to fall back to — the runner exits if the baseline is missing — so a figure
+     the baseline does not mention is NEW, and NEW is HARD. */
   const tiny = (rec.tinyText || []).length;
   if (tiny) {
     const msg = `${where}: ${tiny} sub-${TINY_PX}px text (min ${rec.minTextPx})`;
@@ -70,7 +102,7 @@ export function classify(rec) {
        regression adds far more than one sub-floor label. Freeze a Linux baseline to make it 0
        everywhere. */
     const tol = rec.tinyTol || 0;
-    if (base == null && rec.tinyGated && tiny > tol) hard.push(msg + ' — NEW tiny-text figure, raise the label size');
+    if (base == null && tiny > tol) hard.push(msg + ' — NEW tiny-text figure, raise the label size');
     else if (base != null && tiny > base + tol) hard.push(msg + ` — WORSE than baselined ${base}`);
     else warn.push(msg);
   }
@@ -165,6 +197,8 @@ async function run() {
 async function main() {
   if (process.argv.includes('--selftest')) return selftest();
   if (!existsSync(DOCS_LECT)) { console.log('[viz-probe-gate] docs/ not built — run `npm run build` first. SKIPPED.'); return; }
+  const baseline = loadTinyBaseline();   // FIRST — exits on a missing/corrupt arming pin, so an
+                                         // operator learns in a second, not after a 3850-state scan
   const records = await run();
 
   /* Ratchet the tiny-text debt. Keyed by deck#label — the SCREEN LABEL, never the ordinal, so
@@ -173,12 +207,26 @@ async function main() {
      count seen across languages and steps: RU labels run longer than EN, and a later step can
      reveal more of them, so anything less would let debt in through the back door. */
   const tinyKey = (r) => `${r.deck}#${r.label}`;
-  const baseline = loadTinyBaseline();
   if (process.argv.includes('--update-tiny-baseline')) {
     const fresh = {};
     for (const r of records) {
       const n = (r.tinyText || []).length;
       if (n) fresh[tinyKey(r)] = Math.max(fresh[tinyKey(r)] || 0, n);
+    }
+    const d = ratchetDiff(baseline.entries, fresh);
+    for (const s of d.shrunk) console.log(`  ↓ ${s}`);
+    for (const s of d.removed) console.log(`  ↓ ${s} (figure clean — entry dropped)`);
+    if (!d.ok) {
+      for (const s of d.added) console.log(`  ✗ ${s}`);
+      for (const s of d.grown) console.log(`  ✗ ${s}`);
+      console.log(`\n[viz-probe-gate] REFUSED to write: ${d.added.length} new + ${d.grown.length} grown figure(s).`);
+      console.log('    A baseline may only SHRINK. Raising it is how these 244 labels accumulated in');
+      console.log(`    the first place — fix the figure (labels ≥${TINY_PX}px) instead of recording the debt.`);
+      process.exit(1);
+    }
+    if (!d.shrunk.length && !d.removed.length) {
+      console.log(`[viz-probe-gate] tiny-text baseline already matches reality (${Object.keys(fresh).length} figure(s)) — nothing to write`);
+      return;
     }
     writeFileSync(TINY_BASE, JSON.stringify({ _meta: TINY_META, entries: fresh }, null, 2) + '\n');
     console.log(`[viz-probe-gate] wrote tiny-text baseline: ${Object.keys(fresh).length} figure(s) → ${TINY_REL}`);
@@ -187,10 +235,9 @@ async function main() {
   const basePlat = baseline && baseline._meta && baseline._meta.platform;
   const tinyTol = basePlat && basePlat !== process.platform ? 1 : 0;
   if (tinyTol) console.log(`[viz-probe-gate] tiny-text baseline frozen on '${basePlat}', running on '${process.platform}' — allowing ±1 label for font-metric rounding`);
-  for (const r of records) {
-    r.tinyGated = !!baseline;                      // no baseline yet ⇒ stay WARN-only, as before
-    r.tinyTol = tinyTol;
-    if (baseline) r.tinyBase = baseline.entries[tinyKey(r)];
+  for (const r of records) {                       // loadTinyBaseline() exits if there is no baseline,
+    r.tinyTol = tinyTol;                           // so every record is gated — there is no WARN-only mode
+    r.tinyBase = baseline.entries[tinyKey(r)];
   }
 
   let hard = [], warn = [];
@@ -211,32 +258,46 @@ function selftest() {
     { name: 'severe overlap (≥0.5 → HARD)', rec: { lang: 'en', slide: 5, step: 0, maxStep: 0, overlaps: [{ a: 'p', b: 'q', frac: 0.6 }] }, mustHard: true, mustWarn: false },
     { name: 'mild overlap (0.3–0.5 → WARN)', rec: { lang: 'en', slide: 5, step: 1, maxStep: 1, overlaps: [{ a: 'p', b: 'q', frac: 0.4 }] }, mustHard: false, mustWarn: true },
     { name: 'clean slide', rec: { lang: 'en', slide: 6, step: 0, maxStep: 0, imgs: {} }, mustHard: false, mustWarn: false },
-    // the tiny-text ratchet — all four states it can be in
-    { name: 'tiny text, no baseline yet (WARN only)',
+    // the tiny-text ratchet — every state it can be in. The baseline is now empty, so the first
+    // fixture is the live case: an unmentioned figure is NEW, and NEW is HARD with no way to opt out.
+    { name: 'tiny text in a figure the baseline does not mention (HARD)',
       rec: { lang: 'en', slide: 7, step: 0, maxStep: 0, tinyText: [{ t: 'a', px: 12 }], minTextPx: 12 },
-      mustHard: false, mustWarn: true },
-    { name: 'tiny text, NEW figure under a baseline (HARD)',
-      rec: { lang: 'en', slide: 8, step: 0, maxStep: 0, tinyText: [{ t: 'a', px: 12 }], minTextPx: 12, tinyGated: true },
       mustHard: true, mustWarn: false },
     { name: 'tiny text at baseline (WARN, grandfathered)',
-      rec: { lang: 'en', slide: 9, step: 0, maxStep: 0, tinyText: [{ t: 'a', px: 12 }, { t: 'b', px: 13 }], minTextPx: 12, tinyGated: true, tinyBase: 2 },
+      rec: { lang: 'en', slide: 9, step: 0, maxStep: 0, tinyText: [{ t: 'a', px: 12 }, { t: 'b', px: 13 }], minTextPx: 12, tinyBase: 2 },
       mustHard: false, mustWarn: true },
     { name: 'tiny text WORSE than baseline (HARD)',
-      rec: { lang: 'en', slide: 10, step: 0, maxStep: 0, tinyText: [{ t: 'a', px: 12 }, { t: 'b', px: 13 }, { t: 'c', px: 11 }], minTextPx: 11, tinyGated: true, tinyBase: 2 },
+      rec: { lang: 'en', slide: 10, step: 0, maxStep: 0, tinyText: [{ t: 'a', px: 12 }, { t: 'b', px: 13 }, { t: 'c', px: 11 }], minTextPx: 11, tinyBase: 2 },
       mustHard: true, mustWarn: false },
     { name: 'figure fixed below its baseline (WARN, ready to ratchet)',
-      rec: { lang: 'en', slide: 11, step: 0, maxStep: 0, tinyText: [{ t: 'a', px: 12 }], minTextPx: 12, tinyGated: true, tinyBase: 4 },
+      rec: { lang: 'en', slide: 11, step: 0, maxStep: 0, tinyText: [{ t: 'a', px: 12 }], minTextPx: 12, tinyBase: 4 },
       mustHard: false, mustWarn: true },
     // cross-platform tolerance: exactly +1 label is font-metric rounding, +2 is a regression
     { name: 'cross-platform +1 over baseline (WARN)',
-      rec: { lang: 'en', slide: 12, step: 0, maxStep: 0, tinyText: [{}, {}, {}, {}], minTextPx: 15.9, tinyGated: true, tinyBase: 3, tinyTol: 1 },
+      rec: { lang: 'en', slide: 12, step: 0, maxStep: 0, tinyText: [{}, {}, {}, {}], minTextPx: 15.9, tinyBase: 3, tinyTol: 1 },
       mustHard: false, mustWarn: true },
     { name: 'cross-platform +2 over baseline (still HARD)',
-      rec: { lang: 'en', slide: 13, step: 0, maxStep: 0, tinyText: [{}, {}, {}, {}, {}], minTextPx: 12, tinyGated: true, tinyBase: 3, tinyTol: 1 },
+      rec: { lang: 'en', slide: 13, step: 0, maxStep: 0, tinyText: [{}, {}, {}, {}, {}], minTextPx: 12, tinyBase: 3, tinyTol: 1 },
       mustHard: true, mustWarn: false },
     { name: 'same-platform +1 over baseline is HARD (no tolerance)',
-      rec: { lang: 'en', slide: 14, step: 0, maxStep: 0, tinyText: [{}, {}, {}, {}], minTextPx: 12, tinyGated: true, tinyBase: 3, tinyTol: 0 },
+      rec: { lang: 'en', slide: 14, step: 0, maxStep: 0, tinyText: [{}, {}, {}, {}], minTextPx: 12, tinyBase: 3, tinyTol: 0 },
       mustHard: true, mustWarn: false },
+    { name: 'ONE new tiny label under cross-platform tolerance stays WARN',
+      rec: { lang: 'en', slide: 15, step: 0, maxStep: 0, tinyText: [{ t: 'a', px: 15.9 }], minTextPx: 15.9, tinyTol: 1 },
+      mustHard: false, mustWarn: true },
+    { name: 'TWO new tiny labels are HARD even cross-platform',
+      rec: { lang: 'en', slide: 16, step: 0, maxStep: 0, tinyText: [{}, {}], minTextPx: 12, tinyTol: 1 },
+      mustHard: true, mustWarn: false },
+  ];
+  // the write-side ratchet: --update-tiny-baseline may only record a REDUCTION
+  const diffCases = [
+    ['pure reduction accepted', { 'a#1': 4 }, { 'a#1': 2 }, true],
+    ['figure gone entirely accepted', { 'a#1': 4 }, {}, true],
+    ['unchanged accepted (no-op)', { 'a#1': 4 }, { 'a#1': 4 }, true],
+    ['NEW figure refused', { 'a#1': 4 }, { 'a#1': 4, 'b#2': 1 }, false],
+    ['GROWN count refused', { 'a#1': 4 }, { 'a#1': 5 }, false],
+    ['refused even alongside a real reduction', { 'a#1': 4, 'b#2': 9 }, { 'a#1': 2, 'b#2': 11 }, false],
+    ['empty baseline refuses any entry', {}, { 'a#1': 1 }, false],
   ];
   let ok = true;
   for (const f of fixtures) {
@@ -246,8 +307,22 @@ function selftest() {
     console.log(`  ${pass ? '✓' : '✗'} ${f.name}: HARD=${hard} WARN=${warn}`);
     if (!pass) ok = false;
   }
+  for (const [name, was, now, want] of diffCases) {
+    const got = ratchetDiff(was, now).ok;
+    console.log(`  ${got === want ? '✓' : '✗'} ${name}: writable=${got}`);
+    if (got !== want) ok = false;
+  }
+  if (!existsSync(TINY_BASE)) {                    // the arming pin itself must be present and sane
+    console.log(`  ✗ tiny-text baseline absent (${TINY_REL}) — the ratchet would be disarmed`);
+    ok = false;
+  } else {
+    let armed = false;
+    try { armed = typeof JSON.parse(readFileSync(TINY_BASE, 'utf8')).entries === 'object'; } catch { armed = false; }
+    console.log(`  ${armed ? '✓' : '✗'} tiny-text baseline present and parseable — ratchet armed`);
+    if (!armed) ok = false;
+  }
   if (!ok) { console.log('[viz-probe-gate] SELFTEST FAILED'); process.exit(1); }
-  console.log('[viz-probe-gate] selftest PASS — classifier fires on collapsed/broken/off-slide/doubling + severe overlap (HARD), warns on mild overlap, silent on clean');
+  console.log('[viz-probe-gate] selftest PASS — classifier fires on collapsed/broken/off-slide/doubling + severe overlap (HARD), warns on mild overlap, silent on clean; tiny-text ratchet is armed and one-way');
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });
