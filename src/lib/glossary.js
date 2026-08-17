@@ -193,7 +193,7 @@ export const terms = [
            ru: 'Вектор токена, зависящий от окружающего предложения, так что «bank» различается по контексту.',
            tt: 'Тирәдәге җөмләгә бәйле токен векторы; шуңа "bank" контекст буенча аерыла.' } },
   { id: 'contrastive-learning', lec: '06',
-    term: { en: 'Contrastive learning', ru: 'Контрастивное обучение', tt: 'Контрастив өйрәнү' },
+    term: { en: 'Contrastive learning', ru: 'Контрастное обучение', tt: 'Контрастив өйрәнү' },
     def: { en: 'Training that pulls matching pairs together and pushes mismatched pairs apart.',
            ru: 'Обучение, притягивающее подходящие пары и отталкивающее неподходящие.',
            tt: 'Туры килгән парларны якынайтып, туры килмәгәннәрне этәрүче өйрәтү.' } },

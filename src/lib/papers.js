@@ -39,7 +39,7 @@ export const AREA_LABELS = {
     title: { en: 'Classical IR', ru: 'Классический IR', tt: 'Классик IR' },
     kicker: {
       en: 'Probabilistic lineage, term weighting, fusion & link authority — the road to BM25.',
-      ru: 'Вероятностная линия, взвешивание термов, фьюжн и ссылочный авторитет — путь к BM25.',
+      ru: 'Вероятностная линия, взвешивание термов, слияние и ссылочный авторитет — путь к BM25.',
       tt: 'Ихтималлык нәселе, термнарны үлчәү, кушу һәм сылтама абруе — BM25’ка юл.',
     },
   },

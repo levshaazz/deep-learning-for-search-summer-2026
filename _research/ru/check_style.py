@@ -193,6 +193,18 @@ def lint_segment(seg, relpath, base_line, findings, owns_bit, is_beats):
         for s, e, rep, note in fix_decimals.convert_segment(
                 seg[ms:me], is_math, " "):
             if note in ("plain", "math"):
+                # A decimal POINT inside a verbatim English quotation embedded in RU prose
+                # (e.g. the literal source quote "Its more than 3.85 million inhabitants" in
+                # 18-late-chunking) is CORRECT — §2 governs Russian text, not quoted English.
+                # Same philosophy as _lat_ok's English-quotation branch: skip only when the
+                # number is flanked by Latin words on BOTH sides with no Cyrillic nearby;
+                # any Cyrillic context still flags.
+                sub = seg[ms:me]
+                _l, _r = sub[max(0, s - 25):s], sub[e:e + 25]
+                if (re.search(r"[A-Za-z]{2,}\s*$", _l)
+                        and re.match(r"\s*[A-Za-z]{2,}", _r)
+                        and not re.search(r"[а-яёА-ЯЁ]", _l + _r)):
+                    continue
                 findings.append(("E", "E-DEC", relpath, base_line(ms + s),
                                  seg[ms:me][max(0, s - 15):e + 10].replace("\n", " "),
                                  "десятичная запятая (§2), напр. " + rep))
