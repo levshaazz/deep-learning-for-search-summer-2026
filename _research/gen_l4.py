@@ -424,12 +424,16 @@ def main():
     il_winsB = sum(1 for q in il_queries if q["creditB"] > q["creditA"])
     il_pref_B = il_B / (il_A + il_B)
 
-    # Position-bias / examination-probability curve: P(examine | rank). Geometric decay γ^(rank-1),
-    # reusing the L1 click-model γ if present, else γ=0.85.
-    try:
-        gamma = json.load(open(DATA / "l1-click-model.json"))["gamma"]
-    except Exception:
-        gamma = 0.85
+    # Position-bias / examination-probability curve: P(examine | rank). Geometric decay γ^(rank-1)
+    # with THIS FILE'S OWN γ=0.94 — deliberately NOT read from l1-click-model.json. The L1 file's
+    # γ=0.94 parameterises a DIFFERENT functional form (power-law examination ∝ 1/rank^γ, fit so
+    # rank-1 ≈ 32% of clicks); plugging that γ into the geometric form here produced a curve whose
+    # rank-1 share is ~13%, silently contradicting the L1 fit while claiming to reuse it. The two
+    # curves illustrate two different examination models and share only the numeral by coincidence:
+    # γ=0.94 is kept here because the deck's slide 51 bar chart and caption are authored against the
+    # gentle geometric decay 1.00 → 0.57 over ten ranks (a legible in-frame illustration), and the
+    # slide makes no click-share claim.
+    gamma = 0.94              # geometric-decay display parameter, local to L4 (see note above)
     exam_ranks = list(range(1, 11))
     exam_prob = [round(gamma ** (k - 1), 4) for k in exam_ranks]
 
@@ -437,9 +441,13 @@ def main():
         "_doc": "Online evaluation numbers for L4: (a) an A/B test (control vs treatment CTR with sample "
                 "sizes + two-proportion z-test and p-value); (b) a team-draft interleaving worked example "
                 "(per-query credit to A vs B); (c) a position-bias / examination-probability curve P(exam|rank) "
-                "= γ^(rank−1), γ reused from l1-click-model.json.",
+                "= γ^(rank−1) with γ=0.94 CHOSEN HERE for the geometric form (a legible 1.00→0.57 decay over "
+                "ten ranks). NOT the l1-click-model.json γ: that file's γ=0.94 parameterises a power-law "
+                "examination ∝ 1/rank^γ fit to rank-1 ≈ 32% of clicks — a different model that shares the "
+                "numeral by coincidence; transplanting its γ into the geometric form would imply a rank-1 "
+                "click share of ~13%, contradicting the L1 fit.",
         "_source": "_research/gen_l4.py · A/B and interleaving are illustrative synthetic counts; "
-                   "γ reused from data/l1-click-model.json",
+                   "γ=0.94 is this file's own geometric-decay display parameter (see _doc)",
         "abTest": {
             "control": {"n": ab_n_c, "clicks": ab_clk_c, "ctr": round(p_c, 4)},
             "treatment": {"n": ab_n_t, "clicks": ab_clk_t, "ctr": round(p_t, 4)},
@@ -479,6 +487,8 @@ def main():
         "positionBias": {
             "model": "geometric examination P(exam|rank)=γ^(rank-1)", "gamma": gamma,
             "ranks": exam_ranks, "examProb": exam_prob,
+            "note": "γ=0.94 is local to this geometric illustration — NOT the power-law γ of "
+                    "l1-click-model.json (same numeral, different functional form; see _doc).",
         },
     }
     write_json(DATA / "l4-online.json", online_out)

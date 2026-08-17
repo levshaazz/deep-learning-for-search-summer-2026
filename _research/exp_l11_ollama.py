@@ -203,8 +203,10 @@ def run_verbosity_bias():
                        "lenConcise": len(it["concise"]), "lenVerbose": len(it["verbose"]),
                        "raw1": r1[:80], "raw2": r2[:80]})
     n = len(VERBOSITY_PAIRS)
-    return {"n": n, "trials": trials, "longerWins": longer_wins,
-            "longerPreferenceRate": round(longer_wins / (2 * n), 4)}
+    n_judgements = 2 * n                   # each pair is judged TWICE (both slot orders) → the rate's
+    return {"n": n,                        # denominator is JUDGEMENTS, not pairs: rate = longerWins/nJudgements
+            "nJudgements": n_judgements, "trials": trials, "longerWins": longer_wins,
+            "longerPreferenceRate": round(longer_wins / n_judgements, 4)}
 
 
 # ════════════════ E3 · FAITHFULNESS JUDGE ════════════════

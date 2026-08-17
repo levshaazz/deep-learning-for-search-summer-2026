@@ -192,7 +192,7 @@ COST19     = load(DATA, "l19-cost.json")     # DERIVED by gen_l19.py from the GL
 #    9:1 EN:RU mix + BM25 surface-vs-lemma inversion, k1=1.5/b=0.75, fully re-derivable); bench = cited
 #    facts (MIRACL/mMARCO/ruMTEB, BGE-M3, mE5, LaBSE, tokenizer unfairness). Like L14/L15, FULLY gated:
 #    l20_deck_claims() pins every displayed worked value deck==data (deck:L20 coverage → 0). ──
-L20RU      = load(DATA, "l20-ru.json")       # toy: token tax 1.0→5.8 tok/word; BM25 surface gold 0.0 (rank 2) → lemma gold 1.3884 (rank 1); distractor 1.3608; kitten idf 0.8755 / bm25 0.8594
+L20RU      = load(DATA, "l20-ru.json")       # toy: token tax 1.0→5.8 tok/word; BM25 surface gold 0.0 (rank 2) → lemma gold 1.3885 (rank 1); distractor 1.3608; kitten idf 0.8755 / bm25 0.8594
 L20B       = load(DATA, "l20-bench.json")    # CITED: MIRACL (2210.09984), mMARCO (2108.13897), ruMTEB/RoSBERTa (2408.12503), BGE-M3 (2402.03216), mE5 (2402.05672), LaBSE (2007.01852), tokenizer unfairness ×15 (2305.15425)
 
 # ── L18 "The Curved Map" (supplementary deep-dive: anisotropy & hubness) — toy = stdlib-reproducible
@@ -819,7 +819,7 @@ def l20_deck_claims():
         C("surface distractor", b["surface"]["scores"]["d2_distractor"],
           r'&ldquo;дети играют во дворе&rdquo;</span></td><td class="cell-meh">(?:<span lang="ru">[^<]*</span><span lang="en">)?([\d.]+) &middot; #1'),   # 1.3608 (rank 1 surface, slide 18)
         C("lemma gold sum",     b["lemma"]["goldScore"],
-          r'<td></td><td></td><td class="cell-good">(?:<span lang="ru"><strong>[^<]*</strong></span><span lang="en">)?<strong>([\d.]+)</strong>'),   # 1.3884 (lemma sum row, slide 19)
+          r'<td></td><td></td><td class="cell-good">(?:<span lang="ru"><strong>[^<]*</strong></span><span lang="en">)?<strong>([\d.]+)</strong>'),   # 1.3885 (lemma sum row, slide 19)
         C("lemma kitten idf",   gw[0]["idf"],                            r'котёнок</td><td>2</td><td>(?:<span lang="ru">[^<]*</span><span lang="en">)?([\d.]+)</span>?</td>'),     # 0.8755
         C("lemma kitten bm25",  gw[0]["bm25"],                           r'котёнок</td><td>2</td><td>(?:<span lang="ru">[^<]*</span><span lang="en">)?0\.8755</span>?</td><td>(?:<span lang="ru">[^<]*</span><span lang="en">)?([\d.]+)</span>?</td>'),  # 0.8594
     ] + l20_depth_claims()
@@ -1017,13 +1017,13 @@ def book_claims():
     return out
 
 # ── [C] L20 BOOK CLAIMS: the built Book PROSE restates the BM25 surface→lemma inversion (data/l20-ru.json,
-#    gen_l20.py): the gold answer's score 0.0 → 1.3884 and the surface distractor 1.3608. Gating both keeps
+#    gen_l20.py): the gold answer's score 0.0 → 1.3885 and the surface distractor 1.3608. Gating both keeps
 #    book:L20 coverage at 0. Values from L20RU["bm25"]; anchored to the worked-by-hand beat prose (all 3 langs). ──
 def l20_book_claims():
     b = L20RU["bm25"]
     return [
         dict(id="book L20 lemma gold", deck="L19", value=b["lemma"]["goldScore"], tol=1e-4,
-             anchor=r'\\\((1\.3884)\\\)', must=True),
+             anchor=r'\\\((1\.3885)\\\)', must=True),
         dict(id="book L20 surface distractor", deck="L19", value=b["surface"]["scores"]["d2_distractor"], tol=1e-4,
              anchor=r'\\\((1\.3608)\\\)', must=True),
     ]

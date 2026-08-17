@@ -6,15 +6,19 @@ We do NOT have a public, redistributable click-log handy, so this is an explicit
 reproducible *model* — labeled as such on the slide.
 
 Attributions (carefully separated — session-5 CoVe fix to the session-4 drift):
-  * the cascade examination model (CTR = examination × relevance, with
-    examination ∝ 1/rank^γ) is **Craswell, Zoeter, Taylor, Ramsey 2008**,
-    "An Experimental Comparison of Click Position-Bias Models" (WSDM 2008);
+  * the position-based examination model (the "examination hypothesis":
+    CTR = examination × relevance, examination depending on RANK ONLY —
+    here examination ∝ 1/rank^γ) is studied in **Craswell, Zoeter, Taylor,
+    Ramsey 2008**, "An Experimental Comparison of Click Position-Bias Models"
+    (WSDM 2008). NOTE it is NOT their *cascade* model — in the cascade model
+    examination of rank r is conditional on the ranks above, which is a
+    different formula from the rank-only decay used here;
   * the framing that **clicks reveal *relative* not absolute relevance** is
     **Joachims, Granka et al. 2005**, "Accurately Interpreting Clickthrough
     Data as Implicit Feedback" (SIGIR 2005); and
   * the ~32% rank-1 click share that anchors γ here is the **Enquiro 2005**
     "golden triangle" eye-tracking number.
-γ is chosen so rank-1 ≈ 0.32 of clicks under the cascade model with equal relevance.
+γ is chosen so rank-1 ≈ 0.32 of clicks under the position-based model with equal relevance.
 
 Output: position_bias.json — {gamma, ranks:[{rank, exam, click_share}], top1_pct,
 top3_pct}. Consumed by L1 slide 29 (position bias) speaker notes as a grounded,
@@ -40,13 +44,15 @@ def main() -> int:
     w = 1.0 / ranks ** g
     share = w / w.sum()
     out = {
-        "model": "cascade examination model (Craswell, Zoeter, Taylor, Ramsey 2008, "
-                 "'An Experimental Comparison of Click Position-Bias Models'): "
-                 "CTR = examination × relevance, all relevance EQUAL → clicks are pure position "
-                 "bias. examination ∝ 1/rank^gamma, gamma fit so rank-1 ≈ 32% (Enquiro 2005 "
-                 "'golden triangle' eye-tracking number; the 'clicks reveal relative not "
-                 "absolute relevance' framing is Joachims, Granka et al. 2005, 'Accurately "
-                 "Interpreting Clickthrough Data as Implicit Feedback').",
+        "model": "position-based examination model (the 'examination hypothesis' studied in "
+                 "Craswell, Zoeter, Taylor, Ramsey 2008, 'An Experimental Comparison of Click "
+                 "Position-Bias Models'; NOT their cascade model — examination here depends on "
+                 "rank only, not on the ranks above): CTR = examination × relevance, all "
+                 "relevance EQUAL → clicks are pure position bias. examination ∝ 1/rank^gamma, "
+                 "gamma fit so rank-1 ≈ 32% (Enquiro 2005 'golden triangle' eye-tracking number; "
+                 "the 'clicks reveal relative not absolute relevance' framing is Joachims, "
+                 "Granka et al. 2005, 'Accurately Interpreting Clickthrough Data as Implicit "
+                 "Feedback').",
         "label_on_slide": "ILLUSTRATIVE — modelled, not from a proprietary click log.",
         "gamma": round(float(g), 3),
         "ranks": [{"rank": int(r), "exam": round(float(e), 4), "click_share": round(float(c), 4)}

@@ -151,8 +151,12 @@ def measure():
     coin_ppl_floor = round(2 ** coin_H, 4)                 # 1.7548 — the entropy floor's perplexity
     #    the REVERSE tax: KL is not symmetric. D(q‖p) charges the fair coin's own bits against p.
     coin_kl_rev = round(sum(q * math.log2(q / pp) for q, pp in ((0.5, 0.25), (0.5, 0.75))), 4)  # 0.2075
-    #    the two needle jumps the entropy-gauge widget draws at step 0 (so it computes nothing itself)
-    coin_self_info = [round(-math.log2(coin_p), 4), round(-math.log2(1 - coin_p), 4)]  # [2.0, 0.415]
+    #    the two needle jumps the entropy-gauge widget draws at step 0 (so it computes nothing itself).
+    #    Keep the RAW self-informations too: contrib below multiplies by them UNROUNDED (round after
+    #    the arithmetic, never arithmetic on the rounded display values — 0.75·0.415 = 0.3112 is the
+    #    stale product; the true p·(−log2 p) rounds to 0.3113 and sums to the displayed H 0.8113).
+    coin_self_info_raw = [-math.log2(coin_p), -math.log2(1 - coin_p)]
+    coin_self_info = [round(x, 4) for x in coin_self_info_raw]  # [2.0, 0.415]
 
     # 2) dyadic 4-symbol source: A=1/2, B=1/4, C=1/8, D=1/8. Optimal prefix code (A=0, B=10, C=110, D=111)
     #    has average length EXACTLY equal to the entropy — the Source Coding Theorem made concrete.
@@ -168,7 +172,8 @@ def measure():
     counts = Counter(letters)
     n = len(letters)
     freqs = {c: counts[c] / n for c in counts}
-    phrase_H = H(list(freqs.values()))
+    phrase_H_raw = _h_raw(list(freqs.values()))   # keep unrounded: floorBits multiplies by n BEFORE rounding
+    phrase_H = round(phrase_H_raw, 4)
     alphabet = len(counts)
     uniform_H = round(math.log2(alphabet), 4)              # F0 baseline for THIS alphabet
     redundancy = round(1 - phrase_H / uniform_H, 4)
@@ -233,7 +238,7 @@ def measure():
             "modelQ": coin_q, "crossEntropyQ": coin_Hq, "klQ": coin_kl,
             "pplQ": coin_ppl_q, "pplFloor": coin_ppl_floor,
             "klReverse": coin_kl_rev, "selfInfo": coin_self_info,
-            "contrib": [round(coin_p * coin_self_info[0], 4), round((1 - coin_p) * coin_self_info[1], 4)],
+            "contrib": [round(coin_p * coin_self_info_raw[0], 4), round((1 - coin_p) * coin_self_info_raw[1], 4)],
             "_note": "biased coin, H<1 bit ⇒ the skew is exploitable; a wrong fair-coin q pays "
                      "H(p,q)=1.0 bit (KL tax 0.1887), perplexity 2.0 vs the floor 1.7548",
         },
@@ -261,7 +266,7 @@ def measure():
             "totalBits": ph_total,
             "fixedBits": 4 * n,
             "asciiBits": 8 * n,
-            "floorBits": round(phrase_H * n, 4),
+            "floorBits": round(phrase_H_raw * n, 4),   # n·H from the RAW H (39·3.66761802 = 143.0371, not 39·3.6676)
             "entropyGap": round(uniform_H - phrase_H, 4),
             "_note": "the same 39-letter phrase actually coded: Huffman 144 bits vs 156 (fixed 4-bit) vs "
                      "312 (ASCII); the entropy floor is 143.0 bits, so the code overpays by ~1 bit TOTAL",

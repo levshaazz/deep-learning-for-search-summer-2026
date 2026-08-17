@@ -87,7 +87,10 @@ def _colbert_projection(torch, model_name):
 
 
 def per_token_embeddings(model_name, texts, projection=None):
-    """Per-token L2-normalized token embeddings (drop [CLS]/[SEP] padding via attention mask).
+    """Per-token L2-normalized token embeddings. The attention mask drops PAD tokens ONLY — [CLS] and
+    [SEP] are real (attended) tokens and are KEPT, so they take part in MaxSim; this inflates the
+    absolute maxSimRel/maxSimIrr levels slightly but preserves their ordering (and the committed,
+    quoted numbers were measured with them in).
     If `projection` (a [d_out, 768] matrix) is given, apply it to last_hidden_state BEFORE normalizing —
     this is ColBERT's real 768→128 linear layer, so MaxSim runs on the genuine 128-dim ColBERT vectors."""
     torch = _torch()

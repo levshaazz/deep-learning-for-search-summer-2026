@@ -139,7 +139,7 @@ def build_judge():
     # ── REAL llama3.1:8b judge findings (frozen) ──
     fb = {"positionBiasClear": {"accuracy": 1.0, "flipRate": 0.0, "firstSlotWinRate": 0.5, "n": 6},
           "positionBiasTie": {"positionFollowRate": 0.6667, "positionAnchored": 4, "n": 6},
-          "verbosityBias": {"longerPreferenceRate": 1.0, "longerWins": 10, "n": 5},
+          "verbosityBias": {"longerPreferenceRate": 1.0, "longerWins": 10, "n": 5, "nJudgements": 10},
           "faithfulness": {"caughtPlanted": True}}
     art = load_frozen("l11_ollama_judge.json", fb)
     pc, pt = art["positionBiasClear"], art["positionBiasTie"]
@@ -148,7 +148,12 @@ def build_judge():
         "_model": art.get("_model", "llama3.1:8b"),
         "accuracyClear": r(pc["accuracy"]), "nClear": pc["n"],
         "positionFollowRateTie": r(pt["positionFollowRate"]), "positionAnchoredTie": pt["positionAnchored"], "nTie": pt["n"],
-        "verbosityPreferenceRate": r(vb["longerPreferenceRate"]), "verbosityLongerWins": vb["longerWins"], "nVerbosity": vb["n"],
+        # rate = count / n, LITERALLY within this record: the numerator counts JUDGEMENTS (each of the
+        # 5 pairs is judged twice, once per slot order), so the denominator field must count judgements
+        # too — 10/10 = 1.0. The old single "nVerbosity" (= pairs, 5) sat next to verbosityLongerWins
+        # (= judgements, 10) and read as 10/5 = 2.0; the two denominators are now named apart.
+        "verbosityPreferenceRate": r(vb["longerPreferenceRate"]), "verbosityLongerWins": vb["longerWins"],
+        "nVerbosityJudgements": vb.get("nJudgements", 2 * vb["n"]), "nVerbosityPairs": vb["n"],
         "faithfulnessCaughtPlanted": bool(fa["caughtPlanted"]),
         "note": "Real llama3.1:8b judge (temp 0, seed 42). Accurate when quality is CLEAR (1.0), but anchors "
                 "to slot under a TIE (0.6667) and ALWAYS prefers the longer answer (1.0) — Goodhart, measured.",

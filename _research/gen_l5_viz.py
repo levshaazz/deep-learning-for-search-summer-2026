@@ -35,6 +35,25 @@ from genlib import ROOT, DATA, r, rm, rv, softmax      # shared helpers (genlib.
 VEC_CACHE = ROOT / "_research" / "data" / ".cache" / "glove50-demo-vectors.json"
 
 
+def round_to_sum(values, total, nd):
+    """Round each value to `nd` dp so the ROUNDED list sums EXACTLY to `total` rounded to `nd` dp
+    (largest-remainder method). Display-consistency rule: these lists are shown next to their total
+    (softmax probs next to probSum=1.0, eigenvalues next to totalVar), and a reader summing the
+    displayed column must land exactly on the displayed total — plain per-entry rounding can drift
+    one ulp (0.9999 vs 1.0). The residual ulps go to the entries whose rounding error absorbs them
+    with the least distortion, so every adjusted entry stays within one ulp of its true value."""
+    scale = 10 ** nd
+    units = [round(round(v, nd) * scale) for v in values]          # per-entry rounded, in integer ulps
+    target = round(round(float(total), nd) * scale)
+    diff = target - sum(units)                                     # how many ulps the display is off
+    if diff:
+        # entries most rounded DOWN absorb +1 ulp best; most rounded UP absorb −1 ulp best
+        order = sorted(range(len(values)), key=lambda i: values[i] * scale - units[i], reverse=diff > 0)
+        for i in order[:abs(diff)]:
+            units[i] += 1 if diff > 0 else -1
+    return [u / scale for u in units]
+
+
 def load_glove() -> dict[str, np.ndarray]:
     if not VEC_CACHE.exists():
         print(f"[l5viz] ERROR: GloVe cache missing at {VEC_CACHE}.\n"
@@ -64,8 +83,11 @@ def build_skipgram(V: dict[str, np.ndarray]) -> dict:
     h = onehot @ W                                            # the looked-up row = king's embedding
     logits = W @ h                                            # tied weights W'=W → z_j = w_j·h
     probs = softmax(logits)
+    # display copy of the softmax row: rounded so the shown probs sum to exactly 1.0 (= probSum) —
+    # see round_to_sum. The ranking shows the SAME adjusted values so the two surfaces agree.
+    probs_disp = round_to_sum([float(p) for p in probs], 1.0, 4)
     # rank the CONTEXT candidates (exclude the centre word itself — a word is not its own context).
-    ranking = sorted(((vocab[j], float(probs[j])) for j in range(len(vocab)) if j != ci),
+    ranking = sorted(((vocab[j], probs_disp[j]) for j in range(len(vocab)) if j != ci),
                      key=lambda t: -t[1])
     return {
         "method": "skip-gram forward pass (tied weights W'=W), 8-word toy vocab, d=4 (GloVe-50 sliced + row-normalised)",
@@ -77,9 +99,9 @@ def build_skipgram(V: dict[str, np.ndarray]) -> dict:
         "W": rm(W, 3),                                        # 8×4 embedding matrix (the lookup table)
         "hidden": rv(h, 3),                                   # the looked-up row = king's embedding
         "logits": rv(logits, 3),                              # z = W·h
-        "probs": rv(probs, 4),                                # softmax(z); sums to 1
-        "probSum": r(float(probs.sum()), 6),                  # == 1.0 (facts-check)
-        "ranking": [{"word": w, "prob": r(p, 4)} for w, p in ranking],
+        "probs": probs_disp,                                  # softmax(z); the DISPLAYED 4-dp row sums to exactly 1.0
+        "probSum": r(float(probs.sum()), 6),                  # == 1.0 (facts-check; probs_disp sums to it too)
+        "ranking": [{"word": w, "prob": p} for w, p in ranking],
         "topContext": ranking[0][0],
         "note": "one-hot picks a ROW of W (the lookup); softmax over the vocab predicts context. probs sum to 1.",
     }
@@ -182,7 +204,9 @@ def build_pca_rotate() -> dict:
         "n": n,
         "cloud3d": [[r(p[0], 3), r(p[1], 3), r(p[2], 3)] for p in Xc],   # centred input cloud
         "cov": rm(cov, 4),                                   # 3×3 covariance
-        "eigenvalues": rv(evals, 4),                         # descending
+        "eigenvalues": round_to_sum([float(x) for x in evals], total_var, 4),  # descending; the 4-dp
+                                                             # display sums exactly to totalVar (and to
+                                                             # the displayed cov's trace) — round_to_sum
         "eigenvectors": rm(evecs, 4),                        # columns PC1,PC2,PC3
         "explainedVarPct": expl_pct,                         # per-PC %  (recompute → facts-check)
         "var2dPct": var2d_pct,                               # PC1+PC2 %

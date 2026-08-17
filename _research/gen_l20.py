@@ -196,7 +196,12 @@ def lemmatize(tokens):
 
 
 def bm25_all(docs, query):
-    """BM25 with the course convention; returns per-doc scores + the gold doc's per-term work."""
+    """BM25 with the course convention; returns per-doc scores + the gold doc's per-term work.
+
+    ROUNDING POLICY: the deck shows the per-term contributions at 4 dp NEXT TO their sum, so the
+    emitted score is the sum of the ROUNDED terms (0.8594 + 0.5291 = 1.3885) — a student re-adding
+    the displayed column must land exactly on the displayed total. (Summing unrounded and rounding
+    once gave 1.3884, one ulp off the visible arithmetic.)"""
     N = len(docs)
     avgdl = sum(len(d) for d in docs.values()) / N
     df = {}
@@ -210,7 +215,7 @@ def bm25_all(docs, query):
             f = d.count(t)
             bm = idf[t] * (f * (K1 + 1)) / (f + K1 * (1 - B + B * len(d) / avgdl)) if f else 0.0
             terms.append({"t": t, "tf": f, "df": df[t], "idf": round(idf[t], 4), "bm25": round(bm, 4)})
-            s += bm
+            s += round(bm, 4)
         scores[did] = round(s, 4)
         work[did] = terms
     return scores, work, round(avgdl, 1)
