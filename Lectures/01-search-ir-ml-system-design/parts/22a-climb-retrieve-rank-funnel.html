@@ -1,0 +1,110 @@
+<section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="22a Climb &middot; retrieve-rank-funnel">
+  <div class="slide-header">
+    <h2><span lang="ru">Воронка: дёшево отобрать, дорого ранжировать</span><span lang="en">The funnel: retrieve cheap, rank expensive</span></h2>
+    <span class="slide-kicker"><span lang="ru">шаг (&larr;/&rarr;): весь корпус &rarr; дешёвый отбор &rarr; средний ранкер &rarr; дорогой финал</span><span lang="en">step (&larr;/&rarr;): whole corpus &rarr; cheap sweep &rarr; mid-cost ranker &rarr; expensive finish</span></span>
+  </div>
+  <div class="widget-mount" data-widget="retrieve-rank-funnel"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "_doc": "Retrieve → rank → re-rank cascade for L1 'The Lost Record' (climb-funnel beat). Stage widths/counts mirror the deck's funnel slide (22 Funnel · Cascade) so Book and deck agree. Illustrative orders of magnitude (retrieval makes a huge first cut ≈10^9→10^3, then each later stage ≈10× more compute on ≈10× fewer candidates).",
+    "_match": "Lectures/01-search-ir-ml-system-design.html :: data-screen-label='22 Funnel · Cascade'",
+    "stages": [
+      {
+        "id": "corpus",
+        "role": "corpus",
+        "count": "~10⁹",
+        "w": 100
+      },
+      {
+        "id": "retrieval",
+        "role": "retrieval",
+        "count": "~10³",
+        "w": 62
+      },
+      {
+        "id": "rank",
+        "role": "rank",
+        "count": "~10²",
+        "w": 40
+      },
+      {
+        "id": "rerank",
+        "role": "rerank",
+        "count": "~10",
+        "w": 24
+      }
+    ],
+    "note": "A BERT cross-encoder at ~tens of ms/pair × 10⁹ docs is ~10⁸× over budget — so: cheap-and-broad, then expensive-and-precise."
+  },
+  "labels": {
+    "alt": "A retrieve to rank to re-rank funnel narrowing from a billion candidates to a handful, spending more compute on fewer documents at each stage.",
+    "name0": "Corpus",
+    "desc0": "the whole index — far too many to score with an expensive model",
+    "name1": "Retrieval (stage 0)",
+    "desc1": "cheap, high-recall: BM25 / ANN — optimises recall",
+    "name2": "Ranking (stage 1)",
+    "desc2": "moderate cost, many features: GBDT / Learning-to-Rank",
+    "name3": "Re-rank (stage 2)",
+    "costlbl": "compute/doc",
+    "desc3": "expensive cross-encoder + business rules — optimises precision@k",
+    "s0": "Start with the whole corpus — ~10⁹ documents. You can't run an expensive model on all of them. So you build a funnel.",
+    "s1": "First, a cheap high-recall sweep (BM25 / ANN) keeps ~10³ candidates. Never throw away the answer this early — recall lives here.",
+    "s2": "A mid-cost ranker scores the survivors down to ~10² with many features.",
+    "s3": "Finally the expensive cross-encoder re-ranks the last ~10 — precision@k where the user looks. Each stage spends ~10× more compute on ~10× fewer candidates."
+  },
+  "i18n": {
+    "en": {
+      "alt": "A retrieve to rank to re-rank funnel narrowing from a billion candidates to a handful, spending more compute on fewer documents at each stage.",
+      "name0": "Corpus",
+      "desc0": "the whole index — far too many to score with an expensive model",
+      "name1": "Retrieval (stage 0)",
+      "desc1": "cheap, high-recall: BM25 / ANN — optimises recall",
+      "name2": "Ranking (stage 1)",
+      "desc2": "moderate cost, many features: GBDT / Learning-to-Rank",
+      "name3": "Re-rank (stage 2)",
+      "costlbl": "compute/doc",
+      "desc3": "expensive cross-encoder + business rules — optimises precision@k",
+      "s0": "Start with the whole corpus — ~10⁹ documents. You can't run an expensive model on all of them. So you build a funnel.",
+      "s1": "First, a cheap high-recall sweep (BM25 / ANN) keeps ~10³ candidates. Never throw away the answer this early — recall lives here.",
+      "s2": "A mid-cost ranker scores the survivors down to ~10² with many features.",
+      "s3": "Finally the expensive cross-encoder re-ranks the last ~10 — precision@k where the user looks. Each stage spends ~10× more compute on ~10× fewer candidates."
+    },
+    "ru": {
+      "alt": "Воронка «найти → ранжировать → переранжировать», сужающаяся от миллиарда кандидатов до горстки, тратя больше вычислений на меньшее число документов на каждом этапе.",
+      "name0": "Корпус",
+      "desc0": "весь индекс — слишком много, чтобы оценивать дорогой моделью",
+      "name1": "Извлечение (этап 0)",
+      "desc1": "дёшево, широкий охват: BM25 / ANN — оптимизирует полноту",
+      "name2": "Ранжирование (этап 1)",
+      "desc2": "умеренная цена, много признаков: GBDT / Learning-to-Rank",
+      "name3": "Переранжирование (этап 2)",
+      "costlbl": "вычислений/док",
+      "desc3": "дорогой кросс-энкодер + бизнес-правила — оптимизирует precision@k",
+      "s0": "Начинаем со всего корпуса — ~10⁹ документов. Дорогую модель на всех не запустить. Поэтому строим воронку.",
+      "s1": "Сначала дешёвый высокополнотный проход (BM25 / ANN) оставляет ~10³ кандидатов. Не выбрасывай ответ так рано — здесь живёт полнота.",
+      "s2": "Ранкер средней цены сужает выживших до ~10² по множеству признаков.",
+      "s3": "Наконец дорогой кросс-энкодер переранжирует последние ~10 — precision@k там, куда смотрит пользователь. Каждый этап тратит ~10× больше вычислений на ~10× меньше кандидатов."
+    },
+    "tt": {
+      "alt": "«Табу → ранжлау → яңадан ранжлау» воронкасы — миллиард кандидаттан бер уч документка кадәр тарая, һәр баскычта азрак документка күбрәк исәпләү сарыф итә.",
+      "name0": "Корпус",
+      "desc0": "бөтен индекс — кыйммәтле модель белән бәяләргә артык күп",
+      "name1": "Табу (этап 0)",
+      "desc1": "арзан, югары тулылык: BM25 / ANN — recall оптимальлаштыра",
+      "name2": "Ранжлау (этап 1)",
+      "desc2": "урта бәя, күп билге: GBDT / Learning-to-Rank",
+      "name3": "Кабат ранжлау (этап 2)",
+      "costlbl": "исәпләү/док",
+      "desc3": "кыйммәтле кросс-энкодер + бизнес-кагыйдәләр — precision@k оптимальлаштыра",
+      "s0": "Бөтен корпустан башлыйбыз — ~10⁹ документ. Кыйммәтле модельне барысында да эшләтеп булмый. Шуңа күрә воронка төзибез.",
+      "s1": "Башта арзан югары-тулылыклы үтеш (BM25 / ANN) ~10³ кандидат калдыра. Җавапны болай иртә ташлама — тулылык биредә яши.",
+      "s2": "Урта бәяле ранжлаучы исән калганнарны күп билге буенча ~10²'гә кадәр киметә.",
+      "s3": "Ниһаять, кыйммәтле кросс-энкодер соңгы ~10'ны кабат ранжлый — кулланучы караган җирдә precision@k. Һәр этап ~10× азрак кандидатка ~10× күбрәк исәпләү тота."
+    }
+  }
+}
+  </script>
+  <p class="viz-caption"><span lang="ru">Каскад с прошлого слайда &mdash; теперь пройди его сверху вниз сам. Каждая следующая ступень тратит больше вычислений на одного кандидата &mdash; и потому обязана получать этих кандидатов всё меньше. Дешёвый отбор отвечает за полноту, дорогой финал &mdash; за точность там, куда смотрит пользователь. Запомни это разделение труда: весь курс &mdash; о том, чем заполнять эти ступени.</span><span lang="en">The cascade from the previous slide &mdash; now walk it top to bottom yourself. Each successive stage spends more compute per candidate, so it must be handed fewer of them. The cheap sweep owns recall; the expensive finish owns precision where the user actually looks. Remember this division of labour: the whole course is about what to put on each stage.</span></p>
+  <aside class="slide-notes">Act 2&rsquo;s climb, mounted right after the cascade is introduced and right before the recall ceiling. All stage sizes are read from data/l1-funnel.json &mdash; nothing is computed in the browser. Drive it with the arrow keys: (0) the whole corpus and why you cannot run the expensive model on it; (1) the cheap high-recall sweep &mdash; DWELL here: whatever this stage drops is gone forever, which is exactly the recall-ceiling point the NEXT slide formalises; (2) the mid-cost ranker; (3) the expensive re-ranker at the top. Students usually stumble on &ldquo;why not just run the best model on everything&rdquo; &mdash; answer it at step 0 with the per-stage cost framing, not with hand-waving.</aside>
+</section>

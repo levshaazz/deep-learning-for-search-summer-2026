@@ -176,7 +176,9 @@ export const mountSkipgramNet = defineWidget({
       const seg = clampSegmentToRect(ax1, ay, ax2, ay, plotRect) || { x1: ax1, y1: ay, x2: ax2, y2: ay };
       add('matrix', el('line', { x1: seg.x1, y1: seg.y1, x2: seg.x2, y2: seg.y2,
         class: 'sg-arrow', 'marker-end': 'url(#sg-ah)' }, svg));
-      add('matrix', el('text', { x: (ax1 + ax2) / 2, y: ay - 5, class: 'sg-tag',
+      // y −10 (was −5): at the 11px tag size the label's box dipped into the lit one-hot "1"
+      // (viz-probe overlap 0.39); one row-gap higher clears it without touching the column head.
+      add('matrix', el('text', { x: (ax1 + ax2) / 2, y: ay - 10, class: 'sg-tag',
         'text-anchor': 'middle' }, svg)).textContent = labels.lookupTag || 'select row';
     }
 

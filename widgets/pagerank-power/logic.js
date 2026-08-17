@@ -94,7 +94,7 @@ export const mountPagerankPower = defineWidget({
     mk('pr-arrA', 'var(--accent, #2A6FDB)');
 
     // node positions (A top-left, B top-centre/authority, C bottom-right) — matches deck layout
-    const P = { A: { x: 64, y: 56 }, B: { x: 240, y: 38 }, C: { x: 352, y: 128 } };
+    const P = { A: { x: 78, y: 56 }, B: { x: 240, y: 38 }, C: { x: 344, y: 128 } };
     // edges drawn first (under nodes). Accent = edges feeding the authority B.
     const edge = (a, b, accent) => {
       const dx = P[b].x - P[a].x, dy = P[b].y - P[a].y;

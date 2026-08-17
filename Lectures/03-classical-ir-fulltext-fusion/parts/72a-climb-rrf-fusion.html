@@ -1,0 +1,194 @@
+<section class="slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="72a Climb &middot; rrf-fusion">
+  <div class="slide-header">
+    <h2><span lang="ru">RRF руками: ранги вместо очков</span><span lang="en">RRF by hand: ranks, not scores</span></h2>
+    <span class="slide-kicker"><span lang="ru">шаг (&larr;/&rarr;): два несогласных списка &rarr; голос каждого ранга &rarr; сумма голосов &rarr; слитый порядок &rarr; ничьи и компромиссы</span><span lang="en">step (&larr;/&rarr;): two disagreeing lists &rarr; each rank&rsquo;s vote &rarr; the summed votes &rarr; the fused order &rarr; ties and trade-offs</span></span>
+  </div>
+  <div class="widget-mount" data-widget="rrf-fusion"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "_doc": "Rank fusion for L3 climb-rrf: two rankers (BM25 vs TF-IDF cosine) fused with RRF (k=60).",
+    "_source": "_research/gen_l3.py · 20 Newsgroups (sci.space, rec.sport.hockey), 8 shortest docs, deterministic",
+    "k": 60,
+    "lists": {
+      "bm25": [
+        "D6",
+        "D3",
+        "D7",
+        "D2",
+        "D5",
+        "D0",
+        "D4",
+        "D1"
+      ],
+      "cosine": [
+        "D6",
+        "D3",
+        "D2",
+        "D7",
+        "D0",
+        "D4",
+        "D5",
+        "D1"
+      ]
+    },
+    "fused": [
+      {
+        "id": "D6",
+        "rrf": 0.032787,
+        "contributions": {
+          "bm25": 0.016393,
+          "cosine": 0.016393
+        },
+        "rankBm25": 1,
+        "rankCosine": 1
+      },
+      {
+        "id": "D3",
+        "rrf": 0.032258,
+        "contributions": {
+          "bm25": 0.016129,
+          "cosine": 0.016129
+        },
+        "rankBm25": 2,
+        "rankCosine": 2
+      },
+      {
+        "id": "D2",
+        "rrf": 0.031498,
+        "contributions": {
+          "bm25": 0.015625,
+          "cosine": 0.015873
+        },
+        "rankBm25": 4,
+        "rankCosine": 3
+      },
+      {
+        "id": "D7",
+        "rrf": 0.031498,
+        "contributions": {
+          "bm25": 0.015873,
+          "cosine": 0.015625
+        },
+        "rankBm25": 3,
+        "rankCosine": 4
+      },
+      {
+        "id": "D0",
+        "rrf": 0.030536,
+        "contributions": {
+          "bm25": 0.015152,
+          "cosine": 0.015385
+        },
+        "rankBm25": 6,
+        "rankCosine": 5
+      },
+      {
+        "id": "D5",
+        "rrf": 0.03031,
+        "contributions": {
+          "bm25": 0.015385,
+          "cosine": 0.014925
+        },
+        "rankBm25": 5,
+        "rankCosine": 7
+      },
+      {
+        "id": "D4",
+        "rrf": 0.030077,
+        "contributions": {
+          "bm25": 0.014925,
+          "cosine": 0.015152
+        },
+        "rankBm25": 7,
+        "rankCosine": 6
+      },
+      {
+        "id": "D1",
+        "rrf": 0.029412,
+        "contributions": {
+          "bm25": 0.014706,
+          "cosine": 0.014706
+        },
+        "rankBm25": 8,
+        "rankCosine": 8
+      }
+    ],
+    "order": [
+      "D6",
+      "D3",
+      "D2",
+      "D7",
+      "D0",
+      "D5",
+      "D4",
+      "D1"
+    ]
+  },
+  "labels": {
+    "alt": "Reciprocal Rank Fusion merges two ranked lists by summing 1/(k+rank), so a document ranked high in either list rises in the combined order.",
+    "headBm25": "BM25",
+    "headCosine": "Cosine",
+    "headFused": "Fused (RRF)",
+    "tblDoc": "Doc",
+    "tblRrf": "Σ 1/(k+r)",
+    "tieNote": "{a} and {b} TIE at {score}: {a} = 1/({k}+{ar1})+1/({k}+{ar2}), {b} = 1/({k}+{br1})+1/({k}+{br2}) — same sum, the ranks just swapped between the two lists.",
+    "upsetNote": "{loser} was ranked {lbest} by one ranker, yet {winner} — only ({wr1},{wr2}) — outscores it ({ws} > {ls}): middling by both beats high by just one.",
+    "s0": "Two rankers, two different orders. BM25 and cosine similarity each return the same documents — but they disagree on the order, and their scores live on scales you can't compare directly.",
+    "s1": "Forget the raw scores — each list votes with 1/(k+rank), k=60. A doc near the top of a list casts a big vote; a doc lower down casts a smaller one. The same document gets one reciprocal-rank vote from each ranker.",
+    "s2": "Sum the reciprocal ranks across lists: RRF = Σ 1/(k+rank). This document scored near the top in both rankers, so its two votes add up to the largest combined score.",
+    "s3": "Sort every document by its summed score and you get the fused ranking. A document ranked well by both lists rises to the top — rank-based fusion is robust to incomparable score scales, no calibration needed.",
+    "s4": "Now read the full table: two effects rank-based fusion makes visible. A TIE — two docs each ranker saw differently land on the same sum because their ranks just swapped — and an UPSET — a doc only middling in both lists outscores one ranked high by just one. Balanced beats lopsided."
+  },
+  "i18n": {
+    "en": {
+      "alt": "Reciprocal Rank Fusion merges two ranked lists by summing 1/(k+rank), so a document ranked high in either list rises in the combined order.",
+      "headBm25": "BM25",
+      "headCosine": "Cosine",
+      "headFused": "Fused (RRF)",
+      "tblDoc": "Doc",
+      "tblRrf": "Σ 1/(k+r)",
+      "tieNote": "{a} and {b} TIE at {score}: {a} = 1/({k}+{ar1})+1/({k}+{ar2}), {b} = 1/({k}+{br1})+1/({k}+{br2}) — same sum, the ranks just swapped between the two lists.",
+      "upsetNote": "{loser} was ranked {lbest} by one ranker, yet {winner} — only ({wr1},{wr2}) — outscores it ({ws} > {ls}): middling by both beats high by just one.",
+      "s0": "Two rankers, two different orders. BM25 and cosine similarity each return the same documents — but they disagree on the order, and their scores live on scales you can't compare directly.",
+      "s1": "Forget the raw scores — each list votes with 1/(k+rank), k=60. A doc near the top of a list casts a big vote; a doc lower down casts a smaller one. The same document gets one reciprocal-rank vote from each ranker.",
+      "s2": "Sum the reciprocal ranks across lists: RRF = Σ 1/(k+rank). This document scored near the top in both rankers, so its two votes add up to the largest combined score.",
+      "s3": "Sort every document by its summed score and you get the fused ranking. A document ranked well by both lists rises to the top — rank-based fusion is robust to incomparable score scales, no calibration needed.",
+      "s4": "Now read the full table: two effects rank-based fusion makes visible. A TIE — two docs each ranker saw differently land on the same sum because their ranks just swapped — and an UPSET — a doc only middling in both lists outscores one ranked high by just one. Balanced beats lopsided."
+    },
+    "ru": {
+      "alt": "Reciprocal Rank Fusion сливает два ранжированных списка, суммируя 1/(k+ранг), поэтому документ, высоко стоящий хотя бы в одном списке, поднимается в общем порядке.",
+      "headBm25": "BM25",
+      "headCosine": "Косинус",
+      "headFused": "Слияние (RRF)",
+      "tblDoc": "Док",
+      "tblRrf": "Σ 1/(k+r)",
+      "tieNote": "{a} и {b} в РАВЕНСТВЕ при {score}: {a} = 1/({k}+{ar1})+1/({k}+{ar2}), {b} = 1/({k}+{br1})+1/({k}+{br2}) — сумма та же, ранги лишь поменялись местами между списками.",
+      "upsetNote": "{loser} занял {lbest}-е место у одного ранкера, но {winner} — лишь ({wr1},{wr2}) — обходит его ({ws} > {ls}): средне у обоих лучше, чем высоко лишь у одного.",
+      "s0": "Два ранкера, два разных порядка. BM25 и косинусная близость возвращают одни и те же документы — но расходятся в порядке, и их оценки лежат на несравнимых шкалах.",
+      "s1": "Забудь про сырые оценки — каждый список голосует величиной 1/(k+rank), k=60. Документ у вершины списка отдаёт большой голос; ниже — меньший. Один и тот же документ получает по голосу от каждого ранкера.",
+      "s2": "Суммируем обратные ранги по спискам: RRF = Σ 1/(k+rank). Этот документ оказался у вершины в обоих ранкерах, поэтому два его голоса складываются в наибольшую суммарную оценку.",
+      "s3": "Сортируем все документы по суммарной оценке — получаем итоговое слияние. Документ, высоко оценённый обоими списками, поднимается наверх: слияние по рангам устойчиво к несравнимым шкалам оценок и не требует калибровки.",
+      "s4": "Теперь прочитай полную таблицу: два эффекта, которые делает видимыми слияние по рангам. РАВЕНСТВО — два документа, по-разному увиденные ранкерами, дают одинаковую сумму, потому что их ранги просто поменялись местами — и ПЕРЕВОРОТ — документ, средний в обоих списках, обходит того, кто высоко лишь у одного. Сбалансированность побеждает перекос."
+    },
+    "tt": {
+      "alt": "Reciprocal Rank Fusion ике ранжланган исемлекне 1/(k+ранг) кушып берләштерә, шуңа берәр исемлектә югары торган документ гомуми тәртиптә күтәрелә.",
+      "headBm25": "BM25",
+      "headCosine": "Косинус",
+      "headFused": "Берләштерү (RRF)",
+      "tblDoc": "Док",
+      "tblRrf": "Σ 1/(k+r)",
+      "tieNote": "{a} һәм {b} {score}'та ТИГЕЗ: {a} = 1/({k}+{ar1})+1/({k}+{ar2}), {b} = 1/({k}+{br1})+1/({k}+{br2}) — сумма шул ук, ранглар ике исемлек арасында урыннарын гына алыштырган.",
+      "upsetNote": "{loser} бер ранжлаучыда {lbest}-нче урынны алды, әмма {winner} — бары ({wr1},{wr2}) — аны узып китә ({ws} > {ls}): икесендә дә уртача бер генә җирдә югары булудан яхшырак.",
+      "s0": "Ике ранжлаучы, ике төрле тәртип. BM25 һәм косинус охшашлык икесе дә шул ук документларны кайтара — әмма тәртиптә ризалашмыйлар, һәм аларның балллары турыдан-туры чагыштырып булмаслык шкалаларда ята.",
+      "s1": "Чи балларны онытыгыз — һәр исемлек 1/(k+rank), k=60 зурлыгы белән тавыш бирә. Исемлек башындагы документ зур тавыш бирә; түбәндәгесе — кечерәк. Бер үк документ һәр ранжлаучыдан берәр кире-ранг тавышы ала.",
+      "s2": "Кире рангларны исемлекләр буенча кушабыз: RRF = Σ 1/(k+rank). Бу документ ике ранжлаучыда да баш тирәсендә булды, шуңа күрә аның ике тавышы иң зур җыелма баллга кушыла.",
+      "s3": "Барлык документларны җыелма балл буенча тәртипкә салабыз — йомгак берләштерүне алабыз. Ике исемлек тә югары бәяләгән документ өскә күтәрелә: ранглар буенча берләштерү чагыштырып булмаслык балл шкалаларына тотрыклы һәм калибровка таләп итми.",
+      "s4": "Хәзер тулы таблицаны укыгыз: ранглар буенча берләштерү күрсәтә торган ике эффект. ТИГЕЗЛЕК — ранжлаучылар төрлечә күргән ике документ бер үк суммага килә, чөнки аларның ранглары урыннарын алыштырган — һәм ӨСТЕНЛЕК — ике исемлектә дә уртача документ бары берсендә генә югары булганны узып китә. Тигезлек авышлыкны җиңә."
+    }
+  }
+}
+  </script>
+  <p class="viz-caption"><span lang="ru">Формула с прошлого слайда &mdash; на живых списках. Два ранкера с несовместимыми шкалами очков голосуют одними рангами: согласие обоих поднимает документ наверх, любимчик одного списка проседает. Досмотри до последнего шага &mdash; полная таблица покажет и честную ничью, и цену компромисса.</span><span lang="en">The formula from the previous slide &mdash; on live lists. Two rankers with incompatible score scales vote with ranks alone: agreement lifts a document to the top, a single list&rsquo;s favourite sinks. Stay for the last step &mdash; the full table shows an honest tie and the price of compromise.</span></p>
+  <aside class="slide-notes">Act 7&rsquo;s climb, right after the RRF slide and before hybrid search gives it its modern job. Lists, votes and the fused table come from data/l3-rrf.json. Steps: (0) the two disagreeing rankings &mdash; recall the score-normalization danger slide: their raw scores cannot be added; (1) the reciprocal-rank vote &mdash; DWELL on why rank, not score, is the thing being trusted; (2) summing the votes; (3) the fused order &mdash; the consensus document rises; (4) the full table with a tie and a compromise &mdash; read it aloud, it preempts the &ldquo;fusion is magic&rdquo; misconception two slides ahead. Students stumble on the constant in the denominator (it softens the top ranks&rsquo; dominance); wave at it qualitatively, the widget shows its value.</aside>
+</section>

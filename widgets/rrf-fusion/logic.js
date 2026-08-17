@@ -3,7 +3,7 @@
    (two input rankers + the RRF-fused order). Three DOM-div columns:
    LEFT = BM25, MIDDLE = Cosine, RIGHT = Fused (revealed last). All text via
    i18n keys; theme via CSS var(--token, fallback). Works under arrow keys
-   (slide) or scroll (Book). maxStep = 3.
+   (slide) or scroll (Book). maxStep = 4.
 
    Built on the shared widgets/_widget-base.js factory: it owns the wgt-root/wgt-fade host setup,
    the caption/counter scaffold, the setStep clamp + host.dataset.step, esc() and the

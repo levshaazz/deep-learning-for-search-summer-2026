@@ -204,9 +204,12 @@ export const mountPcaRotate = defineWidget({
       // park the per-axis variance labels near each aligned axis tip (used only at step 3).
       varEls.forEach((t, i) => {
         const t1 = alignedTip[i];
-        const tp = projIso(t1[0] * 0.62, t1[1] * 0.62, t1[2] * 0.62);
+        // Park at 0.45 of the axis (was 0.62) with a +14px drop: at 0.62 the label landed on the
+        // axis NAME near the tip — viz-probe measured a 0.68 box cover ("PC1" ~ "PC1: 79.79%"),
+        // and an SVG overlap is scale-invariant, so no mount width could ever fix it.
+        const tp = projIso(t1[0] * 0.45, t1[1] * 0.45, t1[2] * 0.45);
         t.setAttribute('x', Math.max(box.x + 4, Math.min(box.x + box.w - 86, tp.x)));
-        t.setAttribute('y', Math.max(box.y + 14, Math.min(box.y + box.h - 6, tp.y)));
+        t.setAttribute('y', Math.max(box.y + 14, Math.min(box.y + box.h - 6, tp.y + 14)));
       });
     }
 

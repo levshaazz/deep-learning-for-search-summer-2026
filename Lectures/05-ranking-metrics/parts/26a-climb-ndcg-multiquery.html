@@ -1,0 +1,189 @@
+<section class="slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="26a Climb &middot; ndcg-multiquery">
+  <div class="slide-header">
+    <h2><span lang="ru">MRR и MAP живут на наборе запросов</span><span lang="en">MRR and MAP live on a query set</span></h2>
+    <span class="slide-kicker"><span lang="ru">шаг (&larr;/&rarr;): два запроса &rarr; обратный ранг каждого &rarr; средняя точность каждого &rarr; MRR &rarr; MAP</span><span lang="en">step (&larr;/&rarr;): two queries &rarr; each one&rsquo;s reciprocal rank &rarr; each one&rsquo;s average precision &rarr; MRR &rarr; MAP</span></span>
+  </div>
+  <div class="widget-mount" data-widget="ndcg-multiquery"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "_doc": "Two-query example so MRR≠RR and MAP≠AP are actually demonstrated. Q1 = the L3 BM25 ranking's relevance pattern; Q2 = a second query with a different pattern (top hit at rank 1). MRR/MAP are the means over the two queries.",
+    "_source": "_research/gen_l4.py · Q1 from l3-bm25.json relevance, Q2 synthetic deterministic",
+    "ks": [
+      1,
+      3,
+      5,
+      8
+    ],
+    "q1": {
+      "rels": [
+        0,
+        1,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1
+      ],
+      "rr": 0.5,
+      "ap": 0.5,
+      "atK": {
+        "1": {
+          "p": 0.0,
+          "r": 0.0
+        },
+        "3": {
+          "p": 0.3333,
+          "r": 0.25
+        },
+        "5": {
+          "p": 0.4,
+          "r": 0.5
+        },
+        "8": {
+          "p": 0.5,
+          "r": 1.0
+        }
+      }
+    },
+    "q2": {
+      "rels": [
+        1,
+        0,
+        1,
+        1,
+        0,
+        0,
+        1,
+        0
+      ],
+      "rr": 1.0,
+      "ap": 0.747,
+      "atK": {
+        "1": {
+          "p": 1.0,
+          "r": 0.25
+        },
+        "3": {
+          "p": 0.6667,
+          "r": 0.5
+        },
+        "5": {
+          "p": 0.6,
+          "r": 0.75
+        },
+        "8": {
+          "p": 0.5,
+          "r": 1.0
+        }
+      },
+      "apHitPrecisions": [
+        {
+          "rank": 1,
+          "hitNumber": 1,
+          "precision": 1.0,
+          "expr": "P@1=1/1=1.0000"
+        },
+        {
+          "rank": 3,
+          "hitNumber": 2,
+          "precision": 0.6667,
+          "expr": "P@3=2/3=0.6667"
+        },
+        {
+          "rank": 4,
+          "hitNumber": 3,
+          "precision": 0.75,
+          "expr": "P@4=3/4=0.7500"
+        },
+        {
+          "rank": 7,
+          "hitNumber": 4,
+          "precision": 0.5714,
+          "expr": "P@7=4/7=0.5714"
+        }
+      ],
+      "apExpr": "(1.0000 + 0.6667 + 0.7500 + 0.5714) / 4 = 0.7470",
+      "apSumNumerator": 2.9881,
+      "relevantTotal": 4
+    },
+    "mrr": 0.75,
+    "map": 0.6235,
+    "note": "RR1=0.5, RR2=1.0 → MRR=0.75 (≠ either RR); AP1=0.5, AP2=0.747 → MAP=0.6235 (≠ either AP)."
+  },
+  "labels": {
+    "alt": "Two queries, each with its own result list; per query a reciprocal rank and an average precision, then both averaged across the set into MRR=0.75 and MAP=0.6235 — a mean equal to neither query alone.",
+    "q1Title": "Query 1",
+    "q2Title": "Query 2",
+    "hit": "relevant",
+    "miss": "not relevant",
+    "rrLabel": "RR = 1/rank of first hit",
+    "apLabel": "AP = mean precision at each hit",
+    "mrrLabel": "MRR = mean RR over the set",
+    "mapLabel": "MAP = mean AP over the set",
+    "lesson": "Neither matches a single query — that is the point of a mean.",
+    "s0": "One query can lie. So bring two. Query 1 hits at ranks 2, 4, 6, 8; Query 2 hits at ranks 1, 3, 4, 7. MRR and MAP only show their teeth across a query *set*, so we score each query, then average.",
+    "s1": "Reciprocal rank cares only about the *first* hit. Query 1's first relevant result sits at rank 2 → RR = 1/2 = 0.5. Query 2 strikes at rank 1 → RR = 1/1 = 1.0. Two queries, two very different reciprocal ranks.",
+    "s2": "Average precision averages the precision at *each* rank where a relevant doc appears. Query 1 works out to AP = 0.5. Query 2's hits at ranks 1, 3, 4, 7 give precisions 1.0, 0.667, 0.75, 0.571, so AP = (1.0 + 0.667 + 0.75 + 0.571) / 4 = 0.747.",
+    "s3": "First average the reciprocal ranks across the set: MRR = (0.5 + 1.0) / 2 = 0.75. The mean of the two first-hit scores — Query 1 struck at rank 2, Query 2 at rank 1, and 0.75 sits between them.",
+    "s4": "Now average the average precisions: MAP = (0.5 + 0.747) / 2 = 0.6235. Notice: each final number equals *neither* query on its own. That is exactly why you report the mean over a query set, never a single lucky (or unlucky) query."
+  },
+  "i18n": {
+    "en": {
+      "alt": "Two queries, each with its own result list; per query a reciprocal rank and an average precision, then both averaged across the set into MRR=0.75 and MAP=0.6235 — a mean equal to neither query alone.",
+      "q1Title": "Query 1",
+      "q2Title": "Query 2",
+      "hit": "relevant",
+      "miss": "not relevant",
+      "rrLabel": "RR = 1/rank of first hit",
+      "apLabel": "AP = mean precision at each hit",
+      "mrrLabel": "MRR = mean RR over the set",
+      "mapLabel": "MAP = mean AP over the set",
+      "lesson": "Neither matches a single query — that is the point of a mean.",
+      "s0": "One query can lie. So bring two. Query 1 hits at ranks 2, 4, 6, 8; Query 2 hits at ranks 1, 3, 4, 7. MRR and MAP only show their teeth across a query *set*, so we score each query, then average.",
+      "s1": "Reciprocal rank cares only about the *first* hit. Query 1's first relevant result sits at rank 2 → RR = 1/2 = 0.5. Query 2 strikes at rank 1 → RR = 1/1 = 1.0. Two queries, two very different reciprocal ranks.",
+      "s2": "Average precision averages the precision at *each* rank where a relevant doc appears. Query 1 works out to AP = 0.5. Query 2's hits at ranks 1, 3, 4, 7 give precisions 1.0, 0.667, 0.75, 0.571, so AP = (1.0 + 0.667 + 0.75 + 0.571) / 4 = 0.747.",
+      "s3": "First average the reciprocal ranks across the set: MRR = (0.5 + 1.0) / 2 = 0.75. The mean of the two first-hit scores — Query 1 struck at rank 2, Query 2 at rank 1, and 0.75 sits between them.",
+      "s4": "Now average the average precisions: MAP = (0.5 + 0.747) / 2 = 0.6235. Notice: each final number equals *neither* query on its own. That is exactly why you report the mean over a query set, never a single lucky (or unlucky) query."
+    },
+    "ru": {
+      "alt": "Два запроса, у каждого свой список результатов; на запрос — обратный ранг и средняя точность, затем оба усредняются по набору в MRR=0,75 и MAP=0,6235 — среднее, не равное ни одному запросу.",
+      "q1Title": "Запрос 1",
+      "q2Title": "Запрос 2",
+      "hit": "релевантно",
+      "miss": "нерелевантно",
+      "rrLabel": "RR = 1/ранг первого попадания",
+      "apLabel": "AP = средняя точность на каждом попадании",
+      "mrrLabel": "MRR = среднее RR по набору",
+      "mapLabel": "MAP = среднее AP по набору",
+      "lesson": "Ни одно не равно отдельному запросу — в этом и смысл среднего.",
+      "s0": "Один запрос может соврать. Так возьми два. Запрос 1 попадает на рангах 2, 4, 6, 8; Запрос 2 — на рангах 1, 3, 4, 7. MRR и MAP показывают зубы только на *наборе* запросов, поэтому оценим каждый, а потом усредним.",
+      "s1": "Обратный ранг заботится только о *первом* попадании. Первый релевантный результат Запроса 1 стоит на ранге 2 → RR = 1/2 = 0,5. Запрос 2 бьёт на ранге 1 → RR = 1/1 = 1,0. Два запроса — два очень разных обратных ранга.",
+      "s2": "Средняя точность усредняет точность на *каждом* ранге, где есть релевантный документ. У Запроса 1 выходит AP = 0,5. Попадания Запроса 2 на рангах 1, 3, 4, 7 дают точности 1,0, 0,667, 0,75, 0,571, так что AP = (1,0 + 0,667 + 0,75 + 0,571) / 4 = 0,747.",
+      "s3": "Сначала усредни обратные ранги по набору: MRR = (0,5 + 1,0) / 2 = 0,75. Среднее двух оценок первого попадания — Запрос 1 ударил на ранге 2, Запрос 2 на ранге 1, и 0,75 лежит между ними.",
+      "s4": "Теперь усредни средние точности: MAP = (0,5 + 0,747) / 2 = 0,6235. Заметь: каждое итоговое число не равно *ни одному* запросу по отдельности. Именно поэтому ты сообщаешь среднее по набору запросов, а не по одному удачному (или неудачному) запросу."
+    },
+    "tt": {
+      "alt": "Ике сорау, һәрберсенең үз нәтиҗәләр исемлеге; һәр сорауга — кире ранг һәм уртача төгәллек, аннары икесе дә җыелма буенча MRR=0,75 һәм MAP=0,6235 итеп уртачалана — бер сорауга да тигез булмаган урташа.",
+      "q1Title": "Сорау 1",
+      "q2Title": "Сорау 2",
+      "hit": "релевант",
+      "miss": "релевант түгел",
+      "rrLabel": "RR = 1/беренче туры килүнең рангы",
+      "apLabel": "AP = һәр туры килүдәге уртача төгәллек",
+      "mrrLabel": "MRR = җыелма буенча уртача RR",
+      "mapLabel": "MAP = җыелма буенча уртача AP",
+      "lesson": "Берсе дә аерым сорауга тигез түгел — урташаның мәгънәсе шунда.",
+      "s0": "Бер сорау алдый ала. Шуңа күрә икене ал. Сорау 1 рангларда 2, 4, 6, 8 туры килә; Сорау 2 — рангларда 1, 3, 4, 7. MRR һәм MAP үз тешләрен сорауларның *җыелмасында* гына күрсәтә, шуңа күрә һәр сорауны бәялибез, аннары уртачалыйбыз.",
+      "s1": "Кире ранг бары тик *беренче* туры килү турында гына кайгырта. Сорау 1нең беренче релевант нәтиҗәсе 2нче рангта → RR = 1/2 = 0,5. Сорау 2 1нче рангта бәрә → RR = 1/1 = 1,0. Ике сорау — ике бик төрле кире ранг.",
+      "s2": "Уртача төгәллек релевант документ булган *һәр* рангтагы төгәллекне уртачалый. Сорау 1дә AP = 0,5 килеп чыга. Сорау 2нең рангларда 1, 3, 4, 7 туры килүләре 1,0, 0,667, 0,75, 0,571 төгәллекләрен бирә, шулай итеп AP = (1,0 + 0,667 + 0,75 + 0,571) / 4 = 0,747.",
+      "s3": "Башта кире рангларны җыелма буенча уртачала: MRR = (0,5 + 1,0) / 2 = 0,75. Беренче туры килү ике бәясенең урташасы — Сорау 1 2нче рангта бәрде, Сорау 2 1нче рангта, һәм 0,75 алар арасында.",
+      "s4": "Хәзер уртача төгәллекләрне уртачала: MAP = (0,5 + 0,747) / 2 = 0,6235. Игътибар ит: һәр йомгак сан аерым алганда *бер* сорауга да тигез түгел. Нәкъ менә шуңа күрә син сорауларның җыелмасы буенча урташаны хәбәр итәсең, бер уңышлы (яки уңышсыз) сорау буенча түгел."
+    }
+  }
+}
+  </script>
+  <p class="viz-caption"><span lang="ru">Один запрос умеет врать &mdash; поэтому усредняем. Прощёлкай оба запроса сам: сперва каждый получает свой обратный ранг и свою среднюю точность, и только потом из них собираются MRR и MAP. Обрати внимание: итог не совпадает ни с одним запросом по отдельности &mdash; именно поэтому метрику всегда сообщают по набору, а не по любимому примеру.</span><span lang="en">A single query can lie &mdash; so we average. Click through both queries yourself: first each one earns its own reciprocal rank and its own average precision, and only then do MRR and MAP get assembled out of them. Notice that the final number matches neither query on its own &mdash; which is exactly why a metric is always reported over a set, never over a favourite example.</span></p>
+  <aside class="slide-notes">Act 3&rsquo;s climb, placed after the MAP definition and before the worked AP/MAP slide. Both queries and every intermediate value come from data/l4-multiquery.json &mdash; the same two-query setup the MRR-walked slide used, so students recognise the material. Steps: (0) the two hit patterns; (1) reciprocal ranks &mdash; only the FIRST hit matters, contrast the two queries; (2) average precisions &mdash; every hit matters now; (3) averaging into MRR; (4) averaging into MAP &mdash; DWELL on &ldquo;the final number is neither query&rdquo;. Students stumble on RR vs AP on the same ranking (one number from one position vs one number from all hit positions); the side-by-side at steps 1&ndash;2 is built to separate them. The worked slide that follows then serves as the on-paper replay.</aside>
+</section>

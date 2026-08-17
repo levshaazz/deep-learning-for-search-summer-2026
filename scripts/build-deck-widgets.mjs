@@ -35,6 +35,13 @@ const DECK_WIDGETS = ['course-map',
   'graphrag', 'clip-matrix',                             // L12 "The Deep Field" deck-mounted figures (rag-control-flow reused for CRAG/self-RAG callback)
   'infonce-calc', 'hardness-sphere', 'mining-comparator', 'impostor-denoise',  // L13 "The Crucible of Negatives" deck-mounted figures
   'hyde-embed', 'query-rewriter', 'rrf-fusion',  // L14 "The Artificer's Quill" deck-mounted figures (rrf-fusion reused from L3)
+  // Phase 5.2: the five widget-less foundation decks (01/02/03/05/06) get their climbs —
+  // the widgets existed all along (Book/Playground), the decks just never mounted them.
+  'retrieve-rank-funnel', 'pos-bias-curve',                          // L01
+  'zipf-heaps', 'bpe-steps', 'tokenizer-compare', 'cosine-compute', 'cosine-sphere',  // L02
+  'inverted-index', 'bm25-calc', 'pagerank-power',                   // L03 (rrf-fusion already listed)
+  'ndcg-multiquery', 'ndcg-graded', 'significance-test', 'ranking-metrics', 'ab-test',  // L05
+  'skipgram-net', 'embedding-space', 'pca-rotate', 'tsne-steps',  // L06 (glove-cooccur stays Book-only: its matrix labels cannot be both legible and in-frame on a slide; the act's mechanism is the worked slide 27)
   'ncd-einsum', 'ncd-attention',                 // L6 neural-circuit-diagram notation: the grammar proof (14c) + the n×n memory bill (22a)
   // The notation is taught once in L6 and then USED. These are the circuits that carry an argument the
   // lecture's prose can only assert: count the encoder boxes (L7/L8), watch the broadcast axis SHRINK
@@ -92,6 +99,13 @@ copyFileSync(join(ROOT, 'widgets', 'deck-adapter.js'), join(JS, 'deck-adapter.js
 const mountRule =
   '.slide .widget-mount { max-width: min(1460px, 78cqw); margin: 0 auto; }\n' +
   // the spine map is wide-short (700×250 ≈ 2.8:1): let it run wide so the four stops read big.
+  // Phase 5.2 climbs: the four widgets below render tall panels — composition-gate measured the
+  // spill (zipf-heaps +689px H, cosine-sphere +312, ranking-metrics +130, glove-cooccur +164) and
+  // these caps are sized from those numbers, then verified by re-measuring. The rest of the new
+  // climbs fit under the 78cqw default.
+  '.slide .widget-mount[data-widget="zipf-heaps"]         { max-width: min(760px, 42cqw); }\n' +
+  '.slide .widget-mount[data-widget="cosine-sphere"]      { max-width: min(880px, 48cqw); }\n' +
+  '.slide .widget-mount[data-widget="ranking-metrics"]    { max-width: min(1100px, 60cqw); }\n' +
   '.slide .widget-mount[data-widget="course-map"]         { max-width: min(1320px, 72cqw); }\n' +
   '.slide .widget-mount[data-widget="biencoder"]          { max-width: min(1180px, 64cqw); }\n' +
   '.slide .widget-mount[data-widget="crossencoder"]       { max-width: min(1220px, 66cqw); }\n' +

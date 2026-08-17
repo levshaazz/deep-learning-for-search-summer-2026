@@ -1,0 +1,578 @@
+<section class="slide" data-type="viz" data-max-step="5" data-current-step="0" data-screen-label="34a Climb &middot; tokenizer-compare">
+  <div class="slide-header">
+    <h2><span lang="ru">Четыре резака, одно предложение</span><span lang="en">Four cutters, one sentence</span></h2>
+    <span class="slide-kicker"><span lang="ru">шаг (&larr;/&rarr;): BPE &rarr; WordPiece &rarr; Unigram &rarr; байтовый BPE &rarr; вердикт</span><span lang="en">step (&larr;/&rarr;): BPE &rarr; WordPiece &rarr; Unigram &rarr; byte-level BPE &rarr; the verdict</span></span>
+  </div>
+  <div class="widget-mount" data-widget="tokenizer-compare"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "method": "Four tokenizers trained with HuggingFace `tokenizers` on ONE fixed 13-line corpus at the SAME vocab size (150), then run on one sample input. BPE merges by frequency; WordPiece merges by likelihood gain and marks `##` continuations; Unigram fits a probabilistic LM and Viterbi-decodes the best split; byte-level BPE uses a 256-byte alphabet (`Ġ` = leading space). Ranked by token count.",
+    "vocabSize": 150,
+    "corpus": [
+      "the player plays the game and the players are playing again",
+      "she plays games while he replays the older games today",
+      "happiness and unhappiness both grow from small daily habits",
+      "the happy player felt real happiness after a happy game",
+      "lower lowest newer newest wider widest faster fastest slower",
+      "we are running and they are jumping over the wide river",
+      "the runner runs faster than the slower walkers walk away",
+      "tokenizing text into tokens helps the model read the tokens",
+      "reading and rereading the book made the reader much happier",
+      "the cats and the dogs chase the smaller cat and the dog",
+      "kindness and unkindness shape how kind the people behave here",
+      "playing and replaying the game made the player feel happy",
+      "the happiness of playing games is a kind of daily joy"
+    ],
+    "sample": "the unhappiness of replaying games",
+    "sampleWords": [
+      "the",
+      "unhappiness",
+      "of",
+      "replaying",
+      "games"
+    ],
+    "tokenizers": [
+      {
+        "name": "BPE",
+        "family": "merge (frequency)",
+        "mechanism": "merge the most FREQUENT adjacent pair",
+        "marker": "none",
+        "tokens": [
+          "the",
+          "un",
+          "happiness",
+          "of",
+          "re",
+          "playing",
+          "games"
+        ],
+        "count": 7,
+        "vocabSize": 150,
+        "perWord": [
+          {
+            "word": "the",
+            "tokens": [
+              "the"
+            ],
+            "merges": [
+              {
+                "left": "h",
+                "right": "e",
+                "joined": "he"
+              },
+              {
+                "left": "t",
+                "right": "he",
+                "joined": "the"
+              }
+            ]
+          },
+          {
+            "word": "unhappiness",
+            "tokens": [
+              "un",
+              "happiness"
+            ],
+            "merges": [
+              {
+                "left": "i",
+                "right": "n",
+                "joined": "in"
+              },
+              {
+                "left": "e",
+                "right": "s",
+                "joined": "es"
+              },
+              {
+                "left": "h",
+                "right": "a",
+                "joined": "ha"
+              },
+              {
+                "left": "ha",
+                "right": "p",
+                "joined": "hap"
+              },
+              {
+                "left": "hap",
+                "right": "p",
+                "joined": "happ"
+              },
+              {
+                "left": "es",
+                "right": "s",
+                "joined": "ess"
+              },
+              {
+                "left": "u",
+                "right": "n",
+                "joined": "un"
+              },
+              {
+                "left": "in",
+                "right": "ess",
+                "joined": "iness"
+              },
+              {
+                "left": "happ",
+                "right": "iness",
+                "joined": "happiness"
+              }
+            ]
+          },
+          {
+            "word": "of",
+            "tokens": [
+              "of"
+            ],
+            "merges": [
+              {
+                "left": "o",
+                "right": "f",
+                "joined": "of"
+              }
+            ]
+          },
+          {
+            "word": "replaying",
+            "tokens": [
+              "re",
+              "playing"
+            ],
+            "merges": [
+              {
+                "left": "i",
+                "right": "n",
+                "joined": "in"
+              },
+              {
+                "left": "a",
+                "right": "y",
+                "joined": "ay"
+              },
+              {
+                "left": "p",
+                "right": "l",
+                "joined": "pl"
+              },
+              {
+                "left": "pl",
+                "right": "ay",
+                "joined": "play"
+              },
+              {
+                "left": "r",
+                "right": "e",
+                "joined": "re"
+              },
+              {
+                "left": "in",
+                "right": "g",
+                "joined": "ing"
+              },
+              {
+                "left": "play",
+                "right": "ing",
+                "joined": "playing"
+              }
+            ]
+          },
+          {
+            "word": "games",
+            "tokens": [
+              "games"
+            ],
+            "merges": [
+              {
+                "left": "e",
+                "right": "s",
+                "joined": "es"
+              },
+              {
+                "left": "g",
+                "right": "a",
+                "joined": "ga"
+              },
+              {
+                "left": "ga",
+                "right": "m",
+                "joined": "gam"
+              },
+              {
+                "left": "gam",
+                "right": "es",
+                "joined": "games"
+              }
+            ]
+          }
+        ],
+        "rank": 1
+      },
+      {
+        "name": "WordPiece",
+        "family": "merge (likelihood gain)",
+        "mechanism": "merge by likelihood score; mark word-internal pieces `##`",
+        "marker": "##",
+        "tokens": [
+          "the",
+          "un",
+          "##h",
+          "##app",
+          "##iness",
+          "of",
+          "replay",
+          "##ing",
+          "games"
+        ],
+        "count": 9,
+        "vocabSize": 150,
+        "perWord": [
+          {
+            "word": "the",
+            "pieces": [
+              {
+                "piece": "the",
+                "continuation": false,
+                "bare": "the"
+              }
+            ]
+          },
+          {
+            "word": "unhappiness",
+            "pieces": [
+              {
+                "piece": "un",
+                "continuation": false,
+                "bare": "un"
+              },
+              {
+                "piece": "##h",
+                "continuation": true,
+                "bare": "h"
+              },
+              {
+                "piece": "##app",
+                "continuation": true,
+                "bare": "app"
+              },
+              {
+                "piece": "##iness",
+                "continuation": true,
+                "bare": "iness"
+              }
+            ]
+          },
+          {
+            "word": "of",
+            "pieces": [
+              {
+                "piece": "of",
+                "continuation": false,
+                "bare": "of"
+              }
+            ]
+          },
+          {
+            "word": "replaying",
+            "pieces": [
+              {
+                "piece": "replay",
+                "continuation": false,
+                "bare": "replay"
+              },
+              {
+                "piece": "##ing",
+                "continuation": true,
+                "bare": "ing"
+              }
+            ]
+          },
+          {
+            "word": "games",
+            "pieces": [
+              {
+                "piece": "games",
+                "continuation": false,
+                "bare": "games"
+              }
+            ]
+          }
+        ],
+        "rank": 2
+      },
+      {
+        "name": "Unigram",
+        "family": "prune (likelihood loss)",
+        "mechanism": "fit a unigram LM, Viterbi-decode the best segmentation",
+        "marker": "none",
+        "tokens": [
+          "the",
+          "un",
+          "happi",
+          "ne",
+          "s",
+          "s",
+          "o",
+          "f",
+          "replay",
+          "in",
+          "g",
+          "game",
+          "s"
+        ],
+        "count": 13,
+        "vocabSize": 80,
+        "perWord": [
+          {
+            "word": "the",
+            "tokens": [
+              "the"
+            ]
+          },
+          {
+            "word": "unhappiness",
+            "tokens": [
+              "un",
+              "happi",
+              "ne",
+              "s",
+              "s"
+            ]
+          },
+          {
+            "word": "of",
+            "tokens": [
+              "o",
+              "f"
+            ]
+          },
+          {
+            "word": "replaying",
+            "tokens": [
+              "replay",
+              "in",
+              "g"
+            ]
+          },
+          {
+            "word": "games",
+            "tokens": [
+              "game",
+              "s"
+            ]
+          }
+        ],
+        "rank": 3
+      },
+      {
+        "name": "Byte-level BPE",
+        "family": "merge (frequency, on bytes)",
+        "mechanism": "256-byte alphabet + BPE; `Ġ` marks a leading space",
+        "marker": "Ġ",
+        "tokens": [
+          "Ġ",
+          "t",
+          "h",
+          "e",
+          "Ġ",
+          "u",
+          "n",
+          "h",
+          "a",
+          "p",
+          "p",
+          "i",
+          "n",
+          "e",
+          "s",
+          "s",
+          "Ġ",
+          "o",
+          "f",
+          "Ġ",
+          "r",
+          "e",
+          "p",
+          "l",
+          "a",
+          "y",
+          "i",
+          "n",
+          "g",
+          "Ġ",
+          "g",
+          "a",
+          "m",
+          "e",
+          "s"
+        ],
+        "count": 35,
+        "vocabSize": 256,
+        "perWord": [
+          {
+            "word": "the",
+            "tokens": [
+              "Ġ",
+              "t",
+              "h",
+              "e"
+            ]
+          },
+          {
+            "word": "unhappiness",
+            "tokens": [
+              "Ġ",
+              "u",
+              "n",
+              "h",
+              "a",
+              "p",
+              "p",
+              "i",
+              "n",
+              "e",
+              "s",
+              "s"
+            ]
+          },
+          {
+            "word": "of",
+            "tokens": [
+              "Ġ",
+              "o",
+              "f"
+            ]
+          },
+          {
+            "word": "replaying",
+            "tokens": [
+              "Ġ",
+              "r",
+              "e",
+              "p",
+              "l",
+              "a",
+              "y",
+              "i",
+              "n",
+              "g"
+            ]
+          },
+          {
+            "word": "games",
+            "tokens": [
+              "Ġ",
+              "g",
+              "a",
+              "m",
+              "e",
+              "s"
+            ]
+          }
+        ],
+        "rank": 4
+      }
+    ],
+    "ranking": [
+      {
+        "rank": 1,
+        "name": "BPE",
+        "count": 7
+      },
+      {
+        "rank": 2,
+        "name": "WordPiece",
+        "count": 9
+      },
+      {
+        "rank": 3,
+        "name": "Unigram",
+        "count": 13
+      },
+      {
+        "rank": 4,
+        "name": "Byte-level BPE",
+        "count": 35
+      }
+    ],
+    "counts": {
+      "BPE": 7,
+      "WordPiece": 9,
+      "Unigram": 13,
+      "Byte-level BPE": 35
+    },
+    "spread": {
+      "min": 7,
+      "max": 35
+    },
+    "note": "Same word, same vocab budget, four cutters → four different segmentations and four different token counts. Fewer tokens = more efficient (less compute, cheaper API, longer effective context). The byte-level cutter spends most of a small vocab on its 256-byte alphabet, so it can merge little and stays near character-level — most tokens."
+  },
+  "labels": {
+    "alt": "Several tokenizers split the same text differently, shown side by side with their token counts.",
+    "inputHead": "The same input, four cutters, one tiny corpus",
+    "tokensLab": "tokens",
+    "moreChip": "… +{n} more",
+    "markerHash": "## marks a word-internal piece (a continuation)",
+    "markerSpace": "␣ marks a leading space folded into the byte stream",
+    "verdict": "Fewer tokens = more efficient: less compute, cheaper API, longer effective context.",
+    "s0": "One input to cut: «the unhappiness of replaying games». We trained four tokenizers on the SAME tiny corpus toward the SAME small target vocabulary, so the only thing that differs is HOW each one chooses to split. (The corpus is so small that each algorithm lands at its own real size — the byte-level cutter floors at its 256-byte alphabet, the others end up smaller.) Watch the same five words become wildly different token streams.",
+    "s1": "BPE goes first — it merges the most FREQUENT adjacent pair, over and over. On this small vocabulary it has learned `unhappiness`, `playing` and `games` as whole pieces, so the input costs just 7 tokens: [the · un · happiness · of · re · playing · games]. The fewest — the most efficient cutter here.",
+    "s2": "WordPiece (BERT's cutter) merges by likelihood GAIN, not raw frequency, and it MARKS every word-internal piece with `##`. The bare piece starts a word; each `##` glues onto the one before. Here `unhappiness` becomes `un ##h ##app ##iness` — 9 tokens, two more than BPE, but the word boundaries stay legible.",
+    "s3": "Unigram (the cutter behind SentencePiece, T5, LLaMA) runs the loop BACKWARDS: it fits a probabilistic language model over a big seed vocabulary and then keeps the segmentation the model finds most LIKELY. Its likelihood decode splits `unhappiness` as `un happi ne s s` — 13 tokens, finer than the merge-based two.",
+    "s4": "Byte-level BPE (GPT-2/4's cutter) works on raw BYTES — its alphabet is all 256 of them, and `␣` is a leading space folded into the stream. That guarantees zero `[UNK]`, but on this tiny corpus its vocabulary floors at that 256-byte alphabet with almost nothing left to merge, so it stays near character-level: 35 tokens — by far the most here.",
+    "s5": "Side by side, the verdict is plain: 7 vs 9 vs 13 vs 35 tokens for the very same sentence and the very same training corpus. Ranked fewest (green) to most (amber), the efficiency bars say it at a glance. Fewer tokens means less compute (attention is O(n²)), a cheaper API bill, and a longer effective context window — which is exactly why the choice of tokenizer is never neutral."
+  },
+  "i18n": {
+    "en": {
+      "alt": "Several tokenizers split the same text differently, shown side by side with their token counts.",
+      "inputHead": "The same input, four cutters, one tiny corpus",
+      "tokensLab": "tokens",
+      "moreChip": "… +{n} more",
+      "markerHash": "## marks a word-internal piece (a continuation)",
+      "markerSpace": "␣ marks a leading space folded into the byte stream",
+      "verdict": "Fewer tokens = more efficient: less compute, cheaper API, longer effective context.",
+      "s0": "One input to cut: «the unhappiness of replaying games». We trained four tokenizers on the SAME tiny corpus toward the SAME small target vocabulary, so the only thing that differs is HOW each one chooses to split. (The corpus is so small that each algorithm lands at its own real size — the byte-level cutter floors at its 256-byte alphabet, the others end up smaller.) Watch the same five words become wildly different token streams.",
+      "s1": "BPE goes first — it merges the most FREQUENT adjacent pair, over and over. On this small vocabulary it has learned `unhappiness`, `playing` and `games` as whole pieces, so the input costs just 7 tokens: [the · un · happiness · of · re · playing · games]. The fewest — the most efficient cutter here.",
+      "s2": "WordPiece (BERT's cutter) merges by likelihood GAIN, not raw frequency, and it MARKS every word-internal piece with `##`. The bare piece starts a word; each `##` glues onto the one before. Here `unhappiness` becomes `un ##h ##app ##iness` — 9 tokens, two more than BPE, but the word boundaries stay legible.",
+      "s3": "Unigram (the cutter behind SentencePiece, T5, LLaMA) runs the loop BACKWARDS: it fits a probabilistic language model over a big seed vocabulary and then keeps the segmentation the model finds most LIKELY. Its likelihood decode splits `unhappiness` as `un happi ne s s` — 13 tokens, finer than the merge-based two.",
+      "s4": "Byte-level BPE (GPT-2/4's cutter) works on raw BYTES — its alphabet is all 256 of them, and `␣` is a leading space folded into the stream. That guarantees zero `[UNK]`, but on this tiny corpus its vocabulary floors at that 256-byte alphabet with almost nothing left to merge, so it stays near character-level: 35 tokens — by far the most here.",
+      "s5": "Side by side, the verdict is plain: 7 vs 9 vs 13 vs 35 tokens for the very same sentence and the very same training corpus. Ranked fewest (green) to most (amber), the efficiency bars say it at a glance. Fewer tokens means less compute (attention is O(n²)), a cheaper API bill, and a longer effective context window — which is exactly why the choice of tokenizer is never neutral."
+    },
+    "ru": {
+      "alt": "Несколько токенизаторов по-разному разбивают один и тот же текст — показаны рядом с числом токенов.",
+      "inputHead": "Один вход, четыре резака, один крошечный корпус",
+      "tokensLab": "токенов",
+      "moreChip": "… ещё +{n}",
+      "markerHash": "## помечает внутрисловный кусок (продолжение)",
+      "markerSpace": "␣ помечает ведущий пробел, вшитый в байтовый поток",
+      "verdict": "Меньше токенов = эффективнее: меньше вычислений, дешевле API, длиннее эффективный контекст.",
+      "s0": "Один вход для разреза: «the unhappiness of replaying games». Мы обучили четыре токенизатора на ОДНОМ крошечном корпусе с ОДНИМ маленьким целевым словарём, так что различается только то, КАК каждый решает резать. (Корпус настолько мал, что каждый алгоритм приходит к своему реальному размеру — байтовый резак упирается в свой алфавит из 256 байт, остальные оказываются меньше.) Смотри, как одни и те же пять слов превращаются в совершенно разные потоки токенов.",
+      "s1": "BPE первым — он сливает самую ЧАСТУЮ соседнюю пару, снова и снова. На этом маленьком словаре он выучил `unhappiness`, `playing` и `games` как целые куски, так что вход стоит всего 7 токенов: [the · un · happiness · of · re · playing · games]. Меньше всех — самый эффективный резак здесь.",
+      "s2": "WordPiece (резак BERT) сливает по ПРИРОСТУ правдоподобия, а не по сырой частоте, и ПОМЕЧАЕТ каждый внутрисловный кусок префиксом `##`. Голый кусок начинает слово; каждый `##` приклеивается к предыдущему. Здесь `unhappiness` становится `un ##h ##app ##iness` — 9 токенов, на два больше, чем у BPE, но границы слов остаются читаемыми.",
+      "s3": "Unigram (резак за SentencePiece, T5, LLaMA) гоняет цикл ЗАДОМ НАПЕРЁД: он подгоняет вероятностную языковую модель над большим затравочным словарём и оставляет сегментацию, которую модель считает самой ВЕРОЯТНОЙ. Его правдоподобный разбор режет `unhappiness` на `un happi ne s s` — 13 токенов, мельче, чем у двух на слияниях.",
+      "s4": "Байтовый BPE (резак GPT-2/4) работает с сырыми БАЙТАМИ — его алфавит — это все 256, а `␣` — это ведущий пробел, вшитый в поток. Это гарантирует ноль `[UNK]`, но на этом крошечном корпусе его словарь упирается в тот самый алфавит из 256 байт, и сливать почти нечего, так что он остаётся около уровня символов: 35 токенов — намного больше всех здесь.",
+      "s5": "Бок о бок приговор очевиден: 7 против 9 против 13 против 35 токенов для одного и того же предложения и одного и того же обучающего корпуса. Ранжированные от меньшего (зелёный) к большему (янтарный), полосы эффективности говорят это с одного взгляда. Меньше токенов — меньше вычислений (внимание это O(n²)), дешевле счёт за API и длиннее эффективное окно контекста — именно поэтому выбор токенизатора никогда не нейтрален."
+    },
+    "tt": {
+      "alt": "Берничә токенизатор бер үк текстны төрлечә бүлә — токен саны белән янәшә күрсәтелгән.",
+      "inputHead": "Бер керем, дүрт кискеч, бер кечкенә корпус",
+      "tokensLab": "токен",
+      "moreChip": "… тагын +{n}",
+      "markerHash": "## сүз эчендәге кисәкне билгели (дәвам)",
+      "markerSpace": "␣ байт агымына теккән алдагы бушлыкны билгели",
+      "verdict": "Азрак токен = нәтиҗәлерәк: азрак исәпләү, арзанрак API, озынрак эффектив контекст.",
+      "s0": "Кисәр өчен бер керем: «the unhappiness of replaying games». Без дүрт токенлаштыргычны БЕР кечкенә корпуста БЕР кечкенә максат сүзлегенә таба өйрәттек, шуңа күрә бары тик һәркайсы НИЧЕК кисәргә сайлавы гына аерыла. (Корпус шул кадәр кечкенә ки, һәр алгоритм үз чын зурлыгына килә — байт кискече үзенең 256 байт алфавитына төртелә, калганнары кечерәк була.) Шул ук биш сүзнең бөтенләй төрле токен агымнарына әйләнгәнен күзәт.",
+      "s1": "Беренче — BPE: ул иң ЕШ очраган күрше парны кабат-кабат куша. Бу кечкенә сүзлектә ул `unhappiness`, `playing` һәм `games`-ны бөтен кисәк итеп өйрәнгән, шуңа күрә керем небары 7 токен тора: [the · un · happiness · of · re · playing · games]. Иң азы — биредә иң нәтиҗәле кискеч.",
+      "s2": "WordPiece (BERT кискече) чи ешлык буенча түгел, ихтималлык ҮСЕШЕ буенча куша, һәм һәр сүз эчендәге кисәкне `##` белән БИЛГЕЛИ. Ялангач кисәк сүзне башлый; һәр `##` алдагысына ябыша. Биредә `unhappiness` `un ##h ##app ##iness` була — 9 токен, BPE-дан икегә күбрәк, ләкин сүз чикләре укылырлык кала.",
+      "s3": "Unigram (SentencePiece, T5, LLaMA артындагы кискеч) циклны АРТКАРАК гонит: ул зур орлык сүзлеге өстендә ихтималлык тел моделен туры китерә һәм модель иң ИХТИМАЛ дип санаган сегментлауны калдыра. Аның ихтималлык чишелеше `unhappiness`-ны `un happi ne s s` итеп кисә — 13 токен, кушуга нигезләнгән икесеннән дә ваграк.",
+      "s4": "Байт BPE (GPT-2/4 кискече) чи БАЙТЛАР белән эшли — аның алфавиты — барлык 256-сы, ә `␣` — агымга теккән алдагы бушлык. Бу нуль `[UNK]` гарантияли, ләкин бу кечкенә корпуста аның сүзлеге шул 256 байт алфавитына төртелә, кушарга диярлек бернәрсә калмый, шуңа күрә ул символ дәрәҗәсенә якын кала: 35 токен — биредә күпкә күбрәк.",
+      "s5": "Янәшә куйганда хөкем ачык: бер үк җөмлә һәм бер үк өйрәтү корпусы өчен 7-гә каршы 9-га каршы 13-кә каршы 35 токен. Аздан (яшел) күпкә (гәрәбә) таба тезелгән нәтиҗәлелек сызыклары моны бер карашта әйтә. Азрак токен — азрак исәпләү (игътибар O(n²)), арзанрак API счёты һәм озынрак эффектив контекст тәрәзәсе — нәкъ шуңа күрә токенлаштыргыч сайлау беркайчан да нейтраль түгел."
+    }
+  }
+}
+  </script>
+  <p class="viz-caption"><span lang="ru">Таблица с прошлого слайда &mdash; теперь в действии: один и тот же обучающий корпус, одно и то же предложение, четыре разных разреза. Сравни, где резаки согласны, а где расходятся, и заметь метки, по которым каждый узнаётся с одного взгляда. Расплата за гарантию &laquo;никаких неизвестных токенов&raquo; тоже видна сразу &mdash; длиной последовательности.</span><span lang="en">The comparison table from the previous slide, now in action: the same training corpus, the same sentence, four different cuts. See where the cutters agree, where they diverge, and the marks that identify each at a glance. The price of the &ldquo;no unknown tokens, ever&rdquo; guarantee is visible immediately too &mdash; as sequence length.</span></p>
+  <aside class="slide-notes">The climb that closes the algorithm block: all four tokenizations come from data/l2-tokenizers.json (four cutters trained on the SAME tiny corpus toward the same vocabulary budget), so every difference on screen is caused by the algorithm, not the data. Steps: (0) the input; (1) BPE; (2) WordPiece &mdash; point at the ## word-internal marks; (3) Unigram &mdash; the loop run backwards, prune not merge; (4) byte-level BPE &mdash; the leading-space glyph and why bytes guarantee zero UNK; (5) the side-by-side verdict &mdash; DWELL here. Students stumble on ## vs the leading-space convention: same problem (word boundaries), two opposite encodings. This slide is the last stop before the timeline &mdash; keep the pace brisk until step 5.</aside>
+</section>

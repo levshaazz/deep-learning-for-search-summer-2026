@@ -1,0 +1,242 @@
+<section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="49a Climb &middot; ab-test">
+  <div class="slide-header">
+    <h2><span lang="ru">A/B-тест: прирост или удача?</span><span lang="en">The A/B test: lift or luck?</span></h2>
+    <span class="slide-kicker"><span lang="ru">шаг (&larr;/&rarr;): раздели трафик &rarr; поверхностный прирост &rarr; проверка на удачу &rarr; вердикт</span><span lang="en">step (&larr;/&rarr;): split the traffic &rarr; the surface lift &rarr; the luck check &rarr; the verdict</span></span>
+  </div>
+  <div class="widget-mount" data-widget="ab-test"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "_doc": "Online evaluation numbers for L4: (a) an A/B test (control vs treatment CTR with sample sizes + two-proportion z-test and p-value); (b) a team-draft interleaving worked example (per-query credit to A vs B); (c) a position-bias / examination-probability curve P(exam|rank) = γ^(rank−1) with γ=0.94 CHOSEN HERE for the geometric form (a legible 1.00→0.57 decay over ten ranks). NOT the l1-click-model.json γ: that file's γ=0.94 parameterises a power-law examination ∝ 1/rank^γ fit to rank-1 ≈ 32% of clicks — a different model that shares the numeral by coincidence; transplanting its γ into the geometric form would imply a rank-1 click share of ~13%, contradicting the L1 fit.",
+    "_source": "_research/gen_l4.py · A/B and interleaving are illustrative synthetic counts; γ=0.94 is this file's own geometric-decay display parameter (see _doc)",
+    "abTest": {
+      "control": {
+        "n": 10000,
+        "clicks": 1200,
+        "ctr": 0.12
+      },
+      "treatment": {
+        "n": 10000,
+        "clicks": 1320,
+        "ctr": 0.132
+      },
+      "pooledCtr": 0.126,
+      "se": 0.00469,
+      "z": 2.557,
+      "p": 0.01056,
+      "absoluteLift": 0.012,
+      "relativeLiftPct": 10.0,
+      "significant05": true,
+      "steps": {
+        "_doc": "Substituted pieces for the two-proportion z-test (pooled p̄, SE, z).",
+        "pPooled": 0.126,
+        "pPooledExpr": "(1200+1320)/(10000+10000) = 2520/20000 = 0.126",
+        "se": 0.00469,
+        "seExpr": "√(0.126·0.874·(1/10000+1/10000)) = 0.00469",
+        "z": 2.557,
+        "zExpr": "(0.132−0.120)/0.00469 = 2.5570",
+        "pSource": "z→p is a standard-normal table lookup (two-sided)."
+      }
+    },
+    "interleaving": {
+      "method": "team-draft",
+      "queries": [
+        {
+          "q": "q1",
+          "creditA": 2,
+          "creditB": 3
+        },
+        {
+          "q": "q2",
+          "creditA": 1,
+          "creditB": 3
+        },
+        {
+          "q": "q3",
+          "creditA": 3,
+          "creditB": 2
+        },
+        {
+          "q": "q4",
+          "creditA": 1,
+          "creditB": 5
+        },
+        {
+          "q": "q5",
+          "creditA": 2,
+          "creditB": 3
+        }
+      ],
+      "totalCreditA": 9,
+      "totalCreditB": 16,
+      "queriesPreferringB": 4,
+      "nQueries": 5,
+      "preferenceForB": 0.64,
+      "note": "B wins the interleaving preference — far more sensitive than A/B at equal traffic.",
+      "interleaveWorkedQuery": {
+        "_doc": "ONE concrete team-draft worked query (consistent with q1 above: A=2, B=3). Two input rankings, the interleaved draft order with per-slot source tags, the clicked positions, and the resulting per-team credit.",
+        "q": "q1",
+        "rankingA": [
+          "a1",
+          "a2",
+          "a3",
+          "a4"
+        ],
+        "rankingB": [
+          "b1",
+          "b2",
+          "b3",
+          "b4"
+        ],
+        "draft": [
+          {
+            "slot": 1,
+            "doc": "b1",
+            "source": "B"
+          },
+          {
+            "slot": 2,
+            "doc": "a1",
+            "source": "A"
+          },
+          {
+            "slot": 3,
+            "doc": "b2",
+            "source": "B"
+          },
+          {
+            "slot": 4,
+            "doc": "a2",
+            "source": "A"
+          },
+          {
+            "slot": 5,
+            "doc": "b3",
+            "source": "B"
+          },
+          {
+            "slot": 6,
+            "doc": "a3",
+            "source": "A"
+          }
+        ],
+        "draftOrder": [
+          "b1",
+          "a1",
+          "b2",
+          "a2",
+          "b3",
+          "a3"
+        ],
+        "sourceTags": [
+          "B",
+          "A",
+          "B",
+          "A",
+          "B",
+          "A"
+        ],
+        "clickedSlots": [
+          1,
+          2,
+          3,
+          5,
+          6
+        ],
+        "clickedDocs": [
+          "b1",
+          "a1",
+          "b2",
+          "b3",
+          "a3"
+        ],
+        "creditA": 2,
+        "creditB": 3,
+        "creditExpr": "clicks on A-sourced slots = 2; on B-sourced slots = 3"
+      }
+    },
+    "positionBias": {
+      "model": "geometric examination P(exam|rank)=γ^(rank-1)",
+      "gamma": 0.94,
+      "ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "examProb": [
+        1.0,
+        0.94,
+        0.8836,
+        0.8306,
+        0.7807,
+        0.7339,
+        0.6899,
+        0.6485,
+        0.6096,
+        0.573
+      ],
+      "note": "γ=0.94 is local to this geometric illustration — NOT the power-law γ of l1-click-model.json (same numeral, different functional form; see _doc)."
+    }
+  },
+  "labels": {
+    "alt": "Two click-through-rate bars, control versus variant, with a significance readout: the +10% lift clears p < 0.05.",
+    "armA": "A · control",
+    "armB": "B · variant",
+    "yaxis": "click-through rate",
+    "verdictReal": "The lift is real — ship B.",
+    "verdictNoise": "Could be noise — hold.",
+    "s0": "Split live traffic in two: 10,000 users see the old ranker (A), 10,000 see the new one (B). Then just watch what they click.",
+    "s1": "B wins on the surface: click-through rises 12% → 13.2%. That's +1.2 points absolute — a +10% relative lift. Ship B?",
+    "s2": "Not yet — could it be luck? If A and B were truly equal, how surprising is this gap? The two-proportion z-test pools the rate (p̄ = 0.126) and measures the gap in standard errors: z = 0.012 / 0.00469 ≈ 2.557.",
+    "s3": "z ≈ 2.557 maps to p ≈ 0.011 — far below 0.05. Pure luck would fake a gap this big only ~1% of the time. With 20,000 users behind it, the lift is real. Ship B."
+  },
+  "i18n": {
+    "en": {
+      "alt": "Two click-through-rate bars, control versus variant, with a significance readout: the +10% lift clears p < 0.05.",
+      "armA": "A · control",
+      "armB": "B · variant",
+      "yaxis": "click-through rate",
+      "verdictReal": "The lift is real — ship B.",
+      "verdictNoise": "Could be noise — hold.",
+      "s0": "Split live traffic in two: 10,000 users see the old ranker (A), 10,000 see the new one (B). Then just watch what they click.",
+      "s1": "B wins on the surface: click-through rises 12% → 13.2%. That's +1.2 points absolute — a +10% relative lift. Ship B?",
+      "s2": "Not yet — could it be luck? If A and B were truly equal, how surprising is this gap? The two-proportion z-test pools the rate (p̄ = 0.126) and measures the gap in standard errors: z = 0.012 / 0.00469 ≈ 2.557.",
+      "s3": "z ≈ 2.557 maps to p ≈ 0.011 — far below 0.05. Pure luck would fake a gap this big only ~1% of the time. With 20,000 users behind it, the lift is real. Ship B."
+    },
+    "ru": {
+      "alt": "Два столбца кликабельности, контроль против варианта, с показателем значимости: прирост +10% берёт p < 0,05.",
+      "armA": "A · контроль",
+      "armB": "B · вариант",
+      "yaxis": "кликабельность",
+      "verdictReal": "Прирост настоящий — выкатываем B.",
+      "verdictNoise": "Может быть шум — придержи.",
+      "s0": "Раздели живой трафик надвое: 10 000 пользователей видят старый ранкер (A), 10 000 — новый (B). И просто смотри, что они кликают.",
+      "s1": "На вид B побеждает: кликабельность растёт 12% → 13,2%. Это +1,2 пункта абсолютно — относительный прирост +10%. Выкатываем B?",
+      "s2": "Пока нет — а вдруг это удача? Будь A и B на самом деле равны, насколько удивителен этот разрыв? Двухпропорциональный z-тест объединяет ставку (p̄ = 0,126) и меряет разрыв в стандартных ошибках: z = 0,012 / 0,00469 ≈ 2,557.",
+      "s3": "z ≈ 2,557 даёт p ≈ 0,011 — намного ниже 0,05. Чистая удача подделала бы такой разрыв лишь ~1% времени. С 20 000 пользователей за спиной прирост настоящий. Выкатываем B."
+    },
+    "tt": {
+      "alt": "Кликлылыкның ике баганасы, контроль варианты каршында, әһәмиятлелек күрсәткече белән: +10% өстәмә p < 0.05 чигеннән уза.",
+      "armA": "A · контроль",
+      "armB": "B · вариант",
+      "yaxis": "кликлылык",
+      "verdictReal": "Өстәмә чын — B-ны чыгарабыз.",
+      "verdictNoise": "Шау-шу булырга мөмкин — туктап тор.",
+      "s0": "Җанлы трафикны икегә бүл: 10 000 кулланучы иске ранкерны (A), 10 000-е яңасын (B) күрә. Аннан соң алар нәрсәгә кликлаганын күзәт.",
+      "s1": "Тышкы яктан B җиңә: кликлылык 12% → 13,2%-ка үсә. Бу абсолют +1,2 пункт — чагыштырмача +10% өстәмә. B-ны чыгарабызмы?",
+      "s2": "Әле түгел — бәлки бу бәхеттер? A белән B чыннан да тигез булса, бу аерма никадәр гаҗәп? Ике пропорцияле z-тест ставканы берләштерә (p̄ = 0,126) һәм аерманы стандарт хаталарда үлчи: z = 0,012 / 0,00469 ≈ 2,557.",
+      "s3": "z ≈ 2,557 p ≈ 0,011-гә туры килә — 0,05-тән күпкә түбән. Саф бәхет мондый зур аерманы бары тик ~1% очракта гына ясар иде. Артында 20 000 кулланучы белән өстәмә чын. B-ны чыгарабыз."
+    }
+  }
+}
+  </script>
+  <p class="viz-caption"><span lang="ru">Тот же тест, что и на прошлом слайде, &mdash; теперь доведи его до вердикта сам. Прирост на поверхности ещё ничего не значит: сначала спроси, насколько удивителен такой разрыв, если оба ранкера на самом деле равны. Только после этого ответа слово &laquo;выкатываем&raquo; имеет право прозвучать &mdash; а подводные камни ждут на следующем слайде.</span><span lang="en">The same test as the previous slide &mdash; now carry it to the verdict yourself. A lift on the surface means nothing yet: first ask how surprising a gap this size would be if the two rankers were actually equal. Only after that answer does the word &ldquo;ship&rdquo; earn the right to be said &mdash; and the pitfalls are waiting on the next slide.</span></p>
+  <aside class="slide-notes">Act 6&rsquo;s climb, straight after the A/B definition slide and before the guardrails-and-pitfalls slide. Counts, rates and the test statistic all come from data/l4-online.json. Steps: (0) the traffic split &mdash; emphasise randomisation, it is what makes the later inference legal; (1) the surface lift &mdash; PAUSE and ask the room &ldquo;ship it?&rdquo;, let them commit; (2) the luck check &mdash; same logic as the offline act&rsquo;s significance climb, one act earlier: how surprising is this gap under equality?; (3) the verdict. The deliberate echo between this climb and the significance climb is the lecture&rsquo;s spine: offline or online, the question is always &ldquo;real or luck?&rdquo;. Students stumble on absolute vs relative lift &mdash; step 1 shows both, read them aloud carefully.</aside>
+</section>

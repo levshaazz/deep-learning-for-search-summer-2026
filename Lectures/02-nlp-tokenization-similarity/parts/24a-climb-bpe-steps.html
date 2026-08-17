@@ -1,0 +1,974 @@
+<section class="slide" data-type="viz" data-max-step="9" data-current-step="0" data-screen-label="24a Climb &middot; bpe-steps">
+  <div class="slide-header">
+    <h2><span lang="ru">Цикл BPE своими руками: посчитай &mdash; слей &mdash; повтори</span><span lang="en">The BPE loop by hand: count &mdash; merge &mdash; repeat</span></h2>
+    <span class="slide-kicker"><span lang="ru">шаг (&larr;/&rarr;): пять слияний подряд; читай счётчик пар до того, как выбирать</span><span lang="en">step (&larr;/&rarr;): five merges end to end; read the pair tally before you pick</span></span>
+  </div>
+  <div class="widget-mount" data-widget="bpe-steps"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "_doc": "Per-step BPE TRAINING trace for L2 'climb-bpe-steps' beat (widget bpe-steps). The deck's 'BPE on a real word corpus' slide run live: split into chars+</w>, count adjacent pairs weighted by word frequency, pick the most frequent, merge, re-tokenize, repeat. Each step carries the corpus tokenization, the full pair tally (winner flagged), the winner's per-word breakdown, and the resulting merge. Numbers match the deck (e s = 6+3 = 9, s t = 9, l o = 5+2 = 7, ...).",
+    "_source": "_research/gen_bpe_steps.py (plain-Python frequency BPE; SOURCE OF TRUTH)",
+    "corpus": [
+      {
+        "word": "low",
+        "freq": 5
+      },
+      {
+        "word": "lower",
+        "freq": 2
+      },
+      {
+        "word": "newest",
+        "freq": 6
+      },
+      {
+        "word": "widest",
+        "freq": 3
+      }
+    ],
+    "eow": "</w>",
+    "nMerges": 5,
+    "merges": [
+      {
+        "rank": 1,
+        "left": "e",
+        "right": "s",
+        "joined": "es",
+        "count": 9
+      },
+      {
+        "rank": 2,
+        "left": "es",
+        "right": "t",
+        "joined": "est",
+        "count": 9
+      },
+      {
+        "rank": 3,
+        "left": "est",
+        "right": "</w>",
+        "joined": "est</w>",
+        "count": 9
+      },
+      {
+        "rank": 4,
+        "left": "l",
+        "right": "o",
+        "joined": "lo",
+        "count": 7
+      },
+      {
+        "rank": 5,
+        "left": "lo",
+        "right": "w",
+        "joined": "low",
+        "count": 7
+      }
+    ],
+    "steps": [
+      {
+        "step": 0,
+        "tokensBefore": [
+          {
+            "word": "low",
+            "freq": 5,
+            "tokens": [
+              "l",
+              "o",
+              "w",
+              "</w>"
+            ]
+          },
+          {
+            "word": "lower",
+            "freq": 2,
+            "tokens": [
+              "l",
+              "o",
+              "w",
+              "e",
+              "r",
+              "</w>"
+            ]
+          },
+          {
+            "word": "newest",
+            "freq": 6,
+            "tokens": [
+              "n",
+              "e",
+              "w",
+              "e",
+              "s",
+              "t",
+              "</w>"
+            ]
+          },
+          {
+            "word": "widest",
+            "freq": 3,
+            "tokens": [
+              "w",
+              "i",
+              "d",
+              "e",
+              "s",
+              "t",
+              "</w>"
+            ]
+          }
+        ],
+        "tally": [
+          {
+            "left": "e",
+            "right": "s",
+            "joined": "es",
+            "count": 9,
+            "isWinner": true
+          },
+          {
+            "left": "s",
+            "right": "t",
+            "joined": "st",
+            "count": 9,
+            "isWinner": false
+          },
+          {
+            "left": "t",
+            "right": "</w>",
+            "joined": "t</w>",
+            "count": 9,
+            "isWinner": false
+          },
+          {
+            "left": "w",
+            "right": "e",
+            "joined": "we",
+            "count": 8,
+            "isWinner": false
+          },
+          {
+            "left": "l",
+            "right": "o",
+            "joined": "lo",
+            "count": 7,
+            "isWinner": false
+          },
+          {
+            "left": "o",
+            "right": "w",
+            "joined": "ow",
+            "count": 7,
+            "isWinner": false
+          }
+        ],
+        "winner": {
+          "left": "e",
+          "right": "s",
+          "joined": "es",
+          "count": 9,
+          "breakdown": [
+            {
+              "word": "newest",
+              "freq": 6,
+              "occurrences": 1,
+              "contribution": 6
+            },
+            {
+              "word": "widest",
+              "freq": 3,
+              "occurrences": 1,
+              "contribution": 3
+            }
+          ]
+        },
+        "tie": [
+          "es",
+          "st",
+          "t</w>"
+        ],
+        "tokensAfter": [
+          {
+            "word": "low",
+            "freq": 5,
+            "tokens": [
+              "l",
+              "o",
+              "w",
+              "</w>"
+            ]
+          },
+          {
+            "word": "lower",
+            "freq": 2,
+            "tokens": [
+              "l",
+              "o",
+              "w",
+              "e",
+              "r",
+              "</w>"
+            ]
+          },
+          {
+            "word": "newest",
+            "freq": 6,
+            "tokens": [
+              "n",
+              "e",
+              "w",
+              "es",
+              "t",
+              "</w>"
+            ]
+          },
+          {
+            "word": "widest",
+            "freq": 3,
+            "tokens": [
+              "w",
+              "i",
+              "d",
+              "es",
+              "t",
+              "</w>"
+            ]
+          }
+        ]
+      },
+      {
+        "step": 1,
+        "tokensBefore": [
+          {
+            "word": "low",
+            "freq": 5,
+            "tokens": [
+              "l",
+              "o",
+              "w",
+              "</w>"
+            ]
+          },
+          {
+            "word": "lower",
+            "freq": 2,
+            "tokens": [
+              "l",
+              "o",
+              "w",
+              "e",
+              "r",
+              "</w>"
+            ]
+          },
+          {
+            "word": "newest",
+            "freq": 6,
+            "tokens": [
+              "n",
+              "e",
+              "w",
+              "es",
+              "t",
+              "</w>"
+            ]
+          },
+          {
+            "word": "widest",
+            "freq": 3,
+            "tokens": [
+              "w",
+              "i",
+              "d",
+              "es",
+              "t",
+              "</w>"
+            ]
+          }
+        ],
+        "tally": [
+          {
+            "left": "es",
+            "right": "t",
+            "joined": "est",
+            "count": 9,
+            "isWinner": true
+          },
+          {
+            "left": "t",
+            "right": "</w>",
+            "joined": "t</w>",
+            "count": 9,
+            "isWinner": false
+          },
+          {
+            "left": "l",
+            "right": "o",
+            "joined": "lo",
+            "count": 7,
+            "isWinner": false
+          },
+          {
+            "left": "o",
+            "right": "w",
+            "joined": "ow",
+            "count": 7,
+            "isWinner": false
+          },
+          {
+            "left": "e",
+            "right": "w",
+            "joined": "ew",
+            "count": 6,
+            "isWinner": false
+          },
+          {
+            "left": "n",
+            "right": "e",
+            "joined": "ne",
+            "count": 6,
+            "isWinner": false
+          }
+        ],
+        "winner": {
+          "left": "es",
+          "right": "t",
+          "joined": "est",
+          "count": 9,
+          "breakdown": [
+            {
+              "word": "newest",
+              "freq": 6,
+              "occurrences": 1,
+              "contribution": 6
+            },
+            {
+              "word": "widest",
+              "freq": 3,
+              "occurrences": 1,
+              "contribution": 3
+            }
+          ]
+        },
+        "tie": [
+          "est",
+          "t</w>"
+        ],
+        "tokensAfter": [
+          {
+            "word": "low",
+            "freq": 5,
+            "tokens": [
+              "l",
+              "o",
+              "w",
+              "</w>"
+            ]
+          },
+          {
+            "word": "lower",
+            "freq": 2,
+            "tokens": [
+              "l",
+              "o",
+              "w",
+              "e",
+              "r",
+              "</w>"
+            ]
+          },
+          {
+            "word": "newest",
+            "freq": 6,
+            "tokens": [
+              "n",
+              "e",
+              "w",
+              "est",
+              "</w>"
+            ]
+          },
+          {
+            "word": "widest",
+            "freq": 3,
+            "tokens": [
+              "w",
+              "i",
+              "d",
+              "est",
+              "</w>"
+            ]
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "tokensBefore": [
+          {
+            "word": "low",
+            "freq": 5,
+            "tokens": [
+              "l",
+              "o",
+              "w",
+              "</w>"
+            ]
+          },
+          {
+            "word": "lower",
+            "freq": 2,
+            "tokens": [
+              "l",
+              "o",
+              "w",
+              "e",
+              "r",
+              "</w>"
+            ]
+          },
+          {
+            "word": "newest",
+            "freq": 6,
+            "tokens": [
+              "n",
+              "e",
+              "w",
+              "est",
+              "</w>"
+            ]
+          },
+          {
+            "word": "widest",
+            "freq": 3,
+            "tokens": [
+              "w",
+              "i",
+              "d",
+              "est",
+              "</w>"
+            ]
+          }
+        ],
+        "tally": [
+          {
+            "left": "est",
+            "right": "</w>",
+            "joined": "est</w>",
+            "count": 9,
+            "isWinner": true
+          },
+          {
+            "left": "l",
+            "right": "o",
+            "joined": "lo",
+            "count": 7,
+            "isWinner": false
+          },
+          {
+            "left": "o",
+            "right": "w",
+            "joined": "ow",
+            "count": 7,
+            "isWinner": false
+          },
+          {
+            "left": "e",
+            "right": "w",
+            "joined": "ew",
+            "count": 6,
+            "isWinner": false
+          },
+          {
+            "left": "n",
+            "right": "e",
+            "joined": "ne",
+            "count": 6,
+            "isWinner": false
+          },
+          {
+            "left": "w",
+            "right": "est",
+            "joined": "west",
+            "count": 6,
+            "isWinner": false
+          }
+        ],
+        "winner": {
+          "left": "est",
+          "right": "</w>",
+          "joined": "est</w>",
+          "count": 9,
+          "breakdown": [
+            {
+              "word": "newest",
+              "freq": 6,
+              "occurrences": 1,
+              "contribution": 6
+            },
+            {
+              "word": "widest",
+              "freq": 3,
+              "occurrences": 1,
+              "contribution": 3
+            }
+          ]
+        },
+        "tie": [],
+        "tokensAfter": [
+          {
+            "word": "low",
+            "freq": 5,
+            "tokens": [
+              "l",
+              "o",
+              "w",
+              "</w>"
+            ]
+          },
+          {
+            "word": "lower",
+            "freq": 2,
+            "tokens": [
+              "l",
+              "o",
+              "w",
+              "e",
+              "r",
+              "</w>"
+            ]
+          },
+          {
+            "word": "newest",
+            "freq": 6,
+            "tokens": [
+              "n",
+              "e",
+              "w",
+              "est</w>"
+            ]
+          },
+          {
+            "word": "widest",
+            "freq": 3,
+            "tokens": [
+              "w",
+              "i",
+              "d",
+              "est</w>"
+            ]
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "tokensBefore": [
+          {
+            "word": "low",
+            "freq": 5,
+            "tokens": [
+              "l",
+              "o",
+              "w",
+              "</w>"
+            ]
+          },
+          {
+            "word": "lower",
+            "freq": 2,
+            "tokens": [
+              "l",
+              "o",
+              "w",
+              "e",
+              "r",
+              "</w>"
+            ]
+          },
+          {
+            "word": "newest",
+            "freq": 6,
+            "tokens": [
+              "n",
+              "e",
+              "w",
+              "est</w>"
+            ]
+          },
+          {
+            "word": "widest",
+            "freq": 3,
+            "tokens": [
+              "w",
+              "i",
+              "d",
+              "est</w>"
+            ]
+          }
+        ],
+        "tally": [
+          {
+            "left": "l",
+            "right": "o",
+            "joined": "lo",
+            "count": 7,
+            "isWinner": true
+          },
+          {
+            "left": "o",
+            "right": "w",
+            "joined": "ow",
+            "count": 7,
+            "isWinner": false
+          },
+          {
+            "left": "e",
+            "right": "w",
+            "joined": "ew",
+            "count": 6,
+            "isWinner": false
+          },
+          {
+            "left": "n",
+            "right": "e",
+            "joined": "ne",
+            "count": 6,
+            "isWinner": false
+          },
+          {
+            "left": "w",
+            "right": "est</w>",
+            "joined": "west</w>",
+            "count": 6,
+            "isWinner": false
+          },
+          {
+            "left": "w",
+            "right": "</w>",
+            "joined": "w</w>",
+            "count": 5,
+            "isWinner": false
+          }
+        ],
+        "winner": {
+          "left": "l",
+          "right": "o",
+          "joined": "lo",
+          "count": 7,
+          "breakdown": [
+            {
+              "word": "low",
+              "freq": 5,
+              "occurrences": 1,
+              "contribution": 5
+            },
+            {
+              "word": "lower",
+              "freq": 2,
+              "occurrences": 1,
+              "contribution": 2
+            }
+          ]
+        },
+        "tie": [
+          "lo",
+          "ow"
+        ],
+        "tokensAfter": [
+          {
+            "word": "low",
+            "freq": 5,
+            "tokens": [
+              "lo",
+              "w",
+              "</w>"
+            ]
+          },
+          {
+            "word": "lower",
+            "freq": 2,
+            "tokens": [
+              "lo",
+              "w",
+              "e",
+              "r",
+              "</w>"
+            ]
+          },
+          {
+            "word": "newest",
+            "freq": 6,
+            "tokens": [
+              "n",
+              "e",
+              "w",
+              "est</w>"
+            ]
+          },
+          {
+            "word": "widest",
+            "freq": 3,
+            "tokens": [
+              "w",
+              "i",
+              "d",
+              "est</w>"
+            ]
+          }
+        ]
+      },
+      {
+        "step": 4,
+        "tokensBefore": [
+          {
+            "word": "low",
+            "freq": 5,
+            "tokens": [
+              "lo",
+              "w",
+              "</w>"
+            ]
+          },
+          {
+            "word": "lower",
+            "freq": 2,
+            "tokens": [
+              "lo",
+              "w",
+              "e",
+              "r",
+              "</w>"
+            ]
+          },
+          {
+            "word": "newest",
+            "freq": 6,
+            "tokens": [
+              "n",
+              "e",
+              "w",
+              "est</w>"
+            ]
+          },
+          {
+            "word": "widest",
+            "freq": 3,
+            "tokens": [
+              "w",
+              "i",
+              "d",
+              "est</w>"
+            ]
+          }
+        ],
+        "tally": [
+          {
+            "left": "lo",
+            "right": "w",
+            "joined": "low",
+            "count": 7,
+            "isWinner": true
+          },
+          {
+            "left": "e",
+            "right": "w",
+            "joined": "ew",
+            "count": 6,
+            "isWinner": false
+          },
+          {
+            "left": "n",
+            "right": "e",
+            "joined": "ne",
+            "count": 6,
+            "isWinner": false
+          },
+          {
+            "left": "w",
+            "right": "est</w>",
+            "joined": "west</w>",
+            "count": 6,
+            "isWinner": false
+          },
+          {
+            "left": "w",
+            "right": "</w>",
+            "joined": "w</w>",
+            "count": 5,
+            "isWinner": false
+          },
+          {
+            "left": "d",
+            "right": "est</w>",
+            "joined": "dest</w>",
+            "count": 3,
+            "isWinner": false
+          }
+        ],
+        "winner": {
+          "left": "lo",
+          "right": "w",
+          "joined": "low",
+          "count": 7,
+          "breakdown": [
+            {
+              "word": "low",
+              "freq": 5,
+              "occurrences": 1,
+              "contribution": 5
+            },
+            {
+              "word": "lower",
+              "freq": 2,
+              "occurrences": 1,
+              "contribution": 2
+            }
+          ]
+        },
+        "tie": [],
+        "tokensAfter": [
+          {
+            "word": "low",
+            "freq": 5,
+            "tokens": [
+              "low",
+              "</w>"
+            ]
+          },
+          {
+            "word": "lower",
+            "freq": 2,
+            "tokens": [
+              "low",
+              "e",
+              "r",
+              "</w>"
+            ]
+          },
+          {
+            "word": "newest",
+            "freq": 6,
+            "tokens": [
+              "n",
+              "e",
+              "w",
+              "est</w>"
+            ]
+          },
+          {
+            "word": "widest",
+            "freq": 3,
+            "tokens": [
+              "w",
+              "i",
+              "d",
+              "est</w>"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "labels": {
+    "alt": "Byte-Pair Encoding step by step: each step merges the most frequent character pair, shortening the token sequence toward subwords.",
+    "corpusHead": "Corpus — current tokens (× word frequency)",
+    "tallyHead": "Count adjacent pairs, weighted by frequency",
+    "mergeHead": "Merge the winner, re-tokenize",
+    "pairCol": "pair",
+    "countCol": "count",
+    "winnerTag": "max",
+    "winnerTieTag": "max·tie-break",
+    "tieTag": "tie",
+    "mergeRule": "rule",
+    "freqMark": "×",
+    "countHint": "Pick the max next →",
+    "s0": "Count first. Split every word into characters plus an end-of-word marker </w>, then count each adjacent pair weighted by the word's frequency. The pair e·s appears in newest (6) and widest (3), so e·s = 6 + 3 = 9 — and s·t and t·</w> also hit 9: a three-way tie. Nothing is merged yet — just read the counts.",
+    "s1": "Now pick the max and merge. e·s wins the tie (broken by rule order), so e·s → es and we re-tokenize: newest becomes n e w es t </w>. Watch the pick CAUSE the re-split — that is the loop running, not a finished result.",
+    "s2": "Count again on the new token sequences. The pair es·t now carries the same 9 (still from newest + widest), tied with t·</w>. Read the tally before choosing.",
+    "s3": "es·t wins → est. The suffix is assembling itself one piece at a time, chosen purely by frequency, nothing hand-coded. Re-tokenize and the est piece appears in both newest and widest.",
+    "s4": "Count the third round. The pair est·</w> still scores 9 — the highest. Just the counts for now; the merge comes next.",
+    "s5": "Merge est·</w> → est</w>: the suffix binds to the word boundary. Both newest and widest now end in one shared piece — exactly the reuse that makes sub-words beat whole words.",
+    "s6": "Count the fourth round. The 9-count cluster is exhausted; the top count drops to 7. l·o appears in low (5) and lower (2), so l·o = 5 + 2 = 7 — tied with o·w.",
+    "s7": "Merge l·o → lo. The loop has moved on to a different part of the vocabulary, driven only by what is now most frequent. Re-tokenize: low and lower both start with lo.",
+    "s8": "Last count. lo·w now scores 5 + 2 = 7 — the maximum. One more pick to go.",
+    "s9": "Merge lo·w → low. Five merges done — es, est, est</w>, lo, low — and an unseen word like lowest now falls out for free as low + est</w>, no [UNK]. That is the whole algorithm: count, pick the most frequent, merge, repeat."
+  },
+  "i18n": {
+    "en": {
+      "alt": "Byte-Pair Encoding step by step: each step merges the most frequent character pair, shortening the token sequence toward subwords.",
+      "corpusHead": "Corpus — current tokens (× word frequency)",
+      "tallyHead": "Count adjacent pairs, weighted by frequency",
+      "mergeHead": "Merge the winner, re-tokenize",
+      "pairCol": "pair",
+      "countCol": "count",
+      "winnerTag": "max",
+      "winnerTieTag": "max·tie-break",
+      "tieTag": "tie",
+      "mergeRule": "rule",
+      "freqMark": "×",
+      "countHint": "Pick the max next →",
+      "s0": "Count first. Split every word into characters plus an end-of-word marker </w>, then count each adjacent pair weighted by the word's frequency. The pair e·s appears in newest (6) and widest (3), so e·s = 6 + 3 = 9 — and s·t and t·</w> also hit 9: a three-way tie. Nothing is merged yet — just read the counts.",
+      "s1": "Now pick the max and merge. e·s wins the tie (broken by rule order), so e·s → es and we re-tokenize: newest becomes n e w es t </w>. Watch the pick CAUSE the re-split — that is the loop running, not a finished result.",
+      "s2": "Count again on the new token sequences. The pair es·t now carries the same 9 (still from newest + widest), tied with t·</w>. Read the tally before choosing.",
+      "s3": "es·t wins → est. The suffix is assembling itself one piece at a time, chosen purely by frequency, nothing hand-coded. Re-tokenize and the est piece appears in both newest and widest.",
+      "s4": "Count the third round. The pair est·</w> still scores 9 — the highest. Just the counts for now; the merge comes next.",
+      "s5": "Merge est·</w> → est</w>: the suffix binds to the word boundary. Both newest and widest now end in one shared piece — exactly the reuse that makes sub-words beat whole words.",
+      "s6": "Count the fourth round. The 9-count cluster is exhausted; the top count drops to 7. l·o appears in low (5) and lower (2), so l·o = 5 + 2 = 7 — tied with o·w.",
+      "s7": "Merge l·o → lo. The loop has moved on to a different part of the vocabulary, driven only by what is now most frequent. Re-tokenize: low and lower both start with lo.",
+      "s8": "Last count. lo·w now scores 5 + 2 = 7 — the maximum. One more pick to go.",
+      "s9": "Merge lo·w → low. Five merges done — es, est, est</w>, lo, low — and an unseen word like lowest now falls out for free as low + est</w>, no [UNK]. That is the whole algorithm: count, pick the most frequent, merge, repeat."
+    },
+    "ru": {
+      "alt": "Byte-Pair Encoding по шагам: каждый шаг сливает самую частую пару символов, укорачивая последовательность токенов до подслов.",
+      "corpusHead": "Корпус — текущие токены (× частота слова)",
+      "tallyHead": "Считаем соседние пары, взвешенные по частоте",
+      "mergeHead": "Сливаем победителя, ре-токенизируем",
+      "pairCol": "пара",
+      "countCol": "счёт",
+      "winnerTag": "макс",
+      "winnerTieTag": "макс·ничья→правило",
+      "tieTag": "ничья",
+      "mergeRule": "правило",
+      "freqMark": "×",
+      "countHint": "Дальше выбираем максимум →",
+      "s0": "Сначала считаем. Разбиваем каждое слово на символы плюс маркер конца слова </w>, затем считаем каждую соседнюю пару, взвешивая её частотой слова. Пара e·s встречается в newest (6) и widest (3), так что e·s = 6 + 3 = 9 — и s·t, и t·</w> тоже дают 9: тройная ничья. Пока ничего не сливаем — просто читаем счёт.",
+      "s1": "Теперь выбираем максимум и сливаем. e·s выигрывает ничью (она разбита порядком правил), так что e·s → es и мы ре-токенизируем: newest становится n e w es t </w>. Смотри, как выбор ВЫЗЫВАЕТ пере-разбиение — это работающий цикл, а не готовый результат.",
+      "s2": "Считаем снова на новых последовательностях токенов. Пара es·t теперь несёт те же 9 (по-прежнему из newest + widest), вничью с t·</w>. Читаем таблицу, прежде чем выбирать.",
+      "s3": "es·t побеждает → est. Суффикс собирается по кусочку, выбранному чисто по частоте, ничего не зашито вручную. Ре-токенизируем — и кусок est появляется и в newest, и в widest.",
+      "s4": "Считаем третий круг. Пара est·</w> по-прежнему даёт 9 — наибольшее. Пока только счёт; слияние следующим шагом.",
+      "s5": "Сливаем est·</w> → est</w>: суффикс привязывается к границе слова. И newest, и widest теперь оканчиваются одним общим куском — ровно то переиспользование, которое даёт под-словам преимущество над целыми словами.",
+      "s6": "Считаем четвёртый круг. Кластер со счётом 9 исчерпан; верхний счёт падает до 7. l·o встречается в low (5) и lower (2), так что l·o = 5 + 2 = 7 — вничью с o·w.",
+      "s7": "Сливаем l·o → lo. Цикл перешёл к другой части словаря, ведомый лишь тем, что теперь чаще всего. Ре-токенизируем: и low, и lower теперь начинаются с lo.",
+      "s8": "Последний счёт. lo·w теперь даёт 5 + 2 = 7 — максимум. Остался ещё один выбор.",
+      "s9": "Сливаем lo·w → low. Пять слияний готово — es, est, est</w>, lo, low — и невиданное слово вроде lowest теперь собирается бесплатно как low + est</w>, без [UNK]. Это и есть весь алгоритм: считай, выбирай самую частую, сливай, повторяй."
+    },
+    "tt": {
+      "alt": "Byte-Pair Encoding адымлап: һәр адым иң еш символлар парын берләштерә, токен эзлеклелеген субсүзләргә кадәр кыскарта.",
+      "corpusHead": "Корпус — агымдагы токеннар (× сүз ешлыгы)",
+      "tallyHead": "Күрше парларны саныйбыз, ешлыкка карап үлчәп",
+      "mergeHead": "Җиңүчене берләштерәбез, кабат токенлаштырабыз",
+      "pairCol": "пар",
+      "countCol": "саны",
+      "winnerTag": "макс",
+      "winnerTieTag": "макс·тигезлек→кагыйдә",
+      "tieTag": "тигезлек",
+      "mergeRule": "кагыйдә",
+      "freqMark": "×",
+      "countHint": "Аннары максимумны сайлыйбыз →",
+      "s0": "Башта саныйбыз. Һәр сүзне символларга плюс сүз ахыры маркеры </w>-га бүлик, аннары һәр күрше парны сүз ешлыгына карап үлчәп саныйк. e·s пары newest-та (6) һәм widest-та (3) очрый, шуңа e·s = 6 + 3 = 9 — һәм s·t, t·</w> да 9 бирә: өчле тигезлек. Әле берни берләштермибез — бары тик саннарны укыйбыз.",
+      "s1": "Хәзер максимумны сайлап берләштерәбез. e·s тигезлекне җиңә (кагыйдә тәртибе белән хәл ителгән), шуңа e·s → es һәм кабат токенлаштырабыз: newest n e w es t </w> була. Сайлау пере-бүленүне КИТЕРЕП ЧЫГАРГАНЫН күзәт — бу эшләүче цикл, әзер нәтиҗә түгел.",
+      "s2": "Яңа токен эзлеклелекләрендә кабат саныйбыз. es·t пары хәзер шул ук 9-ны йөртә (һаман newest + widest-тан), t·</w> белән тигезлектә. Сайлаганчы таблицаны укыйбыз.",
+      "s3": "es·t җиңә → est. Кушымча үзен кисәкләп җыя, саф ешлык буенча сайланган, бернәрсә дә кул белән язылмаган. Кабат токенлаштырабыз — est кисәге newest та, widest та да күренә.",
+      "s4": "Өченче әйләнешне саныйбыз. est·</w> пары һаман 9 бирә — иң зурысы. Хәзергә бары санау; берләштерү киләсе адымда.",
+      "s5": "est·</w> → est</w> берләштерәбез: кушымча сүз чигенә бәйләнә. Хәзер newest та, widest та бер уртак кисәк белән тәмамлана — нәкъ шул кабат куллану өлеш-сүзләргә бөтен сүзләр өстеннән өстенлек бирә.",
+      "s6": "Дүртенче әйләнешне саныйбыз. Саны 9 булган кластер бетте; өске сан 7-гә төшә. l·o low-та (5) һәм lower-да (2) очрый, шуңа l·o = 5 + 2 = 7 — o·w белән тигезлектә.",
+      "s7": "l·o → lo берләштерәбез. Цикл сүзлекнең башка өлешенә күчте, бары тик хәзер иң еш очраганы белән җитәкләнеп. Кабат токенлаштырабыз: low та, lower да хәзер lo белән башлана.",
+      "s8": "Соңгы санау. lo·w хәзер 5 + 2 = 7 бирә — максимум. Тагын бер сайлау калды.",
+      "s9": "lo·w → low берләштерәбез. Биш берләштерү әзер — es, est, est</w>, lo, low — һәм lowest кебек күрелмәгән сүз хәзер бушлай low + est</w> итеп җыела, [UNK]-сыз. Менә бөтен алгоритм: сана, иң еш очраганны сайла, берләштер, кабатла."
+    }
+  }
+}
+  </script>
+  <p class="viz-caption"><span lang="ru">Определение с прошлого слайда &mdash; теперь как живой цикл: посчитай пары, слей самую частую, перетокенизируй и повтори. Смотри, как суффикс собирает себя сам, кусок за куском, без единого правила, написанного руками. К последнему шагу незнакомое слово разложится на уже готовые куски &mdash; без всякого [UNK].</span><span lang="en">The definition from the previous slide, now run as a live loop: count the pairs, merge the most frequent one, re-tokenize, repeat. Watch a suffix assemble itself piece by piece, with not a single hand-written rule. By the last step an unseen word falls apart into already-learned pieces &mdash; no [UNK] anywhere.</span></p>
+  <aside class="slide-notes">Act 2&rsquo;s main climb: the full BPE training loop on a tiny corpus, five merges end to end, read from data/l2-bpe-steps.json &mdash; every tally and every merge is precomputed there, the browser only replays it. The rhythm matters more than any single step: always READ the count table aloud before revealing the pick, so students see the pick CAUSED by the counts. Stumbling points: the end-of-word marker (why it exists &mdash; so suffixes can bind to the boundary), and ties (broken by rule order, which is also why trained BPE is deterministic but not unique &mdash; fore-echoes the misconception slide later in this act). After this loop, the compression-intuition slide and the real-corpus slide that follow land almost for free.</aside>
+</section>
