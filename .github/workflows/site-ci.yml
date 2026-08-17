@@ -27,6 +27,8 @@ on:
       - '_research/check_practice.py'
       - '_research/check_bib.py'
       - '_research/check_derived.py'
+      - '_research/check_notebooks.py'
+      - '_research/baselines/**'
       - 'data/papers.json'
       - 'seminars/**'
       - '_research/gen_images.py'
@@ -54,6 +56,8 @@ on:
       - '_research/check_practice.py'
       - '_research/check_bib.py'
       - '_research/check_derived.py'
+      - '_research/check_notebooks.py'
+      - '_research/baselines/**'
       - 'data/papers.json'
       - 'seminars/**'
       - '_research/gen_images.py'
@@ -164,6 +168,19 @@ jobs:
         run: python3 _research/check_derived.py
       - name: G27 derived-numbers self-test
         run: python3 _research/check_derived.py --selftest
+
+      # G29 — notebook-grounding: seminar prose may not invent numbers. Every number in a
+      # notebook's markdown (outside code/math/structural counters) must be derivable from its
+      # own run dump (seminars/runs/*.json) or data/; the dump cell must be the LAST code cell
+      # (dump written ⇒ every assert above it executed), and the dump's SEED must match the
+      # notebook's. Residue is a per-file ratchet that may only shrink. Exists because three
+      # premature-observation defects (Д4) shipped through a green G24 — it checks structure,
+      # not numbers. When seminars/runs-t4/ appears, quality metrics are compared strictly,
+      # timings tolerantly (owner decision).
+      - name: G29 notebook-grounding
+        run: python3 _research/check_notebooks.py
+      - name: G29 notebook-grounding self-test
+        run: python3 _research/check_notebooks.py --selftest
 
       # G12 — image-gate: the recurring mascots must stay present + on-palette (brand can't fade out).
       - name: G12 image-gate
