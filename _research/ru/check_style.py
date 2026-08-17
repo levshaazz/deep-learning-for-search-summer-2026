@@ -3,7 +3,8 @@
 """check_style — linter for narrative/style-ru.md. Report-only, CI-able.
 
 Scans ru strings in: content/book/*/beats/*.js, Lectures/*/parts/*.html,
-widgets/*/i18n.json. Codes:
+widgets/*/i18n.json, widgets/*/manifest.json ("ru" values only),
+release/video/*.md (prose lines; slide-label metadata + code excluded). Codes:
 
   ERRORS (exit 1):
     E-DEC     decimal point in ru text/math (versions & idents excluded)
@@ -219,6 +220,8 @@ def process(path, root, kind, findings):
     owns_bit = rulib.owns_subject(root, path, "bit")
     if kind in ("beats", "widgets"):
         regions = [(s, e) for lang, s, e in rulib.lang_string_spans(text) if lang == "ru"]
+    elif kind == "md":
+        regions = rulib.md_ru_spans(text)
     else:
         regions = rulib.ru_text_spans_html(text)
     for rs, re_ in regions:
@@ -245,6 +248,10 @@ def main(argv=None):
         process(path, args.root, "parts", findings)
     for path in rulib.widget_i18n_files(args.root):
         process(path, args.root, "widgets", findings)
+    for path in rulib.widget_manifest_files(args.root):
+        process(path, args.root, "widgets", findings)
+    for path in rulib.video_script_files(args.root):
+        process(path, args.root, "md", findings)
 
     if codes:
         findings = [f for f in findings if f[1] in codes]

@@ -203,6 +203,41 @@ def ru_text_spans_html(text):
     return spans
 
 
+# ----------------------------------------------------------------- MD scanning
+
+# A video script is RU spoken prose top-to-bottom EXCEPT structural metadata that mirrors
+# deck identifiers: headings and `**Слайд …**` markers quote EN data-screen-labels
+# («06 Meet Serega», "(36 Cosine ranker)") and table rows carry timings/label ranges.
+# Those labels are identifiers, and the RU slide titles they sit next to are linted at
+# their SOURCE (the deck parts) — scanning the copies would double-report and misfire
+# E-MASCOT on legitimate EN labels. Fenced blocks and `inline code` are code (§10.2).
+_MD_SKIP_LINE = re.compile(r"\s*(?:#{1,6}\s|\||\*\*Слайд)")
+_MD_INLINE_CODE = re.compile(r"`[^`\n]*`")
+
+
+def md_ru_spans(text):
+    """Return [(start, end)] prose ranges of a RU markdown script."""
+    spans = []
+    pos = 0
+    fenced = False
+    for line in text.splitlines(keepends=True):
+        start, end = pos, pos + len(line)
+        pos = end
+        if line.lstrip().startswith("```"):
+            fenced = not fenced
+            continue
+        if fenced or _MD_SKIP_LINE.match(line):
+            continue
+        cur = start
+        for m in _MD_INLINE_CODE.finditer(line):
+            if start + m.start() > cur:
+                spans.append((cur, start + m.start()))
+            cur = start + m.end()
+        if end > cur:
+            spans.append((cur, end))
+    return spans
+
+
 # ------------------------------------------------------------------- editing
 
 def apply_edits(text, edits):
@@ -247,6 +282,18 @@ def parts_files(root):
 def widget_i18n_files(root):
     import glob
     return sorted(glob.glob(os.path.join(glob.escape(root), "widgets", "*", "i18n.json")))
+
+
+def widget_manifest_files(root):
+    """widgets/*/manifest.json — the "ru" values (titles etc.) are reader-facing ru strings."""
+    import glob
+    return sorted(glob.glob(os.path.join(glob.escape(root), "widgets", "*", "manifest.json")))
+
+
+def video_script_files(root):
+    """release/video/*.md — RU voice-over scripts + the recording pipeline doc."""
+    import glob
+    return sorted(glob.glob(os.path.join(glob.escape(root), "release", "video", "*.md")))
 
 
 def read(path):
