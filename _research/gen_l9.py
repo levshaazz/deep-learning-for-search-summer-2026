@@ -565,16 +565,24 @@ def main():
         {"step": 6, "from": "API", "to": "client", "label": "response", "lat": 4},
     ]
     total = sum(h["lat"] for h in budget)
+    # The async hop (fire-and-forget cache+log) is NOT on the user-facing critical path: the
+    # response leaves after step 4. Selling its +2 ms inside "user latency" mixed two different
+    # quantities on one slide — the deck now shows criticalPathMs to the user and keeps `total`
+    # as the sum of ALL hops (both are gated exact computations).
+    critical = sum(h["lat"] for h in budget if h.get("kind") != "async")
     latency = {
         "_doc": ("Production serving latency budget (REUSE of the L1 `sequence` slide-type, NOT a widget). The per-hop "
-                 "ms are REPRESENTATIVE serving figures; only the SUM is the gated exact computation: "
-                 "3+8+12+60+2+4 = 89 ms < 200 ms SLA. An EXACT scan of 10⁶×768-d would cost the exactScanMs below — "
+                 "ms are REPRESENTATIVE serving figures; the SUMS are the gated exact computations: "
+                 "critical path 3+8+12+60+4 = 87 ms (< 200 ms SLA, headroom 113), all hops incl. the async "
+                 "cache+log tail 89 ms. An EXACT scan of 10⁶×768-d would cost the exactScanMs below — "
                  "the search hop alone blows the budget. A cache hit returns in ≈ cacheHitMs. Caching + quantization "
                  "are the levers (callback L1 MLSD; the L7 cross-encoder cascade now sits BEHIND ANN retrieval)."),
         "_source": "_research/gen_l9.py (toy, stdlib): total = Σ lat. Per-hop + exactScan/cacheHit are representative.",
         "sla": 200,
         "budget": budget,
         "total": total,
+        "criticalPathMs": critical,
+        "slaHeadroomMs": 200 - critical,
         "exactScanMs": 520,   # representative: exact scan of 10⁶×768-d (>500ms; replaces the +12 ANN hop)
         "cacheHitMs": 5,      # representative: repeated-query cache hit
     }

@@ -1,6 +1,6 @@
 # Deep Learning for Search — repo map
 
-Course site (Astro) + offline lecture decks + trilingual Book + vanilla-JS SVG widgets, gated by 25 numbered CI gates (G1–G27, no G4/G5) + a facts-gate. **Goal when editing: touch the fewest files; load one unit, not the repo.** This map exists so you don't have to re-derive structure each session.
+Course site (Astro) + offline lecture decks + trilingual Book + vanilla-JS SVG widgets, gated by 26 numbered CI gates (G1–G28, no G4/G5) + a facts-gate. **Goal when editing: touch the fewest files; load one unit, not the repo.** This map exists so you don't have to re-derive structure each session.
 
 ## Where things live
 - `Lectures/<slug>/parts/*.html` — **the editable deck source** (one fragment per `<section class="slide">`, plus `00-head`/`zz-tail`). All 21 decks (L0–L20) are sharded.
