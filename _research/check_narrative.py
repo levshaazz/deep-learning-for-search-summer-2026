@@ -8,7 +8,7 @@ slide (every L0 insert needed a manual anchor remap):
 
   • ANCHOR INTEGRITY  — every internal `#/N` link resolves to a real slide (1 ≤ N ≤ total). HARD.
   • AGENDA → DIVIDER  — every agenda toc-item jumps to a section break (divider) or the closing
-                        (final/refs for the last item), never into the middle of a part. WARN.
+                        (final/refs for the last item), never into the middle of a part. HARD.
 
 Slide numbering is the leading integer of `data-screen-label` (verified sequential 1..N across all
 three decks), which is exactly what `#/N` addresses.
@@ -17,7 +17,10 @@ NOT done here (deferred to the full-coverage VLM, by design): thematic catchphra
 term-used-before-defined — both need semantic judgement and would false-positive as a static text
 check (e.g. the closing Serega cameo is aria-hidden, so "Serega" has no late-slide *text*).
 
-Severity: BROKEN-ANCHOR = HARD; AGENDA-TARGET (non-divider/closing) = WARN.
+Severity: BROKEN-ANCHOR = HARD; AGENDA-TARGET (non-divider/closing) = HARD.
+Было WARN — и класс тихо разъехался: 41 из 113 якорей курса вели мимо своего акта, потому что
+#/N адресует ПОЗИЦИЮ слайда, а любая буквенная вставка (25a) её сдвигает. Класс вычищен
+2026-08-18, правило затянуто; законные не-дивайдерные цели перечислены в AGENDA_ALLOW.
 
 Usage:  python3 _research/check_narrative.py            (check the decks)
         python3 _research/check_narrative.py --selftest  (known-bad fixture must flag, §2.4)
@@ -68,6 +71,18 @@ def parse(html):
     allhash = [int(x) for x in ANYHASH.findall(html)]
     return slides, total, agenda, allhash
 
+# Пункты повестки, законно ведущие НЕ на дивайдер: у акта его просто нет. Каждый — с причиной,
+# иначе исключение превращается в дыру. Ключ — (имя деки без .html, позиция слайда).
+AGENDA_ALLOW = {
+    ("L3", 78):
+        "пункт 08 «Гремлин и развязка» — восьмого дивайдера в деке нет, акт открывает сам Гремлин "
+        "(misconception), и заметки слайда так и говорят: «Part 8: the lexical gap»",
+    ("L9", 53):
+        "пункт 07 «Границы» — 6 дивайдеров на 7 объявленных частей; акт открывает слайд-таблица "
+        "«чего нотация сказать не может»",
+}
+
+
 def check(deck, html):
     slides, total, agenda, allhash = parse(html)
     issues = []
@@ -86,8 +101,10 @@ def check(deck, html):
         # slide (L19 #56) was flagged as landing mid-act. Accept both spellings; this widens the
         # vocabulary to what the decks actually use, not the rule itself.
         ok = (t == "divider") or (last and t in ("final", "refs", "references", "divider"))
+        if not ok and (deck, n) in AGENDA_ALLOW:
+            ok = True
         if not ok:
-            issues.append(("WARN", f'{deck}: AGENDA-TARGET #/{n} → type="{t}" (expected divider'
+            issues.append(("HARD", f'{deck}: AGENDA-TARGET #/{n} → type="{t}" (expected divider'
                                    f'{"/final/refs" if last else ""})'))
     return issues, total, len(agenda)
 
@@ -119,8 +136,30 @@ def selftest():
     issues, *_ = check("FIX", html)
     ok = any(s == "HARD" and "BROKEN-ANCHOR #/999" in m for s, m in issues)
     print("[selftest]", next((m for s, m in issues if s == "HARD"), "NO FLAG"))
-    print("[selftest]", "PASS — broken-anchor fires" if ok else "FAIL — anchor check blind!")
-    return 0 if ok else 1
+
+    # Якорь, ведущий В СЕРЕДИНУ акта, обязан быть HARD, а не WARN: именно в этом виде класс и
+    # разъехался — 41 из 113 якорей курса промахивались, потому что #/N адресует позицию слайда.
+    mid = ('<section class="slide" data-type="agenda"><a class="toc-item" href="#/2">часть 1</a>'
+           '<a class="toc-item" href="#/3">часть 2</a></section>'
+           '<section class="slide" data-type="quiz"></section>'
+           '<section class="slide" data-type="divider"></section>')
+    iss2, *_ = check("FIX", mid)
+    ok2 = any(s == "HARD" and "AGENDA-TARGET #/2" in m for s, m in iss2)
+
+    # Последний пункт законно закрывает деку литературой/финалом — это не промах.
+    close = ('<section class="slide" data-type="agenda"><a class="toc-item" href="#/2">итог</a></section>'
+             '<section class="slide" data-type="refs"></section>')
+    iss3, *_ = check("FIX", close)
+    ok3 = not any(s == "HARD" for s, m in iss3)
+
+    # Реестр исключений адресный: снимает ровно свою пару «дека + позиция», а не тип целиком.
+    iss4, *_ = check("L3", mid)
+    ok4 = any(s == "HARD" and "AGENDA-TARGET #/2" in m for s, m in iss4)
+
+    for label, good in (("broken-anchor", ok), ("agenda-target HARD", ok2),
+                        ("closing slide ok", ok3), ("allowlist is address-scoped", ok4)):
+        print(f"[selftest] {'PASS' if good else 'FAIL'} — {label}")
+    return 0 if all((ok, ok2, ok3, ok4)) else 1
 
 if __name__ == "__main__":
     sys.exit(selftest() if "--selftest" in sys.argv else run())
