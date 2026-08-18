@@ -1,0 +1,21 @@
+    {
+      id: 'depth-which-layer', kind: 'prose',
+      heading: { en: "The famous reading is one cell of a table", ru: "Знаменитый отсчёт — это одна клетка таблицы", tt: "Даныклы санау — таблицаның бер генә күзәнәге" },
+      body: {
+        en: [
+          "Now a confession about my own ruler. The reading I keep quoting between strangers was not taken on \"contextual models\" in general — it was taken on one model, at one layer. An independent replication laid several presses side by side and measured the same quantity on each: one architecture crushes its towns into what is almost a single point; the famous reading belongs to the *final* layer of another; step one layer down that same press and the wedge is already much wider; and the model whose repair fills the next act of this survey reads about *half* the famous figure.",
+          "Then look further down that table, at the maps drawn before the presses existed at all. **Static vectors** — one fixed point per word, no context — come out very nearly isotropic: no wedge worth the name. That single row settles what kind of thing the cone is. It is not a property of *embeddings*; it is something the training stack **does** to them, layer by layer, and it does it in different amounts to different presses.",
+          "So the practical habit: never quote a cone without naming the model and the layer it was measured on. Picking which layer you read the map from is a **calibration decision**, not an implementation detail — and it is the cheapest one available to you, because it costs nothing but a different index into the stack.",
+        ],
+        ru: [
+          "Теперь признание про мою собственную линейку. Тот отсчёт между чужаками, который я всё время повторяю, снят не с «контекстных моделей» вообще — он снят с одной модели и на одном слое. Независимая перепроверка выложила несколько станков рядом и померила у каждого ту же величину: одна архитектура сминает города почти в одну точку; знаменитый отсчёт принадлежит *финальному* слою другой; спустись на слой ниже у того же станка — и клин уже заметно шире; а у модели, ремонту которой посвящён следующий отрезок съёмки, читается примерно *половина* знаменитой величины.",
+          "Теперь загляни в ту же таблицу пониже — туда, где стоят карты, начерченные ещё до всяких станков. **Статические векторы** (одна неподвижная точка на слово, никакого контекста) выходят почти изотропными: клина, достойного имени, там нет. Одна эта строка решает, что за зверь наш конус. Он — не свойство *эмбеддингов*; он — то, что обучающий станок **делает** с ними слой за слоем, и делает в разной мере с разными станками.",
+          "Отсюда рабочая привычка: не называй конус, не назвав модель и слой, на которых он померен. Выбор слоя, с которого ты читаешь карту, — это **решение о калибровке**, а не деталь реализации. И это самое дешёвое решение из доступных: оно не стоит ничего, кроме другого номера в стопке слоёв.",
+        ],
+        tt: [
+          "Хәзер үз линейкам турында бер танулы сүз. Чит-ятлар арасында мин кабатлый торган санау «контекстлы модельләр»дән гомумән алынмаган — ул бер модельдән, бер катламнан алынган. Бәйсез яңадан тикшерү берничә станокны янәшә куйды һәм һәрберсендә шул ук зурлыкны үлчәде: бер архитектура шәһәрләрен диярлек бер ноктага сыта; даныклы санау исә башка станокның *соңгы* катламына карый; шул ук станокта бер катлам түбәнгә төш — чөй инде сизелерлек киңрәк; ә киләсе өлештә без төзәтә торган модельдә даныклы зурлыкның якынча *яртысы* укыла.",
+          "Хәзер шул ук таблицаның аскы өлешенә кара — анда станоклар барлыкка килгәнче сызылган карталар тора. **Статик векторлар** (һәр сүзгә бер кузгалмас нокта, контекст юк) диярлек isotrop булып чыга: анда исеменә лаек чөй юк. Шушы бер юл конусыбызның нинди җанвар икәнен хәл итә. Ул — *эмбеддингларның* үзлеге түгел; ул — өйрәтү станогының алар белән катлам саен **эшли** торган эше, һәм ул төрле станокта төрле дәрәҗәдә эшли.",
+          "Моннан эш гадәте: модельне һәм катламны атамыйча конус турында сөйләмә. Картаны кайсы катламнан укуың — **калибровка карары**, гамәлгә ашыру ваклыгы түгел. Һәм бу — кулыңдагы иң арзан карар: ул катламнар өемендәге башка номердан башка бернигә дә төшми.",
+        ],
+      },
+    },
