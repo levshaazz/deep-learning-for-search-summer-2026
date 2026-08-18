@@ -121,7 +121,12 @@ def source_files():
     return (glob.glob(os.path.join(R, 'content', 'book', '*', 'beats', '*.js'))
             + glob.glob(os.path.join(R, 'Lectures', '*', 'parts', '*.html'))
             + glob.glob(os.path.join(R, 'widgets', '*', 'i18n.json'))
-            + glob.glob(os.path.join(R, 'widgets', '*', 'manifest.json')))
+            + glob.glob(os.path.join(R, 'widgets', '*', 'manifest.json'))
+            # narrative/*.md — бит-листы и стандарты; ревизия нашла там гомоглифы («pošаговые»),
+            # то есть класс, ради которого гейт и существует, жил ровно за его границей.
+            # Сам style-ru.md исключён: он ДЕМОНСТРИРУЕТ смешение алфавитов как контрпример.
+            + [f for f in glob.glob(os.path.join(R, 'narrative', '*.md'))
+               if os.path.basename(f) != 'style-ru.md'])
 
 
 def main():
