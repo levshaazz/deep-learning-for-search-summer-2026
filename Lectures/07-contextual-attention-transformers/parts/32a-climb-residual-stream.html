@@ -1,0 +1,148 @@
+<section class="slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="35a Climb &middot; residual-stream">
+  <div class="slide-header">
+    <h2><span lang="ru">Остаточная магистраль: x не выбрасывают, к нему прибавляют</span><span lang="en">The residual highway: x is never thrown away, only added to</span></h2>
+    <span class="slide-kicker"><span lang="ru">шаг (&larr;/&rarr;): вектор въезжает &rarr; прибавили внимание &rarr; нормировали &rarr; прибавили сеть &rarr; нормировали</span><span lang="en">step (&larr;/&rarr;): the vector enters &rarr; add attention &rarr; normalise &rarr; add the network &rarr; normalise</span></span>
+  </div>
+  <div class="widget-mount" data-widget="residual-stream"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "method": "residual stream over a toy 6-d vector (post-LN Transformer order)",
+    "dim": 6,
+    "stages": [
+      {
+        "id": "x0",
+        "label": "x (input)",
+        "vec": [
+          1.0,
+          0.5,
+          -0.5,
+          2.0,
+          0.0,
+          1.5
+        ],
+        "delta": null,
+        "norm": 2.7839
+      },
+      {
+        "id": "add-attn",
+        "label": "x + attn(x)",
+        "vec": [
+          1.4,
+          0.3,
+          0.1,
+          1.7,
+          0.5,
+          1.4
+        ],
+        "delta": [
+          0.4,
+          -0.2,
+          0.6,
+          -0.3,
+          0.5,
+          -0.1
+        ],
+        "norm": 2.6758
+      },
+      {
+        "id": "norm-1",
+        "label": "LayerNorm",
+        "vec": [
+          0.808,
+          -0.969,
+          -1.292,
+          1.292,
+          -0.646,
+          0.808
+        ],
+        "delta": null,
+        "norm": 2.4495
+      },
+      {
+        "id": "add-ffn",
+        "label": "+ ffn(x)",
+        "vec": [
+          0.708,
+          -0.669,
+          -1.092,
+          1.692,
+          -1.146,
+          1.008
+        ],
+        "delta": [
+          -0.1,
+          0.3,
+          0.2,
+          0.4,
+          -0.5,
+          0.2
+        ],
+        "norm": 2.7079
+      },
+      {
+        "id": "norm-2",
+        "label": "LayerNorm",
+        "vec": [
+          0.566,
+          -0.683,
+          -1.066,
+          1.459,
+          -1.115,
+          0.838
+        ],
+        "delta": null,
+        "norm": 2.4495
+      }
+    ],
+    "note": "each sublayer ADDS a delta to the running x (x = x + sublayer(x)); LayerNorm rescales. The representation accumulates along a highway, it is never thrown away."
+  },
+  "labels": {
+    "alt": "The residual highway through one Transformer block: a running 6-dimensional representation x rides a lane left to right; at each sublayer a side branch ADDS its output to x (x becomes x plus attention, then LayerNorm renormalises, then x plus the feed-forward output, then LayerNorm again). The previous vector stays faintly visible at each add to show the representation is added to, never replaced; an L2-norm readout tracks the running length, and the two LayerNorm stages both bring it to 2.4495.",
+    "highwayLbl": "residual highway",
+    "normLbl": "‖x‖",
+    "addLbl": "+",
+    "skipLbl": "skip: x passes through",
+    "prevLbl": "previous x (still here)",
+    "deltaLbl": "sublayer(x)",
+    "s0": "The representation x enters the block riding a highway — six numbers, length ‖x‖ shown at the checkpoint. Hold onto this lane: x will be carried all the way through, never thrown away.",
+    "s1": "First sublayer: attention. Its output enters from a side branch and is ADDED to x — the running vector becomes x + attn(x). The faint vector underneath is the old x: it is still there. The skip connection lets x bypass the block entirely; the sublayer only adds a correction.",
+    "s2": "Add & Norm — the first LayerNorm. The running vector is renormalised: its length settles to 2.4495 (that is √6, the L2 norm of a unit-RMS six-dimensional vector). Normalising keeps the highway from drifting in scale as adds pile up.",
+    "s3": "Second sublayer: the feed-forward network. Again its output enters from a side branch and is ADDED — x becomes (LayerNorm output) + ffn(x). Same pattern as attention: a side branch, a “+”, the old vector still beneath. Two adds so far, never a replacement.",
+    "s4": "Add & Norm again — the second LayerNorm. The length returns to 2.4495 = √6. That is one whole block: two adds and two norms. The highway carried x the entire way; each sublayer only nudged it, which is why very deep stacks still train."
+  },
+  "i18n": {
+    "en": {
+      "alt": "The residual highway through one Transformer block: a running 6-dimensional representation x rides a lane left to right; at each sublayer a side branch ADDS its output to x (x becomes x plus attention, then LayerNorm renormalises, then x plus the feed-forward output, then LayerNorm again). The previous vector stays faintly visible at each add to show the representation is added to, never replaced; an L2-norm readout tracks the running length, and the two LayerNorm stages both bring it to 2.4495.",
+      "highwayLbl": "residual highway",
+      "normLbl": "‖x‖",
+      "addLbl": "+",
+      "skipLbl": "skip: x passes through",
+      "prevLbl": "previous x (still here)",
+      "deltaLbl": "sublayer(x)",
+      "s0": "The representation x enters the block riding a highway — six numbers, length ‖x‖ shown at the checkpoint. Hold onto this lane: x will be carried all the way through, never thrown away.",
+      "s1": "First sublayer: attention. Its output enters from a side branch and is ADDED to x — the running vector becomes x + attn(x). The faint vector underneath is the old x: it is still there. The skip connection lets x bypass the block entirely; the sublayer only adds a correction.",
+      "s2": "Add & Norm — the first LayerNorm. The running vector is renormalised: its length settles to 2.4495 (that is √6, the L2 norm of a unit-RMS six-dimensional vector). Normalising keeps the highway from drifting in scale as adds pile up.",
+      "s3": "Second sublayer: the feed-forward network. Again its output enters from a side branch and is ADDED — x becomes (LayerNorm output) + ffn(x). Same pattern as attention: a side branch, a “+”, the old vector still beneath. Two adds so far, never a replacement.",
+      "s4": "Add & Norm again — the second LayerNorm. The length returns to 2.4495 = √6. That is one whole block: two adds and two norms. The highway carried x the entire way; each sublayer only nudged it, which is why very deep stacks still train."
+    },
+    "ru": {
+      "alt": "Остаточная магистраль через один блок трансформера: бегущее 6-мерное представление x движется по полосе слева направо; на каждом подслое боковая ветвь ДОБАВЛЯЕТ свой выход к x (x становится x плюс внимание, затем LayerNorm перенормирует, затем x плюс выход полносвязного слоя, затем снова LayerNorm). Предыдущий вектор остаётся слабо видимым при каждом добавлении, показывая, что представление дополняется, а не заменяется; индикатор L2-нормы отслеживает текущую длину, и оба этапа LayerNorm приводят её к 2,4495.",
+      "highwayLbl": "магистраль x",
+      "normLbl": "‖x‖",
+      "addLbl": "+",
+      "skipLbl": "skip: x напрямую",
+      "prevLbl": "прежний x (всё ещё здесь)",
+      "deltaLbl": "sublayer(x)",
+      "s0": "Представление x входит в блок по магистрали — шесть чисел, длина ‖x‖ показана на контрольной точке. Запомни эту полосу: x пронесётся через весь блок и не будет выброшен.",
+      "s1": "Первый подслой: внимание. Его выход входит по боковой ветви и ДОБАВЛЯЕТСЯ к x — бегущий вектор становится x + attn(x). Бледный вектор внизу — это прежний x: он по-прежнему на месте. Skip-связь позволяет x обойти блок целиком; подслой лишь добавляет поправку.",
+      "s2": "Add & Norm — первый LayerNorm. Бегущий вектор перенормируется: его длина устанавливается в 2,4495 (это √6, L2-норма шестимерного вектора с единичным RMS). Нормализация не даёт магистрали «уплывать» по масштабу по мере накопления добавлений.",
+      "s3": "Второй подслой: полносвязная сеть. Снова её выход входит по боковой ветви и ДОБАВЛЯЕТСЯ — x становится (выход LayerNorm) + ffn(x). Тот же приём, что и у внимания: боковая ветвь, «+», прежний вектор всё ещё внизу. Два добавления и ни одной замены.",
+      "s4": "Снова Add & Norm — второй LayerNorm. Длина возвращается к 2,4495 = √6. Это и есть один целый блок: два добавления и две нормализации. Магистраль пронесла x весь путь; каждый подслой лишь подталкивал его — поэтому очень глубокие стеки всё ещё обучаются."
+    }
+  }
+}
+  </script>
+  <p class="viz-caption"><span lang="ru">Определение с прошлого слайда &mdash; теперь как одна полоса движения. Подслой не заменяет представление, а приписывает к нему поправку сбоку; исходный вектор всё это время лежит под ней и может проехать блок насквозь. Поэтому очень глубокие стопки вообще обучаются: градиенту есть по чему вернуться назад.</span><span lang="en">The definition from the previous slide &mdash; now as a single lane of traffic. A sublayer does not replace the representation, it writes a correction onto it from the side; the original vector stays underneath the whole way and can pass the block untouched. That is why very deep stacks train at all: the gradient has a road home.</span></p>
+  <aside class="slide-notes">The first of the block act&rsquo;s climbs, mounted straight after the residual + LayerNorm definition so the mechanism is drawn before it is algebraised. The six-dimensional running vector, every delta and every checkpoint norm come from data/l6-residual.json. Steps: (0) x rides in on the highway &mdash; name the lane, they will need it for the rest of the course; (1) the attention branch ADDS &mdash; DWELL: the misconception to kill is &ldquo;the sublayer outputs the new representation&rdquo;; it outputs a correction, and the skip carries the old vector past it untouched; (2) the first norm &mdash; why the length is pinned rather than left to drift as adds pile up; (3) the feed-forward branch, the identical pattern a second time, so the recipe is visibly a recipe; (4) the second norm and the count: two adds, two norms, one block. The LayerNorm arithmetic itself is the next slide&rsquo;s job &mdash; here only its effect on the length is claimed.</aside>
+</section>

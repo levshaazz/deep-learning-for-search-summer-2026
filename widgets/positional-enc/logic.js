@@ -35,7 +35,9 @@ export const mountPositionalEnc = defineWidget({
     // ── geometry ───────────────────────────────────────────────────────────
     const W = 480;
     const PAD_L = 56;                  // room for the "pos" row labels on the left
-    const PAD_T = 58;                  // room for the formula + the "dim" column header
+    const PAD_T = 74;                  // room for the formula + axis caption + the "dim" column
+                                       // header. 58 → 74: at the 13px label size (deck legibility
+                                       // floor is 16px rendered) three stacked lines no longer fit.
     const PAD_R = 18;                  // right margin so the rightmost cells stay in-frame
     const CELL = (W - PAD_L - PAD_R) / d; // square cells filling the width
     const gridTop = PAD_T;
@@ -63,7 +65,9 @@ export const mountPositionalEnc = defineWidget({
       'text-anchor': 'middle' }, svg));
     ftxt.textContent = labels.formulaLabel || formula;
     // axis captions
-    const dimCap = add('canvas', el('text', { x: gridLeft + (d * CELL) / 2, y: 40,
+    // y 40 → 48: подписи выросли с 11px до 13px (пол читаемости 16px на слайде), и строка формулы
+    // на y=18 стала задевать эту подпись оси — viz-probe мерил наложение 0.31.
+    const dimCap = add('canvas', el('text', { x: gridLeft + (d * CELL) / 2, y: 48,
       class: 'pe-axcap', 'text-anchor': 'middle' }, svg));
     dimCap.textContent = labels.dimAxis || 'dimension i  (even = sin · odd = cos) →';
     // y-axis caption: a short upright "pos ↓" label sitting above the row-index gutter (top-left,

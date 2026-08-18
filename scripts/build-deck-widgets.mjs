@@ -42,6 +42,14 @@ const DECK_WIDGETS = ['course-map',
   'inverted-index', 'bm25-calc', 'pagerank-power',                   // L03 (rrf-fusion already listed)
   'ndcg-multiquery', 'ndcg-graded', 'significance-test', 'ranking-metrics', 'ab-test',  // L05
   'skipgram-net', 'embedding-space', 'pca-rotate', 'tsne-steps',  // L06 (glove-cooccur stays Book-only: its matrix labels cannot be both legible and in-frame on a slide; the act's mechanism is the worked slide 27)
+  // Phase 5.2 tail: seven widgets that lived only in the Book — deck 07 was authored WITH room
+  // for them (its label numbering has exactly seven holes at these insertion points) and shipped
+  // without. Mounted as `viz`, not the manifests' `e2e`/`archflow`: a widget-mount climb has no
+  // .walk-step markers, so those types would HARD-fail G21 slide-type-gate.
+  'attention-geometry', 'positional-enc', 'residual-stream', 'layernorm-viz',
+  'transformer-block', 'block-geometry', 'contrastive-space',                   // L07
+  'bpe-merge-ledger',                                                          // L02
+  'tsne-migrate', 'dimred-projection', 'embedding-domains',                    // L06
   'ncd-einsum', 'ncd-attention',                 // L6 neural-circuit-diagram notation: the grammar proof (14c) + the n×n memory bill (22a)
   // The notation is taught once in L6 and then USED. These are the circuits that carry an argument the
   // lecture's prose can only assert: count the encoder boxes (L7/L8), watch the broadcast axis SHRINK
@@ -104,6 +112,7 @@ const mountRule =
   // these caps are sized from those numbers, then verified by re-measuring. The rest of the new
   // climbs fit under the 78cqw default.
   '.slide .widget-mount[data-widget="zipf-heaps"]         { max-width: min(760px, 42cqw); }\n' +
+  '.slide .widget-mount[data-widget="positional-enc"]     { max-width: min(1000px, 55cqw); }\n' +
   '.slide .widget-mount[data-widget="cosine-sphere"]      { max-width: min(880px, 48cqw); }\n' +
   '.slide .widget-mount[data-widget="ranking-metrics"]    { max-width: min(1100px, 60cqw); }\n' +
   '.slide .widget-mount[data-widget="course-map"]         { max-width: min(1320px, 72cqw); }\n' +
@@ -148,7 +157,14 @@ const mountRule =
   '.slide .widget-mount .ncd-lg-h    { font-size: calc(var(--fs-small) * 0.50); }\n' +
   '.slide .widget-mount .wgt-caption, .slide .widget-mount .wgt-counter { display: none; }\n';
 const cssParts = [mountRule, readFileSync(join(ROOT, 'widgets', '_base.css'), 'utf8')];
-for (const id of PRESENT) cssParts.push(readFileSync(join(ROOT, 'widgets', id, 'style.css'), 'utf8'));
+// style.css is OPTIONAL in the widget contract — logic.js/manifest.json/i18n.json are not.
+// residual-stream and layernorm-viz style themselves inline from logic.js and ship no stylesheet;
+// the Book has always mounted them that way, so an unconditional read here would be the bundler
+// inventing a requirement the rest of the pipeline does not have.
+for (const id of PRESENT) {
+  const css = join(ROOT, 'widgets', id, 'style.css');
+  if (existsSync(css)) cssParts.push(readFileSync(css, 'utf8'));
+}
 writeFileSync(join(CSS, 'deck-widgets.css'),
   '/* AUTO-GENERATED — widgets/_base.css + ' + PRESENT.join('/') +
   ' style.css for deck-mounted figures. Do not edit. Rebuild: node scripts/build-deck-widgets.mjs */\n' +

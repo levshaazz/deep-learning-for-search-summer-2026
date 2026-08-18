@@ -1,0 +1,139 @@
+<section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="30a Climb &middot; positional-enc">
+  <div class="slide-header">
+    <h2><span lang="ru">Сетка позиций: у каждой строки свой отпечаток</span><span lang="en">The position grid: every row carries its own fingerprint</span></h2>
+    <span class="slide-kicker"><span lang="ru">шаг (&larr;/&rarr;): вся сетка &rarr; читаем по позициям &rarr; читаем по измерениям &rarr; задано формулой, не выучено</span><span lang="en">step (&larr;/&rarr;): the whole grid &rarr; read it by position &rarr; read it by dimension &rarr; fixed by formula, never learned</span></span>
+  </div>
+  <div class="widget-mount" data-widget="positional-enc"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "formula": "PE(pos,2i)=sin(pos/10000^{2i/d}); PE(pos,2i+1)=cos(pos/10000^{2i/d})",
+    "d": 8,
+    "nPos": 8,
+    "grid": [
+      [
+        0.0,
+        1.0,
+        0.0,
+        1.0,
+        0.0,
+        1.0,
+        0.0,
+        1.0
+      ],
+      [
+        0.841,
+        0.54,
+        0.1,
+        0.995,
+        0.01,
+        1.0,
+        0.001,
+        1.0
+      ],
+      [
+        0.909,
+        -0.416,
+        0.199,
+        0.98,
+        0.02,
+        1.0,
+        0.002,
+        1.0
+      ],
+      [
+        0.141,
+        -0.99,
+        0.296,
+        0.955,
+        0.03,
+        1.0,
+        0.003,
+        1.0
+      ],
+      [
+        -0.757,
+        -0.654,
+        0.389,
+        0.921,
+        0.04,
+        0.999,
+        0.004,
+        1.0
+      ],
+      [
+        -0.959,
+        0.284,
+        0.479,
+        0.878,
+        0.05,
+        0.999,
+        0.005,
+        1.0
+      ],
+      [
+        -0.279,
+        0.96,
+        0.565,
+        0.825,
+        0.06,
+        0.998,
+        0.006,
+        1.0
+      ],
+      [
+        0.657,
+        0.754,
+        0.644,
+        0.765,
+        0.07,
+        0.998,
+        0.007,
+        1.0
+      ]
+    ],
+    "note": "low dims = fast sinusoids (local), high dims = slow (global); fixed, not learned"
+  },
+  "labels": {
+    "alt": "An 8 by 8 sinusoidal positional-encoding heatmap: rows are positions 0 to 7, columns are embedding dimensions 0 to 7, even columns sine and odd columns cosine, low dimensions fast and high dimensions slow.",
+    "formulaLabel": "PE(pos,2i)=sin(pos/10000^{2i/d})  ·  PE(pos,2i+1)=cos(…)",
+    "dimAxis": "dimension i  (even = sin · odd = cos) →",
+    "posAxis": "pos ↓",
+    "takeaway": "low dims wiggle fast (local), high dims drift slow (global).",
+    "takeaway2": "fixed by formula — not learned. always in [−1, 1].",
+    "s0": "Attention is order-blind — “dog bites man” reads the same as “man bites dog.” So we add a fixed position signal to each token. Here is the grid: one row per position, one column per dimension, each cell a sine or cosine value.",
+    "s1": "Read it position by position, top to bottom. Position 0 is the all-sin-0 / all-cos-1 baseline; each next row shifts the phase a little. No two rows are identical, so every position carries a unique fingerprint.",
+    "s2": "Now read it dimension by dimension, left to right. The leftmost columns flip sign quickly down the grid — short wavelengths — while the rightmost columns barely change — long wavelengths. Low dims encode fine position, high dims encode coarse position.",
+    "s3": "Every value stays in [−1, 1], and the whole grid is computed from a closed-form formula — fixed, not learned. The model gets order for free, and the same pattern extends to positions it never saw in training."
+  },
+  "i18n": {
+    "en": {
+      "alt": "An 8 by 8 sinusoidal positional-encoding heatmap: rows are positions 0 to 7, columns are embedding dimensions 0 to 7, even columns sine and odd columns cosine, low dimensions fast and high dimensions slow.",
+      "formulaLabel": "PE(pos,2i)=sin(pos/10000^{2i/d})  ·  PE(pos,2i+1)=cos(…)",
+      "dimAxis": "dimension i  (even = sin · odd = cos) →",
+      "posAxis": "pos ↓",
+      "takeaway": "low dims wiggle fast (local), high dims drift slow (global).",
+      "takeaway2": "fixed by formula — not learned. always in [−1, 1].",
+      "s0": "Attention is order-blind — “dog bites man” reads the same as “man bites dog.” So we add a fixed position signal to each token. Here is the grid: one row per position, one column per dimension, each cell a sine or cosine value.",
+      "s1": "Read it position by position, top to bottom. Position 0 is the all-sin-0 / all-cos-1 baseline; each next row shifts the phase a little. No two rows are identical, so every position carries a unique fingerprint.",
+      "s2": "Now read it dimension by dimension, left to right. The leftmost columns flip sign quickly down the grid — short wavelengths — while the rightmost columns barely change — long wavelengths. Low dims encode fine position, high dims encode coarse position.",
+      "s3": "Every value stays in [−1, 1], and the whole grid is computed from a closed-form formula — fixed, not learned. The model gets order for free, and the same pattern extends to positions it never saw in training."
+    },
+    "ru": {
+      "alt": "Тепловая карта синусоидального позиционного кодирования 8 на 8: строки — позиции 0–7, столбцы — измерения 0–7, чётные столбцы синус, нечётные косинус, низкие измерения быстрые, высокие медленные.",
+      "formulaLabel": "PE(pos,2i)=sin(pos/10000^{2i/d})  ·  PE(pos,2i+1)=cos(…)",
+      "dimAxis": "измерение i  (чётное = sin · нечётное = cos) →",
+      "posAxis": "pos ↓",
+      "takeaway": "низкие измерения колеблются быстро (локально), высокие меняются медленно (глобально).",
+      "takeaway2": "задано формулой — не обучается. всегда в [−1, 1].",
+      "s0": "Внимание слепо к порядку — «dog bites man» читается так же, как «man bites dog». Поэтому к каждому токену добавляем фиксированный сигнал позиции. Вот сетка: строка на позицию, столбец на измерение, в каждой ячейке значение синуса или косинуса.",
+      "s1": "Читаем по позициям, сверху вниз. Позиция 0 — базовая строка (все sin = 0, все cos = 1); каждая следующая строка немного сдвигает фазу. Двух одинаковых строк нет, поэтому каждая позиция несёт уникальный отпечаток.",
+      "s2": "Теперь читаем по измерениям, слева направо. Левые столбцы быстро меняют знак сверху вниз — короткие длины волн, — а правые почти не меняются — длинные длины волн. Низкие измерения кодируют тонкую позицию, высокие — грубую.",
+      "s3": "Каждое значение остаётся в [−1, 1], и вся сетка вычисляется по замкнутой формуле — задана, не обучается. Модель получает порядок бесплатно, и тот же узор продолжается на позиции, которых не было в обучении."
+    }
+  }
+}
+  </script>
+  <p class="viz-caption"><span lang="ru">Формула с прошлого слайда &mdash; теперь как картинка. Строка сетки и есть подпись позиции: двух одинаковых строк нет, поэтому порядок слов перестаёт теряться. А по столбцам видно разделение труда: левые колонки дрожат быстро и различают соседей, правые еле шевелятся и держат общий план.</span><span lang="en">The formula from the previous slide &mdash; now as a picture. A row of the grid IS the signature of a position: no two rows are alike, so word order stops getting lost. And across the columns you can see the division of labour: the left columns wobble fast and tell neighbours apart, the right ones barely move and hold the coarse view.</span></p>
+  <aside class="slide-notes">The climb of the position act, between the sinusoidal formula and the by-hand grid reading. Every cell comes from data/l6-positional.json &mdash; the same grid the next slide walks through by hand, so this is the picture that makes that walkthrough feel like confirmation. Steps: (0) the grid as a whole, one row per position, one column per dimension; (1) read it ROW-wise &mdash; each position gets a unique signature, which is the entire point of the construction; (2) read it COLUMN-wise &mdash; DWELL: this is the idea students miss, that the dimensions are a ladder of wavelengths from fine to coarse, not an undifferentiated blob of sines; (3) closed form, bounded values, extends past the training lengths. The stumbling block is &ldquo;why sines at all&rdquo; &mdash; answer it at step 2 with the ladder, not with the formula. The next slide reads a couple of rows out loud; the one after weighs fixed against learned.</aside>
+</section>

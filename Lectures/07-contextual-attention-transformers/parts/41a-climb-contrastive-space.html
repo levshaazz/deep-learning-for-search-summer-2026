@@ -1,0 +1,92 @@
+<section class="slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="47a Climb &middot; contrastive-space">
+  <div class="slide-header">
+    <h2><span lang="ru">Контрастное обучение: притянуть своих, оттолкнуть чужих</span><span lang="en">Contrastive learning: pull your own in, push the rest out</span></h2>
+    <span class="slide-kicker"><span lang="ru">шаг (&larr;/&rarr;): пространство как есть &rarr; мерит Сэр Косинус &rarr; стрелки сил &rarr; шаг обучения &rarr; счёт потери</span><span lang="en">step (&larr;/&rarr;): the space as it comes &rarr; Sir Cosine measures &rarr; the force arrows &rarr; the training step &rarr; the loss read out</span></span>
+  </div>
+  <div class="widget-mount" data-widget="contrastive-space"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "anchor": "cat",
+    "tau": 0.1,
+    "margin": 0.2,
+    "sims": {
+      "positives": {
+        "kitten": 0.6386,
+        "dog": 0.9218
+      },
+      "negatives": {
+        "airplane": 0.3654,
+        "computer": 0.3525,
+        "france": 0.0908
+      }
+    },
+    "infoNCE": {
+      "positive": "kitten",
+      "negatives": [
+        "airplane",
+        "computer",
+        "france"
+      ],
+      "pPositive": 0.8877,
+      "loss": 0.1191
+    },
+    "triplet": {
+      "positive": "kitten",
+      "hardestNeg": "airplane",
+      "loss": 0.0
+    },
+    "note": "pull the positive in, push negatives out; cosine inside the loss (Sir Cosine). in-batch negatives = the other examples in the batch, for free"
+  },
+  "labels": {
+    "alt": "The anchor word cat with positive words (kitten, dog) and negative words (airplane, computer, france) placed by their cosine; cosine bars; pull-in and push-out arrows; the InfoNCE loss 0.1191 and the triplet loss.",
+    "posLeg": "positive",
+    "negLeg": "negative",
+    "barsHead": "cosine to the anchor — Sir Cosine’s ruler",
+    "infoHead": "InfoNCE  (softmax over cosines, τ = 0.1)",
+    "infoLine": "P(positive “{p}”) = {pp}   →   loss = {loss}",
+    "tripHead": "triplet  (margin = 0.2, hardest negative)",
+    "tripLine": "max(0, margin − (cos⁺ − cos⁻)) = {loss}  — already satisfied",
+    "s0": "Start with the anchor “cat” at the centre. Every other word is placed by its cosine to it — the angle IS the distance. Positives (kitten, dog) want to be close; negatives (airplane, computer, france) want to be far. Right now the off-the-shelf space is messy.",
+    "s1": "Sir Cosine measures each pair. dog scores .922 and kitten .639 — both high — while airplane is .365, computer .353, and france only .091. The positives already out-score the negatives, but not cleanly enough for retrieval.",
+    "s2": "The contrastive objective is the gradient drawn as a force: a PULL arrow on every positive (toward the anchor) and a PUSH arrow on every negative (away). Nothing has moved yet — this is just the direction each word is about to be nudged.",
+    "s3": "Now take the step: the dots LAND at their trained positions. The kitten/dog cluster tightens around “cat”, while airplane, computer and france slide out to the rim. The space has re-shaped — near now really means relevant.",
+    "s4": "InfoNCE turns the cosines into a softmax: the positive “kitten” already gets probability 0.8877, so the loss is just −ln(0.8877) = 0.1191 — small, and shrinking. The triplet loss agrees: with margin 0.2 the gap is already wide enough, so its loss is 0.0. Cosine lives inside the loss; in-batch negatives come for free."
+  },
+  "i18n": {
+    "en": {
+      "alt": "The anchor word cat with positive words (kitten, dog) and negative words (airplane, computer, france) placed by their cosine; cosine bars; pull-in and push-out arrows; the InfoNCE loss 0.1191 and the triplet loss.",
+      "posLeg": "positive",
+      "negLeg": "negative",
+      "barsHead": "cosine to the anchor — Sir Cosine’s ruler",
+      "infoHead": "InfoNCE  (softmax over cosines, τ = 0.1)",
+      "infoLine": "P(positive “{p}”) = {pp}   →   loss = {loss}",
+      "tripHead": "triplet  (margin = 0.2, hardest negative)",
+      "tripLine": "max(0, margin − (cos⁺ − cos⁻)) = {loss}  — already satisfied",
+      "s0": "Start with the anchor “cat” at the centre. Every other word is placed by its cosine to it — the angle IS the distance. Positives (kitten, dog) want to be close; negatives (airplane, computer, france) want to be far. Right now the off-the-shelf space is messy.",
+      "s1": "Sir Cosine measures each pair. dog scores .922 and kitten .639 — both high — while airplane is .365, computer .353, and france only .091. The positives already out-score the negatives, but not cleanly enough for retrieval.",
+      "s2": "The contrastive objective is the gradient drawn as a force: a PULL arrow on every positive (toward the anchor) and a PUSH arrow on every negative (away). Nothing has moved yet — this is just the direction each word is about to be nudged.",
+      "s3": "Now take the step: the dots LAND at their trained positions. The kitten/dog cluster tightens around “cat”, while airplane, computer and france slide out to the rim. The space has re-shaped — near now really means relevant.",
+      "s4": "InfoNCE turns the cosines into a softmax: the positive “kitten” already gets probability 0.8877, so the loss is just −ln(0.8877) = 0.1191 — small, and shrinking. The triplet loss agrees: with margin 0.2 the gap is already wide enough, so its loss is 0.0. Cosine lives inside the loss; in-batch negatives come for free."
+    },
+    "ru": {
+      "alt": "Якорное слово cat с позитивами (kitten, dog) и негативами (airplane, computer, france), размещёнными по косинусу; столбики косинуса; стрелки притяжения и отталкивания; потеря InfoNCE 0,1191 и триплетная потеря.",
+      "posLeg": "позитив",
+      "negLeg": "негатив",
+      "barsHead": "косинус до якоря — линейка Сэра Косинуса",
+      "infoHead": "InfoNCE  (softmax по косинусам, τ = 0,1)",
+      "infoLine": "P(позитив «{p}») = {pp}   →   loss = {loss}",
+      "tripHead": "триплет  (зазор = 0,2, самый трудный негатив)",
+      "tripLine": "max(0, зазор − (cos⁺ − cos⁻)) = {loss}  — уже выполнено",
+      "s0": "Начнём с якоря «cat» в центре. Каждое другое слово размещено по косинусу до него — угол и есть расстояние. Позитивы (kitten, dog) должны быть близко; негативы (airplane, computer, france) — далеко. Пока готовое пространство неаккуратно.",
+      "s1": "Сэр Косинус мерит каждую пару. dog даёт .922, kitten .639 — оба высоко, — тогда как airplane .365, computer .353, а france лишь .091. Позитивы уже опережают негативы, но недостаточно чисто для поиска.",
+      "s2": "Контрастная цель — это градиент в виде силы: стрелка ПРИТЯЖЕНИЯ на каждом позитиве (к якорю) и стрелка ОТТАЛКИВАНИЯ на каждом негативе (от него). Пока ничто не сдвинулось — это лишь направление, куда каждое слово вот-вот толкнут.",
+      "s3": "Теперь делаем шаг: точки ПРИЗЕМЛЯЮТСЯ в обученные позиции. Кластер kitten/dog стягивается к «cat», а airplane, computer и france уезжают к краю. Пространство перестроилось — близко теперь действительно значит релевантно.",
+      "s4": "InfoNCE превращает косинусы в softmax: позитив «kitten» уже получает вероятность 0,8877, поэтому потеря — это просто −ln(0,8877) = 0,1191 — маленькая и убывающая. Триплетная потеря согласна: при зазоре 0,2 разрыв уже достаточно велик, так что её потеря 0,0. Косинус живёт внутри потери; негативы из батча достаются бесплатно."
+    }
+  }
+}
+  </script>
+  <p class="viz-caption"><span lang="ru">Косинусы с прошлого слайда &mdash; теперь как движение. Функция потерь не «оценивает» пространство со стороны, а тянет его: позитив едет к якорю, негативы разъезжаются к краю. После шага «близко» наконец начинает значить «релевантно» &mdash; и негативы для этого шага уже лежат рядом, в том же батче.</span><span lang="en">The cosines from the previous slide &mdash; now as motion. The loss does not &ldquo;score&rdquo; the space from outside, it pulls on it: the positive travels toward the anchor while the negatives slide out to the rim. After the step, &ldquo;near&rdquo; finally starts to mean &ldquo;relevant&rdquo; &mdash; and the negatives for that step are already lying next door, in the same batch.</span></p>
+  <aside class="slide-notes">The climb of the retrieval-training act, mounted right after the cosine table so the same pairs are re-used as motion rather than as new material. The anchor, every cosine, the InfoNCE readout and the triplet readout come from data/l6-contrastive.json. Steps: (0) the off-the-shelf space, positives and negatives already mixed; (1) Sir Cosine measures each pair &mdash; the ordering is nearly right already, which is exactly why students think nothing needs fixing; (2) the forces, drawn but not yet applied &mdash; DWELL: the loss IS a gradient, an arrow per point, and the arrows are what training does; (3) the step, the dots landing at their trained positions; (4) both losses read out of the same cosines, so triplet and InfoNCE are visibly two readings of one picture. Close on the last line of step 4 &mdash; the negatives came from the batch for free &mdash; and walk straight into the next slide.</aside>
+</section>
