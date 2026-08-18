@@ -1,0 +1,21 @@
+    {
+      id: 'depth-code-in-practice', kind: 'prose',
+      heading: { en: "Two scripts, one skeleton", ru: "Два скрипта — один каркас", tt: "Ике скрипт — бер скелет" },
+      body: {
+        en: [
+          "Step off the metaphor for a moment and onto the keyboard: the whole chapter compresses into two short scripts, and they share one skeleton — *tokenizer → model → head*. The BERT script loads a tokenizer and a sequence-classification model, feeds the text in, and reads the answer off the classification head sitting on the \\([\\text{CLS}]\\) thread: a softmax over the logits, done. The details are the chapter in miniature: the cutter is WordPiece, the context window is finite so long cloth gets truncated, and mean-pooling over the token vectors stands as the alternative to \\([\\text{CLS}]\\).",
+          "The GPT script swaps every organ but keeps the skeleton: a *causal* LM instead of a classifier, byte-level BPE instead of WordPiece — a different cutter for the same trade — and instead of one softmax read-out, a generate call whose arguments you can now read like sheet music: do_sample switches the dice on (off, and you are back to greedy or beam), temperature reshapes the fan, top_k and top_p cut the tail by count or by mass, num_beams widens the deterministic search. The KV-cache hums underneath by default, and FlashAttention is one argument away.",
+          "One skeleton, three swappable organs — the mask, the cutter, the head. That is the practical residue of the whole loom: choose those three to fit your cloth, and the rest is a handful of lines.",
+        ],
+        ru: [
+          "Сойди на минуту с метафоры за клавиатуру: вся глава сжимается в два коротких скрипта, и у них один каркас — *токенизатор → модель → голова*. Скрипт BERT загружает токенизатор и модель классификации последовательностей, подаёт текст и читает ответ с классификационной головы, сидящей на нити \\([\\text{CLS}]\\): софтмакс по логитам — готово. Детали — глава в миниатюре: резак здесь WordPiece, окно контекста конечно, так что длинную ткань приходится усекать, а среднее по векторам токенов (mean-pooling) стоит как альтернатива \\([\\text{CLS}]\\).",
+          "Скрипт GPT меняет каждый орган, но сохраняет каркас: *причинная* LM вместо классификатора, byte-level BPE вместо WordPiece — другой резак того же ремесла, — а вместо одного считывания софтмакса — вызов generate, аргументы которого ты теперь читаешь как ноты: do_sample включает кости (выключи — и вернёшься к жадному выбору или лучу), temperature перекраивает веер, top_k и top_p срезают хвост по числу или по массе, num_beams расширяет детерминированный поиск. KV-кэш гудит под этим по умолчанию, а FlashAttention — в одном аргументе.",
+          "Один каркас, три сменных органа — маска, резак, голова. Вот практический осадок всего станка: подбери эти три под своё полотно, а остальное — горстка строк.",
+        ],
+        tt: [
+          "Бер минутка метафорадан клавиатурага төш: бөтен бүлек ике кыска скриптка кысыла, һәм аларның скелеты бер — *токенизатор → модель → баш*. BERT скрипты токенизатор белән эзлеклелек классификациясе моделен йөкли, текстны бирә һәм җавапны \\([\\text{CLS}]\\) җебендә утырган классификация башыннан укый: логитлар буенча softmax — әзер. Ваклыклар — миниатюрада бөтен бүлек: кискеч монда WordPiece, контекст тәрәзәсе чикле, шуңа озын тукыманы кисәргә туры килә, ә токен векторлары буенча уртача (mean-pooling) \\([\\text{CLS}]\\)га альтернатива булып тора.",
+          "GPT скрипты һәр органны алыштыра, ләкин скелетны саклый: классификатор урынына *causal* LM, WordPiece урынына byte-level BPE — шул ук һөнәрнең башка кискече, — ә бер softmax укуы урынына — generate чакыруы, аның аргументларын син хәзер нота кебек укыйсың: do_sample кубикларны кабыза (сүндер — greedy яки beam'га кайтасың), temperature җилпәзәне яңадан кисә, top_k белән top_p койрыкны сан яки масса буенча кисә, num_beams детерминистик эзләүне киңәйтә. KV-кэш аста килешенгәнчә гөрли, ә FlashAttention — бер аргумент ераклыгында.",
+          "Бер скелет, өч алмаш орган — маска, кискеч, баш. Бөтен станокның гамәли калдыгы шул: бу өчне үз тукымаңа карап сайла, калганы — бер уч юл.",
+        ],
+      },
+    },

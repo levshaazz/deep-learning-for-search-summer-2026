@@ -1,0 +1,21 @@
+    {
+      id: 'depth-bert-input', kind: 'prose',
+      heading: { en: "Three stamps at the door: what a thread carries into BERT", ru: "Три печати на входе: с чем нить входит в BERT", tt: "Ишек төбендәге өч мөһер: җеп BERT'ка нәрсә белән керә" },
+      body: {
+        en: [
+          "Before the first block ever touches a thread, BERT stamps each one three times. The **token embedding** says *which word-piece* the thread is. The **segment embedding** says *which of the two segments* it belongs to — the same mark \\(E_A\\) or \\(E_B\\) runs down a whole segment, so the loom can tell the first sentence of a pair from the second. The **position embedding** says *where in the line* it stands. The three stamps are simply added, coordinate by coordinate: \\(x_i = \\mathrm{token}_i + \\mathrm{segment}_i + \\mathrm{position}_i\\) — one vector per position, and that sum is what enters the encoder.",
+          "Two special threads frame every sheet. \\([CLS]\\) opens it — a thread with no word of its own, woven in precisely so that after all the crossings it can serve as the *aggregate* of the whole cloth: classification heads read their verdict off it. And it is exactly this kind of aggregate that Sir Cosine will be comparing by angle once Lecture 10 assembles the bi-encoder. \\([SEP]\\) closes each segment — the seam between the two pieces of a pair.",
+          "One detail is easy to walk past: BERT's position stamps are **learned** — a trained table of tags, not the fixed sinusoidal marks of the original Transformer. Learned tags are more flexible — and finite: the table ends, and the cloth acquires a hard ceiling on its length.",
+        ],
+        ru: [
+          "Прежде чем первый блок коснётся нити, BERT ставит на каждую три печати. **Токен-эмбеддинг** говорит, *какое это подслово*. **Сегментный эмбеддинг** говорит, *к какому из двух сегментов* нить относится: вдоль всего сегмента идёт одна и та же метка \\(E_A\\) или \\(E_B\\), чтобы станок отличал первое предложение пары от второго. **Позиционный эмбеддинг** говорит, *где в строке* она стоит. Три печати просто складываются, координата к координате: \\(x_i = \\mathrm{token}_i + \\mathrm{segment}_i + \\mathrm{position}_i\\) — по одному вектору на позицию, и эта сумма и входит в энкодер.",
+          "Каждое полотно обрамляют две особые нити. \\([CLS]\\) открывает его — нить без собственного слова, вплетённая ровно затем, чтобы после всех скрещений стать *агрегатом* целого полотна: головы классификации снимают вердикт именно с неё. И именно такие агрегаты Сэр Косинус будет сравнивать по углу, когда десятая лекция соберёт би-энкодер. \\([SEP]\\) закрывает каждый сегмент — шов между двумя кусками пары.",
+          "И одна деталь, мимо которой легко пройти: позиционные печати у BERT **обучаемые** — натренированная таблица бирок, а не фиксированные синусоидальные метки оригинального трансформера. Обучаемые бирки гибче — и конечны: таблица кончается, и у длины полотна появляется жёсткий потолок.",
+        ],
+        tt: [
+          "Беренче блок җепкә кагылганчы, BERT һәрберсенә өч мөһер суга. **Токен-эмбеддинг** әйтә: бу *кайсы кисәк-сүз*. **Сегмент эмбеддингы** әйтә: җеп *ике сегментның кайсына* карый — бөтен сегмент буйлап бер үк \\(E_A\\) яки \\(E_B\\) билгесе бара, станок парның беренче җөмләсен икенчесеннән аерсын өчен. **Позиция эмбеддингы** әйтә: ул *юлның кайсы урынында* тора. Өч мөһер гади генә кушыла, координата координатага: \\(x_i = \\mathrm{token}_i + \\mathrm{segment}_i + \\mathrm{position}_i\\) — һәр позициягә берәр вектор, һәм нәкъ шушы сумма энкодерга керә.",
+          "Һәр тукыманы ике аерым җеп кыршаулый. \\([CLS]\\) аны ача — үз сүзе булмаган җеп, барлык кисешүләрдән соң бөтен тукыманың *агрегаты* булсын өчен генә үрелгән: классификация башлары хөкемне нәкъ аннан укый. Һәм нәкъ шундый агрегатларны Сэр Косинус почмак буенча чагыштырачак — унынчы лекция би-энкодерны җыйгач. \\([SEP]\\) һәр сегментны яба — пар кисәкләре арасындагы җөй.",
+          "Һәм үтеп китүе җиңел бер деталь: BERT'ның позиция мөһерләре **өйрәнелә** — өйрәтелгән билгеләр таблицасы, оригиналь трансформерның фиксацияле синусоидаль билгеләре түгел. Өйрәнелгән билгеләр сыгылмалырак — һәм чикле: таблица бетә, һәм тукыма озынлыгына каты түшәм барлыкка килә.",
+        ],
+      },
+    },

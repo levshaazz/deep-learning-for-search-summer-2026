@@ -1,0 +1,18 @@
+    {
+      id: 'depth-top-k-top-p', kind: 'prose',
+      heading: { en: "Cut the tail by count, or by mass", ru: "Срез хвоста: по числу или по массе", tt: "Койрыкны кисү: сан буенча яки масса буенча" },
+      body: {
+        en: [
+          "Why cut at all? Because the vocabulary fan drags a monstrous tail: thousands upon thousands of threads, each individually absurd, each carrying a sliver of probability. No single one of them is likely — but *some* absurd thread getting drawn is quite likely, and one bad stitch can derail the entire weave, since every later thread is chosen in its light. **Truncated sampling** keeps the dice in play but removes the cliff: first cut the tail, then draw from what remains, renormalized.",
+          "Two cutting rules. **top-k** keeps a *fixed count* — the \\(k\\) brightest threads — renormalizes, and samples. Simple, but the width never adapts: the same \\(k\\) whether the loom is certain or torn. **top-p**, the *nucleus*, keeps the *smallest* set of threads whose cumulative mass reaches \\(p\\): when one thread dominates, the nucleus shrinks almost to a point; when many threads are plausible, it widens to hold them. Do not blur the two: \\(k\\) fixes a *count*, \\(p\\) fixes a *mass* — and it is the mass rule that bends with the loom's own confidence.",
+        ],
+        ru: [
+          "Зачем вообще резать? Потому что за словарным веером тянется чудовищный хвост: тысячи и тысячи нитей, каждая по отдельности нелепа, и каждая несёт крупицу вероятности. Ни одна из них не вероятна сама по себе — но то, что вытянется *какая-нибудь* нелепая, вполне вероятно, а один дурной стежок способен пустить под откос всё плетение: каждую следующую нить станок выбирает уже в его свете. **Усечённый сэмплинг** (truncated sampling) оставляет кости в игре, но убирает обрыв: сперва срежь хвост, потом тяни из оставшегося — перенормировав.",
+          "Правила среза — два. **top-k** оставляет *фиксированное число* — \\(k\\) самых ярких нитей, — перенормирует и сэмплирует. Просто, но ширина не подстраивается: \\(k\\) одно и то же, уверен станок или мечется. **top-p**, оно же *nucleus*, оставляет *минимальное* множество нитей, чья суммарная масса дотягивает до \\(p\\): когда одна нить доминирует, ядро сжимается почти в точку; когда правдоподобных много — расширяется, чтобы их вместить. Не смешивай эти два: \\(k\\) фиксирует *число*, \\(p\\) фиксирует *массу* — и именно правило массы гнётся вместе с уверенностью самого станка.",
+        ],
+        tt: [
+          "Нигә гомумән кисәргә? Чөнки сүзлек җилпәзәсе артыннан котычкыч койрык сөйрәлә: меңләгән һәм меңләгән җеп, һәрберсе аерым алганда мәгънәсез, һәм һәрберсе ихтималлыкның бер бөртеген йөртә. Аларның берсе дә үзе ихтимал түгел — ләкин *нинди дә булса* мәгънәсезенең тартылып чыгуы бик ихтимал, ә бер начар тегү бөтен тукуны юлдан яздыра ала: һәр киләсе җепне станок инде аның яктысында сайлый. **Киселгән sampling** (truncated sampling) уен кубикларын калдыра, әмма упкынны ала: башта койрыкны кис, аннары калганыннан тарт — яңадан нормалаштырып.",
+          "Кисү кагыйдәсе икәү. **top-k** *беркетелгән санны* калдыра — \\(k\\) иң якты җеп, — яңадан нормалаштыра һәм sample итә. Гади, ләкин киңлек җайлашмый: станок ышанамы, икеләнәме — \\(k\\) шул ук. **top-p**, ул ук *nucleus*, суммар массасы \\(p\\)га җиткән *иң кечкенә* җыелманы калдыра: бер җеп өстенлек иткәндә ядрә нокта чаклы кысыла; ышандырырлык җепләр күп булганда — аларны сыйдырырлык киңәя. Икесен бутама: \\(k\\) *санны* беркетә, \\(p\\) *массаны* беркетә — һәм нәкъ масса кагыйдәсе станокның үз ышанычы белән бергә бөгелә.",
+        ],
+      },
+    },

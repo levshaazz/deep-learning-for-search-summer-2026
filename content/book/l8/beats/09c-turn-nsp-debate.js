@@ -1,0 +1,18 @@
+    {
+      id: 'turn-nsp-debate', kind: 'prose',
+      heading: { en: "The stitch that didn't survive: NSP", ru: "Стежок, который не выжил: NSP", tt: "Исән калмаган җөй: NSP" },
+      body: {
+        en: [
+          "The original BERT wove with a second lesson beside the mending — **next sentence prediction**. Take segments A and B: half the pairs are genuine — B truly follows A in the source text — and half are strangers pulled from anywhere. The verdict — *follows / does not follow* — is read off the \\([CLS]\\) thread, and the segment stamps \\(E_A/E_B\\) exist precisely so the loom can tell the two pieces apart.",
+          "The debate came later, and it is a good lesson in how the field corrects itself. The task turned out to be **too easy**: a random stranger usually comes from a different document entirely and talks about something else — so the loom passes the exam by merely matching *topics*, never learning the fine coherence of how one sentence hands the thread to the next. A signal you can cheat teaches little. **RoBERTa** ran the experiment squarely: drop NSP, keep everything else — and the cloth came out *better*. **ALBERT** kept the instinct but hardened the stitch: predict the *order* of two adjacent sentences — same topic by construction, so topic-matching no longer helps. The idea of modelling how sentences connect survived; this particular stitch did not.",
+        ],
+        ru: [
+          "Оригинальный BERT ткал ещё с одним уроком рядом со штопкой — **next sentence prediction**. Возьми сегменты A и B: половина пар настоящие — B действительно идёт за A в исходном тексте, — а половина — чужаки, выдернутые откуда попало. Вердикт — *следует / не следует* — снимается с нити \\([CLS]\\), а сегментные печати \\(E_A/E_B\\) существуют ровно затем, чтобы станок различал два куска.",
+          "Спор случился позже, и он — хороший урок того, как поле само себя поправляет. Задача оказалась **слишком лёгкой**: случайный чужак обычно приходит из совсем другого документа и говорит о другом — и станок сдаёт экзамен, просто сличая *темы*, так и не выучив тонкую связность, где одно предложение передаёт нить следующему. Сигнал, на котором можно схитрить, мало чему учит. **RoBERTa** поставила опыт прямо: выкинуть NSP, оставить всё прочее — и полотно вышло *лучше*. **ALBERT** сохранил инстинкт, но ужесточил стежок: предсказывай *порядок* двух соседних предложений — тема по построению одна и та же, и сличение тем больше не спасает. Идея моделировать связь предложений выжила; именно этот стежок — нет.",
+        ],
+        tt: [
+          "Оригиналь BERT ямау янында тагын бер дәрес белән тукыды — **next sentence prediction**. A һәм B сегментларын ал: парларның яртысы чын — B чыннан да чыганак текстта A артыннан килә, — ә яртысы — теләсә кайдан тартып алынган чит кешеләр. Хөкем — *килә / килми* — \\([CLS]\\) җебеннән укыла, ә \\(E_A/E_B\\) сегмент мөһерләре нәкъ станок ике кисәкне аерсын өчен яши.",
+          "Бәхәс соңрак килде, һәм ул — өлкәнең үзен-үзе төзәтүенә яхшы дәрес. Бурыч **артык җиңел** булып чыкты: очраклы чит кеше гадәттә бөтенләй башка документтан килә һәм башка нәрсә турында сөйли — һәм станок имтиханны *темаларны* гына чагыштырып бирә, бер җөмләнең икенчесенә җепне ничек тапшыруын — нечкә бәйләнешне — өйрәнмичә кала. Хәйләләп була торган сигнал аз өйрәтә. **RoBERTa** тәҗрибәне туры куйды: NSP'ны ташла, калганын калдыр — һәм тукыма *яхшырак* чыкты. **ALBERT** инстинктны саклады, ләкин җөйне катыландырды: ике күрше җөмләнең *тәртибен* фараз ит — тема төзелеш буенча бер үк, һәм темаларны чагыштыру инде коткармый. Җөмләләр бәйләнешен модельләштерү идеясе исән калды; нәкъ шушы җөй — юк.",
+        ],
+      },
+    },
