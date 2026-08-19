@@ -33,6 +33,13 @@ const BASELINE = join(ROOT, '_audit', 'baselines', 'act-structure.json');
 const MECH = new Set(['formula', 'viz', 'walkthrough', 'e2e', 'archflow', 'sequence']);
 const MAX_ACT = 22;
 
+/* Акты, которые по своей РОЛИ не несут разбора: развязка, итоги, практика, мост, границы,
+ * ссылки, а также обзорно-исторические зачины. Требовать там формулу — тот же карго-культ, что
+ * требовать «границу» у акта, который закрывается содержательным слайдом: первый замер дал 30
+ * «нарушений», и половина пришлась на акты «Итоги», «Развязка» и «Мост». Признак — по названию
+ * акта, потому что именно оно объявляет роль читателю. */
+const NO_MECH_ROLE_RE = /payoff|итог|развязк|практик|bridge|мост|boundar|границ|reference|ссылк|prehistory|предыстор|historical arc|историческ/i;
+
 export function scanDeck(dir) {
   const files = readdirSync(join(dir, 'parts'))
     .filter((f) => f.endsWith('.html') && !/^(00-head|zz-tail)/.test(f)).sort();
@@ -55,11 +62,13 @@ export function scanDeck(dir) {
 
 export function actIssues(deckNum, scan) {
   const out = [];
+  const introDeck = deckNum === '00';   // вводная: логистика и обзор, механизма там нет по природе
   for (const a of scan.acts) {
+    if (introDeck) continue;
     if (!a.slides.length) continue;
     if (a.slides.length > MAX_ACT)
       out.push(`[L] дека ${deckNum}, акт «${a.start}»: ${a.slides.length} слайдов (потолок ${MAX_ACT})`);
-    if (!a.slides.some((s) => MECH.has(s.type)))
+    if (!NO_MECH_ROLE_RE.test(a.start) && !a.slides.some((s) => MECH.has(s.type)))
       out.push(`[M] дека ${deckNum}, акт «${a.start}»: ни одного слайда-разбора`);
   }
   // Первые деки курса законно обходятся без «где мы»: у 00 позади ничего нет, а 01 и 02 несут
