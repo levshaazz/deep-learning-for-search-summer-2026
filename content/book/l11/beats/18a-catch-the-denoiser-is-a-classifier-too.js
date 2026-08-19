@@ -1,0 +1,21 @@
+    {
+      id: 'catch-the-denoiser-is-a-classifier-too', kind: 'prose',
+      heading: { en: 'The denoiser is a classifier too, and it has two errors', ru: 'Денойзер — тоже классификатор, и ошибок у него две', tt: 'Денойзер — ул да классификатор, һәм аның ике хатасы бар' },
+      body: {
+        en: [
+          "A filter with a threshold is a classifier, and no classifier has only one error. Set the threshold permissively and impostors survive the sieve — the failure the cure was bought to fix. Set it aggressively and it removes the candidates that most resemble the positive, and by the second axis those include the genuinely hard true negatives: the very ones sitting closest to the boundary you are trying to sharpen.",
+          "The budget makes the second error costlier than it looks. The candidates a strict filter discards are the ones holding most of the softmax weight, so what remains is not «the same set, slightly smaller» — it is a set whose push is now dominated by the middle of the band. Both errors surface as a weaker retriever, which means a curve of recall against threshold cannot tell you *which* error you are making. Only looking at what was thrown away can.",
+          "And the teacher is not an oracle either. It was trained on the same sparse labels that created the impostor, so where it is wrong it tends to be wrong about the same passages the miner is wrong about — the two sets of errors are not independent, and they do not average out the way independent noise would. None of this argues against denoising, which the measurements settle. It argues for reading a cure as a trade with two prices, and for reporting the threshold as loudly as the recall it produced.",
+        ],
+        ru: [
+          'Фильтр с порогом — это классификатор, а у классификатора не бывает одной ошибки. Поставь порог мягко — и самозванцы пройдут сквозь сито, то есть ровно тот сбой, ради которого лекарство и покупали. Поставь жёстко — и он вычистит кандидатов, больше всего похожих на позитив, а по второй оси среди них и настоящие трудные истинные негативы: как раз те, что стоят ближе всего к границе, которую ты и затачиваешь.',
+          'Бюджет делает вторую ошибку дороже, чем кажется. Кандидаты, которых выбрасывает строгий фильтр, держат большую часть веса софтмакса, так что остаётся не «то же множество, чуть поменьше», а множество, в толчке которого теперь верховодит середина полосы. Обе ошибки проявляются как ослабевший ретривер, а значит, кривая полноты по порогу не скажет тебе, *какую* именно ошибку ты делаешь. Скажет только взгляд на то, что было выброшено.',
+          'И учитель не оракул. Его обучали на той же скудной разметке, которая и породила самозванца, поэтому там, где он ошибается, он склонен ошибаться на тех же пассажах, на которых ошибается майнер: два набора ошибок не независимы и не гасят друг друга, как гасил бы независимый шум. Ничего из этого не говорит против денойзинга — его оправдывают измерения. Это говорит за то, чтобы читать лекарство как сделку с двумя ценниками и объявлять порог так же громко, как полученную полноту.',
+        ],
+        tt: [
+          'Бусагалы фильтр — ул классификатор, ә классификаторның бер генә хатасы булмый. Бусаганы йомшак куй — алдакчылар иләк аша үтә, ягъни дәваны нәкъ шул җимерелү өчен сатып алганнар иде. Каты куй — ул позитивка иң нык охшаган кандидатларны себереп ташлый, ә икенче күчәр буенча алар арасында чын катлаулы дөрес негативлар да бар: син үткенләтә торган чиккә иң якын торганнары.',
+          'Бюджет икенче хатаны күренгәннән дә кыйммәтрәк итә. Каты фильтр ташлаган кандидатлар софтмакс авырлыгының күп өлешен тота, шуңа калганы «шул ук җыелма, бераз кечерәк» түгел, ә этүендә хәзер полосаның уртасы хуҗа булган җыелма. Ике хата да көчсезрәк ретривер булып күренә, димәк, бусага буенча тулылык кәкресе сиңа *кайсы* хатаны ясаганыңны әйтмәячәк. Аны бары ташланганга караш кына әйтә ала.',
+          'Остаз да күрәзәче түгел. Аны алдакчыны тудырган шул ук сай билгеләмә өйрәткән, шуңа ул ялгышкан урында майнер ялгышкан шул ук пассажларда ялгышырга омтыла: ике хата җыелмасы бәйсез түгел һәм бәйсез шау сүнгәнчә бер-берсен сүндерми. Боларның берсе дә денойзингка каршы сөйләми — аны үлчәүләр аклый. Болар дәваны ике бәяле килешү итеп укырга һәм бусаганы алынган тулылык кебек үк кычкырып әйтергә өнди.',
+        ],
+      },
+    },
