@@ -1,0 +1,56 @@
+<section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="25a Lines 5&ndash;13 by hand">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Строки 5&ndash;13 руками: как символы становятся токенами</span>
+      <span lang="en">Lines 5&ndash;13 by hand: how characters become tokens</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">счётчик \(o_{\text{chunk}}\) на буквах &mdash; и строка, в которой теряется хвост</span>
+      <span lang="en">the \(o_{\text{chunk}}\) counter on letters &mdash; and the line where the tail goes missing</span>
+    </span>
+  </div>
+  <p class="small muted mt-2">
+    <span lang="ru">На входе два списка: длины чанков в символах \(|c_1|,|c_2|,\dots\) &mdash; от чанкера, длины токенов в символах \(o_1,o_2,\dots\) &mdash; от токенизатора. Ни выравнивания, ни словаря больше нет.</span>
+    <span lang="en">Two lists go in: chunk lengths in characters \(|c_1|,|c_2|,\dots\) from the chunker, token lengths in characters \(o_1,o_2,\dots\) from the tokenizer. No alignment table, no lexicon.</span>
+  </p>
+  <div class="walk-flow">
+    <div class="walk-step" data-step="1" data-color="violet">
+      <div class="walk-num">01</div>
+      <div class="walk-content">
+        <div class="walk-label"><span lang="ru">Открыть чанк</span><span lang="en">Open a chunk</span></div>
+        <div class="walk-detail"><span lang="ru">Обнуляем счётчик, \(o_{\text{chunk}}\leftarrow 0\), и запоминаем первый ещё не розданный токен: \(\mathrm{cue}_{start}\leftarrow i\).</span><span lang="en">Reset the counter, \(o_{\text{chunk}}\leftarrow 0\), and remember the first token not yet handed out: \(\mathrm{cue}_{start}\leftarrow i\).</span></div>
+      </div>
+      <div class="walk-state">\(o_{\text{chunk}}=0\)</div>
+    </div>
+    <div class="walk-step" data-step="2" data-color="amber">
+      <div class="walk-num">02</div>
+      <div class="walk-content">
+        <div class="walk-label"><span lang="ru">Копить символы</span><span lang="en">Accumulate characters</span></div>
+        <div class="walk-detail"><span lang="ru">Идём вправо по токенам и прибавляем длину каждого: \(o_{\text{chunk}}\mathrel{+}=o_i\). Пока сумма не догнала \(|c_j|\), токен принадлежит текущему чанку.</span><span lang="en">Walk right, adding each token's length: \(o_{\text{chunk}}\mathrel{+}=o_i\). While the sum trails \(|c_j|\), the token belongs to the current chunk.</span></div>
+      </div>
+      <div class="walk-state">\(o_{\text{chunk}}&lt;|c_j|\)</div>
+    </div>
+    <div class="walk-step" data-step="3" data-color="cyan">
+      <div class="walk-num">03</div>
+      <div class="walk-content">
+        <div class="walk-label"><span lang="ru">Закрыть чанк</span><span lang="en">Close the chunk</span></div>
+        <div class="walk-detail"><span lang="ru">Как только сумма дошла до \(|c_j|\) &mdash; ставим \(\mathrm{cue}_{end}\leftarrow i\). Пара подсказок готова, \(j\) сдвигается на следующий чанк, счётчик обнуляется.</span><span lang="en">The moment the sum reaches \(|c_j|\), set \(\mathrm{cue}_{end}\leftarrow i\). The cue pair is complete, \(j\) moves to the next chunk, the counter resets.</span></div>
+      </div>
+      <div class="walk-state">\(\mathrm{cue}_{end}\leftarrow i\)</div>
+    </div>
+    <div class="walk-step" data-step="4" data-final="true">
+      <div class="walk-num">&rarr;</div>
+      <div class="walk-content">
+        <div class="walk-label"><span lang="ru">И где это ломается</span><span lang="en">And where it breaks</span></div>
+        <div class="walk-detail"><span lang="ru">Присваивание \(\mathrm{cue}_{end}\) стоит <em>внутри</em> условия шага&nbsp;03. Кончились токены раньше, чем счётчик дошёл до \(|c_j|\) &mdash; условие не сработает ни разу, пары нет, хвостовой чанк тихо исчезает. Дек называет этот баг; здесь видно, в какой он строке.</span><span lang="en">The assignment to \(\mathrm{cue}_{end}\) sits <em>inside</em> step&nbsp;03's conditional. Run out of tokens before the counter reaches \(|c_j|\) and it never fires: no cue pair, the trailing chunk quietly vanishes. The deck names this bug &mdash; here you see its line.</span></div>
+      </div>
+      <div class="walk-state"><span lang="ru">хвост потерян</span><span lang="en">tail lost</span></div>
+    </div>
+  </div>
+  <div class="step-controls">
+    <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+    <span class="step-counter">4/4</span>
+    <button data-step-act="next" aria-label="Next step">&rarr;</button>
+  </div>
+  <aside class="slide-notes">Проход руками по строкам 5–13 Алгоритма 1 — на буквах, без придуманных чисел. Дек уже утверждает, что o_i — длина токена в символах и что это единственный мост между чанкером (символы) и моделью (токены); здесь этот мост проходится шагами. Шаги 1–3 — цикл накопления; шаг 4 — тот самый дефект, который следующий слайд объявляет («присваивание cue_end внутри условия → хвостовой неполный чанк теряется»): проговорить, что баг виден именно как позиция строки внутри блока, а не как ошибка идеи. Практическая форма всего этого — return_offsets_mapping=True на следующем слайде с кодом.</aside>
+</section>

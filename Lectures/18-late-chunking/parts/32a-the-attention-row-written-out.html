@@ -1,0 +1,43 @@
+<section class="slide" data-type="formula" data-screen-label="32a The attention row, written out">
+  <div class="slide-header slide-header--flush">
+    <h2>
+      <span lang="ru">Та же строка внимания, но записанная</span>
+      <span lang="en">The same attention row, but written out</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">наивно у суммы другой индекс &mdash; и другой знаменатель</span>
+      <span lang="en">naively the sum runs over a different index &mdash; and a different denominator</span>
+    </span>
+  </div>
+  <div class="formula-stage">
+    $$ \vartheta_j=\sum_{k\in\mathcal{K}}\alpha_{jk}\,V_k, \qquad \alpha_{jk}=\frac{\exp\!\big(Q_j^{\top}K_k/\sqrt{d}\big)}{\sum_{m\in\mathcal{K}}\exp\!\big(Q_j^{\top}K_m/\sqrt{d}\big)} $$
+  </div>
+  <div class="formula-caption">
+    <div class="var-block">
+      <div class="var-symbol">\(\mathcal{K}=D\)</div>
+      <div class="var-desc">
+        <span lang="ru"><strong>Поздно</strong><br />индекс пробегает весь документ. У токена &laquo;Its&raquo; колонка &laquo;Berlin&raquo; есть, и она может собрать вес.</span>
+        <span lang="en"><strong>Late</strong><br />the index runs over the whole document. The token &ldquo;Its&rdquo; has a &ldquo;Berlin&rdquo; column, and it can take weight.</span>
+      </div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">\(\mathcal{K}=c_i\)</div>
+      <div class="var-desc">
+        <span lang="ru"><strong>Наивно</strong><br />индекс пробегает только свой чанк. Колонки &laquo;Berlin&raquo; в сумме нет &mdash; это не малый вес, это <em>отсутствующее слагаемое</em>.</span>
+        <span lang="en"><strong>Naive</strong><br />the index runs over its own chunk only. There is no &ldquo;Berlin&rdquo; column &mdash; not a small weight, a <em>missing term</em>.</span>
+      </div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">\(\textstyle\sum_{m\in\mathcal{K}}\)</div>
+      <div class="var-desc">
+        <span lang="ru"><strong>Знаменатель</strong><br />софтмакс нормируется по тому же множеству. Урезал множество &mdash; веса уцелевших соседей выросли, хотя логиты не менялись.</span>
+        <span lang="en"><strong>The denominator</strong><br />the softmax normalises over that same set. Shrink the set and the surviving neighbours gain weight, though no logit moved.</span>
+      </div>
+    </div>
+  </div>
+  <p class="small muted center mt-2">
+    <span lang="ru">Одна голова одного слоя; \(Q,K,V\) &mdash; внимание из L8, не поисковый запрос. Два следствия читаются прямо из-под знака суммы. Потеря референта &mdash; не ошибка взвешивания, а <strong>отсутствующее слагаемое</strong>. И обрезав вход, ты не просто убрал соседей &mdash; ты <strong>перераспределил их вес</strong> между оставшимися.</span>
+    <span lang="en">One head of one layer; \(Q,K,V\) are attention's from L8, not the search query. Two consequences read straight off the index. Losing the referent is not a weighting error but a <strong>missing term</strong>. And truncating the input does not merely remove neighbours &mdash; it <strong>redistributes their weight</strong> among the survivors.</span>
+  </p>
+  <aside class="slide-notes">Формальный слой под схемой «Куда смотрит Its»: дек рисовал строку внимания и говорил словами «не маленький вес, а нет колонки» — здесь это видно как множество, по которому идёт индекс. Оговорить вслух: одна голова, один слой; Q/K/V — из L8, не поисковый запрос q со слайда усреднения руками. Второе следствие — про знаменатель — новое и важное: софтмакс нормируется по тому же урезанному множеству, поэтому наивный проход не только теряет референта, но и завышает веса ближних соседей. Это же объясняет, почему в акте 7 полнодокументное внимание может РАЗБАВИТЬ вектор: знаменатель растёт вместе с длиной входа.</aside>
+</section>
