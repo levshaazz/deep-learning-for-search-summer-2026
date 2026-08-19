@@ -20,11 +20,17 @@
       хребет прозой — это законный читатель, требовать именно виджет было бы карго-культом).
       Долг держится ХРАПОВИКОМ: список дек-должников может только сокращаться.
 
-Чего гейт СОЗНАТЕЛЬНО не проверяет: «нога, подсвеченная на слайде, совпадает со spine лекции».
-Подсветку ставит виджет из course.json — проверять её значило бы проверять присваивание, а не
-курс. И «карта обязана быть виджетом»: эталонная дека 11 хребта не показывает вовсе, так что
-правило «виджет в каждой деке» валило бы один из трёх эталонов — этот курс уже трижды ловил
-себя на правилах строже собственного эталона, и цена каждого — выброшенный гейт.
+  [A] КАРТА НЕ ЗАБЫВАЕТ НОГУ — подсветка слайда (`labels.active`) ВКЛЮЧАЕТ весь spine лекции.
+      Именно включает, а не равна ему: первая редакция требовала равенства и пометила четыре
+      деки, из которых три подсвечивают шире СОЗНАТЕЛЬНО и говорят об этом вслух — дека 04
+      зажигает все четыре («бит лежит под каждой остановкой»), 16 добавляет Generate («Measure
+      перезажжён для генеративной эры»), финальная карта деки 20 показывает пройденный маршрут
+      целиком. Расширение — редакторский жест; ПРОПАЖА объявленной ноги — дефект. Долг
+      держится тем же храповиком.
+
+Чего гейт СОЗНАТЕЛЬНО не проверяет: «карта обязана быть виджетом» — эталонная дека 11 хребта не
+показывает вовсе, так что такое правило валило бы один из трёх эталонов. Этот курс уже трижды
+ловил себя на правилах строже собственного эталона, и цена каждого — выброшенный гейт.
 
 Правило П4: пустой список дек или пустой список ног — HARD, иначе гейт хвалил бы вакуум.
 
@@ -53,7 +59,7 @@ SPINE_WORD = re.compile(r"хребет|spine|карта\s+курса|course\s+ma
 TAGS = re.compile(r"<[^>]+>")
 
 
-def arc_legs(path=None):
+def arc_legs(path=None, root=None):
     """Ноги из ТАБЛИЦЫ ТЕРРИТОРИЙ arc.md — колонка «Spine leg».
 
     Колонку ищем по заголовку, а таблицу — по паре «Territory» + «Spine leg»: в arc.md есть
@@ -61,7 +67,7 @@ def arc_legs(path=None):
     колонка — название лекции. Первая редакция брала «вторую колонку любой таблицы с жирным» и
     записала в ноги хребта «Midterm» и «The Curved Map».
     """
-    path = path or os.path.join(ROOT, "narrative", "arc.md")
+    path = path or os.path.join(root or ROOT, "narrative", "arc.md")
     md = open(path, encoding="utf-8").read()
     legs, col = [], None
     for line in md.split("\n"):
@@ -87,8 +93,8 @@ def arc_legs(path=None):
     return out
 
 
-def course_spines(path=None):
-    path = path or os.path.join(ROOT, "data", "course.json")
+def course_spines(path=None, root=None):
+    path = path or os.path.join(root or ROOT, "data", "course.json")
     c = json.load(open(path, encoding="utf-8"))
     return {str(l["number"]).zfill(2): list(l.get("spine") or []) for l in c.get("lectures", [])}
 
@@ -118,26 +124,71 @@ def shows_spine(deck_dir):
     return False, ""
 
 
+ACTIVE_RE = re.compile(r'"active":\s*(\[[^\]]*\]|"[^"]*")')
+
+
+def deck_active(deck_dir):
+    """→ [(файл, множество подсвеченных ног)] по каждому смонтированному course-map."""
+    out = []
+    for p in sorted(glob.glob(os.path.join(glob.escape(deck_dir), "parts", "*.html"))):
+        text = open(p, encoding="utf-8").read()
+        if 'data-widget="course-map"' not in text:
+            continue
+        m = ACTIVE_RE.search(text)
+        if not m:
+            out.append((os.path.basename(p), None))
+            continue
+        raw = m.group(1)
+        try:
+            val = json.loads(raw)
+        except ValueError:
+            out.append((os.path.basename(p), None))
+            continue
+        legs = val if isinstance(val, list) else re.split(r"[\s,]+", val.strip())
+        out.append((os.path.basename(p), {str(x).strip() for x in legs if str(x).strip()}))
+    return out
+
+
+def leg_key(leg):
+    """«Get Data» → «get-data»: слайд знает ноги идентификаторами виджета, arc.md — словами."""
+    return leg.strip().lower().replace(" ", "-")
+
+
 def measure(root=ROOT):
-    legs = arc_legs()
-    spines = course_spines()
+    # Читаем канон и данные ИЗ ПЕРЕДАННОГО корня: пока эти две строки ходили в живой
+    # репозиторий, селфтест проверял фикстуру против настоящего course.json и падал на том,
+    # что у деки «07» в фикстуре нет ног настоящей лекции 7.
+    legs = arc_legs(root=root)
+    spines = course_spines(root=root)
     decks = deck_dirs(root)
     debt = sorted(num for num, d in decks.items() if not shows_spine(d)[0])
-    return legs, spines, decks, debt
+    forgot = []
+    for num, d in sorted(decks.items()):
+        want = {leg_key(l) for l in spines.get(num, [])}
+        if not want:
+            continue
+        for fname, active in deck_active(d):
+            if active is None:
+                forgot.append((num, fname, "подсветка не читается"))
+            elif not want <= active:
+                lost = sorted(want - active)
+                forgot.append((num, fname, f"карта потеряла ногу(и) {lost}"))
+    return legs, spines, decks, debt, forgot
 
 
 def load_baseline(path=BASELINE):
     if not os.path.exists(path):
         return None                      # арминг-пин храповика: пропажа файла — HARD, не «зелено»
     try:
-        return json.load(open(path, encoding="utf-8")).get("decks_without_reader", [])
+        d = json.load(open(path, encoding="utf-8"))
+        return d.get("decks_without_reader", []), d.get("maps_missing_a_leg", [])
     except (ValueError, OSError):
         return None
 
 
 def run(root=ROOT, baseline_path=BASELINE, update=False):
     errors, notes = [], []
-    legs, spines, decks, debt = measure(root)
+    legs, spines, decks, debt, forgot = measure(root)
 
     if not legs:
         print("[spine] в narrative/arc.md не найдено ни одной ноги хребта — "
@@ -167,15 +218,26 @@ def run(root=ROOT, baseline_path=BASELINE, update=False):
             print("[spine] ✗ ОТКАЗ: храповик существует, но не читается — почини файл, "
                   "не переписывай его вслепую")
             return 1
-        grew = [] if first else [d for d in debt if d not in (base or [])]
+        base_debt, base_forgot = base if base else ([], [])
+        keys = [f"{n}/{f}" for n, f, _ in forgot]
+        # Скобки здесь не украшение: первая редакция писала это одним выражением
+        # «[] if first else A + [] if first else B» — тернарник связывает слабее «+», и правая
+        # половина проверки долга молча выключалась.
+        if first:
+            grew = []
+        else:
+            grew = ([d for d in debt if d not in base_debt]
+                    + [k for k in keys if k not in base_forgot])
         if grew:
             print(f"[spine] ✗ ОТКАЗ перезаписать храповик: долг вырос на {grew} — "
                   f"почини деку, а не бейзлайн")
             return 1
         os.makedirs(os.path.dirname(baseline_path), exist_ok=True)
         json.dump({"_doc": "храповик G35: деки, не показывающие хребет курса ни виджетом "
-                           "course-map, ни прозой. Список может только сокращаться.",
-                   "decks_without_reader": debt},
+                           "course-map, ни прозой, и карты, потерявшие объявленную ногу. "
+                           "Оба списка могут только сокращаться.",
+                   "decks_without_reader": debt,
+                   "maps_missing_a_leg": sorted(keys)},
                   open(baseline_path, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
         print(f"[spine] бейзлайн {'создан' if first else 'записан'}: "
               f"{len(debt)} дек(и) без читателя хребта — {debt}")
@@ -186,20 +248,30 @@ def run(root=ROOT, baseline_path=BASELINE, update=False):
         errors.append("[R] храповик _research/baselines/spine.json отсутствует или испорчен — "
                       "без него правило молча превращается в ничто")
     else:
+        base_debt, base_forgot = base
         for d in debt:
-            if d not in base:
+            if d not in base_debt:
                 errors.append(f"[R] дека {d}: не показывает хребет курса ни виджетом course-map, "
                               f"ни прозой — её spine в course.json стал мёртвыми данными")
-        healed = [d for d in base if d not in debt]
+        healed = [d for d in base_debt if d not in debt]
         if healed:
             notes.append(f"[R] долг сократился ({healed}) — зафиксируй: --update-baseline")
+        keys = [f"{n}/{f}" for n, f, _ in forgot]
+        for (num, fname, why), key in zip(forgot, keys):
+            if key not in base_forgot:
+                errors.append(f"[A] дека {num}, {fname}: {why} — spine лекции "
+                              f"{spines.get(num)} объявлен в данных, но студент его не увидит")
+        healed_a = [k for k in base_forgot if k not in keys]
+        if healed_a:
+            notes.append(f"[A] подсветка починена ({healed_a}) — зафиксируй: --update-baseline")
 
     for e in errors:
         print(f"  ✗ [HARD] {e}")
     for n in notes:
         print(f"  ! [WARN] {n}")
     print(f"[spine] ног: {len(legs)} · лекций: {len(spines)} · дек: {len(decks)} · "
-          f"без читателя хребта: {len(debt)} · HARD={len(errors)} WARN={len(notes)}")
+          f"без читателя хребта: {len(debt)} · карт с потерянной ногой: {len(forgot)} · "
+          f"HARD={len(errors)} WARN={len(notes)}")
     return 1 if errors else 0
 
 
@@ -212,7 +284,20 @@ def selftest():
     tmp = tempfile.mkdtemp(prefix="spine_selftest_")
     parts = os.path.join(tmp, "Lectures", "07-x", "parts")
     os.makedirs(parts)
+    os.makedirs(os.path.join(tmp, "narrative"))
+    os.makedirs(os.path.join(tmp, "data"))
     bp = os.path.join(tmp, "baseline.json")
+    # Фикстура несёт СВОЙ канон и СВОИ данные — гейт нельзя тестировать против живого курса.
+    open(os.path.join(tmp, "narrative", "arc.md"), "w", encoding="utf-8").write(
+        "| Territory | Spine leg | What it asks |\n|---|---|---|\n"
+        "| **I. The Archives** | **Get Data** | *how?* |\n"
+        "| **II. The Instruments** | **Measure** | *how?* |\n"
+        "| **III. The Bridge** | **Rank** | *how?* |\n"
+        "| **IV. The Oracle** | **Generate** | *how?* |\n")
+    json.dump({"lectures": [{"number": 7, "slug": "x", "spine": ["Get Data", "Measure", "Rank",
+                                                                "Generate"]}]},
+              open(os.path.join(tmp, "data", "course.json"), "w", encoding="utf-8"))
+    ALL = '"active": ["get-data", "measure", "rank", "generate"]'
 
     def write(html):
         open(os.path.join(parts, "01-s.html"), "w", encoding="utf-8").write(html)
@@ -226,9 +311,34 @@ def selftest():
     fails = []
     json.dump({"decks_without_reader": []}, open(bp, "w", encoding="utf-8"))
 
-    write('<section class="slide"><div data-widget="course-map"></div></section>')
+    write('<section class="slide"><div data-widget="course-map"></div>'
+          '<script class="widget-data" type="application/json">{"labels": {' + ALL + '}}</script>'
+          '</section>')
     rc, out = once()
     if rc != 0: fails.append("widget-is-a-reader")
+
+    # [A] карта, забывшая объявленную ногу, — дефект, даже если сама карта на месте
+    write('<section class="slide"><div data-widget="course-map"></div>'
+          '<script class="widget-data" type="application/json">'
+          '{"labels": {"active": ["rank"]}}</script></section>')
+    rc, out = once()
+    if rc == 0 or "потеряла ногу" not in out: fails.append("map-must-not-forget-a-leg")
+
+    # …но подсветка ШИРЕ объявленной — законный редакторский жест, не дефект
+    # Вторая лекция держит остальные три ноги: [S] требует, чтобы каждая нога arc.md стояла
+    # хотя бы у одной лекции, и без неё фикстура падала бы на другом правиле, а не на проверяемом.
+    json.dump({"lectures": [{"number": 7, "slug": "x", "spine": ["Rank"]},
+                            {"number": 8, "slug": "y",
+                             "spine": ["Get Data", "Measure", "Generate"]}]},
+              open(os.path.join(tmp, "data", "course.json"), "w", encoding="utf-8"))
+    write('<section class="slide"><div data-widget="course-map"></div>'
+          '<script class="widget-data" type="application/json">{"labels": {' + ALL + '}}</script>'
+          '</section>')
+    rc, _ = once()
+    if rc != 0: fails.append("wider-highlight-is-allowed")
+    json.dump({"lectures": [{"number": 7, "slug": "x", "spine": ["Get Data", "Measure", "Rank",
+                                                                "Generate"]}]},
+              open(os.path.join(tmp, "data", "course.json"), "w", encoding="utf-8"))
 
     write('<section class="slide"><p>хребет курса · получить данные → ранжировать</p></section>')
     rc, _ = once()
@@ -244,7 +354,9 @@ def selftest():
     rc, _ = once()
     if rc != 0: fails.append("ratchet-known-debt-silent")
     # …а починка предлагает пере-заморозку
-    write('<section class="slide"><div data-widget="course-map"></div></section>')
+    write('<section class="slide"><div data-widget="course-map"></div>'
+          '<script class="widget-data" type="application/json">{"labels": {' + ALL + '}}</script>'
+          '</section>')
     rc, out = once()
     if rc != 0 or "долг сократился" not in out: fails.append("ratchet-notices-healing")
 
@@ -280,7 +392,7 @@ def selftest():
     for t in ("widget-is-a-reader", "prose-is-a-reader", "mention-is-not-a-reader",
               "ratchet-known-debt-silent", "ratchet-notices-healing", "ratchet-refuses-growth",
               "missing-baseline-is-hard", "first-freeze-allowed", "corrupt-baseline-refuses-update",
-              "empty-set"):
+              "map-must-not-forget-a-leg", "wider-highlight-is-allowed", "empty-set"):
         print(f"  [{'FAIL' if t in fails else 'OK'}] {t}")
     print("[selftest] FAIL: " + ", ".join(fails) if fails else "[selftest] PASS")
     return 1 if fails else 0
