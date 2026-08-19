@@ -1,0 +1,26 @@
+<section class="slide" data-type="formula" data-screen-label="38a Margin-MSE, the loss itself">
+  <div class="slide-header">
+    <h2><span lang="ru">Сама функция потерь: ученик копирует не метку, а зазор</span><span lang="en">The loss itself: the student copies a margin, not a label</span></h2>
+    <span class="slide-kicker"><span lang="ru">строка, в которой релевантность наконец входит в обучение</span><span lang="en">the line where relevance finally enters training</span></span>
+  </div>
+  <div class="formula-stage">
+    $$ \mathcal{L} \;=\; \big(m_\theta - m_T\big)^{2}, \qquad m(q,d^+,d^-) \;=\; s(q,d^+) - s(q,d^-) $$
+  </div>
+  <p class="def-where"><span lang="ru">где <b>s</b> &mdash; балл пары, <b>&theta;</b> &mdash; ученик (би-энкодер), <b>T</b> &mdash; учитель (кросс-энкодер), <b>d<sup>&minus;</sup></b> &mdash; добытый негатив.</span><span lang="en">where <b>s</b> is a pair&rsquo;s score, <b>&theta;</b> the student (bi-encoder), <b>T</b> the teacher (cross-encoder), <b>d<sup>&minus;</sup></b> the mined negative.</span></p>
+  <div class="formula-caption">
+    <div class="var-block">
+      <div class="var-symbol">\(m_T\)</div>
+      <div class="var-desc"><span lang="ru"><strong>Зазор учителя</strong><br />кросс-энкодер читает пару целиком. У непомеченного позитива он около нуля.</span><span lang="en"><strong>The teacher&rsquo;s margin</strong><br />the cross-encoder reads the pair whole. For an unlabelled positive it is near zero.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">\(m_\theta\)</div>
+      <div class="var-desc"><span lang="ru"><strong>Зазор ученика</strong><br />та же разность у би-энкодера &mdash; единственное, что штрафуется.</span><span lang="en"><strong>The student&rsquo;s margin</strong><br />the same difference in the bi-encoder &mdash; the only thing penalised.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">\((\cdot)^{2}\)</div>
+      <div class="var-desc"><span lang="ru"><strong>Цель, а не направление</strong><br />ученик целится в чужое число, а не толкает негатив прочь.</span><span lang="en"><strong>A target, not a direction</strong><br />the student aims at someone else&rsquo;s number rather than always pushing.</span></div>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">InfoNCE знает лишь &laquo;позитив ближе всех&raquo; и толкает прочь любой негатив. Здесь цель приходит извне: у самозванца \(m_T\approx 0\) &mdash; значит и \(m_\theta\) обязан быть около нуля, ученик просто не разводит эту пару. Достойный негатив с большим \(m_T\) отталкивается по-прежнему. Релевантность вошла в обучение ровно одним числом &mdash; чужим зазором.</span><span lang="en">InfoNCE knows only &ldquo;the positive is nearest&rdquo; and pushes every negative away. Here the target comes from outside: for an impostor \(m_T\approx 0\) &mdash; so \(m_\theta\) must be near zero and the student never separates that pair. A worthy negative with a large \(m_T\) is still pushed. Relevance entered training as exactly one number &mdash; somebody else&rsquo;s margin.</span></p>
+  <aside class="slide-notes">The act named the third cure and drew an arrow — margin_teacher → bi-encoder — but never wrote the objective, so "the teacher unmasks the impostor" stayed a slogan. Margin-MSE (Hofstätter et al. 2020) is a squared error between two MARGINS: the student's s(q,d+) − s(q,d−) against the teacher's. Say the contrast aloud: InfoNCE has no notion of relevance, only "the positive must win", so it pushes every mined negative away with the Boltzmann weight from slide 18 — which is exactly what makes an unlabelled positive toxic. Margin-MSE replaces the direction with a target. When the mined negative is really a positive, the cross-encoder scores both passages alike, the target margin collapses to about zero, and the student is penalised for separating them at all. A genuinely worthy negative keeps a large teacher margin and is still pushed. That is the whole mechanism of the impostor act in one line, and it is also why the modern recipe on the next slides can afford to mine aggressively.</aside>
+</section>

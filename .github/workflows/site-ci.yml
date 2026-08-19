@@ -32,6 +32,7 @@ on:
       - '_research/check_pairing.py'
       - '_research/check_chrome.py'
       - 'narrative/chrome-ru.json'
+      - '_audit/mechanism-gate.mjs'
       - 'data/papers.json'
       - 'seminars/**'
       - '_research/gen_images.py'
@@ -64,6 +65,7 @@ on:
       - '_research/check_pairing.py'
       - '_research/check_chrome.py'
       - 'narrative/chrome-ru.json'
+      - '_audit/mechanism-gate.mjs'
       - 'data/papers.json'
       - 'seminars/**'
       - '_research/gen_images.py'
@@ -207,6 +209,16 @@ jobs:
         run: python3 _research/check_chrome.py
       - name: G31 chrome-slots self-test
         run: python3 _research/check_chrome.py --selftest
+
+      # G32 — mechanism: a lecture must SHOW, not merely state. Density of mechanism slides
+      # (formula/viz/walkthrough/e2e/archflow/sequence) per deck, plus the longest run of slides
+      # with none — the average alone hides a deck that piles all its derivation into one act and
+      # leaves three empty. Deck 18 reached 28 such slides in a row and every other gate was green.
+      # Ratchet: density may only rise, the gap may only shrink. Deck 00 is exempt with a reason.
+      - name: G32 mechanism
+        run: node _audit/mechanism-gate.mjs
+      - name: G32 mechanism self-test
+        run: node _audit/mechanism-gate.mjs --selftest
 
       # G12 — image-gate: the recurring mascots must stay present + on-palette (brand can't fade out).
       - name: G12 image-gate
