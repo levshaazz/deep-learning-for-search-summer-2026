@@ -1,0 +1,46 @@
+<section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="23a Replace or append &middot; by hand">
+  <div class="slide-header slide-header--flush">
+    <h2><span lang="ru">Один черновик, две подстановки &mdash; заменить или дописать</span><span lang="en">One draft, two substitutions &mdash; replace or append</span></h2>
+    <span class="slide-kicker"><span lang="ru">разбор на буквах (&larr;/&rarr;) &middot; куда девается исходный запрос в каждой ветке</span><span lang="en">worked on letters (&larr;/&rarr;) &middot; where the original query goes in each branch</span></span>
+  </div>
+  <div class="walk-flow">
+    <div class="walk-step" data-step="1" data-color="cyan">
+      <div class="walk-num">01</div>
+      <div class="walk-content">
+        <div class="walk-label"><span lang="ru">Шаг 1 &mdash; общий черновик</span><span lang="en">Step 1 &mdash; the shared draft</span></div>
+        <div class="walk-detail"><span lang="ru">Перо получает \(q\) и пишет \(\hat d\) &mdash; правдоподобный ответ в регистре документа. Дальше ветки расходятся, но платим за \(\hat d\) один раз.</span><span lang="en">The quill takes \(q\) and writes \(\hat d\) &mdash; a plausible answer in the document register. The branches diverge next, but \(\hat d\) is paid for once.</span></div>
+      </div>
+      <div class="walk-state">\(q \rightarrow \hat d\)</div>
+    </div>
+    <div class="walk-step" data-step="2" data-color="violet">
+      <div class="walk-num">02</div>
+      <div class="walk-content">
+        <div class="walk-label"><span lang="ru">Шаг 2 &mdash; плотная ветка: заменить</span><span lang="en">Step 2 &mdash; dense branch: replace</span></div>
+        <div class="walk-detail"><span lang="ru">HyDE кодирует \(\hat d\) и ищет по нему. Термы \(q\) в индекс не уходят вовсе &mdash; в поиск идёт только вектор черновика.</span><span lang="en">HyDE embeds \(\hat d\) and searches with it. The terms of \(q\) never reach the index &mdash; only the draft's vector does.</span></div>
+      </div>
+      <div class="walk-state">\(e = f(\hat d)\)</div>
+    </div>
+    <div class="walk-step" data-step="3" data-color="amber">
+      <div class="walk-num">03</div>
+      <div class="walk-content">
+        <div class="walk-label"><span lang="ru">Шаг 3 &mdash; разреженная ветка: дописать</span><span lang="en">Step 3 &mdash; sparse branch: append</span></div>
+        <div class="walk-detail"><span lang="ru">Query2doc склеивает строки: \(q' = q \Vert \hat d\). Термы \(q\) остаются на месте, к ним прибавляются термы черновика &mdash; и в индекс уходит объединение.</span><span lang="en">Query2doc glues the strings: \(q' = q \Vert \hat d\). The terms of \(q\) stay put and the draft's terms join them &mdash; the union goes to the index.</span></div>
+      </div>
+      <div class="walk-state">\(q' = q \Vert \hat d\)</div>
+    </div>
+    <div class="walk-step" data-step="4" data-final="true">
+      <div class="walk-num">&rarr;</div>
+      <div class="walk-content">
+        <div class="walk-label"><span lang="ru">Итог &mdash; это один и тот же выбор</span><span lang="en">Result &mdash; it is one and the same choice</span></div>
+        <div class="walk-detail"><span lang="ru">Обе ветки решают, держать ли нить к исходному вопросу. В плотном пространстве нить &mdash; <em>слагаемое</em> \(+f(q)\), в разреженном &mdash; сама конкатенация. У HyDE якорь опционален, у Query2doc он встроен в конструкцию.</span><span lang="en">Both branches decide whether to keep a thread back to the original question. In dense space that thread is a <em>summand</em>, \(+f(q)\); in sparse space it is the concatenation itself. HyDE's anchor is optional, Query2doc's is structural.</span></div>
+      </div>
+      <div class="walk-state">\(+f(q)\;\big|\;q \Vert \hat d\)</div>
+    </div>
+  </div>
+  <div class="step-controls">
+    <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+    <span class="step-counter">0/4</span>
+    <button data-step-act="next" aria-label="Next step">&rarr;</button>
+  </div>
+  <aside class="slide-notes">Hand-walk on letters, no numbers: the act names replace-vs-append twice (HyDE, GAR/Query2doc) but never puts the two substitutions side by side. Step 1: one draft d̂ serves both branches — the LLM call is shared. Step 2 (dense): HyDE substitutes the ENCODER'S INPUT, e = f(d̂); the query's terms never enter retrieval. Step 3 (sparse): Query2doc substitutes the QUERY STRING, q' = q ‖ d̂; the query's terms survive and the draft's terms are added. Step 4 is the unification to say out loud: both branches are answering the same question — keep an anchor to the original q or not — and the anchor is a vector summand +f(q) in one space and the concatenation itself in the other. HyDE makes it optional; Query2doc builds it in. This is why drift is HyDE's boundary and not Query2doc's.</aside>
+</section>
