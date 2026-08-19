@@ -266,6 +266,48 @@ def check_notebook(name, nb_path, runs_dir, pool_data, err, warn):
     return residue
 
 
+def check_embedded_data(name, nb_path, err):
+    """[E] Вшитая копия data/*.json обязана совпадать с оригиналом БАЙТ В БАЙТ.
+
+    Ноутбуки носят нужные им data/*.json внутри себя (zlib+base64): в Colab папки курса нет,
+    и до 19.08.2026 занятие падало на первой же сверке с FileNotFoundError. Копия — это долг:
+    обнови data/, забудь ноутбук, и студент будет сверяться с прошлогодними числами, причём
+    молча. Поэтому копия проверяется здесь, а не держится на обещании в комментарии ячейки.
+    Чинится перевшиванием, не правкой JSON внутри ячейки.
+    """
+    import base64
+    import zlib
+    nb = load_nb(nb_path)
+    for cell in nb.get("cells", []):
+        if cell.get("cell_type") != "code":
+            continue
+        src = "".join(cell.get("source", []))
+        if "_EMBEDDED = {" not in src:
+            continue
+        ns = {}
+        try:
+            body = src[src.index("_EMBEDDED = {"):]
+            body = body[:body.index("\n}") + 2]
+            exec(body, ns)                      # только литерал словаря, без побочных эффектов
+        except Exception as e:
+            err(f"[E] {name}: не читается вшитый блок данных ({type(e).__name__}: {e})")
+            return
+        for fname, blob in ns["_EMBEDDED"].items():
+            orig = os.path.join(ROOT, "data", fname)
+            if not os.path.exists(orig):
+                err(f"[E] {name}: вшит {fname}, которого нет в data/ — копия пережила оригинал")
+                continue
+            try:
+                got = zlib.decompress(base64.b64decode(blob))
+            except Exception as e:
+                err(f"[E] {name}: {fname} не распаковывается ({type(e).__name__})")
+                continue
+            if got != open(orig, "rb").read():
+                err(f"[E] {name}: вшитый {fname} разошёлся с data/{fname} — "
+                    f"перевши данные, не правь ячейку руками")
+        return
+
+
 def check_t4(name, runs_dir, t4_dir, err, warn):
     """[T4] сверка локального дампа с T4-дампом: качество строго, тайминги — WARN с допуском."""
     t4_path = os.path.join(t4_dir, name + ".json")
@@ -364,6 +406,7 @@ def run(sem_dir=SEM_DIR, runs_dir=RUNS_DIR, t4_dir=RUNS_T4_DIR, data_glob=DATA_G
             if listing:
                 for raw in residue:
                     print(f"    [N] {name}: {raw!r} — нет ни в дампе, ни в data/")
+        check_embedded_data(name, nb_path, err)
         check_t4(name, runs_dir, t4_dir, err, warn)
 
     baseline = load_baseline(baseline_path)
