@@ -198,6 +198,18 @@ def _lat_ok(seg, m):
     return False
 
 
+# §1 (обращение «ты») регулирует, как автор говорит С ЧИТАТЕЛЕМ. Внутри кавычек «…» стоит не
+# обращение, а ЦИТАТА: строка интерфейса («возможно, вы искали»), чужая речь или перевод чужого
+# слова («из ваших домов» как разбор турецкого evlerinizden). Переписать их на «ты» нельзя —
+# это исказило бы цитируемое. Ограничение по длине держит сужение узким: длинный абзац в
+# кавычках — это уже авторский текст, а не короткая цитата.
+QUOTED = re.compile(r"«[^«»]{0,80}»")
+
+
+def _vy_ok(seg, m):
+    return any(q.start() < m.start() < q.end() for q in QUOTED.finditer(seg))
+
+
 def lint_segment(seg, relpath, base_line, findings, owns_bit, is_beats):
     for code, sev, rx, note in CHECKS:
         for m in rx.finditer(seg):
@@ -208,6 +220,8 @@ def lint_segment(seg, relpath, base_line, findings, owns_bit, is_beats):
             if code == "W-CHTO" and _chto_ok(m):
                 continue
             if code == "W-YO" and _yo_ok(seg, m):
+                continue
+            if code == "W-VY" and _vy_ok(seg, m):
                 continue
             findings.append((sev, code, relpath, base_line(m.start()),
                              m.group(0)[:60], note))
@@ -377,6 +391,20 @@ def selftest():
     if not dec("средняя длина документа равна 3.0 слова"):
         fails.append("dec-fires-outside-code")      # то же число вне кода — снова дефект
 
+    def vy(seg):
+        found = []
+        lint_segment(seg, "x", lambda off: 1, found, False, False)
+        return [f for f in found if f[1] == "W-VY"]
+
+    if not vy("здесь вы увидите, как растёт индекс"):
+        fails.append("vy-fires-on-address")            # обращение к читателю — дефект
+    if vy("подсказка «возможно, вы искали» чинит опечатку"):
+        fails.append("vy-skips-a-quote")               # строка интерфейса — цитата
+    if vy("`evlerinizden` — одно слово, «из ваших домов»"):
+        fails.append("vy-skips-a-translation")
+    if not vy("«тут» вы найдёте ответ"):
+        fails.append("vy-fires-outside-the-quote")     # кавычки рядом ≠ внутри
+
     tmp = _tempfile.mkdtemp(prefix="style_selftest_")
     _os.makedirs(_os.path.join(tmp, "seminars"))
     nb = _os.path.join(tmp, "seminars", "lab-x.ipynb")
@@ -396,6 +424,8 @@ def selftest():
 
     for t in ("dec-fires-in-prose", "dec-skips-step-number", "dec-skips-inflected-step",
               "dec-skips-table-cell", "dec-skips-inline-code", "dec-fires-outside-code",
+              "vy-fires-on-address", "vy-skips-a-quote", "vy-skips-a-translation",
+              "vy-fires-outside-the-quote",
               "frozen-debt-counted", "frozen-debt-skips-code-cells", "frozen-debt-selfdestructs"):
         print("  [%s] %s" % ("FAIL" if t in fails else "OK", t))
     print("[selftest] FAIL: " + ", ".join(fails) if fails else "[selftest] PASS")
