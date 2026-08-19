@@ -34,6 +34,7 @@ on:
       - 'narrative/chrome-ru.json'
       - '_audit/mechanism-gate.mjs'
       - '_research/check_glossary.py'
+      - '_audit/act-structure-gate.mjs'
       - 'narrative/glossary-ru.json'
       - 'narrative/style-ru.md'
       - 'data/papers.json'
@@ -70,6 +71,7 @@ on:
       - 'narrative/chrome-ru.json'
       - '_audit/mechanism-gate.mjs'
       - '_research/check_glossary.py'
+      - '_audit/act-structure-gate.mjs'
       - 'narrative/glossary-ru.json'
       - 'narrative/style-ru.md'
       - 'data/papers.json'
@@ -236,6 +238,17 @@ jobs:
         run: python3 _research/check_glossary.py
       - name: G33 glossary self-test
         run: python3 _research/check_glossary.py --selftest
+
+      # G34 — act structure: every act needs a derivation inside it, and every deck past the
+      # first three needs a you-are-here frame. Note what this gate deliberately does NOT check:
+      # "an act closes with a boundary slide" is in the Definition of Done, but the measurement
+      # showed the reference decks 10 and 12 fail it (7 acts of 8, 4 of 5) — a rule that fails its
+      # own exemplar describes the author's fantasy, not the course. Ratchet: per-deck violation
+      # count may only fall.
+      - name: G34 act-structure
+        run: node _audit/act-structure-gate.mjs
+      - name: G34 act-structure self-test
+        run: node _audit/act-structure-gate.mjs --selftest
 
       # G12 — image-gate: the recurring mascots must stay present + on-palette (brand can't fade out).
       - name: G12 image-gate

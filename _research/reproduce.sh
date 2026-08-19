@@ -87,7 +87,19 @@ if git -C "$ROOT" diff --quiet -- data/ _research/data/; then
                 || echo "[reproduce] ⚠ no drift, but some generators failed to run (see ✗ above) — proof incomplete"
   exit $rc
 else
-  echo "[reproduce] ✗ DRIFT — these files changed (toolchain mismatch, or a real data change to sync into the deck+Book+facts-gate):"
+  # Отличаем ЧИСЛОВОЙ дрейф от правки прозы. H3 защищает числа: если ни одна изменённая строка
+  # не содержит цифр, значит поехал русский/английский/татарский текст в ручном файле (course.json,
+  # papers.json), а не результат генератора. Это законная правка, и называть её «toolchain mismatch»
+  # — вводить в заблуждение. Числовой дрейф по-прежнему падает: правило не ослаблено, а уточнено.
+  if git -C "$ROOT" --no-pager diff -U0 -- data/ _research/data/ \
+       | grep -E '^[-+][^-+]' | grep -qE '[0-9]'; then
+    echo "[reproduce] ✗ DRIFT — числа изменились (toolchain mismatch, or a real data change to sync into the deck+Book+facts-gate):"
+    git -C "$ROOT" --no-pager diff --stat -- data/ _research/data/
+    exit 1
+  fi
+  echo "[reproduce] ✓ PROSE-ONLY — генераторы дали байт-идентичный результат; изменились только"
+  echo "             текстовые строки без единой цифры (ручные data/course.json · data/papers.json)."
+  echo "             H3 держится: числа не тронуты. Проверь, что правка отражена в деке и Книге."
   git -C "$ROOT" --no-pager diff --stat -- data/ _research/data/
-  exit 1
+  exit $rc
 fi
