@@ -90,7 +90,22 @@ def check(deck, html):
     for n in sorted(set(allhash)):
         if n not in slides:
             issues.append(("HARD", f"{deck}: BROKEN-ANCHOR #/{n} → no slide (total={total})"))
-    # AGENDA → DIVIDER — each agenda jump lands on a section break (last may be the closing)
+    # AGENDA → ITS OWN DIVIDER. Попадания «на какой-нибудь дивайдер» мало: после вставки слайдов
+    # позиции съезжают ТАК, что новая позиция акта 5 совпадает со старой позицией акта 6 — все
+    # якоря по-прежнему указывают на дивайдеры, и правило молчит, а план ведёт читателя не туда.
+    # Поэтому: когда пунктов повестки ровно столько же, сколько дивайдеров, k-й пункт обязан вести
+    # на k-й дивайдер. Если счётчики не равны (акт без дивайдера, дивайдер-перерыв), такой проверки
+    # не существует и остаётся слабая — «цель является дивайдером».
+    div_positions = [pos for pos, ty in sorted(slides.items()) if ty == "divider"]
+    uniq_agenda = []
+    for n in agenda:
+        if n not in uniq_agenda:
+            uniq_agenda.append(n)
+    if div_positions and len(uniq_agenda) == len(div_positions) and uniq_agenda != div_positions:
+        for k, (got, want) in enumerate(zip(uniq_agenda, div_positions), 1):
+            if got != want:
+                issues.append(("HARD", f"{deck}: AGENDA-SHIFT пункт {k}: #/{got} → дивайдер "
+                                       f"#{want} (якорь указывает на чужой акт)"))
     for i, n in enumerate(agenda):
         if n not in slides:
             continue                               # already reported as broken
@@ -156,10 +171,21 @@ def selftest():
     iss4, *_ = check("L3", mid)
     ok4 = any(s == "HARD" and "AGENDA-TARGET #/2" in m for s, m in iss4)
 
+    # Сдвиг «на чужой, но настоящий дивайдер» — тот случай, который слабое правило пропускает:
+    # оба якоря целятся в дивайдеры, но второй пункт ведёт на третий акт.
+    shift = ('<section class="slide" data-type="agenda">'
+             '<a class="toc-item" href="#/2">часть 1</a><a class="toc-item" href="#/4">часть 2</a>'
+             '</section>'
+             '<section class="slide" data-type="divider"></section>'
+             '<section class="slide" data-type="divider"></section>')
+    iss5, *_ = check("FIX", shift)
+    ok5 = any(s == "HARD" and "AGENDA-SHIFT" in m for s, m in iss5)
+    print(f"[selftest] {'PASS' if ok5 else 'FAIL'} — anchor on the WRONG divider")
+
     for label, good in (("broken-anchor", ok), ("agenda-target HARD", ok2),
                         ("closing slide ok", ok3), ("allowlist is address-scoped", ok4)):
         print(f"[selftest] {'PASS' if good else 'FAIL'} — {label}")
-    return 0 if all((ok, ok2, ok3, ok4)) else 1
+    return 0 if all((ok, ok2, ok3, ok4, ok5)) else 1
 
 if __name__ == "__main__":
     sys.exit(selftest() if "--selftest" in sys.argv else run())
