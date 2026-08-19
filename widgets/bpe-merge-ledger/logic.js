@@ -5,15 +5,18 @@
 
    Built on the shared widgets/_widget-base.js factory: it owns the wgt-root/wgt-fade host setup,
    the caption/counter scaffold, the setStep clamp + host.dataset.step, the esc() helper and the
-   window.mountBpeLedger registration; render() only draws the merge rows + per-step reveal. */
+   window.mountBpeMergeLedger registration; render() only draws the merge rows + per-step reveal. */
 import { defineWidget, esc } from '../_widget-base.js';
 
 const N_SHOWN = 6;
 
-export const mountBpeLedger = defineWidget({
+export const mountBpeMergeLedger = defineWidget({
   id: 'bpe-merge-ledger',
   rootClass: 'bpe-root',
-  exportName: 'mountBpeLedger',
+  // Имя ОБЯЗАНО быть mount+PascalCase(id): deck-adapter ищет ровно window[mountName(id)].
+  // Стояло 'mountBpeLedger' (без Merge) — виджет регистрировался под одним именем, а адаптер
+  // искал под другим, и слайд 27a деки 02 ехал ПУСТЫМ. Ни один гейт этого не видел до G13.
+  exportName: 'mountBpeMergeLedger',
   maxStep: 5,
   render({ host, data, labels }) {
     const merges = (data.firstMerges || []).slice(0, N_SHOWN);

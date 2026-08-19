@@ -76,6 +76,9 @@ export function classify(rec) {
   const where = `${rec.deck || ''} s${rec.slide}/${rec.label || ''} [${rec.lang} step${rec.step}/${rec.maxStep}]`;
   const hard = [], warn = [];
   for (const c of (rec.imgs?.collapsed || [])) hard.push(`${where}: COLLAPSED figure ${c.src} (${c.h}px)`);
+  for (const w of (rec.emptyWidgets || []))
+    hard.push(`${where}: WIDGET NOT MOUNTED «${w}» — слайд объявил виджет, а нарисовано ничего `
+              + `(проверь <script src="js/${w}.classic.js"> в zz-tail деки)`);
   for (const b of (rec.imgs?.broken || [])) hard.push(`${where}: BROKEN image ${b}`);
   for (const o of (rec.offSlide || [])) hard.push(`${where}: OFF-SLIDE ${JSON.stringify(o.t)} by ${o.over}px`);
   if (rec.doubled) hard.push(`${where}: BILINGUAL DOUBLING ×${rec.doubled}`);
@@ -154,9 +157,31 @@ function measure({ TINY_PX, OVERLAP_FRAC, OFF_PAD, IMG_MIN }) {
     const ru = en.parentElement && en.parentElement.querySelector(':scope > [lang="ru"]');
     if (ru && vis(en) && vis(ru)) doubled++;
   });
+  /* A slide that DECLARES a widget and renders nothing is the failure this probe used to miss
+     entirely: five course-map slides shipped blank on 2026-08-19 because the deck's zz-tail never
+     loaded js/course-map.classic.js. Every other gate stayed green — composition sees no overflow
+     where there is no content, and the image checks above only look at <img>/<image>. The mount is
+     empty when it holds no SVG/canvas of real height. */
+  const emptyWidgets = [];
+  slide.querySelectorAll('.widget-mount[data-widget]').forEach(mt => {
+    const id = mt.getAttribute('data-widget');
+    /* «Нарисовано» — это ЛЮБОЙ видимый потомок, не обязательно svg/canvas: 15 виджетов курса
+       (bpe-steps, inverted-index, rrf-fusion, ru-paradigm…) строят обычный HTML через innerHTML,
+       и первая редакция этой проверки объявила их все несмонтированными. Пустой mount отличается
+       тем, что потомков у него НЕТ вовсе. */
+    const painted = [...mt.querySelectorAll('*')].some(el => {
+      const r = el.getBoundingClientRect();
+      return r.width > 1 && r.height > 1;
+    });
+    /* Порога по ВЫСОТЕ здесь намеренно нет. Он был (>= IMG_MIN) и поймал pq-quantize на шаге 0,
+       где виджет законно показывает одну узкую строку исходного вектора и разворачивается дальше
+       по шагам. Постепенное раскрытие — приём курса, а не дефект; дефект — это mount, в котором
+       не нарисовано НИЧЕГО. */
+    if (!painted) emptyWidgets.push(id);
+  });
   return { minTextPx: minTextPx == null ? null : +minTextPx.toFixed(1), tinyText,
            overlaps: overlaps.slice(0, 20), offSlide: offSlide.slice(0, 12),
-           imgs: { total: imgEls.length, broken, collapsed }, doubled };
+           imgs: { total: imgEls.length, broken, collapsed }, emptyWidgets, doubled };
 }
 
 async function run() {
@@ -252,6 +277,8 @@ async function main() {
 function selftest() {
   const fixtures = [
     { name: 'collapsed image', rec: { lang: 'ru', slide: 1, step: 0, maxStep: 0, imgs: { collapsed: [{ src: 'x.webp', h: 16 }] } }, mustHard: true },
+    { name: 'unmounted widget', rec: { lang: 'ru', slide: 1, step: 0, maxStep: 0, emptyWidgets: ['course-map'] }, mustHard: true },
+    { name: 'mounted widget silent', rec: { lang: 'ru', slide: 1, step: 0, maxStep: 0, emptyWidgets: [] }, mustHard: false },
     { name: 'broken image', rec: { lang: 'en', slide: 2, step: 0, maxStep: 0, imgs: { broken: ['y.webp'] } }, mustHard: true },
     { name: 'off-slide', rec: { lang: 'en', slide: 3, step: 0, maxStep: 0, offSlide: [{ t: 'z', over: 40 }] }, mustHard: true },
     { name: 'bilingual doubling', rec: { lang: 'en', slide: 4, step: 0, maxStep: 0, doubled: 2 }, mustHard: true },
