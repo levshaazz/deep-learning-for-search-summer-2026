@@ -37,6 +37,7 @@ on:
       - '_audit/act-structure-gate.mjs'
       - 'narrative/glossary-ru.json'
       - 'narrative/style-ru.md'
+      - '_research/ru/**'
       - 'data/papers.json'
       - 'seminars/**'
       - '_research/gen_images.py'
@@ -74,6 +75,7 @@ on:
       - '_audit/act-structure-gate.mjs'
       - 'narrative/glossary-ru.json'
       - 'narrative/style-ru.md'
+      - '_research/ru/**'
       - 'data/papers.json'
       - 'seminars/**'
       - '_research/gen_images.py'
@@ -238,6 +240,17 @@ jobs:
         run: python3 _research/check_glossary.py
       - name: G33 glossary self-test
         run: python3 _research/check_glossary.py --selftest
+
+      # RU style linter — in CI for the first time on 19.08.2026. It had run only by hand, so its
+      # narrowings (which false positives a rule must skip) rested on nobody's memory; it now
+      # carries a self-test and CI runs it. Warnings do not fail the build — only errors do.
+      # seminars/*.ipynb stay outside the perimeter while the T4 run is in the owner's hands, but
+      # both this linter and the glossary gate COUNT that debt and print it, so the deferral
+      # cannot quietly become forgetfulness.
+      - name: RU style linter
+        run: python3 _research/ru/check_style.py
+      - name: RU style linter self-test
+        run: python3 _research/ru/check_style.py --selftest
 
       # G34 — act structure: every act needs a derivation inside it, and every deck past the
       # first three needs a you-are-here frame. Note what this gate deliberately does NOT check:

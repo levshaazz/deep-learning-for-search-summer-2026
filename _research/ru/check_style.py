@@ -28,6 +28,7 @@ release/video/*.md (prose lines; slide-label metadata + code excluded). Codes:
 Usage: python3 check_style.py [--strict] [--full] [--codes E-DEC,W-VY] [--root PATH]
 """
 import argparse
+import os
 import re
 import sys
 
@@ -140,6 +141,34 @@ def _yo_ok(seg, m):
     return False
 
 
+# §2 (десятичная запятая) регулирует ЧИСЛА-ВЕЛИЧИНЫ в русской прозе. Два соседних класса
+# выглядят как десятичные, но ими не являются, и оба всплыли при заведении семинаров в счётчик
+# долга: из 140 срабатываний в ноутбуках настоящими не было НИ ОДНОГО.
+#   (а) СОСТАВНОЙ НОМЕР ПУНКТА — «Шаг 1.1», «Правило 10.5», «§9.3», ячейка таблицы «| 2.3 |».
+#       Точка здесь — разделитель уровней, а не разряд; запятая сделала бы номер нечитаемым.
+#   (б) ЧИСЛО ВНУТРИ КОДА — `avgdl = 3.0`, ```-блок, `b=0.75`. Код набирают так, как он
+#       выполняется; запятая его сломает. В деках и битах код размечен тегами и до этой ветки
+#       не доходит, поэтому правило и молчало, пока периметром была только вёрстка.
+# Сужение узкое НАМЕРЕННО: «полнота 0.85» в прозе по-прежнему дефект.
+IDENT_BEFORE = re.compile(r"(?:шаг|правил|пункт|задач|раздел|глав|верси)\w*\s*$|§\s*$", re.I)
+# Склонение обязано входить в шаблон: «в шаге 3.4» — тот же номер пункта, что и «Шаг 3.4»,
+# и первая редакция шаблона (без \w*) пропускала ровно косвенные падежи.
+TABLE_CELL = re.compile(r"\|\s*$")
+
+
+def _code_spans(seg):
+    """Инлайн-код и fenced-блоки markdown — по ним §2 не ходит."""
+    return [(m.start(), m.end()) for m in
+            re.finditer(r"```.*?```|`[^`\n]*`", seg, re.S)]
+
+
+def _dec_ok(sub, s, e):
+    left = sub[max(0, s - 24):s]
+    if IDENT_BEFORE.search(left) or TABLE_CELL.search(left):
+        return True
+    return any(cs <= s < ce for cs, ce in _code_spans(sub))
+
+
 def _lat_ok(seg, m):
     if any(g.start() <= m.start() < g.end() for g in GLOSS.finditer(seg)):
         return True
@@ -206,6 +235,8 @@ def lint_segment(seg, relpath, base_line, findings, owns_bit, is_beats):
                         and re.match(r"\s*[A-Za-z]{2,}", _r)
                         and not re.search(r"[а-яёА-ЯЁ]", _l + _r)):
                     continue
+                if _dec_ok(sub, s, e):
+                    continue
                 findings.append(("E", "E-DEC", relpath, base_line(ms + s),
                                  seg[ms:me][max(0, s - 15):e + 10].replace("\n", " "),
                                  "десятичная запятая (§2), напр. " + rep))
@@ -229,6 +260,35 @@ def process(path, root, kind, findings):
         lint_segment(seg, relpath,
                      lambda off, rs=rs: rulib.line_of(text, rs + off),
                      findings, owns_bit, kind == "beats")
+
+
+def frozen_debt(root, codes=None):
+    """Тот же линтер по замороженному seminars/ — СЧЁТЧИК, не приговор.
+
+    Ноутбуки стоят вне периметра, пока владелец гоняет комплект на T4: правка развела бы
+    репозиторий с комплектом на руках. Но отсрочка без счётчика — это забывчивость, поэтому
+    долг измеряется каждым прогоном и печатается строкой DEBT. Дойдёт до нуля — строка сама
+    попросит завести seminars/*.ipynb в main() и удалить эту функцию.
+    """
+    import glob as _glob
+    import json as _json
+    debt = []
+    # glob.escape обязателен: путь репозитория содержит «[Summer 2026]», и без экранирования
+    # glob читает скобки как класс символов — счётчик молча вернул бы ноль (и вернул).
+    for nb in sorted(_glob.glob(os.path.join(_glob.escape(root), "seminars", "*.ipynb"))):
+        try:
+            cells = _json.load(open(nb, encoding="utf-8")).get("cells", [])
+        except (ValueError, OSError):
+            continue
+        rel = rulib.rel(root, nb)
+        for i, c in enumerate(cells):
+            if c.get("cell_type") != "markdown":
+                continue          # проза семинара, не код: канон обращения — про текст
+            seg = "".join(c.get("source", []))
+            lint_segment(seg, rel, lambda off, i=i: i + 1, debt, False, False)
+    if codes:
+        debt = [f for f in debt if f[1] in codes]
+    return debt
 
 
 def main(argv=None):
@@ -272,8 +332,75 @@ def main(argv=None):
     n_err = sum(1 for f in findings if f[0] == "E")
     n_warn = len(findings) - n_err
     print("errors: %d, warnings: %d" % (n_err, n_warn))
+
+    debt = frozen_debt(args.root, codes)
+    if debt:
+        by_nb = {}
+        for f in debt:
+            by_nb[f[2]] = by_nb.get(f[2], 0) + 1
+        print("DEBT(seminars/, вне периметра — заморожены до T4-прогона): %d в %d ноутбук(ах) — %s"
+              % (len(debt), len(by_nb), ", ".join("%s:%d" % kv for kv in sorted(by_nb.items()))))
+    else:
+        print("DEBT(seminars/)=0 — долг пуст: заведи seminars/*.ipynb в main() и удали "
+              "frozen_debt, иначе стиль в ноутбуках снова поедет молча")
     return 1 if (n_err or (args.strict and n_warn)) else 0
 
 
+def selftest():
+    """Известно-плохое обязано падать, известно-хорошее — молчать.
+
+    До 19.08.2026 у линтера не было селфтеста вообще: сужения правил держались на честном
+    слове, и обратное расширение никто бы не заметил. Первым же поводом стало сужение E-DEC —
+    поэтому фикстуры здесь ровно про ту границу, которую сужение провело.
+    """
+    import json as _json
+    import os as _os
+    import shutil as _shutil
+    import tempfile as _tempfile
+
+    def dec(seg):
+        found = []
+        lint_segment(seg, "x", lambda off: 1, found, False, False)
+        return [f for f in found if f[1] == "E-DEC"]
+
+    fails = []
+    if not dec("полнота выросла до 0.85 на этом наборе"):
+        fails.append("dec-fires-in-prose")          # настоящий десятичный — дефект
+    if dec("### Шаг 1.2 · Замер базовой линии"):
+        fails.append("dec-skips-step-number")       # номер пункта — не число
+    if dec("вернись в шаге 3.4 к формуле"):
+        fails.append("dec-skips-inflected-step")    # тот же номер в косвенном падеже
+    if dec("| 2.3 | RRF: как складывать ранги |"):
+        fails.append("dec-skips-table-cell")
+    if dec("запомни `avgdl = 3.0` — это число из корпуса"):
+        fails.append("dec-skips-inline-code")
+    if not dec("средняя длина документа равна 3.0 слова"):
+        fails.append("dec-fires-outside-code")      # то же число вне кода — снова дефект
+
+    tmp = _tempfile.mkdtemp(prefix="style_selftest_")
+    _os.makedirs(_os.path.join(tmp, "seminars"))
+    nb = _os.path.join(tmp, "seminars", "lab-x.ipynb")
+    _json.dump({"cells": [{"cell_type": "markdown",
+                           "source": ["полнота выросла до 0.85\n", "и ещё раз 0.42\n"]}]},
+               open(nb, "w", encoding="utf-8"))
+    if len(frozen_debt(tmp, {"E-DEC"})) != 2:
+        fails.append("frozen-debt-counted")
+    _json.dump({"cells": [{"cell_type": "code", "source": ["x = 0.85\n"]}]},
+               open(nb, "w", encoding="utf-8"))
+    if frozen_debt(tmp, {"E-DEC"}):
+        fails.append("frozen-debt-skips-code-cells")   # код семинара — не проза
+    _os.remove(nb)
+    if frozen_debt(tmp):
+        fails.append("frozen-debt-selfdestructs")
+    _shutil.rmtree(tmp, ignore_errors=True)
+
+    for t in ("dec-fires-in-prose", "dec-skips-step-number", "dec-skips-inflected-step",
+              "dec-skips-table-cell", "dec-skips-inline-code", "dec-fires-outside-code",
+              "frozen-debt-counted", "frozen-debt-skips-code-cells", "frozen-debt-selfdestructs"):
+        print("  [%s] %s" % ("FAIL" if t in fails else "OK", t))
+    print("[selftest] FAIL: " + ", ".join(fails) if fails else "[selftest] PASS")
+    return 1 if fails else 0
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(selftest() if "--selftest" in sys.argv else main())
