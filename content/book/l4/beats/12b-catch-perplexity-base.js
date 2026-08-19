@@ -1,0 +1,21 @@
+    {
+      id: 'catch-perplexity-base', kind: 'prose',
+      heading: { en: "Perplexity: in whose base?", ru: "Перплексия: в каком основании?", tt: "Perplexity: кайсы нигездә?" },
+      body: {
+        en: [
+          "**Perplexity** is the friendly face of cross-entropy: raise a base to the power of the loss and read off a branching factor — how many equally likely continuations your uncertainty is worth. The catch hides in the words «a base». The definition is \\(\\mathrm{PPL} = b^{\\,H_b}\\), and the \\(b\\) of the power must be the \\(b\\) of the logarithm inside the loss. Papers and frameworks report the loss in **nats** — the standard cross-entropy call returns a natural logarithm — so their perplexity is \\(e^{\\text{loss}}\\), not \\(2^{\\text{loss}}\\).",
+          "This mistake is nasty because it is quiet. A nat is a bit multiplied by a constant, so exponentiating in the wrong base raises no exception and overflows nothing: it hands you a plausible number of the same order of magnitude, which then goes into a table and gets compared with somebody else's. Check the base of the loss before you exponentiate — that is the whole of the fix.",
+          "And a second incomparability lives under the same roof. Perplexity cannot be compared across tokenizers, nor across normalisations — per token, per word, per character. Two models may be ranked by perplexity only if they share both. That is the earlier act's question in a new costume: bits per *what*? perplexity per *what*? The formula is arithmetic; the meaning lives in the unit.",
+        ],
+        ru: [
+          "**Перплексия** — приветливое лицо кросс-энтропии: возведи основание в степень функции потерь и прочти фактор ветвления — скольким равновероятным продолжениям равна твоя неуверенность. Подвох прячется в словах «основание». Определение таково: \\(\\mathrm{PPL} = b^{\\,H_b}\\), и \\(b\\) степени обязано быть тем же \\(b\\), что стоит у логарифма внутри лосса. Статьи и фреймворки печатают лосс в **натах** — стандартный вызов кросс-энтропии возвращает натуральный логарифм, — а значит, их перплексия равна \\(e^{\\text{loss}}\\), а не \\(2^{\\text{loss}}\\).",
+          "Ошибка эта поганая именно тем, что тихая. Нат — это бит, умноженный на константу, поэтому возведение не в то основание не выбросит исключения и ничего не переполнит: оно выдаст правдоподобное число того же порядка, которое затем ляжет в таблицу и поедет сравниваться с чужим. Проверь основание лосса, прежде чем возводить в степень, — вся починка в этом.",
+          "И под той же крышей живёт вторая несравнимость. Перплексии несравнимы между токенизаторами и между нормировками — на токен, на слово, на символ. Две модели можно ставить рядом по перплексии, только если у них общее и то и другое. Это вопрос прошлого акта в новом костюме: бит на *что*? перплексия на *что*? Формула — арифметика; смысл живёт в единице измерения.",
+        ],
+        tt: [
+          "**Perplexity** — cross-entropy'нең йомшак йөзе: нигезне loss дәрәҗәсенә күтәр дә тармаклану факторын укы — синең икеләнүең ничә тигез ихтималлы дәвамга тора. Хәйлә «нигез» дигән сүздә яшеренә. Билгеләмә болай: \\(\\mathrm{PPL} = b^{\\,H_b}\\), һәм дәрәҗәнең \\(b\\) сы функция потерь эчендәге логарифмның \\(b\\) сы белән бер үк булырга тиеш. Мәкаләләр һәм фреймворклар loss'ны **натларда** бастыра — стандарт cross-entropy чакыруы натураль логарифм кайтара, — димәк аларның perplexity'се \\(e^{\\text{loss}}\\), \\(2^{\\text{loss}}\\) түгел.",
+          "Бу хата нәкъ тыныч булуы белән начар. Нат — константага тапкырланган бит, шуңа дөрес булмаган нигезгә күтәрү бернинди искәрмә дә ыргытмый, бернәрсә дә ташып чыкмый: ул шул ук тәртиптәге ышанычлы күренешле сан бирә, ә ул сан аннары таблицага кереп, кеше саны белән чагыштырыла башлый. Дәрәҗәгә күтәргәнче loss'ның нигезен тикшер — бөтен төзәтү шуннан гыйбарәт.",
+          "Һәм шул ук түбә астында икенче чагыштырылмаучанлык яши. Perplexity'ләр токенизаторлар арасында да, нормалаштырулар арасында да — токенга, сүзгә, символга — чагыштырылмый. Ике модельне perplexity буенча янәшә куярга бары икесендә дә болар уртак булганда гына ярый. Бу — узган актның соравы яңа костюмда: нәрсәгә бит? нәрсәгә perplexity? Формула — арифметика; мәгънә исә үлчәү берәмлегендә яши.",
+        ],
+      },
+    },
