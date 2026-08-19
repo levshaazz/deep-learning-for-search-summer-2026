@@ -31,6 +31,22 @@ Course site (Astro) + offline lecture decks + trilingual Book + vanilla-JS SVG w
 - **Add lecture L7:** `data/course.json` entry + the Book chapter (write `content/book/l7.js`, then `node scripts/assemble-chapter.mjs split l7` to shard it — the monolith is gitignored, the `beats/` fragments are tracked) + the deck under `Lectures/07-slug/parts/`. Registries are glob-driven — `BOOK_READY`, `check_claims DECKS`, `wbw-check`, `responsive-gate`, book route, beat/scroll/i18n gates all auto-discover. (Curated `slide-viz` `DECK_TARGETS`/`BOOK_TARGETS` are optional per-figure defect targets, not per-unit registration.) **Illustrations:** add the briefs to `_research/gen_images.py` `JOBS` reusing the `mascots.py` cast — Séréga must appear in ≥40% of plates AND in the hero + final plate (the image-gate enforces this; don't ship Séréga-less abstract plates). Generate with `python3 _research/gen_images.py L7`.
 - **Add homework/seminar:** `src/lib/assignments.js` — content-first, ~0 plumbing (the reference model).
 
+## Что сознательно НЕ гейтится (и почему — не переоткрывать)
+- **Провенанс квалификаторов (план 4.5).** Замысел: пометка «игрушечный пример / относительные
+  проценты / GPU-батч» обязана стоять на том же слайде, где показано число. Проверены три
+  формулировки, все — театр: (1) «число совпало со значением из toy-файла» → 223 слайда, среди них
+  √2 и параметр `b` BM25; (2) то же с уникальной принадлежностью значения одному файлу → 37, но
+  ручная проверка первого же (`L18 · 06 Hook`) показала, что там числа **из статьи Günther 2024**,
+  а совпадение случайно; (3) «слайд-разбор с числами обязан нести слово-оговорку» → 22 из 28, и это
+  слайды вроде «BM25 на кошках и собаках», где корпус из трёх документов виден глазами. Причина
+  общая: происхождение числа не выводится из его значения, потому что одни и те же величины
+  приходят и из статей, и из игрушечных расчётов. Надёжный гейт возможен только если у claim'ов
+  в `check_claims.py` появится ЯВНОЕ поле провенанса (515 записей, 14 реестров) — до тех пор
+  проверки нет, и это лучше, чем 37 «нарушений», которые все научатся пролистывать.
+- **«Акт закрывается слайдом-границей» (часть плана 4.8).** Правило есть в Definition of Done, но
+  его не проходят эталонные деки 10 и 12 (7 актов из 8 и 4 из 5): акты закрываются содержательным
+  слайдом, а не служебным ярлыком. Убрано из G34 после замера — см. коммит гейта.
+
 ## Hard constraints (do not break)
 H1 decks are offline standalone (`file://`, zero network, 1920×1080, EN/RU). H2 Book is trilingual via i18n. H3 numbers come from `data/` + are reproducible/facts-gated (any data/generator change must leave `data/` JSON byte-identical: `check_claims` green + empty `git diff data/`; **prove with `bash _research/reproduce.sh`** — the full local toolchain is CPython 3.9 + vendored pylibs, spec frozen in `_research/requirements-repro.txt`). H4 the CI gates + facts-gate stay working (consolidate/strengthen, never weaken) — incl. the depth/asset/composition/readability gates **G17 `check_assets`** (every referenced/briefed illustration exists), **G18 `parity-gate`** (depth + no walls of text), **G19 `composition-gate`** (no frame overflow), **G20 `readability-gate`** (масштаб: no PROSE below the legibility floor — deck 11px / book 12px raw font), and **G13 `viz-probe`** which now HARD-fails a SEVERE label overlap (≥50% box cover — наложения), not just WARN; see the Definition of Done below. H5 no heavy runtime deps for students; widgets are vanilla-JS SVG.
 
