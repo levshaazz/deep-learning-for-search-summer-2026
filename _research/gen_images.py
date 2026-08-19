@@ -1682,6 +1682,74 @@ JOBS = [
      "archive doors stand open. Earned, generous send-off. Black ink + course-blue + a warm-orange quill-glow; "
      "Serega's green tübetey is the ONLY green. No lettered title bar. Fills ≥85% width."),
 
+    # ---- L14 · session-4 TEACHING plates (the deck had illustrations only on its dividers + final;
+    #      these six sit on learning slides and carry a MECHANISM, not the topic). ----
+    ("L14", "L14/L14-12-k-drafts-average.png", "4:3", True,
+     "AVERAGING k DRAFTS — variance, not bias. Serega pins FIVE drafted answer-scrolls around a target-ring "
+     "on his desk and marks their common centre with a single pin. On the LEFT half the five scrolls are "
+     "scattered evenly all round the ring and the centre-pin lands dead on the gold scroll at the middle — "
+     "independent scatter cancels. On the RIGHT half all five scrolls hang tilted the SAME way off to one "
+     "side, and the centre-pin has drifted right along with them, no nearer the gold — a shared lean does "
+     "not cancel, averaging only reinforces it. A thin cord ties the centre-pin back to the original "
+     "question-scroll at the desk edge, keeping it from being dragged too far (the raw-query anchor). "
+     "Black ink + course-blue scrolls + a warm-orange centre-pin and cord; Serega's green tübetey is the "
+     "ONLY green. NO hand-lettered words, letters, numbers or tags anywhere in the image — the scene must read "
+     "with zero text (the course is bilingual). No lettered title bar. Fills ≥80% width."),
+    ("L14", "L14/L14-13-replace-or-append.png", "4:3", True,
+     "ONE DRAFT, TWO SUBSTITUTIONS. In the middle of the desk lies ONE drafted answer-scroll the enchanted "
+     "quill has just written from the question-scroll, and from it the path FORKS in two. Upper branch: the "
+     "drafted scroll ALONE is dropped through a round lens and sent off to the shelves, while the original "
+     "question-scroll is left face-down on the desk, its words never travelling at all (replace). Lower "
+     "branch: Serega PASTES the drafted scroll onto the tail of the original question-scroll to make one "
+     "longer strip and sends that joined strip to the shelves, so both sets of words travel together "
+     "(append). Serega stands at the fork with the paste-pot in one hand and the lens in the other, "
+     "choosing. Black ink + course-blue scrolls + a warm-orange paste-seam and lens-rim; Serega's green "
+     "tübetey is the ONLY green. NO hand-lettered words, letters, numbers or tags anywhere in the image — the "
+     "scene must read with zero text (the course is bilingual). No lettered title bar. Fills ≥80% width."),
+    ("L14", "L14/L14-14-search-region.png", "4:3", True,
+     "THE CLIMB CAN ONLY WIDEN THE REGION. Serega holds a stack of stencil-cards pressed one over the other "
+     "in front of the archive shelves; together they leave only a PINHOLE, and through that pinhole not one "
+     "single shelf is visible — the over-specific question can be answered from nothing at all. He LIFTS the "
+     "top few cards away and the opening widens into a broad window through which several shelves and one "
+     "tall principle-scroll now come into view; taking conditions off can only widen the opening, never "
+     "narrow it. The lifted cards are NOT thrown away: he holds them in his other hand, poised over the "
+     "answer-sheet at his side, ready to be pressed back on when he writes the reply. Black ink + "
+     "course-blue stencil-cards and shelves + a warm-orange widened opening; Serega's green tübetey is the "
+     "ONLY green. NO hand-lettered words, letters, numbers or tags anywhere in the image — the scene must read "
+     "with zero text (the course is bilingual). No lettered title bar. Fills ≥80% width."),
+    ("L14", "L14/L14-15-union-bag.png", "4:3", True,
+     "THE UNION LIFTS RECALL AND LOSES THE ORDER. Three neat ranked columns of scrolls stand side by side, "
+     "each stacked in a clear top-to-bottom order like a small step-ladder. Serega tips all three columns "
+     "into ONE open sack: the gold scroll that only the third column had found is now safely inside — "
+     "coverage won. But inside the sack the scrolls lie in a jumbled heap with every rank gone, and Serega, "
+     "reaching in with a puzzled frown, has no way to tell which one to hand out first. An empty "
+     "presentation-tray waits beside him for the single ordered list he cannot yet build. Black ink + "
+     "course-blue columns and sack + one warm-orange gold scroll; Serega's green tübetey is the ONLY "
+     "green. NO hand-lettered words, letters, numbers or tags anywhere in the image — the scene must read with "
+     "zero text (the course is bilingual). No lettered title bar. Fills ≥80% width."),
+    ("L14", "L14/L14-16-chain-of-hops.png", "4:3", True,
+     "A CHAIN IS AS WEAK AS ITS WEAKEST HOP. Three big chain-links in a row, each link cradling a little "
+     "scroll that it hands forward to the next; a broad course-blue ribbon enters the first link and comes "
+     "out visibly NARROWER after each one, so only a thin band still survives past the third. The MIDDLE "
+     "link is cracked open, and from that crack onward every scroll the chain carries is drawn upside-down "
+     "and wrong — the mistake is inherited by everything downstream and never repaired. Serega traces the "
+     "shrinking ribbon with a finger and frowns at how little of it the last link still carries. Black ink + "
+     "course-blue ribbon and links + a warm-orange crack; Serega's green tübetey is the ONLY "
+     "green. NO hand-lettered words, letters, numbers or tags anywhere in the image — the scene must read with "
+     "zero text (the course is bilingual). No lettered title bar. Fills ≥80% width."),
+    ("L14", "L14/L14-17-reward-around-boxes.png", "4:3", True,
+     "THE REWARD GOES ROUND THE SEALED BOXES, NOT THROUGH THEM. Two heavy sealed iron boxes stand in a row — "
+     "an index-chest with no keyhole and a shut lantern-reader — and a thick arrow aimed straight through "
+     "them stops flat against the first wall, unable to pass. So Serega works AROUND them: from the "
+     "enchanted quill he samples THREE different rewrite-slips of the same question, sends each one round "
+     "the outside of the boxes, and each slip comes back with a weight-stone of a different size hung on it. "
+     "He hauls hardest on the slip carrying the heaviest stone, and the only thing that actually moves is "
+     "the quill's own nib — the boxes are never opened. A small fixed counterweight hangs on the same beam, "
+     "steadying the swing without tipping it either way. Black ink + course-blue boxes and slips + "
+     "warm-orange weight-stones; Serega's green tübetey is the ONLY green. NO hand-lettered words, letters, "
+     "numbers or tags anywhere in the image — the scene must read with zero text (the course is bilingual). No "
+     "lettered title bar. Fills ≥80% width."),
+
     # ---- L15 "The Loom of Attention" (BERT & other Transformers — from attention to RLHF). Metaphor:
     #      Serega is a WEAVER at a great loom; words are threads; attention is where every thread crosses
     #      every other. Reused cast cameo: Tokenosaurus (sub-word threads), the Lexical Gremlin (old literal
@@ -1763,6 +1831,80 @@ JOBS = [
      "panel (the Transformer block) → two woven scenes, one reading and one writing forward (BERT / GPT) → a "
      "refined decorative border (RLHF). Earned, warm, generous send-off. Black ink + course-blue + thin "
      "warm-orange thread highlights; Serega's green tübetey is the ONLY green. No lettered title bar. Fills ≥85% width."),
+
+    # ---- L15 · session-4 TEACHING plates (the deck ran the whole variants / decoding / efficiency / RLHF
+    #      acts with no illustration at all; these six sit on learning slides and carry a MECHANISM). ----
+    ("L15", "L15/L15-13-wordpiece-threads.png", "4:3", True,
+     "SUB-WORD THREADS. Tokenosaurus — the goofy friendly cartoon dinosaur, course-blue body with a "
+     "warm-orange belly, tiny arms, big good-natured toothy grin, soft back-plates — bites ONE long "
+     "unfamiliar word-thread into three shorter lengths and knots them straight back into a single "
+     "continuous thread, each continuation length starting with a small hook-eyelet that marks it as not "
+     "the beginning of a word. Behind them a shallow drawer holds only a fixed set of common ready-made "
+     "thread-spools; the unfamiliar thread was not in that drawer, yet Serega now holds the re-knotted "
+     "length up whole and complete — nothing had to be thrown away as unknown. Two common short threads lie "
+     "beside the drawer untouched and uncut, because they were already in it. Black ink + course-blue "
+     "spools + warm-orange knots; Serega's green tübetey is the ONLY green. Tokenosaurus is bare-headed "
+     "and wears no green. NO hand-lettered words, letters, numbers or tags anywhere in the image — the scene "
+     "must read with zero text (the course is bilingual). No lettered title bar. Fills ≥80% width."),
+    ("L15", "L15/L15-14-replaced-thread.png", "4:3", True,
+     "REPLACED-THREAD DETECTION. On the LEFT a small bare-headed apprentice weaver at a tiny loom quietly "
+     "swaps a handful of threads in a finished cloth for plausible look-alike replacements that sit almost "
+     "invisibly among the originals. On the RIGHT Serega the inspector runs one finger along EVERY single "
+     "thread of that whole cloth, flicking each thread-end either up or down as he passes — genuine or "
+     "swapped — so his verdict-marks run right across the full width of the fabric. Behind him, for "
+     "contrast, an older cloth hangs with only a few small square patches pinned over it, and there "
+     "Serega's marks appear ONLY on those few patches while the rest of that cloth goes unexamined. Black "
+     "ink + course-blue cloth + warm-orange swapped threads; Serega's green tübetey is the ONLY green. The "
+     "apprentice weaver is a plain bare-headed course-blue stick figure with no green. NO hand-lettered words, "
+     "letters, numbers or tags anywhere in the image — the scene must read with zero text (the course is "
+     "bilingual). No lettered title bar. Fills ≥80% width."),
+    ("L15", "L15/L15-15-truncated-sampling.png", "4:3", True,
+     "TWO WAYS TO CUT THE CANDIDATE SPOOLS. Two racks of candidate thread-spools stand side by side; on each "
+     "rack the spools are drawn at different sizes, the fattest on the left tapering down to tiny ones on "
+     "the right. Over the FIRST rack Serega lowers a rigid tray with a fixed number of slots, and it lifts "
+     "exactly that many spools every time, whether the rack was steeply uneven or nearly flat — a fixed "
+     "count. Over the SECOND rack he instead tips spools into a measuring jar marked with one fill-line, "
+     "taking them fattest-first and stopping the instant the contents reach the line: from a steeply uneven "
+     "rack the jar is full after just two fat spools, from a nearly flat rack it swallows a long row of "
+     "small ones — a fixed amount, an adaptive count. Black ink + course-blue spools and racks + a "
+     "warm-orange fill-line; Serega's green tübetey is the ONLY green. NO hand-lettered words, letters, "
+     "numbers or tags anywhere in the image — the scene must read with zero text (the course is bilingual). No "
+     "lettered title bar. Fills ≥80% width."),
+    ("L15", "L15/L15-16-cross-shuttle.png", "4:3", True,
+     "THE SHUTTLE THAT REACHES ACROSS. Two looms face each other. The RIGHT loom is weaving forward one row "
+     "at a time with a curtain drawn over the un-woven rows ahead of its hands; its shuttle does NOT take "
+     "thread from its own basket — it reaches ACROSS to the LEFT loom, where a finished cloth hangs fully "
+     "woven and open, and draws its thread straight out of that finished cloth. The writer asks, the reader "
+     "supplies. Serega stands between the two looms guiding the shuttle's line. Off to one side, drawn "
+     "small, a SINGLE writing loom stands alone with no cloth facing it and its shuttle-arm hanging in empty "
+     "air with nothing to reach into. Black ink + course-blue looms + one warm-orange cross-shuttle line; "
+     "Serega's green tübetey is the ONLY green. NO hand-lettered words, letters, numbers or tags anywhere in "
+     "the image — the scene must read with zero text (the course is bilingual). No lettered title bar. Fills "
+     "≥80% width."),
+    ("L15", "L15/L15-17-tiling-not-approximation.png", "4:3", True,
+     "THE GIANT SHEET IS NEVER SPREAD OUT. A colossal square crossing-sheet, far too big for the workshop "
+     "floor, stays ROLLED UP and leaning against the wall — it is never unrolled at all. Instead Serega "
+     "works at a small bench-tray beside the loom: he carries in one block of warp-threads and one block of "
+     "weft-threads from the big store-chest, weaves just that ONE tile on the tray, slides a running "
+     "tally-bead along a wire to keep the balance right as each tile finishes, and carries only the narrow "
+     "finished strip back to the chest. Beside him that finished strip is held up against a sample cut from "
+     "the rolled sheet, and the two match thread for thread — the very same weave, exactly, merely never all "
+     "laid out at once. Black ink + course-blue chest, tray and blocks + a warm-orange tally-bead; "
+     "Serega's green tübetey is the ONLY green. NO hand-lettered words, letters, numbers or tags anywhere in "
+     "the image — the scene must read with zero text (the course is bilingual). No lettered title bar. Fills "
+     "≥80% width."),
+    ("L15", "L15/L15-18-reward-from-pairs.png", "4:3", True,
+     "A SINGLE WEIGHT LEARNED FROM COMPARISONS. On the LEFT a seated customer is handed TWO finished "
+     "swatches at a time and simply points at the better one, over and over, while a small pile of these "
+     "pointed-at pairs builds up on the table. From that pile Serega trains a little apprentice JUDGE who "
+     "sits at a pan-balance: the customer's chair now stands EMPTY, and the judge alone hangs each NEW "
+     "swatch on the balance and reads off one single weight for it. A dotted line carries that weight back "
+     "to the loom, where Serega adjusts the weaving. The judge never weaves — the cloth the customer will "
+     "actually wear still comes off the loom, and the judge only weighs it. Black ink + course-blue swatches "
+     "+ a warm-orange balance-needle; Serega's green tübetey is the ONLY green. The customer and the "
+     "apprentice judge are plain bare-headed course-blue stick figures with no green. NO hand-lettered words, "
+     "letters, numbers or tags anywhere in the image — the scene must read with zero text (the course is "
+     "bilingual). No lettered title bar. Fills ≥80% width."),
 
     # ---- L16 "Late Chunking" (contextual chunk embeddings for long docs). Metaphor: naive chunking = tear
     #      the pages out first then read each alone (a page loses WHO it is about); late chunking = read the
