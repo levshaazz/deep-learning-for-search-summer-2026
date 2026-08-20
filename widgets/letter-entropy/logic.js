@@ -80,7 +80,10 @@ export const mountLetterEntropy = defineWidget({
     const yProb = (p) => BASE - (Math.max(0, p) / pScale) * SPAN;
     // The uniform plateau is DRAWN as a flat fraction of the band — a picture of "all equal", not a
     // displayed number (its value, F₀, is read off data and printed on the thermometer instead).
-    const UNIFORM_FRAC = 0.275, UNIFORM_N = 27;
+    // 0.275 рисовало «все равны» полосой в четверть высоты: кадр покоя читался как пустой
+    // (приёмка глазами 20.08.2026), а переход к частотам выглядел ростом из ничего.
+    // 0.5 держит плато посередине — и следующий шаг читается как ВЫБРОС вверх, чем он и является.
+    const UNIFORM_FRAC = 0.5, UNIFORM_N = 27;
     // Shannon's 27-symbol alphabet IS the 26 English letters plus the space — derived, not typed,
     // so the thermometer header can never drift from the alphabet size the data actually carries.
     const SYMBOL_N = (typeof en.alphabet === 'number' ? en.alphabet + 1 : UNIFORM_N);
