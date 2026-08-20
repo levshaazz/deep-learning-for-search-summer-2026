@@ -131,14 +131,44 @@ export const mountPositionalEnc = defineWidget({
     // ── takeaway band (step 3) ───────────────────────────────────────────────
     layer('note', 3);
     const noteY = legY + 38;
-    add('note', el('rect', { x: PAD_L, y: noteY, width: W - PAD_L - 16, height: 44, rx: 8,
+    /* Подпись-вывод РАНЬШЕ рисовалась одним неперенесённым <text> в боксе фиксированной высоты.
+       Пока кегль был 11px, английские 60 символов укладывались впритык, а RU (85) и TT (75) не
+       влезали НИКОГДА — их обрезало границей viewBox. Подъём кегля до 13px (пол читаемости)
+       доломал и EN: на слайде 42 деки 07 фраза рубилась посередине слова, причём обрезание идёт
+       по viewBox, то есть не лечится масштабом. Теперь строки переносятся по бюджету символов, а
+       высота бокса считается от их числа. Кегль трогать НЕЛЬЗЯ — он под храповиком viz-tiny-text. */
+    const NOTE_FS = 13;                 // = .pe-note в style.css
+    const NOTE_PAD = 12;
+    const innerW = (W - PAD_L - 16) - NOTE_PAD * 2;
+    const CPL = Math.max(8, Math.floor(innerW / (NOTE_FS * 0.62)));   // моноширинный ≈ 0.62em
+    const wrap = (str) => {
+      const out = [];
+      let line = '';
+      for (const word of String(str).split(/[ \t\r\n]+/).filter(Boolean)) {
+        if (!line) { line = word; }
+        else if ((line + ' ' + word).length <= CPL) { line += ' ' + word; }
+        else { out.push(line); line = word; }
+      }
+      if (line) out.push(line);
+      return out.length ? out : [''];
+    };
+    const LH = 17;
+    const lines1 = wrap(labels.takeaway || 'low dims wiggle fast (local), high dims drift slow (global).');
+    const lines2 = wrap(labels.takeaway2 || 'fixed by formula — not learned. always in [−1, 1].');
+    const boxH = NOTE_PAD + (lines1.length + lines2.length) * LH + 4;
+    add('note', el('rect', { x: PAD_L, y: noteY, width: W - PAD_L - 16, height: boxH, rx: 8,
       class: 'pe-notebox' }, svg));
-    const nt = add('note', el('text', { x: PAD_L + 12, y: noteY + 18, class: 'pe-note' }, svg));
-    nt.textContent = labels.takeaway || 'low dims wiggle fast (local), high dims drift slow (global).';
-    const nt2 = add('note', el('text', { x: PAD_L + 12, y: noteY + 35, class: 'pe-note pe-note-2' }, svg));
-    nt2.textContent = labels.takeaway2 || 'fixed by formula — not learned. always in [−1, 1].';
+    let ty = noteY + 18;
+    for (const line of lines1) {
+      add('note', el('text', { x: PAD_L + NOTE_PAD, y: ty, class: 'pe-note' }, svg)).textContent = line;
+      ty += LH;
+    }
+    for (const line of lines2) {
+      add('note', el('text', { x: PAD_L + NOTE_PAD, y: ty, class: 'pe-note pe-note-2' }, svg)).textContent = line;
+      ty += LH;
+    }
 
-    const H = frameHeightFor(noteY + 44, 8);
+    const H = frameHeightFor(noteY + boxH, 8);
     svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
     // per-step update.
