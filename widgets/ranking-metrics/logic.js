@@ -108,9 +108,13 @@ export const mountRankingMetrics = defineWidget({
       if (d.rel) { seen += 1; hits.push({ rank: d.rank, p: seen / d.rank }); }
     });
     head('map', panel.x, mapY, 'rm-map-h', `MAP = AP = ${fmt(data.ap)}`);
+    // Лид и слово «делить на» приходят из i18n; сумма собирается кодом, потому что числа —
+    // из прогона. Без этих ключей фолбэк выводил английский текст ВО ВСЕХ языках: на русском
+    // слайде висело «mean of precision at each relevant rank» (приёмка глазами 20.08.2026).
     sub('map', panel.x, mapY + 16,
-      labels.mapHint || ('mean of precision at each relevant rank: ' +
-        hits.map((h) => fmt2(h.p)).join(' + ') + ' over ' + hits.length));
+      (labels.mapHintLead || 'mean of precision at each relevant rank:') + ' ' +
+        hits.map((h) => fmt2(h.p)).join(' + ') + ' ' +
+        (labels.mapHintOver || 'over') + ' ' + hits.length);
 
     // — step 4: nDCG (headline). The contrib column lights at the same step; the DCG line now SHOWS
     // the accumulation explicitly (Σ of the discounted gains) so the sum is built on screen, not just

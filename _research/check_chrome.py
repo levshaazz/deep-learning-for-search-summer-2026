@@ -34,7 +34,8 @@ DICT_PATH = os.path.join(ROOT, "narrative", "chrome-ru.json")
 # те формулировки, между которыми надпись исторически расходилась. Найден вариант не-канон —
 # HARD; любой другой текст гейт не трогает, он не про этот слот.
 SLOT_VARIANTS = {
-    "misc-reveal-btn":       ["Показать правду", "Показать истину", "Показать ответ", "Раскрыть правду"],
+    "misc-reveal-btn":       ["Показать правду", "Показать истину", "Показать ответ",
+                              "Раскрыть правду", "Показать, где ломается"],
     "misconception-h2":      ["Распространённое заблуждение", "Частое заблуждение",
                               "Распространенное заблуждение"],
     "misconception-kicker":  ["Развенчиваем миф", "Развенчаем миф", "Развенчиваем мифы"],
@@ -43,7 +44,11 @@ SLOT_VARIANTS = {
 # Где искать надпись слота. Позиция одна отсекает прозу («итог такой…» — обычное слово),
 # реестр вариантов отсекает содержание (цитата мифа в кикере). Нужны ОБА условия.
 SLOT_WHERE = {
-    "misc-reveal-btn":       (r'class="[^"]*misc-reveal[^"]*"[^>]*>(.{0,120}?)<', None),
+    # Текст кнопки ВСЕГДА обёрнут в <span lang="ru">, поэтому нежадное «(.{0,120}?)<»
+    # останавливалось на этом же теге и захватывало ПУСТОТУ — слот не проверялся ни на одной
+    # из 68 кнопок курса, а гейт при этом печатал HARD=0. Найдено приёмкой глазами 20.08.2026.
+    # Теперь языковой слой пропускается явно.
+    "misc-reveal-btn":       (r'class="[^"]*misc-reveal[^"]*"[^>]*>\s*(?:<span lang="ru">)?\s*([^<]{0,120})', None),
     "misconception-h2":      (r'<h2[^>]*>(.{0,160}?)</h2>', "misconception"),
     "misconception-kicker":  (r'class="slide-kicker"[^>]*>(.{0,160}?)</span>\s*</span>', "misconception"),
     "payoff-divider-prefix": (r'<h2[^>]*>(.{0,160}?)</h2>', "divider"),
@@ -73,6 +78,16 @@ def check_fragment(path, html, canon, err):
         canon_norm = canon_text.rstrip(" ·").strip()
         for m in re.finditer(where, html, re.S):
             zone = re.sub(r"<[^>]+>", " ", m.group(1))
+            # У КНОПКИ реестр закрытый. Для кикера «текст вне реестра — это содержание»
+            # (там законно стоит цитата мифа), но надпись на кнопке слотом быть обязана:
+            # новая формулировка должна попасть в narrative/chrome-ru.json, а не в слайд.
+            if slot == "misc-reveal-btn":
+                text = " ".join(zone.split())
+                if text and not any(text == v.rstrip(" ·").strip() for v in variants):
+                    err(f"{os.path.relpath(path, ROOT)}: слот «{slot}» — «{text}» вне реестра; "
+                        f"внеси вариант в narrative/chrome-ru.json или приведи к канону "
+                        f"«{canon_text}»")
+                    continue
             for var in variants:
                 var_norm = var.rstrip(" ·").strip()
                 for hit in re.finditer(re.escape(var_norm), zone, re.I):
