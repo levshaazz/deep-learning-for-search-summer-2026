@@ -2195,6 +2195,52 @@ JOBS = [
      "brown. Black ink + course-blue scales + one warm-orange pointer; Serega's green tuebetey is the ONLY "
      "green. No lettered title bar. Fills >=80% width."),
 
+    # ---- L17 · misconception plates (act "boundaries"): the four beliefs the deck reveals as wrong ----
+    ("L17", "L17/L17-17-three-rulers.png", "16:9", True,
+     "THREE RULERS, ONE STRIP. A single short strip of paper is pinned to a board and three rulers lie "
+     "along it one under another — their unnumbered tick marks spaced coarsely, medium and finely — so "
+     "each ruler's own little warm-orange pointer comes to rest at a visibly different place along that "
+     "one identical strip. Serega holds the coarsest and the finest ruler up side by side so we see their "
+     "ticks flatly refuse to line up, his eyebrows raised, while on the bench below a smug Goodhart the "
+     "Trickster has already stacked all three rulers into one neat pile as though they were a single "
+     "instrument. Conveys: the three readings disagree because the units disagree, not because anybody's "
+     "measurement beat anybody else's. Goodhart is BARE-HEADED, blue, with no green on him anywhere. The "
+     "image contains NO lettering of any kind — no words, no captions, no numbers, no letter-shapes on any "
+     "object. Black ink + course-blue rulers and board + warm-orange pointers; Serega's green tübetey is "
+     "the ONLY green. No lettered title bar. Fills ≥85% width."),
+    ("L17", "L17/L17-18-portable-floor.png", "4:3", True,
+     "THE FLOOR THAT WAS PORTABLE. A cross-section of ground: Serega has lifted one end of the single "
+     "plank he had been calling the floor — it rests on two little trestles and has no foundation under it "
+     "at all — and he stares down through the gap at real ground lying lower still. On his plank the "
+     "pebbles are scattered evenly apart; on the true ground below, the same pebbles lie gathered into "
+     "tight clumps, and a small cart trundles along that lower level without effort. Conveys: nobody broke "
+     "the floor, the floor was a property of his own drawing, and what lies beneath it is the clumping his "
+     "model never allowed for. The image contains NO lettering of any kind — no words, no captions, no "
+     "numbers. Black ink + course-blue pebbles and plank + one warm-orange trestle; Serega's green tübetey "
+     "is the ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L17", "L17/L17-19-knob-on-the-meter.png", "4:3", True,
+     "THE KNOB ON THE BACK OF THE METER. Two round gauges stand on a bench in front of a tall stack of "
+     "ranked documents. Serega has turned the LEFT gauge around and found a small knob on its back: his own "
+     "hand is on that knob and the needle swings hard, while the stack of documents in front of it has not "
+     "moved a hair — the needle is answering the knob, not the world. The RIGHT gauge has no knob at all; a "
+     "probe on a cord runs from it down into an open crate holding the whole collection, and its needle "
+     "sits calm and steady. Serega's face is that of a man caught out. Conveys: the entropy of a ranking "
+     "reports your own scorer's confidence, while the honest measure keeps its probe in the corpus. The "
+     "image contains NO lettering of any kind — no words, no captions, no numbers, no dial markings. Black "
+     "ink + course-blue gauges, documents and crate + one warm-orange needle; Serega's green tübetey is the "
+     "ONLY green. No lettered title bar. Fills ≥80% width."),
+    ("L17", "L17/L17-20-rare-vs-clumped.png", "16:9", True,
+     "EQUALLY RARE, NOT EQUALLY USEFUL. LEFT: a two-pan balance hangs perfectly level with a small heap of "
+     "identical pebbles in each pan, so by weight the two are indistinguishable. RIGHT: those same two "
+     "heaps have been tipped out onto two long strips of paper and now look nothing alike — one has landed "
+     "in a single tight cluster near the middle of its strip, the other lies spread thinly and evenly along "
+     "the whole length of the second. Serega has turned his back on the useless level balance and points at "
+     "the two poured patterns instead, while the Lexical Gremlin lounges along the thinly-spread strip, "
+     "grinning, pretending his scattered pebbles are worth just as much. Conveys: rarity weighs the same "
+     "for both words and only the clumping separates the keyword from the filler. The gremlin is "
+     "BARE-HEADED, blue, with no green on him anywhere. The image contains NO lettering of any kind — no "
+     "words, no captions, no numbers. Black ink + course-blue pebbles and balance + one warm-orange "
+     "strip-edge; Serega's green tübetey is the ONLY green. No lettered title bar. Fills ≥85% width."),
     # ---- L18 "The Curved Map" (anisotropy & hubness). Metaphor: Serega the CARTOGRAPHER of a warped world;
     #      the embedding space is a distorted map projection (Mercator). Anisotropy = every town squashed into
     #      one narrow wedge; whitening = re-project to an even grid; hubness = all-roads-to-Rome hub towns;
@@ -2321,6 +2367,51 @@ JOBS = [
      "reproduce any words from this instruction. Black ink + course-blue road, carts and houses + one "
      "warm-orange striped barrier, every fill FLAT with no glow, halo or shading; Serega's green tübetey is "
      "the ONLY green. No lettered title bar. Fills ≥85% width."),
+    # ---- L18 · misconception plates: the four beliefs the curved-map deck reveals as wrong ----
+    ("L18", "L18/L18-18-turntable-two-gauges.png", "16:9", True,
+     "THE TURNTABLE TEST. Serega slowly turns a small modelled island of hills — the point cloud — on a "
+     "turntable in the middle of his map table, and two gauges watch it. The gauge on the LEFT holds its "
+     "needle absolutely still all the way through the turn, exactly as it must; the gauge on the RIGHT has "
+     "its needle flung right across the dial, and the reason is plainly visible — its cord is not attached "
+     "to the island at all but to a stake driven into the map far away from it, so what it reads is the "
+     "distance to that stake. Serega looks from one dial to the other, thoroughly unimpressed. Conveys: "
+     "turning a cloud cannot change its shape, so a measure that swings under rotation is measuring "
+     "something else entirely. The image contains NO lettering of any kind — no words, no captions, no "
+     "numbers, no dial markings. Black ink + course-blue island, turntable and gauges + one warm-orange "
+     "needle; Serega's green tübetey is the ONLY green. No lettered title bar. Fills ≥85% width."),
+    ("L18", "L18/L18-19-centred-still-cigar.png", "16:9", True,
+     "CENTRED IS NOT ROUND. A two-beat scene on one map sheet. LEFT: a long cigar-shaped smear of towns "
+     "lies off in one corner and Serega shoves the whole smear bodily onto the crosshair at the middle of "
+     "the sheet, dusting off his hands. RIGHT: the smear now sits dead centre and is still exactly as long "
+     "and as thin as it was, two towns at its far ends strung on one shared long axis drawn as a single "
+     "straight line running through them, and Serega's satisfied grin has curdled. On the table beside him "
+     "a heavy roller lies untouched — the tool for the second job he never did. Conveys: sliding the cloud "
+     "onto the origin cured the shift and left the stretch completely alone. The image contains NO "
+     "lettering of any kind — no words, no captions, no numbers. Black ink + course-blue towns and map grid "
+     "+ one warm-orange axis line; Serega's green tübetey is the ONLY green. No lettered title bar. Fills "
+     "≥85% width."),
+    ("L18", "L18/L18-20-key-filed-to-the-lock.png", "16:9", True,
+     "THE KEY FILED ON THE LOCK. Serega holds up a key that has just turned one lock beautifully, its bolt "
+     "thrown wide open — but at his elbow lie a file and a vice, that very lock is still clamped in the "
+     "vice, and a drift of fresh filings sits under it: the key was shaped against this lock and no other. "
+     "Behind him a door carries a whole row of different, unknown locks whose wards plainly match none of "
+     "the fitted key's teeth, and a second, plainer key cut from a standard blank has opened that door only "
+     "a crack. Conveys: a result obtained by fitting on the very thing you then measure is not the result "
+     "you get when the locks are unknown in advance. The image contains NO lettering of any kind — no "
+     "words, no captions, no numbers. Black ink + course-blue locks, door and vice + one warm-orange drift "
+     "of filings; Serega's green tübetey is the ONLY green. No lettered title bar. Fills ≥85% width."),
+    ("L18", "L18/L18-21-crossroads-not-chosen.png", "16:9", True,
+     "CENTRAL IS NOT CHOSEN. Two towns sit side by side on the map. The LEFT one is small and ringed with "
+     "hand-planted signposts, every one of them raised deliberately by a traveller and aimed at it, and a "
+     "few carts are heading there on purpose. The RIGHT one carries not a single signpost, yet every road "
+     "on the sheet bends into it purely because it happens to sit at the dead centre of the whole map, and "
+     "the carters funnelled through it look merely inconvenienced; a brand-new plank shack has been nailed "
+     "down on that exact centre-point and all of those roads now run straight into its door. Serega stands "
+     "between the two towns with his ledger, ignoring the busy one's traffic and pointing instead at its "
+     "complete absence of signposts. Conveys: the crowded town was chosen by nobody — geometry funnels the "
+     "roads — and whoever nails a shack on that spot inherits every cart. The image contains NO lettering "
+     "of any kind — no words, no captions, no numbers. Black ink + course-blue roads, towns and carts + one "
+     "warm-orange shack; Serega's green tübetey is the ONLY green. No lettered title bar. Fills ≥85% width."),
     # ---- L19 "The Wiring Diagram" (neural circuit diagrams). Metaphor: Serega the SCHEMATIC-READER —
     #      he puts down the spec written in prose and picks up the wiring diagram of the same machine.
     #      Wires are axes; a solder joint (cup) is where an axis DIES; the bill is read off the drawing.
@@ -2534,6 +2625,53 @@ JOBS = [
      "one for the query side — are COUPLED by a single tie-rod so neither can move without the other. A calm, "
      "well-fed Tokenosaurus dozes beside the desk. Tokenosaurus is BARE-HEADED (blue + orange, no green). "
      "Black ink + course-blue desk + warm-orange tick-marks; Serega's green tübetey is the ONLY green. No "
+     "lettered title bar. Fills ≥85% width."),
+    # ---- L20 · misconception plates: the four beliefs the Russian-search deck reveals as wrong ----
+    ("L20", "L20/L20-16-repainted-cart.png", "16:9", True,
+     "THE REPAINT THAT FIXED NOTHING. A cart stands on the road with its left half painted in one livery "
+     "and its right half in a completely different one — Serega is caught mid-repaint, brush in hand and "
+     "bucket at his feet — and the cart has not moved an inch. He has crouched to look underneath, and "
+     "under BOTH halves, identically, sit the two real faults: one badly bent axle, and one wheel that has "
+     "come apart into a dozen loose look-alike segments lying scattered in the dust. He points at the axle "
+     "and not at the paint, exasperated. Conveys: changing the surface changed nothing, and the two things "
+     "actually holding this cart still are inside it. The image contains NO lettering of any kind — no "
+     "words, no captions, no numbers, no letter-shapes anywhere. Black ink + course-blue cart and wheel "
+     "segments + one warm-orange paint bucket; Serega's green tübetey is the ONLY green. No lettered title "
+     "bar. Fills ≥85% width."),
+    ("L20", "L20/L20-17-four-flasks.png", "16:9", True,
+     "THE STEP, AND THE THREE THAT TIE. Four chutes stand in a row above four glass flasks. The FIRST chute "
+     "has no mill on it at all: whole unmilled lumps tumble straight through and its flask is nearly empty. "
+     "The other three carry three utterly different mills — an ornate brass one on carved legs, a crude "
+     "hand-chopper, and a plain tin grater — and yet their three flasks stand filled to the very SAME "
+     "level, far above the first. Serega lays a straight-edge across the three equal levels, then swings it "
+     "down to point at the single big step between the empty flask and the rest, while the ornate brass "
+     "mill has visibly jammed on a knot and the plain tin grater keeps pouring. Conveys: milling at all is "
+     "the whole win and which mill you bought is not. The image contains NO lettering of any kind — no "
+     "words, no captions, no numbers, no gauge markings. Black ink + course-blue mills and flasks + one "
+     "warm-orange straight-edge; Serega's green tübetey is the ONLY green. No lettered title bar. Fills "
+     "≥85% width."),
+    ("L20", "L20/L20-18-two-wrenches.png", "4:3", True,
+     "THE TOOL THAT ONLY LOOKS LOCAL. One big bolt stands proud of the bench. Serega holds a wrench over it "
+     "in each hand: the LEFT one is handsome and has a little portrait of exactly this bolt-head carved "
+     "into its handle, yet its worn jaw is slipping round and round the bolt without ever biting, while the "
+     "plain unadorned adjustable wrench in his right hand has bitten and the bolt is visibly turning. His "
+     "eyebrows are up. Behind the pair of them, clamped in his own vice, waits a DIFFERENT bolt of his own "
+     "— the one he means to try both wrenches on next. Conveys: a tool that advertises the job is not "
+     "necessarily the tool that does it, and the only settling argument is your own bolt. The image "
+     "contains NO lettering of any kind — no words, no captions, no numbers. Black ink + course-blue "
+     "wrenches and bench + one warm-orange bolt; Serega's green tübetey is the ONLY green. No lettered "
+     "title bar. Fills ≥80% width."),
+    ("L20", "L20/L20-19-silent-bell.png", "16:9", True,
+     "THE BREAK THAT RINGS NO BELL. A machine with two intake arms feeding one output tray. Every slab "
+     "going into the LEFT arm carries a small notched tag, but the slab Serega has just posted into the "
+     "RIGHT arm has had its matching tag snipped clean off — the snipped tag and the scissors lie on the "
+     "floor below — and the machine has swallowed it without a murmur. The alarm bell above the machine "
+     "hangs dead still with a cobweb strung across its clapper, while the output tray fills with results "
+     "that are visibly limp and crooked next to the crisp ones stacked beside it. Serega stands with a hand "
+     "cupped to his ear, waiting for a warning that is never going to come. Conveys: both arms must be fed "
+     "identically, and when they are not, nothing complains — only the answers quietly get worse. The image "
+     "contains NO lettering of any kind — no words, no captions, no numbers. Black ink + course-blue "
+     "machine and slabs + one warm-orange snipped tag; Serega's green tübetey is the ONLY green. No "
      "lettered title bar. Fills ≥85% width."),
 ]
 

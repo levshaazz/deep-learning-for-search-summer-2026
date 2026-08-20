@@ -21,11 +21,11 @@
 Периметр НЕ включает narrative/*.md: сам стандарт цитирует запрещённые варианты как примеры,
 и гейт обязан на них молчать — иначе он потребует переписать собственный источник.
 
-Периметр НЕ включает seminars/*.ipynb — но не потому, что канон там не действует. Ноутбуки
-заморожены, пока владелец гоняет комплект на T4: правка развела бы репозиторий с комплектом
-на руках. Чтобы отсрочка не превратилась в забывчивость, гейт СЧИТАЕТ этот долг и печатает
-его строкой DEBT (на код возврата не влияет). Когда долг дойдёт до нуля, строка сама попросит
-завести семинары в source_files и удалить блок — конструкция самоликвидируется.
+Периметр ВКЛЮЧАЕТ seminars/*.ipynb с 20.08.2026. До этого они стояли снаружи, пока владелец
+гонял комплект на T4, а долг измерялся счётчиком и печатался строкой DEBT — именно она и
+привела к нулю: 17 запрещённых вариантов вычищены, после чего счётчик сам попросил завести
+семинары в source_files и удалить себя. Из ноутбука берётся ПРОЗА (markdown-ячейки) без
+инлайн-кода: «l7-biencoder.json» — имя файла данных, а не термин «биэнкодер».
 
 Usage:  python3 _research/check_glossary.py
         python3 _research/check_glossary.py --selftest
@@ -50,6 +50,20 @@ _TAGS = re.compile(r"<[^>]+>")
 
 def ru_regions(path, text):
     """Только русские регионы файла — канон не распространяется на EN/TT."""
+    if path.endswith(".ipynb"):
+        # Ноутбук русский целиком; берём ПРОЗУ (markdown) и режем инлайн-код — там живут
+        # имена файлов и идентификаторы вроде l7-biencoder.json, а они не термины.
+        try:
+            cells = json.loads(text).get("cells", [])
+        except ValueError:
+            return []
+        out = []
+        for c in cells:
+            if c.get("cell_type") != "markdown":
+                continue
+            body = "".join(c.get("source", []))
+            out.append(re.sub(r"```.*?```|`[^`\n]*`", " ", body, flags=re.S))
+        return out
     if path.endswith(".html"):
         return [_TAGS.sub(" ", m) for m in _RU_SPAN.findall(text)]
     if path.endswith(".js"):
@@ -64,27 +78,11 @@ def source_files(root=ROOT):
     return (sorted(glob.glob(os.path.join(R, "Lectures", "*", "parts", "*.html")))
             + sorted(glob.glob(os.path.join(R, "content", "book", "*", "beats", "*.js")))
             + sorted(glob.glob(os.path.join(R, "src", "lib", "*.js")))
-            + sorted(glob.glob(os.path.join(R, "widgets", "*", "i18n.json"))))
+            + sorted(glob.glob(os.path.join(R, "widgets", "*", "i18n.json")))
+            # Семинары вошли в периметр 20.08.2026, когда счётчик долга дошёл до нуля.
+            # До этого они стояли снаружи, пока владелец гонял комплект на T4.
+            + sorted(glob.glob(os.path.join(R, "seminars", "*.ipynb"))))
 
-
-def frozen_debt(terms, root=ROOT):
-    """Вхождения запрещённых вариантов в замороженном seminars/ — счётчик, не приговор.
-
-    Возвращает (вхождений, файлов). ipynb читается как JSON: в семинарах нет en/tt-слоёв,
-    весь текст русский, поэтому регионы выделять не нужно.
-    """
-    hits, files = 0, 0
-    for nb in sorted(glob.glob(os.path.join(glob.escape(root), "seminars", "*.ipynb"))):
-        try:
-            cells = json.load(open(nb, encoding="utf-8")).get("cells", [])
-        except (ValueError, OSError):
-            continue
-        blob = "\n".join("".join(c.get("source", [])) for c in cells)
-        n = sum(len(re.findall(t["ban"], blob, re.I)) for t in terms)
-        if n:
-            hits += n
-            files += 1
-    return hits, files
 
 
 def load_terms(path=DATA):
@@ -156,14 +154,6 @@ def run(root=ROOT, data=DATA, style=STYLE, listing=False):
         print(f"  ✗ [HARD] {e}")
     for w in warns:
         print(f"  ! [WARN] {w}")
-    debt_hits, debt_files = frozen_debt(terms, root)
-    if debt_hits:
-        print(f"[glossary] DEBT(seminars/, вне периметра — заморожены до T4-прогона)="
-              f"{debt_hits} в {debt_files} ноутбук(ах): почини их и заведи seminars/*.ipynb "
-              f"в source_files")
-    else:
-        print("[glossary] DEBT(seminars/)=0 — долг пуст: заведи seminars/*.ipynb в source_files "
-              "и удали frozen_debt, иначе канон в ноутбуках снова поедет молча")
     print(f"[glossary] терминов: {len(terms)} · файлов: {len(files)} · HARD={len(errors)} WARN={len(warns)}")
     return 1 if errors else 0
 
@@ -217,22 +207,26 @@ def selftest():
     json.dump({"terms": []}, open(data, "w", encoding="utf-8"))
     rc, _ = once('<span lang="ru">чистый текст</span>')
     if rc == 0: fails.append("empty-set")
-    # счётчик замороженного долга: считает, но не валит — иначе отсрочка стала бы блокировкой
+    # семинары В ПЕРИМЕТРЕ (с 20.08.2026): запрещённый вариант в ПРОЗЕ ноутбука — HARD
     json.dump({"terms": [{"canon": "чанкование", "ban": "чанкинг\\w*", "why": "гибрид"}]},
               open(data, "w", encoding="utf-8"))
     os.makedirs(os.path.join(tmp, "seminars"), exist_ok=True)
-    json.dump({"cells": [{"source": ["делаем чанкинг корпуса\n", "и ещё раз чанкинг\n"]}]},
-              open(os.path.join(tmp, "seminars", "lab-x.ipynb"), "w", encoding="utf-8"))
+    nbp = os.path.join(tmp, "seminars", "lab-x.ipynb")
+    json.dump({"cells": [{"cell_type": "markdown", "source": ["делаем чанкинг корпуса\n"]}]},
+              open(nbp, "w", encoding="utf-8"))
     rc, out = once('<span lang="ru">чанкование</span>')
-    if rc != 0 or "DEBT(seminars/, вне периметра" not in out or "=2 в 1 " not in out:
-        fails.append("frozen-debt-counted")
-    os.remove(os.path.join(tmp, "seminars", "lab-x.ipynb"))
-    rc, out = once('<span lang="ru">чанкование</span>')
-    if rc != 0 or "DEBT(seminars/)=0" not in out: fails.append("frozen-debt-selfdestructs")
+    if rc == 0 or "чанкинг" not in out: fails.append("nb-prose-gated")
+    # а КОД ноутбука и инлайн-код — нет: там имена файлов (l7-biencoder.json), не термины
+    json.dump({"cells": [{"cell_type": "code", "source": ["p = 'l7-chanking.json'\n"]},
+                         {"cell_type": "markdown", "source": ["файл `chanking.json` рядом\n"]}]},
+              open(nbp, "w", encoding="utf-8"))
+    rc, _ = once('<span lang="ru">чанкование</span>')
+    if rc != 0: fails.append("nb-code-not-gated")
+    os.remove(nbp)
 
     shutil.rmtree(tmp, ignore_errors=True)
     for t in ("ban-fires", "canon-silent", "en-untouched", "tt-untouched", "sync-check",
-              "why-required", "empty-set", "frozen-debt-counted", "frozen-debt-selfdestructs"):
+              "why-required", "empty-set", "nb-prose-gated", "nb-code-not-gated"):
         print(f"  [{'FAIL' if t in fails else 'OK'}] {t}")
     print("[selftest] FAIL: " + ", ".join(fails) if fails else "[selftest] PASS")
     return 1 if fails else 0

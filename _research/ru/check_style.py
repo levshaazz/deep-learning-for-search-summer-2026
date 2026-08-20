@@ -116,7 +116,12 @@ CHTO_OK = re.compile(r"(?:единственн|лучш|худш|наимень�
                      # …and изъяснительное «что» after a verb/participle of deciding, knowing or
                      # saying: «цепочка, решающая, что хватит» — «который» is impossible there.
                      r"решающ|решивш|знающ|понимающ|считающ|полагающ|говорящ|видящ|"
-                     r"замечающ|доказывающ|показывающ|утверждающ|проверяющ|определяющ)"
+                     r"замечающ|доказывающ|показывающ|утверждающ|проверяющ|определяющ|"
+                     # …и ЛИЧНЫЕ формы тех же изъяснительных глаголов: «часто оказывается, что
+                     # нет», «где кажется, что хватит одной». «Который» там невозможен — это не
+                     # определительное придаточное, а дополнение. Правило ловило их как ошибку.
+                     r"оказыва|оказал|кажет|казал|выясн|получа|получил|выходит|значит|"
+                     r"понятн|извест|видн)"
                      r"[а-яё]*\s*,\s*что",
                      re.I)
 
@@ -169,7 +174,15 @@ def _dec_ok(sub, s, e):
     return any(cs <= s < ce for cs, ce in _code_spans(sub))
 
 
+# Латиница внутри ИНЛАЙН-КОДА — это идентификатор, а не англицизм в прозе: `recall-QPS` —
+# имя кривой из литературы по ANN, `efSearch` — параметр библиотеки. Их нельзя переводить,
+# и §9.3 на них не распространяется. Правило этого не знало и держало их в долге семинаров.
+INLINE_CODE = re.compile(r"`[^`\n]*`|```.*?```", re.S)
+
+
 def _lat_ok(seg, m):
+    if any(c.start() <= m.start() < c.end() for c in INLINE_CODE.finditer(seg)):
+        return True
     if any(g.start() <= m.start() < g.end() for g in GLOSS.finditer(seg)):
         return True
     left = seg[max(0, m.start() - 12):m.start()]
@@ -259,6 +272,14 @@ def lint_segment(seg, relpath, base_line, findings, owns_bit, is_beats):
 def process(path, root, kind, findings):
     text = rulib.read(path)
     relpath = rulib.rel(root, path)
+    if kind == "ipynb":
+        # проза ноутбука собирается в отдельный текст: позиции в самом JSON ненадёжны
+        text, regions = rulib.ipynb_prose(text)
+        for rs, re_ in regions:
+            lint_segment(text[rs:re_], relpath,
+                         lambda off, rs=rs: rulib.line_of(text, rs + off),
+                         findings, False, False)
+        return
     # W-BIT is off in the chapter that OWNS the subject "bit" — resolved by content, never by path.
     # This used to read `"/l17/" in relpath`, which the Aug-2026 renumbering turned into a guard
     # over the wrong chapter (see rulib.subject_chapter for the full account).
@@ -275,34 +296,6 @@ def process(path, root, kind, findings):
                      lambda off, rs=rs: rulib.line_of(text, rs + off),
                      findings, owns_bit, kind == "beats")
 
-
-def frozen_debt(root, codes=None):
-    """Тот же линтер по замороженному seminars/ — СЧЁТЧИК, не приговор.
-
-    Ноутбуки стоят вне периметра, пока владелец гоняет комплект на T4: правка развела бы
-    репозиторий с комплектом на руках. Но отсрочка без счётчика — это забывчивость, поэтому
-    долг измеряется каждым прогоном и печатается строкой DEBT. Дойдёт до нуля — строка сама
-    попросит завести seminars/*.ipynb в main() и удалить эту функцию.
-    """
-    import glob as _glob
-    import json as _json
-    debt = []
-    # glob.escape обязателен: путь репозитория содержит «[Summer 2026]», и без экранирования
-    # glob читает скобки как класс символов — счётчик молча вернул бы ноль (и вернул).
-    for nb in sorted(_glob.glob(os.path.join(_glob.escape(root), "seminars", "*.ipynb"))):
-        try:
-            cells = _json.load(open(nb, encoding="utf-8")).get("cells", [])
-        except (ValueError, OSError):
-            continue
-        rel = rulib.rel(root, nb)
-        for i, c in enumerate(cells):
-            if c.get("cell_type") != "markdown":
-                continue          # проза семинара, не код: канон обращения — про текст
-            seg = "".join(c.get("source", []))
-            lint_segment(seg, rel, lambda off, i=i: i + 1, debt, False, False)
-    if codes:
-        debt = [f for f in debt if f[1] in codes]
-    return debt
 
 
 def main(argv=None):
@@ -326,6 +319,11 @@ def main(argv=None):
         process(path, args.root, "widgets", findings)
     for path in rulib.video_script_files(args.root):
         process(path, args.root, "md", findings)
+    # Семинары вошли в периметр 20.08.2026, когда счётчик долга дошёл до нуля: 49 находок
+    # вычищены. Берётся ПРОЗА (markdown-ячейки), код ноутбука не линтуется — он выполняется,
+    # а не читается как русский текст.
+    for path in rulib.seminar_files(args.root):
+        process(path, args.root, "ipynb", findings)
 
     if codes:
         findings = [f for f in findings if f[1] in codes]
@@ -347,16 +345,6 @@ def main(argv=None):
     n_warn = len(findings) - n_err
     print("errors: %d, warnings: %d" % (n_err, n_warn))
 
-    debt = frozen_debt(args.root, codes)
-    if debt:
-        by_nb = {}
-        for f in debt:
-            by_nb[f[2]] = by_nb.get(f[2], 0) + 1
-        print("DEBT(seminars/, вне периметра — заморожены до T4-прогона): %d в %d ноутбук(ах) — %s"
-              % (len(debt), len(by_nb), ", ".join("%s:%d" % kv for kv in sorted(by_nb.items()))))
-    else:
-        print("DEBT(seminars/)=0 — долг пуст: заведи seminars/*.ipynb в main() и удали "
-              "frozen_debt, иначе стиль в ноутбуках снова поедет молча")
     return 1 if (n_err or (args.strict and n_warn)) else 0
 
 
@@ -403,30 +391,57 @@ def selftest():
     if vy("`evlerinizden` — одно слово, «из ваших домов»"):
         fails.append("vy-skips-a-translation")
     if not vy("«тут» вы найдёте ответ"):
-        fails.append("vy-fires-outside-the-quote")     # кавычки рядом ≠ внутри
+        fails.append("vy-fires-outside-the-quote")
 
+    def chto(seg):
+        found = []
+        lint_segment(seg, "x", lambda off: 1, found, False, False)
+        return [f for f in found if f[1] == "W-CHTO"]
+
+    if chto("часто оказывается, что нет"):
+        fails.append("chto-skips-explanatory")        # дополнение, «который» невозможен
+    if chto("там, где кажется, что хватит одной"):
+        fails.append("chto-skips-seems")
+    if not chto("тем же источником, что питает слайды"):
+        fails.append("chto-fires-on-attributive")     # здесь «что» = «который»
+
+    def lat(seg):
+        found = []
+        lint_segment(seg, "x", lambda off: 1, found, False, False)
+        return [f for f in found if f[1] == "W-LAT"]
+
+    if lat("лучшая кривая `recall-QPS`, один параметр"):
+        fails.append("lat-skips-inline-code")         # идентификатор, не англицизм
+    if not lat("здесь recall падает вдвое"):
+        fails.append("lat-fires-in-prose")            # тот же термин в прозе — долг     # кавычки рядом ≠ внутри
+
+    # ноутбук В ПЕРИМЕТРЕ: проза линтуется, код — нет
     tmp = _tempfile.mkdtemp(prefix="style_selftest_")
     _os.makedirs(_os.path.join(tmp, "seminars"))
-    nb = _os.path.join(tmp, "seminars", "lab-x.ipynb")
+    nbp = _os.path.join(tmp, "seminars", "lab-x.ipynb")
     _json.dump({"cells": [{"cell_type": "markdown",
-                           "source": ["полнота выросла до 0.85\n", "и ещё раз 0.42\n"]}]},
-               open(nb, "w", encoding="utf-8"))
-    if len(frozen_debt(tmp, {"E-DEC"})) != 2:
-        fails.append("frozen-debt-counted")
-    _json.dump({"cells": [{"cell_type": "code", "source": ["x = 0.85\n"]}]},
-               open(nb, "w", encoding="utf-8"))
-    if frozen_debt(tmp, {"E-DEC"}):
-        fails.append("frozen-debt-skips-code-cells")   # код семинара — не проза
-    _os.remove(nb)
-    if frozen_debt(tmp):
-        fails.append("frozen-debt-selfdestructs")
+                           "source": ["полнота выросла до 0.85\n"]}]},
+               open(nbp, "w", encoding="utf-8"))
+    found = []
+    for path in rulib.seminar_files(tmp):
+        process(path, tmp, "ipynb", found)
+    if not [f for f in found if f[1] == "E-DEC"]:
+        fails.append("nb-prose-linted")
+    _json.dump({"cells": [{"cell_type": "code", "source": ["x = 0.85  # recall-QPS\n"]}]},
+               open(nbp, "w", encoding="utf-8"))
+    found = []
+    for path in rulib.seminar_files(tmp):
+        process(path, tmp, "ipynb", found)
+    if found:
+        fails.append("nb-code-not-linted")
     _shutil.rmtree(tmp, ignore_errors=True)
 
     for t in ("dec-fires-in-prose", "dec-skips-step-number", "dec-skips-inflected-step",
               "dec-skips-table-cell", "dec-skips-inline-code", "dec-fires-outside-code",
               "vy-fires-on-address", "vy-skips-a-quote", "vy-skips-a-translation",
-              "vy-fires-outside-the-quote",
-              "frozen-debt-counted", "frozen-debt-skips-code-cells", "frozen-debt-selfdestructs"):
+              "vy-fires-outside-the-quote", "chto-skips-explanatory", "chto-skips-seems",
+              "chto-fires-on-attributive", "lat-skips-inline-code", "lat-fires-in-prose",
+              "nb-prose-linted", "nb-code-not-linted"):
         print("  [%s] %s" % ("FAIL" if t in fails else "OK", t))
     print("[selftest] FAIL: " + ", ".join(fails) if fails else "[selftest] PASS")
     return 1 if fails else 0

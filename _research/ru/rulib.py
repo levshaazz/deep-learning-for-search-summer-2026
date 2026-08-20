@@ -429,3 +429,41 @@ class Reporter(object):
             byfile.setdefault(r[0], 0)
             byfile[r[0]] += 1
         return byfile
+
+
+def seminar_files(root):
+    """seminars/*.ipynb — тетрадки занятий; в периметре линтера с 20.08.2026."""
+    import glob
+    return sorted(glob.glob(os.path.join(glob.escape(root), "seminars", "*.ipynb")))
+
+
+def ipynb_prose(text):
+    """Проза ноутбука → (собранный текст, спаны в нём).
+
+    Позиции в самом .ipynb ненадёжны: JSON хранит текст экранированным, а кириллицу — то
+    как есть, то как \\uXXXX, в зависимости от того, чем файл записан. Первая редакция искала
+    подстроку в сыром файле и молча возвращала пустой список: ноутбуки формально были в
+    периметре и при этом не линтовались. Поэтому склеиваем прозу markdown-ячеек в отдельный
+    текст и отдаём спаны в НЁМ — номера строк считаются по этому тексту.
+
+    Код не включаем: он выполняется, а не читается как русский текст, и латиница в нём —
+    идентификаторы (`recall-QPS`, `efSearch`), а не англицизмы.
+    """
+    import json as _json
+    import re as _re
+    try:
+        cells = _json.loads(text).get("cells", [])
+    except ValueError:
+        return "", []
+    out, spans = [], []
+    pos = 0
+    for c in cells:
+        if c.get("cell_type") != "markdown":
+            continue
+        body = _re.sub(r"```.*?```|`[^`\n]*`", " ", "".join(c.get("source", [])), flags=_re.S)
+        if not body.strip():
+            continue
+        out.append(body)
+        spans.append((pos, pos + len(body)))
+        pos += len(body) + 1
+    return "\n".join(out), spans
