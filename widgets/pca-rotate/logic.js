@@ -207,9 +207,21 @@ export const mountPcaRotate = defineWidget({
         // Park at 0.45 of the axis (was 0.62) with a +14px drop: at 0.62 the label landed on the
         // axis NAME near the tip — viz-probe measured a 0.68 box cover ("PC1" ~ "PC1: 79.79%"),
         // and an SVG overlap is scale-invariant, so no mount width could ever fix it.
-        const tp = projIso(t1[0] * 0.45, t1[1] * 0.45, t1[2] * 0.45);
-        t.setAttribute('x', Math.max(box.x + 4, Math.min(box.x + box.w - 86, tp.x)));
-        t.setAttribute('y', Math.max(box.y + 14, Math.min(box.y + box.h - 6, tp.y + 14)));
+        // PC3 паркуется ИНАЧЕ: в изометрии она уходит вглубь, и на 0.45 со сдвигом вниз её
+        // подпись ложилась ПОПЕРЁК горизонтальной оси PC1 — «PC3: 2.79%» читалось перечёркнутым
+        // (приёмка глазами 20.08.2026). Её отводим к собственному концу оси и приподнимаем;
+        // PC1 и PC2 остаются как есть — там подписи читаются.
+        const isPC3 = i === 2;
+        const frac = isPC3 ? 0.78 : 0.45;
+        const dy = isPC3 ? 18 : 14;
+        const tp = projIso(t1[0] * frac, t1[1] * frac, t1[2] * frac);
+        // PC3 выравнивается по ПРАВОМУ краю и уходит под собственную ось: при выравнивании по
+        // левому её текст тянулся вправо и налезал на подпись PC2.
+        if (isPC3) t.setAttribute('text-anchor', 'end');
+        const minX = isPC3 ? box.x + 88 : box.x + 4;
+        const maxX = isPC3 ? box.x + box.w - 4 : box.x + box.w - 86;
+        t.setAttribute('x', Math.max(minX, Math.min(maxX, tp.x)));
+        t.setAttribute('y', Math.max(box.y + 14, Math.min(box.y + box.h - 6, tp.y + dy)));
       });
     }
 
