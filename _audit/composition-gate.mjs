@@ -97,7 +97,13 @@ const MEASURE = () => {
    forbids the collapse that actually shipped (0×0). Raise it as the debt is paid; never lower it. */
 const FIG_FLOOR = 40;
 
-function slideCount(html) { return (html.match(/<section class="slide"/g) || []).length; }
+/* «slide» — это КЛАСС В СПИСКЕ, а не вся строка class. 17 слайдов курса несут второй класс
+   (`slide f-smart`, `slide w2v-slide`, `slide demo-pe-sweep`…), и точное сравнение с "slide"
+   их не видело: дека 03 считалась на 82 слайда вместо 83, последний слайд НЕ проверялся на
+   переполнение и не попадал в контактный лист. Тот же класс ошибки уже ловили в
+   check_narrative — там регулярка тоже требовала class="slide" целиком. */
+const SLIDE_OPEN = /<section class="(?:[^"]*\s)?slide(?:\s[^"]*)?"/g;
+function slideCount(html) { return (html.match(SLIDE_OPEN) || []).length; }
 
 async function run({ contact = null } = {}) {
   const R = makeReporter('composition');

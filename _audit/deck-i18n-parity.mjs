@@ -43,7 +43,10 @@ function analyse(html) {
   return { letters, hasRu, enOnly: Math.max(0, enSpans - ruSpans) };
 }
 
-function isSlide(html) { return /<section class="slide"/.test(html); }
+/* Класс в списке, а не вся строка: фрагмент с `class="slide w2v-slide"` — такой же слайд.
+   Пока здесь стояло точное сравнение, 17 слайдов курса вообще не проверялись на языковую
+   парность, то есть H1 (деки двуязычны) на них держался на честном слове. */
+function isSlide(html) { return /<section class="(?:[^"]*\s)?slide(?:\s[^"]*)?"/.test(html); }
 
 /* A deck-mounted widget draws labels the [lang]-span toggle CANNOT reach: the figure generates them
    in JS. widgets/deck-adapter.js localises them only when the mount's payload carries an `i18n`
