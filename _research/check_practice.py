@@ -65,6 +65,13 @@ TRAP = re.compile(r'⚠️?\s*Ловушка\s+([A-F])\b')
 TRAP_CYR = re.compile(r'⚠️?\s*Ловушка\s+([АВЕС])\b')
 NO_MODEL = re.compile(r'Замер без модели', re.I)
 PINS_CELL = re.compile(r'^\s*#\s*ПИНЫ\b', re.M)
+# §10.4: то, что подхватывают СЛЕДУЮЩИЕ занятия (индекс, эмбеддинги, веса), обязано лежать
+# на Drive, а не в песочнице. Проверка появилась, когда выяснилось, что правило записано в
+# стандарте, а все семь тетрадок писали в ./artifacts: цепочка занятий жила ровно до конца
+# сессии Colab, и обрыв рантайма молча превращал накопительную систему в семь огрызков —
+# следующая тетрадка не находила артефакт и собирала свой, уменьшенный, тоже молча.
+ARTIFACT_USE = re.compile(r'\bARTIFACTS\b')
+DRIVE_USE = re.compile(r'drive\.mount|/content/drive|MyDrive')
 EX_ID = re.compile(r'\bEx(\d{1,3})\b')
 # Seeding is required for every RNG library the notebook ACTUALLY imports — demanding
 # torch.manual_seed from a BM25 seminar would force an unused import, which rule 7.4 forbids
@@ -229,6 +236,8 @@ def measure(nb):
         'tasks': tasks,
         'forbidden': [name for name, pat in FORBIDDEN if pat.search(all_text)],
         'unpinned': unpinned, 'has_pins': bool(pins),
+        'artifacts_offdrive': bool(ARTIFACT_USE.search(code_text))
+                              and not DRIVE_USE.search(code_text),
         'seed_missing': ([] if SEED_CONST.search(code_text) else ['константа SEED'])
                         + [lib for lib, pat in SEED_BY_LIB.items()
                            if lib in imported and not pat.search(code_text)],
@@ -277,6 +286,9 @@ def check(rel, m, known_ex):
         hard.append(f"запрещённая колаб-UI-идиома {name!r} — интерфейс VS Code её не отрисует")
     for mod in m['unpinned']:                                                               # 7
         hard.append(f"импорт {mod!r} отсутствует в ячейке «# ПИНЫ» — версия не зафиксирована")
+    if m['artifacts_offdrive']:                                                             # 7a
+        hard.append("[10.4] артефакты пишутся мимо Drive — цепочка занятий не переживёт "
+                    "перезапуск рантайма, и следующий семинар молча соберёт уменьшенный свой")
     if m['seed_missing']:                                                                   # 8
         hard.append("SEED не зафиксирован: " + ', '.join(m['seed_missing'])
                     + " — источник случайности импортирован, но не засеян")
@@ -496,6 +508,21 @@ def selftest():
     d8['cells'] += [{'cell_type': 'code', 'source': 'x = %d' % i} for i in range(30)]
     h, _ = run(d8)
     ok.append(('Д8 сплошной код (md/код < 1,4)', any('[Д8]' in x for x in h)))
+
+    # §10.4 — артефакты мимо Drive: цепочка занятий не переживёт перезапуск рантайма.
+    offdrive = clean_nb()
+    offdrive['cells'].append({'cell_type': 'code',
+                              'source': 'ARTIFACTS = Path("./artifacts")\nARTIFACTS.mkdir()'})
+    h, _ = run(offdrive)
+    ok.append(('§10.4 артефакты мимо Drive', any('[10.4]' in x for x in h)))
+
+    ondrive = clean_nb()
+    ondrive['cells'].append({'cell_type': 'code',
+                             'source': ('from google.colab import drive\n'
+                                        'drive.mount("/content/drive")\n'
+                                        'ARTIFACTS = Path("/content/drive/MyDrive/dls-2026/artifacts")')})
+    h, _ = run(ondrive)
+    ok.append(('§10.4 артефакты на Drive — молчит', not any('[10.4]' in x for x in h)))
 
     # §10.1 forbidden Colab-UI idioms, one per shape.
     for idiom, snippet in [('#@param', 'n = 5 #@param {type:"integer"}'),
