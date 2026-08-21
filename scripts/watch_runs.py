@@ -27,6 +27,14 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from extract_runs import extract, notebooks  # noqa: E402
 
+# Строчная буферизация: наблюдателя часто запускают с перенаправлением (`| tee`, nohup в файл),
+# а при не-tty Python копит вывод блоками по 8 КБ — лог выглядел пустым, пока процесс жив,
+# и казалось, что наблюдатель не сработал, хотя дамп он уже записал.
+try:
+    sys.stdout.reconfigure(line_buffering=True)
+except AttributeError:                                   # очень старый Python — не беда
+    pass
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SEM = os.path.join(ROOT, "seminars")
 G29 = os.path.join(ROOT, "_research", "check_notebooks.py")
