@@ -186,7 +186,10 @@ def grounded(val, digits, approx, pct, pool_dump, pool_data, sig):
 # ── разбор ноутбука ─────────────────────────────────────────────────────────────────────────────
 
 _SEED_RX = re.compile(r"^SEED\s*=\s*(\d+)\b", re.M)
-_DUMP_MARK = re.compile(r"runs?_?dir|RUNS_DIR|/runs\b|\"runs\"|'runs'")
+# Маркер каталога прогона. RUN_DIR (каталог ОДНОГО прогона) добавлен, когда дамп-ячейка
+# стала складывать туда и числа, и журнал печатей: имя переменной поменялось, а требование
+# рядом — реальный json.dump в ПОСЛЕДНЕЙ кодовой ячейке — осталось прежним.
+_DUMP_MARK = re.compile(r"RUNS?_?DIR|runs?_?dir|/runs\b|\"runs\"|'runs'")
 
 
 def load_nb(path):
