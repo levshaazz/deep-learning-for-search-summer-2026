@@ -1,17 +1,75 @@
 {
-  "alt": { "en": "Byte-Pair Encoding step by step: each step merges the most frequent character pair, shortening the token sequence toward subwords.", "ru": "Byte-Pair Encoding по шагам: каждый шаг сливает самую частую пару символов, укорачивая последовательность токенов до подслов.", "tt": "Byte-Pair Encoding адымлап: һәр адым иң еш символлар парын берләштерә, токен эзлеклелеген субсүзләргә кадәр кыскарта." },
+  "alt": {
+    "en": "Byte-Pair Encoding step by step: each step merges the most frequent character pair, shortening the token sequence toward subwords.",
+    "ru": "Byte-Pair Encoding по шагам: каждый шаг сливает самую частую пару символов, укорачивая последовательность токенов до подслов.",
+    "tt": "Byte-Pair Encoding адымлап: һәр адым иң еш символлар парын берләштерә, токен эзлеклелеген субсүзләргә кадәр кыскарта."
+  },
   "_doc": "Step captions + small labels for bpe-steps (the live BPE training loop). EN canonical + RU + TT. The corpus, pair tallies, winners and merges all live in data/l2-bpe-steps.json (the deck's {low^5, lower^2, newest^6, widest^3} example). Each of the five merges is WATCHED in two phases (audit #0): the EVEN caption (s0/s2/s4/s6/s8) narrates COUNTING the pairs (tally shown, no winner yet); the ODD caption (s1/s3/s5/s7/s9) narrates PICKING the max + MERGING + re-tokenizing. maxStep=9. Small labels name the three regions; countHint is the placeholder shown in the merge region during a count phase.",
-  "corpusHead": { "en": "Corpus — current tokens (× word frequency)", "ru": "Корпус — текущие токены (× частота слова)", "tt": "Корпус — агымдагы токеннар (× сүз ешлыгы)" },
-  "tallyHead": { "en": "Count adjacent pairs, weighted by frequency", "ru": "Считаем соседние пары, взвешенные по частоте", "tt": "Күрше парларны саныйбыз, ешлыкка карап үлчәп" },
-  "mergeHead": { "en": "Merge the winner, re-tokenize", "ru": "Сливаем победителя, ре-токенизируем", "tt": "Җиңүчене берләштерәбез, кабат токенлаштырабыз" },
-  "pairCol": { "en": "pair", "ru": "пара", "tt": "пар" },
-  "countCol": { "en": "count", "ru": "счёт", "tt": "саны" },
-  "winnerTag": { "en": "max", "ru": "макс", "tt": "макс" },
-  "winnerTieTag": { "en": "max·tie-break", "ru": "макс·ничья→правило", "tt": "макс·тигезлек→кагыйдә" },
-  "tieTag": { "en": "tie", "ru": "ничья", "tt": "тигезлек" },
-  "mergeRule": { "en": "rule", "ru": "правило", "tt": "кагыйдә" },
-  "freqMark": { "en": "×", "ru": "×", "tt": "×" },
-  "countHint": { "en": "Pick the max next →", "ru": "Дальше выбираем максимум →", "tt": "Аннары максимумны сайлыйбыз →" },
+  "corpusHead": {
+    "en": "Corpus — current tokens (× word frequency)",
+    "ru": "Корпус — текущие токены (× частота слова)",
+    "tt": "Корпус — агымдагы токеннар (× сүз ешлыгы)"
+  },
+  "tallyHead": {
+    "en": "Count adjacent pairs, weighted by frequency",
+    "ru": "Считаем соседние пары, взвешенные по частоте",
+    "tt": "Күрше парларны саныйбыз, ешлыкка карап үлчәп"
+  },
+  "mergeHead": {
+    "en": "Merge the winner, re-tokenize",
+    "ru": "Сливаем победителя, ре-токенизируем",
+    "tt": "Җиңүчене берләштерәбез, кабат токенлаштырабыз"
+  },
+  "pairCol": {
+    "en": "pair",
+    "ru": "пара",
+    "tt": "пар"
+  },
+  "countCol": {
+    "en": "count",
+    "ru": "счёт",
+    "tt": "саны"
+  },
+  "winnerTag": {
+    "en": "max",
+    "ru": "макс",
+    "tt": "макс"
+  },
+  "winnerTieTag": {
+    "en": "max·tie-break",
+    "ru": "макс·ничья→правило",
+    "tt": "макс·тигезлек→кагыйдә"
+  },
+  "tieTag": {
+    "en": "tie",
+    "ru": "ничья",
+    "tt": "тигезлек"
+  },
+  "mergeRule": {
+    "en": "rule",
+    "ru": "правило",
+    "tt": "кагыйдә"
+  },
+  "freqMark": {
+    "en": "×",
+    "ru": "×",
+    "tt": "×"
+  },
+  "countHint": {
+    "en": "Pick the max next →",
+    "ru": "Дальше выбираем максимум →",
+    "tt": "Аннары максимумны сайлыйбыз →"
+  },
+  "unseenLab": {
+    "en": "unseen word",
+    "ru": "невиданное слово",
+    "tt": "күрелмәгән сүз"
+  },
+  "noUnk": {
+    "en": "no [UNK]",
+    "ru": "без [UNK]",
+    "tt": "[UNK] юк"
+  },
   "s0": {
     "en": "Count first. Split every word into characters plus an end-of-word marker </w>, then count each adjacent pair weighted by the word's frequency. The pair e·s appears in newest (6) and widest (3), so e·s = 6 + 3 = 9 — and s·t and t·</w> also hit 9: a three-way tie. Nothing is merged yet — just read the counts.",
     "ru": "Сначала считаем. Разбиваем каждое слово на символы плюс маркер конца слова </w>, затем считаем каждую соседнюю пару, взвешивая её частотой слова. Пара e·s встречается в newest (6) и widest (3), так что e·s = 6 + 3 = 9 — и s·t, и t·</w> тоже дают 9: тройная ничья. Пока ничего не сливаем — просто читаем счёт.",

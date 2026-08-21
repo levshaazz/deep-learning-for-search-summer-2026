@@ -53,7 +53,12 @@ export const mountSignificanceTest = defineWidget({
     const maxAbs = Math.max(...diffs.map(Math.abs)) * 1.12;   // headroom
     const mid = box.y + box.h / 2;                            // zero baseline (y)
     const scaleY = (box.h / 2) / maxAbs;                      // value → pixels (half-height each way)
-    const slot = box.w / n;
+    // A lane on the RIGHT reserved for the "0 (tie)" label. Without it the label sat end-anchored
+    // over the plot itself, and the three tallest bars of the real diff vector are the rightmost
+    // ones — they buried it. The bars get the remaining width; the label never overlaps anything.
+    const zeroLane = 66;
+    const plotW = box.w - zeroLane;
+    const slot = plotW / n;
     const bw = Math.min(20, slot * 0.62);
 
     // title above the strip (left-anchored — always in-frame)
@@ -61,8 +66,9 @@ export const mountSignificanceTest = defineWidget({
       .textContent = labels.title || 'B − A, per query';
 
     // zero line (the "tie")
-    el('line', { x1: box.x, y1: mid, x2: box.x + box.w, y2: mid, class: 'sig-zero' }, svg);
-    el('text', { x: box.x + box.w, y: mid - 5, class: 'sig-axlbl', 'text-anchor': 'end' }, svg)
+    el('line', { x1: box.x, y1: mid, x2: box.x + plotW, y2: mid, class: 'sig-zero' }, svg);
+    el('text', { x: box.x + plotW + 8, y: mid, class: 'sig-axlbl',
+      'text-anchor': 'start', 'dominant-baseline': 'middle' }, svg)
       .textContent = labels.axisZero || '0 (tie)';
 
     // the 15 signed bars
@@ -94,9 +100,9 @@ export const mountSignificanceTest = defineWidget({
     // every bar, with a leader tick down to the dashed line — so it never collides with a tall bar.
     const meanY = mid - mean * scaleY;
     const meanG = el('g', { class: 'sig-meanline' }, svg);
-    el('line', { x1: box.x, y1: meanY, x2: box.x + box.w, y2: meanY, class: 'sig-mean' }, meanG);
+    el('line', { x1: box.x, y1: meanY, x2: box.x + plotW, y2: meanY, class: 'sig-mean' }, meanG);
     const labY = box.y - 2;                                 // lane above the plot box
-    el('line', { x1: box.x + box.w, y1: labY + 3, x2: box.x + box.w, y2: meanY, class: 'sig-mean-tick' }, meanG);
+    el('line', { x1: box.x + plotW, y1: labY + 3, x2: box.x + plotW, y2: meanY, class: 'sig-mean-tick' }, meanG);
     el('text', { x: box.x + box.w, y: labY, class: 'sig-mean-t', 'text-anchor': 'end' }, meanG)
       .textContent = `${labels.axisMean || 'mean'} ${sgn(mean)}`;
 

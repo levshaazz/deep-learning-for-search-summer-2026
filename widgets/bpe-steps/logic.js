@@ -165,6 +165,20 @@ export const mountBpeSteps = defineWidget({
       });
     }
 
+    // Apply the LEARNED merges to a word the corpus never contained — the payoff the caption
+    // promises ("no [UNK]"). Nothing is hard-coded: the pieces are derived by running the merge
+    // list from data/ in rank order, so the panel can never disagree with the trace above it.
+    function encodeUnseen(word, merges) {
+      let toks = word.split('').concat([eow]);
+      merges.forEach((m) => {
+        for (let i = 0; i < toks.length - 1; ) {
+          if (toks[i] === m.left && toks[i + 1] === m.right) toks.splice(i, 2, m.joined);
+          else i += 1;
+        }
+      });
+      return toks;
+    }
+
     // draw the merge rule + its weighted-count working for one step
     function drawMerge(st) {
       mergeBody.innerHTML = '';
@@ -205,6 +219,21 @@ export const mountBpeSteps = defineWidget({
       drawTally(st, isMergePhase);                 // winner/tie tags appear only in the merge phase
       if (isMergePhase) {
         drawMerge(st);
+        // Last step only: the whole point of the loop — an unseen word falls apart into pieces
+        // the loop just learned. Before this the merge list is incomplete and the split would lie.
+        if (k === 9 && (data.merges || []).length) {
+          const word = data.unseenWord || 'lowest';
+          const pieces = encodeUnseen(word, data.merges);
+          const row = document.createElement('div');
+          row.className = 'bps-unseen';
+          row.innerHTML =
+            `<span class="bps-rule-lab">${esc(labels.unseenLab || 'unseen word')}</span>` +
+            `<span class="bps-word">${esc(word)}</span>` +
+            `<span class="bps-op bps-arrow">→</span>` +
+            pieces.map((t) => `<span class="bps-tok bps-tok--merged">${esc(t)}</span>`).join('') +
+            `<span class="bps-unseen-note">${esc(labels.noUnk || 'no [UNK]')}</span>`;
+          mergeBody.appendChild(row);
+        }
       } else {
         // COUNT phase: the merge region is not yet decided — show a one-line prompt so the region
         // never collapses to empty, and the "pick → merge" only happens on the next step.
