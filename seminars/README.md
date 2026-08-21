@@ -104,6 +104,15 @@ npm run runs:prepare     # seminars/*.ipynb → tmp/colab-t4/*.ipynb с впис
 npm run runs:watch       # оставить работать в отдельном терминале на время прогона
 ```
 
+npm тут только обёртка — ничего кроме python3 не нужно, и работает из любого каталога:
+
+| через npm | то же самое напрямую |
+|---|---|
+| `npm run runs:prepare` | `python3 scripts/sync_solved.py` |
+| `npm run runs:watch` | `python3 scripts/watch_runs.py` |
+| `npm run runs` | `python3 scripts/extract_runs.py && python3 _research/check_notebooks.py` |
+| `npm run hooks:install` | `python3 scripts/install_hooks.py` |
+
 Дальше — прогон в Colab как обычно. Дамп чисел приезжает обратно **сам**, тремя разными
 путями, любой из которых достаточен:
 
