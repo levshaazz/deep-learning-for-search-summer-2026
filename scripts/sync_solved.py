@@ -55,18 +55,37 @@ def is_stub(body):
     return bool(STUB_RE.search(body) or STUB_TEXT_RE.search(body))
 
 
+def block_key(src, start):
+    """Ключ блока — текст его открывающей строки («# --- твой код: ЗАДАНИЕ 2 ---»).
+
+    Сопоставлять блоки по ПОРЯДКУ нельзя: добавленная выше ячейка сдвигает нумерацию, перенос
+    срывается, и решение теряется. Заголовок задания стабилен при любых правках вокруг.
+    """
+    line_start = src.rfind("\n", 0, start) + 1
+    return " ".join(src[line_start:start].split()).lower()
+
+
+def solved_bodies(solved):
+    """Карта «ключ блока → тело» из старой копии. Повторяющиеся ключи различаются порядком."""
+    out, seen = {}, {}
+    for a, b in blocks(solved):
+        k = block_key(solved, a)
+        seen[k] = seen.get(k, 0) + 1
+        out[(k, seen[k])] = solved[a:b]
+    return out
+
+
 def graft(fresh, solved):
-    """Перенести решения из `solved` в одноимённые блоки `fresh`. → (новый src, перенесено, осталось-заглушек)"""
-    fb, sb = blocks(fresh), blocks(solved)
-    if len(fb) != len(sb):
-        # Блоки не сопоставимы один-к-одному — переносить наугад нельзя: решение уехало бы
-        # в чужое задание. Возвращаем как есть и считаем все заглушки нерешёнными.
-        return fresh, 0, sum(1 for a, b in fb if is_stub(fresh[a:b]))
-    out, prev, moved, stubs = [], 0, 0, 0
-    for (fa, fbnd), (sa, sbnd) in zip(fb, sb):
-        body_f, body_s = fresh[fa:fbnd], solved[sa:sbnd]
+    """Перенести решения из `solved` в блоки `fresh` ПО ЗАГОЛОВКУ. → (новый src, перенесено, заглушек)"""
+    bank = solved_bodies(solved)
+    out, prev, moved, stubs, seen = [], 0, 0, 0, {}
+    for fa, fbnd in blocks(fresh):
+        body_f = fresh[fa:fbnd]
+        k = block_key(fresh, fa)
+        seen[k] = seen.get(k, 0) + 1
+        body_s = bank.get((k, seen[k]))
         out.append(fresh[prev:fa])
-        if is_stub(body_f) and not is_stub(body_s):
+        if is_stub(body_f) and body_s is not None and not is_stub(body_s):
             out.append(body_s)
             moved += 1
         else:
@@ -79,29 +98,43 @@ def graft(fresh, solved):
 
 
 def sync_notebook(fresh_nb, solved_nb):
-    """→ (копия-для-прогона, перенесено, осталось-заглушек). Структуру берём из fresh."""
-    solved_cells = (solved_nb or {}).get("cells", [])
+    """→ (копия-для-прогона, перенесено, осталось-заглушек). Структуру берём из fresh.
+
+    Блоки ищутся по всей старой копии, а не в «той же по счёту» ячейке: раньше добавленная
+    ячейка ломала сопоставление, перенос давал ноль, а запись всё равно происходила — и
+    вписанные вручную решения стирались заглушками без возможности восстановления
+    (tmp/colab-t4 в .gitignore). Теперь ключ — заголовок задания.
+    """
+    solved_all = "\n".join("".join(c.get("source", []))
+                           for c in (solved_nb or {}).get("cells", [])
+                           if c.get("cell_type") == "code")
     moved = stubs = 0
-    # сопоставляем кодовые ячейки по порядку — тетрадки различаются только телом заданий
-    fresh_code = [c for c in fresh_nb["cells"] if c["cell_type"] == "code"]
-    solved_code = [c for c in solved_cells if c.get("cell_type") == "code"]
-    pairs = zip(fresh_code, solved_code) if len(fresh_code) == len(solved_code) else []
-    for fc, sc in pairs:
-        src_f, src_s = "".join(fc["source"]), "".join(sc.get("source", []))
+    for fc in fresh_nb["cells"]:
+        if fc["cell_type"] != "code":
+            continue
+        src_f = "".join(fc["source"])
         if not blocks(src_f):
             continue
-        new_src, m, st = graft(src_f, src_s)
+        new_src, m, st = graft(src_f, solved_all)
         moved += m
         stubs += st
         fc["source"] = new_src.splitlines(keepends=True)
-    if not pairs:
-        stubs = sum(1 for c in fresh_code for a, b in blocks("".join(c["source"]))
-                    if is_stub("".join(c["source"])[a:b]))
     for c in fresh_nb["cells"]:                     # копия уезжает в Colab чистой
         if c["cell_type"] == "code":
             c["outputs"] = []
             c["execution_count"] = None
     return fresh_nb, moved, stubs
+
+
+def stub_count(nb):
+    """Сколько блоков-заглушек в тетрадке (для защиты от записи, стирающей решения)."""
+    n = 0
+    for c in (nb or {}).get("cells", []):
+        if c.get("cell_type") != "code":
+            continue
+        src = "".join(c.get("source", []))
+        n += sum(1 for a, b in blocks(src) if is_stub(src[a:b]))
+    return n
 
 
 def main(argv):
@@ -111,17 +144,28 @@ def main(argv):
         return 1
     os.makedirs(DST, exist_ok=True)
     total_stubs = 0
+    refused = 0
     for f in sorted(os.listdir(SRC)):
         if not f.endswith(".ipynb"):
             continue
         fresh = json.load(open(os.path.join(SRC, f), encoding="utf-8"))
         dst_path = os.path.join(DST, f)
         solved = json.load(open(dst_path, encoding="utf-8")) if os.path.exists(dst_path) else None
+        had = stub_count(solved) if solved else None
         nb, moved, stubs = sync_notebook(fresh, solved)
         total_stubs += stubs
         mark = "✓" if not stubs else "!"
         tail = " · ЗАГЛУШЕК БЕЗ РЕШЕНИЯ: %d" % stubs if stubs else ""
         print("  %s %-24s решений перенесено %2d%s" % (mark, f[:-6], moved, tail))
+        # ЗАЩИТА: не записывать копию, в которой заглушек БОЛЬШЕ, чем было. Такая запись стёрла бы
+        # вписанные вручную решения, а tmp/colab-t4 в .gitignore — восстановить их нечем. Ровно это
+        # и происходило, когда сопоставление блоков срывалось: перенос 0, а запись всё равно шла.
+        if solved is not None and had is not None and stubs > had:
+            refused += 1
+            print("    ✗ ОТКАЗ ЗАПИСИ: было заглушек %d, стало бы %d — копия с решениями сохранена."
+                  % (had, stubs))
+            print("      Проверь, совпадают ли заголовки блоков «# --- твой код: … ---» в обоих файлах.")
+            continue
         if not check:
             json.dump(nb, open(dst_path, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
             open(dst_path, "a", encoding="utf-8").write("\n")
@@ -131,6 +175,10 @@ def main(argv):
     if total_stubs:
         print("            %d заглушек без решения: впиши их в копии ОДИН раз, дальше sync"
               " перенесёт их сам." % total_stubs)
+    if refused:
+        print("            %d копи(я/и) НЕ перезаписаны — они содержат решения, которых нет в"
+              " свежей тетрадке." % refused)
+        return 1
     return 0
 
 
@@ -155,9 +203,17 @@ def selftest():
     check("проза берётся из свежей тетрадки", "новая подпись" in out2 and "старая" not in out2)
     check("решение всё равно перенесено", "y = 7" in out2 and moved2 == 1)
 
-    # разное число блоков → не переносим наугад
-    out3, moved3, stubs3 = graft(fresh + fresh, solved)
-    check("несопоставимые блоки не переносятся", moved3 == 0 and stubs3 == 2)
+    # блоки ищутся по ЗАГОЛОВКУ: лишний блок в свежей тетрадке не срывает перенос остальных
+    out3, moved3, stubs3 = graft(fresh + fresh.replace("ЗАДАНИЕ 1", "ЗАДАНИЕ 2"), solved)
+    check("лишний блок не мешает перенести известный", moved3 == 1 and stubs3 == 1)
+    check("неизвестный блок остался заглушкой", "y = ..." not in out3 and out3.count("x = 42") == 1)
+
+    # РЕГРЕСС, из-за которого терялись решения: ячейка, добавленная ВЫШЕ блока, сдвигала
+    # сопоставление по порядку, перенос давал ноль, а запись всё равно шла поверх копии.
+    fresh_shift = "import numpy\n" + fresh
+    out5, moved5, _ = graft(fresh_shift, solved)
+    check("сдвиг ячейкой выше не ломает перенос", moved5 == 1 and "x = 42" in out5)
+    check("добавленный код свежей тетрадки сохранён", "import numpy" in out5)
 
     # уже решённый блок не затирается старым решением
     out4, moved4, _ = graft(solved.replace("42", "43"), solved)
@@ -178,7 +234,7 @@ def selftest():
 
     for f in fails:
         print("  ✗ %s" % f)
-    print("[sync-solved --selftest] проверок 11, провалов %d" % len(fails))
+    print("[sync-solved --selftest] проверок 14, провалов %d" % len(fails))
     return 1 if fails else 0
 
 

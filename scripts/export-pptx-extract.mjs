@@ -152,7 +152,8 @@ const EXTRACT = () => {
   };
 };
 
-const slideCount = (html) => (html.match(/<section class="slide"/g) || []).length;
+// Широкий класс: иначе 17 слайдов дек 03/06/07 не попадают в экспорт дизайнеру.
+const slideCount = (html) => (html.match(/<section class="(?:[^"]*\s)?slide(?:\s[^"]*)?"/g) || []).length;
 
 async function run() {
   const args = process.argv.slice(2);

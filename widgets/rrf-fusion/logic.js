@@ -197,8 +197,11 @@ export const mountRrfFusion = defineWidget({
 
     // per-step update (factory clamps s to [0,maxStep] and owns caption/counter)
     return function update(s) {
-      // Column visibility: inputs always shown; fused only from step 3.
-      colF.col.classList.toggle('is-hidden', s < 3);
+      // Column visibility: inputs always shown; the fused column appears at step 2 — together with
+      // its score readout, which LIVES INSIDE that column. Revealing the readout at 2 while the
+      // column stayed hidden until 3 made step 2 change nothing on screen: the caption promised
+      // "sum the reciprocal ranks" and the figure sat still (G9 caught it as a dead step).
+      colF.col.classList.toggle('is-hidden', s < 2);
       score.classList.toggle('is-hidden', s < 2);
 
       // Final reveal is split across two steps so a 1920×1080 deck slide never gets three

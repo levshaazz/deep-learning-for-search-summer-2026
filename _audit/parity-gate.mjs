@@ -58,7 +58,9 @@ function maxParaChars(slideHtml) {
 // pure core: given (filename, html) → HARD findings. Testable offline with a fixture string.
 export function auditDeck(file, html) {
   const out = [];
-  const slides = html.match(/<section class="slide"[\s\S]*?<\/section>/g) || [];
+  // Широкий класс — см. readability-gate: деки 03/06/07 несут слайды с доп. классами,
+  // и точный шаблон занижал глубину (06: 58 вместо 67, 07: 74 вместо 81).
+  const slides = html.match(/<section class="(?:[^"]*\s)?slide(?:\s[^"]*)?"[\s\S]*?<\/section>/g) || [];
   const labels = (html.match(/data-screen-label="([^"]+)"/g) || []).join(' ').toLowerCase();
   const floor = OVERRIDES[file]?.slides ?? SLIDE_FLOOR;
   if (slides.length < floor)

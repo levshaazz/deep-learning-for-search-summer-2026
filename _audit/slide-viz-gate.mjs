@@ -934,6 +934,23 @@ function detectColor(steps, ctx) {
   // (a backing panel, a connector, a same-colour highlight of a data point) and reusing a
   // category colour there is NOT a defect — so we don't treat it as its own category.
   const catOf = (sh) => (sh.role || shortKey(sh.key)).replace(/[#:].*$/, '');
+  // A MODIFIER is not a second category. `circle.tss-dot` vs `circle.tss-dot.tss-anchor` is one
+  // category plus a highlighted member of it: t-SNE's anchor point is told apart by RADIUS (6 vs 4.5)
+  // and stroke-width, deliberately keeping the category fill. Before this exemption the gate HARD-failed
+  // that figure for "two categories, indistinguishable colour" — the two were never meant to differ in
+  // hue. The test is structural, not a name list: same tag, and one class set contains the other.
+  const classSet = (cat) => {
+    const parts = String(cat).split('.');
+    return { tag: parts[0], cls: new Set(parts.slice(1).filter(Boolean)) };
+  };
+  const isModifierPair = (catA, catB) => {
+    const a = classSet(catA), b = classSet(catB);
+    if (!a.tag || a.tag !== b.tag) return false;
+    if (!a.cls.size || !b.cls.size || a.cls.size === b.cls.size) return false;
+    const [small, big] = a.cls.size < b.cls.size ? [a.cls, b.cls] : [b.cls, a.cls];
+    for (const c of small) if (!big.has(c)) return false;
+    return true;                                  // one class set is a strict subset of the other
+  };
   // isNamed is hoisted above the void/near-bg loop (shared by both branches).
   const reps = [];                                 // one representative colour per category
   const seenCat = new Map();
@@ -964,7 +981,8 @@ function detectColor(steps, ctx) {
          theme's own backing tokens is chrome in EITHER theme. Data hues (a cyan-soft box, a saturated blue)
          match no chrome token and keep failing exactly as they did. */
       const bothChrome = isChrome(a.c) && isChrome(b.c);
-      if (dE < ctx.TH.DELTA_E_MIN && rd < ctx.TH.RGB_MIN && satMax >= ctx.TH.COLLIDE_SAT_MIN && !bothChrome) {
+      if (dE < ctx.TH.DELTA_E_MIN && rd < ctx.TH.RGB_MIN && satMax >= ctx.TH.COLLIDE_SAT_MIN && !bothChrome
+          && !isModifierPair(a.cat, b.cat)) {
         out.push({ cat: 'COLOR', sev: 'HARD', step: 0,
           msg: `colour collision: "${a.cat}" rgb(${a.c.r|0},${a.c.g|0},${a.c.b|0}) ≈ "${b.cat}" rgb(${b.c.r|0},${b.c.g|0},${b.c.b|0}) ΔE=${dE.toFixed(1)} (<${ctx.TH.DELTA_E_MIN}), RGBdist=${rd.toFixed(0)} — distinct categories, indistinguishable colour` });
       }

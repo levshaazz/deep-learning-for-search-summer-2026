@@ -83,7 +83,9 @@ const COLLECT = (rootSel) => {
   return { fonts, runs: fonts.length };
 };
 
-function deckSlideCount(html) { return (html.match(/<section class="slide"/g) || []).length; }
+// Широкий класс: слайд может нести дополнительные классы (<section class="slide w2v-slide">).
+// Точный шаблон терял 17 слайдов в деках 03/06/07 — они просто не посещались этим гейтом.
+function deckSlideCount(html) { return (html.match(/<section class="(?:[^"]*\s)?slide(?:\s[^"]*)?"/g) || []).length; }
 
 // serve docs/ under the GH-Pages base prefix so the built Book's absolute /BASE/... asset
 // paths resolve (the harness serveDir serves at root, which would 404 those).

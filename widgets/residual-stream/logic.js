@@ -89,7 +89,9 @@ export const mountResidualStream = defineWidget({
     // left, above the add-stage checkpoints, so the right side is the only clear top lane),
     // end-anchored inside the right gutter so it never spills or collides with the branch labels.
     layer('lane', 0);
-    add('lane', txt(xEnd + SIDE - 2, 14, labels.highwayLbl || 'residual highway',
+    // y = 20, а не 14: при 11px шрифте бокс подписи высотой ~39px (две строки в ru/tt) уходил
+    // за верх кадра на 4px — гейт фигур ловил это как OOB в обеих темах.
+    add('lane', txt(xEnd + SIDE - 2, 20, labels.highwayLbl || 'residual highway',
       { font: '700 11px var(--font-mono, monospace)', fill: 'var(--accent-ink, #1B4FA0)',
         'text-anchor': 'end' }));
     add('lane', el('line', { x1: PAD, y1: laneY, x2: xEnd + 4, y2: laneY, fill: 'none',
