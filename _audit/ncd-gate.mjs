@@ -125,6 +125,9 @@ function charWidthGuessing() {
 
 /* [C] runs on the WHOLE widget tree, not just ncd-*: the collision is between any two widgets whose
    stylesheets are co-loaded, and every Book page co-loads all of them. */
+// Классы ХОЗЯИНА, к которому виджет прикрепляется: они принадлежат деке/Книге, а не виджету.
+const HOST_CLASSES = new Set(['slide', 'widget-mount', 'book-figure', 'wgt-host']);
+
 function namespaceCollisions() {
   const owner = new Map();
   for (const d of readdirSync(join(ROOT, 'widgets'))) {
@@ -136,6 +139,12 @@ function namespaceCollisions() {
       // .wgt-*, .ncd-* and .svg-halo are shared chrome from _base.css; .is-* are state modifiers that
       // are always used compounded (.foo.is-active), so sharing them is by design.
       if (cls.startsWith('wgt-') || cls.startsWith('ncd-') || cls.startsWith('is-') || cls === 'svg-halo') continue;
+      // HOST selectors are not the widget's own namespace: a rule like
+      //   .slide .widget-mount[data-widget="chunk-size-law"] { … }
+      // scopes the widget TO its host, so `.slide` and `.widget-mount` appear in every file that does
+      // this. Counting them as owned classes made the gate report «.slide is owned by three widgets,
+      // they overwrite each other» — three files that never touch each other's styles.
+      if (HOST_CLASSES.has(cls)) continue;
       if (!owner.has(cls)) owner.set(cls, new Set());
       owner.get(cls).add(d);
     }

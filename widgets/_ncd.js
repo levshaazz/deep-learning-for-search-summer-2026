@@ -83,8 +83,11 @@ export function glyphs(el) {
   // generic op box (rounded) with a label + optional sub-label
   function box(parent, cx, cy, w, h, label, sub, boxCls, txtCls, sizeCls) {
     el('rect', { class: boxCls, x: cx - w / 2, y: cy - h / 2, width: w, height: h, rx: 6 }, parent);
-    text(parent, cx, cy + (sub ? -2 : 4), label, txtCls);
-    if (sub) text(parent, cx, cy + 12, sub, sizeCls);
+    // Зазор между заголовком и подзаголовком: 19px между базовыми линиями, а не 14. При 13px моно
+    // (ncdk-op-txt и ncdk-sub — оба 13px) прежние −2/+12 давали перекрытие боксов на 9%, и гейт
+    // семьи NCD ловил это как TEXT×TEXT на каждом языке и каждом шаге.
+    text(parent, cx, cy + (sub ? -6 : 4), label, txtCls);
+    if (sub) text(parent, cx, cy + 13, sub, sizeCls);
   }
   /* tagBox — a boxed label that MEASURES its text instead of guessing at it.
 
