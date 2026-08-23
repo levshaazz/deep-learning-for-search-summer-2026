@@ -33,7 +33,15 @@ export const mountPcaRotate = defineWidget({
   render({ host, data, labels, el }) {
     const cloud = data.cloud3d || [];
     const frames = data.frames || [];
-    const eigvec = data.eigenvectors || [];           // rows = PC1, PC2, PC3
+    // Собственные векторы лежат в СТОЛБЦАХ матрицы (_research/gen_l5_viz.py: evecs = evecs[:, order]),
+    // как и принято у numpy.linalg.eigh. Виджет читал их построчно — и рисовал как «главные оси»
+    // векторы, которые не являются собственными: невязка ‖C·v − λv‖ по строкам 1.69 / 0.19 / 1.41
+    // против 0.0004 по столбцам, а стрелка PC1 отклонялась от настоящей главной оси на 11.7°.
+    // Транспонируем здесь: data/ трогать нельзя (H3 — байт-идентичность генератора).
+    const eigvecRaw = data.eigenvectors || [];
+    const eigvec = eigvecRaw.length
+      ? eigvecRaw[0].map((_, i) => eigvecRaw.map((row) => row[i]))   // столбцы → строки: eigvec[i] = PC(i+1)
+      : [];
     const evPct = data.explainedVarPct || [];
     const var2d = data.var2dPct;
     const final2d = data.final2d || [];
