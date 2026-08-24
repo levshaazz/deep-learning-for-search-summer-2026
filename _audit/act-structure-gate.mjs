@@ -91,6 +91,14 @@ export function run({ root = ROOT, baselinePath = BASELINE, update = false, list
     counts[num] = issues.length;
     all.push(...issues);
   }
+  // Храповик — взводная чека, а не кэш: без файла гейт раньше сползал в «не вооружён» и
+  // выходил с нулём, то есть `rm baselines/*.json` молча выключал правило. Отсутствие файла
+  // допустимо только при первичной записи (--update-baseline).
+  if (!existsSync(baselinePath) && !update) {
+    console.error(`[act-structure] нет файла храповика ${baselinePath} — проверка не вооружена. `
+      + 'Восстанови его из git, а не перезаписывай.');
+    process.exit(1);
+  }
   const base = existsSync(baselinePath) ? JSON.parse(readFileSync(baselinePath, 'utf8')).decks || {} : null;
 
   if (update) {

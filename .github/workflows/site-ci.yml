@@ -51,6 +51,10 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'astro.config.mjs'
+      # Всё, из чего собирается артефакт, который читают гейты. Без этой строки правка
+      # assemble-deck / build-deck-widgets / copy-static не запускала site-ci вообще.
+      - 'scripts/**'
+      - '_research/check_assets.py'
       - '.github/workflows/site-ci.yml'
   pull_request:
     paths:
@@ -89,6 +93,14 @@ on:
       - '_audit/*.mjs'
       - '_audit/lib/**'
       - '_audit/baselines/**'
+      # Те же входы, что и у push: без них PR, меняющий сборку, Astro или сам workflow,
+      # проходил вообще без site-ci.
+      - 'scripts/**'
+      - '_research/check_assets.py'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'astro.config.mjs'
+      - '.github/workflows/site-ci.yml'
   workflow_dispatch: {}
 
 # Cancel an in-flight run when a newer commit lands on the same ref (saves runner minutes,
@@ -180,6 +192,20 @@ jobs:
       # G26 — bibliography: every reference entry carries data-paper-id and matches
       # data/papers.json (authors ⊆ record, year == record, arXiv ids exist); the
       # KNOWN_UNTAGGED allowlist may only shrink — a stale entry HARD-fails.
+      # H1 («деки — офлайн-standalone, ноль сетевых запросов») до сих пор не проверялся ни в
+      # одном workflow: ci.yml смотрит только шаблон, не 21 боевую деку. Правило есть, гейт есть,
+      # запуска не было — то есть держалось оно на ручном прогоне и памяти.
+      - name: H1 offline decks (zero network)
+        run: |
+          set -e
+          for f in Lectures/*.html; do
+            node _audit/offline-deck.mjs "$(basename "$f")"
+          done
+      # Гейт семьи NCD-виджетов существовал и был КРАСНЫМ вне CI.
+      - name: NCD family gate
+        run: node _audit/ncd-gate.mjs
+      - name: NCD family gate self-test
+        run: node _audit/ncd-gate.mjs --selftest
       - name: G26 bibliography
         run: python3 _research/check_bib.py
       - name: G26 bibliography self-test

@@ -64,9 +64,25 @@ export function scanDeck(dir) {
            density: types.length ? +(100 * idx.length / types.length).toFixed(1) : 0, gap, widgets };
 }
 
-export function loadBaseline(path = BASELINE) {
-  if (!existsSync(path)) return {};
-  return JSON.parse(readFileSync(path, 'utf8')).decks || {};
+/* Файл храповика — это ВЗВОДНАЯ ЧЕКА проверки, а не её кэш. Пока он молча подменялся пустым
+   объектом, `rm _audit/baselines/mechanism.json && node … --update-baseline` перезаписывал долг
+   без единого возражения — то есть правило «храповик может только улучшаться» держалось на
+   обещании, а не на механике. Ровно эту дыру уже закрыли в viz-probe; здесь она оставалась.
+   Отсутствующий или битый файл — падение гейта, кроме первичной записи (--update-baseline на
+   пустом месте, что видно по флагу FIRST внутри самой записи). */
+export function loadBaseline(path = BASELINE, { allowMissing = false } = {}) {
+  if (!existsSync(path)) {
+    if (allowMissing) return {};
+    console.error(`[mechanism] нет файла храповика ${path} — проверка не вооружена. `
+      + 'Восстанови его из git, а не перезаписывай: без него гейт не отличает долг от регресса.');
+    process.exit(1);
+  }
+  try {
+    return JSON.parse(readFileSync(path, 'utf8')).decks || {};
+  } catch (e) {
+    console.error(`[mechanism] храповик ${path} не читается (${e.message}) — проверка не вооружена.`);
+    process.exit(1);
+  }
 }
 
 export function ratchet(base, now) {
@@ -93,7 +109,9 @@ export function run({ root = ROOT, baselinePath = BASELINE, update = false } = {
   const now = {};
   for (const d of decks) now[d.slice(0, 2)] = scanDeck(join(root, 'Lectures', d));
 
-  const base = loadBaseline(baselinePath);
+  // При --update-baseline отсутствие файла допустимо только как ПЕРВИЧНАЯ запись; в обычном
+  // прогоне его отсутствие валит гейт (см. loadBaseline).
+  const base = loadBaseline(baselinePath, { allowMissing: update });
   const { ok, worse, better } = ratchet(base, now);
 
   if (update) {
