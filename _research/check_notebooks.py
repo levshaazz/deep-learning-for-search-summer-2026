@@ -28,6 +28,10 @@
       одноимённой метрикой дампа. Остаток — храповик ПО СТРОКАМ в разрезе файла
       (_research/baselines/notebook-numbers.json): НОВАЯ строка — HARD (счётчик не годится:
       swap выдумок при том же счётчике проходил); --update-baseline отказывает росту (как G13/G22).
+  [K] ЧУЖИЕ ВЕЛИЧИНЫ — имя каждой метрики дампа обязано встречаться в тексте самой
+      тетрадки (код + markdown, где живут решения). Ядро Colab переживает смену тетрадки,
+      и скребок по globals() утаскивает переменные предыдущего семинара: так числа прозы
+      начинают «обосновываться» чужим прогоном.
   [T4] КРОСС-РАНТАЙМ — если есть seminars/runs-t4/<имя>.json (T4-прогон владельца): метрики
       качества сверяются СТРОГО (то самое решение: «качество строго, тайминги с допуском»);
       строгость распространяется на ЗАЯВЛЕННЫЕ метрики — ключи внутри RUN, куда ноутбук
@@ -244,6 +248,29 @@ def check_notebook(name, nb_path, runs_dir, pool_data, err, warn, t4_dir=None):
         if int(metrics["SEED"]) not in seeds:
             err(f"[S] {name}: SEED дампа = {int(metrics['SEED'])}, в ноутбуке {sorted(set(seeds))} — "
                 f"дамп протух, перегони прогон")
+
+    # [K] дамп собран скребком по globals(), а ядро Colab переживает смену тетрадки:
+    # запусти два семинара подряд без перезапуска — и во второй дамп попадут переменные
+    # первого. Это не теория: прогон 2026-09-04 дал T4-дампы по ~200 величин, из которых
+    # 142–157 принадлежали СОСЕДНИМ тетрадкам, и числа прозы «обосновывались» чужим
+    # прогоном. Имя переменной обязано встречаться в тексте САМОЙ тетрадки — код плюс
+    # markdown, потому что решения заданий живут в <details> markdown-ячеек.
+    own = set(re.findall(r"[A-Za-z_][A-Za-z_0-9]*", "\n".join(code + md)))
+
+    def alien_check(which, ms):
+        alien = sorted(k for k in ms if k not in own)
+        if alien:
+            err(f"[K] {name}: в дампе{which} {len(alien)} величин, которых нет в тексте "
+                f"тетрадки ({', '.join(alien[:6])}{' …' if len(alien) > 6 else ''}) — ядро "
+                f"помнит предыдущий семинар; перезапусти ядро и прогони заново")
+    alien_check("", metrics)
+    if t4_dir:                                  # T4-прогон грязнится ровно так же
+        t4p = os.path.join(t4_dir, name + ".json")
+        if os.path.exists(t4p):
+            try:
+                alien_check(" T4", json.load(open(t4p, encoding="utf-8")).get("metrics") or {})
+            except Exception:
+                pass                            # нечитаемость — забота шага [T4]
 
     # [N] числа прозы. Обосновать число может ЛЮБОЙ настоящий прогон этой тетрадки —
     # и базовый (seminars/runs), и T4 (seminars/runs-t4). Иначе получается наоборот:
@@ -536,7 +563,11 @@ def selftest():
     tmp = tempfile.mkdtemp(prefix="check_nb_selftest_")
     fails = []
 
-    def case(label, want_hard, md, dump_metrics, code_extra=None, baseline=None, t4=None):
+    def case(label, want_hard, md, dump_metrics, code_extra=None, baseline=None, t4=None,
+             alien=()):
+        # Настоящая тетрадка упоминает свои метрики в коде — иначе они бы там не появились.
+        # Фикстура обязана быть такой же, иначе проверка [K] («чужая величина в дампе»)
+        # горит на каждой синтетике. Что должно остаться ЧУЖИМ, перечисляется в alien.
         sem = os.path.join(tmp, label, "seminars")
         runs = os.path.join(sem, "runs")
         t4d = os.path.join(sem, "runs-t4")
@@ -545,7 +576,17 @@ def selftest():
         os.makedirs(os.path.dirname(dglob))
         code = ["SEED = 42\n", "import json\njson.dump({}, open('runs/x'))  # RUNS_DIR\n"]
         if code_extra is not None:
-            code = code_extra
+            code = list(code_extra)
+        mentioned = set()
+        for src in (dump_metrics, t4):
+            for k, v in (src or {}).items():
+                mentioned.add(k)
+                if isinstance(v, dict):
+                    mentioned.update(v)
+        mentioned -= set(alien)
+        if mentioned:
+            # в НАЧАЛО: последняя кодовая ячейка обязана оставаться дамп-ячейкой (проверка [A])
+            code = ["# величины прогона: " + " ".join(sorted(mentioned)) + "\n"] + code
         json.dump(_mk_nb(md, code), open(os.path.join(sem, "nb.ipynb"), "w"))
         if dump_metrics is not None:
             json.dump({"notebook": "nb", "runtime": {}, "metrics": dump_metrics},
@@ -649,6 +690,13 @@ def selftest():
     # 12. T4: расхождение тайминга в 3 раза — WARN, не HARD
     case("t4-timing", False, "проза без чисел", {"SEED": 42, "RUN": {"STAGE_MS": 100.0}},
          seed_code, t4={"SEED": 42, "RUN": {"STAGE_MS": 300.0}})
+    # 10f-K. чужая величина в дампе — HARD: ядро помнит предыдущий семинар
+    case("alien-metric", True, "проза без чисел",
+         {"SEED": 42, "RUN": {"NDCG": 0.63}, "AVGDL_LEC": 50.6}, seed_code,
+         alien=("AVGDL_LEC",))
+    # 10g-K. …а величина из РЕШЕНИЯ (живёт в markdown, не в коде) — своя, молчим
+    case("solution-var", False, "решение: `mid = 0,5` — середина\n",
+         {"SEED": 42, "RUN": {"NDCG": 0.63}, "mid": 0.5}, seed_code, alien=("mid",))
     # 10h. число прозы, взятое из T4-прогона, обосновано им, а не объявлено выдумкой
     out = case("number-from-t4", False, "на T4 вышло 0,77 — вдвое быстрее",
                {"SEED": 42, "RUN": {"NDCG": 0.63}}, seed_code,
@@ -713,7 +761,7 @@ def selftest():
     runs_s = os.path.join(sem_s, "runs")
     os.makedirs(runs_s)
     os.makedirs(os.path.join(tmp, "seed", "data"))
-    json.dump(_mk_nb("разбор: 0,77", ["SEED = 42\n",
+    json.dump(_mk_nb("разбор: 0,77", ["SEED = 42\nX = 1.0\n",
               "import json\njson.dump({}, open('runs/nb.json','w'))  # RUNS_DIR\n"]),
               open(os.path.join(sem_s, "nb.ipynb"), "w"))
     json.dump({"notebook": "nb", "runtime": {}, "metrics": {"SEED": 42, "X": 1.0}},

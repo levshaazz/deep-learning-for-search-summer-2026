@@ -40,7 +40,7 @@ DEBT — script-mixing that already existed in files OUTSIDE the change which in
 Usage:  python3 _research/check_lexicon.py            (HARD-fails on any forbidden token)
         python3 _research/check_lexicon.py --selftest  (planted defects must fire; clean text must not)
 """
-import re, sys, glob, os
+import re, sys, glob, os, json
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -75,7 +75,12 @@ ADJ_OK = [re.compile('^[%s]+[ᵢⁱⱼₖ]$' % CYR)]
 # 19): «cocнa» against «сосна», «Mocквa» against «Москва», and Zheng's 2017 IDN domain rendered
 # «аpple.com». Scoped to that lecture's slides so the rule keeps biting everywhere else.
 ADJ_DEMO = {'cocнa', 'Mocквa', 'аpple'}
-ADJ_DEMO_SCOPE = os.path.join('Lectures', '19-russian-search')
+# Демонстрация живёт не только на слайде: те же строки вычисляет gen_l20.py и хранит
+# data/l20-ru.json → homoglyphs.demo и data/l20-bench.json → confusables.idnAttack
+# (production-нумерация: файлы остались l20, дека переехала на 19).
+ADJ_DEMO_SCOPE = (os.path.join('Lectures', '19-russian-search'),
+                  os.path.join('data', 'l20-ru.json'),
+                  os.path.join('data', 'l20-bench.json'))
 
 # QUARANTINE — script-mixing that predates this rule and sits outside the NCD family. token → owner.
 # NOT a pardon: it prints on every run, and a stale entry HARD-fails so the list can never rot.
@@ -89,6 +94,28 @@ SVERT = re.compile('[Сс]в[её]рт[а-яё]*|[Сс]верт[а-яё]*')
 # occurrence across the whole family: it is a signpost, not a synonym you may reach for again.
 NCD_SVERT_GLOSS = re.compile('тензорн[а-яё]* +св[её]ртк[а-яё]*')
 NCD_SVERT_GLOSS_MAX = 1
+
+
+def read_source(path):
+    """Текст файла так, как его читает ЧЕЛОВЕК.
+
+    Для .ipynb это принципиально: в сыром JSON перевод строки записан двумя символами
+    (\\ и n), поэтому «\\nполная» выглядит как латинская n, приклеенная к кириллице,
+    и гейт ловит собственную неспособность прочитать escape-последовательность.
+    Собираем ячейки так же, как их видит студент.
+    """
+    raw = open(path, encoding='utf-8').read()
+    if not path.endswith('.ipynb'):
+        return raw
+    try:
+        nb = json.loads(raw)
+    except ValueError:
+        return raw
+    text = "\n\n".join("".join(c.get('source') or []) for c in nb.get('cells', []))
+    # В КОДЕ ячейки живут escape-последовательности: print("\\nсверка ...") — обратный слеш,
+    # латинская n, дальше кириллица. Для человека это перевод строки, для регекспа —
+    # «латиница вплотную к кириллице». Гасим их, иначе гейт ловит синтаксис Python.
+    return re.sub(r"\\[ntr]", " ", text)
 
 
 def scan(text, patterns):
@@ -126,7 +153,16 @@ def source_files():
             # то есть класс, ради которого гейт и существует, жил ровно за его границей.
             # Сам style-ru.md исключён: он ДЕМОНСТРИРУЕТ смешение алфавитов как контрпример.
             + [f for f in glob.glob(os.path.join(R, 'narrative', '*.md'))
-               if os.path.basename(f) != 'style-ru.md'])
+               if os.path.basename(f) != 'style-ru.md']
+            # data/*.json — подписи и глоссы оттуда попадают НА СЛАЙД и в Книгу, то есть это
+            # такой же студенческий текст, только через генератор. Ревизия 2026-09-04 нашла
+            # там ровно тот класс, ради которого гейт существует: «тыгыз hublarга» вместо
+            # «хабларга» (корпус пишет «хаблар» кириллицей) и «граф-ANNның» без дефиса
+            # (корпус пишет «BM25-ны»). Оба — в татарском слое, где чтение глазами реже всего.
+            + glob.glob(os.path.join(R, 'data', '*.json'))
+            # seminars/*.ipynb — со стилевым и глоссарным периметром они внутри с 2026-08-20,
+            # а с лексиконным не были: смешение алфавитов в тетрадке ломает копирование кода.
+            + glob.glob(os.path.join(R, 'seminars', '*.ipynb')))
 
 
 def main():
@@ -138,7 +174,7 @@ def main():
     gloss_total = 0
     for f in files:
         try:
-            t = open(f, encoding='utf-8').read()
+            t = read_source(f)
         except OSError:
             continue
         rel = os.path.relpath(f, ROOT)
@@ -146,7 +182,7 @@ def main():
             hard += 1
             print(f"  ✗ [HARD] {label}: found {sub!r} in {rel}")
         for w in mixed_tokens(t):                                   # [A]
-            if w in ADJ_DEMO and ADJ_DEMO_SCOPE in rel:
+            if w in ADJ_DEMO and any(sc in rel for sc in ADJ_DEMO_SCOPE):
                 continue
             if w in ADJ_DEBT:
                 debt_seen[w] = debt_seen.get(w, 0) + 1
@@ -218,6 +254,32 @@ def selftest():
     ok.append(('[B] the ban is SCOPED — L07’s legitimate «Никаких свёрток» is out of scope',
                NCD_SCOPE in os.path.join('widgets', 'ncd-einsum', 'i18n.json')
                and NCD_SCOPE not in os.path.join('Lectures', '06-vit', 'parts', '47.html')))
+
+    # [C] периметр 2026-09-04: data/ и seminars/ внутри, и .ipynb читается как ТЕКСТ
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        nb_path = os.path.join(td, 'x.ipynb')
+        cells = [{'cell_type': 'code', 'source': ['print("\\nсверка идёт")\n']},
+                 {'cell_type': 'markdown', 'source': ['в тексте живёт кушa — латинская a\n']}]
+        with open(nb_path, 'w', encoding='utf-8') as fh:
+            json.dump({'cells': cells}, fh, ensure_ascii=False)
+        got = mixed_tokens(read_source(nb_path))
+        ok.append(('[C] .ipynb читается как текст: escape «\\n» перед кириллицей — не дефект',
+                   not any(w.startswith('n') for w in got)))
+        ok.append(('[C] …а настоящее смешение в ячейке ловится', 'кушa' in got))
+    perim = source_files()
+    ok.append(('[C] data/*.json внутри периметра',
+               any(os.sep + 'data' + os.sep in f and f.endswith('.json') for f in perim)))
+    ok.append(('[C] seminars/*.ipynb внутри периметра',
+               any(f.endswith('.ipynb') for f in perim)))
+    def demo_ok(rel):                     # ровно то, что делает главный цикл
+        return any(sc in rel for sc in ADJ_DEMO_SCOPE)
+    ok.append(('[C] демо-исключение L19 накрывает и слайд, и его data-источник',
+               demo_ok(os.path.join('Lectures', '19-russian-search', 'parts', '36a.html'))
+               and demo_ok(os.path.join('data', 'l20-ru.json'))
+               and demo_ok(os.path.join('data', 'l20-bench.json'))))
+    ok.append(('[C] …и НЕ распространяется на прочие файлы — «cocнa» в другой деке горит',
+               not demo_ok(os.path.join('Lectures', '03-bm25', 'parts', '10.html'))))
 
     for label, passed in ok:
         print(f"  {'✓' if passed else '✗'} {label}")
