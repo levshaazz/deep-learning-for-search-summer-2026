@@ -222,8 +222,15 @@ def main():
                           "source": "Formal et al., arXiv:2109.10086, Table 1"},
         "spladeDistil":  {"msMarcoMrr10": 36.8, "variant": "DistilSPLADE-max",
                           "source": "arXiv:2109.10086, Table 1"},
-        "spladePP":      {"msMarcoMrr10": 38.0, "beirNdcg10": 50.7,
-                          "source": "Formal et al., SIGIR 2022 (arXiv:2205.04733), Tables 1–2"},
+        # ОБА числа обязаны быть от ОДНОЙ модели. Прежняя пара 38.0/50.7 склеивала две:
+        # по arXiv:2205.04733 Table 1 MRR@10 38.0 — это CoCondenser-EnsembleDistil (‡),
+        # а BEIR 50.7 из Table 2 — CoCondenser-SelfDistil (†), у которого MRR@10 37.5.
+        # Курс работает с чекпойнтом naver/splade-cocondenser-ensembledistil (см. l8-splade
+        # "real"), то есть с ‡ — значит его же BEIR: 50.5.
+        "spladePP":      {"msMarcoMrr10": 38.0, "beirNdcg10": 50.5,
+                          "variant": "CoCondenser-EnsembleDistil (SPLADE++‡)",
+                          "source": "Formal et al., SIGIR 2022 (arXiv:2205.04733), "
+                                    "Table 1 (MRR@10) + Table 2 (BEIR) — оба для ‡"},
         "rrf":           {"k": 60, "source": "Cormack, Clarke & Büttcher, SIGIR 2009"},
         "production":    {"elasticRankConstant": 60, "weaviateAlpha": 0.5,
                           "source": "Elasticsearch RRF docs; Weaviate hybrid docs"},

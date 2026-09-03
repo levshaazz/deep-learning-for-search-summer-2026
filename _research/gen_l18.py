@@ -433,12 +433,15 @@ def bench():
             "isoScore": {
                 "_doc": "Rudman et al., IsoScore (Findings ACL 2022) Table 3 — the killer counter-example: ONE "
                         "point cloud, rotated four ways. IsoScore returns 0.216 every time; the average-cosine "
-                        "measure returns 0.97–0.99. Average cosine fails 4 of the paper's 6 requirements and "
+                        "measure returns 0.97–0.99. Average cosine fails 5 of the paper's 6 essential properties "
+                        "(§3.3): mean-agnostic, scalar covariance, rotation invariance, dimensions used "
+                        "and global stability — it passes ONLY maximum variance (§5.1 states the failure "
+                        "for each in words; Table 1's check marks do not survive PDF extraction). It "
                         "essentially measures DISTANCE FROM THE ORIGIN, not how much of the space is filled "
                         "(GPT-2's mean vector has coordinates from −32.36 to +198.19).",
                 "cite": "Rudman 2022",
                 "isoScoreAllRotations": 0.216, "avgCosLo": 0.97, "avgCosHi": 0.99,
-                "requirementsFailed": 4, "requirementsTotal": 6,
+                "requirementsFailed": 5, "requirementsTotal": 6,
                 "gpt2MeanVecMin": -32.36, "gpt2MeanVecMax": 198.19,
             },
             "modern2026": {

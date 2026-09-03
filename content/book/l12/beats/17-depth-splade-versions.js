@@ -3,7 +3,7 @@
       heading: { en: 'SPLADE → v2 → ++', ru: 'SPLADE → v2 → ++', tt: 'SPLADE → v2 → ++' },
       body: {
         en: [
-          "The family improved in steps. The original **SPLADE** (Formal, Piwowarski & Clinchant, SIGIR 2021) used **sum** pooling. The **SPLADE v2** paper (a 2021 arXiv preprint, where Lassance joins) switched to **max** pooling: **SPLADE-max** reaches MS MARCO MRR@10 \\(34.0\\), and adding distillation (**DistilSPLADE-max**) reaches \\(36.8\\). **SPLADE++** (the SIGIR 2022 paper, \"From Distillation to Hard Negative Sampling\") added hard negatives, reaching \\(38.0\\) and a BEIR nDCG@10 of \\(50.7\\).",
+          "The family improved in steps. The original **SPLADE** (Formal, Piwowarski & Clinchant, SIGIR 2021) used **sum** pooling. The **SPLADE v2** paper (a 2021 arXiv preprint, where Lassance joins) switched to **max** pooling: **SPLADE-max** reaches MS MARCO MRR@10 \\(34.0\\), and adding distillation (**DistilSPLADE-max**) reaches \\(36.8\\). **SPLADE++** (the SIGIR 2022 paper, \"From Distillation to Hard Negative Sampling\") added hard negatives, reaching \\(38.0\\) and a BEIR nDCG@10 of \\(50.5\\) — both for the CoCondenser-EnsembleDistil checkpoint.",
           "Two details worth keeping straight: the pooling is version-dependent (sum in the original, max from v2), and \"SPLADE v2\" is the *preprint* — the SIGIR'22 publication is SPLADE++.",
         ],
         ru: [
