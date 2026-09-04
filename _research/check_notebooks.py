@@ -129,8 +129,12 @@ def numbers_in(prose):
         if digits == 0 and abs(val) <= 20:
             continue
         # «≈ **0,66**» — болд между знаком и числом не отменяет приблизительности
-        before = prose[: m.start()].rstrip("*_ ")
-        approx = bool(_APPROX_BEFORE.search(before + " " if before.endswith(("≈", "~")) else before))
+        # Пробел возвращаем ВСЕГДА, а не только после «≈». rstrip срезал его вместе с болдом,
+        # и словесные маркеры («около 270», «примерно 190», «порядка 0,05») не срабатывали
+        # никогда: их шаблоны требуют «\s+$». Документация допуск обещала, гейт его не давал —
+        # честные приблизительные формулировки годами копились в остатке [N] как выдумки.
+        before = prose[: m.start()].rstrip("*_ ") + " "
+        approx = bool(_APPROX_BEFORE.search(before))
         after = prose[m.end(): m.end() + 12]
         pct = bool(re.match(r"\s*(?:%|процент)", after))
         out.append((val, digits, approx, pct, raw))
@@ -699,6 +703,12 @@ def selftest():
     # 10g-K. …а величина из РЕШЕНИЯ (живёт в markdown, не в коде) — своя, молчим
     case("solution-var", False, "решение: `mid = 0,5` — середина\n",
          {"SEED": 42, "RUN": {"NDCG": 0.63}, "mid": 0.5}, seed_code, alien=("mid",))
+    # 10f-A. словесный маркер приблизительности работает так же, как «≈»: 268 → «около 270»
+    case("approx-word", False, "медиана длины у нас около 270 слов",
+         {"SEED": 42, "RUN": {"median_doc_words": 268.0}}, seed_code)
+    # 10g-A. …но без маркера то же число остаётся выдумкой
+    case("approx-word-absent", True, "медиана длины у нас ровно 270 слов",
+         {"SEED": 42, "RUN": {"median_doc_words": 268.0}}, seed_code)
     # 10h. число прозы, взятое из T4-прогона, обосновано им, а не объявлено выдумкой
     out = case("number-from-t4", False, "на T4 вышло 0,77 — вдвое быстрее",
                {"SEED": 42, "RUN": {"NDCG": 0.63}}, seed_code,
