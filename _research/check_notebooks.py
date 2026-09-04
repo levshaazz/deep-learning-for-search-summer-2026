@@ -375,14 +375,16 @@ def check_t4(name, runs_dir, t4_dir, err, warn):
     #   · t0 — абсолютное показание perf_counter (uptime процесса): между машинами
     #     оно несопоставимо В ПРИНЦИПЕ (70072 c против 805 c — это возраст рантайма);
     #   · t_bm / t_index / t_query / t_re25 — секунды из perf_counter, время по сути;
-    #   · overpay — ОТНОШЕНИЕ двух времён, значит наследует их разброс.
+    #   · overpay и speedup — ОТНОШЕНИЯ двух времён (t_max/t_best, t_scan/t_idx), значит
+    #     наследуют их разброс: у lab-bm25 speedup дал 113× на CPU против 155× на T4,
+    #     и это разница железа, а не качества.
     # Имена перечислены якорно, а не «всё, что начинается на t»: T (температура),
     # TOPK, TF — это качество, и они обязаны остаться под строгой сверкой.
     timing = re.compile(
         r"MS|TIME|SEC|_DT|LATENCY|ELAPSED"
         r"|(^|\.)T\d+$"          # t0, t1 — точки отсчёта
         r"|(^|\.)T_"              # t_bm, t_index, t_query, t_re25 — секунды
-        r"|(^|\.)OVERPAY$"        # отношение времён
+        r"|(^|\.)OVERPAY$|(^|\.)SPEEDUP$"   # ОТНОШЕНИЯ времён: t_max/t_best, t_scan/t_idx
         r"|_S$|_SEC$",            # train_s, hnsw_build_s — секунды по суффиксу
         re.I)
 
@@ -727,8 +729,10 @@ def selftest():
          seed_code, t4={"SEED": 42, "RUN": {"t0": 804.9}})
     # 12b. T4: t_index / overpay — секунды и отношение секунд, тоже тайминги
     case("t4-t-underscore", False, "проза без чисел",
-         {"SEED": 42, "RUN": {"t_index": 4.27, "overpay": 7.2, "train_s": 2.24}},
-         seed_code, t4={"SEED": 42, "RUN": {"t_index": 5.51, "overpay": 8.3, "train_s": 14.0}})
+         {"SEED": 42, "RUN": {"t_index": 4.27, "overpay": 7.2, "train_s": 2.24,
+                              "speedup": 113.5}},
+         seed_code, t4={"SEED": 42, "RUN": {"t_index": 5.51, "overpay": 8.3, "train_s": 14.0,
+                                            "speedup": 154.6}})
     # 12c. соседние имена на ту же букву остаются КАЧЕСТВОМ: tf (частота), theirs (метрика)
     case("t4-not-timing", True, "проза без чисел", {"SEED": 42, "RUN": {"tf": 3.0}},
          seed_code, t4={"SEED": 42, "RUN": {"tf": 4.0}})
