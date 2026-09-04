@@ -111,15 +111,20 @@ export const mountRankingMetrics = defineWidget({
     // Лид и слово «делить на» приходят из i18n; сумма собирается кодом, потому что числа —
     // из прогона. Без этих ключей фолбэк выводил английский текст ВО ВСЕХ языках: на русском
     // слайде висело «mean of precision at each relevant rank» (приёмка глазами 20.08.2026).
+    // Лид и формула — РАЗНЫМИ строками. Одной строкой они складывались в 569 px при рамке
+    // 480 (viewBox), и хвост уходил за правый край: на русском «среднее точности по
+    // релевантным рангам:» плюс сумма слагаемых не помещаются никогда, а обрезка съедала
+    // ровно то, ради чего слайд существует (viz-probe OOB, шаги 3 и 4, обе темы).
     sub('map', panel.x, mapY + 16,
-      (labels.mapHintLead || 'mean of precision at each relevant rank:') + ' ' +
-        hits.map((h) => fmt2(h.p)).join(' + ') + ' ' +
+      labels.mapHintLead || 'mean of precision at each relevant rank:');
+    sub('map', panel.x, mapY + 32,
+      hits.map((h) => fmt2(h.p)).join(' + ') + ' ' +
         (labels.mapHintOver || 'over') + ' ' + hits.length);
 
     // — step 4: nDCG (headline). The contrib column lights at the same step; the DCG line now SHOWS
     // the accumulation explicitly (Σ of the discounted gains) so the sum is built on screen, not just
     // asserted as a finished total, and the ratio nDCG = DCG / IDCG is written out long-hand.
-    const ndY = mapY + 40;
+    const ndY = mapY + 56;   // +16 к прежнему: лид MAP занял вторую строку
     const relContribs = (data.discounts || []).filter((d) => d.contrib > 0);
     head('ndcg', panel.x, ndY, 'rm-ndcg-h',
       `DCG = ${relContribs.map((d) => fmt(d.contrib)).join(' + ')} = ${fmt(data.dcg)}`);

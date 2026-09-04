@@ -232,10 +232,19 @@ export const mountRrfFusion = defineWidget({
         }
       }
 
-      // Step 3: the fused doc ranked #1 by both rises to the top — flag it.
+      // Step 3: the fused doc rises to the top — flag it AND say where it came from.
+      // Раньше шаг менял только цвет рамки, и это был мёртвый шаг: подпись обещала подъём,
+      // а на экране не появлялось ничего нового (G9 считает видимые элементы и сдвиги, а
+      // перекраска рамки ни тем, ни другим не является — и зритель её тоже не замечает).
+      // Теперь шаг показывает сам подъём: ранги в двух исходных списках → место в слиянии.
       if (s >= 3 && top) {
         const f = chipOf(colF, top.id);
-        if (f) f.classList.add('is-top');
+        if (f) {
+          f.classList.add('is-top');
+          const pos = colF.chips.indexOf(f) + 1;
+          f.querySelector('.rrf-recip').textContent =
+            `#${top.rankBm25} · #${top.rankCosine} → #${pos}`;
+        }
       }
     };
   },
