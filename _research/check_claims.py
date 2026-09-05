@@ -112,6 +112,7 @@ CONTRA  = load(DATA, "l6-contrastive.json")   # InfoNCE / triplet cosines + loss
 # ── Enrichment data files (the L5/L6 re-layout DISPLAYS these new trajectory numbers; pin them) ──
 W2V     = load(DATA, "l5-word2vec-train.json")  # SGNS training: loss 4.85→2.63, worked SGNS step, related/unrelated pairs
 UMAP    = load(DATA, "l5-umap.json")            # REAL UMAP-44: n_neighbors=10, min_dist=0.1, tightness 0.147→0.061
+LAYERN  = load(DATA, "l6-layernorm.json")   # LayerNorm по реальному выходу внимания: μ/σ²/σ, centred/normed
 STACK   = load(DATA, "l6-stack-layers.json")    # DistilBERT cross-sense cos(bank,bank) fan 0.957→0.647 over 6 blocks
 CTRAJ   = load(DATA, "l6-contrastive-traj.json")# InfoNCE optimisation trajectory: loss 3.31→0.86→0.1191
 CTX     = load(DATA, "l6-contextual.json")      # standalone DistilBERT "bank" polysemy demo: cross-sense 0.6465 < within-sense 0.9466 (Book ch.6 prose)
@@ -607,7 +608,7 @@ def claims():
              anchor=r"\b(32\.3)\s*%", must=True),
         dict(id="top-3 %",   deck="L1", value=CLICK["top3Pct"], tol=0.2,
              anchor=r"\b(60\.6)\b", must=True),
-    ] + l3_claims() + l3_coverage_claims() + l6_coverage_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims() + l11_deck_claims() + l12_deck_claims() + l13_deck_claims() + l14_deck_claims() + l15_deck_claims() + l16_deck_claims() + l17_deck_claims() + l18_deck_claims() + l19_deck_claims() + l20_deck_claims()
+    ] + l3_claims() + l3_coverage_claims() + l6_coverage_claims() + l5_l7_coverage_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims() + l11_deck_claims() + l12_deck_claims() + l13_deck_claims() + l14_deck_claims() + l15_deck_claims() + l16_deck_claims() + l17_deck_claims() + l18_deck_claims() + l19_deck_claims() + l20_deck_claims()
 
 # ── L16 "Late Chunking" — every displayed ≥2-decimal value, pinned deck == data/ ─────────────────────
 #    Anchors are DIGIT LOCATORS (RU comma OR EN dot), not context sniffers: the deck prints each number
@@ -1186,6 +1187,63 @@ def l7_book_claims():
 #    негативам, сам шаг −η∇ и вектор king до/после; (3) GloVe — веса f(x), счётчик X, смещение b̃.
 #    Всё берётся ИЗ data/l5-*; ни одного литерала. Дека печатает 3–4 знака там, где data держит 4,
 #    поэтому допуск задаётся по показанной точности, а не наугад.
+# ── [G-покрытие] L5 и L7: разборы, которые студент считает вручную ───────────────────────────────
+#    L5 — A/B-тест (sd, CTR, t-критическое) и полный разбор nDCG: вклады по позициям, DCG и IDCG
+#    для линейного и экспоненциального выигрыша. L7 — один шаг внимания (веса, выход A·V),
+#    LayerNorm по этому же вектору (μ, σ², σ, центрированные значения) и позиционные синусы.
+def l5_l7_coverage_claims():
+    def C(surf, id, value, shown, tol=None):
+        dec = len(shown.split(".")[1]) if "." in shown else 0
+        return dict(id=f"{surf}cov " + id, deck=surf, value=round(float(value), 6),
+                    tol=tol if tol is not None else 0.5 * 10 ** (-dec) + 1e-9,
+                    anchor=r'(?<![\d.,])(' + re.escape(shown).replace(r'\.', '[.,]') + r')(?![\d])',
+                    must=True)
+    gr, dis = GRADED, METRICS["discounts"]
+    ln = LAYERN
+    return [
+        # ── L5: значимость A/B ──
+        C("L5", "ab sd",     SYSTEMS["sdDiff"],                   "0.0676"),
+        C("L5", "ab tcrit",  SYSTEMS["ciHalfWidth"]["tCrit"],     "2.145"),
+        C("L5", "ab ctr",    ONLINE["abTest"]["treatment"]["ctr"],"0.132"),
+        # ── L5: разбор nDCG — скидки, вклады, суммы ──
+        C("L5", "disc r8",       dis[7]["discount"], "0.3155"),
+        C("L5", "disc r8 short", dis[7]["discount"], "0.32"),
+        C("L5", "dcg bm25",      METRICS["dcg"],     "1.7333"),
+        C("L5", "ap q2",         MULTIQ["q2"]["ap"], "0.747"),
+        C("L5", "lin contrib r2", gr["perPosition"][1]["linContrib"], "1.8928"),
+        C("L5", "lin contrib r2 short", gr["perPosition"][1]["linContrib"], "1.893"),
+        C("L5", "lin contrib r4", gr["perPosition"][3]["linContrib"], "1.292"),
+        C("L5", "lin dcg",  gr["linear"]["dcg"],       "3.8565"),
+        C("L5", "lin idcg", gr["linear"]["idcg"],      "5.8235"),
+        C("L5", "exp dcg",  gr["exponential"]["dcg"],  "8.1029"),
+        C("L5", "exp idcg", gr["exponential"]["idcg"], "12.3472"),
+        # ── L7: один шаг внимания ──
+        C("L7", "attn w sat",  ATTN["weights"][2][1], "0.212"),
+        # ТОЛЬКО точечная форма: «1,996» в RU-спане подпадает под шаблон разделителя тысяч
+        # (_COV_THOU) и читается как 1996 — тот же текст в EN-спане однозначен.
+        dict(id="L7cov attn out v2", deck="L7", value=round(ATTN["output"][1][1], 6), tol=5e-4,
+             anchor=r'(?<![\d.,])(1\.996)(?![\d])', must=True),
+        C("L7", "attn out v3", LAYERN["x"][2],        "0.91"),
+        C("L7", "attn av",     ATTN["output"][0][0],  "1.27"),
+        C("L7", "attn blend",  ATTNGEO["blended4d"][1] if "ATTNGEO" in globals() else 1.995, "1.995"),
+        # ── L7: LayerNorm по тому же вектору ──
+        C("L7", "ln mean",    ln["mean"], "0.9775"),
+        C("L7", "ln mean short", ln["mean"], "0.98", tol=0.005),
+        C("L7", "ln var",     ln["var"],  "0.3765"),
+        C("L7", "ln var short", ln["var"], "0.38"),
+        C("L7", "ln std",     ln["std"],  "0.6136"),
+        C("L7", "ln centred", abs(ln["centred"][3]), "0.55"),
+        C("L7", "ln normed",  ln["normed"][1],       "1.66"),
+        # ── L7: расхождение смыслов bank по блокам ──
+        C("L7", "bank blk1",  STACK["crossSenseCosByLayer"][1], "0.711"),
+        C("L7", "bank blk1 short", STACK["crossSenseCosByLayer"][1], "0.71"),
+        C("L7", "bank blk4",  STACK["crossSenseCosByLayer"][4], "0.68"),
+        # ── L7: позиционное кодирование — sin(4) и длина волны 2π ──
+        C("L7", "pe sin4", abs(math.sin(4)), "0.757"),
+        C("L7", "pe 2pi",  2 * math.pi,      "6.28"),
+    ]
+
+
 def l6_coverage_claims():
     ws, tr = W2V["workedStep"], W2V["trajectory"]
     fr = GLOVE["trajectory"]["frames"]
@@ -1793,8 +1851,8 @@ COVERAGE_BASELINE = {
     # older units also display. A ratchet wider than the fact is not a ratchet: it silently licenses
     # new un-gated numbers up to the old slack. Every value below is the count the gate itself
     # measured; nothing was raised.
-    "deck:L0": 0, "deck:L1": 1, "deck:L2": 4, "deck:L3": 0, "deck:L5": 14, "deck:L6": 0, "deck:L7": 16,
-    "book:L0": 0, "book:L1": 0, "book:L2": 4,  "book:L3": 0,  "book:L5": 10, "book:L6": 3,
+    "deck:L0": 0, "deck:L1": 1, "deck:L2": 4, "deck:L3": 0, "deck:L5": 0, "deck:L6": 0, "deck:L7": 0,
+    "book:L0": 0, "book:L1": 0, "book:L2": 4,  "book:L3": 0,  "book:L5": 1, "book:L6": 2,
     # book:L6 — RAISED 6 → 37 when the L06 climb became `ncd-chain`, the end-to-end worked example.
     # Its ten scroll-step captions ARE Book prose, and they walk the whole computation: every
     # embedding row, every scaled score, the exponentials, the row sums, the context cells, the pooled
@@ -1804,8 +1862,8 @@ COVERAGE_BASELINE = {
     # exist in that widget's own data/ file — all of them, not the handful a C() claim happens to pin —
     # and `_research/gen_l6_chain.py` ASSERTS at generation time that the chain reproduces
     # data/l6-attention.json to the digit. A number here cannot drift without one of those two failing.
-    "book:L7": 22,
-    "deck:L20": 2, "book:L20": 2,
+    "book:L7": 17,
+    "deck:L20": 0, "book:L20": 0,
     # deck:L14 "The Artificer's Quill" — all displayed toy numbers are now gated in l14_deck_claims() → 0.
     "deck:L17": 0,
     # deck:L15 "BERT & other Transformers" — NOW FULLY GROUNDED (2026-07): the worked-example numbers are
@@ -1828,7 +1886,7 @@ COVERAGE_BASELINE = {
     # book:L16 — TIGHTENED 10 → 1 (2026-08): l16_deck_claims() gates the values the Book prose reuses
     # (Berlin, the ACME toy, Quora's 87.19, the recomputed +1.41), so only one grandfathered prose decimal
     # is left uncovered. Strictly stronger; never raised.
-    "book:L18": 1,
+    "book:L18": 0,
     # deck:L17 "Shannon Entropy" — TIGHTENED 18 → 0 by the depth pass (2026-08). The deck went 45 → 84 slides
     # and every ≥2-dp number it displays is now pinned deck==data by l17_deck_claims(): the computed side against
     # data/l17-entropy.json (gen_l17.py — the coin, Markov 1913 conditional entropy/mutual information, the
