@@ -112,6 +112,7 @@ CONTRA  = load(DATA, "l6-contrastive.json")   # InfoNCE / triplet cosines + loss
 # ── Enrichment data files (the L5/L6 re-layout DISPLAYS these new trajectory numbers; pin them) ──
 W2V     = load(DATA, "l5-word2vec-train.json")  # SGNS training: loss 4.85→2.63, worked SGNS step, related/unrelated pairs
 UMAP    = load(DATA, "l5-umap.json")            # REAL UMAP-44: n_neighbors=10, min_dist=0.1, tightness 0.147→0.061
+CHAIN   = load(DATA, "l6-chain.json")      # сквозной разбор внимания: Wq/Wk/Wv, скоринг двух док-ов
 LAYERN  = load(DATA, "l6-layernorm.json")   # LayerNorm по реальному выходу внимания: μ/σ²/σ, centred/normed
 STACK   = load(DATA, "l6-stack-layers.json")    # DistilBERT cross-sense cos(bank,bank) fan 0.957→0.647 over 6 blocks
 CTRAJ   = load(DATA, "l6-contrastive-traj.json")# InfoNCE optimisation trajectory: loss 3.31→0.86→0.1191
@@ -1005,6 +1006,63 @@ def book_claims():
         tol = entry[2] if len(entry) > 2 else base[src]["tol"]   # override where the Book rounds differently
         out.append(dict(id="book " + src, deck=base[src]["deck"], value=base[src]["value"],
                         tol=tol, anchor=anchor, must=True))
+    # ── [G-покрытие] глава 7: сквозной разбор внимания, который Книга ведёт по шагам ──────────
+    #    Матрица Wq, векторы фраз после пулинга, скоринг двух документов, знаменатель softmax,
+    #    одна ячейка контекста. Значения — из data/l6-chain.json; Книга печатает их в тексте
+    #    абзацами, поэтому anchor здесь тоже цифровой локатор.
+    def BC(id, value, shown, tol=None):
+        dec = len(shown.split(".")[1]) if "." in shown else 0
+        return dict(id="book L7cov " + id, deck="L7", value=round(float(value), 6),
+                    tol=tol if tol is not None else 0.5 * 10 ** (-dec) + 1e-9,
+                    anchor=r'(?<![\d.,])(' + re.escape(shown).replace(r'\.', '[.,]') + r')(?![\d])',
+                    must=True)
+    ch = CHAIN
+    out += [
+        BC("Wq00", ch["Wq"][0][0],            "1.771"),
+        BC("Wq03", abs(ch["Wq"][0][3]),       "0.828"),
+        BC("Wq11", ch["Wq"][1][1],            "0.082"),
+        BC("Wq31", ch["Wq"][3][1],            "1.669"),
+        BC("catsat p1", ch["docs"][0]["pooled"][1], "3.653"),
+        BC("catsat p2", ch["docs"][0]["pooled"][2], "1.527"),
+        BC("dogran p0", abs(ch["docs"][1]["pooled"][0]), "0.918"),
+        BC("dogran p1", ch["docs"][1]["pooled"][1], "4.659"),
+        BC("dogran p2", ch["docs"][1]["pooled"][2], "1.736"),
+        BC("dogran p3", abs(ch["docs"][1]["pooled"][3]), "2.500"),
+        BC("score rel", ch["docs"][0]["score"],  "3.225"),
+        BC("score irr", ch["docs"][1]["score"],  "2.901"),
+        BC("cos irr",   ch["docs"][1]["cos"],    "0.271"),
+        BC("rowSum0",   ch["query"]["rowSum"][0],"2.368"),
+        BC("ctx20",     ch["query"]["ctx"][2][0],"1.364"),
+        # «the 3 in the corner becomes 1.500» — деление на √d_k, показанное тут же
+        BC("scaled corner", 3 / ch["sqrtDk"], "1.500"),
+        # «That 0.30 gap» — разрыв между косинусами одного и разных смыслов bank
+        BC("sense gap", round(CTX["cosines"]["withinSense"] - STACK["crossSenseCosByLayer"][-1], 2),
+           "0.30", tol=0.005),
+    ]
+
+    # ── [G-покрытие] остаток: вычислимые величины и числа корпуса ──────────────────────────────
+    out += [
+        # глава 2: cv расстояний в 2-D, длина √200, объём корпуса в миллионах токенов
+        dict(id="book L2cov cv2d", deck="L2", value=HIGHD["dims"][0]["cv"], tol=0.005,
+             anchor=r'(?<![\d.,])(0[.,]48)(?![\d])', must=True),
+        dict(id="book L2cov norm200", deck="L2", value=round(math.sqrt(200), 2), tol=0.005,
+             anchor=r'(?<![\d.,])(14[.,]14)(?![\d])', must=True),
+        dict(id="book L2cov tokensM", deck="L2", value=round(CORP["nTokens"] / 1e6, 2), tol=0.005,
+             anchor=r'(?<![\d.,])(3[.,]66)(?![\d])', must=True),
+        # глава 4: пол перплексии для монеты с перекосом
+        dict(id="book L4cov pplFloor", deck="L4", value=ENT17["coin"]["pplFloor"], tol=5e-5,
+             anchor=r'(?<![\d.,])(1[.,]7548)(?![\d])', must=True),
+        # глава 5: t-статистика = средняя разность / стандартная ошибка
+        dict(id="book L5cov tStat", deck="L5",
+             value=round(SYSTEMS["meanDiff"] / SYSTEMS["seDiff"], 2), tol=0.005,
+             anchor=r'(?<![\d.,])(2[.,]27)(?![\d])', must=True),
+        # глава 6: вес редкой ячейки GloVe и модельное значение разобранной пары
+        dict(id="book L6cov fRare", deck="L6", value=round((0.25 / GLOVE["xMax"]) ** GLOVE["alpha"], 3),
+             tol=5e-4, anchor=r'(?<![\d.,])(0[.,]063)(?![\d])', must=True),
+        dict(id="book L6cov model", deck="L6", value=GLOVE["worked"][1]["model"], tol=5e-4,
+             anchor=r'(?<![\d.,])(1[.,]654)(?![\d])', must=True),
+    ]
+
     # Book-ONLY prose numbers with no deck twin → value sourced STRAIGHT from data/ (the deck never shows them).
     # ch.6 within-sense cosine 0.9466 (two money-bank uses) is displayed only in the Book; it lives in
     # data/l6-contextual.json — gating it here makes that file a real consumer (its number drives the prose).
@@ -1202,6 +1260,16 @@ def l5_l7_coverage_claims():
     ln = LAYERN
     return [
         # ── L5: значимость A/B ──
+        # дека 01: сокращение кандидатов ANN с ~10^9 до ~10^3 — это (1 − 10³/10⁹)·100 %
+        dict(id="L1cov annReduction", deck="L1", value=round((1 - 1e3 / 1e9) * 100, 4), tol=5e-5,
+             anchor=r'(?<![\d.,])(99[.,]9999)(?![\d])', must=True),
+        # дека 02: длины векторов в разборе косинуса — √5 и 3√5, показаны с 3 знаками
+        dict(id="L2cov sqrt5", deck="L2", value=round(math.sqrt(5), 3), tol=5e-4,
+             anchor=r'(?<![\d.,])(2[.,]236)(?![\d])', must=True),
+        dict(id="L2cov 3sqrt5", deck="L2", value=round(3 * math.sqrt(5), 3), tol=5e-4,
+             anchor=r'(?<![\d.,])(6[.,]708)(?![\d])', must=True),
+        dict(id="L2cov tokensM", deck="L2", value=round(CORP["nTokens"] / 1e6, 2), tol=0.005,
+             anchor=r'(?<![\d.,])(3[.,]66)(?![\d])', must=True),
         C("L5", "ab sd",     SYSTEMS["sdDiff"],                   "0.0676"),
         C("L5", "ab tcrit",  SYSTEMS["ciHalfWidth"]["tCrit"],     "2.145"),
         C("L5", "ab ctr",    ONLINE["abTest"]["treatment"]["ctr"],"0.132"),
@@ -1853,8 +1921,8 @@ COVERAGE_BASELINE = {
     # older units also display. A ratchet wider than the fact is not a ratchet: it silently licenses
     # new un-gated numbers up to the old slack. Every value below is the count the gate itself
     # measured; nothing was raised.
-    "deck:L0": 0, "deck:L1": 1, "deck:L2": 4, "deck:L3": 0, "deck:L5": 0, "deck:L6": 0, "deck:L7": 0,
-    "book:L0": 0, "book:L1": 0, "book:L2": 4,  "book:L3": 0,  "book:L5": 1, "book:L6": 2,
+    "deck:L0": 0, "deck:L1": 0, "deck:L2": 0, "deck:L3": 0, "deck:L5": 0, "deck:L6": 0, "deck:L7": 0,
+    "book:L0": 0, "book:L1": 0, "book:L2": 0,  "book:L3": 0,  "book:L5": 0, "book:L6": 0,
     # book:L6 — RAISED 6 → 37 when the L06 climb became `ncd-chain`, the end-to-end worked example.
     # Its ten scroll-step captions ARE Book prose, and they walk the whole computation: every
     # embedding row, every scaled score, the exponentials, the row sums, the context cells, the pooled
@@ -1864,7 +1932,7 @@ COVERAGE_BASELINE = {
     # exist in that widget's own data/ file — all of them, not the handful a C() claim happens to pin —
     # and `_research/gen_l6_chain.py` ASSERTS at generation time that the chain reproduces
     # data/l6-attention.json to the digit. A number here cannot drift without one of those two failing.
-    "book:L7": 17,
+    "book:L7": 0,
     "deck:L20": 0, "book:L20": 0,
     # deck:L14 "The Artificer's Quill" — all displayed toy numbers are now gated in l14_deck_claims() → 0.
     "deck:L17": 0,
@@ -1900,7 +1968,7 @@ COVERAGE_BASELINE = {
     "deck:L4": 0,
     # book:L17 mirrors the deck's Shannon numbers in prose (coin 0.811, code 1.75, 79/102, Fn 4.76/4.03,
     # bounds 0.6/1.3, 'E' 12.7) — same gen_l17.py + cited-bench provenance as deck:L17.
-    "book:L4": 1,
+    "book:L4": 0,
     # deck:L18 / book:L18 "The Curved Map" — numbers from gen_l18.py (data/l18-geometry.json toy: aniso
     # 0.8985/-0.0323/-0.0352, hubness skew/maxNk/corr) + cited bench (data/l18-bench.json: GPT-2 0.6/0.99,
     # Radovanović skew 0.121/1.541/5.445/19.21, Su STS-B 59.04/71.34, SimCSE 76.3/81.6, CSLS 42.6/66.1,
@@ -1929,14 +1997,25 @@ _COV_THOU  = re.compile(r'^[1-9]\d{0,2}(,\d{3})+$')       # thousands-grouped in
 # Гейт читал его как число и годами держал два таких «непокрытых» значения в хвосте L3
 # (позиции фразового поиска, слайд про близость слов). Маскируем только содержимое фигурных
 # скобок, где внутри одни цифры, запятые и пробелы: настоящая дробь туда не попадает.
-_COV_SET = re.compile(r'\\?\{\s*\d+(?:\s*,\s*\d+)+\s*\\?\}')
+_COV_SET = re.compile(r'\\?\{\s*\d+(?:\s*,\s*\d+)+\s*\\?\}'
+                      # …и круглые скобки с ЦЕЛЫМИ без ведущего нуля: «u = (1,1) и v = (10,10)» —
+                      # это координаты, а «10,10» читалось как число 10.10. Ведущий ноль исключён
+                      # намеренно: «(0,5)» может быть дробью. Проверено по всем исходникам —
+                      # 45 таких вхождений, все до одного векторы и точки.
+                      r'|\(\s*[1-9]\d*(?:\s*,\s*[1-9]\d*)+\s*\)')
 
 
 def _coverage_visible(html):
     t = re.sub(r'<aside class="slide-notes".*?</aside>', ' ', html, flags=re.S)   # speaker notes: not shown
     t = re.sub(r'<style.*?</style>|<script.*?</script>', ' ', t, flags=re.S)
     t = re.sub(r'<[^>]+>', ' ', t)
-    return _COV_SET.sub(' ', t)
+    t = _COV_SET.sub(' ', t)
+    # Внутри KaTeX обычная запятая между цифрами — РАЗДЕЛИТЕЛЬ (координаты «(10,10)», векторы
+    # «[0,1,1]», интервалы «[200,400]»), а десятичная запятая кодируется «{,}» или точкой.
+    # Проверено по всем исходникам: 61 такое выражение, и ни одного, где запятая означала бы
+    # дробь. До этого «\((10,10)\)» на слайде о длине вектора читалось как число 10.10.
+    return re.sub(r'\\\(.*?\\\)|\$\$.*?\$\$',
+                  lambda m: re.sub(r'(?<=\d),(?=\d)', ' ', m.group()), t, flags=re.S)
 
 def _coverage_uncovered(html, gated):
     out = set()
