@@ -187,6 +187,7 @@ BENCH14    = load(DATA, "l14-bench.json")     # CITED: HyDE (2212.10496), Query2
 #    √dₖ saturation, sinusoidal PE, 12d² params, causal mask, decoding strategies, O(n²) memory — fully
 #    re-derivable with math.exp/sin/cos); bench = cited paper numbers. Unlike siblings L16–L18 (baseline-
 #    frozen only), L15 is now FULLY gated: l15_deck_claims() pins every flagship worked value deck==data. ──
+BENCH15    = load(DATA, "l15-bench.json")  # ModernBERT/mmBERT: цитируемые числа поколения энкодеров
 ATTN15     = load(DATA, "l15-attention.json") # toy: softmax(1,0,3)=(0.114,0.042,0.844)→Y1=(0.958,0.886); √dₖ 0.995 vs 0.909; PE (0.841,0.540,0.010,1.000); 12·768²=7.08M/block; causal (0.035,0.259,0.705)/(0.119,0.881); decoding base+T; mem 0.52MB/2.15GB
 BENCH15    = load(DATA, "l15-bench.json")     # CITED: Transformer (vaswani-2017), BERT-base 110M / large 340M (devlin-2019), DistilBERT 40/60/97 (distilbert-2019), GPT-3 175B (gpt3-2020), RoBERTa/ALBERT/ELECTRA, T5/BART, FlashAttention
 COST19     = load(DATA, "l19-cost.json")     # DERIVED by gen_l19.py from the GLYPHS: linear 24nd² vs attention core 4n²d;
@@ -609,7 +610,7 @@ def claims():
              anchor=r"\b(32\.3)\s*%", must=True),
         dict(id="top-3 %",   deck="L1", value=CLICK["top3Pct"], tol=0.2,
              anchor=r"\b(60\.6)\b", must=True),
-    ] + l3_claims() + l3_coverage_claims() + l6_coverage_claims() + l5_l7_coverage_claims() + l9_rabitq_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims() + l11_deck_claims() + l12_deck_claims() + l13_deck_claims() + l14_deck_claims() + l15_deck_claims() + l16_deck_claims() + l17_deck_claims() + l18_deck_claims() + l19_deck_claims() + l20_deck_claims()
+    ] + l3_claims() + l3_coverage_claims() + l6_coverage_claims() + l5_l7_coverage_claims() + l9_rabitq_claims() + modernbert_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims() + l11_deck_claims() + l12_deck_claims() + l13_deck_claims() + l14_deck_claims() + l15_deck_claims() + l16_deck_claims() + l17_deck_claims() + l18_deck_claims() + l19_deck_claims() + l20_deck_claims()
 
 # ── L16 "Late Chunking" — every displayed ≥2-decimal value, pinned deck == data/ ─────────────────────
 #    Anchors are DIGIT LOCATORS (RU comma OR EN dot), not context sniffers: the deck prints each number
@@ -1254,6 +1255,27 @@ def l7_book_claims():
 #    лекций (0.378 совпадало с дисперсией LayerNorm деки 07) — то есть дрейф data→слайд прошёл бы
 #    незамеченным. Значения берутся из data/l9-bench.json → rabitq; выкладка byHand считается
 #    генератором, цитируемые числа взяты дословно из статей.
+# ── [C] ModernBERT (дека 08 = L8) и mmBERT (дека 19 = L19), добавлены 2026-09-05 ────────────────
+#    Ключи дек — по НОМЕРУ ФАЙЛА (08-…, 19-…), а данные лежат в l15-bench.json по production-
+#    нумерации: L15→8 и L20→19 по карте переезда. Две нумерации сосуществуют намеренно.
+def modernbert_claims():
+    mb, mm = BENCH15["modernbert"], BENCH15["mmbert"]
+    def C(deck, id, value, shown):
+        dec = len(shown.split(".")[1]) if "." in shown else 0
+        return dict(id="MB " + id, deck=deck, value=round(float(value), 6),
+                    tol=0.5 * 10 ** (-dec) + 1e-9 if dec else 0.5,
+                    anchor=r'(?<![\d.,])(' + re.escape(shown).replace(r'\.', '[.,]') + r')(?![\d])',
+                    must=True)
+    return [
+        C("L8", "ctx",        mb["nativeSeqLen"],       "8192"),
+        C("L8", "base params",mb["baseParamsM"],        "149"),
+        C("L8", "window",     mb["localWindowTokens"],  "128"),
+        C("L19", "mm tokens", mm["trainTokensT"],       "3"),
+        C("L19", "mm langs",  mm["languages"],          "1800"),
+        C("L19", "mm lowres", mm["lowResourceAddedInDecay"], "1700"),
+    ]
+
+
 def l9_rabitq_claims():
     rb = BENCH9["rabitq"]
     bh, gpu = rb["byHand"], rb["gpu"]
@@ -1279,6 +1301,14 @@ def l9_rabitq_claims():
         # слайд 37d — где это стоит в проде (Shi et al., IVF-RaBitQ в NVIDIA cuVS)
         C("gpu build",     gpu["buildSpeedupVsCagra"], "14.7"),
         C("gpu recall",    gpu["atRecall"],            "0.95"),
+        # Книга печатает игрушечный вектор покоординатно; гейт покрытия видит каждую
+        # координату как отдельное число, поэтому каждая привязана к своему элементу.
+        *[dict(id="L9rabitq toy c%d" % i, deck="L13", value=abs(v), tol=5e-5,
+               anchor=r'(?<![\d.,])(' + re.escape("%.4f" % abs(v)).replace(r'\.', '[.,]') + r')(?![\d])',
+               must=False)
+          for i, v in enumerate(rb["toy"]["normalized"])],
+        C("toy dot", rb["toy"]["dotWithVertex"], "0.8734"),
+        C("toy vertex", rb["toy"]["vertexCoord"], "0.3536"),
     ]
 
 

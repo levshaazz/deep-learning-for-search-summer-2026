@@ -659,6 +659,27 @@ def main():
                 "boundToyD8": round(1 / math.sqrt(8 - 1), 4),  # ~1/√(D−1)
                 "boundRealD768": round(1 / math.sqrt(768 - 1), 5),
             },
+            # Игрушечный разбор на D=8: код — это ЗНАКИ координат после поворота, а оценка
+            # снимается одним скалярным произведением с выбранной вершиной. Считается здесь.
+            "toy": (lambda v: (lambda n: (lambda u: (lambda code: {
+                "dim": len(v),
+                "normalized": [round(x, 4) for x in u],
+                "code": "".join(str(b) for b in code),
+                "vertexCoord": round(1 / math.sqrt(len(v)), 4),
+                "vertex": [round((1 if b else -1) / math.sqrt(len(v)), 4) for b in code],
+                "dotWithVertex": round(sum(a * ((1 if b else -1) / math.sqrt(len(v)))
+                                           for a, b in zip(u, code)), 4),
+                "bytesPerVector": len(v) // 8,
+            })([1 if x > 0 else 0 for x in u]))([x / n for x in v]))(
+                math.sqrt(sum(x * x for x in v))))(
+                [0.31, -0.12, 0.55, -0.40, 0.18, -0.22, 0.36, -0.05]),
+            # Цена ОДНОЙ оценки расстояния: у PQ это таблица на запрос плюс m обращений на
+            # вектор, у RaBitQ — XOR и popcount по D/64 машинным словам. Считается здесь.
+            "estimateCost": {
+                "pqSubquantizers": 8, "pqCentroidsPerTable": 256,
+                "pqTableBuildOps": 8 * 256, "pqLookupsPerVector": 8,
+                "rabitqBits": 768, "rabitqWords64": 768 // 64,
+            },
             "gpu": {"qpsVsCagra": 3.0, "buildSpeedupVsCagra": 14.7, "qpsVsIvfPq": 4.5,
                     "atRecall": 0.95,
                     "source": "Shi, Gao, Xia, Fehér & Long, IVF-RaBitQ на GPU (arXiv:2602.23999), "
