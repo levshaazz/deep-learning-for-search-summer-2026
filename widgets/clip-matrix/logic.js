@@ -48,7 +48,11 @@ export const mountClipMatrix = defineWidget({
     const gridBottom = gridTop + n * STEP - GAP;
 
     // contrastive bars (step 3) sit below the matrix
-    const barsTop = gridBottom + 40;
+    // +52, а не +40: строка итога («лучшее совпадение — на диагонали: 3 / 3») стоит на
+    // gridBottom+22 с тем же x, что и подпись первого столбика, и при зазоре в 40 их боксы
+    // перекрывались на треть (viz-probe, шаги 4–5). Высота кадра считается из barsBottom,
+    // поэтому сдвиг безопасен — рамка растёт вместе с содержимым.
+    const barsTop = gridBottom + 52;
     const barRow = 30, barX = gridLeft, barW = gridW, barLabelX = PAD;
     const barsBottom = barsTop + 2 * barRow + 6;
 
