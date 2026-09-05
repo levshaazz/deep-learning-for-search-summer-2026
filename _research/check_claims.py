@@ -607,7 +607,7 @@ def claims():
              anchor=r"\b(32\.3)\s*%", must=True),
         dict(id="top-3 %",   deck="L1", value=CLICK["top3Pct"], tol=0.2,
              anchor=r"\b(60\.6)\b", must=True),
-    ] + l3_claims() + l3_coverage_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims() + l11_deck_claims() + l12_deck_claims() + l13_deck_claims() + l14_deck_claims() + l15_deck_claims() + l16_deck_claims() + l17_deck_claims() + l18_deck_claims() + l19_deck_claims() + l20_deck_claims()
+    ] + l3_claims() + l3_coverage_claims() + l6_coverage_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims() + l11_deck_claims() + l12_deck_claims() + l13_deck_claims() + l14_deck_claims() + l15_deck_claims() + l16_deck_claims() + l17_deck_claims() + l18_deck_claims() + l19_deck_claims() + l20_deck_claims()
 
 # ── L16 "Late Chunking" — every displayed ≥2-decimal value, pinned deck == data/ ─────────────────────
 #    Anchors are DIGIT LOCATORS (RU comma OR EN dot), not context sniffers: the deck prints each number
@@ -1180,6 +1180,70 @@ def l7_book_claims():
 #    висели в «grandfathered» хвосте coverage-guard: гейт видел их и не давал добавлять НОВЫЕ, но сами
 #    числа ни с чем не сверялись. Значения берутся ИЗ data/ (никаких литералов), anchor — цифровой
 #    локатор, ловящий и точку, и запятую: дека печатает число дважды, в EN- и RU-спане.
+# ── [G-покрытие] L6: числа разборов PCA, SGNS-шага и GloVe, которые дека ПОКАЗЫВАЕТ ──────────────
+#    Три пошаговых разбора, которые студент считает вручную: (1) PCA — матрица ковариации,
+#    собственные значения, доли дисперсии; (2) один шаг SGNS — таблица u·v и σ по позитиву и шести
+#    негативам, сам шаг −η∇ и вектор king до/после; (3) GloVe — веса f(x), счётчик X, смещение b̃.
+#    Всё берётся ИЗ data/l5-*; ни одного литерала. Дека печатает 3–4 знака там, где data держит 4,
+#    поэтому допуск задаётся по показанной точности, а не наугад.
+def l6_coverage_claims():
+    ws, tr = W2V["workedStep"], W2V["trajectory"]
+    fr = GLOVE["trajectory"]["frames"]
+
+    def dist(frame, a, b):
+        pts = {q["w"]: q for q in frame["points"]}
+        return math.dist((pts[a]["x"], pts[a]["y"]), (pts[b]["x"], pts[b]["y"]))
+
+    def C(id, value, shown, tol=None):
+        dec = len(shown.split(".")[1]) if "." in shown else 0
+        # Допуск = половина последнего показанного разряда ПЛЮС эпсилон: округление
+        # «половину вверх» (0.0135 → 0.014, 0.7755 → 0.776) даёт РОВНО половину, и строгое
+        # сравнение её отвергает.
+        return dict(id="L6cov " + id, deck="L6", value=round(float(value), 6),
+                    tol=tol if tol is not None else 0.5 * 10 ** (-dec) + 1e-9,
+                    anchor=r'(?<![\d.,])(' + re.escape(shown).replace(r'\.', '[.,]') + r')(?![\d])',
+                    must=True)
+    return [
+        # — PCA: ковариация, собственные значения, доли дисперсии (слайд с поворотом в базис) —
+        C("pca cov00",   PCAROT["cov"][0][0],            "6.1326"),
+        C("pca cov01",   PCAROT["cov"][1][0],            "3.2196"),
+        C("pca cov11",   PCAROT["cov"][1][1],            "4.2826"),
+        C("pca lambda1", PCAROT["eigenvalues"][0],       "8.8561"),
+        C("pca lambda2", PCAROT["eigenvalues"][1],       "1.934"),
+        C("pca totalVar",PCAROT["totalVar"],             "11.0998"),
+        C("pca share1",  PCAROT["explainedVarPct"][0],   "79.79"),
+        C("pca share2",  PCAROT["explainedVarPct"][1],   "17.42"),
+        C("pca share3",  PCAROT["explainedVarPct"][2],   "2.79"),
+        C("pca top2sum", round(PCAROT["eigenvalues"][0] + PCAROT["eigenvalues"][1], 4), "10.7901"),
+        # — один шаг SGNS: таблица скалярных произведений и сигмоид —
+        C("sgns dot pos",   abs(ws["positive"]["dot"]),          "0.014"),
+        C("sgns sig pos",   ws["positive"]["sigmoid"],           "0.497"),
+        C("sgns dot live",  ws["negatives"][2]["dot"],           "0.087"),
+        C("sgns sig man",   ws["negatives"][4]["sigmoid"],       "0.495"),
+        C("sgns dot woman", abs(ws["negatives"][5]["dot"]),      "0.037"),
+        C("sgns sig woman", ws["negatives"][5]["sigmoid"],       "0.491"),
+        C("sgns step",      ws["step"][0],                       "0.0137"),
+        C("sgns king after",abs(ws["centreVecAfter"][0]),        "0.2337"),
+        # — кривая обучения SGNS: два значения, которые слайд печатает в строке лосса —
+        C("sgns loss e2", tr[2]["loss"], "2.74"),
+        C("sgns loss e3", tr[3]["loss"], "2.70"),
+        # — расстояния до/после обучения и разделение групп —
+        C("w2v catdog init", W2V["related"][2]["distInit"],                       "0.211"),
+        C("w2v between",     W2V["similaritySummary"]["unrelatedMeanDistFinal"],  "0.319"),
+        C("emb dogpuppy",    EMB["pairs"][2]["cos"],                              "0.776"),
+        C("emb madrid",      EMB["capitalAnalogy"]["top"][1]["cos"],              "0.746"),
+        # — GloVe: веса f(x), счётчик X и смещение из разбора одной пары —
+        # f(x) = (x/x_max)^α. Редкая пара x=0.5 в таблице cells не встречается — слайд считает
+        # её ПО ФОРМУЛЕ из показанных тут же x_max=10 и α=0.75, поэтому и здесь формула.
+        C("glove f rare",     (0.5 / GLOVE["xMax"]) ** GLOVE["alpha"], "0.106"),
+        C("glove f frequent", GLOVE["cells"][23]["f"],                 "0.682"),
+        C("glove X theking",  GLOVE["worked"][1]["X"],   "5.25"),
+        C("glove bj",         abs(GLOVE["worked"][0]["bj"]), "0.127"),
+        # — «king·queen разошлись 0.04 → 0.69»: расстояние в первом и последнем кадре траектории —
+        C("glove kq drift", dist(fr[-1], "king", "queen"), "0.69"),
+    ]
+
+
 def l3_coverage_claims():
     lit = lambda x: r'(?<![\d.,])(' + re.escape(f"{x}") + r')(?![\d])'
     def C(id, value, shown):
@@ -1729,8 +1793,8 @@ COVERAGE_BASELINE = {
     # older units also display. A ratchet wider than the fact is not a ratchet: it silently licenses
     # new un-gated numbers up to the old slack. Every value below is the count the gate itself
     # measured; nothing was raised.
-    "deck:L0": 0, "deck:L1": 1, "deck:L2": 4, "deck:L3": 0, "deck:L5": 17, "deck:L6": 29, "deck:L7": 16,
-    "book:L0": 0, "book:L1": 0, "book:L2": 4,  "book:L3": 0,  "book:L5": 11, "book:L6": 8,
+    "deck:L0": 0, "deck:L1": 1, "deck:L2": 4, "deck:L3": 0, "deck:L5": 14, "deck:L6": 0, "deck:L7": 16,
+    "book:L0": 0, "book:L1": 0, "book:L2": 4,  "book:L3": 0,  "book:L5": 10, "book:L6": 3,
     # book:L6 — RAISED 6 → 37 when the L06 climb became `ncd-chain`, the end-to-end worked example.
     # Its ten scroll-step captions ARE Book prose, and they walk the whole computation: every
     # embedding row, every scaled score, the exponentials, the row sums, the context cells, the pooled
