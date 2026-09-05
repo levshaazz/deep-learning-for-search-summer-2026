@@ -97,6 +97,10 @@ _NUM = re.compile(
 )
 _INLINE_ASSIGN = re.compile(r"`\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*([-−]?\d+(?:[.,]\d+)?)\s*`")
 _APPROX_BEFORE = re.compile(r"[≈~]\s*$|около\s+$|примерно\s+$|порядка\s+$", re.I)
+# Слово-маркер ПОТЕРИ: проза пишет величину без знака, а знак несёт глагол — «теряем 0,032»,
+# «падение 0,04», «минус 0,01». Только в этом окне число сверяется с дампом по модулю.
+_LOSS_BEFORE = re.compile(r"(?:теря|потер|паде|упал|снизи|минус|хуже|ниже на)\w*\s+"
+                          r"(?:[^.]{0,120}?)$", re.I)
 
 
 def prose_of(md_source):
@@ -135,9 +139,10 @@ def numbers_in(prose):
         # честные приблизительные формулировки годами копились в остатке [N] как выдумки.
         before = prose[: m.start()].rstrip("*_ ") + " "
         approx = bool(_APPROX_BEFORE.search(before))
+        loss = bool(_LOSS_BEFORE.search(before))
         after = prose[m.end(): m.end() + 12]
         pct = bool(re.match(r"\s*(?:%|процент)", after))
-        out.append((val, digits, approx, pct, raw))
+        out.append((val, digits, approx, pct, raw, loss))
     return out
 
 
@@ -172,14 +177,19 @@ def _sig_digits(raw):
     return len(s.replace(".", "").lstrip("0")) or 1
 
 
-def grounded(val, digits, approx, pct, pool_dump, pool_data, sig):
+def grounded(val, digits, approx, pct, pool_dump, pool_data, sig, loss=False):
     """Число прозы обосновано? Адверсарный ревью показал: против пула ВСЕХ data/*.json с ×÷100
     и допуском «≈» выдумка проходила 7/7. Сужение: (а) ×÷100 — только при знаке процента рядом;
     (б) допуск «≈» — только против СОБСТВЕННОГО дампа; (в) data-пул — только для чисел с ≥3
     значащими цифрами (ниже — совпадение почти гарантировано случайно, проверка была бы театром)."""
     def hit(pool, with_tol):
         for v in pool:
-            cands = (v, v * 100.0, v / 100.0) if pct else (v,)
+            # Модуль — потому что проза пишет ВЕЛИЧИНУ потери, а знак несёт слово: «убрав
+            # плотную ступень, теряем 0,032», тогда как в дампе delta = −0.032. Только против
+            # СОБСТВЕННОГО дампа (см. (б) ниже) — расширять этим data-пул значило бы удвоить
+            # его и вернуть те самые случайные совпадения, ради которых он и сужен.
+            base = (v, -v) if (loss and pool is pool_dump) else (v,)
+            cands = tuple(c for b in base for c in ((b, b * 100.0, b / 100.0) if pct else (b,)))
             for cand in cands:
                 if with_tol:
                     if cand != 0 and abs(val - cand) / max(abs(cand), 1e-12) <= APPROX_TOL:
@@ -298,8 +308,8 @@ def check_notebook(name, nb_path, runs_dir, pool_data, err, warn, t4_dir=None):
         if src.count("`") % 2 == 1:
             warn(f"[N] {name}: непарный бэктик в markdown-ячейке #{i} — кусок прозы между двумя "
                  f"случайными бэктиками невидим для проверки чисел")
-        for val, digits, approx, pct, raw in numbers_in(prose_of(src)):
-            if not grounded(val, digits, approx, pct, pool_dump, pool_data, _sig_digits(raw)):
+        for val, digits, approx, pct, raw, loss in numbers_in(prose_of(src)):
+            if not grounded(val, digits, approx, pct, pool_dump, pool_data, _sig_digits(raw), loss):
                 residue.append(raw)
         # инлайн-код вида `ИМЯ = число` с ИМЕНЕМ метрики дампа, но другим значением — WARN, не долг:
         # проза законно обсуждает контрфактические значения («поставь `b = 0,3` — увидишь…»), а
@@ -703,6 +713,12 @@ def selftest():
     # 10g-K. …а величина из РЕШЕНИЯ (живёт в markdown, не в коде) — своя, молчим
     case("solution-var", False, "решение: `mid = 0,5` — середина\n",
          {"SEED": 42, "RUN": {"NDCG": 0.63}, "mid": 0.5}, seed_code, alien=("mid",))
+    # 10e-L. «теряем 0,032» сверяется с дампом ПО МОДУЛЮ: знак несёт глагол, а не число
+    case("loss-abs", False, "убрав плотную ступень, теряем 0,032 при интервале",
+         {"SEED": 42, "RUN": {"delta": -0.032}}, seed_code)
+    # 10f-L. …но без слова потери модуль не применяется: p-value не обосновать границей интервала
+    case("loss-abs-absent", True, "ошибка того же рода, что «p > 0,0488 значит эффекта нет»",
+         {"SEED": 42, "RUN": {"ciLow": -0.0488}}, seed_code)
     # 10f-A. словесный маркер приблизительности работает так же, как «≈»: 268 → «около 270»
     case("approx-word", False, "медиана длины у нас около 270 слов",
          {"SEED": 42, "RUN": {"median_doc_words": 268.0}}, seed_code)
