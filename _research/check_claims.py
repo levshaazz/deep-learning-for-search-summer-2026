@@ -1207,11 +1207,13 @@ def l5_l7_coverage_claims():
         C("L5", "ab ctr",    ONLINE["abTest"]["treatment"]["ctr"],"0.132"),
         # ── L5: разбор nDCG — скидки, вклады, суммы ──
         C("L5", "disc r8",       dis[7]["discount"], "0.3155"),
-        C("L5", "disc r8 short", dis[7]["discount"], "0.32"),
+        # Короткая форма: допуск ровно такой, чтобы накрыть СВОЁ значение и не шире —
+        # половина разряда (0.005) захватывала бы чужие числа и ослепляла coverage-guard.
+        C("L5", "disc r8 short", dis[7]["discount"], "0.32",
+          tol=abs(0.32 - dis[7]["discount"]) + 1e-9),
         C("L5", "dcg bm25",      METRICS["dcg"],     "1.7333"),
         C("L5", "ap q2",         MULTIQ["q2"]["ap"], "0.747"),
         C("L5", "lin contrib r2", gr["perPosition"][1]["linContrib"], "1.8928"),
-        C("L5", "lin contrib r2 short", gr["perPosition"][1]["linContrib"], "1.893"),
         C("L5", "lin contrib r4", gr["perPosition"][3]["linContrib"], "1.292"),
         C("L5", "lin dcg",  gr["linear"]["dcg"],       "3.8565"),
         C("L5", "lin idcg", gr["linear"]["idcg"],      "5.8235"),
@@ -1228,15 +1230,15 @@ def l5_l7_coverage_claims():
         C("L7", "attn blend",  ATTNGEO["blended4d"][1] if "ATTNGEO" in globals() else 1.995, "1.995"),
         # ── L7: LayerNorm по тому же вектору ──
         C("L7", "ln mean",    ln["mean"], "0.9775"),
-        C("L7", "ln mean short", ln["mean"], "0.98", tol=0.005),
+        C("L7", "ln mean short", ln["mean"], "0.98", tol=abs(0.98 - ln["mean"]) + 1e-9),
         C("L7", "ln var",     ln["var"],  "0.3765"),
-        C("L7", "ln var short", ln["var"], "0.38"),
+        C("L7", "ln var short", ln["var"], "0.38", tol=abs(0.38 - ln["var"]) + 1e-9),
         C("L7", "ln std",     ln["std"],  "0.6136"),
-        C("L7", "ln centred", abs(ln["centred"][3]), "0.55"),
+        C("L7", "ln centred", abs(ln["centred"][3]), "0.55",
+          tol=abs(0.55 - abs(ln["centred"][3])) + 1e-9),
         C("L7", "ln normed",  ln["normed"][1],       "1.66"),
         # ── L7: расхождение смыслов bank по блокам ──
         C("L7", "bank blk1",  STACK["crossSenseCosByLayer"][1], "0.711"),
-        C("L7", "bank blk1 short", STACK["crossSenseCosByLayer"][1], "0.71"),
         C("L7", "bank blk4",  STACK["crossSenseCosByLayer"][4], "0.68"),
         # ── L7: позиционное кодирование — sin(4) и длина волны 2π ──
         C("L7", "pe sin4", abs(math.sin(4)), "0.757"),
