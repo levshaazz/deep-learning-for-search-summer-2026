@@ -90,6 +90,8 @@ PAGERANK     = load(DATA, "l3-pagerank.json")           # power-iteration conver
 COMPRESS     = load(DATA, "l3-compression.json")        # postings gaps + varbyte bytes
 BENCH        = load(DATA, "l3-benchmarks.json")         # cited MS MARCO / BEIR baselines
 RRF          = load(DATA, "l3-rrf.json")                # reciprocal-rank fusion, k=60
+KEYWORDS     = load(DATA, "l3-keywords.json")           # idf по терминам (tf-idf разбор)
+BM25CFG      = load(DATA, "l3-bm25.json")               # параметры корпуса: avgdl, k1, b
 METRICS      = load(DATA, "l4-metrics.json")            # binary nDCG (honest 0.6766) + gamed 0.5434
 GRADED       = load(DATA, "l4-graded.json")             # graded nDCG linear/exponential
 MULTIQ       = load(DATA, "l4-multiquery.json")         # two-query MRR / MAP
@@ -605,7 +607,7 @@ def claims():
              anchor=r"\b(32\.3)\s*%", must=True),
         dict(id="top-3 %",   deck="L1", value=CLICK["top3Pct"], tol=0.2,
              anchor=r"\b(60\.6)\b", must=True),
-    ] + l3_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims() + l11_deck_claims() + l12_deck_claims() + l13_deck_claims() + l14_deck_claims() + l15_deck_claims() + l16_deck_claims() + l17_deck_claims() + l18_deck_claims() + l19_deck_claims() + l20_deck_claims()
+    ] + l3_claims() + l3_coverage_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims() + l11_deck_claims() + l12_deck_claims() + l13_deck_claims() + l14_deck_claims() + l15_deck_claims() + l16_deck_claims() + l17_deck_claims() + l18_deck_claims() + l19_deck_claims() + l20_deck_claims()
 
 # ── L16 "Late Chunking" — every displayed ≥2-decimal value, pinned deck == data/ ─────────────────────
 #    Anchors are DIGIT LOCATORS (RU comma OR EN dot), not context sniffers: the deck prints each number
@@ -1172,6 +1174,71 @@ def l7_book_claims():
 # the surrounding markup. The captured group is a GENERIC number ([\d.]+ / \d+); the surrounding
 # literal context (labels, the other numbers in the same expression) pins the location uniquely, so
 # a number that DRIFTS at that spot is still matched and flagged as DRIFT (not silently NOT FOUND).
+# ── [G-покрытие] L3: промежуточные числа BM25, которые дека ПОКАЗЫВАЕТ, но гейт не стерёг ──────────
+#    Разбор столбца B, знаменателей и аргументов логарифма выписан на слайдах пошагово — ровно тот
+#    случай, ради которого гейт существует: студент воспроизводит их в тетради. До 2026-09-05 они
+#    висели в «grandfathered» хвосте coverage-guard: гейт видел их и не давал добавлять НОВЫЕ, но сами
+#    числа ни с чем не сверялись. Значения берутся ИЗ data/ (никаких литералов), anchor — цифровой
+#    локатор, ловящий и точку, и запятую: дека печатает число дважды, в EN- и RU-спане.
+def l3_coverage_claims():
+    lit = lambda x: r'(?<![\d.,])(' + re.escape(f"{x}") + r')(?![\d])'
+    def C(id, value, shown):
+        return dict(id="L3cov " + id, deck="L3", value=round(float(value), 6), tol=1e-4,
+                    anchor=lit(shown).replace(r'\.', '[.,]'), must=True)
+    cd_s, q2_s = CATDOG_STEPS, Q2_STEPS
+    cd, q2 = CATDOG, Q2
+    return [
+        # аргументы сглаженного логарифма idf — «ln(1.1429)» и «ln(1.6000)» на разборе cat/dog
+        C("catdog lnArg cat", cd_s["idfSteps"]["cat"]["lnArg"], "1.1429"),
+        C("catdog lnArg dog", cd_s["idfSteps"]["dog"]["lnArg"], "1.6000"),   # дека печатает 4 знака
+        # столбец B и знаменатели пошагового разбора cat/dog
+        C("catdog D2 B",       cd_s["docs"][1]["terms"][0]["B"],     "0.8696"),
+        C("catdog D3 B",       cd_s["docs"][2]["terms"][0]["B"],     "1.1765"),
+        C("catdog D2 bracket", cd_s["docs"][1]["bracket"],           "1.25"),
+        C("catdog D2 denom",   cd_s["docs"][1]["terms"][0]["denom"], "2.875"),
+        C("catdog D2 denom2",  cd_s["docs"][1]["terms"][1]["denom"], "3.875"),
+        C("catdog D3 denom",   cd_s["docs"][2]["terms"][0]["denom"], "2.125"),
+        C("catdog D1 bm25",    cd["docs"][0]["terms"][0]["bm25"],    "0.1908"),
+        # разбор второго запроса (nasa/shuttle): idf, B, знаменатели, скобка
+        C("q2 lnArg nasa",     q2_s["idfSteps"]["nasa"]["lnArg"],    "2.5714"),
+        C("q2 lnArg shuttle",  q2_s["idfSteps"]["shuttle"]["lnArg"], "3.6"),
+        C("q2 c1 B",           q2_s["cells"][1]["B"],                "1.5491"),
+        C("q2 c2 B",           q2_s["cells"][2]["B"],                "1.3564"),
+        C("q2 c2 bracket",     q2_s["cells"][2]["bracket"],          "1.1241"),
+        C("q2 c4 bracket",     q2_s["cells"][4]["bracket"],          "1.0352"),
+        C("q2 c0 denom",       q2_s["cells"][0]["denom"],            "2.8417"),
+        C("q2 c2 denom",       q2_s["cells"][2]["denom"],            "3.6861"),
+        C("q2 c3 denom",       q2_s["cells"][3]["denom"],            "2.6861"),
+        C("q2 D1 score",       q2["docs"][0]["bm25Score"],           "0.9249"),
+        C("q2 D4 term",        q2["docs"][3]["terms"][1]["bm25"],    "1.1922"),
+        # средняя длина документа — параметр корпуса, показан в формуле нормировки
+        C("avgdl",             BM25CFG["avgdl"],                     "50.625"),
+        # idf терминов из tf-idf разбора
+        C("keywords idf 2",    KEYWORDS["terms"][1]["idf"],          "1.7918"),
+        # PageRank: значение из сошедшейся итерации, показанное в таблице
+        C("pagerank it4",      PAGERANK["iterations"][4][2],         "0.3949"),
+        # Таблица top-TF-IDF: дека печатает tfidf округлённым до 2 знаков, data держит 4 —
+        # поэтому допуск 0.005, иначе 3.84 против 3.8428 читается как расхождение.
+        dict(id="L3cov tfidf shuttle", deck="L3", value=KEYWORDS["terms"][0]["tfidf"], tol=0.005,
+             anchor=r'(?<![\d.,])(3[.,]84)(?![\d])', must=True),
+        dict(id="L3cov tfidf crew",    deck="L3", value=KEYWORDS["terms"][1]["tfidf"], tol=0.005,
+             anchor=r'(?<![\d.,])(3[.,]58)(?![\d])', must=True),
+        dict(id="L3cov tfidf better",  deck="L3", value=KEYWORDS["terms"][4]["tfidf"], tol=0.005,
+             anchor=r'(?<![\d.,])(2[.,]56)(?![\d])', must=True),
+        # Разбор tf-idf на игрушечном корпусе: D2 = tf 2 × idf 0.6931 = 1.3863, показано «1.39»
+        dict(id="L3cov tfidf space D2", deck="L3", value=BM25CFG["docs"][2]["terms"][0]["tfidf"],
+             tol=0.005, anchor=r'(?<![\d.,])(1[.,]39)(?![\d])', must=True),
+        # «tf·idf = (1/7)·0.6931 ≈ 0.099» — выкладка на слайде о редком терме
+        dict(id="L3cov tfidf oneOfSeven", deck="L3",
+             value=round(BM25CFG["docs"][0]["terms"][0]["idf"] / 7, 4), tol=0.0006,
+             anchor=r'(?<![\d.,])(0[.,]099)(?![\d])', must=True),
+        # «len/avgdl = 1.33» для D2 разбора cat/dog: длина 4 при средней 3.0
+        dict(id="L3cov lenRatio D2", deck="L3",
+             value=round(CATDOG["docs"][1]["len"] / CATDOG["avgdl"], 2), tol=0.005,
+             anchor=r'(?<![\d.,])(1[.,]33)(?![\d])', must=True),
+    ]
+
+
 def l3_claims():
     cd = {d["id"]: d for d in CATDOG["docs"]}
     N = r"([\d.]+)"      # generic captured number → catches drift, not just exact match
@@ -1662,8 +1729,8 @@ COVERAGE_BASELINE = {
     # older units also display. A ratchet wider than the fact is not a ratchet: it silently licenses
     # new un-gated numbers up to the old slack. Every value below is the count the gate itself
     # measured; nothing was raised.
-    "deck:L0": 0, "deck:L1": 1, "deck:L2": 4, "deck:L3": 31, "deck:L5": 18, "deck:L6": 31, "deck:L7": 17,
-    "book:L0": 0, "book:L1": 0, "book:L2": 5,  "book:L3": 7,  "book:L5": 12, "book:L6": 8,
+    "deck:L0": 0, "deck:L1": 1, "deck:L2": 4, "deck:L3": 0, "deck:L5": 17, "deck:L6": 29, "deck:L7": 16,
+    "book:L0": 0, "book:L1": 0, "book:L2": 4,  "book:L3": 0,  "book:L5": 11, "book:L6": 8,
     # book:L6 — RAISED 6 → 37 when the L06 climb became `ncd-chain`, the end-to-end worked example.
     # Its ten scroll-step captions ARE Book prose, and they walk the whole computation: every
     # embedding row, every scaled score, the exponentials, the row sums, the context cells, the pooled
@@ -1725,16 +1792,27 @@ COVERAGE_BASELINE = {
     # book:L18 mirrors the deck's numbers in trilingual prose; still baseline-frozen (the Book's own
     # anchors are not written yet), so a NEW ungated Book number beyond these still HARD-fails.
     "book:L14": 0,
+    # 2026-09-05: L3 покрыт [G-покрытие] (23 промежуточных числа BM25 привязаны
+    # к data/l3-*), поэтому deck:L3 31→8 и book:L3 7→1; глобальный матчинг заодно
+    # накрыл два числа в L6 (31→29). Храповик только опускается.
 }
 _COV_DEC   = re.compile(r'(?<![\d.,])\d+[.,]\d{2,}(?!\d)')# grounded signature: a decimal (dot OR RU comma), ≥2 fractional digits
 _COV_ARXIV = re.compile(r'^\d{4}[.,]\d{4,}$')             # arXiv id (e.g. 1901.04085) — not data
 _COV_DATE  = re.compile(r'^0\d+[.,]')                     # leading-zero date (e.g. 03.06) — not data
 _COV_THOU  = re.compile(r'^[1-9]\d{0,2}(,\d{3})+$')       # thousands-grouped integer (e.g. 94,287 / 10,000) — not a decimal
 
+# KaTeX-множество: «p\in\{3,11\}» — это ПЕРЕЧИСЛЕНИЕ двух целых, а не десятичное 3.11.
+# Гейт читал его как число и годами держал два таких «непокрытых» значения в хвосте L3
+# (позиции фразового поиска, слайд про близость слов). Маскируем только содержимое фигурных
+# скобок, где внутри одни цифры, запятые и пробелы: настоящая дробь туда не попадает.
+_COV_SET = re.compile(r'\\?\{\s*\d+(?:\s*,\s*\d+)+\s*\\?\}')
+
+
 def _coverage_visible(html):
     t = re.sub(r'<aside class="slide-notes".*?</aside>', ' ', html, flags=re.S)   # speaker notes: not shown
     t = re.sub(r'<style.*?</style>|<script.*?</script>', ' ', t, flags=re.S)
-    return re.sub(r'<[^>]+>', ' ', t)
+    t = re.sub(r'<[^>]+>', ' ', t)
+    return _COV_SET.sub(' ', t)
 
 def _coverage_uncovered(html, gated):
     out = set()
