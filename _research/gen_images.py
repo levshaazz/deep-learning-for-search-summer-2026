@@ -2812,9 +2812,30 @@ def main():
         jobs = [j for j in JOBS if j[1].endswith("serega-charsheet.png")]
     else:
         groups = set(a if a != "char" else "char" for a in args)
+        # Позиционный аргумент — ТОЛЬКО имя группы. Неизвестное значение раньше молча
+        # игнорировалось, и «gen_images.py L9 --force L9/L9-17-….png» перерисовывал ВСЮ
+        # лекцию: 18 плат вместо одной, с потерей уже принятых картинок (2026-09-05).
+        # Отбор одного файла делается флагом --only.
+        known = {j[0] for j in JOBS}
+        unknown = sorted(groups - known)
+        if unknown:
+            raise SystemExit(
+                "не группа: %s\n"
+                "  позиционный аргумент — это ГРУППА (%s) либо all/charsheet.\n"
+                "  чтобы взять один файл, используй: --only <кусок-имени> [--force]"
+                % (", ".join(unknown), ", ".join(sorted(known)[:6]) + ", …"))
         jobs = [j for j in JOBS if j[0] in groups]
     if not jobs:
         raise SystemExit(f"no jobs matched {args}")
+    if force and len(jobs) > 1:
+        # --force стирает готовые платы. На группе это дорого и необратимо, поэтому
+        # требуем явного подтверждения переменной окружения, а не одного флага.
+        import os as _os
+        if _os.environ.get("GEN_IMAGES_FORCE_MANY") != "1":
+            raise SystemExit(
+                "--force затронул бы %d плат(ы) — это перерисует уже принятые картинки.\n"
+                "  сузь до одной: --only <кусок-имени> --force\n"
+                "  если правда нужно всю группу: GEN_IMAGES_FORCE_MANY=1 …" % len(jobs))
     print(f"[gen] {len(jobs)} job(s) · model={model}" + (f" · ref={ref_url[:50]}…" if ref_url else " · text-only"))
     counts = {"ok": 0, "skip": 0, "error": 0}
     errors = []
