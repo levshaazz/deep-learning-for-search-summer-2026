@@ -609,7 +609,7 @@ def claims():
              anchor=r"\b(32\.3)\s*%", must=True),
         dict(id="top-3 %",   deck="L1", value=CLICK["top3Pct"], tol=0.2,
              anchor=r"\b(60\.6)\b", must=True),
-    ] + l3_claims() + l3_coverage_claims() + l6_coverage_claims() + l5_l7_coverage_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims() + l11_deck_claims() + l12_deck_claims() + l13_deck_claims() + l14_deck_claims() + l15_deck_claims() + l16_deck_claims() + l17_deck_claims() + l18_deck_claims() + l19_deck_claims() + l20_deck_claims()
+    ] + l3_claims() + l3_coverage_claims() + l6_coverage_claims() + l5_l7_coverage_claims() + l9_rabitq_claims() + l4_claims() + l5_claims() + l6_claims() + l7_deck_claims() + l8_deck_claims() + l9_deck_claims() + l10_deck_claims() + l11_deck_claims() + l12_deck_claims() + l13_deck_claims() + l14_deck_claims() + l15_deck_claims() + l16_deck_claims() + l17_deck_claims() + l18_deck_claims() + l19_deck_claims() + l20_deck_claims()
 
 # ── L16 "Late Chunking" — every displayed ≥2-decimal value, pinned deck == data/ ─────────────────────
 #    Anchors are DIGIT LOCATORS (RU comma OR EN dot), not context sniffers: the deck prints each number
@@ -1249,6 +1249,39 @@ def l7_book_claims():
 #    L5 — A/B-тест (sd, CTR, t-критическое) и полный разбор nDCG: вклады по позициям, DCG и IDCG
 #    для линейного и экспоненциального выигрыша. L7 — один шаг внимания (веса, выход A·V),
 #    LayerNorm по этому же вектору (μ, σ², σ, центрированные значения) и позиционные синусы.
+# ── [C] L9 · RaBitQ: числа акта, добавленного 2026-09-05 ─────────────────────────────────────────
+#    Без этих привязок числа слайдов «покрывались» СЛУЧАЙНЫМИ совпадениями с claim'ами других
+#    лекций (0.378 совпадало с дисперсией LayerNorm деки 07) — то есть дрейф data→слайд прошёл бы
+#    незамеченным. Значения берутся из data/l9-bench.json → rabitq; выкладка byHand считается
+#    генератором, цитируемые числа взяты дословно из статей.
+def l9_rabitq_claims():
+    rb = BENCH9["rabitq"]
+    bh, gpu = rb["byHand"], rb["gpu"]
+    def C(id, value, shown, tol=None):
+        dec = len(shown.split(".")[1]) if "." in shown else 0
+        # deck="L13", а не "L9": ключ строится по НОМЕРУ ФАЙЛА деки (13-ann-faiss…), тогда как
+        # l9-bench.json держит production-нумерацию данных. Две нумерации сосуществуют намеренно.
+        return dict(id="L9rabitq " + id, deck="L13", value=round(float(value), 6),
+                    tol=tol if tol is not None else (0.5 * 10 ** (-dec) + 1e-9 if dec else 0.5),
+                    anchor=r'(?<![\d.,])(' + re.escape(shown).replace(r'\.', '[.,]') + r')(?![\d])',
+                    must=True)
+    return [
+        # слайд 37a — цена провала PQ на MSong (дословно из Gao & Long, SIGMOD 2024)
+        C("pq relerr",     rb["pqMSongRelErrorPct"],   "50"),
+        C("pq recall ceil",rb["pqMSongRecallCeilPct"], "60"),
+        # слайд 37c — разбор руками: байты и сжатие
+        C("fp32 bytes",    bh["fp32Bytes"],            "3072"),
+        C("rabitq bytes",  bh["rabitqBytes"],          "96"),
+        C("rabitq compr",  bh["rabitqCompression"],    "32"),
+        C("pq compr",      bh["pqM8Compression"],      "384"),
+        C("bound toy",     bh["boundToyD8"],           "0.378"),
+        C("bound real",    bh["boundRealD768"],        "0.036", tol=0.0006),
+        # слайд 37d — где это стоит в проде (Shi et al., IVF-RaBitQ в NVIDIA cuVS)
+        C("gpu build",     gpu["buildSpeedupVsCagra"], "14.7"),
+        C("gpu recall",    gpu["atRecall"],            "0.95"),
+    ]
+
+
 def l5_l7_coverage_claims():
     def C(surf, id, value, shown, tol=None):
         dec = len(shown.split(".")[1]) if "." in shown else 0

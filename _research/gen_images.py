@@ -28,12 +28,21 @@ BASE_URL = "https://imgeditor.co/api/v1"
 MODEL = "nano-banana-pro"
 
 def load_key():
+    """Ключ к imgeditor.co из .env. Принимаются ОБА имени: генератор исторически ждал
+    IMAGE_GENERATION_API_KEY, а в .env ключ к тому же сервису лежит под IMAGE_API_KEY —
+    расхождение имён стоило одного ложного «ключа нет» (2026-09-05)."""
     env = ROOT / ".env"
+    names = ("IMAGE_GENERATION_API_KEY", "IMAGE_API_KEY")
+    found = {}
     for line in env.read_text().splitlines():
         line = line.strip()
-        if line.startswith("IMAGE_GENERATION_API_KEY"):
-            return line.split("=", 1)[1].strip().strip('"').strip("'")
-    raise SystemExit("IMAGE_GENERATION_API_KEY not found in .env")
+        for n in names:
+            if line.startswith(n + "=") or line.startswith(n + " ="):
+                found[n] = line.split("=", 1)[1].strip().strip('"').strip("'")
+    for n in names:
+        if found.get(n):
+            return found[n]
+    raise SystemExit("ни IMAGE_GENERATION_API_KEY, ни IMAGE_API_KEY не найдены в .env")
 
 API_KEY = load_key()
 
@@ -1193,6 +1202,28 @@ JOBS = [
      "running sum tally is warm-orange. Conveys 'sum four table lookups, one per subspace, to score a "
      "PQ-coded vector — no full-vector math'. Serega's green tübetey is the ONLY green; the grid, "
      "arrows and tally carry no green. Fills ≥85% width."),
+    ("L9", "L9/L9-16-pq-no-warranty.png", "16:9", True,
+     "NO WARRANTY. Serega holds up a torn paper GUARANTEE CERTIFICATE for a codebook — the seal is "
+     "broken and the fine print trails off into nothing; behind him a cargo crate stencilled 'PQ' "
+     "sits open with its k-means codebook-cards spilled on the floor, and one card has visibly "
+     "warped out of shape. Beside the crate a distance-ruler has snapped in half, its two pieces "
+     "measuring wildly different lengths of the SAME gap — the estimate that cannot be trusted. "
+     "Serega's expression is not angry but wary: he is reading the fine print. Black ink + light "
+     "course-blue crate and ruler + one warm-orange warped card. Conveys 'the method works, but "
+     "nobody signed a bound'. Serega's green tübetey is the ONLY green; no green anywhere else. "
+     "Fills >=85% width."),
+    ("L9", "L9/L9-17-rabitq-dice-sphere.png", "4:3", True,
+     "THE UNTRAINED CODEBOOK. Serega stands beside a large transparent SPHERE whose surface is "
+     "studded with evenly spaced corner-dots (the hypercube vertices already spread over the "
+     "sphere) — he did not place them, they came with it. In one hand he holds a small crank "
+     "labelled with a single curved ROTATION arrow, and turning it spins the whole sphere; a "
+     "single incoming dot approaches the sphere, snaps to its nearest corner-dot and comes out the "
+     "other side as a short row of 1/0 bits on a paper tape. Hand-lettered labels, each used EXACTLY "
+     "once and never repeated: 'rotation', 'chosen vertex', '1/0 bits'. No k-means cluster clouds anywhere — the "
+     "contrast with the PQ crate is the point. Black ink + light course-blue sphere and tape + one "
+     "warm-orange highlighted corner-dot (the chosen vertex). Conveys 'the codebook is fixed, the "
+     "randomness is in the rotation, the code is one bit per dimension'. Serega's green tübetey is "
+     "the ONLY green; no green anywhere else. Fills >=85% width."),
     ("L9", "L9/L9-15-choose-a-lane.png", "16:9", True,
      "CHOOSE A LANE — the index decision. Serega stands at a galactic junction SIGNPOST with five "
      "lane-arrows fanning off it, each a short hand-lettered label: 'Flat', 'HNSW', 'IVF', 'IVF-PQ', "

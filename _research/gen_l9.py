@@ -630,6 +630,40 @@ def main():
                                     "quantizer; two-stage MSE + 1-bit QJL residual → unbiased inner product",
                        "claim": "outperforms existing PQ techniques in recall while reducing indexing time to ~0",
                        "source": "Zandieh, Daliri, Hadian & Mirrokni, arXiv:2504.19874 (2025, Google Research)"},
+        # RaBitQ — вторая ветка того же сюжета, что и TurboQuant: кодовая книга НЕ учится.
+        # Числа взяты дословно из статьи (SIGMOD 2024) и из GPU-продолжения (2026); ничего
+        # здесь не вычисляется. Смысл для лекции: у PQ нет теоретической границы ошибки, и это
+        # не придирка — на MSong она обваливает и оценку расстояния, и полноту.
+        "rabitq": {
+            "bitsPerDim": 1,
+            "codebookLearned": False,
+            "unbiased": True,
+            "pqMSongRelErrorPct": 50,          # «more than 50% of average relative error»
+            "pqMSongRecallCeilPct": 60,        # «cannot achieve ≥60% recall even with re-ranking»
+            "mechanism": "нормировать на единичную сферу → кодовая книга = вершины гиперкуба "
+                         "(±1/√D), случайно повёрнутые ортогональной матрицей (JL) → ближайшая "
+                         "вершина даёт D-битный код; оценка расстояния несмещённая, с резкой "
+                         "границей ошибки",
+            "source": "Gao & Long, SIGMOD 2024 (arXiv:2405.12497)",
+            # Разбор руками для слайда 37c: во что обходится «один бит на измерение» при D=768
+            # и почему гарантия НЕ бесплатна — RaBitQ жмёт в 32 раза, PQ (m=8) в 384. Считается
+            # здесь, а не набирается на слайде: D/8 байт против D·4 байт fp32.
+            "byHand": {
+                "dim": 768,
+                "fp32Bytes": 768 * 4,
+                "rabitqBytes": 768 // 8,
+                "rabitqCompression": (768 * 4) // (768 // 8),
+                "pqM8Bytes": 8,
+                "pqM8Compression": (768 * 4) // 8,
+                "cubeCoord": round(1 / math.sqrt(8), 4),      # ±1/√D при игрушечном D=8
+                "boundToyD8": round(1 / math.sqrt(8 - 1), 4),  # ~1/√(D−1)
+                "boundRealD768": round(1 / math.sqrt(768 - 1), 5),
+            },
+            "gpu": {"qpsVsCagra": 3.0, "buildSpeedupVsCagra": 14.7, "qpsVsIvfPq": 4.5,
+                    "atRecall": 0.95,
+                    "source": "Shi, Gao, Xia, Fehér & Long, IVF-RaBitQ на GPU (arXiv:2602.23999), "
+                              "интегрировано в NVIDIA cuVS"},
+        },
     }
     write_json(DATA / "l9-bench.json", bench)
 
