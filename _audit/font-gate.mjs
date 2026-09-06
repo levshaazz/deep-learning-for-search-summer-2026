@@ -43,6 +43,9 @@ const SCALE_FILE = 'Lectures/css/template.css';
    to the new (lower) live count so the ratchet only ever tightens.
    2026-08-11 (T14): 204 → 50 — literals migrated to the --fs-* scale (new label/fine
    sub-scales in template.css; values identical to the former literals). */
+/* 2026-09-06: из подсчёта убран собранный deck-widgets.css (см. cssFiles) — он появляется
+   только после build и приносил +16, из-за чего гейт был красным в CI, но зелёным локально
+   до сборки. Базовая цифра не меняется: 50 — это счёт по авторским стилям слайдов. */
 const BASELINE = 50;
 
 /* ── scanners ─────────────────────────────────────────────────────────────── */
@@ -75,7 +78,15 @@ function rawCount(css) {
 function listCss(dir) {
   const abs = join(ROOT, dir);
   if (!existsSync(abs)) return [];
-  return readdirSync(abs).filter((f) => f.endsWith('.css')).map((f) => join(abs, f)).sort();
+  // deck-widgets.css исключён намеренно: это СБОРКА стилей виджетов (build-deck-widgets.mjs),
+  // а виджеты рисуют внутри SVG со своей системой координат — viewBox шириной ~480 единиц,
+  // тогда как шкала --fs-* задана для слайда 1920×1080, где базовый кегль 38px. Подстановка
+  // слайдовых токенов туда не заменяет запись, а МЕНЯЕТ размер: попытка 2026-09-06 уменьшила
+  // заголовок nDCG с 20 до 17 и раздула подпись с 24 до 26 (поймано widget-render-check).
+  // Литералы внутри виджетов живут в widgets/*/style.css и ратчетятся своим гейтом (G10).
+  return readdirSync(abs)
+    .filter((f) => f.endsWith('.css') && f !== 'deck-widgets.css')
+    .map((f) => join(abs, f)).sort();
 }
 
 /** inline style="…font-size:…" occurrences in deck HTML (informational only). */
