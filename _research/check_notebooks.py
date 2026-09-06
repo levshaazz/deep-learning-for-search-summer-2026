@@ -40,6 +40,15 @@
       тайминговые (по имени: MS/TIME/SEC/DT, а также t0/t_* и overpay — см. комментарий
       у регекспа) — WARN при расхождении больше TIMING_RATIO раз.
       Каталога нет — шаг молча пропускается (T4-прогон ещё не сделан).
+  [T4\u2261] ОДИН РАНТАЙМ — запасной путь для lab-ann, hw-rag и project-search: CPU-базы у них
+      нет и не будет (полный набор стоит до суток счёта, четыре захода умерли обрывом
+      сессии — решение владельца от 2026-09-04), поэтому [T4] раньше молча выходил с
+      предупреждением и не проверял НИЧЕГО. Теперь T4-дамп сверяется с ЗАМОРОЖЕННЫМ
+      T4-эталоном (seminars/runs-t4-baseline/): железозависимые расхождения так не
+      поймать — и это честно печатается, — зато регрессия кода и данных между двумя
+      прогонами на одном и том же T4 ловится строго, ровно как в [T4].
+      Заморозка ЯВНАЯ: --freeze-t4 (перезапись существующего эталона — только --force),
+      иначе очередной прогон бесшумно объявил бы эталоном сам себя.
 
 Usage:  python3 _research/check_notebooks.py                    (гейт)
         python3 _research/check_notebooks.py --selftest         (каждый класс дефекта горит,
@@ -49,6 +58,7 @@ Usage:  python3 _research/check_notebooks.py                    (гейт)
 CI-регистрация — отдельным шагом, не здесь.
 """
 import glob
+import io
 import json
 import os
 import re
@@ -58,6 +68,13 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SEM_DIR = os.path.join(ROOT, "seminars")
 RUNS_DIR = os.path.join(SEM_DIR, "runs")
 RUNS_T4_DIR = os.path.join(SEM_DIR, "runs-t4")
+# Эталон ОДНОГО рантайма. Для lab-ann, hw-rag и project-search базы на CPU нет и не будет:
+# четыре захода умерли обрывом сессии, а hw-rag считал одну ячейку 3,5 часа — полный набор
+# стоит до суток счёта, и владелец прервал (решение от 2026-09-04). Без базы шаг [T4]
+# ничего не сверял и молчал с предупреждением. Замороженный T4-дамп возвращает ему зрение:
+# железозависимые расхождения он поймать не может — это честно помечено, — но регрессию
+# КОДА и ДАННЫХ между двумя прогонами на одном и том же T4 ловит строго.
+RUNS_T4_BASE_DIR = os.path.join(SEM_DIR, "runs-t4-baseline")
 DATA_GLOB = os.path.join(glob.escape(ROOT), "data", "*.json")
 BASELINE_PATH = os.path.join(ROOT, "_research", "baselines", "notebook-numbers.json")
 
@@ -370,19 +387,22 @@ def check_embedded_data(name, nb_path, err):
         return
 
 
-def check_t4(name, runs_dir, t4_dir, err, warn):
+def check_t4(name, runs_dir, t4_dir, err, warn, t4_base_dir=None):
     """[T4] сверка локального дампа с T4-дампом: качество строго, тайминги — WARN с допуском."""
     t4_path = os.path.join(t4_dir, name + ".json")
     if not os.path.exists(t4_path):
         return
-    loc_path = os.path.join(runs_dir, name + ".json")
+    base_dir = t4_base_dir or RUNS_T4_BASE_DIR
+    loc_path, tag = os.path.join(runs_dir, name + ".json"), "T4"
     if not os.path.exists(loc_path):
-        return
+        loc_path, tag = os.path.join(base_dir, name + ".json"), "T4\u2261"
+        if not os.path.exists(loc_path):
+            return
     try:
         loc = json.load(open(loc_path, encoding="utf-8")).get("metrics") or {}
         t4 = json.load(open(t4_path, encoding="utf-8")).get("metrics") or {}
     except Exception as e:
-        err(f"[T4] {name}: дамп не читается ({e})")
+        err(f"[{tag}] {name}: дамп не читается ({e})")
         return
     # Тайминговые имена. Кроме очевидных MS/TIME/SEC сюда входят три формы, на которых
     # сверка ложно горела «расхождением качества» после первого же T4-прогона:
@@ -437,31 +457,48 @@ def check_t4(name, runs_dir, t4_dir, err, warn):
     # держать CI красным ради того, что никто не может выполнить сегодня. Это WARN,
     # и сверка молча пропускается — сравнивать заявленные метрики всё равно не с чем.
     if "RUN" not in {k.split(".")[0] for k in t4}:
-        err(f"[T4] {name}: в T4-дампе нет RUN — строгую сверку качества вести не с чем; "
+        err(f"[{tag}] {name}: в T4-дампе нет RUN — строгую сверку качества вести не с чем; "
             f"перепрогони T4-прогон текущей версией (сборщик итога кладёт RUN с 2026-09-03)")
         return
     if "RUN" not in {k.split(".")[0] for k in loc}:
-        warn(f"[T4] {name}: в локальной базе нет RUN — снята прежним сборщиком, "
-             f"сверка качества с T4 пропущена; перепрогони базу, когда будет чем")
-        return
+        # CPU-база снята прежним сборщиком (до починки 2026-09-03) и заявленных метрик
+        # не содержит. Раньше здесь сверка молча кончалась предупреждением. Теперь —
+        # падаем на замороженный T4-эталон: сверять «качество не зависит от железа» всё
+        # так же не с чем, зато регрессия между двумя прогонами на T4 ловится строго.
+        frozen = os.path.join(base_dir, name + ".json")
+        if tag == "T4" and os.path.exists(frozen):
+            try:
+                loc = flat(json.load(open(frozen, encoding="utf-8")).get("metrics") or {})
+            except Exception as e:
+                err(f"[T4\u2261] {name}: эталон не читается ({e})")
+                return
+            tag = "T4\u2261"
+        if "RUN" not in {k.split(".")[0] for k in loc}:
+            warn(f"[{tag}] {name}: в базе сверки нет RUN — снята прежним сборщиком, "
+                 f"сверка качества пропущена; перепрогони базу, когда будет чем")
+            return
+        warn(f"[T4\u2261] {name}: CPU-базы с RUN нет (решение владельца: полный набор стоит "
+             f"до суток счёта) — сверяем с замороженным эталоном ТОГО ЖЕ рантайма; "
+             f"железозависимые расхождения этим шагом не проверяются")
     for k in sorted(set(loc) & set(t4)):
         a, b = loc[k], t4[k]
         declared = k.split(".")[0] == "RUN"
         if timing.search(k):
             hi, lo = max(abs(a), abs(b)), min(abs(a), abs(b))
             if lo > 0 and hi / lo > TIMING_RATIO:
-                warn(f"[T4] {name}.{k}: тайминг разъехался {a} ↔ {b} (> {TIMING_RATIO}×) — "
-                     f"другое железо так не объяснить")
+                warn(f"[{tag}] {name}.{k}: тайминг разъехался {a} ↔ {b} (> {TIMING_RATIO}×) — "
+                     f"{'другое железо так не объяснить' if tag == 'T4' else 'на одном рантайме так не бывает'}")
         elif a != b:
             if declared:
-                err(f"[T4] {name}.{k}: КАЧЕСТВО разошлось между рантаймами: {a} ↔ {b} — "
-                    f"по решению владельца сверка строгая")
+                err(f"[{tag}] {name}.{k}: КАЧЕСТВО разошлось "
+                    f"{'между рантаймами' if tag == 'T4' else 'с замороженным эталоном того же рантайма'}"
+                    f": {a} ↔ {b} — по решению владельца сверка строгая")
             else:
-                warn(f"[T4] {name}.{k}: рабочая переменная разошлась между рантаймами "
+                warn(f"[{tag}] {name}.{k}: рабочая переменная разошлась "
                      f"{a} ↔ {b} — не заявлена в RUN, поэтому не HARD")
     missing = sorted(set(loc) - set(t4))
     if missing:
-        warn(f"[T4] {name}: в T4-дампе нет метрик: {', '.join(missing[:6])}"
+        warn(f"[{tag}] {name}: в сверяемом дампе нет метрик: {', '.join(missing[:6])}"
              + (" …" if len(missing) > 6 else ""))
 
 
@@ -496,7 +533,8 @@ def ratchet_diff(old, new):
 # ── основной прогон ─────────────────────────────────────────────────────────────────────────────
 
 def run(sem_dir=SEM_DIR, runs_dir=RUNS_DIR, t4_dir=RUNS_T4_DIR, data_glob=DATA_GLOB,
-        baseline_path=BASELINE_PATH, update=False, listing=False):
+        baseline_path=BASELINE_PATH, update=False, listing=False,
+        t4_base_dir=RUNS_T4_BASE_DIR):
     errors, warns = [], []
     err, warn = errors.append, warns.append
     pool_data = data_pool(data_glob)
@@ -514,7 +552,7 @@ def run(sem_dir=SEM_DIR, runs_dir=RUNS_DIR, t4_dir=RUNS_T4_DIR, data_glob=DATA_G
                 for raw in residue:
                     print(f"    [N] {name}: {raw!r} — нет ни в дампе, ни в data/")
         check_embedded_data(name, nb_path, err)
-        check_t4(name, runs_dir, t4_dir, err, warn)
+        check_t4(name, runs_dir, t4_dir, err, warn, t4_base_dir)
 
     baseline = load_baseline(baseline_path)
     ok, added, grown, shrunk = ratchet_diff(baseline, residue_by_file)
@@ -580,13 +618,14 @@ def selftest():
     fails = []
 
     def case(label, want_hard, md, dump_metrics, code_extra=None, baseline=None, t4=None,
-             alien=()):
+             alien=(), t4_base=None):
         # Настоящая тетрадка упоминает свои метрики в коде — иначе они бы там не появились.
         # Фикстура обязана быть такой же, иначе проверка [K] («чужая величина в дампе»)
         # горит на каждой синтетике. Что должно остаться ЧУЖИМ, перечисляется в alien.
         sem = os.path.join(tmp, label, "seminars")
         runs = os.path.join(sem, "runs")
         t4d = os.path.join(sem, "runs-t4")
+        t4b = os.path.join(sem, "runs-t4-baseline")
         os.makedirs(runs)
         dglob = os.path.join(tmp, label, "data", "*.json")
         os.makedirs(os.path.dirname(dglob))
@@ -594,7 +633,7 @@ def selftest():
         if code_extra is not None:
             code = list(code_extra)
         mentioned = set()
-        for src in (dump_metrics, t4):
+        for src in (dump_metrics, t4, t4_base):
             for k, v in (src or {}).items():
                 mentioned.add(k)
                 if isinstance(v, dict):
@@ -611,6 +650,10 @@ def selftest():
             os.makedirs(t4d, exist_ok=True)
             json.dump({"notebook": "nb", "runtime": {"gpu": "T4"}, "metrics": t4},
                       open(os.path.join(t4d, "nb.json"), "w"))
+        if t4_base is not None:
+            os.makedirs(t4b, exist_ok=True)
+            json.dump({"notebook": "nb", "runtime": {"gpu": "T4"}, "metrics": t4_base},
+                      open(os.path.join(t4b, "nb.json"), "w"))
         bpath = os.path.join(tmp, label, "baseline.json")
         if baseline is not None:
             json.dump({"residue": baseline}, open(bpath, "w"))
@@ -619,7 +662,7 @@ def selftest():
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):
             rc = run(sem_dir=sem, runs_dir=runs, t4_dir=t4d, data_glob=dglob,
-                     baseline_path=bpath)
+                     baseline_path=bpath, t4_base_dir=t4b)
         got_hard = rc != 0
         status = "OK" if got_hard == want_hard else "FAIL"
         if got_hard != want_hard:
@@ -749,6 +792,20 @@ def selftest():
     # 11d. …а старая ЛОКАЛЬНАЯ база без RUN — WARN: её перепрогон бывает недоступен
     case("t4-old-baseline", False, "проза без чисел", {"SEED": 42, "NDCG": 0.63}, seed_code,
          t4={"SEED": 42, "RUN": {"NDCG": 0.63}})
+    # 11e. CPU-базы с RUN нет, но T4-эталон заморожен и совпадает — не HARD, только WARN
+    #      о том, что сверка идёт внутри одного рантайма.
+    out = case("t4eq-matches", False, "проза без чисел", {"SEED": 42, "NDCG": 0.63}, seed_code,
+               t4={"SEED": 42, "RUN": {"ndcg": 0.63}},
+               t4_base={"SEED": 42, "RUN": {"ndcg": 0.63}})
+    assert "T4\u2261" in out, "падение на замороженный эталон не объявлено"
+    # 11f. …и та же связка ловит регрессию: RUN разошёлся с эталоном ТОГО ЖЕ рантайма.
+    #      Раньше здесь была тишина — сверять было не с чем, и шаг молча выходил.
+    case("t4eq-drifts", True, "проза без чисел", {"SEED": 42, "NDCG": 0.63}, seed_code,
+         t4={"SEED": 42, "RUN": {"ndcg": 0.71}},
+         t4_base={"SEED": 42, "RUN": {"ndcg": 0.63}})
+    # 11g. эталон без RUN эталоном не работает — остаётся прежний WARN
+    case("t4eq-base-no-run", False, "проза без чисел", {"SEED": 42, "NDCG": 0.63}, seed_code,
+         t4={"SEED": 42, "RUN": {"ndcg": 0.63}}, t4_base={"SEED": 42, "NDCG": 0.63})
     # 12a. T4: t0 — абсолютный perf_counter; между машинами он расходится в 87 раз, и это
     #      возраст рантайма, а не качество. Тайминг по имени, значит WARN, а не HARD.
     case("t4-t0", False, "проза без чисел", {"SEED": 42, "RUN": {"t0": 70072.7}},
@@ -819,7 +876,51 @@ def selftest():
     return 0
 
 
+def freeze_t4(t4_dir=RUNS_T4_DIR, runs_dir=RUNS_DIR, base_dir=RUNS_T4_BASE_DIR, force=False):
+    """--freeze-t4: заморозить T4-эталон там, где CPU-базы с RUN нет.
+
+    Заморозка эталона — это то, чем визуальный долг заводят в репозиторий, поэтому она
+    ЯВНАЯ и отказывается перезаписывать уже замороженное без --force: иначе очередной
+    прогон бесшумно объявил бы эталоном сам себя, и сверка перестала бы что-либо ловить.
+    """
+    os.makedirs(base_dir, exist_ok=True)
+    frozen = skipped = 0
+    for t4p in sorted(glob.glob(os.path.join(glob.escape(t4_dir), "*.json"))):
+        name = os.path.splitext(os.path.basename(t4p))[0]
+        try:
+            t4 = json.load(open(t4p, encoding="utf-8"))
+        except Exception as e:
+            print(f"  ✗ {name}: T4-дамп не читается ({e})")
+            continue
+        if "RUN" not in (t4.get("metrics") or {}):
+            print(f"  · {name}: в T4-дампе нет RUN — эталоном быть не может")
+            continue
+        locp = os.path.join(runs_dir, name + ".json")
+        if os.path.exists(locp):
+            try:
+                if "RUN" in (json.load(open(locp, encoding="utf-8")).get("metrics") or {}):
+                    skipped += 1
+                    print(f"  · {name}: есть CPU-база с RUN — эталон не нужен, "
+                          f"сверка кросс-рантаймовая и она сильнее")
+                    continue
+            except Exception:
+                pass
+        dst = os.path.join(base_dir, name + ".json")
+        if os.path.exists(dst) and not force:
+            print(f"  · {name}: эталон уже заморожен — перезапись только с --force")
+            continue
+        with io.open(dst, "w", encoding="utf-8") as fh:
+            json.dump(t4, fh, ensure_ascii=False, indent=1, sort_keys=True)
+            fh.write("\n")
+        frozen += 1
+        print(f"  ✓ {name}: эталон заморожен ({len(t4.get('metrics') or {})} величин)")
+    print(f"[notebooks-gate] эталонов заморожено: {frozen} · пропущено (есть CPU-база): {skipped}")
+    return 0
+
+
 if __name__ == "__main__":
     if "--selftest" in sys.argv:
         sys.exit(selftest())
+    if "--freeze-t4" in sys.argv:
+        sys.exit(freeze_t4(force="--force" in sys.argv))
     sys.exit(run(update="--update-baseline" in sys.argv, listing="--list" in sys.argv))
