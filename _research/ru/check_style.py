@@ -83,6 +83,9 @@ CHECKS = [
 ]
 
 GENDER_RE = re.compile(r"[Сс]пасибо[^.!?]{0,80}?\b(?:прочитал|дочитал|стоял|сидел|провёл|прошёл|дошёл|сделал|построил)\b")
+BIT_INFO_CTX = re.compile(
+    r"байт|бит(?:ах|ами|ам|ов|ы|ом|е|у|а)?\b|знак|координат|нул(?:ь|я|ём|ем)|"
+    r"единиц|код(?:а|ом|е|у)?\b|\\pm|±|\\sqrt|разряд", re.I)
 BIT_RE = re.compile(r"\b(?:[Сс]ледующ[а-яё]+|[Ээ]т(?:от|ом)|[Пп]рошл[а-яё]+|[Пп]редыдущ[а-яё]+|[Фф]инальн[а-яё]+|[Пп]оследн[а-яё]+|[Пп]ерв[а-яё]+|[Кк]ажд[а-яё]+)\s+бит(?:ах|ами|ам|ов|ы|ом|е|у|а)?(?![а-яё])")
 
 # words that are legitimately latin inside ru prose — reduce E-MIXED noise on
@@ -103,8 +106,11 @@ def _in_link(seg, pos):
 # «recall»/«precision» are legitimate when they are (a) the parenthetical gloss of the
 # canonical Russian term — "полноты (recall)" — or (b) a symbol inside math / a metric
 # enumeration. Only bare prose use is a defect.
+# re.I, потому что глосса бывает и в начале предложения: «Точность (precision) и полнота
+# (recall) отвечают…». Без флага правило видело там кальку и требовало переписать то, что
+# уже написано по канону.
 GLOSS = re.compile(r"(?:полнот\w+|точност\w+)\s*\((?:recall|precision)\)|"
-                   r"\((?:precision|recall)[–—-](?:precision|recall)\)")
+                   r"\((?:precision|recall)[–—-](?:precision|recall)\)", re.I)
 MATHY = re.compile(r"\\text\{[^}]*\}|\\\(|\\\)|\$\$")
 
 
@@ -121,7 +127,11 @@ CHTO_OK = re.compile(r"(?:единственн|лучш|худш|наимень�
                      # нет», «где кажется, что хватит одной». «Который» там невозможен — это не
                      # определительное придаточное, а дополнение. Правило ловило их как ошибку.
                      r"оказыва|оказал|кажет|казал|выясн|получа|получил|выходит|значит|"
-                     r"понятн|извест|видн)"
+                     r"понятн|извест|видн|"
+                     # …и сравнительное «то же самое, что»: «лексически трудное — не то
+                     # же самое, что путает плотная модель». Это устойчивое сравнение,
+                     # «который» в него не подставляется.
+                     r"сам)"
                      r"[а-яё]*\s*,\s*что",
                      re.I)
 
@@ -208,6 +218,26 @@ def _lat_ok(seg, m):
     # (`R-` is one letter, hence the separate hyphen branch: "R-precision" is a metric name.)
     if re.search(r"[A-Za-z]{2,}[\s-]$", left) or re.search(r"[A-Za-z]-$", left):
         return True
+    # ПРОИЗНЕСЁННАЯ форма отсечки. Сценарий озвучки пишет то, что диктор говорит вслух:
+    # «recall at k» — это ровно recall@k из ветки выше, только словом. Правило ловило её
+    # как кальку и держало сценарии в долге из 18 предупреждений, где ни одно не было
+    # калькой. Форма узкая: сразу справа «at» + отсечка (число, k или её кириллическая «к»).
+    if re.match(r"\s+at\s+(?:\d+|[kKкК])\b", right):
+        return True
+    # Перечисление метрик через союз — та же конструкция, что через запятую веткой выше:
+    # «nDCG, MAP, MRR, precision и recall на топ-k». Соседний член перечисления опознаётся
+    # по имени метрики; «при precision и косинусе» калькой остаётся.
+    if re.search(r"(?:MAP|nDCG|MRR|precision|recall|полнота|точность)\s*(?:и|или|против|vs\.?)\s+$", left) or \
+       re.match(r"\s+(?:и|или|против|vs\.?)\s+(?:MAP|nDCG|MRR|precision|recall)\b", right):
+        return True
+    # Глосса через запятую: «там правит полнота, recall, и это переворачивает» — русский
+    # термин уже назван, латиница идёт пояснением. GLOSS ловит только скобочную форму.
+    if re.search(r"(?:полнота|полноты|полноте|точность|точности)\s*,\s*$", left):
+        return True
+    # kebab-идентификатор с латиницей по обе стороны дефиса — имя виджета или кривой,
+    # а не слово русской фразы: «[ВИДЖЕТ: recall-curve — кривая полноты против ef]».
+    if re.match(r"-[A-Za-z]", right) or re.search(r"[A-Za-z]-$", left):
+        return True
     return False
 
 
@@ -217,10 +247,19 @@ def _lat_ok(seg, m):
 # это исказило бы цитируемое. Ограничение по длине держит сужение узким: длинный абзац в
 # кавычках — это уже авторский текст, а не короткая цитата.
 QUOTED = re.compile(r"«[^«»]{0,80}»")
+# Чужая речь бывает размечена не только «ёлочками». Три ложных срабатывания, найденных
+# аудитом 06.09.2026, все одного класса: реплика внутри метафоры (*насколько мне учесть
+# то, что говорит каждый из вас?*), строка интерфейса (*возможно, вы искали*) и цитата
+# профессора в <blockquote>. Ни одно не является обращением автора к студенту, а §1
+# правит именно обращение. Та же граница по длине: длинный абзац курсивом — снова автор.
+EMPHASIZED = re.compile(r"(?<![*\w])\*(?!\*)[^*\n]{0,80}\*(?!\*)|(?<![_\w])_(?!_)[^_\n]{0,80}_(?!_)")
+BLOCKQUOTED = re.compile(r"<blockquote\b.*?</blockquote>", re.S | re.I)
 
 
 def _vy_ok(seg, m):
-    return any(q.start() < m.start() < q.end() for q in QUOTED.finditer(seg))
+    return any(q.start() < m.start() < q.end()
+               for rx in (QUOTED, EMPHASIZED, BLOCKQUOTED)
+               for q in rx.finditer(seg))
 
 
 def lint_segment(seg, relpath, base_line, findings, owns_bit, is_beats):
@@ -243,6 +282,12 @@ def lint_segment(seg, relpath, base_line, findings, owns_bit, is_beats):
                          m.group(0)[:80], "финал без гендер-маркировки (§1)"))
     if is_beats and not owns_bit:
         for m in BIT_RE.finditer(seg):
+            # «бит» бывает и настоящей ЕДИНИЦЕЙ ИНФОРМАЦИИ вне главы про энтропию —
+            # напр. в квантовании (RaBitQ): «Каждый бит становится координатой ±1/√8».
+            # Такт нарратива не соседствует с байтом, знаком и координатой, поэтому
+            # маркер в окне справа снимает подозрение (фикстуры в selftest).
+            if BIT_INFO_CTX.search(seg[m.end():m.end() + 90]):
+                continue
             findings.append(("W", "W-BIT", relpath, base_line(m.start()),
                              m.group(0)[:60], "→ такт (§7)"))
     # decimals via fix_decimals machinery (math-aware)
@@ -290,6 +335,13 @@ def process(path, root, kind, findings):
         regions = rulib.md_ru_spans(text)
     else:
         regions = rulib.ru_text_spans_html(text)
+        # Слайд-цитата: <blockquote> — чужая речь, а §1 правит обращение АВТОРА к студенту.
+        # Регионы режутся по lang-спанам, поэтому сам тег в сегмент не попадает и
+        # _vy_ok его не видит — отсекаем на уровне регионов.
+        bq = [(m.start(), m.end()) for m in BLOCKQUOTED.finditer(text)]
+        if bq:
+            regions = [(rs, re_) for rs, re_ in regions
+                       if not any(bs <= rs and re_ <= be for bs, be in bq)]
     for rs, re_ in regions:
         seg = text[rs:re_]
         lint_segment(seg, relpath,
@@ -388,6 +440,15 @@ def selftest():
         fails.append("vy-fires-on-address")            # обращение к читателю — дефект
     if vy("подсказка «возможно, вы искали» чинит опечатку"):
         fails.append("vy-skips-a-quote")               # строка интерфейса — цитата
+    if vy("подсказка *возможно, вы искали* чинит опечатку"):
+        fails.append("vy-skips-emphasis")              # та же строка курсивом
+    if vy("<blockquote>Я сделаю вашу жизнь невыносимой.</blockquote>"):
+        fails.append("vy-skips-blockquote")            # цитата третьего лица
+    if not vy("*здесь* вы увидите, как растёт индекс"):
+        fails.append("vy-fires-outside-emphasis")      # курсив рядом — не индульгенция
+    if not vy("а вот целый абзац курсивом, где автор долго и обстоятельно объясняет, "
+              "почему вы обязаны сделать именно так, а не иначе, и это уже не цитата"):
+        fails.append("vy-emphasis-length-bound")       # длинный кусок — снова автор
     if vy("`evlerinizden` — одно слово, «из ваших домов»"):
         fails.append("vy-skips-a-translation")
     if not vy("«тут» вы найдёте ответ"):
@@ -404,6 +465,8 @@ def selftest():
         fails.append("chto-skips-seems")
     if not chto("тем же источником, что питает слайды"):
         fails.append("chto-fires-on-attributive")     # здесь «что» = «который»
+    if chto("трудное — не то же самое, что путает плотная модель"):
+        fails.append("chto-skips-comparison")         # сравнение, «который» невозможен
 
     def lat(seg):
         found = []
@@ -412,8 +475,37 @@ def selftest():
 
     if lat("лучшая кривая `recall-QPS`, один параметр"):
         fails.append("lat-skips-inline-code")         # идентификатор, не англицизм
+    if lat("Точность (precision) и полнота (recall) отвечают по-разному"):
+        fails.append("lat-skips-gloss-at-sentence-start")   # глосса с заглавной — тот же канон
     if not lat("здесь recall падает вдвое"):
         fails.append("lat-fires-in-prose")            # тот же термин в прозе — долг     # кавычки рядом ≠ внутри
+    if lat("вычислить recall at k и precision at 10 руками"):
+        fails.append("lat-skips-spoken-cutoff")       # произнесённая форма recall@k
+    if lat("метриками: nDCG, MAP, MRR, precision и recall на топ-k"):
+        fails.append("lat-skips-conjunction-list")    # перечисление метрик через союз
+    if lat("там правит полнота, recall, и это переворачивает уклон"):
+        fails.append("lat-skips-comma-gloss")         # русский термин уже назван
+    if lat("[ВИДЖЕТ: recall-curve — кривая полноты против ef]"):
+        fails.append("lat-skips-widget-id")           # идентификатор, не англицизм
+    if not lat("вспомни recall по шагам"):
+        fails.append("lat-still-fires-bare")          # голый термин в реплике — долг
+    if not lat("при recall и косинусной близости"):
+        fails.append("lat-conjunction-needs-a-metric")  # союз без второй метрики не спасает
+
+    # слайд-цитата <blockquote>: чужая речь молчит, та же фраза вне цитаты — падает
+    tmp0 = _tempfile.mkdtemp(prefix="style_selftest_bq_")
+    _os.makedirs(_os.path.join(tmp0, "Lectures", "00-x", "parts"))
+    bqp = _os.path.join(tmp0, "Lectures", "00-x", "parts", "24-quote.html")
+    with open(bqp, "w", encoding="utf-8") as fh:
+        fh.write('<section class="slide"><blockquote><span lang="ru">'
+                 'Я сделаю вашу жизнь невыносимой.</span></blockquote>'
+                 '<p><span lang="ru">И вашу тоже.</span></p></section>')
+    got = []
+    process(bqp, tmp0, "html", got)
+    vy_hits = [f for f in got if f[1] == "W-VY"]
+    if len(vy_hits) != 1:
+        fails.append("vy-blockquote-region-filter")
+    _shutil.rmtree(tmp0)
 
     # ноутбук В ПЕРИМЕТРЕ: проза линтуется, код — нет
     tmp = _tempfile.mkdtemp(prefix="style_selftest_")
