@@ -14,6 +14,7 @@
    Usage:  node viz-probe-gate.mjs            (working-directory _audit; needs ../docs built)
            node viz-probe-gate.mjs --selftest (pure classifier on planted records — must FIRE on each) */
 import { chromium } from 'playwright';
+import { gotoSlideSettled } from './lib/gate-harness.mjs';
 import { readdirSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
@@ -206,8 +207,10 @@ async function run() {
         const M = meta[i].max || 0;
         for (let k = 0; k <= M; k++) {
           errors.length = 0;
-          await page.evaluate(([idx, step]) => { location.hash = `#/${idx + 1}/${step}`; }, [i, k]);
-          await page.waitForTimeout(M > 0 ? 110 : 90);
+          // Было waitForTimeout(110/90) на КАЖДОМ из ~4300 состояний — сон вместо работы.
+          // Ждём, пока активным станет нужный слайд и его геометрия (включая fitScale)
+          // перестанет меняться три кадра подряд; не устоялся за таймаут — мерим как есть.
+          await gotoSlideSettled(page, i + 1, { step: k });
           const m = await page.evaluate(measure, { TINY_PX, OVERLAP_FRAC, OFF_PAD, IMG_MIN });
           if (!m) continue;
           records.push({ deck, slide: i, step: k, maxStep: M, lang, label: meta[i].label, type: meta[i].type, ...m });

@@ -422,44 +422,61 @@ jobs:
   # ───────────────────────── BROWSER GATES (Playwright) ─────────────────────────
   browser:
     runs-on: ubuntu-latest
-    # The heavy Playwright gates run in 3 PARALLEL buckets (fail-fast:false) so the
-    # wall-clock is the slowest single bucket (~slide-viz) instead of the SUM of all
-    # gates (~28min → ~12min). Every gate runs in exactly ONE bucket — full coverage
-    # preserved; the setup below (build, Playwright) is shared (cached) across buckets.
+    # The heavy Playwright gates run in PARALLEL buckets (fail-fast:false) so the wall-clock
+    # is the slowest single bucket instead of the SUM of all gates. Every gate runs in exactly
+    # ONE bucket — full coverage preserved; the setup (build, Playwright) is shared via cache.
+    #
+    # WHY SO MANY BUCKETS (measured 09.09.2026, not guessed). Per-step timings of a real run
+    # showed the whole setup — checkout, LFS, npm ci, build, Chromium — costs 0.5 min of a
+    # 13.3-min job: everything is cached. So an extra bucket is nearly free, and this repo is
+    # public, where runner minutes are free too. The buckets are balanced by MEASURED gate
+    # times (local, seconds): composition 85 · readability 84 · legibility 75 · responsive 72 ·
+    # viz-probe 121 · parity ~0. slide-viz does not shrink by tuning — it shards round-robin
+    # over decks/chapters with an arbitrary divisor, so it is split four ways instead of two.
     strategy:
       fail-fast: false
       matrix:
         bucket:
           - name: viz-a
             gates: |
-              node slide-viz-gate.mjs --strict --shard 1/2
+              node slide-viz-gate.mjs --strict --shard 1/4
               node slide-viz-gate.mjs --selftest
           - name: viz-b
             gates: |
-              node slide-viz-gate.mjs --strict --shard 2/2
+              node slide-viz-gate.mjs --strict --shard 2/4
+          - name: viz-c
+            gates: |
+              node slide-viz-gate.mjs --strict --shard 3/4
+          - name: viz-d
+            gates: |
+              node slide-viz-gate.mjs --strict --shard 4/4
           - name: probe
             gates: |
               node viz-probe-gate.mjs
               node viz-probe-gate.mjs --selftest
+          - name: widgets
+            gates: |
               node wbw-check.mjs
               node wbw-check.mjs --selftest
               node widget-render-check.mjs
               node widget-render-check.mjs --selftest
-          - name: layout
+          - name: layout-a
             gates: |
               for f in ../Lectures/*.html; do node offline-deck.mjs "$(basename "$f")"; done
               node ncd-gate.mjs
               node ncd-gate.mjs --selftest
               node responsive-gate.mjs
               node responsive-gate.mjs --selftest
+              node legibility-gate.mjs
+              node legibility-gate.mjs --selftest
+          - name: layout-b
+            gates: |
               node parity-gate.mjs
               node parity-gate.mjs --selftest
               node composition-gate.mjs
               node composition-gate.mjs --selftest
               node readability-gate.mjs
               node readability-gate.mjs --selftest
-              node legibility-gate.mjs
-              node legibility-gate.mjs --selftest
     steps:
       - uses: actions/checkout@v4
       # The illustration masters live in LFS; checkout leaves pointer stubs. Restore the
