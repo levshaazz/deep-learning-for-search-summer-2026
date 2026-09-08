@@ -172,6 +172,47 @@ export async function gotoSlideSettled(page, index, { timeout = 2500, frames = 3
   }
 }
 
+/**
+ * Дождаться, пока УЗЕЛ устоится: закончились переходы И перестала меняться геометрия.
+ *
+ * Зачем отдельный помощник, а не пауза. Гейт, который снимает ОТПЕЧАТОК рендера
+ * (widget-render-check: сколько меток видно и какие у них заливки), нельзя отпускать
+ * по таймеру: виджеты курса анимируют смену шага переходом длиной `--dur` = 220 мс,
+ * а гейт ждал 160 мс. Замер попадал в СЕРЕДИНУ перехода — и что он там застанет,
+ * решала скорость машины. Доказано опытом 09.09.2026: два прогона заморозки эталона
+ * на ОДНОМ коммите и одной платформе (ubuntu) разошлись в трёх записях —
+ * `pos-bias-curve` (переход по fill: другой цвет) и `ranking-metrics` (переход по
+ * opacity: метка в середине проявления не считалась видимой, 53 → 52). На macOS те же
+ * прогоны совпадали до строки, поэтому дефект годами жил незамеченным.
+ *
+ * Ждём: (1) ни одна анимация в поддереве не в состоянии running — getAnimations
+ * видит и CSS-переходы, и Web Animations; (2) геометрия узла не менялась `frames`
+ * кадров подряд. Не устоялось за timeout — меряем как есть: это всё равно строго
+ * больше прежней фиксированной паузы, то есть хуже прежнего быть не может.
+ *
+ * Чего помощник НЕ видит: анимацию, нарисованную вручную через requestAnimationFrame
+ * (для браузера это не анимация). Виджеты курса так не делают, но если появится —
+ * этот предикат её не дождётся, и знать об этом надо заранее.
+ */
+export async function waitSettled(page, selector, { timeout = 2500, frames = 2 } = {}) {
+  try {
+    await page.waitForFunction(({ sel, need }) => {
+      const el = document.querySelector(sel);
+      if (!el) return false;
+      const running = el.getAnimations({ subtree: true }).some((a) => a.playState === 'running');
+      if (running) { window.__wsSig = null; window.__wsN = 0; return false; }
+      const r = el.getBoundingClientRect();
+      const sig = [Math.round(r.width), Math.round(r.height), el.scrollHeight].join('|');
+      if (window.__wsSig === sig) window.__wsN = (window.__wsN || 0) + 1;
+      else { window.__wsSig = sig; window.__wsN = 0; }
+      return window.__wsN >= need;
+    }, { sel: selector, need: frames }, { timeout, polling: 'raf' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** Convenience: launch hardened, serve a dir, run fn({browser,server}), tear both down. */
 export async function withServedBrowser(dir, opts, fn) {
   const server = await serveDir(dir, opts);

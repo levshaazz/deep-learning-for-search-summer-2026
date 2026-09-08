@@ -69,7 +69,7 @@
    Offline: chromium comes from _audit/node_modules / the cached browser; no network.
    ========================================================================= */
 import { chromium } from 'playwright';
-import { HARDENED, serveDir } from './lib/gate-harness.mjs';   // serveDir = free-port static server (no port race)
+import { HARDENED, serveDir, waitSettled } from './lib/gate-harness.mjs';   // serveDir = free-port static server (no port race)
 import { readFileSync, existsSync, statSync, readdirSync, mkdirSync } from 'node:fs';
 import { writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -89,7 +89,9 @@ const TH = {
   MIN_FIG_AREA: 64,      // px²: a figure box (svg viewport or html fallback) below this reads as degenerate/empty.
   MIN_VISIBLE: 1,        // a non-degenerate figure must paint at least this many visible meaningful elements.
   MOUNT_TIMEOUT: 15000,  // ms to wait for window.__figs[beat] to appear.
-  STEP_SETTLE: 160,      // ms to let a step paint before capturing.
+  STEP_SETTLE_MAX: 3000, // верхняя граница ожидания конца переходов перед снятием отпечатка.
+                         // Было STEP_SETTLE: 160 — фиксированная пауза КОРОЧЕ перехода (--dur=220мс),
+                         // из-за чего отпечаток снимался в середине анимации. См. waitSettled.
 };
 
 // Benign console-error noise we must NOT fail on: a missing favicon / 404 for an asset the page
@@ -437,7 +439,11 @@ async function runChapter(browser, chapter, beats, opt) {
           if (!stepRes.ok) {
             failures.push({ cls: 'SETSTEP-THROW', step: k, msg: stepRes.msg, stack: stepRes.stack });
           }
-          await page.waitForTimeout(opt.STEP_SETTLE);
+          // НЕ пауза: отпечаток снимается только после конца переходов. Раньше здесь
+          // стояли STEP_SETTLE=160 мс при длине перехода --dur=220 мс, и замер попадал в
+          // середину анимации — см. waitSettled в gate-harness, там записан опыт, которым
+          // это доказано.
+          await waitSettled(page, '#fig-' + beat, { timeout: opt.STEP_SETTLE_MAX });
           // EMPTY-RENDER — probe the figure health at this step.
           const probe = await page.evaluate(({ b, o }) => window.__RENDERPROBE(b, o), { b: beat, o: opt });
           const empty = emptyVerdict(probe);
