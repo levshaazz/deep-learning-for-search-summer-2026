@@ -147,8 +147,10 @@ export function ready(page, predicate, { timeout = 20000, polling = 'raf' } = {}
  * ровно как раньше. То есть в худшем случае ожидание СТАЛО ДЛИННЕЕ прежних 220 мс,
  * а не короче: проверка не ослаблена (H4), только ускорена на типичном слайде.
  */
-export async function gotoSlideSettled(page, index, { timeout = 2500, frames = 3 } = {}) {
-  await page.evaluate((k) => { location.hash = '#/' + k; }, index);
+export async function gotoSlideSettled(page, index, { timeout = 2500, frames = 3, step = null } = {}) {
+  // step !== null → якорь вида #/N/S: дека умеет открывать слайд сразу на нужном шаге.
+  await page.evaluate(([k, st]) => { location.hash = st ? `#/${k}/${st}` : `#/${k}`; },
+                      [index, step]);
   try {
     await page.waitForFunction(({ k, need }) => {
       const all = [...document.querySelectorAll('section.slide')];
