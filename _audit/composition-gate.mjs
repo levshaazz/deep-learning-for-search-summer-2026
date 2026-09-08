@@ -16,7 +16,7 @@
 import { readFileSync, readdirSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { serveDir, withBrowser, withPage, makeReporter } from './lib/gate-harness.mjs';
+import { serveDir, withBrowser, withPage, makeReporter, gotoSlideSettled } from './lib/gate-harness.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
@@ -121,8 +121,11 @@ async function run({ contact = null } = {}) {
           let shotDir;
           if (contact) { shotDir = join(ROOT, '_internal', 'contact-sheets', deck.replace('.html', '')); mkdirSync(shotDir, { recursive: true }); }
           for (let i = 1; i <= n; i++) {
-            await page.evaluate((k) => { location.hash = '#/' + k; }, i);
-            await page.waitForTimeout(220);
+            // Было: смена якоря + waitForTimeout(220). На 1472 слайдах это 5,4 минуты сна,
+            // и именно они, а не измерения, держали браузерный джоб CI. Теперь ждём, пока
+            // слайд ДЕЙСТВИТЕЛЬНО устоится (см. gotoSlideSettled); по таймауту помощник не
+            // бросает, и мы меряем как раньше — то есть проверка не ослаблена.
+            await gotoSlideSettled(page, i);
             const m = await page.evaluate(MEASURE);
             scanned++;
             if (contact) await page.screenshot({ path: join(shotDir, `s${String(i).padStart(2, '0')}.png`) });

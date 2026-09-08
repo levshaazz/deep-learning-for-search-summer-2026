@@ -129,6 +129,47 @@ export function ready(page, predicate, { timeout = 20000, polling = 'raf' } = {}
   return page.waitForFunction(predicate, undefined, { timeout, polling });
 }
 
+/**
+ * Перейти на слайд N и ДОЖДАТЬСЯ, пока он устоится, вместо фиксированного сна.
+ *
+ * Зачем. Гейты, обходящие деку послайдово, ставили `waitForTimeout(220)` после смены
+ * якоря. На 1472 слайдах это 5,4 МИНУТЫ чистого сна в одном гейте — и именно они,
+ * а не измерения, составляли основное время браузерных джобов CI. Число 220 при этом
+ * ниоткуда не следует: оно должно покрывать худший случай (тяжёлый виджет + три
+ * итерации авто-подгонки), поэтому на 90% слайдов гейт просто спит впустую.
+ *
+ * Что здесь вместо него. Ждём ДВА условия: (1) активным стал именно нужный слайд;
+ * (2) его геометрия перестала меняться — подпись из высоты, scrollHeight, масштаба
+ * авто-подгонки и текущего шага совпала на трёх подряд кадрах. Обычно это 3–4 кадра,
+ * то есть 50–70 мс вместо 220.
+ *
+ * ВАЖНО: по таймауту функция НЕ бросает, а возвращает false. Гейт всё равно меряет —
+ * ровно как раньше. То есть в худшем случае ожидание СТАЛО ДЛИННЕЕ прежних 220 мс,
+ * а не короче: проверка не ослаблена (H4), только ускорена на типичном слайде.
+ */
+export async function gotoSlideSettled(page, index, { timeout = 2500, frames = 3 } = {}) {
+  await page.evaluate((k) => { location.hash = '#/' + k; }, index);
+  try {
+    await page.waitForFunction(({ k, need }) => {
+      const all = [...document.querySelectorAll('section.slide')];
+      const cur = all.findIndex((s) => getComputedStyle(s).display !== 'none'
+                                    && s.getAttribute('aria-hidden') !== 'true');
+      if (cur !== k - 1) { window.__settleSig = null; window.__settleN = 0; return false; }
+      const s = all[cur];
+      const r = s.getBoundingClientRect();
+      const sig = [Math.round(r.width), Math.round(r.height), s.scrollHeight,
+                   s.dataset.fitScale || '', s.dataset.fitClipScale || '',
+                   s.dataset.currentStep || ''].join('|');
+      if (window.__settleSig === sig) window.__settleN = (window.__settleN || 0) + 1;
+      else { window.__settleSig = sig; window.__settleN = 0; }
+      return window.__settleN >= need;
+    }, { k: index, need: frames }, { timeout, polling: 'raf' });
+    return true;
+  } catch {
+    return false;   // не устоялся за timeout — мерим как есть, это дольше прежнего сна
+  }
+}
+
 /** Convenience: launch hardened, serve a dir, run fn({browser,server}), tear both down. */
 export async function withServedBrowser(dir, opts, fn) {
   const server = await serveDir(dir, opts);

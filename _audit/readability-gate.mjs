@@ -24,7 +24,7 @@ import { readFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, extname } from 'node:path';
-import { serveDir, withBrowser, withPage, makeReporter } from './lib/gate-harness.mjs';
+import { serveDir, withBrowser, withPage, makeReporter, gotoSlideSettled } from './lib/gate-harness.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
@@ -114,8 +114,10 @@ async function eachDeckSlide(page, deck, server, fn) {
   await page.goto(server.href(deck), { waitUntil: 'networkidle' });
   await page.waitForTimeout(400);
   for (let i = 1; i <= n; i++) {
-    await page.evaluate((k) => { location.hash = '#/' + k; }, i);
-    await page.waitForTimeout(160);
+    // Было: смена якоря + waitForTimeout(160) — на 1472 слайдах почти четыре минуты сна.
+    // Ждём фактического устоявшегося слайда; по таймауту помощник не бросает, и замер
+    // идёт как прежде, так что проверка не ослаблена (H4).
+    await gotoSlideSettled(page, i);
     const vis = await page.evaluate((collectStr) => {
       const COLLECT = eval('(' + collectStr + ')');
       const slides = [...document.querySelectorAll('section.slide')];
