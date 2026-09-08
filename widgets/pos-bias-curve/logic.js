@@ -25,7 +25,10 @@ export const mountPosBiasCurve = defineWidget({
       .textContent = labels.xaxis || 'rank →';
     // "clicks" y-label anchored at the LEFT edge inside the box (was end-anchored at x=box.x-6, which
     // pushed its left edge to x≈-1.7 and clipped on the panel border). (audit #4)
-    el('text', { x: 2, y: box.y + 8, class: 'pb-axlbl', 'text-anchor': 'start' }, svg)
+    // Подпись оси уведена ВЫШЕ верхней кромки поля: после укрупнения шрифтов (09.09.2026)
+    // «32.3%» над первым столбиком доросло до неё вплотную. Двигаем ось, а не тег: тег
+    // обязан стоять над своим столбиком, иначе перестаёт быть его подписью.
+    el('text', { x: 2, y: box.y - 6, class: 'pb-axlbl', 'text-anchor': 'start' }, svg)
       .textContent = labels.yaxis || 'clicks';
 
     const bw = box.w / ranks.length - 6;
