@@ -1,0 +1,24 @@
+<section class="slide" data-type="theorem" data-screen-label="14 Theorem · O(log N) search">
+  <div class="slide-header">
+    <h2><span lang="ru">Почему прогулка — \(O(\log N)\), а не \(O(N)\)</span><span lang="en">Why the walk is \(O(\log N)\), not \(O(N)\)</span></h2>
+    <span class="slide-kicker"><span lang="ru">слоистый граф как утверждение с доказательством</span><span lang="en">the layered graph, as a proposition with a proof</span></span>
+  </div>
+
+  <div class="thm-card" data-kind="theorem">
+    <div class="thm-label"><span lang="ru">Утверждение · логарифмический поиск</span><span lang="en">Proposition · logarithmic search</span></div>
+    <div class="thm-statement">
+      <span lang="ru">На HNSW-графе над \(N\) точками, где каждый слой хранит долю \(1/m\) от нижнего (\(\approx \log_m N\) слоёв), а жадный поиск делает \(O(1)\) работы на слой, ожидаемое число вычислений расстояния до ближайшего соседа — \(O(\log N)\), намного дешевле перебора \(O(N\cdot d)\).</span><span lang="en">On an HNSW graph over \(N\) points where each layer keeps a \(1/m\) fraction of the one below (\(\approx \log_m N\) layers) and greedy search does \(O(1)\) work per layer, expected distance evaluations to the nearest neighbour is \(O(\log N)\) — far cheaper than the \(O(N\cdot d)\) brute-force scan.</span>
+    </div>
+  </div>
+
+  <div class="thm-card" data-kind="proof">
+    <div class="thm-label"><span lang="ru">Набросок доказательства</span><span lang="en">Proof sketch</span></div>
+    <div class="thm-statement">
+      <span lang="ru">Оставляй точку на слое выше с вероятностью \(1/m\) → \(\mathbb{E}[\text{layers}]\approx\log_m N\). Наверху жадный поиск достигает локально-ближайшего хаба за \(O(1)\) переходов. Слоем ниже граф плотнее в \(m\) раз, но связность малого мира снова удерживает <em>ожидаемое</em> число переходов на \(O(1)\). Сумма \(O(1)\) по \(\log_m N\) слоям — \(\sum_{\ell}O(1)=O(\log_m N)=O(\log N)\). \(M\) задаёт \(m\): больше \(M\) — плотнее слои, выше полнота, больше памяти. \(\blacksquare\)</span><span lang="en">Keep a point on the layer above with probability \(1/m\) → \(\mathbb{E}[\text{layers}]\approx\log_m N\). At the top, greedy search reaches the locally-nearest hub in \(O(1)\) hops. One layer down the graph is denser by \(m\), but small-world connectivity again keeps <em>expected</em> hops at \(O(1)\). Summing \(O(1)\) over \(\log_m N\) layers gives \(\sum_{\ell}O(1)=O(\log_m N)=O(\log N)\). \(M\) sets \(m\): larger \(M\), denser layers, higher recall, more memory. \(\blacksquare\)</span>
+    </div>
+    <div class="thm-statement small muted mt-2"><span lang="ru">Оговорка: это <em>эмпирическая / ожидаемая</em> сложность, не гарантия худшего случая. Шаг «\(O(1)\) на слой» предполагает навигируемость графа — недоказанную для произвольных данных; враждебные или кластеризованные входы могут выродить жадный поиск в линейный.</span><span lang="en">Caveat: this is <em>empirical / expected</em> complexity, not a worst-case guarantee. The \(O(1)\)-hops-per-layer step assumes the graph stays navigable — unproven for general data; adversarial or clustered inputs can degrade greedy search toward linear.</span></div>
+  </div>
+
+  <p class="small muted center mt-2">Malkov &amp; Yashunin (arXiv 2016; IEEE TPAMI 2018).</p>
+  <aside class="slide-notes">O(log N) theorem thm-card (statement + proof). Layers keep a 1/m fraction each → ≈log_m N layers; O(1) expected hops per layer (small-world property) → O(1) summed over log_m N layers = O(log N). M sets the per-node degree m: more edges → denser → higher recall, more memory. Cited Malkov & Yashunin TPAMI 2018 (arXiv:1603.09320), matching data/l9-bench.json hnsw.complexity 'O(log N) search'. No invented decimals — purely asymptotic.</aside>
+</section>

@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { LOCALES, t } from '../../i18n/locales.js';
+import { ui } from '../../i18n/ui.js';
+import { course } from '../../lib/course.js';
+
+export function getStaticPaths() {
+  return LOCALES.map((l) => ({ params: { lang: l } }));
+}
+const { lang } = Astro.params;
+const showFallbackNotice = lang === 'tt';
+
+// Дата занятия приходит ГОТОВОЙ из данных (её считает _research/gen_calendar.py из одной
+// даты старта), поэтому здесь только форматирование. Считать даты второй раз на клиенте
+// значило бы завести вторую реализацию календаря — а именно расхождение трёх копий
+// календаря и было причиной, по которой курс объявлял неверные дедлайны.
+const MONTH = {
+  ru: ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'],
+  en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+  tt: ['гый', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'],
+};
+function showDate(iso, l) {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-').map(Number);
+  const mon = (MONTH[l] || MONTH.en)[m - 1];
+  return l === 'en' ? `${mon} ${d}` : `${d} ${mon}`;
+}
+---
+<BaseLayout lang={lang} page="schedule" title={t(ui.nav.schedule, lang)}>
+  <div class="wrap">
+    <section class="block">
+      <h2>{t(ui.sections.schedule, lang)}</h2>
+      <div class="kicker">{t(course.meta.classTimes, lang)}</div>
+      {showFallbackNotice && <p class="notice">{t(ui.translationInProgress, lang)}</p>}
+      <table>
+        <thead><tr><th>{t(ui.labels.week, lang)}</th><th>{t(ui.labels.date, lang)}</th><th>{t(ui.labels.session, lang)}</th><th>{t(ui.labels.topics, lang)}</th></tr></thead>
+        <tbody>
+          {course.schedule.map((s) => (
+            <tr class={`row-${s.kind}`}>
+              <td>{t(ui.labels.week, lang)} {s.week}</td>
+              <td class="d">{showDate(s.date, lang)}</td>
+              <td class="d">{s.session}</td>
+              <td>{t(s.topics, lang)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  </div>
+</BaseLayout>

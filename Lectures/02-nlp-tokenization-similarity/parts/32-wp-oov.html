@@ -1,0 +1,44 @@
+<section class="slide" data-type="viz" data-screen-label="32 WP OOV">
+          <div class="slide-header">
+            <h2><span lang="ru">WordPiece на невиданных словах</span><span lang="en">WordPiece on unseen words</span></h2>
+            <span class="slide-kicker"><span lang="ru">переиспользуем куски, откат к символам, [UNK] только для невиданных символов</span><span lang="en">reuse pieces, char fallback, [UNK] only for unseen chars</span></span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1600 480" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">
+              <text x="80" y="60" font-family="var(--font-mono)" font-size="28" fill="var(--ink-2)">"the brown fox quicker café"  →  WordPiece &nbsp;<tspan font-size="20" fill="var(--ink-3)">(corpus: "the quick brown fox")</tspan></text>
+              <!-- Row 1: words that ARE in the training corpus → kept whole -->
+              <g font-family="var(--font-mono)" font-size="30">
+                <rect x="80"  y="104" width="120" height="74" rx="8" fill="var(--c-green)" opacity="0.16" stroke="var(--c-green)"/>
+                <text x="140" y="150" text-anchor="middle" fill="var(--c-green)">the</text>
+                <rect x="220" y="104" width="160" height="74" rx="8" fill="var(--c-green)" opacity="0.16" stroke="var(--c-green)"/>
+                <text x="300" y="150" text-anchor="middle" fill="var(--c-green)">brown</text>
+                <rect x="400" y="104" width="120" height="74" rx="8" fill="var(--c-green)" opacity="0.16" stroke="var(--c-green)"/>
+                <text x="460" y="150" text-anchor="middle" fill="var(--c-green)">fox</text>
+                <text x="540" y="150" font-family="var(--font-sans)" font-size="23" fill="var(--ink-3)">← seen in training, kept whole</text>
+              </g>
+              <!-- Row 2a: unseen "quicker" → reuse learned piece "quick", then single-character fallback -->
+              <g font-family="var(--font-mono)" font-size="30">
+                <rect x="80"  y="214" width="170" height="74" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"/>
+                <text x="165" y="260" text-anchor="middle" fill="var(--accent-ink)">quick</text>
+                <rect x="270" y="214" width="110" height="74" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"/>
+                <text x="325" y="260" text-anchor="middle" fill="var(--accent-ink)">##e</text>
+                <rect x="400" y="214" width="110" height="74" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"/>
+                <text x="455" y="260" text-anchor="middle" fill="var(--accent-ink)">##r</text>
+                <text x="295" y="322" font-family="var(--font-sans)" font-size="22" text-anchor="middle" fill="var(--ink-3)">"quicker" (unseen)</text>
+              </g>
+              <!-- Row 2b: "café" → [UNK], because é is outside the base alphabet -->
+              <g font-family="var(--font-mono)" font-size="30">
+                <rect x="640" y="214" width="180" height="74" rx="8" fill="var(--c-red)" opacity="0.14" stroke="var(--c-red)"/>
+                <text x="730" y="260" text-anchor="middle" fill="var(--c-red)">[UNK]</text>
+                <text x="730" y="322" font-family="var(--font-sans)" font-size="22" text-anchor="middle" fill="var(--ink-3)">"café" — a, é never seen</text>
+              </g>
+              <text x="80" y="392" font-family="var(--font-sans)" font-size="26" fill="var(--ink-2)">Unseen "quicker" reuses the learned piece <tspan font-family="var(--font-mono)" fill="var(--accent-ink)">quick</tspan>, then falls back to single characters <tspan font-family="var(--font-mono)" fill="var(--accent-ink)">##e ##r</tspan> — not [UNK].</text>
+              <text x="80" y="438" font-family="var(--font-sans)" font-size="24" fill="var(--ink-3)">[UNK] appears only when a character is outside the base alphabet (the a and é in "café"), never merely because a whole word is unseen.</text>
+            </svg>
+          </div>
+          <p class="viz-caption"><span lang="ru">Жадное совпадение по самому длинному переиспользует куски из обучения, затем откатывается к отдельным символам (</span><span lang="en">Greedy longest-match reuses pieces from training, then falls back to single characters (</span><code>quicker</code><span lang="ru"> → </span><span lang="en"> → </span><code>quick ##e ##r</code><span lang="ru">); слово схлопывается в </span><span lang="en">); a word collapses to </span><span class="term">[UNK]</span><span lang="ru"> только когда один из его символов ни разу не встречался в обучающем алфавите (</span><span lang="en"> only when one of its characters was never in the training alphabet (</span><code>café</code><span lang="ru">).</span><span lang="en">).</span></p>
+          <aside class="slide-notes">This contrasts WordPiece with byte-level BPE. WordPiece's base alphabet is the <em>characters</em> of the training data, not all bytes — so any word whose letters all appeared in training decomposes to known pieces plus single-character fallbacks, and never becomes [UNK]. Same corpus as the previous slide, "the quick brown fox". Note the partial win: "quicker" wasn't seen, yet the learned piece "quick" (built on the previous slide) is reused, then e and r fall back to character pieces ##e ##r. [UNK] is reserved for genuinely out-of-alphabet characters — here the accented é in "café", which never appeared in the training text (nor did the letter a). (Unlike byte-level BPE, which has no [UNK] at all because every byte is in its alphabet.)</aside>
+        </section>
+
+        <!-- ============================================ 31 · TWO-COL · Unigram / SentencePiece ============================================ -->
+        

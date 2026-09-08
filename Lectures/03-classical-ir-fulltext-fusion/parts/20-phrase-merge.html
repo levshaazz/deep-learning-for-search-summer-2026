@@ -1,0 +1,38 @@
+<section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="20 Phrase merge">
+          <div class="slide-header">
+            <h2><span lang="ru">Позиционный индекс и фразовые запросы</span><span lang="en">Positional index &amp; phrase queries</span></h2>
+            <span class="slide-kicker"><span lang="ru">«new york» &mdash; соседство в позициях</span><span lang="en">"new york" &mdash; adjacency in positions</span></span>
+          </div>
+          <p class="small muted mt-2"><span lang="ru">Позиционные вхождения: </span><span lang="en">Positional postings: </span><code>new &rarr; D5:[3, 11]</code>, <code>york &rarr; D5:[4, 27]</code><span lang="ru">. Фраза = позиции на расстоянии один.</span><span lang="en">. Phrase = positions one apart.</span></p>
+          <div class="walk-flow">
+            <div class="walk-step" data-step="1" data-color="violet">
+              <div class="walk-num">01</div>
+              <div class="walk-content"><div class="walk-label"><span lang="ru">Оба терма в D5</span><span lang="en">Both terms in D5</span></div><div class="walk-detail"><span lang="ru">Сначала AND на уровне документов: </span><span lang="en">Doc-level AND first: </span><code>new</code><span lang="ru"> и </span><span lang="en"> and </span><code>york</code><span lang="ru"> оба встречаются в D5. Необходимо, но не достаточно для фразы.</span><span lang="en"> both occur in D5. Necessary, not sufficient for the phrase.</span></div></div>
+              <div class="walk-state"><span lang="ru">D5 — кандидат</span><span lang="en">D5 candidate</span></div>
+            </div>
+            <div class="walk-step" data-step="2" data-color="amber">
+              <div class="walk-num">02</div>
+              <div class="walk-content"><div class="walk-label"><span lang="ru">Проверяем позиции</span><span lang="en">Check positions</span></div><div class="walk-detail"><span lang="ru">Есть ли </span><span lang="en">Is there </span>\(p\in\{3,11\}\)<span lang="ru"> и </span><span lang="en"> and </span>\(p'\in\{4,27\}\)<span lang="ru"> с </span><span lang="en"> with </span>\(p' - p = 1\)<span lang="ru">? Проверим </span><span lang="en">? Test </span>\(p=3\): \(p'=4\)<span lang="ru"> даёт </span><span lang="en"> gives </span>\(4-3=1\)<span lang="ru">. <strong>Совпадение.</strong></span><span lang="en">. <strong>Hit.</strong></span></div></div>
+              <div class="walk-state">3 &rarr; 4 ✓</div>
+            </div>
+            <div class="walk-step" data-step="3" data-color="cyan">
+              <div class="walk-num">03</div>
+              <div class="walk-content"><div class="walk-label"><span lang="ru">Отклоняем ложную пару</span><span lang="en">Reject the false pair</span></div><div class="walk-detail">\(p=11\)<span lang="ru">: ближайший </span><span lang="en">: nearest </span><code>york</code><span lang="ru"> — 27, разрыв 16 &mdash; не соседние. Два совместных вхождения, но фраза только одно.</span><span lang="en"> is 27, gap 16 &mdash; not adjacent. Two co-occurrences, but only one is the phrase.</span></div></div>
+              <div class="walk-state">11 &rarr; 27 ✗</div>
+            </div>
+            <div class="walk-step" data-step="4" data-final="true">
+              <div class="walk-num">&rarr;</div>
+              <div class="walk-content"><div class="walk-label"><span lang="ru">Близость, обобщённо</span><span lang="en">Proximity, generalized</span></div><div class="walk-detail"><span lang="ru">Фраза = разрыв </span><span lang="en">Phrase = gap </span>\(=1\)<span lang="ru">; близость «в пределах </span><span lang="en">; proximity "within </span>\(k\)<span lang="ru">» = разрыв </span><span lang="en">" = gap </span>\(\le k\)<span lang="ru">. Позиции стоят места в индексе, но дают точные и близкие совпадения.</span><span lang="en">. Positions cost index space but enable exact and near matches.</span></div></div>
+              <div class="walk-state"><span lang="ru">«new york» в D5</span><span lang="en">"new york" in D5</span></div>
+            </div>
+          </div>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">4/4</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">Phrase queries need more than co-occurrence. The positional index stores, per posting, the list of token offsets. To match "new york" you first AND the documents, then walk the two position lists looking for offsets exactly one apart. In D5, new at 3 and york at 4 satisfy the phrase; new at 11 and york at 27 do not, so the document matches once. Generalising the gap to at most k gives proximity search. The cost is a larger index, paid because exact phrase matching is essential for names and quotations.</aside>
+        </section>
+
+        <!-- ============================================ 19 · QUOTE · boolean is brittle ============================================ -->
+        

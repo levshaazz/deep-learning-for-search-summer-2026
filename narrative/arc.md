@@ -1,0 +1,162 @@
+# arc.md — the course meta-arc: *The Expedition across the Galaxy of Information*
+
+> **Status: CANON.** The single through-line that connects every lecture/Book chapter. It sits above
+> the per-lecture catchphrases in [voice_wbw.md](../_internal/_research/voice_wbw.md) §4 and the per-lecture beat
+> sheets (`narrative/L<n>.md`), and it pins every lecture to the course spine **Get Data → Measure →
+> Rank → Generate**. Built per [NARRATIVE_METHOD.md](../_internal/_research/iterations/NARRATIVE_METHOD.md) (esp. P3 spatial
+> metaphor, P11 spine question, P12 callbacks). Serega rules from [voice_wbw.md](../_internal/_research/voice_wbw.md) §2.
+
+---
+
+## 1. The premise (one paragraph, memorize it)
+
+You (the student) have signed onto an **expedition across the Galaxy of Information** — an endless
+ocean of documents, queries, signals, and noise. **Serega** is your guide and co-pilot (not the
+captain — *you* become the captain by the end). The mission is to build **the Ship**: a machine that
+can find the **one true record** in a galaxy of billions, and *keep finding it forever*. The Ship is
+built one part per lecture. The galaxy has four territories — and they are the course spine. By
+Project Defense, Serega hands you the helm: **you take the Ship out alone.**
+
+## 2. The Galaxy map *is* the spine: **Get Data → Measure → Rank → Generate**
+
+The spine is not a slogan — it's the **map of the galaxy** and the **loop every search-and-answer
+system runs**. Four territories; each builds one subsystem of the Ship. Every lecture lives in a
+territory (some straddle a border — that border crossing *is* the lecture's hook). The fourth leg —
+**Generate** — was added for good at **L15 "The Oracle"** (owner-locked): the spine's first new leg in
+fifteen lectures, when the Ship stops merely *finding* and starts *answering* (RAG, on top of Rank).
+
+| Territory | Spine leg | What it asks | What of the Ship it builds | Governing metaphor (P3) |
+|-----------|-----------|--------------|----------------------------|--------------------------|
+| **I. The Archives** | **Get Data** | *How do we capture & represent the stuff?* | Sensors & Archives: tokenizer, embeddings, the index | raw matter → coordinates on a map |
+| **II. The Instruments** | **Measure** | *How do we tell what's close / what's good?* | Instruments: similarity, relevance, metrics, evaluation | rulers, angles, the unit sphere |
+| **III. The Bridge** | **Rank** | *How do we order & deliver the answer, at scale, forever?* | Navigation & Bridge: the cascade, ANN, serving | the funnel; hyperspace lanes |
+| **IV. The Oracle** | **Generate** | *How do we turn the ranked evidence into a grounded answer?* | The Oracle: retrieve → augment → generate (RAG) | the seer who reads the scrolls, then speaks |
+
+**The spine slide** (the shared anchor, every lecture): a four-stop map *Get Data → Measure → Rank →
+Generate* with the current lecture's stop(s) lit. It opens the agenda and is the recurring "you are
+here." Mechanically it is the **shared `widgets/course-map/` widget** (4 legs since L15), mounted in
+every deck and lit per-lecture from the lecture's `course.json` `spine` array (its `labels.active`).
+This is NARRATIVE_METHOD **P11** made physical — the same question threads the whole course.
+
+## 3. Arc rules (how the catchphrases chain into one journey)
+
+1. **Each lecture = one mission with its own catchphrase**, but it *advances the expedition*: it opens
+   with a **callback** to where the Ship stands, and closes with a **hook** toward the next part
+   (P12). The catchphrase opens (divider/hook) and closes (finale) the lecture (voice_wbw §6).
+2. **Sci-fi for systems/infrastructure; LOTR/quest for journeys** (voice_wbw §4). Retrieval, RAG,
+   ranking → quest; tokenization, ANN, serving, production → sci-fi.
+3. **Creatures recur and pay off across lectures** (P2) — a creature introduced as a *problem* often
+   returns later as *defeated by a new tool* (the strongest connective device — see §5).
+4. **Milestones are arc beats, not interruptions:** Midterm = *The First Trial*; Final = *The Final
+   Trial*; Defense = *You Take the Helm*.
+5. **The Ship is cumulative:** never re-introduce a subsystem as if new — reference the part built in
+   the earlier lecture ("remember the index we built in *The Star Catalog*?").
+
+## 4. The lectures → catchphrase → spine (the full expedition)
+
+| L | Lecture (syllabus) | Catchphrase | Mode | Spine leg | Problem → Solution (the mission) |
+|---|---|---|---|---|---|
+| **0** | Introduction | **The Briefing** | sci-fi | *whole map* | Serega briefs the crew before the flight; lays out the galaxy (the spine) and the rules. Finale = the captain's send-off ("I will make your life miserable" line). |
+| **1** | Search & IR · ML System Design | **The Lost Record** | sci-fi | Rank-anchored (+all) | One record among billions must be found — *and kept findable forever*. IR = find it; ML System Design = build the machine that keeps finding it. Creatures: **Lexical Gremlin**, **Goodhart**, the **Iceberg** (hidden ML debt). |
+| **2** | NLP · Tokenization · Similarity | **First Contact** | sci-fi → LOTR | Get Data → Measure | Teach a machine to understand an alien's speech (tokenize), then to tell when two meanings are *close* (similarity). **Tokenosaurus**; **Sir Cosine & the Knights of the Unit Sphere** vs the **Curse-of-Dimensionality Wraith**. |
+| **3** | Classical IR (TF-IDF, BM25, inverted index) · Full-text Ranking & **Rank Fusion** | **The Star Catalog** | sci-fi | Measure + Rank | You can't scan every star — build the **inverted index** (the catalog) so any record is found instantly; **BM25** = the trusty old sextant; **Rank Fusion (RRF)** = fuse two rankers' votes into one robust order. |
+| **4** | Shannon Entropy — the entropy of language | **How Much Is a Letter Worth?** | sci-fi | Measure | Opens L3's IDF line: idf **is** Shannon self-information. Entropy is the hard floor of compression *and* the number a language model's loss chases — one ruler behind both the catalog and every model to come. |
+| **5** | **Ranking Metrics** (Recall@k, Precision@k, MRR, MAP, nDCG) | **The Proving Grounds** | sci-fi | Measure | Two systems — which is better? You can't eyeball quality. Build an honest scoreboard (qrels + metrics); **Goodhart the Trickster** shows how a metric, once a target, starts to lie. |
+| **6** | Intro DL for Search · Word embeddings · dim. reduction | **The Map of Meaning** | LOTR/quest | Get Data | Words get *coordinates* — meaning becomes a place you can travel. Dimensionality reduction = folding the great map small enough to carry. **Callback:** the alien from First Contact finally gets a position on the map. |
+| **7** | Dense & contextual embeddings · contrastive learning · Transformers & Attention | **The Council of Attention** | sci-fi | Get Data → Measure | The crew learns *who to listen to* (attention). Contrastive learning pulls synonyms together and pushes impostors apart — **the weapon that finally cages the Lexical Gremlin** (callback to L1). |
+| **8** | BERT & other Transformers — from attention to RLHF | **The Loom of Attention** | sci-fi | Get Data → Measure | Opens L7's line *"attention & the Transformer block — as far as search needs it"*: the machine room behind it — BERT family → GPT line → decoding → efficient attention → RLHF (the tail is marked "beyond the border of search"). |
+| **9** | The Wiring Diagram — neural circuit diagrams: the axes, and the bill | **The Wiring Diagram** | sci-fi | Rank → Generate | Opens L7's cost line *"attention is O(n²)"*: the circuit notation that lets you read the bill straight off the picture (crossover at n = 6d; the FFN nobody draws). |
+| **10** | Bi-encoders (DPR, SBERT) · Cross-encoders & reranking · multi-stage | **Scouts and Judges** | LOTR/quest | Rank | Two kinds of crew: **Scouts** (bi-encoders) sweep fast and wide; **Judges** (cross-encoders) deliberate slowly on the few. The neural cascade is born (callback to The Lost Record's funnel). |
+| — | **Midterm** | **The First Trial** | — | — | The crew is tested before the deep galaxy (covers L0–L10). |
+| **11** | Hard negative mining in contrastive dense retrieval | **The Crucible of Negatives** | LOTR/quest | Rank | Opens L10's line *"the Scouts are trained contrastively"* — how the dense retriever is actually forged: easy negatives teach nothing, the hardest are impostors, and the ore is the hard-but-honest band between them. |
+| **12** | Late interaction (ColBERT) · SPLADE · hybrid · Learning to Rank | **The Alliance** | LOTR/quest | Rank | Sparse and dense armies were fighting alone; **hybrid** unites them under one banner. **Learning to Rank** = training the captain to order the host. (Rank Fusion/RRF now lives in L3.) |
+| **13** | ANN: HNSW, IVF, PQ · FAISS · vector DBs · Production | **Hyperspace Lanes** | sci-fi | Rank / serving | Linear scan dies at galaxy scale — open **hyperspace lanes** (HNSW = navigable small-world jump-gates); **PQ** compresses the star-maps to fit; production keeps the Ship fast and cheap. |
+| **14** | The Curved Map — geometry of meaning: anisotropy & hubness | **The Curved Map** | sci-fi | Measure + Rank | Opens L13's silent assumption *"distance in embedding space can be trusted"* — **Sir Cosine's blind spot**: anisotropy (the narrow cone) and hubness. Whiten the map, tax the hubs (CSLS). |
+| **15** | RAG fundamentals · chunking · query understanding & rewriting | **The Oracle** | sci-fi | Rank → Generate | The Ship stops merely *finding* and starts *answering*: retrieve, then speak. Query rewriting = hearing what the captain *really* asked. |
+| **16** | RAG evaluation (RAGAS, LLM-as-judge) · Agentic RAG (ReAct, Self-RAG, CRAG) | **Judging the Oracle** | sci-fi | Measure (eval) | How do you grade an Oracle that sounds confident either way? **Goodhart returns** (the LLM-judge can be gamed). The agentic loop = the Ship that critiques and corrects itself. |
+| **17** | Advanced query rewriting & decomposition | **The Artificer's Quill** | LOTR/quest | Generate | Opens L15's line *"query rewriting hears what the captain really asked"* — HyDE, step-back, multi-query + RRF, decomposition, the trainable rewriter. Change the *query*, not the retriever. |
+| **18** | Late chunking — contextual chunk embeddings for long documents | **Read the Whole Book First** | LOTR/quest | Get Data + Rank | Opens L15's chunking line (**Chunk Norris**) — the hidden coreference defect of chunk-then-embed. Late chunking reorders {cut, attend}: read the whole book first, *then* mark the pages. |
+| **19** | Search in Russian — morphology, lemmatization, multilingual embedders | **Морфология наносит ответный удар** | sci-fi | Get Data + Rank | Opens L3's lexical-pipeline line — BM25, stemming/lemmatization and tokenizer fertility on a language where one lemma wears dozens of endings. **Tokenosaurus** chokes; the cure is symmetry in both arms. |
+| **20** | Advanced RAG (multi-hop, GraphRAG) · Multimodal (CLIP, ColPali) · ethics & safety | **The Deep Field** | LOTR/quest | Rank → Generate (frontier) | The longest quest: multi-hop reasoning across many records; **GraphRAG** = the constellation map; multimodal = learning to *see*, not only read; ethics = the captain's responsibility for what the Ship says. |
+| — | **Final** | **The Final Trial** | — | — | The galaxy's last test (covers L0–L20). |
+| — | **Project Defense** | **You Take the Helm** | — | — | Serega steps back. The student is now the captain; the Ship is theirs. Callback to The Briefing. |
+
+> **Numbering note (L3/L4 split):** L3 'The Star Catalog' = Classical IR + Full-text Ranking + Rank
+> Fusion; L4 'The Proving Grounds' = Ranking Metrics (a dedicated lecture). The old L4–L11 shifted to
+> L5–L12; Rank Fusion (RRF) moved from the old 'Alliance' into L3.
+
+## 4b. One course, one order: the 21 lectures L0–L20 (canon)
+
+**There is no core course and no satellites.** The expedition is **one sequence of 21 lectures,
+L0–L20**, plus the three milestone trials. Every lecture is required, every lecture advances the
+expedition, and none is filed as "optional", "supplementary", "extra" or a "deep-dive". The words
+*deep-dive · глубокое погружение · дополнительная тема · после основного курса*, the two-track split
+they implied, and the old dive numbers **#1–#8** are all **retired**: do not reintroduce them in a
+deck, the Book, `data/course.json` or any UI.
+
+**The order is a dependency order.** Each lecture sits at the first point where everything it needs
+is already built — that is the only rule that fixed the sequence. It is machine-readable in
+`data/course.json`: the `lectures[]` ids give the order, `schedule[]` gives the weeks.
+
+**What stayed true.** Eight of the twenty-one lectures were born by taking ONE line of an earlier
+lecture and giving it a full hour — and that is still an accurate description of **their content**.
+It is also *why* each one sits where it sits: a lecture that opens a line is placed after the lecture
+that wrote it, as early as its own prerequisites allow. What changed is only the status: opening a
+line is a normal thing for a lecture in this course to do, not a mark of being an appendix.
+
+**Framing rule for these eight (and the check that they comply).** The title slide reads
+*"Лекция NN · <subject>"* / *"Lecture NN · <subject>"* and the final slide *"Лекция NN · … · финал"* —
+never a track label. The **you-are-here** slide names the line the lecture opens *and* the actual
+neighbours: the lecture it follows and the lecture it hands off to. No slide may describe the hour as
+optional or as sitting outside the course.
+
+| L | Catchphrase | Opens (which line of which lecture) | Written by |
+|---|---|---|---|
+| **L4** | **How Much Is a Letter Worth?** | the IDF line — idf **is** Shannon self-information; entropy is the hard floor of compression and the number a language model's loss chases | **L3** |
+| **L8** | **The Loom of Attention** | *"attention & the Transformer block — as far as search needs it"* — the whole machine room behind it: BERT family → GPT line → decoding → efficient attention → RLHF (tail marked "beyond the border of search") | **L7** |
+| **L9** | **The Wiring Diagram** | the cost line *"attention is O(n²)"* — the circuit notation that lets you read the bill off the picture (crossover at n = 6d; the FFN nobody draws) | **L7** |
+| **L11** | **The Crucible of Negatives** | *"the Scouts are trained contrastively"* — how the dense retriever is actually forged: easy negatives teach nothing, the hardest are impostors; the hard-but-honest band | **L10** |
+| **L14** | **The Curved Map** | the silent assumption *"distance in embedding space can be trusted"* — Sir Cosine's blind spot: anisotropy (the narrow cone) and hubness; whiten the map, tax the hubs (CSLS) | **L13** |
+| **L17** | **The Artificer's Quill** | *"query rewriting hears what the captain really asked"* — HyDE, step-back, multi-query + RRF, decomposition, the trainable rewriter | **L15** |
+| **L18** | **Read the Whole Book First** | the chunking line (Chunk Norris) — the hidden coreference defect of chunk-then-embed; late chunking reorders {cut, attend} | **L15** |
+| **L19** | **Морфология наносит ответный удар** (Search in Russian) | the lexical-pipeline line — BM25, stemming/lemmatization and tokenizer fertility on a language where one lemma wears dozens of endings | **L3** |
+
+> **Why L19 is not filed next to L3.** Its subject is L3's territory, but its third act picks
+> multilingual embedders and hybrid fusion, so it needs L10–L12 built first; it is placed as early as
+> those prerequisites allow. The same reasoning explains L14 (needs L13's index) and L11 (needs L10's
+> Scouts): "opens an earlier line" sets the *debt*, the prerequisites set the *slot*.
+
+## 5. Creature roster across the arc (the payoff chains — P2)
+
+| Creature | Personifies | Introduced | Returns / pays off |
+|----------|-------------|------------|---------------------|
+| **Lexical Gremlin** | vocabulary mismatch ("couch" ≠ "sofa") | L1 (problem) | **L3** (BM25's blind spot, cameo) → **L7** *caged by contrastive learning* (the satisfying defeat) → **L17** (the Quill's antagonist) |
+| **Goodhart the Trickster** | a measure that became a target | L1 (metrics) | **L5** (ranking metrics — his home) → **L16** (gaming the LLM-judge) — the recurring villain of *Measure* |
+| **Tokenosaurus** | sub-word splitting | L2 | cameo whenever tokenization matters (L15 chunking) → **L19** — he chokes on Russian, and is tamed |
+| **Sir Cosine & the Knights** | cosine similarity / angle on the sphere | L2 (hero) | **L6–L13** — the Knights ride wherever similarity is scored → **L14** (his blind spot: the curved map) |
+| **Curse-of-Dimensionality Wraith** | distance concentration in high-d | L2 (catch) | **L13** — why exact NN dies and ANN/PQ are needed |
+| **The Iceberg** | hidden technical debt (Sculley) | L1 | **L13/L15** — production/serving is the 90% below the water |
+| **Victor the Vector** | embeddings (a word/point → a vector: magnitude + direction) | L6/L7 (hero) | **L13** — reused as the hero flying the hyperspace lanes (vectors riding the ANN jump-gates) |
+| **RAGdoll (the Oracle)** | RAG: retrieve-then-generate (the answering Ship) | L15 (hero) | **L15–L20** — anchors the whole RAG arc |
+| **Chunk Norris** | chunking (splitting docs into overlapping passages) | L15 | **L18** — his over-eager slicing is the defect late chunking repairs |
+| **Confabulous** | confident fabrication (hallucinated answers/citations) | L15 (catch) | **L16** — pays off as the villain of RAG evaluation |
+
+Rule: a creature has **one tell, one job**, and is **reused, never duplicated** (NARRATIVE_METHOD P2).
+Creatures appear only on hooks/metaphor/viz beats — **never on precision (Climb) beats** (P9).
+
+## 6. Connective tissue (the open/close template every lecture obeys)
+
+- **Open** with the spine slide ("you are here") + a one-line callback to the Ship's current state.
+- **Hook** with the lecture's catchphrase situation (the mission).
+- **Close** by resolving the catchphrase *and* hooking the next ("…but the Scouts bring back too many —
+  next time, who *judges* them?").
+- The finale callback of L0 ("I will make your life miserable") is the captain's standing promise; the
+  finale callback of Defense answers it ("…and now you can make the *galaxy's* life miserable").
+
+## 7. Acceptance criteria for the arc (gate: beat-coverage + manual)
+- [ ] Every lecture maps to ≥1 spine leg and lights the **spine slide** at its stop.
+- [ ] Catchphrase **opens and closes** each lecture; close hooks the next (no orphan endings).
+- [ ] Each lecture **references the Ship part** built earlier (cumulative, never re-introduced).
+- [ ] Every creature obeys one-tell-one-job; every introduced *problem-creature* has a later *payoff*.
+- [ ] Sci-fi vs LOTR assignment matches §3 rule (systems = sci-fi, journeys = quest).
+- [ ] The Defense callback resolves the L0 send-off (the arc closes).

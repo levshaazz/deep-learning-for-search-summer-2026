@@ -1,0 +1,33 @@
+<section class="slide" data-type="definition" data-screen-label="11 Why the cone forms">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Откуда конус: редкие слова уезжают в общий угол — и LayerNorm их там оставляет</span>
+      <span lang="en">Where the cone comes from: rare words drift to one corner, and LayerNorm leaves them there</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">Gao J. 2019 · «representation degeneration problem» · механизм + почему почти неизбежно</span>
+      <span lang="en">Gao J. 2019 · the "representation degeneration problem" · the mechanism, and why it is near-unavoidable</span>
+    </span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">
+      <span lang="ru">механизм · обучение по правдоподобию</span>
+      <span lang="en">mechanism · likelihood training</span>
+    </span>
+    <div class="def-term">
+      <span lang="ru">Softmax-обучение почти не встречает <strong>редкие слова</strong>. Их выходные векторы толкаются в одну <strong>общую сторону</strong>, лишь бы дать им низкую вероятность везде.</span>
+      <span lang="en">Softmax training rarely sees <strong>rare words</strong>. Their output vectors get pushed in one <strong>shared direction</strong>, just to keep their probability low everywhere.</span>
+    </div>
+    <div class="def-body">
+      <p class="def-where">
+        <span lang="ru">Редкие токены слипаются в общий угол — так рождается направление конуса. А LayerNorm это не чинит. Он вычитает среднее <em>по координатам вектора</em> и стирает ровно ту долю сдвига, которая смотрит вдоль \(\mathbf{1}_d\): \(\langle \mathrm{LN}(x),\ \mathbf{1}_d\rangle = 0\) тождественно. Но настоящее \(\mu\) вдоль \(\mathbf{1}_d\) не лежит — <strong>остаток проходит нормировку насквозь</strong>, а сдвиг \(\beta\) возвращает общее смещение. <em>reported (Gao J. 2019)</em>.</span>
+        <span lang="en">Rare tokens clump into a common corner &mdash; the cone's preferred direction is born. LayerNorm does not fix it. It subtracts the mean <em>across each vector's own coordinates</em>, erasing exactly the share of the shift along \(\mathbf{1}_d\): \(\langle \mathrm{LN}(x),\ \mathbf{1}_d\rangle = 0\) identically. But a real \(\mu\) does not lie along \(\mathbf{1}_d\) &mdash; <strong>the rest passes through untouched</strong>, and the learned shift \(\beta\) puts a shared offset back. <em>reported (Gao J. 2019)</em>.</span>
+      </p>
+    </div>
+  </div>
+  <p class="small muted center mt-2">
+    <span lang="ru">Вот зачем была оговорка к \(x = c\,\mathbf{1}_d + \varepsilon\): будь ось <em>буквально</em> \(c\,\mathbf{1}_d\), LayerNorm убил бы её в одну строку. Лечит всё равно вычитание среднего <strong>по облаку</strong>, а не по координатам (Часть 02). Но это <strong>не единственное объяснение</strong>: следующий слайд.</span>
+    <span lang="en">That is what the caveat on \(x = c\,\mathbf{1}_d + \varepsilon\) was for: if the axis <em>literally were</em> \(c\,\mathbf{1}_d\), LayerNorm would kill it in one line. The cure is still subtracting the mean <strong>over the cloud</strong>, not over the coordinates (Part 02). But this is <strong>not the only explanation</strong>: next slide.</span>
+  </p>
+  <aside class="slide-notes">Gao 2019 ("Representation Degeneration Problem in Training Natural Language Generation Models"), both halves merged (plan N2, the 11+12 salami pair). Mechanism: likelihood/softmax training rarely updates rare words, so the gradient pushes their output embeddings in one shared direction to keep their probability low on frequent contexts; rare tokens clump into a common corner, which is the cone's preferred direction. Why near-inevitable, stated precisely after the late review §2: LayerNorm subtracts the mean across each vector's OWN coordinates, so it annihilates exactly the component along 1_d — ⟨LN(x), 1_d⟩ = 0 identically. The cone survives only because a real transformer's μ is NOT proportional to 1_d (the component of μ orthogonal to 1_d passes straight through) and because the learned affine shift β re-injects a shared offset afterwards. Never say "the shared shift survives LayerNorm" without that qualifier while the toy model on 09c writes the axis as c·1_d — the two statements contradict each other, and the toy is the one that is a simplification. Because the cause is a shared shift, mean-subtraction is the first cure (Part 02). The NEXT slide is the important qualifier: the frequency story is contested, and the competing explanation is both simpler and better measured.</aside>
+</section>

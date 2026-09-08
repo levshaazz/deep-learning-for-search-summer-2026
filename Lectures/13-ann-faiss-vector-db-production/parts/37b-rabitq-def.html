@@ -1,0 +1,23 @@
+<section class="slide" data-type="definition" data-screen-label="37b Definition · RaBitQ">
+  <div class="slide-header">
+    <h2><span lang="ru">Кодовая книга, которую не надо учить</span><span lang="en">A codebook you never train</span></h2>
+    <span class="slide-kicker"><span lang="ru">один бит на измерение — и граница ошибки</span><span lang="en">one bit per dimension — and an error bound</span></span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag"><span lang="ru">Определение</span><span lang="en">Definition</span></span>
+    <div class="def-term">RaBitQ<span class="term-en">randomized bit quantization</span></div>
+    <p class="def-where"><span lang="ru">где <b>D</b> = размерность вектора, <b>P</b> = случайная ортогональная матрица (поворот), <b>ō</b> = квантованный вектор.</span><span lang="en">where <b>D</b> = vector dim, <b>P</b> = a random orthogonal matrix (a rotation), <b>ō</b> = the quantized vector.</span></p>
+    <div class="def-body">
+      <p><span lang="ru">Три шага, и ни одного обучения. <strong>Первый:</strong> нормируй вектор — все данные ложатся на единичную сферу. <strong>Второй:</strong> возьми готовую кодовую книгу — это \(2^{D}\) вершин гиперкуба с координатами \(\pm 1/\sqrt{D}\); они уже разложены по сфере равномерно. <strong>Третий:</strong> поверни их одной случайной ортогональной матрицей \(P\) — это преобразование Джонсона—Линденштрауса.</span><span lang="en">Three steps, no training anywhere. <strong>One:</strong> normalise the vector — all data lands on the unit sphere. <strong>Two:</strong> take the codebook off the shelf — the \(2^{D}\) hypercube vertices with coordinates \(\pm 1/\sqrt{D}\), already spread evenly over that sphere. <strong>Three:</strong> rotate them by one random orthogonal matrix \(P\) — a Johnson–Lindenstrauss transform.</span></p>
+      <p><span lang="ru">Код вектора — <em>ближайшая</em> вершина, то есть строка из \(D\) бит: <strong>один бит на измерение</strong>. Оценка скалярного произведения по этому коду <strong>несмещённая</strong>, и её отклонение ограничено величиной порядка \(1/\sqrt{D-1}\) — граница, которой у PQ нет.</span><span lang="en">A vector's code is the <em>nearest</em> vertex — a string of \(D\) bits: <strong>one bit per dimension</strong>. The inner-product estimate read off that code is <strong>unbiased</strong>, and its deviation is bounded on the order of \(1/\sqrt{D-1}\) — the bound PQ does not have.</span></p>
+    </div>
+  </div>
+  <div class="viz-frame fig-fit" style="--fig-max:30cqh; --fig-w:30%;">
+    <img src="assets/img/L9/L9-17-rabitq-dice-sphere.png?v=1" alt="Серёга крутит рукоятку, вращающую прозрачную сферу с равномерно расставленными вершинами; точка притягивается к ближайшей вершине и выходит лентой из нулей и единиц." />
+  </div>
+  <p class="small muted center mt-3">
+    <span lang="ru">Обрати внимание, что здесь <em>исчезло</em>: обучение k-средних, зависимость от корпуса, переобучение книги при дрейфе данных. Случайность взяли не из данных, а из поворота — поэтому обещание держится на любом корпусе, включая тот, который ты ещё не видел.</span>
+    <span lang="en">Notice what <em>disappeared</em>: the k-means training, the dependence on your corpus, the re-training when data drifts. The randomness comes from the rotation, not from the data — which is why the promise holds on any corpus, including one you have not seen yet.</span>
+  </p>
+  <aside class="slide-notes">Определение RaBitQ (Gao &amp; Long, SIGMOD 2024, §3.1). Ключевой контраст с PQ, который стоит проговорить вслух: у PQ кодовая книга ВЫУЧЕНА по данным (k-средних), у RaBitQ она ФИКСИРОВАНА — вершины гиперкуба ±1/√D, — и данные к ней приводит случайный поворот. Отсюда и граница ошибки: она следует из свойств JL-преобразования, а не из того, насколько повезло с корпусом. Формально: нормировка на единичную сферу (§3.1.1), кодовая книга как вершины куба (§3.1.2), случайное вращение P, код = ближайшая вершина = D бит. Оценщик несмещён (теорема 3.2), отклонение ~ε₀/√(D−1). Значения в data/l9-bench.json → rabitq.</aside>
+</section>

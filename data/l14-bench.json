@@ -1,0 +1,75 @@
+{
+  "_doc": "CITED published numbers for L14 \u2014 NOT computed in this repo. Use verbatim with source. The toy (l14-rewrite.json) reproduces the ORDERING/SHAPE of these results, never their magnitudes.",
+  "_source": "_research/gen_l14.py (static, cited): HyDE, Query2doc, Step-Back, Least-to-Most, RRF, RM3, GAR, Doc2Query.",
+  "cited": true,
+  "hyde": {
+    "claim": "HyDE (InstructGPT generator + unsupervised Contriever encoder) significantly outperforms the unsupervised Contriever zero-shot across web search / QA / fact-verification + multilingual.",
+    "boundary": "Zero-shot / low-resource move \u2014 does NOT beat a strong FINE-TUNED dense retriever; no precise BEIR scalar displayed (leaderboard, not reproduced).",
+    "source": "Gao, Ma, Lin & Callan, 'Precise Zero-Shot Dense Retrieval without Relevance Labels (HyDE)', ACL 2023 (arXiv:2212.10496)"
+  },
+  "query2doc": {
+    "metric": "BM25 improvement, MS-MARCO / TREC-DL",
+    "minPct": 3,
+    "maxPct": 15,
+    "note": "+3% to 15% on BM25, LARGEST on sparse / zero-shot; small-to-negligible on strong fine-tuned dense retrievers.",
+    "source": "Wang, Yang & Wei, 'Query2doc: Query Expansion with Large Language Models', EMNLP 2023 (arXiv:2303.07678)"
+  },
+  "stepBack": {
+    "retrievalAugmented": {
+      "TimeQA": 27,
+      "MuSiQue": 7,
+      "_metric": "absolute-point gain, PaLM-2L"
+    },
+    "pureReasoning": {
+      "MMLU_Physics": 7,
+      "MMLU_Chemistry": 11,
+      "_metric": "absolute-point gain, PaLM-2L (no retrieval)"
+    },
+    "note": "Foreground the retrieval-augmented gains (TimeQA/MuSiQue); MMLU deltas are reasoning-without-retrieval.",
+    "source": "Zheng et al., 'Take a Step Back: Evoking Reasoning via Abstraction in LLMs', ICLR 2024 (arXiv:2310.06117)"
+  },
+  "leastToMost": {
+    "metric": "SCAN length-split accuracy, code-davinci-002",
+    "leastToMost": 99.7,
+    "chainOfThoughtBaseline": 16.2,
+    "note": "16.2 is the CHAIN-OF-THOUGHT column (not standard prompting) \u2014 pin this provenance.",
+    "source": "Zhou et al., 'Least-to-Most Prompting Enables Complex Reasoning in LLMs', ICLR 2023 (arXiv:2205.10625)"
+  },
+  "rrf": {
+    "k": 60,
+    "formula": "s(d) = sum_i 1/(k + r_i(d))",
+    "note": "k=60 is the empirical constant set on TREC data; rank-based, score-agnostic. Reused from L3.",
+    "source": "Cormack, Clarke & Buettcher, 'Reciprocal Rank Fusion outperforms Condorcet...', SIGIR 2009 (DOI 10.1145/1571941.1572114)"
+  },
+  "rm3": {
+    "method": "Pseudo-relevance feedback: interpolate the query LM with a relevance model over the top-k first-pass docs.",
+    "note": "A LANGUAGE-MODEL PRF family (RM1 -> RM3), PARALLEL to vector-space Rocchio feedback \u2014 not a lineage.",
+    "sources": [
+      "Lavrenko & Croft, 'Relevance-Based Language Models', SIGIR 2001 (DOI 10.1145/383952.383972)",
+      "Abdul-Jaleel et al., 'UMass at TREC 2004: Novelty and HARD' (RM3), TREC 2004"
+    ]
+  },
+  "gar": {
+    "method": "Generation-Augmented Retrieval: generate and APPEND contexts to the query for sparse+reader.",
+    "note": "Antecedent of the expansion/concatenation branch (-> Query2doc), NOT of HyDE (which embeds-instead).",
+    "source": "Mao et al., 'Generation-Augmented Retrieval for Open-Domain QA (GAR)', ACL 2021 (arXiv:2009.08553)"
+  },
+  "decomposition": {
+    "selfAsk": "Press et al., 'Measuring and Narrowing the Compositionality Gap (Self-Ask)', Findings of EMNLP 2023 (arXiv:2210.03350)",
+    "decomposedPrompting": "Khot et al., 'Decomposed Prompting: A Modular Approach (DecomP)', ICLR 2023 (arXiv:2210.02406)",
+    "note": "Distinguished BY ABSTRACTION LEVEL: least-to-most=ordering, self-ask=elicitation, DecomP=architecture."
+  },
+  "docExpansion": {
+    "method": "Document expansion (query prediction) \u2014 expand DOCS at index time, the mirror of query expansion.",
+    "note": "Doc2Query (4 authors, arXiv-only); its T5 follow-up docTTTTTquery is an informal preprint (no arXiv).",
+    "source": "Nogueira, Yang, Lin & Cho, 'Document Expansion by Query Prediction (Doc2Query)', 2019 (arXiv:1904.08375)"
+  },
+  "trainableRewriter": {
+    "method": "Rewrite-Retrieve-Read (RRR): a small-LM rewriter trained by RL on the downstream answer reward.",
+    "source": "Ma et al., 'Query Rewriting for Retrieval-Augmented Large Language Models (RRR)', EMNLP 2023 (arXiv:2305.14283)"
+  },
+  "queryExpansionPrompting": {
+    "method": "Prompt an LLM (Q2D / CoT / few-shot) to generate query-expansion terms; CoT-style expansion strong.",
+    "source": "Jagerman et al., 'Query Expansion by Prompting Large Language Models', 2023 (arXiv:2305.03653, arXiv-only)"
+  }
+}

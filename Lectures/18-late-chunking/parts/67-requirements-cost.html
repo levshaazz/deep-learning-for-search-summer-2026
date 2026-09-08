@@ -1,0 +1,48 @@
+<section class="slide" data-type="two-col" data-screen-label="67 Requirements &amp; cost">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Что нужно &mdash; и во что обходится</span>
+      <span lang="en">What it needs &mdash; and what it costs</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">и откуда каждое требование взято: статья, блог или ниоткуда</span>
+      <span lang="en">and where each requirement comes from: the paper, the blog, or nowhere</span>
+    </span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <table class="cmp-table">
+        <thead><tr>
+          <th><span lang="ru">требование</span><span lang="en">requirement</span></th>
+          <th><span lang="ru">зачем</span><span lang="en">why</span></th>
+          <th><span lang="ru">источник</span><span lang="en">source</span></th>
+        </tr></thead>
+        <tbody>
+          <tr><td><strong><span lang="ru">длинный контекст</span><span lang="en">long context</span></strong></td><td><span lang="ru">внимание должно видеть весь документ сразу (Jina v2/v3 &mdash; 8192 ток.)</span><span lang="en">attention must see the whole doc at once (Jina v2/v3 &mdash; 8192 tok)</span></td><td class="cell-good"><span lang="ru">статья</span><span lang="en">the paper</span></td></tr>
+          <tr><td><strong><span lang="ru">усреднение по токенам</span><span lang="en">mean pooling</span></strong></td><td><span lang="ru">мы усредняем векторы токенов по сегментам</span><span lang="en">we average token vectors per segment</span></td><td class="cell-good"><span lang="ru">статья</span><span lang="en">the paper</span></td></tr>
+          <tr><td><strong><span lang="ru">токен-выходы</span><span lang="en">token outputs</span></strong></td><td><span lang="ru">нужны \(\vartheta_j\) до усреднения &mdash; API, отдающее один вектор, не подходит</span><span lang="en">you need the \(\vartheta_j\) before pooling &mdash; a one-vector API will not do</span></td><td class="cell-good"><span lang="ru">статья</span><span lang="en">the paper</span></td></tr>
+          <tr><td><span lang="ru">CLS- или max-пулинг <strong>несовместимы</strong></span><span lang="en">CLS or max pooling are <strong>incompatible</strong></span></td><td><span lang="ru">CLS-вектор нечего усреднять заново</span><span lang="en">a CLS vector has nothing to re-pool</span></td><td class="cell-meh"><span lang="ru">блог Jina, Part II</span><span lang="en">Jina blog, Part II</span></td></tr>
+          <tr><td><span lang="ru">пулинг по последнему токену (e5-mistral, gte-Qwen, NV-Embed)</span><span lang="en">last-token pooling (e5-mistral, gte-Qwen, NV-Embed)</span></td><td><span lang="ru">неизвестно &mdash; никто не мерил</span><span lang="en">unknown &mdash; nobody has measured it</span></td><td class="cell-bad"><span lang="ru">нигде</span><span lang="en">nowhere</span></td></tr>
+        </tbody>
+      </table>
+      <p class="small muted center mt-2">
+        <span lang="ru">Три верхние строки &mdash; из <strong>статьи</strong>. Четвёртая &mdash; только из <strong>блога производителя</strong>. Пятая &mdash; честная <strong>дыра в знании</strong>, и хороший вопрос на экзамен.</span>
+        <span lang="en">The top three come from the <strong>paper</strong>. The fourth only from the <strong>vendor&rsquo;s blog</strong>. The fifth is an honest <strong>hole in the literature</strong> &mdash; and a good exam question.</span>
+      </p>
+    </div>
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag">
+          <span lang="ru">Счёт за приём</span>
+          <span lang="en">The cost ledger</span>
+        </span>
+        <div class="def-body">
+          <p><span lang="ru"><strong>На индексации &mdash; дороже:</strong> внимание по документу растёт как \(O(n^2)\) по длине окна, и нужно держать в памяти токен-эмбеддинги всего документа до усреднения.</span><span lang="en"><strong>Index-time &mdash; higher:</strong> attention over the document grows as \(O(n^2)\) in the window length, and you must hold the document&rsquo;s token embeddings in memory until the pooling.</span></p>
+          <p><span lang="ru"><strong>На запросе &mdash; бесплатно:</strong> хранится по-прежнему <em>один вектор на чанк</em>, стоимость поиска идентична наивной.</span><span lang="en"><strong>Query-time &mdash; free:</strong> you still store <em>one vector per chunk</em>, so search cost is identical to naive.</span></p>
+          <p class="small muted"><span lang="ru">В &sect;3.1 статьи написано, что память растёт &laquo;экспоненциально&raquo;. Это оговорка: память внимания <strong>квадратична</strong> по длине окна. Цитируй с поправкой.</span><span lang="en">&sect;3.1 of the paper says memory grows &ldquo;exponentially&rdquo;. That is a slip: attention memory is <strong>quadratic</strong> in the window length. Quote it with the correction.</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <aside class="slide-notes">Requirements, now with PROVENANCE — the old version attributed all of them to the paper, which is wrong. The paper says only: any long-context text embedding model that uses MEAN POOLING, with token-level outputs. "CLS or max pooling are incompatible" appears only in Jina's blog Part II, never in the paper. And last-token pooling (e5-mistral, gte-Qwen, NV-Embed) is not discussed ANYWHERE — say that plainly; it is a real hole and a good exam question. Cost: index-time attention is O(n²) in the window and you must hold whole-document token embeddings until pooling; query time is unchanged. Note the paper's §3.1 says "exponentially" where it means quadratically.</aside>
+</section>

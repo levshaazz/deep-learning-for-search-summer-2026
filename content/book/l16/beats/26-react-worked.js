@@ -1,0 +1,33 @@
+    {
+      id: 'react-worked', kind: 'prose',
+      heading: { en: 'ReAct, by hand', ru: 'ReAct, вручную', tt: 'ReAct, кул белән' },
+      img: 'L11/L11-07-react-loop.png', imgPos: 'float-right',
+      imgAlt: {
+        en: 'RAGdoll the Oracle walks a circular Thought to Action to Observation loop — a thought-bubble, a reaching hand fetching a scroll, then reading it — spiralling inward toward a finish stamp as a two-hop question gets answered; Séréga, in his green tübetey, watches the loop tighten on the answer.',
+        ru: 'Оракул RAGdoll идёт по кругу Мысль → Действие → Наблюдение — пузырь мысли, тянущаяся рука достаёт свиток, затем читает его — закручиваясь внутрь к печати finish, пока двухпрыжковый вопрос находит ответ; Серёга в зелёной тюбетейке смотрит, как цикл стягивается к ответу.',
+        tt: 'RAGdoll Оракулы Фикер → Гамәл → Күзәтү боҗрасы буенча йөри — фикер куыгы, сузылган кул свитокны ала, аннары укый — ике сикерүле сорау җавапланганда finish тамгасына эчкә бөтерелеп; яшел түбәтәйле Серёга боҗраның җавапка кысылуын күзәтә.',
+      },
+      body: {
+        en: [
+          "**ReAct** (Yao, Zhao, Yu, Du, Shafran, Narasimhan & Cao, ICLR 2023, arXiv:2210.03629) interleaves **Rea**soning and **Act**ing: the model emits a *thought*, takes an *action* (a retrieval), reads the *observation*, and loops — reasoning over what it just learned to decide the next action. This is what makes multi-hop questions answerable: questions whose answer requires chaining facts no single retrieval holds.",
+          "Take a two-hop question — *\"What did the founder of Acme Corp study?\"* — and track recall@1, whether the top-1 retrieval at each step already contains the final answer.",
+          ":::calc **Step 0**: thought *\"I need the founder of Acme Corp\"*, action `lookup[Acme Corp]`, observation *\"founded by Dana Reyes\"* — useful, but not the answer, so recall@1 \\(= 0\\). **Step 1**: thought *\"now find what Dana Reyes studied\"*, action `lookup[Dana Reyes]`, observation *\"studied computer science at MIT\"* — the bridging fact arrives, recall@1 \\(= 1\\). **Step 2**: `finish[computer science at MIT]`, recall@1 \\(= 1\\). The recall-by-step sequence is \\([\\,0,\\ 1,\\ 1\\,]\\). :::",
+          "The sequence \\([0, 1, 1]\\) is the whole argument for the loop. A **single-shot** retriever fires once at step 0, gets the founder's *name*, and stops at recall \\(= 0\\) — it can never reach \"computer science at MIT\" because that fact is two hops away, reachable only after feeding the first observation back in. The loop closes the chain: the output of hop one becomes the query of hop two. Reasoning is not decoration here; it is the mechanism that turns one observation into the next query, and a passive retriever into an agent that can follow a trail.",
+          "And this is not a toy claim. The next beat shows a **real** small model running exactly this loop and solving a genuine two-hop question — structure, not scale, is what made it an agent.",
+        ],
+        ru: [
+          "**ReAct** (Яо, Чжао, Юй, Ду, Шафран, Нарасимхан и Цао, ICLR 2023, arXiv:2210.03629) чередует **рас**суждение и **дей**ствие: модель испускает *мысль*, совершает *действие* (извлечение), читает *наблюдение* и зацикливается — рассуждая над тем, что только что узнала, чтобы решить следующее действие. Именно это и даёт ответить на многопрыжковые вопросы — те, чей ответ требует сцепить факты, которых не держит ни одно извлечение.",
+          "Возьми двухпрыжковый вопрос — *«Что изучал основатель Acme Corp?»* — и отслеживай recall@1, содержит ли уже top-1 извлечение на каждом шаге финальный ответ.",
+          ":::calc **Шаг 0**: мысль *«мне нужен основатель Acme Corp»*, действие `lookup[Acme Corp]`, наблюдение *«основан Даной Рейес»* — полезно, но не ответ, так что recall@1 \\(= 0\\). **Шаг 1**: мысль *«теперь выясни, что изучала Дана Рейес»*, действие `lookup[Dana Reyes]`, наблюдение *«изучала компьютерные науки в MIT»* — связующий факт прибыл, recall@1 \\(= 1\\). **Шаг 2**: `finish[компьютерные науки в MIT]`, recall@1 \\(= 1\\). Последовательность recall@1 по шагам — \\([\\,0,\\ 1,\\ 1\\,]\\). :::",
+          "Последовательность \\([0, 1, 1]\\) — весь аргумент за цикл. **Одиночный** ретривер стреляет раз на шаге 0, получает *имя* основателя и встаёт на recall@1 \\(= 0\\) — он никогда не достанет «компьютерные науки в MIT», ведь этот факт в двух прыжках, достижим лишь после подачи первого наблюдения обратно. Цикл замыкает цепь: выход первого прыжка становится запросом второго. Рассуждение здесь не украшение; это механизм, который превращает одно наблюдение в следующий запрос, а пассивный ретривер — в агента, способного идти по следу.",
+          "И это не игрушечное утверждение. Следующий такт показывает **настоящую** малую модель, гоняющую ровно этот цикл и решающую подлинный двухпрыжковый вопрос — структура, а не масштаб, сделала её агентом.",
+        ],
+        tt: [
+          "**ReAct** (Яо, Чжао, Юй, Ду, Шафран, Нарасимхан һәм Цао, ICLR 2023, arXiv:2210.03629) **фи**кер йөртүне һәм **га**мәлне чиратлаштыра: модель *фикер* чыгара, *гамәл* ала (алу), *күзәтүне* укый һәм циклла — киләсе гамәлне хәл итәр өчен яңа белгәне турында фикер йөртеп. Нәкъ шул күп сикерүле сорауларны җавап бирелерлек итә: җавабы бер алу да тотмаган фактларны чылбырлауны таләп иткән сораулар.",
+          "Ике сикерүле сорауны ал — *«Acme Corp нигезләүчесе нәрсә укыган?»* — һәм recall@1 не күзәт, һәр баскычтагы top-1 алу инде соңгы җавапны эчендә тотамы.",
+          ":::calc **Баскыч 0**: фикер *«миңа Acme Corp нигезләүчесе кирәк»*, гамәл `lookup[Acme Corp]`, күзәтү *«Дана Рейес нигезләгән»* — файдалы, ләкин җавап түгел, шуңа recall@1 \\(= 0\\). **Баскыч 1**: фикер *«хәзер Дана Рейес нәрсә укыганын тап»*, гамәл `lookup[Dana Reyes]`, күзәтү *«MIT та информатика укыган»* — бәйләүче факт килде, recall@1 \\(= 1\\). **Баскыч 2**: `finish[MIT та информатика]`, recall@1 \\(= 1\\). Баскыч буенча recall эзлеклелеге — \\([\\,0,\\ 1,\\ 1\\,]\\). :::",
+          "\\([0, 1, 1]\\) эзлеклелеге — цикл өчен бөтен дәлил. **Бер атышлы** эзләгеч 0 баскычта бер тапкыр ата, нигезләүченең *исемен* ала һәм recall \\(= 0\\) дә туктый — ул «MIT та информатика» га беркайчан җитә алмый, чөнки бу факт ике сикерү ераклыкта, бары беренче күзәтүне кире биргәч кенә җитәрлек. Цикл чылбырны яба: беренче сикерүнең чыгышы икенче сикерүнең соравы була. Биредә фикер йөртү бизәк түгел; ул — бер күзәтүне киләсе сорауга, ә пассив эзләгечне эз буенча бара алучы агентка әйләндерүче механизм.",
+          "Һәм бу — уенчык дәгъвасы түгел. Киләсе бит нәкъ шул циклны йөртеп чын ике сикерүле сорауны чишүче **чын** кечкенә модельне күрсәтә — аны агент иткән — масштаб түгел, ә структура.",
+        ],
+      },
+    },

@@ -1,0 +1,88 @@
+{
+  "_doc": "Production serving latency budget (REUSE of the L1 `sequence` slide-type, NOT a widget). The per-hop ms are REPRESENTATIVE serving figures; the SUMS are the gated exact computations: critical path 3+8+12+60+4 = 87 ms (< 200 ms SLA, headroom 113), all hops incl. the async cache+log tail 89 ms. An EXACT scan of 10⁶×768-d would cost the exactScanMs below — the search hop alone blows the budget. A cache hit returns in ≈ cacheHitMs. Caching + quantization are the levers (callback L1 MLSD; the L7 cross-encoder cascade now sits BEHIND ANN retrieval).",
+  "_source": "_research/gen_l9.py (toy, stdlib): total = Σ lat. Per-hop + exactScan/cacheHit are representative.",
+  "sla": 200,
+  "budget": [
+    {
+      "step": 1,
+      "from": "client",
+      "to": "API",
+      "label": "request",
+      "lat": 3
+    },
+    {
+      "step": 2,
+      "from": "API",
+      "to": "encoder",
+      "label": "embed query",
+      "lat": 8
+    },
+    {
+      "step": 3,
+      "from": "API",
+      "to": "ANN index",
+      "label": "ANN search (10⁶ quantized)",
+      "lat": 12
+    },
+    {
+      "step": 4,
+      "from": "API",
+      "to": "reranker",
+      "label": "rerank top-100 (cross-encoder)",
+      "lat": 60
+    },
+    {
+      "step": 5,
+      "from": "API",
+      "to": "cache/log",
+      "label": "cache + log (async)",
+      "lat": 2,
+      "kind": "async"
+    },
+    {
+      "step": 6,
+      "from": "API",
+      "to": "client",
+      "label": "response",
+      "lat": 4
+    }
+  ],
+  "total": 89,
+  "criticalPathMs": 87,
+  "slaHeadroomMs": 113,
+  "exactScanMs": 520,
+  "cacheHitMs": 5,
+  "cacheHitBudget": {
+    "_doc": "Warm path (cache hit): the per-hop ms are representative, but cacheHitMs is the gated exact SUM 3+1+1 = 5 ms — no ANN search, no rerank.",
+    "budget": [
+      {
+        "step": 1,
+        "from": "client",
+        "to": "API",
+        "label": "request",
+        "lat": 3
+      },
+      {
+        "step": 2,
+        "from": "API",
+        "to": "cache",
+        "label": "cache lookup (hit)",
+        "lat": 1
+      },
+      {
+        "step": 3,
+        "from": "API",
+        "to": "client",
+        "label": "response",
+        "lat": 1
+      }
+    ],
+    "cacheHitMs": 5
+  },
+  "tailNote": {
+    "_doc": "Representative serving-latency tier: p50/p99 of a warm ANN+rerank tier. Flagged representative (illustrative, not measured in this repo) — the tail (p99) is what an SLA is written against.",
+    "p50": 45,
+    "p99": 180,
+    "representative": true
+  }
+}

@@ -1,0 +1,44 @@
+<section class="slide" data-type="table" data-screen-label="42b Three symptoms, one diagnosis each">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Три симптома в проде — какой диагноз и что мерить</span>
+      <span lang="en">Three production symptoms &mdash; the diagnosis, and what to measure</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">возвращаемся к жалобам из начала часа</span>
+      <span lang="en">back to the complaints we opened the hour with</span>
+    </span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th><span lang="ru">что видно в логах</span><span lang="en">what the logs show</span></th>
+        <th><span lang="ru">диагноз</span><span lang="en">diagnosis</span></th>
+        <th><span lang="ru">что померить</span><span lang="en">what to measure</span></th>
+        <th><span lang="ru">лечение</span><span lang="en">treatment</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span lang="ru">«все баллы 0,8&ndash;0,9, порог не ставится»</span><span lang="en">"every score is 0.8&ndash;0.9, no threshold fits"</span></td>
+        <td><span lang="ru"><strong>анизотропия</strong></span><span lang="en"><strong>anisotropy</strong></span></td>
+        <td><span lang="ru">ср. косинус случайных пар <em>и</em> IsoScore</span><span lang="en">mean random-pair cosine <em>and</em> IsoScore</span></td>
+        <td><span lang="ru">снять среднее направление</span><span lang="en">remove the mean direction</span></td>
+      </tr>
+      <tr>
+        <td><span lang="ru">«одни и те же 5 документов на всё»</span><span lang="en">"the same 5 documents for everything"</span></td>
+        <td><span lang="ru"><strong>хабы</strong></span><span lang="en"><strong>hubs</strong></span></td>
+        <td><span lang="ru">скос \(S_{N_{10}}\), \(\max N_k\)</span><span lang="en">skew \(S_{N_{10}}\), \(\max N_k\)</span></td>
+        <td><span lang="ru">CSLS / Local Scaling на поиске</span><span lang="en">CSLS / Local Scaling at query time</span></td>
+      </tr>
+      <tr>
+        <td><span lang="ru">«документ есть, но не находится никогда»</span><span lang="en">"the document exists but is never found"</span></td>
+        <td><span lang="ru"><strong>анти-хаб</strong></span><span lang="en"><strong>anti-hub</strong></span></td>
+        <td><span lang="ru">доля \(N_k = 0\) по индексу</span><span lang="en">fraction of \(N_k = 0\) over the index</span></td>
+        <td><span lang="ru">взаимный kNN-граф; CSLS <em>до</em> отбора</span><span lang="en">mutual-kNN graph; CSLS <em>before</em> selection</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2"><span lang="ru">Обрати внимание на третью строку: её симптом <strong>не виден ни в одной метрике качества</strong>, потому что события «не вернулся» не существует. Её меряют по индексу, а не по выдаче. И лечится она единственная не переранжированием: анти-хаб по определению не попадает в top-\(N\), который ты переранжируешь.</span><span lang="en">Look at the third row: its symptom is <strong>invisible to every quality metric</strong>, because "was not returned" is not an event. You measure it over the index, not over the results. And it is the one row a reranker cannot fix: an anti-hub by definition never enters the top-\(N\) you rerank.</span></p>
+  <aside class="slide-notes">Plan NEW-31 — the diagnostic table that turns the hour into a procedure, closing the loop with the symptom slide at the start of act 01. Symptom → diagnosis → MEASUREMENT → treatment, with the measurement column the load-bearing one, because it is what stops a team from applying whichever cure they read about last. Note the deliberate hedge in row one: measure the mean random-pair cosine (that is what actually breaks the score scale) but do not call it anisotropy without IsoScore — the IsoScore counter-example slide in act 01 is why. Row three is the one to spend time on: it is invisible to result-side metrics, and reranking cannot repair it.</aside>
+</section>

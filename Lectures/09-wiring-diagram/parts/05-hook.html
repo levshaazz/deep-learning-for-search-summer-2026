@@ -1,0 +1,41 @@
+<section class="slide" data-type="two-col" data-screen-label="05 Hook &middot; the bug with no stack trace">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Неделя на баг без стектрейса</span>
+      <span lang="en">A week lost to a bug with no stack trace</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">формы сошлись &middot; тесты зелёные &middot; модель не учится</span>
+      <span lang="en">shapes matched &middot; tests green &middot; the model will not learn</span>
+    </span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag">
+          <span lang="ru">Понедельник: всё «работает»</span>
+          <span lang="en">Monday: everything &ldquo;works&rdquo;</span>
+        </span>
+        <div class="def-body">
+          <p><span lang="ru">Одна строка: <code>scores.softmax(dim=-2)</code> вместо <code>dim=-1</code>. Веса нормированы по <em>не той</em> оси. Вошло \(n\times n\) &mdash; вышло \(n\times n\). Форма цела, исключения нет, тесты на формы зелёные, обучение идёт.</span><span lang="en">One line: <code>scores.softmax(dim=-2)</code> instead of <code>dim=-1</code>. The weights are normalised over the <em>wrong</em> axis. \(n\times n\) went in, \(n\times n\) came out. The shape survives, nothing raises, the shape tests pass, training runs.</span></p>
+        </div>
+      </div>
+    </div>
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag">
+          <span lang="ru">Пятница: лосс на плато</span>
+          <span lang="en">Friday: the loss plateaus</span>
+        </span>
+        <div class="def-body">
+          <p><span lang="ru">Лосс падает &mdash; и застревает. Никакой ошибки. Меняли learning rate, инициализацию, данные. <strong>Стектрейса не будет никогда</strong>: баг сохраняет форму, а форма &mdash; это всё, что проверяет рантайм.</span><span lang="en">The loss falls &mdash; and sticks. No error, ever. You try the learning rate, the init, the data. <strong>There will never be a stack trace</strong>: the bug preserves the shape, and the shape is all the runtime checks.</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="small muted center mt-2">
+    <span lang="ru">На схеме это видно за секунду: <strong>треугольник стоит поперёк не того провода</strong>. Формула \(\sigma(QK^{\top}/\sqrt{d_k})V\) об этом молчит &mdash; в ней нет ни оси, ни направления, поперёк которого нормирует \(\sigma\). Вся лекция &mdash; о том, чтобы такие вещи стали <em>видимыми</em>.</span>
+    <span lang="en">On a circuit you see it in a second: <strong>the triangle sits across the wrong wire</strong>. The formula \(\sigma(QK^{\top}/\sqrt{d_k})V\) says nothing about it &mdash; it carries no axes and no direction for \(\sigma\) to normalise across. This whole lecture is about making such things <em>visible</em>.</span>
+  </p>
+  <aside class="slide-notes">Холодный крючок. Реальный класс багов: softmax по не той оси (dim=-2 вместо dim=-1). Матрица оценок квадратная — n×n на входе, n×n на выходе, — поэтому форма сохраняется, исключения нет, ни один shape-assert не срабатывает, обучение спокойно идёт. Симптом появляется только в метрике: лосс падает и выходит на плато, энтропия внимания ведёт себя странно. Стектрейса не будет НИКОГДА — рантайм проверяет формы, а форма цела. Люди теряют на этом недели. Ключевой ход: на схеме треугольник нарисован ПОПЕРЁК конкретного провода — не того. Ошибка видна глазом, потому что нотация несёт ось, а формула — нет. Дальше по акту I: что именно формула не говорит, откуда нотация взялась и почему схема — это буквально einsum.</aside>
+</section>

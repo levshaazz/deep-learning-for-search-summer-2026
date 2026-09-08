@@ -1,0 +1,21 @@
+    {
+      id: 'catch-stemming-doesnt-fix-it', kind: 'prose',
+      heading: { en: 'Stemming doesn’t fix it', ru: 'Стемминг чинит не всё', tt: 'Стемминг барысын да төзәтми' },
+      body: {
+        en: [
+          "I called stemming the fast default, so let me run it on my own corpus before you take my word for it. Snowball, applied symmetrically to the query and to the same five documents. The query folds to *котят игра*. And the stem *котят* occurs in no document at all: the gold line stems to *котенок*, the pet-shop line to *кот*. One lexeme, three stems — exactly the alternation the Snowball beat opened up. Only the verb matches; the noun contributes nothing.",
+          "The ranking that comes out is the honest picture, and it is a split decision. Recall improves a lot: the answer is back in the list, and with it one more document the surface pass never reached. The order does not improve at all — a shorter, off-topic line about a puppy and a ball sits above the gold document, because the only term the two share is the common verb, and length normalization favours the shorter text. Better recall, wrong order, and the reader who looks at the first result is no better off.",
+          "Read the three passes as one row and the trade is legible: the gold document goes from absent, to present but not first, to first — and only the lemma pass puts it on top. The cost row is the counterweight: nothing, then rules, then a dictionary held in memory. Stemming is not the wrong answer. It is the cheap answer, and this particular stem alternation is what defeats it.",
+        ],
+        ru: [
+          "Я назвал стемминг быстрым дефолтом — так дай я прогоню его на собственном корпусе, прежде чем ты поверишь мне на слово. Snowball, симметрично на запросе и на тех же пяти документах. Запрос сворачивается в *котят игра*. А стем *котят* не встречается вообще ни в одном документе: золотая строка стеммится в *котенок*, магазинная — в *кот*. Одна лексема, три стема — ровно то чередование, которое вскрыл такт про Snowball. Совпал только глагол, существительное не дало ничего.",
+          "Ранжирование, которое из этого выходит, — честная картина и решение пополам. Полнота растёт заметно: ответ вернулся в выдачу, а с ним ещё один документ, до которых проход по формам не дотянулся. Порядок не улучшился ничуть: выше золотого встала короткая и не по теме строка про щенка и мяч, потому что общий у них только частотный глагол, а нормировка по длине любит текст покороче. Полнота лучше, порядок неверный — и читателю, который смотрит первый результат, от этого не легче.",
+          "Прочитай три прохода одной строкой, и размен станет читаемым: золотой документ идёт «нет в выдаче» → «есть, но не первый» → «первый», и на вершину его ставит только проход по леммам. Строка цены — противовес: ноль, потом правила, потом словарь в памяти. Стемминг не неправильный ответ. Он дешёвый ответ, и побеждает его вот это конкретное чередование основы.",
+        ],
+        tt: [
+          "Мин стеммингны тиз default дип атадым — алайса, син сүземә ышанганчы, аны үз корпусымда җибәрим. Snowball, сорауга да, шул ук биш документка да симметрик рәвештә. Сорау *котят игра* булып төрелә. Ә *котят* стемы бер документта да очрамый: алтын юл *котенок* булып стеммлана, кибет юлы — *кот*. Бер лексема, өч стем — нәкъ узган такт ачкан алмашыну. Бары фигыль генә туры килде, исем бернәрсә дә бирмәде.",
+          "Моннан чыккан ранжирлау — намуслы күренеш һәм икегә бүленгән карар. Тулылык сизелерлек үсә: җавап бирелешкә кайтты, аның белән бергә формалар үтеше җитә алмаган тагын бер документ. Тәртип бөтенләй яхшырмады: алтын документтан өстә көчек белән туп турындагы кыска һәм темага туры килми торган юл тора, чөнки алар уртаклашкан бердәнбер терм — еш очраучы фигыль, ә озынлык буенча нормалау кыскарак текстны ярата. Тулылык яхшырак, тәртип ялгыш — ә беренче нәтиҗәгә караучы укучыга моннан җиңелрәк түгел.",
+          "Өч үтешне бер юл итеп укы, һәм алмаш укылырлык була: алтын документ «бирелештә юк» → «бар, ләкин беренче түгел» → «беренче» юлын үтә, ә түбәгә аны бары леммалар үтеше генә куя. Бәя юлы — каршы авырлык: ноль, аннары кагыйдәләр, аннары хәтердәге сүзлек. Стемминг ялгыш җавап түгел. Ул арзан җавап, һәм аны нәкъ шушы нигез алмашынуы җиңә.",
+        ],
+      },
+    },

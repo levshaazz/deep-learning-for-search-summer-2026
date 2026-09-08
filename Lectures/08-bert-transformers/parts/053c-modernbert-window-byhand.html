@@ -1,0 +1,37 @@
+<section class="slide" data-type="formula" data-screen-label="34c ModernBERT · цена длины, руками">
+  <div class="slide-header" style="border:none; padding-bottom:0;">
+    <h2><span lang="ru">Почему 8192 не стоят в 256 раз дороже</span><span lang="en">Why 8192 does not cost 256 times more</span></h2>
+    <span class="slide-kicker"><span lang="ru">считаем пары на слой</span><span lang="en">counting pairs per layer</span></span>
+  </div>
+  <div class="formula-stage">
+    $$ \underbrace{8192^2 = 67\,108\,864}_{\text{полное внимание}} \qquad \underbrace{512^2 = 262\,144}_{\text{BERT}} \qquad \underbrace{8192 \times 128 = 1\,048\,576}_{\text{окно}} $$
+  </div>
+  <div class="formula-caption">
+    <div class="var-block">
+      <div class="var-symbol">\(256\times\)</div>
+      <div class="var-desc">
+        <span lang="ru"><strong>Во столько дороже длина</strong><br />наивно: 8192 против 512 при полном внимании на каждом слое</span>
+        <span lang="en"><strong>What the length would cost</strong><br />naively: 8192 against 512, full attention on every layer</span>
+      </div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">\(64\times\)</div>
+      <div class="var-desc">
+        <span lang="ru"><strong>Во столько дешевле окно</strong><br />каждый токен смотрит на 128 соседей, а не на все 8192</span>
+        <span lang="en"><strong>What the window saves</strong><br />each token sees 128 neighbours, not all 8192</span>
+      </div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">\(7 + 15\)</div>
+      <div class="var-desc">
+        <span lang="ru"><strong>Как собран проход</strong><br />из 22 слоёв 7 глобальных (каждый третий) и 15 оконных</span>
+        <span lang="en"><strong>How a pass is built</strong><br />of 22 layers, 7 global (every third) and 15 windowed</span>
+      </div>
+    </div>
+  </div>
+  <p class="small muted center mt-3">
+    <span lang="ru">Сложи проход целиком: \(7 \times 67\,108\,864 + 15 \times 1\,048\,576 \approx 485\) млн пар против \(22 \times 67\,108\,864 \approx 1476\) млн, если бы каждый слой смотрел глобально. Втрое дешевле — и это не приближение: глобальные слои <em>точные</em>, просто их семь, а не двадцать два. Дальние связи остаются, платит за них не каждый слой.</span>
+    <span lang="en">Add up a whole pass: \(7 \times 67\,108\,864 + 15 \times 1\,048\,576 \approx 485\)M pairs against \(22 \times 67\,108\,864 \approx 1476\)M if every layer looked globally. Three times cheaper — and not by approximation: the global layers are <em>exact</em>, there are simply seven of them rather than twenty-two. The long-range wiring stays; not every layer pays for it.</span>
+  </p>
+  <aside class="slide-notes">Разбор руками к слайду 34b. Все числа из data/l15-bench.json → modernbert.byHand (считает gen_l15.py): 8192²=67 108 864 против 512²=262 144, отношение 256; окно 8192×128=1 048 576, легче полного в 64 раза; при 22 слоях 7 глобальных (каждый третий) и 15 оконных; проход 485 490 688 пар против 1 476 395 008 — экономия ровно втрое. Тезис, который стоит проговорить: чередование не приближает внимание, а перераспределяет его — семь слоёв остаются точными и глобальными, остальные пятнадцать работают локально. Отсюда и ответ на естественный вопрос студента «а не теряем ли мы дальние связи»: не теряем, за них платит каждый третий слой.</aside>
+</section>

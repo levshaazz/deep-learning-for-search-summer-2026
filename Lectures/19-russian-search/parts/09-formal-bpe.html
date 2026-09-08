@@ -1,0 +1,24 @@
+<section class="slide" data-type="definition" data-screen-label="09 Formal · merges follow the training corpus">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Почему BPE рвёт русское слово</span>
+      <span lang="en">Why BPE shreds a Russian word</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">слияние выигрывает частота, а частоты считаны не на твоём корпусе</span>
+      <span lang="en">frequency wins the merge &mdash; and it was counted on someone else&rsquo;s corpus</span>
+    </span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">
+      <span lang="ru">Один тезис</span>
+      <span lang="en">One claim</span>
+    </span>
+    <div class="def-body">
+      <p class="center">$$ (a,b)^{\star} \;=\; \arg\max_{(a,b)} \; \mathrm{count}_{\mathcal{C}}(a,b) $$</p>
+      <p><span lang="ru">BPE (L2) на каждом шаге сливает пару, самую частую в <em>корпусе обучения токенизатора</em> \(\mathcal{C}\). Если \(\mathcal{C}\) перекошен к английскому &mdash; а веб перекошен, &mdash; кириллическая пара не выигрывает этот argmax <strong>ни разу</strong>. Слияний для русских основ и окончаний просто не появляется, и слово откатывается к отдельным символам.</span><span lang="en">At every step BPE (L2) merges the pair that is most frequent in the <em>tokenizer&rsquo;s training corpus</em> \(\mathcal{C}\). If \(\mathcal{C}\) is English-skewed &mdash; and the web is &mdash; a Cyrillic pair never wins that argmax <strong>even once</strong>. No merges appear for Russian stems and endings, and the word falls back to single characters.</span></p>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Отсюда правило: словарь токенизатора &mdash; это <em>слепок чужого корпуса</em>, а не свойство языка. Дальше &mdash; счёт в байтах и настоящие цифры фертильности.</span><span lang="en">Hence the rule: a tokenizer&rsquo;s vocabulary is a <em>cast of someone else&rsquo;s corpus</em>, not a property of the language. Next: the bill in bytes, then the real fertility numbers.</span></p>
+  <aside class="slide-notes">The formal cause, in one line. BPE's merge rule is an argmax over pair counts in the tokenizer's training corpus C — not in your data. English-skewed C means Cyrillic pairs never win, so no Russian merges are learned and Russian falls back toward characters. Two consequences that used to live on this slide have moved where they are actually demonstrated: the two-bytes-per-Cyrillic-character head start goes to the byte-count slide right after the toy, and "token boundaries ≠ morpheme boundaries" belongs to Act 2, where the Snowball cascade shows real morpheme boundaries being missed. Keep this slide short — it is the hinge, not the evidence.</aside>
+</section>

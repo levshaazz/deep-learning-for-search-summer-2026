@@ -1,0 +1,21 @@
+    {
+      id: 'depth-the-cost-of-a-drawing', kind: 'prose',
+      heading: { en: "What a drawing costs you", ru: "Во что обходится рисунок", tt: "Рәсем сиңа нәрсәгә төшә" },
+      body: {
+        en: [
+          "A notation whose limits are never stated quietly turns into an obligation. People start drawing every function they touch, because that is now How It Is Done, and half an hour goes into a diagram that settles a question one line of code would have settled faster. So here is the honest accounting, in the same spirit as the boundaries slide: the circuit earns its half-hour when an *axis* is in doubt — what it is called, who consumes it, what you normalise across, where it comes back. It does not earn anything when the doubt is about a value, a version, or a silent shape mismatch that a single `print(x.shape)` would expose.",
+          "The second cost is subtler and worth naming. A diagram is a claim about structure, and a claim can be stale: you draw the block once, the model changes, and the picture keeps telling everyone the old story with the full authority of something that was clearly hand-made. Code at least fails loudly when it rots. A drawing rots silently, which is why the ones worth keeping are the ones attached to something executable — the einsum string they were derived from, a test, a shape assertion.",
+          "Neither cost argues against the notation; both argue against drawing on autopilot. Use the circuit where the question is *which axis*, keep it next to the code it describes, and let the interpreter answer everything else.",
+        ],
+        ru: [
+          "Нотация, у которой не названы границы, тихо превращается в обязанность. Люди начинают рисовать каждую функцию, к которой прикасаются, потому что теперь Так Положено, и полчаса уходит на схему там, где вопрос быстрее закрыла бы одна строка кода. Поэтому — честный счёт, в том же духе, что и слайд про границы: схема отрабатывает свои полчаса, когда под сомнением *ось*: как она называется, кто её съедает, поперёк чего ты нормируешь, где она возвращается. И не отрабатывает ничего, когда под сомнением значение, версия или молчаливое несовпадение формы, которое вскрыл бы один `print(x.shape)`.",
+          "Вторая цена тоньше, и её стоит назвать вслух. Схема — это утверждение о структуре, а утверждение может протухнуть: ты нарисовал блок однажды, модель изменилась, и картинка продолжает рассказывать всем старую историю — причём с полным авторитетом вещи, которую явно делали руками. Код хотя бы падает громко, когда протухает. Рисунок протухает молча, и поэтому живут те схемы, которые привязаны к чему-то исполняемому: к строке einsum, из которой они выведены, к тесту, к проверке формы.",
+          "Ни одна из этих цен не спорит с нотацией — обе спорят с рисованием на автопилоте. Бери схему там, где вопрос звучит как «какая ось», держи её рядом с кодом, который она описывает, а на всё остальное пусть отвечает интерпретатор.",
+        ],
+        tt: [
+          "Чикләре әйтелмәгән язу ысулы тыныч кына мәҗбүриятькә әйләнә. Кешеләр кагылган һәр функцияне рәсемгә төшерә башлый, чөнки хәзер Шулай Кабул Ителгән, һәм ярты сәгать схемага китә, ә сорауны бер юл код тизрәк ябар иде. Шуңа күрә — намуслы исәп, чикләр турындагы слайд рухында: схема үз ярты сәгатен акълый, әгәр шик *күчәргә* карата булса: ул ничек атала, аны кем ашый, нәрсә буенча нормалаштырасың, ул кая кайта. Һәм ул бернәрсә дә акъламый, әгәр шик кыйммәткә, версиягә яки бер `print(x.shape)` ачып бирә торган тавышсыз форма туры килмәвенә карата булса.",
+          "Икенче хак нечкәрәк, һәм аны атап әйтергә кирәк. Схема — ул структура турында раслау, ә раслау искерергә мөмкин: син блокны бер тапкыр ясадың, модель үзгәрде, ә рәсем һәркемгә иске хикәяне сөйләвен дәвам итә — өстәвенә кул белән эшләнгән әйбернең тулы абруе белән. Код, ичмасам, искергәндә кычкырып ега. Рәсем тавышсыз искерә, шуңа күрә башкарыла торган нәрсәгә беркетелгәннәре генә исән кала: алар чыгарылган einsum юлына, тестка, форма тикшерүенә.",
+          "Бу хакларның берсе дә язу ысулына каршы килми — икесе дә автопилотта рәсем ясауга каршы. Схеманы сорау «нинди күчәр» дип яңгыраган җирдә ал, аны үзе тасвирлаган код янында тот, ә калганына интерпретатор җавап бирсен.",
+        ],
+      },
+    },

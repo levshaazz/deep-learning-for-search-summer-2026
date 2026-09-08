@@ -1,0 +1,37 @@
+<section class="slide" data-type="formula" data-screen-label="37c RaBitQ, by hand">
+  <div class="slide-header" style="border:none; padding-bottom:0;">
+    <h2><span lang="ru">Один бит на измерение — сколько это в байтах</span><span lang="en">One bit per dimension — what that costs in bytes</span></h2>
+    <span class="slide-kicker"><span lang="ru">\(D = 768\), считаем на бумаге</span><span lang="en">\(D = 768\), on paper</span></span>
+  </div>
+  <div class="formula-stage">
+    $$ \underbrace{768 \times 4 = 3072\ \text{Б}}_{\text{fp32}} \qquad \underbrace{768 / 8 = 96\ \text{Б}}_{\text{RaBitQ}} \qquad \underbrace{m = 8 \Rightarrow 8\ \text{Б}}_{\text{PQ}} $$
+  </div>
+  <div class="formula-caption">
+    <div class="var-block">
+      <div class="var-symbol">\(32\times\)</div>
+      <div class="var-desc">
+        <span lang="ru"><strong>Сжатие RaBitQ</strong><br />один бит на измерение, книгу хранить не нужно вовсе</span>
+        <span lang="en"><strong>RaBitQ compression</strong><br />one bit per dimension, and no codebook to store at all</span>
+      </div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">\(384\times\)</div>
+      <div class="var-desc">
+        <span lang="ru"><strong>Сжатие PQ при \(m=8\)</strong><br />но плюс \(2048\) центроидов и обучение на твоём корпусе</span>
+        <span lang="en"><strong>PQ compression at \(m=8\)</strong><br />plus \(2048\) centroids and training on your corpus</span>
+      </div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">\(0{,}036\)</div>
+      <div class="var-desc">
+        <span lang="ru"><strong>Порядок границы при \(D=768\)</strong><br />\(1/\sqrt{D-1}\): чем выше размерность, тем <em>уже</em> коридор ошибки</span>
+        <span lang="en"><strong>Bound scale at \(D=768\)</strong><br />\(1/\sqrt{D-1}\): the higher the dimension, the <em>tighter</em> the error corridor</span>
+      </div>
+    </div>
+  </div>
+  <p class="small muted center mt-3">
+    <span lang="ru">Вот честный итог сравнения, и он не в пользу RaBitQ по памяти: <strong>PQ жмёт в двенадцать раз сильнее</strong>. Зато у RaBitQ нет обучения, нет кодовой книги в памяти и есть граница ошибки, которая <em>улучшается</em> с ростом размерности — при \(D=8\) коридор \(0{,}378\), при \(D=768\) уже \(0{,}036\). Для эмбеддингов, где \(D\) исчисляется сотнями, это работает в нужную сторону.</span>
+    <span lang="en">Here is the honest tally, and on memory it does not favour RaBitQ: <strong>PQ compresses twelve times harder</strong>. What RaBitQ gets instead is no training, no codebook in memory, and an error bound that <em>improves</em> with dimension — at \(D=8\) the corridor is \(0.378\), at \(D=768\) it is \(0.036\). For embeddings, where \(D\) runs into the hundreds, that slope points the right way.</span>
+  </p>
+  <aside class="slide-notes">Разбор руками, все числа из data/l9-bench.json → rabitq.byHand (считает gen_l9.py, не набраны здесь): fp32 768·4 = 3072 Б; RaBitQ 768/8 = 96 Б, сжатие 32×; PQ при m=8 — 8 Б, сжатие 384×, то есть в 12 раз сильнее. Граница ~1/√(D−1): 0,378 при D=8 и 0,036 при D=768. Главное, что должно прозвучать: RaBitQ проигрывает PQ по памяти и выигрывает по предсказуемости — и этот размен зависит от D в его пользу. Не давать студенту вывод «RaBitQ лучше»; вывод — «дороже по памяти, дешевле по риску».</aside>
+</section>

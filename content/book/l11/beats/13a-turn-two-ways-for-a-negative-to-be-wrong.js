@@ -1,0 +1,21 @@
+    {
+      id: 'turn-two-ways-for-a-negative-to-be-wrong', kind: 'prose',
+      heading: { en: 'Two ways for a negative to be wrong', ru: 'Два способа негативу оказаться неправильным', tt: 'Негативның ялгыш булуының ике юлы' },
+      body: {
+        en: [
+          "Staleness and the impostor are both cases of a negative not being what the trainer thinks it is, and it is worth standing them side by side before the next act, because they fail in opposite directions. A stale negative has drifted toward *easy*: the model moved on, and the frozen passage no longer crowds the query. An impostor has drifted nowhere at all — it is exactly as hard as it looks, and simply carries the wrong sign.",
+          "Now read each through the budget. The stale negative's error makes its own weight small, so the mistake removes itself from the step: what you lose is the compute you spent producing it, and the cost is money. The impostor's error makes its weight **large** — it sits near the query precisely because it answers it — so the mistake claims the biggest share of the push and spends it dragging a correct answer away. One failure is self-limiting; the other is self-amplifying, because the better the retriever gets, the higher it ranks the unlabelled positive and the more of the budget the impostor takes.",
+          "That is also the reading order of the field. The cheap failure was found and fixed first, with fresher indexes and per-step mining — and every one of those fixes made the expensive failure worse, because each of them mined harder. The next act is what happens when the whole gradient budget lands on an ally.",
+        ],
+        ru: [
+          'И застой, и самозванец — случаи, когда негатив не тот, за кого его держит обучение, и перед следующим актом их стоит поставить рядом: ломаются они в противоположные стороны. Застоявшийся негатив сполз в *лёгкие*: модель ушла вперёд, и замороженный пассаж больше не теснит запрос. Самозванец не сползал никуда — он ровно настолько труден, насколько выглядит, и просто несёт неверный знак.',
+          'Теперь прочти обоих через бюджет. Ошибка застоявшегося делает его собственный вес маленьким, поэтому промах сам себя вычёркивает из шага: теряешь ты вычисления, потраченные на его добычу, и цена тут денежная. Ошибка самозванца делает его вес **большим** — он сидит рядом с запросом именно потому, что на него отвечает, — так что промах забирает наибольшую долю толчка и тратит её, утаскивая верный ответ прочь. Один сбой сам себя ограничивает; другой сам себя раскручивает: чем лучше ретривер, тем выше он ставит неразмеченный позитив и тем больше бюджета уходит самозванцу.',
+          'Это же и порядок чтения самой области. Дешёвый сбой нашли и починили первым — свежими индексами и пошаговым майнингом, — и каждая из этих починок делала дорогой сбой хуже, потому что каждая майнила труднее. Следующий акт — о том, что бывает, когда весь бюджет градиента приземляется на союзника.',
+        ],
+        tt: [
+          'Тукталып калу да, алдакчы да — негативның өйрәтү уйлаганча булмавы очраклары, һәм киләсе актка кадәр аларны янәшә куярга кирәк: алар капма-каршы якка ватыла. Тукталып калган негатив *җиңелләр* ягына шуышкан: модель алга киткән, ә туңдырылган пассаж инде сорауны кысмый. Алдакчы исә бер якка да шуышмаган — ул нәкъ күренгәнчә катлаулы, тик билгесе генә ялгыш.',
+          'Хәзер икесен дә бюджет аша укы. Тукталып калганның хатасы аның үз авырлыгын кечкенә итә, шуңа ялгышлык адымнан үзен үзе сызып ташлый: син аны казып алуга тоткан исәпләүне югалтасың, ә бәясе — акча ягыннан. Алдакчының хатасы аның авырлыгын **зур** итә — ул сорау янында нәкъ шуңа утыра, чөнки аңа җавап бирә — шуңа ялгышлык этүнең иң зур өлешен ала һәм аны дөрес җавапны читкә сөйрәүгә тота. Бер җимерелү үз-үзен чикли; икенчесе үз-үзен көчәйтә: ретривер яхшырган саен билгеләнмәгән позитивны югарырак куя, һәм бюджетның күбрәге алдакчыга китә.',
+          'Бу — өлкәнең үзенең уку тәртибе дә. Арзан җимерелүне беренче итеп таптылар һәм төзәттеләр — яңарак индекслар һәм адым саен майнинг белән, — ә бу төзәтмәләрнең һәрберсе кыйммәтле җимерелүне начаррак итте, чөнки һәрберсе катлаулырак казыды. Киләсе акт — бөтен градиент бюджеты дуска төшкәндә нәрсә булуы турында.',
+        ],
+      },
+    },

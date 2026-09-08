@@ -1,0 +1,171 @@
+---
+// embed/[widget].astro — chromeless single-widget page for EXTERNAL embedding (Stepik iframes).
+//
+// One page per auto-registered widget (getStaticPaths from the same WIDGET_META registry the
+// Playground uses — dropping a widgets/<id>/ folder adds an embed page with ZERO edits here).
+// No site header/footer/nav: just the widget, a step caption, and a Playground-style transport.
+//
+// Language is a QUERY PARAM (?lang=ru|en|tt, default ru — the Stepik release is RU), not a path
+// segment, so ONE static page serves all locales: the raw trilingual i18n map ships in the payload
+// and the client resolves it with the same fallback chain as src/i18n/locales.js (tt→ru→en).
+// Theme: prefers-color-scheme by default, ?theme=dark|light override (tokens' [C] dark layer
+// applies via :root[data-theme="dark"]).
+import { buildDemos } from '../../lib/playground.js';
+import { WIDGET_META, DATA } from '../../lib/widgets.js';
+
+// widget styles (bundled globally) + shared widget base — same auto-discovery as Playground/Book.
+import '../../../tokens/design-tokens.css';
+import '../../../widgets/_base.css';
+const widgetStyles = import.meta.glob('../../../widgets/*/style.css', { eager: true });
+void widgetStyles;
+
+// getStaticPaths runs in isolation and may reference only imports.
+export function getStaticPaths() {
+  return buildDemos().map((d) => ({ params: { widget: d.id } }));
+}
+
+const { widget } = Astro.params;
+const d = buildDemos().find((x) => x.id === widget);
+const manifest = WIDGET_META[widget].manifest;
+
+// Every data file this widget's manifest references, keyed — so a Book beat that mounts the
+// widget on a NON-default dataset (e.g. rag-pipeline on l10-rag instead of l7-rag) can be
+// reproduced in the iframe via ?data=<key>. Default (no param) = the Playground's merge.
+const dataSets = {};
+for (const key of manifest.data || []) if (DATA[key] !== undefined) dataSets[key] = DATA[key];
+
+// Client payload: raw trilingual i18n (resolved client-side by ?lang) + merged data + step map.
+const payload = {
+  id: d.id,
+  mountName: d.mountName,
+  maxStep: d.maxStep,
+  data: d.data,
+  dataSets,
+  i18n: d.i18n,                                  // flat { key: {en,ru,tt} } — resolved per ?lang
+  title: d.title,                                // trilingual widget title
+  steps: (manifest.steps || []).map((s) => ({ step: s.step, labelKey: s.labelKey })),
+};
+const titleEn = typeof d.title === 'string' ? d.title : (d.title.en || widget);
+---
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>{titleEn}</title>
+  <!-- no-flash theme: ?theme=dark|light override, else prefers-color-scheme -->
+  <script is:inline>
+    (function () {
+      try {
+        var q = new URLSearchParams(location.search).get('theme');
+        var mq = matchMedia('(prefers-color-scheme: dark)');
+        var apply = function (dark) {
+          if (dark) document.documentElement.dataset.theme = 'dark';
+          else delete document.documentElement.dataset.theme;
+        };
+        if (q === 'dark' || q === 'light') apply(q === 'dark');
+        else { apply(mq.matches); mq.addEventListener('change', function (e) { apply(e.matches); }); }
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <main class="em-page">
+    <h1 class="em-title" id="em-title">{titleEn}</h1>
+    <div class="em-stage">
+      <div class="em-mount" id="em-mount"></div>
+    </div>
+    <p class="em-caption" id="em-caption" aria-live="polite"></p>
+    <div class="em-transport" id="em-transport" role="group" hidden>
+      <button type="button" class="em-btn" data-act="restart">⤺</button>
+      <button type="button" class="em-btn" data-act="prev">‹</button>
+      <button type="button" class="em-btn em-play" data-act="play">
+        <span class="em-ico-play">▶</span><span class="em-ico-pause">❚❚</span>
+      </button>
+      <button type="button" class="em-btn" data-act="next">›</button>
+      <input type="range" class="em-scrub" min="0" max={d.maxStep} value="0" step="1" />
+      <span class="em-count" aria-hidden="true"><b class="em-k">0</b>&#8202;/&#8202;<span class="em-n">{d.maxStep}</span></span>
+    </div>
+  </main>
+
+  <script type="application/json" id="em-payload" set:html={JSON.stringify(payload)}></script>
+  <!-- runtime lives in its own module (src/scripts/embed-client.js): a page <script> that imports it
+       links reliably, whereas a hoisted inline script using only import.meta.glob can be dropped on
+       a dynamic static route (same pattern as the Playground). -->
+  <script>
+    import '../../scripts/embed-client.js';
+  </script>
+
+  <style is:global>
+    /* The transport owns stepping here (like the Playground) — hide the widget's own
+       caption/counter chrome; the .em-caption below narrates the current step instead. */
+    .em-mount .wgt-caption, .em-mount .wgt-counter,
+    .em-mount .cs-caption, .em-mount .cs-counter { display: none; }
+
+    /* Content-driven DOM-flow widgets (tokenizer-compare, inverted-index): collapse hidden
+       rows' layout height so the stage sizes to the step on screen (same fix as the Playground). */
+    .em-mount .tc-row, .em-mount .ix-prow, .em-mount .ix-merge {
+      max-height: 60vh; overflow: hidden;
+      transition: opacity var(--dur, 220ms) var(--ease), transform var(--dur, 220ms) var(--ease),
+                  max-height var(--dur, 220ms) var(--ease), margin var(--dur, 220ms) var(--ease),
+                  padding var(--dur, 220ms) var(--ease);
+    }
+    .em-mount .tc-row.is-hidden, .em-mount .ix-prow.is-hidden, .em-mount .ix-merge.is-hidden {
+      max-height: 0; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0;
+      border-width: 0;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .em-mount .tc-row, .em-mount .ix-prow, .em-mount .ix-merge { transition: none; }
+    }
+
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); }
+  </style>
+
+  <style>
+    .em-page {
+      box-sizing: border-box; min-height: 100vh; display: flex; flex-direction: column;
+      gap: 10px; padding: 12px 14px; font-family: var(--font-sans, system-ui, sans-serif);
+    }
+    .em-title {
+      font-family: var(--font-serif); font-size: var(--fz-h3); font-weight: 600;
+      margin: 0; color: var(--ink); line-height: 1.2;
+    }
+    .em-stage {
+      flex: 1 1 auto; display: flex; align-items: flex-start; justify-content: center;
+      background: var(--bg-card); border: var(--hairline) solid var(--rule);
+      border-radius: var(--r-md); padding: var(--ws-2); overflow: hidden; min-height: 200px;
+    }
+    .em-mount { width: 100%; max-width: 100%; }
+    .em-mount :global(svg), .em-mount :global(img) { max-width: 100%; height: auto; }
+    .em-caption {
+      margin: 0; min-height: 2.6em; font-size: var(--fz-small); line-height: 1.45;
+      color: var(--ink-2); border-left: 3px solid var(--accent-soft); padding-left: 10px;
+    }
+    .em-caption:empty { border-color: transparent; }
+    .em-transport {
+      display: flex; align-items: center; gap: 6px; padding-top: 4px;
+      border-top: var(--hairline) solid var(--rule);
+    }
+    .em-transport[hidden] { display: none; }
+    .em-btn {
+      flex: none; width: 34px; height: 34px; display: inline-flex; align-items: center;
+      justify-content: center; font-family: var(--font-mono); font-size: 0.95rem; line-height: 1;
+      cursor: pointer; color: var(--ink-2); background: var(--bg-card);
+      border: var(--hairline) solid var(--rule); border-radius: var(--r-sm);
+    }
+    .em-btn:hover { background: var(--bg-inset); color: var(--ink); }
+    .em-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .em-play { color: var(--accent); }
+    .em-ico-pause { display: none; }
+    .is-playing .em-ico-play { display: none; }
+    .is-playing .em-ico-pause { display: inline; }
+    .em-scrub { flex: 1 1 auto; min-width: 40px; accent-color: var(--accent); cursor: pointer; height: 4px; }
+    .em-count {
+      flex: none; font-family: var(--font-mono); font-size: var(--fz-small); color: var(--ink-3);
+      font-variant-numeric: tabular-nums; white-space: nowrap;
+    }
+    .em-count .em-k { color: var(--ink); font-weight: 700; }
+  </style>
+</body>
+</html>

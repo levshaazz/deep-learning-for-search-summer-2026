@@ -1,0 +1,35 @@
+{
+  "_doc": "Four chunking STRATEGIES (descriptive — no computed numbers; cost/quality marked 'representative'). fixed = simplest, ignores structure; recursive = respects separators (¶/sentence); semantic = cuts on embedding-similarity drops; late-chunking = embed the whole doc first, chunk AFTER the transformer (arXiv:2409.04701) so each chunk keeps full-document context. Read with the exact `scenarios`/`sweep` blocks (those carry the arithmetic); this block is the qualitative map of the design space.",
+  "_source": "_research/gen_l10.py (static, descriptive): no arithmetic; late-chunking cites arXiv:2409.04701.",
+  "strategies": [
+    {
+      "name": "fixed-size",
+      "howItCuts": "every N tokens, hard boundaries (optionally with overlap)",
+      "cost": "cheapest",
+      "whenToUse": "uniform text, fast baseline; pair with overlap to soften boundaries",
+      "representative": true
+    },
+    {
+      "name": "recursive",
+      "howItCuts": "split on a separator hierarchy (¶ → sentence → word) until each piece fits N",
+      "cost": "cheap",
+      "whenToUse": "structured prose / markdown / code where natural boundaries matter",
+      "representative": true
+    },
+    {
+      "name": "semantic",
+      "howItCuts": "embed sentences, start a new chunk where adjacent-sentence similarity drops",
+      "cost": "moderate (one embed pass over sentences)",
+      "whenToUse": "topic-shifting docs where fixed cuts split ideas",
+      "representative": true
+    },
+    {
+      "name": "late-chunking",
+      "howItCuts": "embed ALL tokens of the long doc first (one long-context pass), then chunk AFTER the transformer, before mean-pooling",
+      "cost": "needs a long-context encoder; training-free",
+      "whenToUse": "when chunk embeddings must keep full-document context (fixes isolated-chunk context loss)",
+      "representative": true,
+      "source": "Günther, Mohr, Williams, Wang & Xiao (Jina AI), 'Late Chunking: Contextual Chunk Embeddings Using Long-Context Embedding Models', arXiv:2409.04701 (2024)"
+    }
+  ]
+}

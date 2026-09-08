@@ -1,0 +1,18 @@
+    {
+      id: 'formal-temperature', kind: 'prose',
+      heading: { en: "Temperature, written out", ru: "Температура — формулой", tt: "Temperature — формула белән" },
+      body: {
+        en: [
+          "Before any tail-cutting comes one clean knob, and it has earned its formula: \\(p_i = \\frac{e^{z_i/T}}{\\sum_j e^{z_j/T}}\\). Here \\(z_i\\) are the **logits** — the raw scores the loom assigns each candidate thread *before* softmax — and \\(T\\) is the **temperature** that divides them all ahead of the exponent. That division is the whole trick: it stretches or shrinks the *gaps* between scores. With \\(T\\lt1\\) the gaps widen, the exponent amplifies the leader, and the fan sharpens toward the favourite; with \\(T\\gt1\\) the gaps compress and the fan flattens toward daring.",
+          "The two ends of the dial are worth walking to. Send \\(T\\to0\\) and the division blows every gap up toward infinity: all the mass lands on the single largest logit, and sampling collapses back into greedy \\(\\arg\\max\\). Send \\(T\\to\\infty\\) and every \\(z_i/T\\) slides toward zero: the fan levels out toward a uniform draw, any thread as likely as any other — pure noise. Notice what temperature never does: it never reorders the candidates, it only redistributes belief among them. The knob reshapes the fan *before* the draw — it is not itself a way of choosing.",
+        ],
+        ru: [
+          "Перед всякой обрезкой хвоста стоит одна чистая рукоятка, и она заслужила формулу: \\(p_i = \\frac{e^{z_i/T}}{\\sum_j e^{z_j/T}}\\). Здесь \\(z_i\\) — **логиты** (logits), сырые оценки, которые станок выставляет каждой нити-кандидату *до* софтмакса, а \\(T\\) — **температура**, которая делит их все перед экспонентой. В этом делении весь фокус: оно растягивает или сжимает *зазоры* между оценками. При \\(T\\lt1\\) зазоры ширятся, экспонента раздувает лидера — веер заостряется к фавориту; при \\(T\\gt1\\) зазоры сжимаются, и веер сглаживается к дерзости.",
+          "К обоим концам шкалы стоит дойти пешком. Устреми \\(T\\to0\\) — деление раздует каждый зазор к бесконечности: вся масса ляжет на единственный наибольший логит, и сэмплирование свернётся обратно в жадный \\(\\arg\\max\\). Устреми \\(T\\to\\infty\\) — каждое \\(z_i/T\\) сползёт к нулю: веер выровняется к равномерному броску, любая нить равновероятна — чистый шум. Заметь, чего температура не делает никогда: она не переставляет кандидатов местами, а лишь перераспределяет веру между ними. Эта рукоятка перекраивает веер *до* броска — сама по себе она ничего не выбирает.",
+        ],
+        tt: [
+          "Койрык кисүгә кадәр бер чиста боргыч тора, һәм ул үз формуласына лаек: \\(p_i = \\frac{e^{z_i/T}}{\\sum_j e^{z_j/T}}\\). Монда \\(z_i\\) — **логитлар** (logits), станок softmax'ка *кадәр* һәр кандидат-җепкә куйган чи баллар, ә \\(T\\) — экспонента алдыннан аларның барысын да бүлүче **temperature**. Бөтен фокус шул бүлүдә: ул баллар арасындагы *араларны* суза яки кыса. \\(T\\lt1\\) булганда аралар киңәя, экспонента лидерны көчәйтә — җилпәзә фаворитка таба үткенләнә; \\(T\\gt1\\) булганда аралар кысыла, җилпәзә кыюлыкка таба яссылана.",
+          "Шкаланың ике очына да җәяү барып кайтырга кирәк. \\(T\\to0\\) җибәр — бүлү һәр араны чиксезлеккә кабарта: бөтен масса бердәнбер иң зур логитка ята, sampling кире greedy \\(\\arg\\max\\)ка җыела. \\(T\\to\\infty\\) җибәр — һәр \\(z_i/T\\) нульгә шуыша: җилпәзә тигез ыргытуга кадәр яссылана, һәр җеп бер үк дәрәҗәдә ихтимал — саф шау. Temperature бервакытта да нәрсә эшләмәгәнен күр: ул кандидатларның тәртибен үзгәртми, бары алар арасында ышанычны яңадан бүлә. Бу боргыч җилпәзәне ыргытуга *кадәр* яңадан кисә — үзе ул берни дә сайламый.",
+        ],
+      },
+    },

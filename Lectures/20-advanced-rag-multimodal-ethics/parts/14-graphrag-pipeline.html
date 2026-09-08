@@ -1,0 +1,18 @@
+<section class="slide" data-type="definition" data-screen-label="14 Building the graph">
+  <div class="slide-header">
+    <h2><span lang="ru">Строим граф &mdash; офлайн-конвейер индексации</span><span lang="en">Building the graph &mdash; the offline indexing pipeline</span></h2>
+    <span class="slide-kicker"><span lang="ru">откуда берутся рёбра, ещё до прихода запроса</span><span lang="en">where the edges come from, before any query arrives</span></span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag"><span lang="ru">Конвейер · во время индексации, один раз на корпус</span><span lang="en">Pipeline · index-time, once per corpus</span></span>
+    <div class="def-term"><span lang="ru">извлечь тройки &rarr; разрешить и слить сущности &rarr; построить граф &rarr; выявить сообщества и предсуммировать &mdash; всё офлайн, так что во время запроса это лишь <em>обход</em>.</span><span lang="en">extract triples &rarr; resolve &amp; merge entities &rarr; build the graph &rarr; detect communities &amp; pre-summarise &mdash; all offline, so query-time is just a <em>walk</em>.</span></div>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">1</span><span class="obj-text"><span lang="ru"><strong>Извлечь</strong> &mdash; LLM читает каждый чанк и выдаёт тройки <em>(голова, отношение, хвост)</em>; наша llama3.1:8b вернула 7 троек из 3 документов.</span><span lang="en"><strong>Extract</strong> &mdash; an LLM reads each chunk and emits <em>(head, relation, tail)</em> triples; our llama3.1:8b returned 7 triples from 3 docs.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">2</span><span class="obj-text"><span lang="ru"><strong>Разрешить</strong> &mdash; слить кореферентные упоминания в один узел, чтобы рёбра из разных документов соединились (в реальном корпусе ты свёл бы «Dana», «Dana&nbsp;Reyes», «the founder» &mdash; наша игрушка уже использует одну форму).</span><span lang="en"><strong>Resolve</strong> &mdash; merge co-referent mentions into one node, so edges from different documents connect (in a real corpus you&rsquo;d fold &ldquo;Dana&rdquo;, &ldquo;Dana&nbsp;Reyes&rdquo;, &ldquo;the founder&rdquo; &mdash; our toy already uses one surface form).</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">3</span><span class="obj-text"><span lang="ru"><strong>Построить и кластеризовать</strong> &mdash; собрать граф, выявить сообщества и предсуммировать каждое (шаг глобального поиска). Та самая цена со слайда о границах &mdash; платится раз, амортизируется по всем запросам.</span><span lang="en"><strong>Build &amp; cluster</strong> &mdash; assemble the graph, detect communities, and pre-summarise each (the global-search step). The cost the boundaries slide warned about &mdash; paid once, amortised over every query.</span></span></li>
+      </ul>
+    </div>
+  </div>
+  <aside class="slide-notes">GraphRAG build pipeline (offline, like L15's offline/online split). Steps: extract triples (LLM, our llama3.1:8b → 7 triples), entity resolution / co-reference merge, build + community detection + pre-summarise. Index-time cost (the boundaries slide's warning), amortised. Query-time = a walk. Mirrors the offline/online framing from L15's rag-pipeline.</aside>
+</section>

@@ -1,0 +1,47 @@
+<section class="slide" data-type="two-col" data-screen-label="10a The bill in bytes">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Счёт в байтах</span>
+      <span lang="en">The bill in bytes</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">дробление начинается до первого слияния</span>
+      <span lang="en">the shredding starts before the first merge</span>
+    </span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag">
+          <span lang="ru">Откуда фора у английского</span>
+          <span lang="en">Where English&rsquo;s head start comes from</span>
+        </span>
+        <div class="def-body">
+          <p lang="ru">Байтовый BPE (byte-level BPE) видит не буквы, а <em>байты</em> UTF-8. Латинская буква &mdash; один байт, кириллическая &mdash; два. Значит, на том же слове алгоритм стартует с <strong>вдвое большего</strong> числа кусков, и первые слияния уходят только на то, чтобы собрать обратно буквы.</p>
+          <p lang="en">A byte-level BPE sees bytes, not letters. A Latin letter is one UTF-8 byte, a Cyrillic letter is two. So on the same word the algorithm starts from <strong>twice</strong> as many pieces, and its first merges are spent merely reassembling letters.</p>
+        </div>
+      </div>
+      <p class="small muted"><span lang="ru">На живом тексте среднее мягче &mdash; <strong>1,824</strong> байта на символ: пробелы, цифры и знаки однобайтовые.</span><span lang="en">On real text the average is softer &mdash; <strong>1.824</strong> bytes per character: spaces, digits and punctuation are single-byte.</span></p>
+    </div>
+    <div class="twocol-col">
+      <table class="cmp-table">
+        <thead><tr>
+          <th><span lang="ru">слово</span><span lang="en">word</span></th>
+          <th><span lang="ru">символов</span><span lang="en">chars</span></th>
+          <th><span lang="ru">байт</span><span lang="en">bytes</span></th>
+          <th><span lang="ru">байт/символ</span><span lang="en">bytes/char</span></th>
+        </tr></thead>
+        <tbody>
+          <tr><td><code>query</code></td><td>5</td><td class="cell-good">5</td><td class="cell-good"><span lang="ru">1,0</span><span lang="en">1.0</span></td></tr>
+          <tr><td><code>запроса</code></td><td>7</td><td class="cell-bad">14</td><td class="cell-bad"><span lang="ru">2,0</span><span lang="en">2.0</span></td></tr>
+          <tr><td><code>search</code></td><td>6</td><td class="cell-good">6</td><td class="cell-good"><span lang="ru">1,0</span><span lang="en">1.0</span></td></tr>
+          <tr><td><code>поиск</code></td><td>5</td><td class="cell-bad">10</td><td class="cell-bad"><span lang="ru">2,0</span><span lang="en">2.0</span></td></tr>
+          <tr><td><code>kitten</code></td><td>6</td><td class="cell-good">6</td><td class="cell-good"><span lang="ru">1,0</span><span lang="en">1.0</span></td></tr>
+          <tr><td><code>котёнок</code></td><td>7</td><td class="cell-bad">14</td><td class="cell-bad"><span lang="ru">2,0</span><span lang="en">2.0</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Одинаковой длины слова &mdash; вдвое разный вес. Это не про &laquo;сложность&raquo; языка: <code>котёнок</code> и <code>kitten</code> значат одно, но в память индекса и на вход токенизатору ложатся по-разному.</span><span lang="en">Words of the same length, twice the weight. This is not about a language being &ldquo;hard&rdquo;: <code>котёнок</code> and <code>kitten</code> mean the same thing, yet they land differently in index memory and at the tokenizer&rsquo;s input.</span></p>
+  <aside class="slide-notes">Worked by hand from data/l20-ru.json (bytes): every Cyrillic letter takes two UTF-8 bytes while ASCII takes one, so a byte-level BPE starts from exactly twice the material on Russian — query 5 chars / 5 bytes against запроса 7 / 14, search 6 / 6 against поиск 5 / 10, kitten 6 / 6 against котёнок 7 / 14. That is the fragmentation floor: it exists before a single merge is learned, and merges are what would have to climb back out of it. On running text the average softens to 1.824 bytes per character because spaces, digits and punctuation stay single-byte — that is the number behind the byte premium on the fertility slide. This bullet used to be a throwaway line on the formal slide; it deserves its own arithmetic.</aside>
+</section>

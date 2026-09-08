@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="ru" data-lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Каталог типов слайдов · Lecture Template</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* Self-contained styling — independent of the deck CSS so the
+       catalog stays readable even if the deck rules change. */
+    :root {
+      --bg: #FBFAF6;
+      --bg-card: #FFFFFF;
+      --bg-alt: #F2EFE6;
+      --ink: #14181F;
+      --ink-2: #3D434E;
+      --ink-3: #6B7280;
+      --accent: #2A6FDB;
+      --accent-soft: #DCE8F8;
+      --rule: #DDD7C7;
+      --c-green: #3A8A5C;
+      --c-amber: #E0A82E;
+      --c-red: #D7522C;
+      --c-violet: #7D5BA6;
+      --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+      --font-serif: "Newsreader", Georgia, serif;
+      --font-mono: "JetBrains Mono", ui-monospace, monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: var(--font-sans); font-size: 16px; -webkit-font-smoothing: antialiased; }
+
+    .cat-header {
+      padding: 48px 64px 32px;
+      background: linear-gradient(180deg, var(--accent-soft) 0%, var(--bg) 100%);
+      border-bottom: 1px solid var(--rule);
+    }
+    .cat-header h1 {
+      font-family: var(--font-serif);
+      font-size: 56px;
+      line-height: 1.05;
+      margin: 0 0 12px;
+      font-weight: 500;
+      letter-spacing: -0.015em;
+    }
+    .cat-header .cat-sub {
+      font-size: 20px;
+      color: var(--ink-2);
+      max-width: 760px;
+      line-height: 1.5;
+    }
+    .cat-header .cat-meta {
+      display: flex;
+      gap: 24px;
+      margin-top: 16px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--ink-3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .cat-header .cat-meta a {
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid var(--accent);
+      padding-bottom: 1px;
+    }
+
+    .cat-toc {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 24px 64px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--rule);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .cat-toc a {
+      display: inline-block;
+      padding: 6px 14px;
+      background: var(--bg-alt);
+      color: var(--ink-2);
+      border-radius: 999px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .cat-toc a:hover { background: var(--accent); color: white; }
+
+    .cat-grid {
+      padding: 48px 64px 96px;
+      display: grid;
+      gap: 64px;
+    }
+
+    .cat-entry {
+      scroll-margin-top: 80px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: 40px;
+      align-items: start;
+    }
+    .cat-entry-header {
+      grid-column: 1 / -1;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--ink);
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .cat-entry-header h2 {
+      font-family: var(--font-serif);
+      font-size: 40px;
+      line-height: 1.1;
+      margin: 0;
+      font-weight: 500;
+    }
+    .cat-entry-header .cat-tag {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 600;
+    }
+    .cat-desc {
+      grid-column: 1 / -1;
+      font-size: 18px;
+      line-height: 1.55;
+      color: var(--ink-2);
+      max-width: 880px;
+      margin-bottom: 8px;
+    }
+    .cat-desc strong { color: var(--ink); }
+
+    .cat-preview {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      background: #f4efe1;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 16px 48px rgba(20, 24, 31, 0.1);
+      border: 1px solid var(--rule);
+    }
+    .cat-preview iframe {
+      width: 1920px;
+      height: 1080px;
+      border: none;
+      transform-origin: top left;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    .cat-preview .cat-preview-link {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      padding: 6px 14px;
+      background: rgba(20, 24, 31, 0.85);
+      color: white;
+      border-radius: 999px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      text-decoration: none;
+      letter-spacing: 0.05em;
+      z-index: 2;
+    }
+    .cat-preview .cat-preview-link:hover { background: var(--accent); }
+
+    .cat-markup {
+      background: #14181F;
+      border-radius: 12px;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .cat-markup pre {
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.55;
+      color: #ECE7D8;
+      white-space: pre;
+      overflow-x: auto;
+      max-height: 540px;
+      overflow-y: auto;
+    }
+    .cat-markup .cat-copy {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: white;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      z-index: 2;
+    }
+    .cat-markup .cat-copy:hover { background: var(--accent); }
+    .cat-markup .cat-copy.is-copied { background: var(--c-green); }
+
+    .cat-tips {
+      grid-column: 1 / -1;
+      background: var(--bg-card);
+      border-left: 4px solid var(--c-amber);
+      border-radius: 8px;
+      padding: 14px 20px;
+      margin-top: 8px;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--ink-2);
+    }
+    .cat-tips strong { color: var(--ink); }
+    .cat-tips code {
+      background: var(--bg-alt);
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+
+    @media (max-width: 1100px) {
+      .cat-entry { grid-template-columns: 1fr; }
+      .cat-header, .cat-toc, .cat-grid { padding-left: 32px; padding-right: 32px; }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="cat-header">
+    <h1>Каталог типов слайдов</h1>
+    <p class="cat-sub">23 типа слайдов с миниатюрой, описанием и копируемым markup. Если нужно добавить новый слайд в свою лекцию — найдите подходящий тип, нажмите <strong>Copy</strong>, вставьте в HTML.</p>
+    <div class="cat-meta">
+      <a href="Lecture Template.html">Открыть полный шаблон →</a>
+      <a href="README.md">README</a>
+    </div>
+  </header>
+
+  <nav class="cat-toc">
+    <a href="#title">title</a>
+    <a href="#agenda">agenda</a>
+    <a href="#divider">divider</a>
+    <a href="#definition">definition</a>
+    <a href="#theorem">theorem</a>
+    <a href="#formula">formula</a>
+    <a href="#walkthrough">walkthrough</a>
+    <a href="#code">code</a>
+    <a href="#two-col">two-col</a>
+    <a href="#viz">viz</a>
+    <a href="#demo">demo</a>
+    <a href="#quiz">quiz</a>
+    <a href="#table">table</a>
+    <a href="#arch">arch</a>
+    <a href="#quote">quote</a>
+    <a href="#refs">refs</a>
+    <a href="#final">final</a>
+    <a href="#e2e">e2e</a>
+    <a href="#misconception">misconception</a>
+    <a href="#derivation">derivation</a>
+    <a href="#pause">pause</a>
+    <a href="#reverse">reverse</a>
+    <a href="#components">components</a>
+  </nav>
+
+  <main class="cat-grid">
+
+    <!-- Each entry: header, description, preview iframe (frame-shifted to one slide), markup -->
+    <section class="cat-entry" id="title">
+      <div class="cat-entry-header">
+        <h2>Titular</h2>
+        <span class="cat-tag">data-type="title"</span>
+      </div>
+      <div class="cat-desc">Открывающий слайд: название лекции, eyebrow с номером, subtitle, метаданные (лектор / дата / аудитория). Без footer-chrome. Использовать ровно один раз.</div>
+      <div class="cat-preview">
+        <a class="cat-preview-link" href="Lecture Template.html#/1" target="_blank">Open in deck →</a>
+        <iframe data-slide="1" loading="lazy"></iframe>
+      </div>
+      <div class="cat-markup">
+        <button class="cat-copy" type="button">Copy</button>
+<pre>&lt;section class="slide" data-type="title" data-screen-label="01 Title"&gt;
+  &lt;div class="title-header"&gt;
+    &lt;div class="course-tag"&gt;CS-310 · ML&lt;/div&gt;
+    &lt;div data-logo-slot&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="title-body"&gt;
+    &lt;div class="eyebrow"&gt;Lecture 05&lt;/div&gt;
+    &lt;h1&gt;Gradient Descent&lt;/h1&gt;
+    &lt;p class="subtitle"&gt;От batch GD к Adam&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="title-footer"&gt;
+    &lt;div&gt;&lt;div class="meta-label"&gt;Lecturer&lt;/div&gt;&lt;div class="meta-value"&gt;Dr. A.&lt;/div&gt;&lt;/div&gt;
+    &lt;div&gt;&lt;div class="meta-label"&gt;Date&lt;/div&gt;&lt;div class="meta-value"&gt;27.05.2026&lt;/div&gt;&lt;/div&gt;
+    &lt;div&gt;&lt;div class="meta-label"&gt;Room&lt;/div&gt;&lt;div class="meta-value"&gt;Bld. 4&lt;/div&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;aside class="slide-notes"&gt;Открыть лекцию.&lt;/aside&gt;
+&lt;/section&gt;</pre>
+      </div>
+    </section>
+
+    <section class="cat-entry" id="agenda">
+      <div class="cat-entry-header"><h2>План лекции</h2><span class="cat-tag">data-type="agenda"</span></div>
+      <div class="cat-desc">Оглавление с кликабельными пунктами (якоря <code>#/N</code>). Двухколоночная сетка, до 6 пунктов.</div>
+      <div class="cat-preview"><a class="cat-preview-link" href="Lecture Template.html#/2" target="_blank">Open →</a><iframe data-slide="2" loading="lazy"></iframe></div>
+      <div class="cat-markup"><button class="cat-copy" type="button">Copy</button>
+<pre>&lt;section class="slide" data-type="agenda"&gt;
+  &lt;div class="slide-header"&gt;
+    &lt;h2&gt;План лекции&lt;/h2&gt;
+    &lt;span class="slide-kicker"&gt;Agenda · 90 min&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;div class="agenda-grid"&gt;
+    &lt;a class="toc-item" href="#/3"&gt;
+      &lt;span class="toc-num"&gt;01&lt;/span&gt;
+      &lt;span class="toc-text"&gt;
+        &lt;span class="toc-title"&gt;Зачем оптимизация&lt;/span&gt;
+        &lt;span class="toc-sub"&gt;15 мин&lt;/span&gt;
+      &lt;/span&gt;
+    &lt;/a&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</pre>
+      </div>
+    </section>
+
+    <section class="cat-entry" id="divider">
+      <div class="cat-entry-header"><h2>Section divider</h2><span class="cat-tag">data-type="divider"</span></div>
+      <div class="cat-desc">Крупный тёмный экран-разделитель раздела. Frame chrome скрывается. Текст разделителя автоматически становится хлебной крошкой на следующих слайдах.</div>
+      <div class="cat-preview"><a class="cat-preview-link" href="Lecture Template.html#/3" target="_blank">Open →</a><iframe data-slide="3" loading="lazy"></iframe></div>
+      <div class="cat-markup"><button class="cat-copy" type="button">Copy</button>
+<pre>&lt;section class="slide" data-type="divider"&gt;
+  &lt;div&gt;
+    &lt;div class="divider-num"&gt;Часть 01&lt;/div&gt;
+    &lt;h1&gt;Зачем нужна оптимизация&lt;/h1&gt;
+    &lt;p class="divider-sub"&gt;Обучение — это минимизация лосса&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</pre>
+      </div>
+    </section>
+
+    <section class="cat-entry" id="definition">
+      <div class="cat-entry-header"><h2>Определение термина</h2><span class="cat-tag">data-type="definition"</span></div>
+      <div class="cat-desc">Один термин на слайд, билингвальный (RU/EN). Карточка с акцентом, формула под определением.</div>
+      <div class="cat-preview"><a class="cat-preview-link" href="Lecture Template.html#/4" target="_blank">Open →</a><iframe data-slide="4" loading="lazy"></iframe></div>
+      <div class="cat-markup"><button class="cat-copy" type="button">Copy</button>
+<pre>&lt;section class="slide" data-type="definition"&gt;
+  &lt;div class="slide-header"&gt;
+    &lt;h2&gt;Ключевой термин&lt;/h2&gt;
+    &lt;span class="slide-kicker"&gt;Definition&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;div class="def-card"&gt;
+    &lt;span class="def-tag"&gt;Определение&lt;/span&gt;
+    &lt;div class="def-term"&gt;Градиентный спуск
+      &lt;span class="term-en"&gt;gradient descent&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;div class="def-body"&gt;
+      &lt;p&gt;Итеративный алгоритм минимизации:&lt;/p&gt;
+      &lt;p class="math-display math-big"&gt;$$\theta_{t+1} = \theta_t - \eta \nabla L$$&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</pre>
+      </div>
+    </section>
+
+    <section class="cat-entry" id="theorem">
+      <div class="cat-entry-header"><h2>Теорема / лемма / следствие</h2><span class="cat-tag">data-type="theorem"</span></div>
+      <div class="cat-desc">Цветовая маркировка через <code>data-kind</code>: <code>theorem</code> (синий), <code>lemma</code> (фиолетовый), <code>cor</code> (зелёный), <code>proof</code> (серый). Карточка с формулой внутри.</div>
+      <div class="cat-preview"><a class="cat-preview-link" href="Lecture Template.html#/5" target="_blank">Open →</a><iframe data-slide="5" loading="lazy"></iframe></div>
+      <div class="cat-markup"><button class="cat-copy" type="button">Copy</button>
+<pre>&lt;section class="slide" data-type="theorem"&gt;
+  &lt;div class="slide-header"&gt;&lt;h2&gt;Сходимость&lt;/h2&gt;&lt;span class="slide-kicker"&gt;Theorem 1.1&lt;/span&gt;&lt;/div&gt;
+  &lt;div class="thm-card" data-kind="theorem"&gt;
+    &lt;div class="thm-label"&gt;Теорема 1.1&lt;/div&gt;
+    &lt;div class="thm-statement"&gt;Пусть L выпукла…&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="thm-card" data-kind="proof"&gt;
+    &lt;div class="thm-label"&gt;Доказательство&lt;/div&gt;
+    &lt;div class="thm-statement"&gt;Из L-гладкости…&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</pre>
+      </div>
+    </section>
+
+    <section class="cat-entry" id="formula">
+      <div class="cat-entry-header"><h2>Крупная формула</h2><span class="cat-tag">data-type="formula"</span></div>
+      <div class="cat-desc">Центрированная KaTeX-формула на весь слайд + расшифровка переменных под ней (3 колонки).</div>
+      <div class="cat-preview"><a class="cat-preview-link" href="Lecture Template.html#/6" target="_blank">Open →</a><iframe data-slide="6" loading="lazy"></iframe></div>
+      <div class="cat-markup"><button class="cat-copy" type="button">Copy</button>
+<pre>&lt;section class="slide" data-type="formula"&gt;
+  &lt;div class="slide-header"&gt;&lt;h2&gt;Правило обновления&lt;/h2&gt;&lt;span class="slide-kicker"&gt;Core formula&lt;/span&gt;&lt;/div&gt;
+  &lt;div class="formula-stage"&gt;$$\theta_{t+1} = \theta_t - \eta \nabla L(\theta_t)$$&lt;/div&gt;
+  &lt;div class="formula-caption"&gt;
+    &lt;div class="var-block"&gt;&lt;div class="var-symbol"&gt;θ&lt;/div&gt;&lt;div class="var-desc"&gt;Параметры&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="var-block"&gt;&lt;div class="var-symbol"&gt;η&lt;/div&gt;&lt;div class="var-desc"&gt;Learning rate&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="var-block"&gt;&lt;div class="var-symbol"&gt;∇L&lt;/div&gt;&lt;div class="var-desc"&gt;Градиент&lt;/div&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</pre>
+      </div>
+    </section>
+
+    <section class="cat-entry" id="walkthrough">
+      <div class="cat-entry-header"><h2>Пошаговый разбор</h2><span class="cat-tag">data-type="walkthrough"</span></div>
+      <div class="cat-desc">Нумерованные карточки шагов — стрелками ←/→ открываются по одной. <code>data-max-step</code> на слайде, <code>data-step="N"</code> на каждой карточке. Цвет слева — смысловой маркер.</div>
+      <div class="cat-preview"><a class="cat-preview-link" href="Lecture Template.html#/7" target="_blank">Open →</a><iframe data-slide="7" loading="lazy"></iframe></div>
+      <div class="cat-markup"><button class="cat-copy" type="button">Copy</button>
+<pre>&lt;section class="slide" data-type="walkthrough" data-max-step="5"&gt;
+  &lt;div class="slide-header"&gt;&lt;h2&gt;Один шаг GD на пальцах&lt;/h2&gt;&lt;/div&gt;
+  &lt;div class="walk-flow"&gt;
+    &lt;div class="walk-step" data-step="1" data-color="violet"&gt;
+      &lt;div class="walk-num"&gt;01&lt;/div&gt;
+      &lt;div class="walk-content"&gt;
+        &lt;div class="walk-label"&gt;Начнём с точки&lt;/div&gt;
+        &lt;div class="walk-detail"&gt;Выбираем стартовое x₀&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class="walk-state"&gt;x₀ = 3.0&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;!-- ещё шаги … --&gt;
+  &lt;/div&gt;
+  &lt;div class="step-controls"&gt;
+    &lt;button data-step-act="prev"&gt;←&lt;/button&gt;
+    &lt;span class="step-counter"&gt;0/5&lt;/span&gt;
+    &lt;button data-step-act="next"&gt;→&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</pre>
+      </div>
+    </section>
+
+    <section class="cat-entry" id="code">
+      <div class="cat-entry-header"><h2>Блок кода</h2><span class="cat-tag">data-type="code"</span></div>
+      <div class="cat-desc">Подсветка через Prism. Поддерживаются <code>language-python</code>, <code>-bash</code>, <code>-yaml</code>, <code>-json</code>. Заголовок блока показывает язык.</div>
+      <div class="cat-preview"><a class="cat-preview-link" href="Lecture Template.html#/8" target="_blank">Open →</a><iframe data-slide="8" loading="lazy"></iframe></div>
+      <div class="cat-markup"><button class="cat-copy" type="button">Copy</button>
+<pre>&lt;section class="slide" data-type="code"&gt;
+  &lt;div class="slide-header"&gt;&lt;h2&gt;PyTorch implementation&lt;/h2&gt;&lt;span class="slide-kicker"&gt;Python&lt;/span&gt;&lt;/div&gt;
+  &lt;div class="code-block"&gt;
+    &lt;div class="code-header"&gt;
+      &lt;span class="code-lang"&gt;Python · train_step.py&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;pre&gt;&lt;code class="language-python"&gt;import torch
+
+def train_step(model, batch, optimizer, loss_fn):
+    optimizer.zero_grad()
+    preds = model(batch.x)
+    loss = loss_fn(preds, batch.y)
+    loss.backward()
+    optimizer.step()
+    return loss.item()&lt;/code&gt;&lt;/pre&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</pre>
+      </div>
+    </section>
+
+    <section class="cat-entry" id="two-col">
+      <div class="cat-entry-header"><h2>Двухколоночный</h2><span class="cat-tag">data-type="two-col"</span></div>
+      <div class="cat-desc">Код слева, объяснение справа. Формула + интуиция. Используйте <code>.twocol-col</code> для каждой колонки.</div>
+      <div class="cat-preview"><a class="cat-preview-link" href="Lecture Template.html#/9" target="_blank">Open →</a><iframe data-slide="9" loading="lazy"></iframe></div>
+      <div class="cat-markup"><button class="cat-copy" type="button">Copy</button>
+<pre>&lt;section class="slide" data-type="two-col"&gt;
+  &lt;div class="slide-header"&gt;&lt;h2&gt;SGD&lt;/h2&gt;&lt;/div&gt;
+  &lt;div class="twocol"&gt;
+    &lt;div class="twocol-col"&gt;
+      &lt;h3&gt;Алгоритм&lt;/h3&gt;
+      &lt;div class="code-block"&gt;&lt;pre&gt;&lt;code class="language-python"&gt;for x_i, y_i in dataset:
+    g = grad_L(theta, x_i, y_i)
+    theta -= lr * g&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="twocol-col"&gt;
+      &lt;h3&gt;Интуиция&lt;/h3&gt;
+      &lt;p&gt;Вместо полного градиента — один пример.&lt;/p&gt;
+      &lt;div class="callout" data-kind="info"&gt;
+        &lt;div class="callout-icon"&gt;i&lt;/div&gt;
+        &lt;div class="callout-body"&gt;N× дешевле&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</pre>
+      </div>
+    </section>
+
+    <section class="cat-entry" id="viz">
+      <div class="cat-entry-header"><h2>Визуализация / график</h2><span class="cat-tag">data-type="viz"</span></div>
+      <div class="cat-desc">Контейнер под inline SVG, canvas или PNG. Используйте <code>.viz-frame</code> для рамки и <code>.viz-caption</code> для подписи.</div>
+      <div class="cat-preview"><a class="cat-preview-link" href="Lecture Template.html#/10" target="_blank">Open →</a><iframe data-slide="10" loading="lazy"></iframe></div>
+      <div class="cat-markup"><button class="cat-copy" type="button">Copy</button>
+<pre>&lt;section class="slide" data-type="viz"&gt;
+  &lt;div class="slide-header"&gt;&lt;h2&gt;Loss curves&lt;/h2&gt;&lt;/div&gt;
+  &lt;div class="viz-frame"&gt;
+    &lt;svg viewBox="0 0 1600 660"&gt;
+      &lt;!-- inline SVG --&gt;
+    &lt;/svg&gt;
+  &lt;/div&gt;
+  &lt;p class="viz-caption"&gt;Batch — гладко, но дорого&lt;/p&gt;
+&lt;/section&gt;</pre>
+      </div>
+      <div class="cat-tips"><strong>Подсказка:</strong> Внутри <code>.viz-frame</code> можно держать <code>&lt;canvas&gt;</code> и рисовать графики из JS. Auto-fit учтёт высоту автоматически.</div>
+    </section>
+
+    <section class="cat-entry" id="demo">
+      <div class="cat-entry-header"><h2>Интерактивная демка</h2><span class="cat-tag">data-type="demo"</span></div>
+      <div class="cat-desc">Декларативный <code>&lt;interactive-demo&gt;</code>. Известные kind: <code>function-plot</code> + algorithm (<code>gradient-descent</code>, <code>newton</code>), <code>distribution</code>. Параметры и readout — child элементы.</div>
+      <div class="cat-preview"><a class="cat-preview-link" href="Lecture Template.html#/11" target="_blank">Open →</a><iframe data-slide="11" loading="lazy"></iframe></div>
+      <div class="cat-markup"><button class="cat-copy" type="button">Copy</button>
+<pre>&lt;section class="slide" data-type="demo"&gt;
+  &lt;div class="slide-header"&gt;&lt;h2&gt;Поиграйте с lr&lt;/h2&gt;&lt;/div&gt;
+  &lt;interactive-demo kind="function-plot" algorithm="gradient-descent"&gt;
+    &lt;function fn="0.4*x*x + 0.8" range="-5..5"&gt;&lt;/function&gt;
+    &lt;param name="lr"    label="η"      min="0.01" max="1.5" step="0.01" default="0.2"&gt;&lt;/param&gt;
+    &lt;param name="x0"    label="x₀"     min="-4"   max="4"   step="0.1"  default="3.5"&gt;&lt;/param&gt;
+    &lt;param name="iters" label="iterations" min="1" max="80" step="1" default="30"&gt;&lt;/param&gt;
+    &lt;readout name="loss"       label="L(x_T)"&gt;&lt;/readout&gt;
+    &lt;readout name="iters_used" label="steps used"&gt;&lt;/readout&gt;
+  &lt;/interactive-demo&gt;
+&lt;/section&gt;</pre>
+      </div>
+    </section>
+
+    <section class="cat-entry" id="quiz">
+      <div class="cat-entry-header"><h2>Quiz / вопрос аудитории</h2><span class="cat-tag">data-type="quiz"</span></div>
+      <div class="cat-desc">A/B/C/D варианты. Клик подсвечивает правильный (<code>data-correct="true"</code>) зелёным, остальные приглушаются. <code>&lt;details class="hidden-answer"&gt;</code> для пояснения.</div>
+      <div class="cat-preview"><a class="cat-preview-link" href="Lecture Template.html#/12" target="_blank">Open →</a><iframe data-slide="12" loading="lazy"></iframe></div>
+      <div class="cat-markup"><button class="cat-copy" type="button">Copy</button>
+<pre>&lt;section class="slide" data-type="quiz"&gt;
+  &lt;div class="slide-header"&gt;&lt;h2&gt;Вопрос аудитории&lt;/h2&gt;&lt;/div&gt;
+  &lt;div class="quiz-q"&gt;Что произойдёт при слишком большом η?&lt;/div&gt;
+  &lt;div class="quiz-options"&gt;
+    &lt;div class="quiz-option" data-correct="false"&gt;
+      &lt;span class="quiz-letter"&gt;A&lt;/span&gt;&lt;span&gt;Сойдёмся быстрее&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;div class="quiz-option" data-correct="true"&gt;
+      &lt;span class="quiz-letter"&gt;B&lt;/span&gt;&lt;span&gt;Можем расходиться&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;details class="hidden-answer"&gt;
+    &lt;summary&gt;Показать пояснение&lt;/summary&gt;
+    &lt;div class="ha-content"&gt;B. Шаг перепрыгивает минимум…&lt;/div&gt;
+  &lt;/details&gt;
+&lt;/section&gt;</pre>
+      </div>
+    </section>
+
+    <section class="cat-entry" id="table">
+      <div class="cat-entry-header"><h2>Сравнительная таблица</h2><span class="cat-tag">data-type="table"</span></div>
+      <div class="cat-desc">Используйте <code>&lt;table class="cmp-table"&gt;</code>. Ячейки можно красить через <code>.cell-good</code>, <code>.cell-bad</code>, <code>.cell-meh</code>.</div>
+      <div class="cat-preview"><a class="cat-preview-link" href="Lecture Template.html#/13" target="_blank">Open →</a><iframe data-slide="13" loading="lazy"></iframe></div>
+      <div class="cat-markup"><button class="cat-copy" type="button">Copy</button>
+<pre>&lt;section class="slide" data-type="table"&gt;
+  &lt;div class="slide-header"&gt;&lt;h2&gt;Сравнение оптимизаторов&lt;/h2&gt;&lt;/div&gt;
+  &lt;table class="cmp-table"&gt;
+    &lt;thead&gt;
+      &lt;tr&gt;&lt;th&gt;Method&lt;/th&gt;&lt;th&gt;Speed&lt;/th&gt;&lt;th&gt;Memory&lt;/th&gt;&lt;/tr&gt;
+    &lt;/thead&gt;
+    &lt;tbody&gt;
+      &lt;tr&gt;&lt;td&gt;SGD&lt;/td&gt;&lt;td class="cell-good"&gt;fast&lt;/td&gt;&lt;td class="cell-good"&gt;O(d)&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;Adam&lt;/td&gt;&lt;td class="cell-good"&gt;very fast&lt;/td&gt;&lt;td class="cell-bad"&gt;O(3d)&lt;/td&gt;&lt;/tr&gt;
+    &lt;/tbody&gt;
+  &lt;/table&gt;
+&lt;/section&gt;</pre>
+      </div>
+    </section>
+
+    <section class="cat-entry" id="arch">
+      <div class="cat-entry-header"><h2>Архитектура / pipeline</h2><span class="cat-tag">data-type="arch"</span></div>
+      <div class="cat-desc">Горизонтальные блоки <code>.arch-node</code> с <code>data-color</code>, стрелки <code>.arch-arrow</code> между ними.</div>
+      <div class="cat-preview"><a class="cat-preview-link" href="Lecture Template.html#/14" target="_blank">Open →</a><iframe data-slide="14" loading="lazy"></iframe></div>
+      <div class="cat-markup"><button class="cat-copy" type="button">Copy</button>
+<pre>&lt;section class="slide" data-type="arch"&gt;
+  &lt;div class="slide-header"&gt;&lt;h2&gt;Training pipeline&lt;/h2&gt;&lt;/div&gt;
+  &lt;div class="arch-diagram"&gt;
+    &lt;div class="arch-node" data-color="violet"&gt;
+      &lt;div class="arch-icon"&gt;[x]&lt;/div&gt;
+      &lt;div class="arch-name"&gt;Batch&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="arch-arrow"&gt;&lt;/div&gt;
+    &lt;div class="arch-node" data-color="green"&gt;
+      &lt;div class="arch-icon"&gt;ŷ&lt;/div&gt;
+      &lt;div class="arch-name"&gt;Prediction&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</pre>
+      </div>
+    </section>
+
+    <section class="cat-entry" id="quote">
+      <div class="cat-entry-header"><h2>Цитата / ключевая мысль</h2><span class="cat-tag">data-type="quote"</span></div>
+      <div class="cat-desc">Центрированный pull-quote на тонированном фоне. Минимум текста, максимум вес.</div>
+      <div class="cat-preview"><a class="cat-preview-link" href="Lecture Template.html#/15" target="_blank">Open →</a><iframe data-slide="15" loading="lazy"></iframe></div>
+      <div class="cat-markup"><button class="cat-copy" type="button">Copy</button>
+<pre>&lt;section class="slide" data-type="quote"&gt;
+  &lt;div&gt;
+    &lt;div class="quote-mark"&gt;"&lt;/div&gt;
+    &lt;blockquote&gt;Adam — это SGD с моментумом, где каждая координата имеет свой lr.&lt;/blockquote&gt;
+    &lt;div class="quote-attr"&gt;мнемоника · «one minute deep learning»&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</pre>
+      </div>
+    </section>
+
+    <section class="cat-entry" id="refs">
+      <div class="cat-entry-header"><h2>Список литературы</h2><span class="cat-tag">data-type="refs"</span></div>
+      <div class="cat-desc">Нумерация автоматическая через CSS counter. Each li: <code>.ref-body</code> (authors / title / venue) + <code>.ref-year</code>.</div>
+      <div class="cat-preview"><a class="cat-preview-link" href="Lecture Template.html#/16" target="_blank">Open →</a><iframe data-slide="16" loading="lazy"></iframe></div>
+      <div class="cat-markup"><button class="cat-copy" type="button">Copy</button>
+<pre>&lt;section class="slide" data-type="refs"&gt;
+  &lt;div class="slide-header"&gt;&lt;h2&gt;Литература&lt;/h2&gt;&lt;/div&gt;
+  &lt;ol class="ref-list"&gt;
+    &lt;li&gt;
+      &lt;span class="ref-body"&gt;
+        &lt;span class="ref-authors"&gt;Kingma, D. &amp;amp; Ba, J.&lt;/span&gt; ·
+        &lt;span class="ref-title"&gt;Adam: Stochastic Optimization&lt;/span&gt; ·
+        &lt;span class="ref-venue"&gt;ICLR&lt;/span&gt;
+      &lt;/span&gt;
+      &lt;span class="ref-year"&gt;2015&lt;/span&gt;
+    &lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/section&gt;</pre>
+      </div>
+    </section>
+
+    <section class="cat-entry" id="final">
+      <div class="cat-entry-header"><h2>Финальный · Q&amp;A</h2><span class="cat-tag">data-type="final"</span></div>
+      <div class="cat-desc">Закрывающий слайд: «Вопросы?», контакты, QR на материалы. Большой gradient фон.</div>
+      <div class="cat-preview"><a class="cat-preview-link" href="Lecture Template.html#/17" target="_blank">Open →</a><iframe data-slide="17" loading="lazy"></iframe></div>
+      <div class="cat-markup"><button class="cat-copy" type="button">Copy</button>
+<pre>&lt;section class="slide" data-type="final"&gt;
+  &lt;div class="final-body"&gt;
+    &lt;h1&gt;Вопросы?&lt;/h1&gt;
+    &lt;p class="final-sub"&gt;Материалы по QR&lt;/p&gt;
+    &lt;div class="contact-grid"&gt;
+      &lt;div class="contact-item"&gt;
+        &lt;div class="contact-label"&gt;Email&lt;/div&gt;
+        &lt;div class="contact-value"&gt;a.ivanov@univ.edu&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="qr-block"&gt;
+      &lt;div class="qr-canvas" data-qr="https://example.edu/lecture-05"&gt;&lt;/div&gt;
+      &lt;div class="qr-caption"&gt;Материалы&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</pre>
+      </div>
+    </section>
+
+    <section class="cat-entry" id="e2e">
+      <div class="cat-entry-header"><h2>E2E forward pass</h2><span class="cat-tag">data-type="e2e"</span></div>
+      <div class="cat-desc"><strong>Самый мощный слайд.</strong> Architecture + math + numeric синхронно по <code>data-current-step</code>. Каждый блок — <code>data-step-range="N..M"</code>. Кнопка «Без чисел» прячет правую панель для теории.</div>
+      <div class="cat-preview"><a class="cat-preview-link" href="Lecture Template.html#/18" target="_blank">Open →</a><iframe data-slide="18" loading="lazy"></iframe></div>
+      <div class="cat-markup"><button class="cat-copy" type="button">Copy</button>
+<pre>&lt;section class="slide" data-type="e2e" data-max-step="10"&gt;
+  &lt;div class="slide-header"&gt;&lt;h2&gt;Forward pass through attention&lt;/h2&gt;&lt;/div&gt;
+
+  &lt;div class="e2e-arch"&gt;
+    &lt;div class="e2e-arch-block" data-role="project" data-step-range="1"
+         data-tooltip="Input — token embeddings"&gt;
+      &lt;div class="arch-name"&gt;Input&lt;/div&gt;
+      &lt;div class="arch-shape"&gt;(B, T, d)&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="e2e-arch-arrow" data-step-range="1..2"&gt;&lt;/div&gt;
+    &lt;!-- ещё блоки … --&gt;
+    &lt;div class="e2e-arch-legend"&gt;
+      &lt;span class="leg" data-role="project"&gt;projection&lt;/span&gt;
+      &lt;span class="leg" data-role="nonlinear"&gt;nonlinearity&lt;/span&gt;
+      &lt;span class="leg" data-role="reduce"&gt;reduction&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div class="e2e-twin"&gt;
+    &lt;div class="e2e-panel e2e-math-panel"&gt;
+      &lt;div class="panel-head"&gt;Math&lt;/div&gt;
+      &lt;div class="e2e-step" data-step="1"&gt;…math…&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="e2e-panel e2e-example-panel"&gt;
+      &lt;div class="panel-head"&gt;Example&lt;/div&gt;
+      &lt;div class="e2e-step" data-step="1"&gt;…tensors…&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div class="e2e-stepper"&gt;…&lt;/div&gt;
+&lt;/section&gt;</pre>
+      </div>
+      <div class="cat-tips"><strong>Совет:</strong> Используйте компонент <code>&lt;span class="matrix"&gt;</code> с <code>.m-row</code>/<code>.m-cell</code> для матриц с правильными скобками. Per-step заметки лектора через <code>&lt;aside data-notes-for-step="N"&gt;</code>.</div>
+    </section>
+
+    <section class="cat-entry" id="misconception">
+      <div class="cat-entry-header"><h2>Misconception · busting</h2><span class="cat-tag">data-type="misconception"</span></div>
+      <div class="cat-desc">Покажите распространённое заблуждение, потом раскройте правду по кнопке. Pedagogically powerful, мало где встречается.</div>
+      <div class="cat-preview"><a class="cat-preview-link" href="Lecture Template.html#/19" target="_blank">Open →</a><iframe data-slide="19" loading="lazy"></iframe></div>
+      <div class="cat-markup"><button class="cat-copy" type="button">Copy</button>
+<pre>&lt;section class="slide" data-type="misconception"&gt;
+  &lt;div class="slide-header"&gt;&lt;h2&gt;Распространённое заблуждение&lt;/h2&gt;&lt;/div&gt;
+  &lt;div class="misc-card"&gt;
+    &lt;div class="misc-label"&gt;Что думают студенты&lt;/div&gt;
+    &lt;p class="misc-statement"&gt;«Attention — это просто dot-product»&lt;/p&gt;
+    &lt;button class="misc-reveal-btn" type="button"&gt;Reveal truth&lt;/button&gt;
+    &lt;div class="misc-truth"&gt;Три проекции дают асимметричные роли…&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</pre>
+      </div>
+    </section>
+
+    <section class="cat-entry" id="derivation">
+      <div class="cat-entry-header"><h2>Choreographed derivation</h2><span class="cat-tag">data-type="derivation"</span></div>
+      <div class="cat-desc">Формула морфит term-by-term по нажатию ←/→. Одинаковые <code>data-id</code> у термов = FLIP-анимация перемещения.</div>
+      <div class="cat-preview"><a class="cat-preview-link" href="Lecture Template.html#/20" target="_blank">Open →</a><iframe data-slide="20" loading="lazy"></iframe></div>
+      <div class="cat-markup"><button class="cat-copy" type="button">Copy</button>
+<pre>&lt;section class="slide" data-type="derivation"&gt;
+  &lt;div class="slide-header"&gt;&lt;h2&gt;Раскрытие квадрата&lt;/h2&gt;&lt;/div&gt;
+  &lt;div class="deriv-stage"&gt;&lt;div class="deriv-form"&gt;(a+b)²&lt;/div&gt;&lt;/div&gt;
+  &lt;div class="deriv-step-caption"&gt;&lt;/div&gt;
+
+  &lt;div class="deriv-step" data-step="0" data-caption="Исходное" hidden&gt;
+    &lt;div class="deriv-content"&gt;
+      &lt;span class="deriv-term" data-id="a"&gt;a&lt;/span&gt; …
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="deriv-step" data-step="1" data-caption="Распределение" hidden&gt;…&lt;/div&gt;
+&lt;/section&gt;</pre>
+      </div>
+    </section>
+
+    <section class="cat-entry" id="pause">
+      <div class="cat-entry-header"><h2>Pause / тишина</h2><span class="cat-tag">data-type="pause"</span></div>
+      <div class="cat-desc">Тёмный экран с фразой и обратным отсчётом. Лектор молчит. Таймер автостартует на входе.</div>
+      <div class="cat-preview"><a class="cat-preview-link" href="Lecture Template.html#/21" target="_blank">Open →</a><iframe data-slide="21" loading="lazy"></iframe></div>
+      <div class="cat-markup"><button class="cat-copy" type="button">Copy</button>
+<pre>&lt;section class="slide" data-type="pause" data-pause-seconds="30"&gt;
+  &lt;div class="pause-phrase"&gt;Подумайте 30 секунд: что при η → ∞?&lt;/div&gt;
+  &lt;div class="pause-timer"&gt;00:30&lt;/div&gt;
+  &lt;div class="pause-controls"&gt;
+    &lt;button data-pause-act="start"&gt;Start&lt;/button&gt;
+    &lt;button data-pause-act="skip"&gt;Skip&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</pre>
+      </div>
+    </section>
+
+    <section class="cat-entry" id="reverse">
+      <div class="cat-entry-header"><h2>Reverse rewind</h2><span class="cat-tag">data-type="reverse"</span></div>
+      <div class="cat-desc">Старт с финального результата, ← отматывает обратно к raw input. Хорошо для «вот это работает — как мы туда пришли?»</div>
+      <div class="cat-preview"><a class="cat-preview-link" href="Lecture Template.html#/22" target="_blank">Open →</a><iframe data-slide="22" loading="lazy"></iframe></div>
+      <div class="cat-markup"><button class="cat-copy" type="button">Copy</button>
+<pre>&lt;section class="slide" data-type="reverse"&gt;
+  &lt;div class="slide-header"&gt;&lt;h2&gt;95% accuracy — как?&lt;/h2&gt;&lt;/div&gt;
+  &lt;div class="reverse-stack"&gt;
+    &lt;div class="reverse-layer" data-layer="0"&gt;Raw pixels&lt;/div&gt;
+    &lt;div class="reverse-layer" data-layer="1"&gt;Conv + ReLU&lt;/div&gt;
+    &lt;div class="reverse-layer" data-layer="2"&gt;Classifier&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</pre>
+      </div>
+    </section>
+
+    <section class="cat-entry" id="components">
+      <div class="cat-entry-header"><h2>Reusable components</h2><span class="cat-tag">inline within any slide</span></div>
+      <div class="cat-desc">Эти компоненты не привязаны к типу слайда — вставляются куда угодно.</div>
+      <div class="cat-markup" style="grid-column:1/-1;">
+        <button class="cat-copy" type="button">Copy</button>
+<pre>&lt;!-- Callout (key idea, warning, info, exercise) --&gt;
+&lt;div class="callout" data-kind="key"&gt;
+  &lt;div class="callout-icon"&gt;!&lt;/div&gt;
+  &lt;div class="callout-body"&gt;&lt;strong&gt;Key takeaway&lt;/strong&gt;&lt;p&gt;…&lt;/p&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- Badge --&gt;
+&lt;span class="badge" data-color="accent"&gt;v2.0&lt;/span&gt;
+
+&lt;!-- Hidden answer (native &lt;details&gt;) --&gt;
+&lt;details class="hidden-answer"&gt;
+  &lt;summary&gt;Show explanation&lt;/summary&gt;
+  &lt;div class="ha-content"&gt;…&lt;/div&gt;
+&lt;/details&gt;
+
+&lt;!-- Inline term highlight --&gt;
+&lt;span class="term"&gt;gradient descent&lt;/span&gt;
+
+&lt;!-- Recall link (split-screen with another slide) --&gt;
+&lt;a class="recall-link" data-recall="6"&gt;Update rule&lt;/a&gt;
+
+&lt;!-- Counterfactual toggle --&gt;
+&lt;div class="cf-toggle-bar" data-cf-group="opt" data-cf-initial="adam"&gt;
+  &lt;button data-cf-value="sgd"&gt;SGD&lt;/button&gt;
+  &lt;button data-cf-value="adam"&gt;Adam&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class="cf-variant" data-cf-group="opt" data-cf-value="sgd"&gt;…&lt;/div&gt;
+&lt;div class="cf-variant" data-cf-group="opt" data-cf-value="adam"&gt;…&lt;/div&gt;
+
+&lt;!-- Devil's advocate panel (toggle with backslash key) --&gt;
+&lt;div class="devil-overlay"&gt;
+  &lt;button class="devil-close"&gt;×&lt;/button&gt;
+  &lt;div class="devil-head"&gt;Возражение&lt;/div&gt;
+  &lt;h3&gt;…&lt;/h3&gt;&lt;p&gt;…&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;!-- Typewriter --&gt;
+&lt;span class="typewriter" data-tw-speed="0.04"&gt;Текст печатается&lt;/span&gt;
+
+&lt;!-- arXiv quote (auto-fetches abstract) --&gt;
+&lt;arxiv-quote id-arxiv="1706.03762"&gt;&lt;/arxiv-quote&gt;
+
+&lt;!-- QR code --&gt;
+&lt;div class="qr-canvas" data-qr="https://example.edu"&gt;&lt;/div&gt;
+
+&lt;!-- Per-step speaker notes (in walkthrough/e2e) --&gt;
+&lt;aside data-notes-for-step="4"&gt;Здесь спросить аудиторию…&lt;/aside&gt;</pre>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    /* Each preview iframe loads Lecture Template.html and is scaled
+       to fit its container. We auto-set src + scale + scroll-to-slide
+       via the hash, so each card shows the right slide. */
+    (function () {
+      const previews = document.querySelectorAll('.cat-preview iframe');
+      previews.forEach((frame) => {
+        const slideN = frame.dataset.slide;
+        frame.src = `Lecture Template.html#/${slideN}`;
+        function scale() {
+          const box = frame.parentElement;
+          const w = box.clientWidth;
+          const s = w / 1920;
+          frame.style.transform = `scale(${s})`;
+          frame.style.width = '1920px';
+          frame.style.height = (box.clientHeight / s) + 'px';
+        }
+        scale();
+        const ro = new ResizeObserver(scale);
+        ro.observe(frame.parentElement);
+      });
+
+      /* Copy buttons */
+      document.querySelectorAll('.cat-copy').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const pre = btn.parentElement.querySelector('pre');
+          if (!pre) return;
+          /* Decode HTML entities so paste is real markup */
+          const tmp = document.createElement('div');
+          tmp.innerHTML = pre.innerHTML;
+          const text = tmp.textContent;
+          navigator.clipboard.writeText(text).then(() => {
+            btn.classList.add('is-copied');
+            const orig = btn.textContent;
+            btn.textContent = 'Copied ✓';
+            setTimeout(() => {
+              btn.classList.remove('is-copied');
+              btn.textContent = orig;
+            }, 1500);
+          });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

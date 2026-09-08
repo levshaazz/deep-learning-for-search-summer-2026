@@ -1,0 +1,18 @@
+    {
+      id: 'depth-glue-benchmarks', kind: 'prose',
+      heading: { en: "One yardstick for every tailor: GLUE, SuperGLUE, SQuAD", ru: "Одна линейка на всех портных: GLUE, SuperGLUE, SQuAD", tt: "Барлык тегүчеләргә бер үлчәгеч: GLUE, SuperGLUE, SQuAD" },
+      body: {
+        en: [
+          "Once a hundred workshops are all tailoring from the same kind of bolt, one question decides everything: *whose garment is better?* Tailors who each sew their own garment and grade it themselves cannot be compared. So the field agreed on a common yardstick. **GLUE** is a fixed suite of language-understanding tasks: some over a single sentence (is it grammatical — CoLA; is the review sour or sweet — SST-2), some over a pair (does one entail the other — MNLI and RTE; are two questions paraphrases — QQP; how similar are two sentences — STS-B), each with its own agreed metric. **SuperGLUE** is its harder successor, cut for the day the first yardstick grew too easy. **SQuAD** stands apart: extractive question answering, where the answer must be found as a span inside a passage.",
+          "One trap the yardstick sets itself: **STS-B**, inside GLUE, measures the similarity of *sentences* — a pair task over whole sheets of cloth. It is not the word-similarity yardstick from the word-embedding lectures; those measured single threads. Same word \"similarity\", entirely different garments — keep the two sticks on separate hooks.",
+        ],
+        ru: [
+          "Когда сотня мастерских кроит из одного и того же отреза, всё решает один вопрос: *чей наряд лучше?* Портных, каждый из которых шьёт свою вещь и сам себе её оценивает, сравнить нельзя. Поэтому поле договорилось об общей линейке. **GLUE** — фиксированный набор задач понимания языка: часть — над одним предложением (грамматично ли оно — CoLA; кислый отзыв или сладкий — SST-2), часть — над парой (следует ли одно из другого — MNLI и RTE; парафразы ли два вопроса — QQP; насколько похожи два предложения — STS-B), и у каждой — своя договорённая метрика. **SuperGLUE** — его более трудный наследник, скроенный на день, когда первая линейка стала слишком лёгкой. **SQuAD** стоит особняком: извлекающий QA, где ответ нужно найти пролётом (span) внутри отрывка.",
+          "Одну ловушку линейка расставляет сама: **STS-B** внутри GLUE меряет похожесть *предложений* — парную задачу над целыми полотнами. Это не та линейка словарной похожести из лекций про эмбеддинги слов: те меряли одиночные нити. Слово «похожесть» одно — наряды совсем разные; держи две линейки на разных крючках.",
+        ],
+        tt: [
+          "Йөз остаханә бер үк төрдәге бөтеннән кискәндә, барысын бер сорау хәл итә: *кемнең киеме яхшырак?* Һәркайсы үз әйберен тегеп, аны үзе бәяләгән тегүчеләрне чагыштырып булмый. Шуңа өлкә уртак үлчәгечкә килеште. **GLUE** — телне аңлау бурычларының фиксацияле җыелмасы: өлеше бер җөмлә өстендә (грамматикалымы — CoLA; отзыв әчеме, төчеме — SST-2), өлеше пар өстендә (берсе икенчесеннән киләме — MNLI һәм RTE; ике сорау парафразмы — QQP; ике җөмлә никадәр охшаш — STS-B), һәрберсенең үз килешенгән метрикасы. **SuperGLUE** — аның кыенрак варисы, беренче үлчәгеч артык җиңел булып киткән көнгә кисеп куелган. **SQuAD** аерым тора: extractive QA, анда җавапны өзек эчендә span итеп табарга кирәк.",
+          "Бер тозакны үлчәгеч үзе куя: GLUE эчендәге **STS-B** *җөмләләрнең* охшашлыгын үлчи — тулы тукымалар өстендәге пар бурычы. Бу сүз эмбеддинглары лекцияләреннән килгән сүзлек охшашлыгы үлчәгече түгел: тегеләре ялгыз җепләрне үлчи иде. «Охшашлык» сүзе бер — киемнәр бөтенләй башка; ике үлчәгечне аерым чөйләрдә тот.",
+        ],
+      },
+    },

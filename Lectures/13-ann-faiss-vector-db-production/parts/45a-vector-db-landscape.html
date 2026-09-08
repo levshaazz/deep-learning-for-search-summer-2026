@@ -1,0 +1,38 @@
+<section class="slide" data-type="table" data-screen-label="45a Table · Vector DB landscape">
+  <div class="slide-header">
+    <h2><span lang="ru">Три семьи движков</span><span lang="en">Three families of engines</span></h2>
+    <span class="slide-kicker"><span lang="ru">внутри у всех те же структуры &mdash; различает их эксплуатация</span><span lang="en">the same structures inside &mdash; operations are the difference</span></span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th><span lang="ru">семья</span><span lang="en">family</span></th>
+        <th><span lang="ru">кто это</span><span lang="en">who</span></th>
+        <th><span lang="ru">что получаешь</span><span lang="en">what you get</span></th>
+        <th><span lang="ru">чем платишь</span><span lang="en">what it costs</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span lang="ru"><strong>специализированный движок</strong></span><span lang="en"><strong>dedicated engine</strong></span></td>
+        <td>Qdrant &middot; Milvus &middot; Weaviate</td>
+        <td><span lang="ru">фильтры по метаданным, шардирование, репликация, API &mdash; из коробки</span><span lang="en">metadata filters, sharding, replication, an API &mdash; out of the box</span></td>
+        <td><span lang="ru">ещё одна система в эксплуатации: свой бэкап, свой дежурный, свой дрейф от основной базы</span><span lang="en">one more system to run: its own backups, its own on-call, its own drift away from your primary store</span></td>
+      </tr>
+      <tr>
+        <td><span lang="ru"><strong>расширение той СУБД, которая уже крутится</strong></span><span lang="en"><strong>an extension of a store you already run</strong></span></td>
+        <td><span lang="ru">pgvector (PostgreSQL) &middot; векторный поиск в Elasticsearch / OpenSearch</span><span lang="en">pgvector (PostgreSQL) &middot; vector search inside Elasticsearch / OpenSearch</span></td>
+        <td><span lang="ru">векторы лежат рядом с данными: общий бэкап и привычный язык запросов, а в Postgres — ещё и одна транзакция с ними</span><span lang="en">vectors sit beside the data: one backup and the query language you already speak — and inside Postgres, one transaction with them</span></td>
+        <td><span lang="ru">индекс делит память и ядра с основной нагрузкой, а ручек настройки меньше</span><span lang="en">the index shares RAM and cores with the primary workload, and there are fewer dials</span></td>
+      </tr>
+      <tr>
+        <td><span lang="ru"><strong>управляемый сервис</strong></span><span lang="en"><strong>managed service</strong></span></td>
+        <td>Pinecone</td>
+        <td><span lang="ru">ты не эксплуатируешь ничего: узлы, обновления, восстановление &mdash; на стороне поставщика</span><span lang="en">you operate nothing: nodes, upgrades, recovery all sit with the vendor</span></td>
+        <td><span lang="ru">счёт вместо кода, чужой план развития и меньше контроля над самим индексом</span><span lang="en">a bill instead of code, someone else&rsquo;s roadmap, and less control over the index itself</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-3"><span lang="ru">Почти никто из них не изобретает новую математику соседства заново. Внутри (у закрытых проприетарных движков — по их же словам, проверить нельзя) &mdash; <strong>HNSW</strong>, <strong>IVF</strong> и <strong>PQ</strong>, разобранные в трёх предыдущих актах; строка index-factory с предыдущего слайда описывает ровно то же самое. Различаются они не структурами, а <strong>эксплуатацией</strong>: кто хранит, кто фильтрует, кто дежурит.</span><span lang="en">Almost none of them reinvents nearest-neighbour mathematics. Inside (for the closed proprietary ones — on their word; you cannot check) sit <strong>HNSW</strong>, <strong>IVF</strong> and <strong>PQ</strong> &mdash; the three lanes you just walked; the index-factory string on the previous slide describes the very same objects. They differ in <strong>operations</strong>, not in structures: who stores, who filters, who is on call.</span></p>
+  <aside class="slide-notes">Vector DB landscape, three families. (1) Dedicated engines — Qdrant, Milvus, Weaviate: filtering, sharding, replication and an API out of the box, at the cost of one more system to operate. (2) Extensions of a store you already run — pgvector inside PostgreSQL, kNN inside Elasticsearch/OpenSearch: vectors next to the data, one backup (and inside Postgres, one transaction), but the index competes with the primary workload and exposes fewer dials. (3) Managed service — Pinecone: you operate nothing, you pay a bill and give up control. The point of the slide: all of them are wrappers around the HNSW / IVF / PQ structures of the three previous acts. The choice is an operations question, not a mathematics question — which is exactly what the Catch slide at the end of this insert argues. No gated numbers here on purpose: any QPS or scale figure would be vendor- and hardware-specific.</aside>
+</section>

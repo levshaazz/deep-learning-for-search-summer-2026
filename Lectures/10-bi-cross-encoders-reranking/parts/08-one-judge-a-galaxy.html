@@ -1,0 +1,40 @@
+        <section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="08 One judge, a galaxy">
+          <div class="slide-header">
+            <h2><span lang="ru">Один судья, галактика дел</span><span lang="en">One judge, a galaxy of cases</span></h2>
+            <span class="slide-kicker"><span lang="ru">кросс-энкодер читает \((q,d)\) <em>вместе</em> &rarr; \(O(N)\) чтений на запрос</span><span lang="en">a cross-encoder reads \((q,d)\) <em>together</em> &rarr; \(O(N)\) reads per query</span></span>
+          </div>
+          <div class="viz-frame">
+            <svg viewBox="0 0 1500 540" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="One query needs one cross-encoder read per document, so reads grow linearly with corpus size: a hundred documents is a hundred reads, ten thousand is ten thousand, a million is a million reads that won't finish in time">
+              <g font-family="var(--font-sans)">
+                <text x="60" y="56" font-size="26" fill="var(--ink-2)" font-weight="700"><tspan font-family="var(--font-mono)">1 query</tspan> &times; <tspan font-family="var(--font-mono)">N docs</tspan> = N joint reads</text>
+                <!-- three rows: corpus size → reads, bar length ∝ log10(N) -->
+                <g data-step="1">
+                  <text x="60" y="170" font-size="24" fill="var(--ink-2)" font-family="var(--font-mono)">N = 10²</text>
+                  <rect x="300" y="146" width="180" height="36" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+                  <text x="510" y="172" font-size="24" fill="var(--accent-ink)" font-family="var(--font-mono)">100 reads &middot; instant</text>
+                </g>
+                <g data-step="2">
+                  <text x="60" y="300" font-size="24" fill="var(--ink-2)" font-family="var(--font-mono)">N = 10⁴</text>
+                  <rect x="300" y="276" width="540" height="36" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+                  <text x="870" y="302" font-size="24" fill="var(--accent-ink)" font-family="var(--font-mono)">10,000 reads &middot; seconds</text>
+                </g>
+                <g data-step="3">
+                  <text x="60" y="430" font-size="24" fill="var(--ink-2)" font-family="var(--font-mono)">N = 10⁶</text>
+                  <rect x="300" y="406" width="900" height="36" rx="6" fill="var(--warm-soft, #FBE6D8)" stroke="var(--warm, #E8743B)" stroke-width="2.5"/>
+                  <text x="300" y="490" font-size="25" fill="var(--warm-ink, #B4521F)" font-weight="800" font-family="var(--font-mono)">1,000,000 reads &middot; won&rsquo;t finish</text>
+                </g>
+                <g data-step="0">
+                  <line x1="290" y1="120" x2="290" y2="455" stroke="var(--ink-3)" stroke-width="2"/>
+                  <text x="300" y="112" font-size="20" fill="var(--ink-3)">reads grow <em>linearly</em> with the corpus &rarr;</text>
+                </g>
+              </g>
+            </svg>
+          </div>
+          <p class="viz-caption"><span lang="ru">Оценка кросс-энкодера — свойство <strong>пары</strong> \((q,d)\), её нельзя предпосчитать. Значит, на каждый запрос — по чтению на <em>каждый</em> документ: \(O(N)\). При \(10^9\) документах это не финиширует.</span><span lang="en">A cross-encoder score is a property of the <strong>pair</strong> \((q,d)\), so it can&rsquo;t be precomputed. That means one read per <em>every</em> document, every query: \(O(N)\). At \(10^9\) docs it never finishes.</span></p>
+          <div class="step-controls">
+            <button data-step-act="prev" aria-label="Previous step">&larr;</button>
+            <span class="step-counter">0/3</span>
+            <button data-step-act="next" aria-label="Next step">&rarr;</button>
+          </div>
+          <aside class="slide-notes">State the wall. A cross-encoder must read the query and a document together to score them, so its score is a property of the pair, not of the document — there is nothing to precompute and cache. That forces one model read per document, for every query: O of N. At a hundred documents it is instant; at ten thousand it is seconds; at a million it will not finish in any reasonable time, and real corpora are a billion. This is the problem the rest of the lecture solves: send a cheap Scout first.</aside>
+        </section>

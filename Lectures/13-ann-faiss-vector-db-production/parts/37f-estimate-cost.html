@@ -1,0 +1,37 @@
+<section class="slide" data-type="formula" data-screen-label="37f Цена одной оценки: таблица против popcount">
+  <div class="slide-header" style="border:none; padding-bottom:0;">
+    <h2><span lang="ru">Во что обходится одна оценка расстояния</span><span lang="en">What one distance estimate costs</span></h2>
+    <span class="slide-kicker"><span lang="ru">таблица против двух инструкций</span><span lang="en">a table against two instructions</span></span>
+  </div>
+  <div class="formula-stage">
+    $$ \underbrace{8 \times 256 = 2048}_{\text{PQ: таблица на запрос}} \;+\; \underbrace{8}_{\text{поисков/вектор}} \qquad\text{против}\qquad \underbrace{768 / 64 = 12}_{\text{RaBitQ: слов по 64 бита}} $$
+  </div>
+  <div class="formula-caption">
+    <div class="var-block">
+      <div class="var-symbol">\(2048\)</div>
+      <div class="var-desc">
+        <span lang="ru"><strong>Подготовка у PQ</strong><br />на каждый запрос считаются \(m\) таблиц по \(k\) расстояний — один раз, зато до начала перебора</span>
+        <span lang="en"><strong>PQ's setup</strong><br />each query builds \(m\) tables of \(k\) distances — once, but before scanning starts</span>
+      </div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">\(8\)</div>
+      <div class="var-desc">
+        <span lang="ru"><strong>И на каждый вектор</strong><br />восемь обращений в таблицу — случайный доступ, недружественный к кэшу</span>
+        <span lang="en"><strong>And per vector</strong><br />eight table lookups — random access, unfriendly to cache</span>
+      </div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">\(12\)</div>
+      <div class="var-desc">
+        <span lang="ru"><strong>Всё, что нужно RaBitQ</strong><br />XOR и popcount по двенадцати машинным словам, подряд лежащим в памяти</span>
+        <span lang="en"><strong>All RaBitQ needs</strong><br />XOR and popcount over twelve machine words lying contiguously</span>
+      </div>
+    </div>
+  </div>
+  <p class="small muted center mt-3">
+    <span lang="ru">Сравнивать эти числа лоб в лоб нельзя — они про разные вещи. Смысл в другом: у PQ стоимость размазана на подготовку и на случайные обращения, у RaBitQ она вся в последовательном чтении битов, которое процессор любит. Отсюда и разрыв в пропускной способности со слайда напротив: дело не только в том, сколько операций, а в том, куда за ними приходится ходить.</span>
+    <span lang="en">These numbers cannot be compared head-on — they measure different things. The point is elsewhere: PQ spreads its cost between setup and random lookups, RaBitQ puts all of it into a sequential read of bits, which the processor likes. That is where the throughput gap on the facing slide comes from: not only how many operations, but where you must go to get them.</span>
+  </p>
+  <aside class="slide-notes">Разбор к акту, числа из data/l9-bench.json → rabitq.estimateCost (считает gen_l9.py): PQ при m=8, k=256 строит 2048 расстояний на запрос и делает 8 обращений в таблицу на каждый вектор; RaBitQ на D=768 читает 12 машинных слов по 64 бита и берёт XOR+popcount. ОСТОРОЖНО на лекции: это не «12 лучше 8» — величины разной природы, и слайд прямо это оговаривает. Тезис в другом: у PQ доступ случайный (таблица), у RaBitQ последовательный (биты подряд), и разрыв по пропускной способности из слайда 37d объясняется в том числе этим. Пример нарочно не превращён в бенчмарк: измерять надо на своём железе.</aside>
+</section>

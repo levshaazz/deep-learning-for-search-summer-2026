@@ -1,0 +1,47 @@
+<section class="slide" data-type="table" data-screen-label="68 Three questions before you switch">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Чек-лист модели: три вопроса перед включением</span>
+      <span lang="en">The model checklist: three questions before you switch it on</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">две минуты проверки против переиндексации всего корпуса</span>
+      <span lang="en">two minutes of checking versus re-indexing the whole corpus</span>
+    </span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th><span lang="ru">вопрос к модели</span><span lang="en">the question to ask of your model</span></th>
+        <th><span lang="ru">если ответ &laquo;нет&raquo;</span><span lang="en">if the answer is &ldquo;no&rdquo;</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td><span lang="ru">Отдаёт ли она <strong>токен-уровневые</strong> векторы (<code>last_hidden_state</code>), а не только готовый эмбеддинг?</span><span lang="en">Does it hand you <strong>token-level</strong> vectors (<code>last_hidden_state</code>), not just a finished embedding?</span></td>
+        <td class="cell-bad"><span lang="ru">приём не запустить вообще</span><span lang="en">the trick cannot run at all</span></td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><span lang="ru">Окно &ge; <strong>8192</strong> токенов, и внимание <strong>двунаправленное</strong> (энкодер, не декодер)?</span><span lang="en">Is the window &ge; <strong>8192</strong> tokens and the attention <strong>bidirectional</strong> (an encoder, not a decoder)?</span></td>
+        <td class="cell-bad"><span lang="ru">нечего или некуда читать: с причинной маской первая половина не увидит вторую</span><span lang="en">nothing to read, or no way to read it: under a causal mask the first half never sees the second</span></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><span lang="ru">Голова пулинга &mdash; <strong>среднее по токенам</strong> (не CLS, не max, не последний токен)?</span><span lang="en">Is the pooling head a <strong>token mean</strong> (not CLS, not max, not last-token)?</span></td>
+        <td class="cell-bad"><span lang="ru">твой вектор перестанет соответствовать тому, на чём модель обучалась</span><span lang="en">your vector stops matching what the model was trained to produce</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-3">
+    <span lang="ru"><strong>Живой пример цены ошибки.</strong> BGE-M3 на NFCorpus при переходе на позднее чанкование падает с <strong>0,246</strong> до <strong>0,070</strong> NDCG@5 &mdash; это не &laquo;не помогло&raquo;, это в три с половиной раза хуже. Правдоподобная причина &mdash; несовместимая голова пулинга; в статье механизм не разобран, так что назови это гипотезой, а не диагнозом.</span>
+    <span lang="en"><strong>What the mistake actually costs.</strong> BGE-M3 on NFCorpus drops from <strong>0.246</strong> to <strong>0.070</strong> NDCG@5 when switched to late chunking &mdash; not &ldquo;no help&rdquo;, three and a half times worse. The plausible culprit is an incompatible pooling head; nobody has published the diagnosis, so call it a hypothesis, not a finding.</span>
+  </p>
+  <p class="small muted center mt-2">
+    <span lang="ru">Порядок вопросов не случаен: первый отсекает API-чёрные ящики, второй &mdash; декодерные эмбеддеры, третий &mdash; ровно тот случай, на котором репликация и обожглась.</span>
+    <span lang="en">The order is deliberate: the first question rules out black-box APIs, the second rules out decoder-based embedders, the third is exactly the case the replication got burned on.</span>
+  </p>
+  <aside class="slide-notes">The actionable checklist, ordered by how cheaply each question is answered and how expensive the mistake is. (1) token-level outputs — a pooled black-box API cannot do this at all; (2) ≥8192 context AND bidirectional attention — a decoder embedder under a causal mask cannot let the first half of a document see the second, which is the structural argument from the "conditioned on previous chunks" slide; (3) a mean-pooling head — CLS and max are called out as incompatible by Jina's blog, and last-token pooling is simply undocumented anywhere. Then the price tag: BGE-M3 / NFCorpus, 0.246 → 0.070 NDCG@5 in the independent replication. Label the pooling-head explanation a hypothesis: no one has published the diagnosis.</aside>
+</section>

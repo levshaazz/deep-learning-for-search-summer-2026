@@ -1,0 +1,60 @@
+<section class="slide" data-type="viz" data-max-step="5" data-current-step="0" data-screen-label="21 Climb · CLIP matrix">
+  <div class="slide-header">
+    <h2><span lang="ru">CLIP &mdash; косинусная матрица общего пространства</span><span lang="en">CLIP &mdash; the shared-space cosine matrix</span></h2>
+    <span class="slide-kicker"><span lang="ru">шаг (&larr;/&rarr;): заполни косинусы &rarr; argmax диагонали &rarr; разрыв</span><span lang="en">step (&larr;/&rarr;): fill cosines &rarr; argmax the diagonal &rarr; the gap</span></span>
+  </div>
+  <div class="widget-mount" data-widget="clip-matrix" style="max-width:min(820px,46cqw)"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "concepts": ["cat", "dog", "car"],
+    "imageVectors": {
+      "cat": [0.9, 0.3, 0.1, 0.0],
+      "dog": [0.3, 0.9, 0.2, 0.0],
+      "car": [0.0, 0.15, 0.85, 0.45]
+    },
+    "textVectors": {
+      "cat": [0.85, 0.35, 0.12, 0.0],
+      "dog": [0.35, 0.85, 0.15, 0.1],
+      "car": [0.05, 0.1, 0.8, 0.5]
+    },
+    "cosineMatrix": [
+      [0.9974, 0.6547, 0.171],
+      [0.6609, 0.991, 0.2877],
+      [0.1712, 0.329, 0.9949]
+    ],
+    "retrievedPerImage": ["cat", "dog", "car"],
+    "diagonalCorrect": 3,
+    "matchedMeanCos": 0.9944,
+    "mismatchedMeanCos": 0.3791,
+    "contrastiveGap": 0.6153,
+    "real": {
+      "_visModel": "llava:7b",
+      "top1Accuracy": 1.0,
+      "top1Correct": 5,
+      "n": 5
+    }
+  },
+  "labels": {
+    "alt": "A CLIP shared-space cosine matrix: image concepts as rows, caption concepts as columns, each cell the cosine of an image against a caption. The matching diagonal lights up green, then two bars compare the mean matched cosine against the mean mismatched cosine, and a badge shows a real llava image-to-caption forced-choice run.",
+    "head": "one shared space · cosine(image i, caption j)",
+    "textAxis": "caption (text) j →",
+    "imgAxis": "↓ image i",
+    "tally": "top match on the diagonal",
+    "rowPick": "scan one row → pick its brightest cell (argmax)",
+    "matched": "matching pairs (diagonal)",
+    "mismatched": "everything else (off-diagonal)",
+    "gapLbl": "contrastive gap",
+    "real": "real llava:7b · image→caption forced choice",
+    "s0": "Both pictures and their captions are embedded into ONE shared space — the same coordinate system holds image vectors and text vectors at once. Down the rows sit three image concepts; across the columns sit the same three caption concepts. The grid is empty for now: every cell will become the cosine similarity between an image and a caption.",
+    "s1": "Now fill each cell with the cosine of that image against that caption, shaded by value: pale where they are far apart, deep green where they nearly coincide. A bright band runs down the diagonal — an image and its own caption land almost on top of each other — while the off-diagonal cells stay faint. The structure is already visible before we name it.",
+    "s2": "Take one image row — the cat — and scan it left to right. Cross-modal retrieval is a single act: pick the cell with the highest cosine, the argmax of the row. The losing cells fade; the brightest one is ringed green — and it is the cat's own caption. That one pick is 'search the captions with a picture' in miniature.",
+    "s3": "For each image row, the top match is the cell with the highest cosine — and it is the diagonal one, the image's own caption. Highlighted in green, the winning cells form a clean diagonal: every image retrieves the right caption. This argmax-per-row is exactly cross-modal retrieval — searching text with a picture, or pictures with text, inside the shared space.",
+    "s4": "Why does the diagonal win so cleanly? Average the cosine of the matching pairs and average it for everything else: the matched mean is high and the mismatched mean is low, and the gap between them is wide. This is the contrastive idea from L7 (Sir Cosine), now across modalities — an image and its caption are trained to be neighbours while every other pairing is pushed apart.",
+    "s5": "And this is not just a toy. A real llava:7b vision model, given pictures of plain text-free shapes and asked to pick the matching caption, gets every one of them right — so it is reading the image, not the letters in it. The matching caption is the model's top choice: cross-modal retrieval in a shared space, working on a genuine multimodal model."
+  }
+}
+  </script>
+  <p class="viz-caption"><span lang="ru">Диагональ &mdash; каждое изображение против своей подписи &mdash; побеждает в каждой строке, <strong>3/3</strong>. Совпадающий косинус в среднем <strong>0,9944</strong> против <strong>0,3791</strong> вне диагонали: разрыв <strong>0,6153</strong>. Настоящая llava:7b: <strong>5/5</strong> &mdash; генеративная VLM заземляет ответ в пикселях, а не в косинусном совпадении.</span><span lang="en">The diagonal &mdash; each image vs its own caption &mdash; wins every row, <strong>3/3</strong>. Matched cosine averages <strong>0.9944</strong> vs <strong>0.3791</strong> off-diagonal: a <strong>0.6153</strong> gap. Real llava:7b: <strong>5/5</strong> &mdash; a generative VLM grounding its answer in the pixels, not a cosine match.</span></p>
+  <aside class="slide-notes">climb-clip master figure (clip-matrix widget on l12-clip). Steps: empty grid → fill cosines → argmax diagonal (3/3) → contrastive gap (matched 0.9944 vs mismatched 0.3791 = 0.6153) → real llava:7b 5/5. Numbers from data/l12-clip.json. The by-hand matrix slide is next; the L7 contrastive callback two slides on.</aside>
+</section>

@@ -1,0 +1,493 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { LOCALES, t, withBase, localizedPath } from '../../../i18n/locales.js';
+import { ui } from '../../../i18n/ui.js';
+import { course } from '../../../lib/course.js';
+import { WIDGET_META, DATA } from '../../../lib/widgets.js';
+import { chapterById, chapterIds } from '../../../lib/chapters.js';
+import { toolkitFor, TOOLKIT_UI as TK } from '../../../lib/toolkit.js';
+
+// Book chapters are auto-discovered in src/lib/chapters.js — adding content/book/lN.js needs ZERO edits here.
+const CHAPTERS = chapterById;
+
+// widget styles (bundled globally) + shared widget base. Auto-discovered: dropping a
+// widgets/<id>/style.css folder is picked up here with no edit (eager glob → side-effect imports).
+import '../../../../widgets/_base.css';
+const widgetStyles = import.meta.glob('../../../../widgets/*/style.css', { eager: true });
+void widgetStyles; // referenced only for its bundling side effect
+
+// NOTE: getStaticPaths runs in isolation and may reference only imports (not frontmatter consts).
+export function getStaticPaths() {
+  // chapterIds is an import (allowed in getStaticPaths' isolated scope) — auto-derived, no hand list.
+  return LOCALES.flatMap((lang) => chapterIds.map((id) => ({ params: { lang, id } })));
+}
+const { lang, id } = Astro.params;
+const chapter = CHAPTERS[id];
+const lec = course.lectures.find((l) => l.id === id);
+const showFallbackNotice = lang === 'tt';
+
+// Prev/next chapter for the pager (chapterIds is the ordered id list; auto-derived).
+const chapIdx = chapterIds.indexOf(id);
+const prevId = chapIdx > 0 ? chapterIds[chapIdx - 1] : null;
+const nextId = chapIdx < chapterIds.length - 1 ? chapterIds[chapIdx + 1] : null;
+const chapTitle = (cid) => {
+  const l = course.lectures.find((x) => x.id === cid);
+  return l ? t(l.title, lang) : (CHAPTERS[cid]?.catchphrase || cid);
+};
+
+// Distinct, localized names for the two chapter-nav landmarks (top compact + bottom cards) —
+// two <nav>s need UNIQUE accessible names (axe: landmark-unique). Local object, not i18n/ui.js,
+// so it needs no gate registration (same pattern as the *Meta.ui strings).
+const navLabels = {
+  compact: { en: 'Chapter navigation', ru: 'Навигация по главам', tt: 'Бүлекләр буенча навигация' },
+  cards: {
+    en: 'Chapter navigation — previous and next chapter',
+    ru: 'Навигация по главам — предыдущая и следующая',
+    tt: 'Бүлекләр навигациясе — алдагы һәм киләсе',
+  },
+};
+
+// The per-lecture toolkit (slides · interactive figures · assignment · papers) for the footer panel.
+const tk = toolkitFor(id);
+const tkHasContent = !!(tk.lec?.deckFile || tk.figures.length || tk.assignment || tk.areas.length);
+
+// Resolve every beat for this locale; build the client payload (scrolly beats only).
+const beats = chapter.beats.map((b) => {
+  if (b.kind !== 'scrolly') return b;
+  const meta = WIDGET_META[b.widget];
+  const labels = Object.fromEntries(Object.entries(meta.i18n).map(([k, v]) => [k, t(v, lang)]));
+  // beat-level labels (e.g. {mode:'tfidf'}) override the manifest i18n defaults.
+  const merged = { ...labels, ...b.labels };
+  const steps = meta.manifest.steps.map((s) => ({ step: s.step, label: merged[s.labelKey] || '' }));
+  return { ...b, labels: merged, steps };
+});
+// widget id → exported mount-fn name. Source of truth is manifest.export; fall back to the
+// deck-adapter's PascalCase rule (mount + PascalCase(id)) for widgets that omit it (e.g. cosine-sphere).
+const pascalMount = (id) => 'mount' + id.split('-').map((s) => s[0].toUpperCase() + s.slice(1)).join('');
+const WIDGET_EXPORTS = Object.fromEntries(
+  Object.entries(WIDGET_META).map(([id, { manifest }]) => [id, manifest['export'] || pascalMount(id)])
+);
+const payload = {
+  beats: beats.filter((b) => b.kind === 'scrolly')
+    // `data` may name ONE data file or several: four widget manifests already declare two
+    // (letter-entropy needs data/l17-entropy.json for the letter frequencies AND data/l17-bench.json
+    // for Shannon's Fn ladder), and the deck passes them pre-merged in its inline widget-data JSON.
+    // The Book had no way to say that, so such a widget could only be mounted on a slide.
+    .map((b) => ({ id: b.id, widget: b.widget,
+                   data: Array.isArray(b.data) ? Object.assign({}, ...b.data.map((k) => DATA[k])) : DATA[b.data],
+                   labels: { ...b.labels, role: 'img' } })),
+  exports: WIDGET_EXPORTS, // widget id → mount export name, resolved against the logic.js glob client-side
+};
+const proseText = (body) => (Array.isArray(body) ? body : [body]);
+
+// ── inline markdown subset (rendered via set:html) ──────────────────────────
+// Turns the authored markdown-ish strings (body[], heading, imgCaption) into
+// safe HTML. NOT run on imgAlt (alt stays plain text). Order matters — see
+// _internal/book_audit/p1-rendering.md §gotchas:
+//   (a) STASH + protect math spans ($$…$$, \(…\), \[…\]) and code spans (`…`)
+//       so markdown/escaping never touch their contents. For MATH we escape
+//       only < > & to entities (so KaTeX's textContent stays correct and the
+//       browser won't parse a `<b…` as a tag) but KEEP backslashes and `$`.
+//       For CODE we emit <code> with fully-escaped contents.
+//   (b) HTML-escape the remaining (author) text.
+//   (c) **bold** BEFORE *italic* (so a `*` inside `**` can't double-match),
+//       then [text](url) links.
+//   (d) restore the stashed spans.
+// Placeholders use Private-Use-Area sentinels (U+E000 / U+E001), built via
+// String.fromCharCode so the source stays ASCII. They cannot occur in author
+// text and pass through escAll + the bold/italic/link passes untouched.
+const SENT_L = String.fromCharCode(0xE000), SENT_R = String.fromCharCode(0xE001);
+const escAll = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const escMath = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); // keep \ and $
+function inlineMd(s) {
+  if (s == null) return '';
+  if (typeof s !== 'string') s = String(s);
+  // A `:::calc … :::` body paragraph is a "worked calculation" callout: strip the
+  // fence, process the inner as normal inline markdown/math, and wrap the result in a
+  // <span class="calc-callout"> (a span, not a div, so it stays valid inside the <p>;
+  // the CSS makes it display:block). No raw HTML reaches the author text (escAll would
+  // eat it), so this fence is the only way to lift a calc into its own card.
+  let calcWrap = false;
+  const cm = s.match(/^\s*:::calc\s+([\s\S]+?)\s*:::\s*$/);
+  if (cm) { s = cm[1]; calcWrap = true; }
+  const stash = [];
+  const hold = (html) => { stash.push(html); return SENT_L + (stash.length - 1) + SENT_R; };
+
+  // (a) protect math first (display delimiters before inline), then code spans.
+  let h = s
+    .replace(/\$\$([\s\S]+?)\$\$/g, (_, m) => hold('$$' + escMath(m) + '$$'))
+    .replace(/\\\[([\s\S]+?)\\\]/g, (_, m) => hold('\\[' + escMath(m) + '\\]'))
+    .replace(/\\\(([\s\S]+?)\\\)/g, (_, m) => hold('\\(' + escMath(m) + '\\)'))
+    .replace(/`([^`]+)`/g, (_, m) => hold('<code>' + escAll(m) + '</code>'));
+
+  // (b) escape the remaining author text.
+  h = escAll(h);
+
+  // (c) bold BEFORE italic. Bold is non-greedy and allows a *nested* single-`*`
+  // italic inside it (e.g. `**… *never seen before*.**`): `[\s\S]+?` stops at the
+  // nearest closing `**`, leaving any interior `*…*` for the italic pass below.
+  // Then italic (guarded so `**`/stray `*` aren't mis-emphasized), then links.
+  h = h.replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>');
+  h = h.replace(/(^|[^*])\*(?!\s)([^*\n]+?)\*(?!\*)/g, '$1<em>$2</em>');
+  // URL may contain balanced parens (SICI-style DOIs like 10.1002/(SICI)...) — match
+  // bare chars OR one level of (...) groups, leaving the final ) to close the md link.
+  // `<`/`>` in a URL are already &lt;/&gt; here (escAll ran first); the browser decodes
+  // them back in the href, so escaped angle brackets link fine.
+  h = h.replace(/\[([^\]]+)\]\(((?:[^()\s]|\([^()\s]*\))+)\)/g,
+    '<a href="$2" target="_blank" rel="noopener">$1</a>');
+
+  // (d) restore protected spans.
+  h = h.replace(new RegExp(SENT_L + '(\\d+)' + SENT_R, 'g'), (_, i) => stash[Number(i)]);
+  return calcWrap ? '<span class="calc-callout">' + h + '</span>' : h;
+}
+// vendored KaTeX (same copy the decks ship) — copy-static publishes Lectures/ → docs/Lectures/,
+// so these resolve on the live site with zero CDN.
+const katexCss = withBase('/Lectures/vendor/katex/katex.min.css');
+const katexJs = withBase('/Lectures/vendor/katex/katex.min.js');
+const katexAuto = withBase('/Lectures/vendor/katex/auto-render.min.js');
+---
+<BaseLayout lang={lang} page={`book/${id}`} title={`${chapter.catchphrase} · ${t(course.meta.title, lang)}`}>
+  <link rel="stylesheet" href={katexCss} />
+  <article class="book">
+    <header class="book-head wrap">
+      <div class="book-kick">{t(ui.nav.book, lang)} · {lec.id} · {chapter.catchphrase}</div>
+      <h1>{t(lec.title, lang)}</h1>
+      {showFallbackNotice && <p class="notice">{t(ui.translationInProgress, lang)}</p>}
+      {lec.deckFile && <p class="book-xref"><a href={withBase('/' + lec.deckFile)}>{t(ui.labels.openSlides, lang)} →</a></p>}
+      <nav class="chap-nav" aria-label={t(navLabels.compact, lang)}>
+        {prevId
+          ? <a class="chap-arrow" href={localizedPath(lang, 'book/' + prevId)} rel="prev" title={chapTitle(prevId)}>← {prevId}</a>
+          : <span class="chap-arrow is-off" aria-hidden="true">←</span>}
+        <span class="chap-pos">{chapIdx + 1} / {chapterIds.length}</span>
+        {nextId
+          ? <a class="chap-arrow" href={localizedPath(lang, 'book/' + nextId)} rel="next" title={chapTitle(nextId)}>{nextId} →</a>
+          : <span class="chap-arrow is-off" aria-hidden="true">→</span>}
+      </nav>
+    </header>
+
+    {beats.map((b) => b.kind === 'prose' ? (
+      <section class="beat-prose wrap" id={b.id}>
+        {b.heading && <h2 set:html={inlineMd(t(b.heading, lang))} />}
+        {b.img && (
+          <figure class={`beat-figure beat-figure--${b.imgPos || 'scene'}`}>
+            <img src={withBase('/Lectures/assets/img/' + b.img)}
+                 alt={b.imgAlt ? t(b.imgAlt, lang) : (b.imgCaption ? t(b.imgCaption, lang) : '')}
+                 loading="lazy" decoding="async" />
+            {b.imgCaption && <figcaption set:html={inlineMd(t(b.imgCaption, lang))} />}
+          </figure>
+        )}
+        {proseText(t(b.body, lang)).map((p) => <p set:html={inlineMd(p)} />)}
+      </section>
+    ) : (
+      <section class={`scrolly${b.widget.startsWith('ncd-') ? ' scrolly--wide' : ''}`} id={b.id} data-beat={b.id}>
+        <figure class="scrolly-graphic">
+          <figcaption class="scrolly-cap">{t(WIDGET_META[b.widget].manifest.title, lang)}</figcaption>
+          <div class="cs-mount" id={`fig-${b.id}`}></div>
+        </figure>
+        <div class="scrolly-steps">
+          {b.steps.map((s) => (
+            <div class="scroll-step" data-beat={b.id} data-step={s.step}><p>{s.label}</p></div>
+          ))}
+        </div>
+      </section>
+    ))}
+
+    <footer class="book-foot wrap">
+      <nav class="chap-pager" aria-label={t(navLabels.cards, lang)}>
+        {prevId
+          ? <a class="pager-card pager-card--prev" href={localizedPath(lang, 'book/' + prevId)} rel="prev">
+              <span class="pager-dir">←</span>
+              <span class="pager-meta"><span class="pager-id">{prevId}</span><span class="pager-title">{chapTitle(prevId)}</span></span>
+            </a>
+          : <span class="pager-card is-empty" aria-hidden="true"></span>}
+        {nextId
+          ? <a class="pager-card pager-card--next" href={localizedPath(lang, 'book/' + nextId)} rel="next">
+              <span class="pager-meta"><span class="pager-id">{nextId}</span><span class="pager-title">{chapTitle(nextId)}</span></span>
+              <span class="pager-dir">→</span>
+            </a>
+          : <span class="pager-card is-empty" aria-hidden="true"></span>}
+      </nav>
+
+      {tkHasContent && (
+        <aside class="lec-toolkit" aria-labelledby="tk-h">
+          <div class="tk-head">
+            <h3 id="tk-h">{t(TK.heading, lang)}</h3>
+            <p class="tk-sub">{t(TK.sub, lang)}</p>
+          </div>
+          <div class="tk-grid">
+            {tk.lec?.deckFile && (
+              <div class="tk-cell">
+                <span class="tk-label">{t(TK.slides, lang)}</span>
+                <a class="tk-link" href={withBase('/' + tk.lec.deckFile)}>{t(TK.openSlides, lang)} →</a>
+              </div>
+            )}
+            {tk.figures.length > 0 && (
+              <div class="tk-cell">
+                <span class="tk-label">{t(TK.figures, lang)}</span>
+                <ul class="tk-list">
+                  {tk.figures.map((f) => (
+                    <li><a href={localizedPath(lang, 'playground') + '#demo-' + f.id}>{t(f.title, lang)}</a></li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {tk.assignment && (
+              <div class="tk-cell">
+                <span class="tk-label">{t(TK.assignment, lang)}</span>
+                <a class="tk-link" href={localizedPath(lang, 'assignments/' + tk.assignment.slug)}>
+                  {t(tk.assignment.title, lang)} →
+                </a>
+              </div>
+            )}
+            {tk.areas.length > 0 && (
+              <div class="tk-cell">
+                <span class="tk-label">{t(TK.papers, lang)}</span>
+                <ul class="tk-list">
+                  {tk.areas.map((a) => (
+                    <li><a href={localizedPath(lang, 'papers') + '#' + a.area}>{t(a.label, lang)} →</a></li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </aside>
+      )}
+
+      <p class="book-xref"><a href={localizedPath(lang)}>← {t(ui.sections.lectures, lang)}</a></p>
+    </footer>
+  </article>
+
+  <script type="application/json" id="cs-payload" set:html={JSON.stringify(payload)}></script>
+  <script>
+    import scrollama from 'scrollama';
+
+    // Auto-registered widget mounts: eager-glob every widgets/<id>/logic.js, keyed by folder id.
+    // Adding a widget folder is picked up here with ZERO edits (replaces the old 11-line import
+    // wall + MOUNT{} map). The export name per widget comes from payload.exports (manifest.export).
+    const logicMods = import.meta.glob('../../../../widgets/*/logic.js', { eager: true });
+    const MOUNT = {};
+    for (const [path, mod] of Object.entries(logicMods)) {
+      const id = path.split('/').slice(-2)[0]; // widgets/<id>/logic.js → <id>
+      MOUNT[id] = mod; // resolve the specific export per beat below
+    }
+
+    const payload = JSON.parse(document.getElementById('cs-payload').textContent);
+    const exportsMap = payload.exports || {};
+    const figs = {};
+    for (const b of payload.beats) {
+      const el = document.getElementById('fig-' + b.id);
+      const mod = MOUNT[b.widget];
+      // pick the manifest-declared export; fall back to the module's single mount* function.
+      const fn = mod && (mod[exportsMap[b.widget]] || Object.values(mod).find((v) => typeof v === 'function'));
+      if (el && typeof fn === 'function') figs[b.id] = fn(el, { data: b.data, labels: b.labels });
+    }
+    window.__figs = figs; // headless verification hook
+
+    const sc = scrollama();
+    sc.setup({ step: '.scroll-step', offset: 0.6 }).onStepEnter(({ element }) => {
+      const f = element && element.dataset ? figs[element.dataset.beat] : null;
+      if (f) f.setStep(Number(element.dataset.step));
+    });
+    addEventListener('resize', () => sc.resize());
+  </script>
+
+  <!-- Vendored KaTeX (offline, same copy the decks ship). `defer` preserves order:
+       katex.min.js → auto-render.min.js → the render call below. The render script
+       also gates on DOMContentLoaded, so it runs after both libs have evaluated.
+       Separate from the scrolly module script above — does not interfere with it. -->
+  <script defer src={katexJs} is:inline></script>
+  <script defer src={katexAuto} is:inline></script>
+  <script is:inline>
+    (function () {
+      function renderBookMath() {
+        var root = document.querySelector('.book');
+        if (root && typeof window.renderMathInElement === 'function') {
+          window.renderMathInElement(root, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\(', right: '\\)', display: false },
+              { left: '\\[', right: '\\]', display: true }
+            ],
+            throwOnError: false,
+            strict: 'ignore'
+          });
+        }
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', renderBookMath);
+      } else {
+        renderBookMath();
+      }
+    })();
+  </script>
+
+  <!-- global: widget captions/counters are runtime-injected (no Astro scope) — hide in scroll context -->
+  <style is:global>
+    .scrolly .wgt-caption, .scrolly .wgt-counter,
+    .scrolly .cs-caption, .scrolly .cs-counter { display: none; }
+  </style>
+
+  <style>
+    .book h1 { font-family: var(--font-serif); font-size: var(--fz-h1); margin: 8px 0 14px; }
+    .book-kick { font-family: var(--font-mono); font-size: var(--fz-tiny); letter-spacing: 2px;
+      text-transform: uppercase; color: var(--warm-ink); }
+    .book-head, .book-foot { padding-top: var(--ws-5); padding-bottom: var(--ws-3); }
+    .book-xref { font-family: var(--font-mono); font-size: var(--fz-small); margin-top: var(--ws-3); }
+
+    .beat-prose { padding: var(--ws-3) var(--ws-4); overflow-x: clip; }
+    .beat-prose h2 { font-family: var(--font-serif); font-size: var(--fz-h2); margin: var(--ws-3) 0 8px; }
+    .beat-prose p { font-size: var(--fz-lead); line-height: 1.65; color: var(--ink-2);
+      max-width: var(--ws-measure); margin: 0 auto 0 0; }
+    .beat-prose p + p { margin-top: var(--ws-2); }
+
+    /* inline markdown emitted by inlineMd(): strong / em / code (readable light + dark). */
+    .beat-prose strong, .beat-prose h2 strong, .beat-figure figcaption strong { font-weight: 700; color: var(--ink); }
+    .beat-prose em, .beat-figure figcaption em { font-style: italic; }
+    .beat-prose code, .beat-figure figcaption code {
+      font-family: var(--font-mono); font-size: .9em;
+      background: color-mix(in srgb, var(--ink) 8%, transparent);
+      border: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+      border-radius: 5px; padding: .08em .36em; }
+
+    /* KaTeX display math: lift the key formula out of the prose as a warm "formula card"
+       (paper tint + accent left-rule + air) so it stops drowning in the running text.
+       Pure styling — no markup change, so the facts-gate's number anchors are untouched.
+       Long rows scroll instead of overflowing. KaTeX builds these nodes at RUNTIME, so they
+       carry no astro-scoped attribute — wrap the KaTeX parts in :global() (parent stays scoped),
+       else the rule compiles to .katex-display[data-astro-cid] and never matches. */
+    .beat-prose :global(.katex-display) { margin: var(--ws-3) 0; padding: var(--ws-2) var(--ws-3);
+      background: color-mix(in srgb, var(--warm-soft) 38%, var(--bg-card));
+      border: 1px solid color-mix(in srgb, var(--ink) 9%, transparent);
+      border-left: var(--line-thick) solid var(--warm); border-radius: 10px;
+      max-width: 100%; overflow-x: auto; overflow-y: hidden; }
+    .beat-prose .katex { font-size: 1.05em; max-width: 100%; }
+    /* Long inline formulas can't wrap (KaTeX is nowrap) — let them scroll, never push the page. */
+    .beat-prose p .katex { display: inline-block; max-width: 100%; overflow-x: auto;
+      overflow-y: hidden; vertical-align: middle; }
+    @media (max-width: 640px) {
+      .beat-prose :global(.katex-display) { font-size: .85em; }
+      .beat-prose p .katex { font-size: .95em; }
+    }
+
+    /* calc-callout: a worked NUMERIC calculation lifted out of the prose into a soft
+       inset card. Authored as a `:::calc … :::` body paragraph (see inlineMd); rendered
+       as a <span class="calc-callout"> so it's :global() like the KaTeX nodes. Blue accent
+       rule (vs the warm rule of the .katex-display formula card) encodes the distinction:
+       warm = the master formula, blue = a step-by-step calculation. */
+    .beat-prose :global(.calc-callout) { display: block; margin: var(--ws-3) 0;
+      padding: var(--ws-2) var(--ws-3);
+      background: color-mix(in srgb, var(--accent-soft) 30%, var(--bg-card));
+      border: 1px solid color-mix(in srgb, var(--ink) 9%, transparent);
+      border-left: var(--line-thick) solid var(--accent); border-radius: 10px;
+      font-size: var(--fz-body); line-height: 1.85; color: var(--ink-2); }
+
+    /* In-prose illustrations (mascot / scene art). White canvas so off-white art
+       reads in dark mode; responsive; never overflows. */
+    .beat-figure { margin: var(--ws-3) 0; max-width: var(--ws-measure); }
+    .beat-figure img { display: block; width: 100%; height: auto; border-radius: 12px;
+      background: #fff; border: 1px solid rgba(0,0,0,.12); }
+    .beat-figure figcaption { font-family: var(--font-mono); font-size: var(--fz-tiny);
+      letter-spacing: .5px; color: var(--ink-3); margin-top: 8px; max-width: 60ch; }
+    .beat-figure--scene { max-width: min(var(--ws-measure), 560px); }
+    .beat-figure--hero { max-width: var(--ws-page); margin-left: auto; margin-right: auto; }
+    .beat-figure--mascot { max-width: 220px; float: right; margin: 0 0 var(--ws-2) var(--ws-3); }
+    @media (max-width: 640px) {
+      .beat-figure--mascot { float: none; max-width: min(100%, 300px); margin: var(--ws-3) auto; }
+    }
+
+    .scrolly { display: grid; grid-template-columns: var(--ws-book-graphic) 1fr;
+      gap: var(--ws-5); max-width: var(--ws-page); margin: var(--ws-5) auto; padding: 0 var(--ws-4); }
+    .scrolly-graphic { position: sticky; top: 10vh; align-self: start; min-height: 60vh;
+      display: flex; flex-direction: column; justify-content: center; gap: var(--ws-2); margin: 0; }
+    .scrolly-cap { font-family: var(--font-mono); font-size: var(--fz-tiny); letter-spacing: 1px;
+      text-transform: uppercase; color: var(--ink-3); }
+    .cs-mount { width: 100%; }
+    /* FULL-BLEED for the neural-circuit figures. They are 800–880 user units wide by nature (a circuit
+       reads left-to-right and cannot be folded), so in the 46% sticky column they scale to ~0.55× and
+       their authored 11px labels land at ~6px — below anything a human reads. These beats take the whole
+       page width instead, with the figure sticky ABOVE the prose (the shape the mobile layout already
+       uses). 976px ÷ 820 units ≈ 1.19×, so the same label renders at ~13px. Only ncd-* beats opt in;
+       every other widget keeps the side-by-side rhythm. */
+    .scrolly--wide { grid-template-columns: 1fr; gap: var(--ws-3); }
+    .scrolly--wide .scrolly-graphic { position: sticky; top: 0; min-height: 0; padding: var(--ws-2) 0;
+      background: var(--bg); z-index: 5; box-shadow: 0 6px 12px -8px rgba(0, 0, 0, .25); }
+    .scrolly--wide .scrolly-steps { max-width: var(--ws-measure); margin-inline: auto; }
+    .scrolly-steps { display: flex; flex-direction: column; }
+    .scroll-step { min-height: 80vh; display: flex; align-items: center; }
+    .scroll-step:last-child { min-height: 60vh; }
+    .scroll-step p { font-size: var(--fz-lead); line-height: 1.55; color: var(--ink);
+      max-width: 46ch; border-left: 3px solid var(--accent-soft); padding-left: var(--ws-3); }
+
+    @media (max-width: 820px) {
+      .scrolly { grid-template-columns: 1fr; gap: var(--ws-2); }
+      .scrolly-graphic { position: sticky; top: 0; min-height: 0; padding: var(--ws-2) 0;
+        background: var(--bg); z-index: 5; box-shadow: 0 6px 12px -8px rgba(0,0,0,.25); }
+      .scroll-step { min-height: 70vh; }
+    }
+
+    /* ── Chapter navigation: compact pager (header) + card pager (footer) ── */
+    .chap-nav {
+      display: flex; align-items: center; gap: var(--ws-2); margin-top: var(--ws-2);
+      font-family: var(--font-mono); font-size: var(--fz-tiny);
+    }
+    .chap-arrow {
+      color: var(--accent); font-weight: 600; letter-spacing: 1px; text-decoration: none;
+      padding: 3px 10px; border: var(--hairline) solid var(--rule); border-radius: 999px;
+    }
+    .chap-arrow:hover { border-color: var(--accent); }
+    .chap-arrow.is-off { color: var(--ink-3); border-style: dashed; pointer-events: none; opacity: .55; }
+    .chap-pos { color: var(--ink-3); letter-spacing: 1px; }
+
+    .chap-pager {
+      display: grid; grid-template-columns: 1fr 1fr; gap: var(--ws-3);
+      margin: var(--ws-4) 0 var(--ws-3);
+    }
+    .pager-card {
+      display: flex; align-items: center; gap: var(--ws-2);
+      border: var(--hairline) solid var(--rule); border-radius: var(--r-md, 12px);
+      padding: var(--ws-2) var(--ws-3); text-decoration: none; color: var(--ink);
+      transition: border-color .12s, transform .12s, box-shadow .12s; min-width: 0;
+    }
+    .pager-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.08); }
+    .pager-card--next { justify-content: flex-end; text-align: right; }
+    .pager-card.is-empty { border: none; pointer-events: none; }
+    .pager-dir { font-family: var(--font-mono); font-size: var(--fz-h3); color: var(--accent); flex: 0 0 auto; }
+    .pager-meta { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+    .pager-id { font-family: var(--font-mono); font-size: var(--fz-tiny); font-weight: 700; letter-spacing: 1px; color: var(--accent); }
+    .pager-title {
+      font-family: var(--font-serif); font-size: var(--fz-small); font-weight: 600; line-height: 1.25;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    @media (max-width: 520px) {
+      .pager-title { -webkit-line-clamp: 1; }
+    }
+
+    /* ── Lecture toolkit — footer panel: slides · figures · assignment · papers ──── */
+    .lec-toolkit {
+      margin-top: var(--ws-5); padding: var(--ws-4);
+      border: var(--hairline) solid var(--rule-strong); border-radius: var(--r-md);
+      background: var(--bg-card);
+    }
+    .tk-head { margin-bottom: var(--ws-3); }
+    .lec-toolkit h3 {
+      font-family: var(--font-serif); font-size: var(--fz-h3); font-weight: 600;
+      margin: 0; line-height: 1.2; color: var(--ink);
+    }
+    .tk-sub { margin: 2px 0 0; color: var(--ink-2); font-size: var(--fz-small); }
+    .tk-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--ws-3);
+    }
+    .tk-cell { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .tk-label {
+      font-family: var(--font-mono); font-size: var(--fz-tiny); letter-spacing: .5px;
+      text-transform: uppercase; color: var(--ink-3);
+    }
+    .tk-link, .tk-list a {
+      color: var(--accent); font-weight: 600; font-size: var(--fz-small);
+      text-decoration: none; overflow-wrap: anywhere;
+    }
+    .tk-link:hover, .tk-list a:hover { text-decoration: underline; }
+    .tk-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+  </style>
+</BaseLayout>

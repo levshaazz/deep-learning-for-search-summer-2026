@@ -1,0 +1,21 @@
+    {
+      id: 'depth-reranker-for-russian', kind: 'prose',
+      heading: { en: 'A reranker for Russian', ru: 'Реранкер для русского', tt: 'Рус өчен реранкер' },
+      body: {
+        en: [
+          "L10 left you a cascade with a top floor: a cross-encoder that re-scores the shortlist the retriever hands up. For Russian that floor is short of options and shorter of evidence. The multilingual candidates are `bge-reranker-v2-m3`, `jina-reranker-v2` — read that licence before production, it forbids commercial use — and `Qwen3-Reranker`. The only Russian-only cross-encoder, `DiTy/cross-encoder-russian-msmarco`, was trained on a machine-translated corpus and ships with no published evaluation at all.",
+          "The multilingual ones publish no Russian number either. The single citable Russian result is RusBEIR's, and it argues loudly for the cascade: reranking lifts both ladders, the lexical one and BGE-M3; on the extended set the authors report an average gain of about nine nDCG@10 points. Notice the footnote inside that sentence, because it is the kind that gets dropped when the number is retold — the two ladders and the average were measured on different collections of the same benchmark, so you may not subtract them against each other.",
+          "Hence the rule, and it is an uncomfortable one: today a Russian reranker is picked on the prose of a model card. That makes an evaluation on your own Russian queries mandatory rather than advisable, and it makes the licence a design constraint rather than a legal footnote. Rerank depth and cost per pair behave exactly as in L10 — the cross-encoder pays, not the index.",
+        ],
+        ru: [
+          "L10 оставила тебе каскад с верхним этажом: кросс-энкодер, который переоценивает шорт-лист, поданный ретривером. Для русского этот этаж беден на варианты и ещё беднее на доказательства. Мультиязычные кандидаты — `bge-reranker-v2-m3`, `jina-reranker-v2` (прочитай лицензию до прода: коммерческое использование запрещено) и `Qwen3-Reranker`. Единственный русский кросс-энкодер, `DiTy/cross-encoder-russian-msmarco`, обучен на машинно-переведённом корпусе и приезжает вообще без опубликованного замера.",
+          "Русского числа не публикуют и мультиязычные. Единственный цитируемый русский результат — из RusBEIR, и он громко говорит в пользу каскада: переранжирование поднимает и лексический бейзлайн, и BGE-M3 и лексическую, и плотную; на расширенном наборе авторы называют средний выигрыш около девяти пунктов nDCG@10. Заметь сноску внутри этой фразы — как раз такую и теряют при пересказе числа: обе лесенки и среднее измерены на разных наборах одного бенчмарка, поэтому вычитать их друг из друга нельзя.",
+          "Отсюда правило, и оно неуютное: сегодня реранкер для русского выбирают по прозе в карточке модели. Значит, замер на своих русских запросах обязателен, а не желателен, и лицензия — проектное ограничение, а не юридическая сноска. Глубина переранжирования и цена за пару ведут себя ровно как в L10: платит кросс-энкодер, а не индекс.",
+        ],
+        tt: [
+          "L10 сиңа өске катлы каскад калдырды: retriever күтәргән кыска исемлекне яңадан бәяләүче кросс-энкодер. Рус өчен бу кат вариантларга ярлы, ә дәлилләргә тагын да ярлырак. Мультител кандидатлар — `bge-reranker-v2-m3`, `jina-reranker-v2` (прод'ка кадәр лицензияне укы: коммерция тыелган) һәм `Qwen3-Reranker`. Бердәнбер рус кросс-энкодеры, `DiTy/cross-encoder-russian-msmarco`, машина тәрҗемә иткән корпуста өйрәтелгән һәм бөтенләй басылган үлчәүсез килә.",
+          "Мультител модельләр дә рус санын бастырмый. Бердәнбер китерерлек рус нәтиҗәсе — RusBEIR'дан, һәм ул каскад файдасына кычкырып сөйли: переранжирлау лексик бейзлайнны да, BGE-M3'ны да күтәрә; киңәйтелгән җыелмада авторлар уртача якынча тугыз пункт nDCG@10 отыш китерә. Бу җөмлә эчендәге искәрмәгә игътибар ит — нәкъ шундыен сан сөйләп бирелгәндә югалталар: ике баскыч та, уртача да бер бенчмаркның төрле җыелмаларында үлчәнгән, шуңа аларны бер-берсеннән алырга ярамый.",
+          "Моннан кагыйдә, һәм ул уңайсыз: бүген рус өчен реранкерны model картасындагы проза буенча сайлыйлар. Димәк, үз рус сорауларыңда үлчәү мәҗбүри, теләсә була торган түгел, ә лицензия — юридик искәрмә түгел, ә проект чикләве. Переранжирлау тирәнлеге һәм пар бәясе нәкъ L10'дагыча тота: индекс түгел, кросс-энкодер түли.",
+        ],
+      },
+    },

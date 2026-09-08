@@ -1,0 +1,44 @@
+<section class="slide" data-type="formula" data-screen-label="24a Two orders, one line">
+  <div class="slide-header slide-header--flush">
+    <h2>
+      <span lang="ru">Что именно переставили: два оператора, два порядка</span>
+      <span lang="en">What exactly was permuted: two operators, two orders</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">&laquo;одна строка отличия&raquo; &mdash; вот эта строка, символами</span>
+      <span lang="en">&ldquo;one line of difference&rdquo; &mdash; here is that line, in symbols</span>
+    </span>
+  </div>
+  <div class="formula-stage">
+    $$ e_i^{\mathrm{naive}} \;=\; \operatorname{pool}\big(\mathrm{Enc}(c_i)\big), \qquad e_i^{\mathrm{late}} \;=\; \operatorname{pool}_{[\mathrm{start}_i,\,\mathrm{end}_i]}\big(\mathrm{Enc}(D)\big) $$
+    $$ \mathrm{Enc}\circ\mathrm{cut} \;\neq\; \mathrm{cut}\circ\mathrm{Enc} $$
+  </div>
+  <div class="formula-caption">
+    <div class="var-block">
+      <div class="var-symbol">\(\mathrm{Enc}\)</div>
+      <div class="var-desc">
+        <span lang="ru"><strong>Энкодер</strong><br />вход &mdash; последовательность, выход &mdash; вектор на каждый токен. Веса в обеих строках <em>одни и те же</em>.</span>
+        <span lang="en"><strong>The encoder</strong><br />a sequence in, one vector per token out. The weights are <em>the same</em> in both lines.</span>
+      </div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">\(c_i\ \mid\ D\)</div>
+      <div class="var-desc">
+        <span lang="ru"><strong>Единственный изменённый аргумент</strong><br />на входе либо один чанк, либо весь документ.</span>
+        <span lang="en"><strong>The one argument that changed</strong><br />the input is either a single chunk or the whole document.</span>
+      </div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">\(\operatorname{pool}\)</div>
+      <div class="var-desc">
+        <span lang="ru"><strong>Усреднение</strong><br />оператор тот же; меняется лишь множество, по которому берётся среднее.</span>
+        <span lang="en"><strong>The pooling</strong><br />the same operator; only the set it averages over moves.</span>
+      </div>
+    </div>
+  </div>
+  <p class="small muted center mt-2">
+    <span lang="ru">Обе строки возвращают по одному вектору на чанк, той же размерности, за ту же цену на запросе. Разница не в модели, не в границах и не в числе векторов &mdash; в том, какому из двух операторов достался целый документ. Композиция не коммутирует: <strong>резать раньше</strong> &mdash; значит стереть из входа всё, что за швом, ещё до того, как внимание успело туда посмотреть.</span>
+    <span lang="en">Both lines return one vector per chunk, same dimension, same query-time cost. The difference is not the model, not the boundaries, not the vector count &mdash; it is which of the two operators got the whole document. The composition does not commute: <strong>cutting first</strong> erases everything past the seam from the input, before attention ever had a chance to look there.</span>
+  </p>
+  <aside class="slide-notes">Механизм под слайдом «Алгоритм 1»: дек четырежды говорит «отличие в одну строку», но нигде эту строку не выписывает. Здесь она выписана как композиция двух операторов — pool∘Enc с разным аргументом. Ключевое: Enc один и тот же, pool один и тот же, размерность и цена одинаковы; некоммутативность cut и Enc — вот весь приём. Это же снимает вопрос «а не другая ли это модель»: нет, тот же forward-pass, другой аргумент. Дальше слайд 29 назовёт левую строку i.i.d., а правую — условной; здесь видно, почему.</aside>
+</section>

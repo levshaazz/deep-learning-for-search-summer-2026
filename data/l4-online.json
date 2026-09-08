@@ -1,0 +1,179 @@
+{
+  "_doc": "Online evaluation numbers for L4: (a) an A/B test (control vs treatment CTR with sample sizes + two-proportion z-test and p-value); (b) a team-draft interleaving worked example (per-query credit to A vs B); (c) a position-bias / examination-probability curve P(exam|rank) = γ^(rank−1) with γ=0.94 CHOSEN HERE for the geometric form (a legible 1.00→0.57 decay over ten ranks). NOT the l1-click-model.json γ: that file's γ=0.94 parameterises a power-law examination ∝ 1/rank^γ fit to rank-1 ≈ 32% of clicks — a different model that shares the numeral by coincidence; transplanting its γ into the geometric form would imply a rank-1 click share of ~13%, contradicting the L1 fit.",
+  "_source": "_research/gen_l4.py · A/B and interleaving are illustrative synthetic counts; γ=0.94 is this file's own geometric-decay display parameter (see _doc)",
+  "abTest": {
+    "control": {
+      "n": 10000,
+      "clicks": 1200,
+      "ctr": 0.12
+    },
+    "treatment": {
+      "n": 10000,
+      "clicks": 1320,
+      "ctr": 0.132
+    },
+    "pooledCtr": 0.126,
+    "se": 0.00469,
+    "z": 2.557,
+    "p": 0.01056,
+    "absoluteLift": 0.012,
+    "relativeLiftPct": 10.0,
+    "significant05": true,
+    "steps": {
+      "_doc": "Substituted pieces for the two-proportion z-test (pooled p̄, SE, z).",
+      "pPooled": 0.126,
+      "pPooledExpr": "(1200+1320)/(10000+10000) = 2520/20000 = 0.126",
+      "se": 0.00469,
+      "seExpr": "√(0.126·0.874·(1/10000+1/10000)) = 0.00469",
+      "z": 2.557,
+      "zExpr": "(0.132−0.120)/0.00469 = 2.5570",
+      "pSource": "z→p is a standard-normal table lookup (two-sided)."
+    }
+  },
+  "interleaving": {
+    "method": "team-draft",
+    "queries": [
+      {
+        "q": "q1",
+        "creditA": 2,
+        "creditB": 3
+      },
+      {
+        "q": "q2",
+        "creditA": 1,
+        "creditB": 3
+      },
+      {
+        "q": "q3",
+        "creditA": 3,
+        "creditB": 2
+      },
+      {
+        "q": "q4",
+        "creditA": 1,
+        "creditB": 5
+      },
+      {
+        "q": "q5",
+        "creditA": 2,
+        "creditB": 3
+      }
+    ],
+    "totalCreditA": 9,
+    "totalCreditB": 16,
+    "queriesPreferringB": 4,
+    "nQueries": 5,
+    "preferenceForB": 0.64,
+    "note": "B wins the interleaving preference — far more sensitive than A/B at equal traffic.",
+    "interleaveWorkedQuery": {
+      "_doc": "ONE concrete team-draft worked query (consistent with q1 above: A=2, B=3). Two input rankings, the interleaved draft order with per-slot source tags, the clicked positions, and the resulting per-team credit.",
+      "q": "q1",
+      "rankingA": [
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "rankingB": [
+        "b1",
+        "b2",
+        "b3",
+        "b4"
+      ],
+      "draft": [
+        {
+          "slot": 1,
+          "doc": "b1",
+          "source": "B"
+        },
+        {
+          "slot": 2,
+          "doc": "a1",
+          "source": "A"
+        },
+        {
+          "slot": 3,
+          "doc": "b2",
+          "source": "B"
+        },
+        {
+          "slot": 4,
+          "doc": "a2",
+          "source": "A"
+        },
+        {
+          "slot": 5,
+          "doc": "b3",
+          "source": "B"
+        },
+        {
+          "slot": 6,
+          "doc": "a3",
+          "source": "A"
+        }
+      ],
+      "draftOrder": [
+        "b1",
+        "a1",
+        "b2",
+        "a2",
+        "b3",
+        "a3"
+      ],
+      "sourceTags": [
+        "B",
+        "A",
+        "B",
+        "A",
+        "B",
+        "A"
+      ],
+      "clickedSlots": [
+        1,
+        2,
+        3,
+        5,
+        6
+      ],
+      "clickedDocs": [
+        "b1",
+        "a1",
+        "b2",
+        "b3",
+        "a3"
+      ],
+      "creditA": 2,
+      "creditB": 3,
+      "creditExpr": "clicks on A-sourced slots = 2; on B-sourced slots = 3"
+    }
+  },
+  "positionBias": {
+    "model": "geometric examination P(exam|rank)=γ^(rank-1)",
+    "gamma": 0.94,
+    "ranks": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "examProb": [
+      1.0,
+      0.94,
+      0.8836,
+      0.8306,
+      0.7807,
+      0.7339,
+      0.6899,
+      0.6485,
+      0.6096,
+      0.573
+    ],
+    "note": "γ=0.94 is local to this geometric illustration — NOT the power-law γ of l1-click-model.json (same numeral, different functional form; see _doc)."
+  }
+}

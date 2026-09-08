@@ -1,0 +1,87 @@
+---
+import '../../tokens/design-tokens.css';
+import '../styles/global.css';
+import { LOCALES, LOCALE_LABEL, LOCALE_NAME, HTML_LANG, t, localizedPath, withBase } from '../i18n/locales.js';
+import { ui } from '../i18n/ui.js';
+import { course } from '../lib/course.js';
+
+const { lang, page = '', title, description } = Astro.props;
+const pageTitle = title
+  ? `${title} · ${t(course.meta.title, lang)}`
+  : `${t(course.meta.title, lang)} · ${t(course.meta.term, lang)}`;
+const desc = description || t(course.meta.tagline, lang);
+const ogImg = withBase('/Lectures/assets/img/_char/cover-social.png');
+---
+<!DOCTYPE html>
+<html lang={HTML_LANG[lang]} data-lang={lang}>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{pageTitle}</title>
+  <meta name="description" content={desc} />
+  <meta property="og:title" content={pageTitle} />
+  <meta property="og:description" content={desc} />
+  <meta property="og:image" content={ogImg} />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <!-- no-flash: apply saved theme before first paint -->
+  <script is:inline>
+    try {
+      const th = localStorage.getItem('dls.theme');
+      if (th === 'dark' || (!th && matchMedia('(prefers-color-scheme: dark)').matches))
+        document.documentElement.dataset.theme = 'dark';
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="wrap">
+      <div class="topbar">
+        <a class="logo" href={localizedPath(lang)}>
+          <span class="mark">{course.meta.code}</span>
+        </a>
+        <nav class="nav" aria-label="Primary">
+          <a href={localizedPath(lang)}>{t(ui.sections.lectures, lang)}</a>
+          <a href={localizedPath(lang, 'syllabus')} aria-current={page === 'syllabus' ? 'page' : undefined}>{t(ui.nav.syllabus, lang)}</a>
+          <a href={localizedPath(lang, 'schedule')} aria-current={page === 'schedule' ? 'page' : undefined}>{t(ui.nav.schedule, lang)}</a>
+          <a href={localizedPath(lang, 'assignments')} aria-current={(page === 'assignments' || (page && page.startsWith('assignments/'))) ? 'page' : undefined}>{t(ui.nav.assignments, lang)}</a>
+          <a href={localizedPath(lang, 'midterm')} aria-current={page === 'midterm' ? 'page' : undefined}>{t(ui.nav.midterm, lang)}</a>
+          <a href={localizedPath(lang, 'gallery')} aria-current={(page === 'gallery' || (page && page.startsWith('gallery/'))) ? 'page' : undefined}>{t(ui.nav.gallery, lang)}</a>
+          <a href={localizedPath(lang, 'playground')} aria-current={(page === 'playground' || (page && page.startsWith('playground/'))) ? 'page' : undefined}>{t(ui.nav.playground, lang)}</a>
+          <a href={localizedPath(lang, 'papers')} aria-current={(page === 'papers' || (page && page.startsWith('papers/'))) ? 'page' : undefined}>{t(ui.nav.papers, lang)}</a>
+          <a href={localizedPath(lang, 'glossary')} aria-current={(page === 'glossary' || (page && page.startsWith('glossary/'))) ? 'page' : undefined}>{t(ui.nav.glossary, lang)}</a>
+        </nav>
+        <div class="controls">
+          <div class="langswitch" role="group" aria-label={t(ui.labels.language, lang)}>
+            {LOCALES.map((l) => (
+              <a href={localizedPath(l, page)} hreflang={HTML_LANG[l]} aria-current={l === lang ? 'true' : undefined} title={LOCALE_NAME[l]}>{LOCALE_LABEL[l]}</a>
+            ))}
+          </div>
+          <button id="theme-toggle" type="button" aria-label={t(ui.labels.theme, lang)} title={t(ui.labels.theme, lang)}>◐</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <slot />
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;width:100%">
+      <div>{t(course.meta.title, lang)} · {t(course.meta.term, lang)}</div>
+      <div>{course.meta.instructor}</div>
+    </div>
+  </footer>
+
+  <script is:inline>
+    document.getElementById('theme-toggle')?.addEventListener('click', () => {
+      const root = document.documentElement;
+      const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      if (next === 'dark') root.dataset.theme = 'dark'; else delete root.dataset.theme;
+      try { localStorage.setItem('dls.theme', next); } catch (e) {}
+    });
+  </script>
+</body>
+</html>

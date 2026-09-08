@@ -1,0 +1,52 @@
+<section class="slide" data-type="table" data-screen-label="59 The bill, in gigabytes, for real">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Счёт в гигабайтах: MS MARCO по-настоящему</span>
+      <span lang="en">The bill in gigabytes: MS MARCO, for real</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">ColBERTv2 &sect;5.3 (arXiv:2112.01488) &middot; 8,8 млн пассажей</span>
+      <span lang="en">ColBERTv2 &sect;5.3 (arXiv:2112.01488) &middot; 8.8 M passages</span>
+    </span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th><span lang="ru">индекс</span><span lang="en">index</span></th>
+        <th><span lang="ru">размер</span><span lang="en">size</span></th>
+        <th><span lang="ru">против одновекторного</span><span lang="en">vs single-vector</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span lang="ru">ColBERT <strong>v1</strong>, вектор на токен, 128-d</span><span lang="en">ColBERT <strong>v1</strong>, a vector per token, 128-d</span></td>
+        <td class="cell-bad"><span lang="ru">154 ГиБ</span><span lang="en">154 GiB</span></td>
+        <td class="cell-bad"><span lang="ru">примерно в 6 раз больше</span><span lang="en">about 6&times; larger</span></td>
+      </tr>
+      <tr>
+        <td><span lang="ru">ColBERT<strong>v2</strong>, 2-битные остатки (по умолчанию)</span><span lang="en">ColBERT<strong>v2</strong>, 2-bit residuals (the default)</span></td>
+        <td class="cell-good"><span lang="ru">25 ГиБ</span><span lang="en">25 GiB</span></td>
+        <td class="cell-good"><span lang="ru"><strong>паритет</strong></span><span lang="en"><strong>parity</strong></span></td>
+      </tr>
+      <tr>
+        <td><span lang="ru">ColBERT<strong>v2</strong>, 1-битные остатки</span><span lang="en">ColBERT<strong>v2</strong>, 1-bit residuals</span></td>
+        <td class="cell-good"><span lang="ru">16 ГиБ</span><span lang="en">16 GiB</span></td>
+        <td class="cell-good"><span lang="ru"><em>меньше</em> одновекторного</span><span lang="en"><em>smaller</em> than single-vector</span></td>
+      </tr>
+      <tr>
+        <td><span lang="ru">одновекторный, 768-d fp32 &mdash; эталон</span><span lang="en">single-vector, 768-d fp32 &mdash; the reference</span></td>
+        <td><span lang="ru">&asymp; 25 ГиБ</span><span lang="en">&asymp; 25 GiB</span></td>
+        <td>1&times;</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-3">
+    <span lang="ru"><strong>Механика v2:</strong> каждый токенный вектор хранится как id ближайшего центроида плюс квантованный остаток. Базу для сравнения &sect;3.3 называет дословно &mdash; &laquo;256-byte vector encodings at 16-bit precision&raquo;, то есть 128 &times; 2 байта, а <em>не</em> fp32. И &laquo;6&ndash;10&times;&raquo; у авторов &mdash; отношение <strong>индексов</strong>, а не байтов на вектор: 154/25 &asymp; 6 и 154/16 &asymp; 10. Считай ту дробь, которую они посчитали.</span>
+    <span lang="en"><strong>How v2 does it:</strong> each token vector is stored as a nearest-centroid id plus a quantised residual. The baseline &sect;3.3 names verbatim is &ldquo;256-byte vector encodings at 16-bit precision&rdquo; &mdash; 128 &times; 2 bytes, <em>not</em> fp32. And the authors&rsquo; &ldquo;6&ndash;10&times;&rdquo; is a ratio of <strong>indexes</strong>, not of per-vector bytes: 154/25 &asymp; 6 and 154/16 &asymp; 10. Compute the fraction they computed.</span>
+  </p>
+  <p class="small muted center mt-2">
+    <span lang="ru"><strong>Мораль, и это правка нашей же прежней строки.</strong> Народное &laquo;у ColBERT индекс в сто раз больше&raquo; после ColBERTv2 неверно. Настоящее зеркало двух &laquo;поздних&raquo; &mdash; <strong>не в хранилище, а в запросе</strong>: MaxSim платится каждым запросом (десятки&ndash;сотни миллисекунд), а позднее усреднение &mdash; один раз при индексации, и на запросе стоит один косинус.</span>
+    <span lang="en"><strong>The moral &mdash; and the correction of our own earlier row.</strong> The folklore &ldquo;a ColBERT index is a hundred times bigger&rdquo; has been false since ColBERTv2. The true mirror between the two &ldquo;lates&rdquo; is <strong>not storage, it is the query</strong>: MaxSim is paid by every query (tens to hundreds of milliseconds), while late pooling is paid once at index time and costs one cosine per query.</span>
+  </p>
+  <aside class="slide-notes">Worked-4 and the repair of the single genuinely OUT-OF-DATE row this deck had. From ColBERTv2 §5.3, MS MARCO ~8.8 M passages: ColBERT v1 index 154 GiB; ColBERTv2 25 GiB at 2-bit residuals and 16 GiB at 1-bit; and — the control point printed in the very same paragraph — an ordinary 768-d fp32 single-vector index over 9 M passages is "slightly more than 25 GiB". So ColBERTv2 at its default setting is at PARITY. Ratios are deliberately spoken as "about 6×" and "parity" rather than printed as decimals. ⚠️ ДЕФЕКТ S1 ЗАКРЫТ: слайд писал «128 × 4 = 512 байт → 20 или 36» и выводил из этого «6–10×». Обе половины неверны. §3.3 дословно сравнивает с «256-byte vector encodings at 16-bit precision» (128 × 2 Б), а «6–10×» — это отношение ИНДЕКСОВ 154/25 ≈ 6 и 154/16 ≈ 10, не байтов на вектор. The lesson: the mirror between the two lates is the query, not the disk.</aside>
+</section>

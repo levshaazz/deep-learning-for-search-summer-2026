@@ -1,0 +1,21 @@
+    {
+      id: 'catch-three-complaints', kind: 'prose',
+      heading: { en: "Three complaints in the logs, two diseases in the map", ru: "Три жалобы в логах — две болезни карты", tt: "Логларда өч зарлану — картаның ике чире" },
+      body: {
+        en: [
+          "Before I unroll the drafting paper, listen to the three complaints that arrive from the retrieval logs. **One:** every score huddles against the top of the scale, so a cut-off threshold has nowhere to sit — wherever you draw the line it either keeps everything or keeps nothing. **Two:** the same small handful of passages comes back for queries that share nothing with each other. **Three:** there is a document sitting in the index that is never found at all.",
+          "An engineer sees three bugs. A cartographer sees two diseases of the paper. The first complaint is the **cone**: the wedge has crushed the scale and the ruler has lost its range. The second and the third are **hubness**: the roads have drained into a few Romes, and the towns out on the margins are left without a single road. Neither is repaired by swapping the model or nudging the threshold — what gets repaired is the projection itself.",
+          "Keep those three lines with you to the end of the chapter, because each has its own diagnosis and its own measurement. A crushed scale is read off the mean cosine of random pairs. Over-visited Romes are read off the skew of the reverse-neighbour count. And the third line is the treacherous one: no quality metric will ever show it to you, because \"the document did not come back\" is not an event and leaves no line in any log. You measure it over the index rather than over the results — as the fraction of towns with \\(N_k = 0\\).",
+        ],
+        ru: [
+          "Прежде чем я разверну чертёжный лист, послушай три жалобы, которые приходят из журналов выдачи. **Первая:** все баллы жмутся к верхнему краю шкалы, и порог отсечения некуда поставить — где ни проведи черту, она оставляет либо всё, либо ничего. **Вторая:** одна и та же горстка пассажей возвращается на запросы, у которых между собой нет ничего общего. **Третья:** в индексе лежит документ, который не находится никогда.",
+          "Инженер видит три бага. Картограф видит две болезни бумаги. Первая жалоба — это **конус**: клин сплющил шкалу, и линейка потеряла размах. Вторая и третья — это **хабность**: дороги стеклись в несколько Римов, а города на полях остались без единой дороги. Ни одна не чинится сменой модели или подкруткой порога — чинится сама проекция.",
+          "Держи эти три строки при себе до конца главы: у каждой свой диагноз и своя мерка. Сжатую шкалу читают по среднему косинусу случайных пар. Захоженные Римы — по скосу счётчика обратных соседей. А третья строка — самая коварная: её не покажет ни одна метрика качества, ведь «документ не вернулся» — это не событие, и в журнале от него не остаётся ни строчки. Её меряют не по выдаче, а по индексу — долей городов, у которых \\(N_k = 0\\).",
+        ],
+        tt: [
+          "Сызым битен җәяргә тотынганчы, эзләү журналларыннан килгән өч зарлануны тыңла. **Беренчесе:** барлык баллар шкаланың өске читенә кысыла, һәм кисү порогын куярга урын юк — сызыкны кайда гына үткәрсәң дә, ул я барысын калдыра, я бернәрсә дә калдырмый. **Икенчесе:** бер үк уч passage бер-берсе белән бернинди уртаклыгы булмаган сорауларга кайта. **Өченчесе:** индекста ята торган, ләкин беркайчан да табылмый торган документ бар.",
+          "Инженер өч баг күрә. Картограф кәгазьнең ике чирен күрә. Беренче зарлану — **конус**: чөй шкаланы сытты, һәм линейка киңлеген югалтты. Икенчесе белән өченчесе — **hubness**: юллар берничә Римга агып җыелды, ә читтәге шәһәрләр бер юлсыз калды. Икесе дә модель алыштырып яки порогны борып төзәтелми — проекциянең үзе төзәтелә.",
+          "Бу өч юлны бүлек ахырына кадәр үзең белән тот: һәрберсенең үз диагнозы һәм үз үлчәве бар. Кысылган шкала очраклы парларның уртача cosine'ы буенча укыла. Йөрелеп беткән Римнар — кире күршеләр санагычының кыеклыгы буенча. Ә өченче юл — иң астыртыны: аны бер сыйфат метрикасы да күрсәтми, чөнки «документ кайтмады» — вакыйга түгел, һәм журналда аннан бер юл да калмый. Аны нәтиҗә исемлеге буенча түгел, индекс буенча үлчиләр — \\(N_k = 0\\) булган шәһәрләрнең өлеше белән.",
+        ],
+      },
+    },

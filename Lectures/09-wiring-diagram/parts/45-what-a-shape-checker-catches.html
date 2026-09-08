@@ -1,0 +1,50 @@
+<section class="slide" data-type="table" data-screen-label="45 What a shape checker can &amp; cannot catch">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Что ловит проверка форм &mdash; и чего не ловит</span>
+      <span lang="en">What a shape checker catches &mdash; and what it cannot</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">три бага &middot; два падают &middot; один &mdash; нет</span>
+      <span lang="en">three bugs &middot; two crash &middot; one does not</span>
+    </span>
+  </div>
+
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th><span lang="ru">баг</span><span lang="en">the bug</span></th>
+        <th><span lang="ru">падает?</span><span lang="en">crashes?</span></th>
+        <th><span lang="ru">когда</span><span lang="en">when</span></th>
+        <th><span lang="ru">что его ловит</span><span lang="en">what catches it</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span lang="ru"><strong>1 &middot; форма.</strong> K&nbsp;не транспонирован</span><span lang="en"><strong>1 &middot; shape.</strong> K is not transposed</span></td>
+        <td class="cell-good"><span lang="ru">да</span><span lang="en">yes</span></td>
+        <td><span lang="ru">сразу, на первом матмуле</span><span lang="en">at once, on the first matmul</span></td>
+        <td><span lang="ru">любая проверка форм. И один взгляд на чашу.</span><span lang="en">any shape check. And one glance at the cup.</span></td>
+      </tr>
+      <tr>
+        <td><span lang="ru"><strong>2 &middot; смысл.</strong> softmax не по той оси</span><span lang="en"><strong>2 &middot; meaning.</strong> softmax over the wrong axis</span></td>
+        <td class="cell-bad"><span lang="ru"><strong>нет. Никогда.</strong></span><span lang="en"><strong>no. Never.</strong></span></td>
+        <td class="cell-bad"><span lang="ru">&mdash;</span><span lang="en">&mdash;</span></td>
+        <td class="cell-bad"><span lang="ru"><strong>только глиф</strong> &mdash; ориентация треугольника</span><span lang="en"><strong>only the glyph</strong> &mdash; the triangle&rsquo;s orientation</span></td>
+      </tr>
+      <tr>
+        <td><span lang="ru"><strong>3 &middot; композиция.</strong> головы не&nbsp;собраны</span><span lang="en"><strong>3 &middot; composition.</strong> heads never merged</span></td>
+        <td class="cell-good"><span lang="ru">да</span><span lang="en">yes</span></td>
+        <td><span lang="ru">одним блоком позже</span><span lang="en">one block later</span></td>
+        <td><span lang="ru">проверка форм на стыке блоков</span><span lang="en">a shape check where blocks join</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="small muted center mt-3">
+    <span lang="ru">Проверка форм &mdash; это тип-система для <strong>осей</strong>, а не для <strong>смысла</strong>. Она знает, что тензор \(n\times n\); она не знает и не может узнать, что означает каждая его строка. Схема &mdash; знает: она рисует не только размеры осей, но и <em>роли</em>.</span>
+    <span lang="en">A shape check is a type system for <strong>axes</strong>, not for <strong>meaning</strong>. It knows the tensor is \(n\times n\); it does not and cannot know what each row of it means. The circuit does: it draws not only the sizes of the axes but their <em>roles</em>.</span>
+  </p>
+
+  <aside class="slide-notes">Сводим три бага в одну сводку — и делаем из неё правило. Баг формы падает мгновенно, на первом же матмуле: это дешёвый баг, он стоит десять минут. Баг композиции падает одним блоком позже — чуть дороже, но всё равно падает, потому что блоки стыкуются встык только при сохранении формы n×m, и болтающаяся ось h ломает стык. А баг смысла не падает никогда, и колонка «когда» у него пуста — не потому, что мы не дописали таблицу, а потому, что писать туда нечего. Отсюда главный вывод акта, и его стоит произнести медленно: проверка форм — это тип-система для ОСЕЙ, а не для СМЫСЛА. Она знает, что у вас на руках тензор n на n. Она физически не может знать, что строка этого тензора обязана быть распределением по ключам, а не по запросам, — потому что в типе «n×n» этого просто не написано. Схема пишет. Она рисует роль каждой оси, а не только её длину, и потому ловит ровно тот класс ошибок, который не ловит ничто в стеке. Сильные тайп-системы для тензоров (именованные оси, shape-типы) двигают границу — но двигают её в ту же сторону: они всё ещё про оси. Ни одна из них не спросит вас, ПОПЕРЁК какой оси вы нормировали.</aside>
+</section>

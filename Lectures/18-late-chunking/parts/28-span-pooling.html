@@ -1,0 +1,46 @@
+<section class="slide" data-type="table" data-screen-label="28 Training for it &middot; span pooling">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Обучить под приём: span pooling</span>
+      <span lang="en">Training for it: span pooling</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">&sect;3.2 статьи &middot; та же InfoNCE, что в L11 &middot; потолок чуть выше, чем training-free</span>
+      <span lang="en">&sect;3.2 of the paper &middot; the same InfoNCE as L11 &middot; a ceiling a little above training-free</span>
+    </span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <table class="cmp-table">
+        <thead><tr>
+          <th><span lang="ru">рецепт обучения</span><span lang="en">the training recipe</span></th>
+          <th><span lang="ru">значение</span><span lang="en">value</span></th>
+        </tr></thead>
+        <tbody>
+          <tr><td><span lang="ru">пример</span><span lang="en">an example</span></td><td><span lang="ru">тройка (запрос, документ, &lang;start, end&rang;)</span><span lang="en">a triple (query, document, &lang;start, end&rang;)</span></td></tr>
+          <tr><td><span lang="ru">функция потерь</span><span lang="en">loss</span></td><td class="cell-good"><span lang="ru">InfoNCE &mdash; та же, что в L11</span><span lang="en">InfoNCE &mdash; the same as in L11</span></td></tr>
+          <tr><td><span lang="ru">данные</span><span lang="en">data</span></td><td>FEVER + TriviaQA</td></tr>
+          <tr><td><span lang="ru">объём</span><span lang="en">size</span></td><td><span lang="ru">&asymp;&nbsp;470&nbsp;тыс. пар</span><span lang="en">&asymp;&nbsp;470k pairs</span></td></tr>
+          <tr><td><span lang="ru">батч &middot; шагов <em>(jina-v3)</em></span><span lang="en">batch &middot; steps <em>(jina-v3)</em></span></td><td>512 &middot; 500</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag">
+          <span lang="ru">Что это покупает (Table 3)</span>
+          <span lang="en">What it buys (Table 3)</span>
+        </span>
+        <div class="def-body">
+          <p><span lang="ru">Вместо &laquo;усредни спан&raquo; модель <em>учится</em> отдавать вектор спана. Прибавка над усреднением есть, но маленькая и неровная: лучшая клетка <strong>+0,82</strong> nDCG (jina-embeddings-v3 / FiQA), а регрессий в Table&nbsp;3 <strong>три</strong>: &minus;0,28, &minus;0,09 и &minus;0,02.</span><span lang="en">Instead of &ldquo;average the span&rdquo;, the model <em>learns</em> to emit a span vector. The lift over mean pooling is real but small and uneven: best cell <strong>+0.82</strong> nDCG (jina-embeddings-v3 / FiQA), and Table&nbsp;3 carries <strong>three</strong> regressions, not one: &minus;0.28, &minus;0.09 and &minus;0.02.</span></p>
+          <p><span lang="ru"><strong>Почему это важно услышать.</strong> Дек четырежды говорит &laquo;без обучения&raquo; &mdash; и это правда. Но статья сама предлагает и обученный вариант, один из четырёх заявленных вкладов. &laquo;Training-free&raquo; &mdash; это <em>нижняя</em> граница метода, а не его определение.</span><span lang="en"><strong>Why you need to hear this.</strong> The deck says &ldquo;training-free&rdquo; four times, and that is true. But the paper also proposes a trained variant &mdash; one of its four stated contributions. &ldquo;Training-free&rdquo; is the method&rsquo;s <em>floor</em>, not its definition.</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="small muted center mt-2">
+    <span lang="ru">Мост в L11: там ты уже собирал батч с трудными негативами под InfoNCE &mdash; здесь та же функция потерь, только позитив &mdash; не документ, а <em>спан</em> внутри документа.</span>
+    <span lang="en">Bridge to L11: you already built an InfoNCE batch with hard negatives there &mdash; same loss here, except the positive is not a document but a <em>span</em> inside one.</span>
+  </p>
+  <aside class="slide-notes">§3.2 + Table 3 — the contribution the deck used to omit entirely while calling the method "training-free" four times. Recipe: triples (query, document, ⟨start,end⟩), InfoNCE (the L11 loss), FEVER + TriviaQA, ~470k pairs. ⚠️ ДЕФЕКТ S10 ЗАКРЫТ, две правки: (1) «batch 512 · 500 steps» — это гиперпараметры jina-v3, а не обеих моделей, теперь так и подписано; (2) регрессия в Table 3 не ОДНА — их три: −0.28, −0.09 и −0.02, а деком печаталась только самая мягкая. Result: a small, uneven gain over mean pooling — best +0.82 nDCG (jina-v3/FiQA), three regressions (−0.28 / −0.09 / −0.02). The framing to land: training-free is the floor of the method, not its definition, and the ceiling is only a little higher.</aside>
+</section>

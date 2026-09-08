@@ -1,0 +1,95 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { LOCALES, t, localizedPath } from '../../../i18n/locales.js';
+import { ui } from '../../../i18n/ui.js';
+import { assignments, assignmentsMeta as M } from '../../../lib/assignments.js';
+
+export function getStaticPaths() {
+  return LOCALES.flatMap((l) =>
+    assignments.map((a) => ({ params: { lang: l, slug: a.slug } }))
+  );
+}
+const { lang, slug } = Astro.params;
+const idx = assignments.findIndex((a) => a.slug === slug);
+const a = assignments[idx];
+const prev = idx > 0 ? assignments[idx - 1] : null;
+const next = idx < assignments.length - 1 ? assignments[idx + 1] : null;
+const showFallbackNotice = lang === 'tt';
+---
+<BaseLayout lang={lang} page={`assignments/${slug}`} title={t(a.title, lang)}>
+  <div class="wrap">
+    <section class="block">
+      <a class="back" href={localizedPath(lang, 'assignments')}>← {t(ui.labels.allAssignments, lang)}</a>
+      <div class="head">
+        <span class={`tag ${a.status}`}>{t(M.groups[a.kind], lang)}</span>
+        <span class="code">{a.code}</span>
+      </div>
+      <h2>{t(a.title, lang)}</h2>
+      <p class="lead">{t(a.blurb, lang)}</p>
+      {showFallbackNotice && <p class="notice">{t(ui.translationInProgress, lang)}</p>}
+    </section>
+
+    <section class="block">
+      {a.blocks.map((b) => (
+        <>
+          {b.t === 'h3' && <h3>{t(b.v, lang)}</h3>}
+          {b.t === 'h4' && <h4>{t(b.v, lang)}</h4>}
+          {b.t === 'p' && <p>{t(b.v, lang)}</p>}
+          {b.t === 'lead' && <p class="lead">{t(b.v, lang)}</p>}
+          {b.t === 'muted' && <p class="muted">{t(b.v, lang)}</p>}
+          {b.t === 'ol' && <ol class="steps">{b.v.map((li) => <li>{t(li, lang)}</li>)}</ol>}
+          {b.t === 'ul' && <ul class="reading">{b.v.map((li) => <li>{t(li, lang)}</li>)}</ul>}
+          {b.t === 'code' && <pre><code>{b.v}</code></pre>}
+          {b.t === 'callout' && <div class="notice"><strong>{t(b.title, lang)}.</strong> {t(b.v, lang)}</div>}
+          {b.t === 'grade' && (
+            <table class="grade"><tbody>
+              {b.rows.map((r) => <tr><td>{t(r.label, lang)}</td><td class="w">{r.w}</td></tr>)}
+            </tbody></table>
+          )}
+          {b.t === 'papers' && (
+            <ol class="papers">
+              {b.items.map((p) => (
+                <li><span class="cite">{p.cite}</span><span class="phero">{t(p.hero, lang)}</span></li>
+              ))}
+            </ol>
+          )}
+        </>
+      ))}
+    </section>
+
+    <nav class="switcher" aria-label="Activities">
+      {prev
+        ? <a class="sw prev" href={localizedPath(lang, 'assignments/' + prev.slug)}><span class="dir">← {t(ui.labels.prev, lang)}</span><span class="ttl">{t(prev.title, lang)}</span></a>
+        : <span class="sw empty"></span>}
+      {next
+        ? <a class="sw next" href={localizedPath(lang, 'assignments/' + next.slug)}><span class="dir">{t(ui.labels.next, lang)} →</span><span class="ttl">{t(next.title, lang)}</span></a>
+        : <span class="sw empty"></span>}
+    </nav>
+  </div>
+
+  <style>
+    .back { font-size: var(--fz-small); color: var(--ink-3); text-decoration: none; }
+    .back:hover { color: var(--accent); }
+    .head { display: flex; align-items: center; gap: var(--ws-2); margin-top: var(--ws-2); }
+    .head .code { font-family: var(--font-mono); color: var(--ink-3); font-size: var(--fz-small); }
+    .lead { font-size: var(--fz-lead); color: var(--ink-2); max-width: var(--ws-measure); }
+    .block p, .block li { max-width: var(--ws-measure); }
+    .muted { color: var(--ink-3); font-size: var(--fz-small); }
+    ol.steps, ol.papers { padding-left: 1.4em; }
+    ol.steps li { margin: 0.5em 0; }
+    ol.papers li { margin: 0.8em 0; }
+    ol.papers .cite { display: block; font-weight: 600; }
+    ol.papers .phero { display: block; color: var(--ink-3); font-size: var(--fz-small); margin-top: 0.15em; }
+    pre { background: var(--bg-alt); border: 1px solid var(--rule); border-radius: var(--r-md); padding: var(--ws-3); overflow-x: auto; font-family: var(--font-mono); font-size: var(--fz-small); line-height: 1.5; }
+    pre code { font-family: var(--font-mono); white-space: pre; }
+    table.grade { border-collapse: collapse; margin-top: var(--ws-2); }
+    table.grade td { border-bottom: 1px solid var(--rule); padding: 0.35em 1.5em 0.35em 0; }
+    table.grade td.w { text-align: right; font-family: var(--font-mono); color: var(--accent); padding-right: 0; }
+    .switcher { display: flex; justify-content: space-between; gap: var(--ws-3); border-top: 1px solid var(--rule); padding-top: var(--ws-3); margin-top: var(--ws-4); }
+    .sw { display: flex; flex-direction: column; text-decoration: none; color: inherit; max-width: 45%; }
+    .sw.next { text-align: right; margin-left: auto; }
+    .sw .dir { font-size: var(--fz-small); color: var(--accent); font-weight: 600; }
+    .sw .ttl { color: var(--ink-2); }
+    .sw.empty { visibility: hidden; }
+  </style>
+</BaseLayout>

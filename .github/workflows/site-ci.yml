@@ -1,0 +1,521 @@
+name: site-ci
+
+# On every push / PR that touches the site or its single-source layers, build the Astro site
+# (so the gates can inspect the rendered Book) and run the deterministic site gates. Each gate
+# also runs its --selftest, so a detector that has gone blind FAILS CI too (AUDIT_V2 §2.4).
+#
+# Split into two PARALLEL jobs so wall-time ≈ the slow (browser) job, not the sum:
+#   • static  — pure Node/Python gates (no Chromium): fast, fails early on data/translation defects.
+#   • browser — Playwright gates, with the Chromium download CACHED across runs.
+# `concurrency` cancels superseded runs on rapid pushes. Each job builds independently (build is ~2s
+# and npm is cached, so sharing a build artifact would add more plumbing than it saves).
+
+on:
+  push:
+    paths:
+      - 'src/**'
+      - 'data/**'
+      - 'content/**'
+      - 'widgets/**'
+      - 'narrative/**'
+      - 'tokens/**'
+      - 'Lectures/**'
+      - '_research/check_claims.py'
+      - '_research/check_citations.py'
+      - '_research/check_lexicon.py'
+      - '_research/check_images.py'
+      - '_research/check_practice.py'
+      - '_research/check_bib.py'
+      - '_research/check_derived.py'
+      - '_research/check_notebooks.py'
+      - '_research/baselines/**'
+      - '_research/check_pairing.py'
+      - '_research/check_chrome.py'
+      - 'narrative/chrome-ru.json'
+      - '_audit/mechanism-gate.mjs'
+      - '_research/check_glossary.py'
+      - '_audit/act-structure-gate.mjs'
+      - 'narrative/glossary-ru.json'
+      - 'narrative/style-ru.md'
+      - '_research/check_spine.py'
+      - 'scripts/pptx_families.py'
+      - 'scripts/pptx_fixture.py'
+      - 'scripts/pptx_theme_back.py'
+      - 'scripts/fill_pptx.py'
+      - 'scripts/pptx_package.py'
+      - 'scripts/gen_design_doc.py'
+      - 'narrative/arc.md'
+      - 'widgets/course-map/**'
+      - '_research/ru/**'
+      - 'data/papers.json'
+      - 'seminars/**'
+      - '_research/gen_images.py'
+      - '_research/mascots.py'
+      - '_audit/*.mjs'
+      - '_audit/lib/**'
+      - '_audit/baselines/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'astro.config.mjs'
+      # Всё, из чего собирается артефакт, который читают гейты. Без этой строки правка
+      # assemble-deck / build-deck-widgets / copy-static не запускала site-ci вообще.
+      - 'scripts/**'
+      - '_research/check_assets.py'
+      - '.github/workflows/site-ci.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'data/**'
+      - 'content/**'
+      - 'widgets/**'
+      - 'narrative/**'
+      - 'tokens/**'
+      - 'Lectures/**'
+      - '_research/check_claims.py'
+      - '_research/check_citations.py'
+      - '_research/check_lexicon.py'
+      - '_research/check_images.py'
+      - '_research/check_practice.py'
+      - '_research/check_bib.py'
+      - '_research/check_derived.py'
+      - '_research/check_notebooks.py'
+      - '_research/baselines/**'
+      - '_research/check_pairing.py'
+      - '_research/check_chrome.py'
+      - 'narrative/chrome-ru.json'
+      - '_audit/mechanism-gate.mjs'
+      - '_research/check_glossary.py'
+      - '_audit/act-structure-gate.mjs'
+      - 'narrative/glossary-ru.json'
+      - 'narrative/style-ru.md'
+      - '_research/check_spine.py'
+      - 'scripts/pptx_families.py'
+      - 'scripts/pptx_fixture.py'
+      - 'scripts/pptx_theme_back.py'
+      - 'scripts/fill_pptx.py'
+      - 'scripts/pptx_package.py'
+      - 'scripts/gen_design_doc.py'
+      - 'narrative/arc.md'
+      - 'widgets/course-map/**'
+      - '_research/ru/**'
+      - 'data/papers.json'
+      - 'seminars/**'
+      - '_research/gen_images.py'
+      - '_research/mascots.py'
+      - '_audit/*.mjs'
+      - '_audit/lib/**'
+      - '_audit/baselines/**'
+      # Те же входы, что и у push: без них PR, меняющий сборку, Astro или сам workflow,
+      # проходил вообще без site-ci.
+      - 'scripts/**'
+      - '_research/check_assets.py'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'astro.config.mjs'
+      - '.github/workflows/site-ci.yml'
+  workflow_dispatch: {}
+
+# Cancel an in-flight run when a newer commit lands on the same ref (saves runner minutes,
+# avoids two CI runs racing on the same PR). Deploy keeps cancel-in-progress:false separately.
+concurrency:
+  group: site-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ───────────────────────── STATIC GATES (no browser) ─────────────────────────
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # The illustration masters live in LFS; checkout leaves pointer stubs. Restore the
+      # objects from the actions cache (seeded by the lfs-warm workflow) and pull only the
+      # delta — never the full 380 MB per job, which would burn the free LFS bandwidth.
+      - name: LFS assets (cache-first)
+        run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-manifest
+      - uses: actions/cache@v4
+        with:
+          path: .git/lfs
+          key: lfs-${{ hashFiles('.lfs-manifest') }}
+          restore-keys: lfs-
+      - name: Materialise LFS files
+        run: git lfs pull
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci
+
+      # Persist the content-addressed WebP cache (optimize-images.mjs → .cache/webp) so unchanged
+      # plates are never re-encoded — turns the ~180-image conversion into near-instant copies.
+      - name: Cache optimized images (WebP)
+        uses: actions/cache@v4
+        with:
+          path: .cache/webp
+          key: webp-${{ hashFiles('Lectures/assets/img/**/*.png') }}
+          restore-keys: webp-
+
+      # Build assembles BOTH the Book chapters (content/book/lN.js) and the decks (Lectures/NN-*.html)
+      # from their fragments, then renders the site. Both are BUILD OUTPUT (gitignored), reassembled
+      # byte-identically from their tracked fragments. Every gate below runs AFTER this step.
+      - name: Build site (assemble chapters + decks + render)
+        run: npm run build
+
+      # G16 — data-immutability: `npm run build` must NOT mutate the committed data/ (the single source).
+      #        Full byte-identity reproduction (reproduce.sh) is a LOCAL proof — its frozen macOS/py3.9
+      #        ABI cache can't exist on a Linux runner — so this is the CI-feasible H3 guard; check_claims
+      #        (below) enforces deck==data + arithmetic.
+      - name: G16 data-immutability (build must not touch data/)
+        run: git diff --exit-code -- data/
+
+      # G1 — facts-gate: data/ is the single source; decks/Book must match; provenance + arithmetic.
+      - name: G1 facts-gate
+        run: python3 _research/check_claims.py
+      - name: G1 facts-gate self-test
+        run: python3 _research/check_claims.py --selftest
+
+      # G14 — citation completeness: every arXiv id cited in a deck/Book beat resolves in papers.json
+      #        (the stated single source of truth). Round-3 found ~24 cited works missing; this gates it.
+      - name: G14 citation-completeness
+        run: python3 _research/check_citations.py
+      - name: G14 citation-completeness self-test
+        run: python3 _research/check_citations.py --selftest
+
+      # G15 — lexicon/typography: forbids the recurring RU/TT defect classes that LLM passes kept
+      #        re-finding — soft-hyphen in Cyrillic, the rejected renderings "чанкинг"/"реранкинг",
+      #        and model/version decimal-commas (GPT-3,5) — turning them into a static, un-recurring check.
+      - name: G15 lexicon-gate
+        run: python3 _research/check_lexicon.py
+      - name: G15 lexicon-gate self-test
+        run: python3 _research/check_lexicon.py --selftest
+
+      # G24 — practice-gate: the floor under every seminar notebook (narrative/practice-standard.md).
+      #        Check #1 is the whole point: the exemplar notebook reads its own result after 81% of
+      #        its substantive code cells, the five below-bar ones after 21–61%. Word counts do NOT
+      #        separate them — three below-bar notebooks clear the prose threshold — so the gate can
+      #        never be "simplified" into a word counter; its self-test asserts exactly that.
+      - name: G24 practice-gate
+        run: python3 _research/check_practice.py
+      - name: G24 practice-gate self-test
+        run: python3 _research/check_practice.py --selftest
+
+      # G26 — bibliography: every reference entry carries data-paper-id and matches
+      # data/papers.json (authors ⊆ record, year == record, arXiv ids exist); the
+      # KNOWN_UNTAGGED allowlist may only shrink — a stale entry HARD-fails.
+      - name: G26 bibliography
+        run: python3 _research/check_bib.py
+      - name: G26 bibliography self-test
+        run: python3 _research/check_bib.py --selftest
+
+      # G27 — derived numbers: displayed components must sum to their displayed total, and a
+      # derived field is computed from RAW inputs, never from already-rounded ones (five such
+      # defects shipped green: a student adding the printed column got a different total).
+      - name: G27 derived-numbers
+        run: python3 _research/check_derived.py
+      - name: G27 derived-numbers self-test
+        run: python3 _research/check_derived.py --selftest
+
+      # G29 — notebook-grounding: seminar prose may not invent numbers. Every number in a
+      # notebook's markdown (outside code/math/structural counters) must be derivable from its
+      # own run dump (seminars/runs/*.json) or data/; the dump cell must be the LAST code cell
+      # (dump written ⇒ every assert above it executed), and the dump's SEED must match the
+      # notebook's. Residue is a per-file ratchet that may only shrink. Exists because three
+      # premature-observation defects (Д4) shipped through a green G24 — it checks structure,
+      # not numbers. When seminars/runs-t4/ appears, quality metrics are compared strictly,
+      # timings tolerantly (owner decision).
+      - name: G29 notebook-grounding
+        run: python3 _research/check_notebooks.py
+      - name: G29 notebook-grounding self-test
+        run: python3 _research/check_notebooks.py --selftest
+
+      # G30 — pairing: a Book chapter must not be a stub of its deck, and a widget must not live
+      # only in the Book. Ratio slides/beats is HARD above 4.0 and ratcheted per pair (debt may
+      # only shrink); a widget mounted in no deck at all is HARD unless it is in BOOK_ONLY with a
+      # reason. Exists because both classes shipped silently: the BERT chapter ran 5.28 slides per
+      # beat, and eleven finished widgets spun in the Book while the lecture never showed them.
+      - name: G30 pairing
+        run: python3 _research/check_pairing.py
+      - name: G30 pairing self-test
+        run: python3 _research/check_pairing.py --selftest
+
+      # G31 — chrome slots: the repeated deck chrome (reveal button, misconception heading and
+      # kicker, payoff prefix) must match narrative/chrome-ru.json verbatim. The class was cleaned
+      # by hand once — 47 «Показать правду» against 16 «Показать истину» and so on — and the
+      # dictionary was written, but nothing read it: a dictionary without a gate is a promise.
+      # A slot is position AND known variant: a myth quoted in the kicker is content, not chrome.
+      - name: G31 chrome-slots
+        run: python3 _research/check_chrome.py
+      - name: G31 chrome-slots self-test
+        run: python3 _research/check_chrome.py --selftest
+
+      # G32 — mechanism: a lecture must SHOW, not merely state. Density of mechanism slides
+      # (formula/viz/walkthrough/e2e/archflow/sequence) per deck, plus the longest run of slides
+      # with none — the average alone hides a deck that piles all its derivation into one act and
+      # leaves three empty. Deck 18 reached 28 such slides in a row and every other gate was green.
+      # Ratchet: density may only rise, the gap may only shrink. Deck 00 is exempt with a reason.
+      - name: G32 mechanism
+        run: node _audit/mechanism-gate.mjs
+      - name: G32 mechanism self-test
+        run: node _audit/mechanism-gate.mjs --selftest
+
+      # G33 — glossary: the approved term canon (style-ru.md §7) as DATA. Only seven of its rows
+      # were ever enforced, hard-wired into the RU linter; the rest drifted and had to be swept by
+      # hand more than once. The gate also checks that the JSON and the §7 table agree — without
+      # that, document and check quietly diverge and both look right. EN and TT layers are out of
+      # scope: the canon is Russian. narrative/*.md is out of the perimeter — the standard quotes
+      # the banned variants as examples and the gate must stay silent on its own source.
+      - name: G33 glossary
+        run: python3 _research/check_glossary.py
+      - name: G33 glossary self-test
+        run: python3 _research/check_glossary.py --selftest
+
+      # RU style linter — in CI for the first time on 19.08.2026. It had run only by hand, so its
+      # narrowings (which false positives a rule must skip) rested on nobody's memory; it now
+      # carries a self-test and CI runs it. Warnings do not fail the build — only errors do.
+      # seminars/*.ipynb stay outside the perimeter while the T4 run is in the owner's hands, but
+      # both this linter and the glossary gate COUNT that debt and print it, so the deferral
+      # cannot quietly become forgetfulness.
+      - name: RU style linter
+        run: python3 _research/ru/check_style.py
+      - name: RU style linter self-test
+        run: python3 _research/ru/check_style.py --selftest
+
+      # G35 — spine: narrative/arc.md is marked CANON and promises the student a recurring
+      # "you are here" — the course-spine map with the current lecture's leg lit. data/course.json
+      # carries a `spine` array for every lecture to feed it. Nothing read either: arc.md had no
+      # gate at all, and the promise drifted — five decks show the spine by neither widget nor
+      # prose, so their `spine` is dead data. Ratchet: the debt list may only shrink. Deliberately
+      # NOT checked: "the map must be the widget" — reference deck 11 shows no spine at all, and a
+      # rule that fails one of the three exemplars describes the author, not the course.
+      - name: G35 spine
+        run: python3 _research/check_spine.py
+      - name: G35 spine self-test
+        run: python3 _research/check_spine.py --selftest
+
+      # G34 — act structure: every act needs a derivation inside it, and every deck past the
+      # first three needs a you-are-here frame. Note what this gate deliberately does NOT check:
+      # "an act closes with a boundary slide" is in the Definition of Done, but the measurement
+      # showed the reference decks 10 and 12 fail it (7 acts of 8, 4 of 5) — a rule that fails its
+      # own exemplar describes the author's fantasy, not the course. Ratchet: per-deck violation
+      # count may only fall.
+      - name: G34 act-structure
+        run: node _audit/act-structure-gate.mjs
+      - name: G34 act-structure self-test
+        run: node _audit/act-structure-gate.mjs --selftest
+
+      # ── Цепочка выгрузки деков дизайнеру (pptx). Гейта над РЕЗУЛЬТАТОМ здесь нет и быть
+      #    не может: выгрузка живёт в gitignored _internal/ и требует браузера. Но сами
+      #    инструменты проверяемы, и до 07.09.2026 слова «pptx» в этом файле не было вовсе —
+      #    регресс в наливальщике проходил бы молча и находился дизайнером.
+      #    Что ловят эти четыре шага: разъехавшийся контракт «тип → семейство → роли»
+      #    (переименовал роль — шаблон дизайнера перестал наливаться), несобираемую болванку
+      #    (дважды ломалась на XML макетов: дубли id фигур, неверный idx заголовка) и обе
+      #    вещи, из-за которых файл СОБИРАЛСЯ, но не ОТКРЫВАЛСЯ, — отсутствие
+      #    notesMasterIdLst и подмену имени плейсхолдера при клонировании на слайд.
+      #    python-pptx ставится ЗДЕСЬ, а не в зависимости курса: это сборочный инструмент,
+      #    студенческий рантайм остаётся без тяжёлых зависимостей (H5).
+      - name: pptx-chain · контракт семейств
+        run: python3 scripts/pptx_families.py
+      - name: pptx-chain · обратный перенос темы self-test
+        run: python3 scripts/pptx_theme_back.py --selftest
+      - name: pptx-chain · python-pptx (сборочная зависимость)
+        run: python3 -m pip install --quiet python-pptx
+      - name: pptx-chain · наливальщик self-test
+        run: python3 scripts/fill_pptx.py --selftest
+      - name: pptx-chain · болванка шаблона собирается
+        run: python3 scripts/pptx_fixture.py --out "$RUNNER_TEMP/_fixture.pptx"
+      - name: pptx-chain · упаковщик пакета self-test
+        run: python3 scripts/pptx_package.py --selftest
+      # Документ дизайнеру: роспись 2152 слайдов презентации со ссылками на живые слайды,
+      # шаги и оригиналы картинок. Гейта над результатом нет (документ — артефакт, не
+      # исходник), но разбор разметки проверяем: он вытаскивает АНГЛИЙСКИЙ слой из
+      # двуязычных спанов, раскодирует сущности и считает состояния как 0..max ВКЛЮЧИТЕЛЬНО —
+      # ошибка в любом из трёх мест тихо испортит все 2152 строки.
+      - name: design-doc self-test
+        run: python3 scripts/gen_design_doc.py --selftest
+
+      # G12 — image-gate: the recurring mascots must stay present + on-palette (brand can't fade out).
+      - name: G12 image-gate
+        run: python3 _research/check_images.py
+      - name: G12 image-gate self-test
+        run: python3 _research/check_images.py --selftest
+
+      # G17 — missing-image gate: every referenced illustration AND every gen_images.py BRIEF must
+      #        exist on disk. Kills the "illustrations not generated / broken image ref" class that
+      #        the brand image-gate (reads briefs, not files) is blind to.
+      - name: G17 asset-gate (missing images)
+        run: python3 _research/check_assets.py
+      - name: G17 asset-gate self-test
+        run: python3 _research/check_assets.py --selftest
+
+      # G6 — every Book scroll-step maps to a real widget step.
+      - name: G6 scroll-step
+        run: node _audit/scroll-step-gate.mjs
+      - name: G6 scroll-step self-test
+        run: node _audit/scroll-step-gate.mjs --selftest
+
+      # G7 — the Book matches the narrative beat sheet (no drift / reorder).
+      - name: G7 beat-coverage
+        run: node _audit/beat-coverage-gate.mjs
+      - name: G7 beat-coverage self-test
+        run: node _audit/beat-coverage-gate.mjs --selftest
+
+      # G2 — one design-token source (no rogue :root; brand values match the decks).
+      - name: G2 token
+        run: node _audit/token-gate.mjs
+      - name: G2 token self-test
+        run: node _audit/token-gate.mjs --selftest
+
+      # G2b — font-size lint: ratchet on raw `font-size` literals in deck CSS (vs the --fs-* scale).
+      - name: G2b font-gate
+        run: node _audit/font-gate.mjs
+      - name: G2b font-gate self-test
+        run: node _audit/font-gate.mjs --selftest
+
+      # G2c — layout-gate: bind placeLabels' label separation to slide-viz's overprint threshold.
+      - name: G2c layout-gate
+        run: node _audit/layout-gate.mjs
+      - name: G2c layout-gate self-test
+        run: node _audit/layout-gate.mjs --selftest
+
+      # G3 — translation coverage (HARD on EN holes; RU/TT reported for the badge).
+      - name: G3 i18n-coverage
+        run: node _audit/i18n-coverage-gate.mjs
+      - name: G3 i18n-coverage self-test
+        run: node _audit/i18n-coverage-gate.mjs --selftest
+
+      # G21 — slide-type↔content contract: stepped types must carry step markers,
+      # misconception slides must carry .misc-statement + .misc-truth. Lifts pre-flight's
+      # runtime checks to a build gate, so a mistyped slide (which renders wrong AND spams
+      # the pre-flight overlay) can't ship. Static — reads the sharded part fragments.
+      - name: G21 slide-type
+        run: node _audit/slide-type-gate.mjs
+      - name: G21 slide-type self-test
+        run: node _audit/slide-type-gate.mjs --selftest
+
+      # G25 — lecture cross-references: pointers resolve to existing lectures, RU/EN/TT layers
+      # name the SAME lectures, no deck points at itself, model-layer indices don't pose as refs.
+      # The ratchet over the ~45 stale references the Aug-2026 renumbering left behind (fixed by
+      # hand in the phase-1А cleanup). Static — part fragments + Book beats.
+      - name: G25 xref
+        run: node _audit/xref-gate.mjs
+      - name: G25 xref self-test
+        run: node _audit/xref-gate.mjs --selftest
+
+      # G28 — sequence budget: an async hop claimed "off the critical path" must carry
+      # data-seq-skip-async, or the engine charges to the budget what the slide disowns.
+      - name: G28 seq-budget
+        run: node _audit/seq-budget-gate.mjs
+      - name: G28 seq-budget self-test
+        run: node _audit/seq-budget-gate.mjs --selftest
+
+      # G23 — deck RU-parity: decks are bilingual (H1/H2) but untagged prose leaks English into RU
+      # mode, and G3 (i18n-coverage) never scans deck HTML. Grandfathered baseline like the facts-gate;
+      # HARD-fails only a REGRESSION (a bilingual deck gaining a new English-only slide). Static.
+      - name: G23 deck-i18n-parity
+        run: node _audit/deck-i18n-parity.mjs
+      - name: G23 deck-i18n-parity self-test
+        run: node _audit/deck-i18n-parity.mjs --selftest
+
+  # ───────────────────────── BROWSER GATES (Playwright) ─────────────────────────
+  browser:
+    runs-on: ubuntu-latest
+    # The heavy Playwright gates run in 3 PARALLEL buckets (fail-fast:false) so the
+    # wall-clock is the slowest single bucket (~slide-viz) instead of the SUM of all
+    # gates (~28min → ~12min). Every gate runs in exactly ONE bucket — full coverage
+    # preserved; the setup below (build, Playwright) is shared (cached) across buckets.
+    strategy:
+      fail-fast: false
+      matrix:
+        bucket:
+          - name: viz-a
+            gates: |
+              node slide-viz-gate.mjs --strict --shard 1/2
+              node slide-viz-gate.mjs --selftest
+          - name: viz-b
+            gates: |
+              node slide-viz-gate.mjs --strict --shard 2/2
+          - name: probe
+            gates: |
+              node viz-probe-gate.mjs
+              node viz-probe-gate.mjs --selftest
+              node wbw-check.mjs
+              node wbw-check.mjs --selftest
+              node widget-render-check.mjs
+              node widget-render-check.mjs --selftest
+          - name: layout
+            gates: |
+              for f in ../Lectures/*.html; do node offline-deck.mjs "$(basename "$f")"; done
+              node ncd-gate.mjs
+              node ncd-gate.mjs --selftest
+              node responsive-gate.mjs
+              node responsive-gate.mjs --selftest
+              node parity-gate.mjs
+              node parity-gate.mjs --selftest
+              node composition-gate.mjs
+              node composition-gate.mjs --selftest
+              node readability-gate.mjs
+              node readability-gate.mjs --selftest
+              node legibility-gate.mjs
+              node legibility-gate.mjs --selftest
+    steps:
+      - uses: actions/checkout@v4
+      # The illustration masters live in LFS; checkout leaves pointer stubs. Restore the
+      # objects from the actions cache (seeded by the lfs-warm workflow) and pull only the
+      # delta — never the full 380 MB per job, which would burn the free LFS bandwidth.
+      - name: LFS assets (cache-first)
+        run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-manifest
+      - uses: actions/cache@v4
+        with:
+          path: .git/lfs
+          key: lfs-${{ hashFiles('.lfs-manifest') }}
+          restore-keys: lfs-
+      - name: Materialise LFS files
+        run: git lfs pull
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      # Persist the content-addressed WebP cache (optimize-images.mjs → .cache/webp).
+      - name: Cache optimized images (WebP)
+        uses: actions/cache@v4
+        with:
+          path: .cache/webp
+          key: webp-${{ hashFiles('Lectures/assets/img/**/*.png') }}
+          restore-keys: webp-
+
+      - name: Build site (assemble chapters + decks + render)
+        run: npm run build
+
+      # Cache the Chromium download so it isn't re-fetched every run (~30–60s saved on a cache hit).
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('_audit/package.json', 'package-lock.json') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+      - name: Install audit deps + Chromium
+        working-directory: _audit
+        run: npm install --no-audit --no-fund && npx playwright install --with-deps chromium
+
+      # Run THIS bucket's gates (see strategy.matrix.bucket above). GitHub's default
+      # bash runs with `set -eo pipefail`, so any HARD-failing gate fails the bucket.
+      # gate → bucket mapping (full coverage — no gate dropped):
+      #   viz    → G9 slide-viz (--strict)
+      #   probe  → G13 viz-probe · G11 wbw-check · G10 widget-render-check
+      #   layout → H1 offline-deck · NCD family · G8 responsive · G18 parity · G19 composition
+      #            · G20 readability · G22 legibility
+      # H1 («деки — офлайн-standalone, ноль сетевых запросов») жил в job `static`, где нет
+      # Playwright, — и падал на импорте, НИЧЕГО не проверив. Правило есть, гейт есть, запуска
+      # не было: с 24.08 site-ci был красным именно из-за этого, а H1 держался на ручном
+      # прогоне и памяти. Место шага — там, где браузер уже поднят. Ровно та же история у
+      # NCD-гейта: он тянет Playwright через lib/gate-harness.mjs и падал в `static` следующим,
+      # как только H1 оттуда убрали. Всё, что импортирует харнесс, живёт в job `browser`.
+      - name: Browser gates · ${{ matrix.bucket.name }}
+        working-directory: _audit
+        run: ${{ matrix.bucket.gates }}

@@ -1,0 +1,21 @@
+    {
+      id: 'turn-the-tax-was-paid-in-training', kind: 'prose',
+      heading: { en: 'The same tax was paid during training', ru: 'Тот же налог уже заплачен на обучении', tt: 'Шул ук налог өйрәтү вакытында түләнгән' },
+      body: {
+        en: [
+          "The token tax is always told as an *inference* bill — context window, price per token, quadratic attention. But look at the order in which a model is built. The tokenizer is frozen **first**, and only then does the training run begin, reading the corpus through it. So the same fragmentation was applied to every page the model ever learned from, long before you sent it a query.",
+          "And a training budget is counted in tokens. A language that costs several tokens per word therefore buys proportionally less *text* out of the same budget: fewer sentences, fewer facts, fewer chances to see a construction twice. Worse, the pieces themselves are unstable — when a word has no merges of its own, where it breaks depends on what surrounds it, so the model gets fewer repetitions of any single unit to attach a meaning to. That is a **data** problem wearing the costume of a cost problem.",
+          "Which is why the tokenizer belongs in the first round of model selection and not in the capacity-planning spreadsheet. Open the vocabulary before you run a single evaluation and you already know something about whether this encoder had a *chance* to learn the language. Hold that thought: act three states the same fact from the other end — the encoder must have seen Russian — and this is the mechanism by which it either did or did not.",
+        ],
+        ru: [
+          'Токен-налог всегда рассказывают как счёт за **применение**: окно контекста, цена за токен, квадратичное внимание. Но посмотри на порядок, в котором собирают модель. Токенизатор замораживают **первым**, и только потом начинается обучение, читающее корпус сквозь него. Значит, то же дробление применили к каждой странице, на которой модель училась, задолго до того, как ты послал ей запрос.',
+          'А бюджет обучения считают в токенах. Язык, который стоит нескольких токенов на слово, покупает на тот же бюджет пропорционально меньше **текста**: меньше предложений, меньше фактов, меньше шансов увидеть конструкцию дважды. Хуже того, сами куски неустойчивы — когда у слова нет собственных слияний, место разлома зависит от окружения, и модель получает меньше повторов любой отдельной единицы, к которой можно привязать смысл. Это проблема **данных**, переодетая в проблему цены.',
+          'Поэтому токенизатору место в первом круге выбора модели, а не в табличке планирования мощностей. Открой словарь до того, как прогонишь хоть один замер, — и ты уже кое-что знаешь о том, был ли у этого энкодера **шанс** выучить язык. Придержи эту мысль: третий акт скажет тот же факт с другого конца — энкодер должен был видеть русский, — а это и есть механизм, по которому он его видел или не видел.',
+        ],
+        tt: [
+          'Токен-налог турында һәрвакыт **куллану** хисабы итеп сөйлиләр: контекст тәрәзәсе, токенга бәя, квадратик игътибар. Ләкин модельне җыю тәртибенә кара. Токенизаторны **беренче** туңдыралар, аннан гына корпусны шуның аша укып өйрәтү башлана. Димәк, шул ук ваклау модель өйрәнгән һәр биткә кулланылган — син аңа сорау җибәрүдән күпкә алда.',
+          'Ә өйрәтү бюджеты токеннарда санала. Сүзгә берничә токен торган тел шул ук бюджетка пропорциональ рәвештә азрак **текст** сатып ала: азрак җөмлә, азрак факт, конструкцияне ике тапкыр күрергә азрак мөмкинлек. Аннан да яманы — кисәкләр үзләре тотрыксыз: сүзнең үз слиянияләре булмаганда, ватылу урыны әйләнә-тирәгә бәйле, һәм модель мәгънә беркетеп була торган һәр аерым берәмлекнең азрак кабатлануын ала. Бу — бәя проблемасы киемендәге **мәгълүмат** проблемасы.',
+          'Шуңа күрә токенизаторның урыны — модель сайлауның беренче түгәрәгендә, куәт планлаштыру таблицасында түгел. Бер генә үлчәү үткәрер алдыннан сүзлекне ач — һәм син бу энкодерның телне өйрәнергә **мөмкинлеге** булган-булмаганы турында инде нәрсәдер беләсең. Бу уйны тот: өченче акт шул ук фактны икенче очыннан әйтә — энкодер русны күргән булырга тиеш, — ә бу нәкъ шул күрү яки күрмәү механизмы.',
+        ],
+      },
+    },

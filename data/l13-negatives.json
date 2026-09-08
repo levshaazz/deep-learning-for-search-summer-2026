@@ -1,0 +1,254 @@
+{
+  "_doc": "MEASURED on a CONSTRUCTED false-negative-dense toy corpus (R=4 relevant docs per topic, only 1 labelled \u2192 3 unlabelled positives), a cosine-space dual-encoder trained under each negative strategy, recall@10 over 20 seeds. Demonstrates (100% of seeds) the RocketQA INVERSION (in-batch .645 \u2192 +undenoised-hard .411 DROPS below it \u2192 +denoised .783 recovers) and the ANCE direction (dynamic denoised >> static bm25). The inversion is demonstrable-by-construction, NOT discovered; reproduces the ORDERING, not MS-MARCO magnitudes. The strict random<in-batch<bm25 monotone does NOT hold (those cluster) \u2014 that DPR static ladder is a REPORTED bench number (l13-bench.json), never a toy claim.",
+  "_source": "_research/gen_l13_negatives.py (frozen CPython-3.9 + numpy 2.0.2)",
+  "measured": true,
+  "config": {
+    "n_topics": 40,
+    "R": 4,
+    "n_dist": 6,
+    "n_irrel": 400,
+    "dim": 32,
+    "epochs": 160,
+    "lr": 0.05,
+    "tau": 0.1,
+    "k_neg": 5,
+    "k_inbatch": 8,
+    "recall_k": 10
+  },
+  "recallAt10": {
+    "random": {
+      "mean": 0.62,
+      "std": 0.033
+    },
+    "inbatch": {
+      "mean": 0.645,
+      "std": 0.037
+    },
+    "bm25": {
+      "mean": 0.625,
+      "std": 0.037
+    },
+    "undenoised": {
+      "mean": 0.411,
+      "std": 0.03
+    },
+    "denoised": {
+      "mean": 0.783,
+      "std": 0.039
+    }
+  },
+  "claimsHoldFraction": {
+    "inversion": 1.0,
+    "denoisingRecovers": 1.0,
+    "dynamicGtStatic": 1.0,
+    "denoisedBestUndenoisedWorst": 1.0
+  },
+  "twoAxis": {
+    "falseNeg": {
+      "cosQuery": 0.81,
+      "cosPositive": 0.8
+    },
+    "hardTrueNeg": {
+      "cosQuery": 0.64,
+      "cosPositive": 0.62
+    },
+    "secondAxisSeparation": 0.18,
+    "_note": "A false negative is near the POSITIVE (cosPositive high) but no harder on the QUERY axis than a hard-TRUE negative \u2014 invisible to a query-only view. This is the 2x2 (S36)."
+  },
+  "spine": {
+    "_note": "Pedagogical spine: cosQ/cosPos are design inputs; InfoNCE softmax/loss, Boltzmann gradient weights and the log-N MI ceiling are COMPUTED from them. The two-axis story is n4 vs n5 \u2014 same cosQ (~0.75/0.79, both mined) but cosPos 0.31 vs 0.80: n5 is the impostor.",
+    "positive": {
+      "id": "dPlus",
+      "label": "true positive",
+      "cosQ": 0.82
+    },
+    "lineup": [
+      {
+        "id": "n1",
+        "label": "random",
+        "cosQ": 0.05,
+        "cosPos": 0.03,
+        "band": "easy",
+        "isFalse": false
+      },
+      {
+        "id": "n2",
+        "label": "in-batch",
+        "cosQ": 0.41,
+        "cosPos": 0.37,
+        "band": "semi",
+        "isFalse": false
+      },
+      {
+        "id": "n3",
+        "label": "BM25-hard",
+        "cosQ": 0.63,
+        "cosPos": 0.34,
+        "band": "hard",
+        "isFalse": false
+      },
+      {
+        "id": "n4",
+        "label": "dynamic-hard",
+        "cosQ": 0.75,
+        "cosPos": 0.31,
+        "band": "hard",
+        "isFalse": false
+      },
+      {
+        "id": "n5",
+        "label": "impostor",
+        "cosQ": 0.79,
+        "cosPos": 0.8,
+        "band": "hard",
+        "isFalse": true
+      }
+    ],
+    "taus": [
+      0.5,
+      0.2,
+      0.1,
+      0.05
+    ],
+    "infonce": [
+      {
+        "tau": 0.5,
+        "softmax": [
+          0.241,
+          0.0517,
+          0.1061,
+          0.1648,
+          0.2095,
+          0.2269
+        ],
+        "pPos": 0.241,
+        "loss": 1.4231
+      },
+      {
+        "tau": 0.2,
+        "softmax": [
+          0.3224,
+          0.0069,
+          0.0415,
+          0.1247,
+          0.2272,
+          0.2775
+        ],
+        "pPos": 0.3224,
+        "loss": 1.1321
+      },
+      {
+        "tau": 0.1,
+        "softmax": [
+          0.416,
+          0.0002,
+          0.0069,
+          0.0622,
+          0.2066,
+          0.3082
+        ],
+        "pPos": 0.416,
+        "loss": 0.8771
+      },
+      {
+        "tau": 0.05,
+        "softmax": [
+          0.55,
+          0.0,
+          0.0002,
+          0.0123,
+          0.1356,
+          0.3019
+        ],
+        "pPos": 0.55,
+        "loss": 0.5978
+      }
+    ],
+    "boltzmann": [
+      {
+        "tau": 0.5,
+        "weights": [
+          0.0681,
+          0.1398,
+          0.2171,
+          0.276,
+          0.299
+        ]
+      },
+      {
+        "tau": 0.2,
+        "weights": [
+          0.0101,
+          0.0612,
+          0.184,
+          0.3352,
+          0.4094
+        ]
+      },
+      {
+        "tau": 0.1,
+        "weights": [
+          0.0003,
+          0.0118,
+          0.1065,
+          0.3537,
+          0.5276
+        ]
+      },
+      {
+        "tau": 0.05,
+        "weights": [
+          0.0,
+          0.0003,
+          0.0273,
+          0.3014,
+          0.6709
+        ]
+      }
+    ],
+    "logNBound": [
+      {
+        "N": 4,
+        "logN_nats": 1.3863
+      },
+      {
+        "N": 16,
+        "logN_nats": 2.7726
+      },
+      {
+        "N": 64,
+        "logN_nats": 4.1589
+      },
+      {
+        "N": 256,
+        "logN_nats": 5.5452
+      },
+      {
+        "N": 1024,
+        "logN_nats": 6.9315
+      },
+      {
+        "N": 16384,
+        "logN_nats": 9.7041
+      }
+    ],
+    "minedByStrategy": {
+      "random": [
+        "n1"
+      ],
+      "inbatch": [
+        "n2"
+      ],
+      "bm25": [
+        "n3"
+      ],
+      "undenoised": [
+        "n4",
+        "n5"
+      ],
+      "denoised": [
+        "n4"
+      ]
+    }
+  }
+}

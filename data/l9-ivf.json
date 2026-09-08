@@ -1,0 +1,344 @@
+{
+  "_doc": "IVF coarse-quantizer + cell probing. Toy = 9 points, nlist=3 frozen centroids, query q in cell c0 (stdlib). True 3-NN = 2 points in c0 + 1 just across the border in c1. nprobe=1 probes c0 only → 2/3 → recall@3 = 0.6667; nprobe=2 also probes c1 (the 2nd-nearest cell) → 3/3 → 1.0. COMMITTED GEOMETRY is asserted here and in provenance_l9: exactly 2 NN in c0, the 3rd in c1, AND c1 is the 2nd-nearest cell to q (cellRankByDist[1]==c1) — else nprobe=2 would not reach the 3rd NN and recall would not climb 0.6667→1.0. Real = frozen FAISS IVF-PQ recall vs nprobe (gen_l9_real.py).",
+  "_source": "_research/gen_l9.py (toy, stdlib) + gen_l9_real.py (FAISS IVF-PQ, /usr/bin/python3)",
+  "toy": {
+    "points": [
+      [
+        2.5,
+        2.2
+      ],
+      [
+        3.0,
+        2.8
+      ],
+      [
+        4.0,
+        2.0
+      ],
+      [
+        1.5,
+        1.5
+      ],
+      [
+        1.0,
+        3.0
+      ],
+      [
+        6.0,
+        1.0
+      ],
+      [
+        5.5,
+        3.0
+      ],
+      [
+        2.0,
+        6.0
+      ],
+      [
+        3.0,
+        6.5
+      ]
+    ],
+    "assign": [
+      0,
+      0,
+      1,
+      0,
+      0,
+      1,
+      1,
+      2,
+      2
+    ],
+    "centroids": [
+      [
+        2,
+        2
+      ],
+      [
+        5,
+        2
+      ],
+      [
+        2,
+        6
+      ]
+    ],
+    "query": [
+      3,
+      2
+    ],
+    "queryCell": 0,
+    "nlist": 3,
+    "k": 3,
+    "trueNN": [
+      0,
+      1,
+      2
+    ],
+    "cellRankByDist": [
+      0,
+      1,
+      2
+    ],
+    "probe": {
+      "1": {
+        "cells": [
+          0
+        ],
+        "found": [
+          0,
+          1
+        ],
+        "recall": 0.6667
+      },
+      "2": {
+        "cells": [
+          0,
+          1
+        ],
+        "found": [
+          0,
+          1,
+          2
+        ],
+        "recall": 1.0
+      }
+    }
+  },
+  "toy2": {
+    "_doc": "nprobe sweep: 20 frozen points, nlist=5 committed centroids, k=5. The 5 true-NN are distributed across the first 3 cells-by-distance (3 in c0, 1 in c4, 1 in c1), so probing more cells climbs recall 0.6 -> 0.8 -> 1.0. cellRankByDist orders cells by centroid-to-q distance; nprobe takes the first n of them. Fractions are exact (found / 5).",
+    "points": [
+      [
+        5,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        6,
+        6
+      ],
+      [
+        8,
+        7
+      ],
+      [
+        9,
+        4
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        12,
+        4
+      ],
+      [
+        13,
+        5
+      ],
+      [
+        11,
+        3
+      ],
+      [
+        4,
+        12
+      ],
+      [
+        5,
+        13
+      ],
+      [
+        3,
+        11
+      ],
+      [
+        12,
+        12
+      ],
+      [
+        13,
+        13
+      ],
+      [
+        11,
+        11
+      ],
+      [
+        10,
+        9
+      ],
+      [
+        11,
+        10
+      ],
+      [
+        9,
+        8
+      ],
+      [
+        1,
+        9
+      ],
+      [
+        9,
+        1
+      ]
+    ],
+    "assign": [
+      0,
+      0,
+      0,
+      4,
+      1,
+      0,
+      1,
+      1,
+      1,
+      2,
+      2,
+      2,
+      3,
+      3,
+      3,
+      4,
+      4,
+      4,
+      2,
+      1
+    ],
+    "centroids": [
+      [
+        4,
+        4
+      ],
+      [
+        12,
+        4
+      ],
+      [
+        4,
+        12
+      ],
+      [
+        12,
+        12
+      ],
+      [
+        10,
+        9
+      ]
+    ],
+    "query": [
+      5,
+      5
+    ],
+    "queryCell": 0,
+    "nlist": 5,
+    "k": 5,
+    "trueNN": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "cellRankByDist": [
+      0,
+      4,
+      1,
+      2,
+      3
+    ],
+    "sweep": [
+      {
+        "nprobe": 1,
+        "cellsProbed": [
+          0
+        ],
+        "pointsScanned": 4,
+        "found": [
+          0,
+          1,
+          2
+        ],
+        "recall": 0.6
+      },
+      {
+        "nprobe": 2,
+        "cellsProbed": [
+          0,
+          4
+        ],
+        "pointsScanned": 8,
+        "found": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "recall": 0.8
+      },
+      {
+        "nprobe": 3,
+        "cellsProbed": [
+          0,
+          4,
+          1
+        ],
+        "pointsScanned": 13,
+        "found": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "recall": 1.0
+      },
+      {
+        "nprobe": 4,
+        "cellsProbed": [
+          0,
+          4,
+          1,
+          2
+        ],
+        "pointsScanned": 17,
+        "found": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "recall": 1.0
+      },
+      {
+        "nprobe": 5,
+        "cellsProbed": [
+          0,
+          4,
+          1,
+          2,
+          3
+        ],
+        "pointsScanned": 20,
+        "found": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "recall": 1.0
+      }
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+name: link-check
+
+# External bibliography links rot slowly, and publishers flake / bot-block, so this runs
+# on a weekly schedule + on demand — NOT on every push (would be slow + falsely red).
+# It fails only on genuinely DEAD links (404/410/DNS); 403/timeout/5xx are reported as WARN.
+on:
+  schedule:
+    - cron: '0 6 * * 1'   # Mondays 06:00 UTC
+  workflow_dispatch: {}
+  push:
+    paths:
+      - 'data/papers.json'
+      - '_research/check_links.py'
+      - '.github/workflows/link-check.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Link-checker selftest (offline)
+        run: python3 _research/check_links.py --selftest
+      - name: Check bibliography links (data/papers.json)
+        run: python3 _research/check_links.py

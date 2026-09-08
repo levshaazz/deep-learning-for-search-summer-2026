@@ -1,0 +1,58 @@
+<section class="slide" data-type="table" data-screen-label="58 Two lates &middot; opposite bills">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Одно слово &laquo;позднее&raquo;, два разных счёта</span>
+      <span lang="en">Same word &ldquo;late&rdquo;, two opposite bills</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">где приземляется стоимость &mdash; запрос против индексации</span>
+      <span lang="en">where the cost lands &mdash; query time vs index time</span>
+    </span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th><span lang="ru">Свойство</span><span lang="en">Property</span></th>
+        <th><span lang="ru">Позднее <em>взаимодействие</em> (ColBERT, L12)</span><span lang="en">Late <em>interaction</em> (ColBERT, L12)</span></th>
+        <th><span lang="ru">Позднее <em>чанкование</em> (сегодня)</span><span lang="en">Late <em>chunking</em> (today)</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span lang="ru">Что хранится</span><span lang="en">What is stored</span></td>
+        <td><span lang="ru">мульти-вектор &mdash; по одному на токен</span><span lang="en">multi-vector &mdash; one per token</span></td>
+        <td><span lang="ru">один вектор на чанк</span><span lang="en">one vector per chunk</span></td>
+      </tr>
+      <tr>
+        <td><span lang="ru">Что откладывается</span><span lang="en">What is deferred</span></td>
+        <td><span lang="ru">сравнение (interaction)</span><span lang="en">the interaction</span></td>
+        <td><span lang="ru">усреднение чанка</span><span lang="en">the chunk pooling</span></td>
+      </tr>
+      <tr>
+        <td><span lang="ru">Где платишь</span><span lang="en">Where you pay</span></td>
+        <td class="cell-bad"><span lang="ru">при <strong>каждом запросе</strong> &mdash; MaxSim по токенам</span><span lang="en">at <strong>every query</strong> &mdash; MaxSim over tokens</span></td>
+        <td class="cell-good"><span lang="ru">при <strong>индексации</strong> &mdash; усреднение один раз</span><span lang="en">at <strong>index</strong> time &mdash; pool once</span></td>
+      </tr>
+      <tr>
+        <td><span lang="ru">Размер индекса</span><span lang="en">Index size</span></td>
+        <td class="cell-meh"><span lang="ru">наивно &mdash; вектор на токен; но ColBERTv2 квантует остатки и садится на <strong>паритет</strong> с одновекторным</span><span lang="en">naively a vector per token &mdash; but ColBERTv2 quantises residuals and lands at <strong>parity</strong> with single-vector</span></td>
+        <td><span lang="ru">обычный &mdash; \(M_{\text{чанк}}\times d\)</span><span lang="en">normal &mdash; \(M_{\text{chunk}}\times d\)</span></td>
+      </tr>
+      <tr>
+        <td><span lang="ru">Стоимость запроса</span><span lang="en">Query cost</span></td>
+        <td class="cell-bad"><span lang="ru">тяжёлая &mdash; токен-уровневый MaxSim</span><span lang="en">heavy &mdash; token-level MaxSim</span></td>
+        <td class="cell-good"><span lang="ru">как у наивного &mdash; одно скалярное произведение на чанк</span><span lang="en">same as naive &mdash; one dot product per chunk</span></td>
+      </tr>
+      <tr>
+        <td><span lang="ru">Нужно ли обучение</span><span lang="en">Training required</span></td>
+        <td class="cell-bad"><span lang="ru">да &mdash; ColBERT это <em>обученная</em> архитектура</span><span lang="en">yes &mdash; ColBERT is a <em>trained</em> architecture</span></td>
+        <td class="cell-good"><span lang="ru">нет &mdash; берёшь готовый энкодер как есть</span><span lang="en">no &mdash; you take an off-the-shelf encoder as-is</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-3">
+    <span lang="ru">Строку про индекс мы только что переписали &mdash; и это важно: <strong>настоящее зеркало не в хранилище, а в запросе</strong>. MaxSim платится каждым запросом; усреднение &mdash; один раз при индексации. Цифры к строке про индекс &mdash; на следующем слайде.</span>
+    <span lang="en">We just rewrote the index row, and it matters: <strong>the real mirror is not storage, it is the query</strong>. MaxSim is paid by every query; pooling is paid once at index time. The numbers behind the index row are on the next slide.</span>
+  </p>
+  <aside class="slide-notes">The act's core table, with two repairs. (1) The index-size row used to say "large — N_tok × d" versus "normal", which is folklore since ColBERTv2: with 2-bit residuals its MS MARCO index is at parity with an ordinary single-vector index (next slide has the gigabytes). (2) A new row: ColBERT is a TRAINED architecture, late chunking is training-free — that is a real and frequently forgotten difference between the two "lates". The axis to land is the query: MaxSim is a per-query subscription, pooling is a one-off at index time.</aside>
+</section>

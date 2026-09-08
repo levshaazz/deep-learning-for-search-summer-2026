@@ -1,0 +1,51 @@
+<section class="slide" data-type="table" data-screen-label="61 Three ways to repair context">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">Три способа починить контекст &mdash; по оси &laquo;когда&raquo;</span>
+      <span lang="en">Three ways to repair context &mdash; along the axis of &ldquo;when&rdquo;</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">до эмбеддинга &middot; во время &middot; после</span>
+      <span lang="en">before the embedding &middot; during &middot; after</span>
+    </span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th><span lang="ru">когда чинится</span><span lang="en">when it is repaired</span></th>
+        <th><span lang="ru">метод</span><span lang="en">method</span></th>
+        <th><span lang="ru">что физически меняется</span><span lang="en">what physically changes</span></th>
+        <th><span lang="ru">чем платишь</span><span lang="en">what it costs</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span lang="ru"><strong>ДО</strong> эмбеддинга</span><span lang="en"><strong>BEFORE</strong> the embedding</span></td>
+        <td>Contextual Retrieval</td>
+        <td class="cell-bad"><span lang="ru">меняется <strong>текст</strong>: LLM дописывает к чанку абзац контекста</span><span lang="en">the <strong>text</strong> changes: an LLM prepends a context paragraph to each chunk</span></td>
+        <td class="cell-bad"><span lang="ru">генерация на каждый чанк &mdash; порядка $1,02 за млн токенов документа с кешированием промпта</span><span lang="en">a generation per chunk &mdash; about $1.02 per million document tokens with prompt caching</span></td>
+      </tr>
+      <tr>
+        <td class="cell-good"><span lang="ru"><strong>ВО ВРЕМЯ</strong></span><span lang="en"><strong>DURING</strong></span></td>
+        <td><span lang="ru">позднее чанкование</span><span lang="en">late chunking</span></td>
+        <td class="cell-good"><span lang="ru">меняется только <strong>вектор</strong>; в промпт генератора уходит тот же исходный кусок</span><span lang="en">only the <strong>vector</strong> changes; the generator still receives the original passage</span></td>
+        <td class="cell-good"><span lang="ru">один проход энкодера по документу, ноль на запросе</span><span lang="en">one encoder pass over the document, nothing at query time</span></td>
+      </tr>
+      <tr>
+        <td><span lang="ru"><strong>ПОСЛЕ</strong></span><span lang="en"><strong>AFTER</strong></span></td>
+        <td><span lang="ru">позднее взаимодействие (ColBERT)</span><span lang="en">late interaction (ColBERT)</span></td>
+        <td><span lang="ru">ничего не меняется заранее &mdash; сравнение откладывается до запроса</span><span lang="en">nothing changes in advance &mdash; the comparison is deferred to query time</span></td>
+        <td class="cell-bad"><span lang="ru">MaxSim с каждым запросом</span><span lang="en">MaxSim with every query</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-3">
+    <span lang="ru"><strong>Практически важнее всего вторая колонка.</strong> Позднее чанкование меняет только вектор &mdash; в промпт генератора уходит <em>тот же</em> исходный текст чанка. Contextual Retrieval меняет сам чанк: он раздувается примерно на сотню токенов, и у моделей с жёстким лимитом входа хвост чанка может <strong>молча обрезаться</strong> (прямое предупреждение из cookbook).</span>
+    <span lang="en"><strong>The second column is the one that matters in practice.</strong> Late chunking changes only the vector &mdash; the generator receives the <em>same</em> original chunk text. Contextual Retrieval changes the chunk itself: it grows by roughly a hundred tokens, and on models with a hard input limit the tail can be <strong>silently truncated</strong> (a warning straight from the cookbook).</span>
+  </p>
+  <p class="small muted center mt-2">
+    <span lang="ru">И совет из того же источника, который ты не услышишь от продавца векторной базы: если весь корпус меньше двухсот тысяч токенов &mdash; не строй индекс, положи его в промпт целиком.</span>
+    <span lang="en">And the advice from that same source that no vector-database vendor will give you: if your whole corpus is under two hundred thousand tokens, do not build an index &mdash; put it in the prompt.</span>
+  </p>
+  <aside class="slide-notes">The organising axis of the act: WHEN is the missing context restored. Before the embedding — Contextual Retrieval rewrites the TEXT with an LLM (about $1.02 per million document tokens with prompt caching, claude-3-haiku-20240307). During — late chunking changes only the VECTOR, so the generator still receives the original passage. After — late interaction defers the comparison and pays MaxSim per query. The practical consequence students miss: because Contextual Retrieval physically grows each chunk by ~100 tokens, a model with a hard input limit silently truncates it — Anthropic's own cookbook says so. And the honest closing note from the same source: under ~200k tokens of corpus, skip retrieval and put the whole thing in the prompt.</aside>
+</section>

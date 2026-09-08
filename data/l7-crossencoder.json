@@ -1,0 +1,75 @@
+{
+  "_doc": "TOY cross-encoder scoring. A joint [CLS] vector → linear head w·cls+b → sigmoid relevance score. Relevant logit 2.4 → σ≈0.9168; the negation doc logit −1.1 → σ≈0.2497 (the Judge reads the 'not' the Scout missed). Plus a 3×3 query×doc attention matrix (rows sum to 1). REAL ms-marco cross-encoder scores (the 'real'/'contrast' blocks) come from gen_l7_real.py.",
+  "_source": "_research/gen_l7.py (toy, stdlib) + gen_l7_real.py (cross-encoder, /usr/bin/python3)",
+  "toy": {
+    "qTokens": [
+      "did",
+      "river",
+      "flood"
+    ],
+    "dTokens": [
+      "bank",
+      "not",
+      "flood"
+    ],
+    "attnQxD": [
+      [
+        0.1,
+        0.1,
+        0.8
+      ],
+      [
+        0.2,
+        0.1,
+        0.7
+      ],
+      [
+        0.1,
+        0.7,
+        0.2
+      ]
+    ],
+    "clsRel": [
+      1.0,
+      1.5
+    ],
+    "clsNeg": [
+      1.0,
+      -2.0
+    ],
+    "w": [
+      0.5,
+      1.0
+    ],
+    "b": 0.4,
+    "logitRel": 2.4,
+    "scoreRel": 0.9168,
+    "logitNeg": -1.1,
+    "scoreNeg": 0.2497
+  },
+  "real": {
+    "model": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+    "query": "what is the capital of australia",
+    "pairRel": {
+      "doc": "Canberra is the capital of Australia",
+      "logit": 8.728,
+      "score": 0.9998
+    },
+    "pairBad": {
+      "doc": "Australia is a large country with many cities",
+      "logit": -2.032,
+      "score": 0.1159
+    },
+    "note": "sigmoid of the single relevance logit; eval()+no_grad()+manual_seed(0); committed frozen. The toy block teaches the head arithmetic with a constructed negation; this REAL pair shows the cross-encoder's actual edge — rejecting a keyword-sharing distractor that does not answer."
+  },
+  "contrast": {
+    "query": "what is the capital of australia",
+    "docRel": "Canberra is the capital of Australia",
+    "docBad": "Australia is a large country with many cities",
+    "biCosRel": 0.8434,
+    "biCosBad": 0.6875,
+    "crossScoreRel": 0.9998,
+    "crossScoreBad": 0.1159,
+    "note": "the distractor shares the keyword 'Australia' but does not answer. The bi-encoder (Scout) rates it close to the true answer (narrow gap); the cross-encoder (Judge), reading query+doc together, rejects it (huge gap). biCosBad > crossScoreBad, and the Judge's gap >> the Scout's gap: joint reading discriminates where separate encoding blurs."
+  }
+}

@@ -1,0 +1,32 @@
+<section class="slide" data-type="definition" data-screen-label="43 In practice &middot; two steps">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">На практике: сначала перепроецируй, потом перевзвесь</span>
+      <span lang="en">In practice: re-project first, then re-weight</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">шаг 1 — пространство &middot; шаг 2 — правило поиска &middot; они не заменяют друг друга</span>
+      <span lang="en">step 1 the space &middot; step 2 the lookup rule &middot; neither substitutes for the other</span>
+    </span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">
+      <span lang="ru">1 &middot; Перепроецируй пространство</span>
+      <span lang="en">1 &middot; Re-project the space</span>
+    </span>
+    <div class="def-body">
+      <p class="small muted"><span lang="ru">Сними среднее направление; на сыром LM — при желании ещё пару верхних осей; на контрастном эмбеддере — <strong>ничего больше</strong>. Клин раскрывается, шкала возвращается, и косинус снова значит хоть что-то. Это чинит <strong>конус</strong> — то есть шкалу.</span><span lang="en">Remove the mean direction; on a raw LM you may also project out a couple of top axes; on a contrastive embedder, <strong>nothing further</strong>. The wedge opens, the range comes back, and cosine means something again. This fixes the <strong>cone</strong> — that is, the scale.</span></p>
+    </div>
+  </div>
+  <div class="def-card">
+    <span class="def-tag">
+      <span lang="ru">2 &middot; Перевзвесь поиск</span>
+      <span lang="en">2 &middot; Re-weight the lookup</span>
+    </span>
+    <div class="def-body">
+      <p class="small muted"><span lang="ru">На запросе меняй сырой косинус на <strong>CSLS</strong> (или Local Scaling / DisSimLocal; взаимный kNN-граф — если правишь сам индекс). Хабы платят пошлину, анти-хабы всплывают, переобучение не нужно. Это чинит <strong>соседский граф</strong> — то есть порядок.</span><span lang="en">At query time swap raw cosine for <strong>CSLS</strong> (or Local Scaling / DisSimLocal; a mutual-kNN graph if you are editing the index itself). Hubs pay a toll, anti-hubs surface, nothing is retrained. This fixes the <strong>neighbour graph</strong> — that is, the order.</span></p>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Правило: <em>косинус — на выпрямленном пространстве, CSLS — на соседском поиске</em>. И оба шага делай <strong>после</strong> измерения: скос ниже \(S_{N_{10}} \approx 1{,}4\) лечить нечем, а полное отбеливание контрастной модели скорее навредит.</span><span lang="en">The rule: <em>cosine on a straightened space, CSLS on the neighbour lookup</em>. And do both only <strong>after</strong> measuring: below \(S_{N_{10}} \approx 1.4\) there is nothing to treat, and fully whitening a contrastive model is more likely to hurt.</span></p>
+  <aside class="slide-notes">The practitioner's checklist, both steps merged (plan N2, the 43+44 salami pair) and updated to 2026. Step 1 repairs the CONE (a scale defect): remove the mean direction always, ABT on raw LM representations, and nothing more on a contrastively trained embedder — full whitening is negative on 5 of 5 modern encoders. Step 2 repairs the NEIGHBOUR GRAPH (an order defect): a density-corrected score at query time, or a mutual-kNN symmetrisation if you own the index. The two are complementary, not either/or, and the measure-first discipline (S_{N₁₀} ≈ 1.4, Feldbauer &amp; Flexer 2019) is what keeps this from becoming cargo cult. The next-but-one slide turns it into the full 2026 checklist.</aside>
+</section>

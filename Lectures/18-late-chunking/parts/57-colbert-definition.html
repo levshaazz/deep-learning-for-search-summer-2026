@@ -1,0 +1,56 @@
+<section class="slide" data-type="two-col" data-screen-label="57 ColBERT &middot; late interaction &amp; MaxSim">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">ColBERT: не сжимай &mdash; храни вектор на каждый токен</span>
+      <span lang="en">ColBERT: don&rsquo;t compress &mdash; keep a vector per token</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">возврат к L12 &mdash; позднее <em>взаимодействие</em>, не позднее <em>чанкование</em></span>
+      <span lang="en">callback to L12 &mdash; late <em>interaction</em>, not late <em>chunking</em></span>
+    </span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag">
+          <span lang="ru">Определение &middot; позднее взаимодействие</span>
+          <span lang="en">Definition &middot; late interaction</span>
+        </span>
+        <div class="def-term">
+          <span lang="ru">Один вектор на <em>токен</em>, а не на документ.</span>
+          <span lang="en">One vector per <em>token</em>, not per document.</span>
+        </div>
+        <div class="def-body">
+          <p lang="ru">ColBERT (L12) <strong>не</strong> сворачивает документ в один эмбеддинг. Он хранит <em>каждый</em> контекстный токен-вектор, а взаимодействие запроса и документа откладывает до момента запроса &mdash; отсюда &laquo;позднее&raquo;.</p>
+          <p lang="en">ColBERT (L12) does <strong>not</strong> pool a document into a single embedding. It keeps <em>every</em> contextual token vector and defers the query&ndash;document interaction until query time &mdash; hence &ldquo;late&rdquo;.</p>
+          <p class="def-where"><span lang="ru">Откладывается <strong>сравнение</strong>, а не усреднение. Мы сегодня откладываем ровно противоположное.</span><span lang="en">What is deferred is the <strong>comparison</strong>, not the pooling. Today we defer exactly the other one.</span></p>
+        </div>
+      </div>
+    </div>
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag">
+          <span lang="ru">MaxSim &middot; счёт при запросе</span>
+          <span lang="en">MaxSim &middot; the query-time bill</span>
+        </span>
+        <div class="def-body">
+          <p lang="ru">Каждый токен запроса берёт свой <em>лучший</em> токен документа, и совпадения суммируются:</p>
+          <p lang="en">Each query token takes its <em>best</em>-matching document token, then the matches are summed:</p>
+          <p class="math-display">$$ S(q,d)=\sum_{i\in q}\max_{j\in d} E_{q_i}^{\top} E_{d_j} $$</p>
+          <p class="small muted">
+            <span lang="ru">Каждый токен запроса сканирует <em>все</em> токены документа &rarr; счёт приходит с <strong>каждым</strong> запросом. Богатая точность &mdash; по подписке, а не единовременно.</span>
+            <span lang="en">Every query token scans <em>all</em> document tokens &rarr; the bill arrives with <strong>every</strong> query. Rich precision, on a subscription rather than a one-off.</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="small muted center mt-2">
+    <span lang="ru">Держи это в уме: у позднего чанкования счёт зеркальный &mdash; один раз при индексации, и на запросе он равен наивному.</span>
+    <span lang="en">Hold that thought: late chunking&rsquo;s bill is the mirror image &mdash; once, at index time, and at query time it equals naive.</span>
+  </p>
+  <div class="viz-frame fig-fit" style="--fig-max:34cqh; --fig-w:28%;">
+    <img src="assets/img/L16/L16-06-two-lates.png?v=1" alt="S&#xE9;r&#xE9;ga at his reading desk with a hand held out on each side. His left hand grips a fat fistful of sticky-notes &#x2014; one scribbled per word &#x2014; trailing a tangle of strings to a document and a bulging card-catalog drawer behind it; the strings knot into a many-armed handshake he must re-tie at every query. His right hand holds a single tidy index-card, one per chunk, which he files once into a slim cabinet." />
+  </div>
+  <aside class="slide-notes">ColBERT from L12, merged (the definition and the MaxSim bill used to be two short slides that both re-summarised L12). Late INTERACTION keeps one contextual vector per token and defers the query–document comparison to query time; MaxSim S(q,d) = Σ_i max_j E_qi·E_dj is therefore paid by every query. Late CHUNKING defers the opposite operation — the pooling — and pays once, at index time. That mirror is the whole act.</aside>
+</section>

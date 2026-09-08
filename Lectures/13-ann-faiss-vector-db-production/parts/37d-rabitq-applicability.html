@@ -1,0 +1,44 @@
+<section class="slide" data-type="definition" data-screen-label="37d Definition · When RaBitQ">
+  <div class="slide-header">
+    <h2><span lang="ru">Когда брать RaBitQ, а когда остаться на PQ</span><span lang="en">When to take RaBitQ, and when to stay on PQ</span></h2>
+    <span class="slide-kicker"><span lang="ru">размен «память против предсказуемости»</span><span lang="en">the memory-versus-predictability trade</span></span>
+  </div>
+  <div class="cmp-table">
+    <table>
+      <thead>
+        <tr>
+          <th><span lang="ru">ситуация</span><span lang="en">situation</span></th>
+          <th><span lang="ru">что брать</span><span lang="en">take</span></th>
+          <th><span lang="ru">почему</span><span lang="en">why</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span lang="ru">Корпус меняется, дообучать книгу некому</span><span lang="en">Corpus drifts, nobody re-trains the codebook</span></td>
+          <td class="cell-good">RaBitQ</td>
+          <td><span lang="ru">учить нечего: книга фиксирована, качество не зависит от того, на чём её «настроили»</span><span lang="en">nothing to train: the codebook is fixed, quality does not hinge on what it was tuned on</span></td>
+        </tr>
+        <tr>
+          <td><span lang="ru">Память — узкое место, корпус стабилен</span><span lang="en">Memory is the bottleneck, corpus is stable</span></td>
+          <td class="cell-good">PQ</td>
+          <td><span lang="ru">8 байт против 96: разница в двенадцать раз, и на миллиарде векторов она решает</span><span lang="en">8 bytes against 96: twelve times, and at a billion vectors that decides</span></td>
+        </tr>
+        <tr>
+          <td><span lang="ru">Нужна оценка «насколько мы можем ошибиться» до выката</span><span lang="en">You need «how wrong can we be» before rollout</span></td>
+          <td class="cell-good">RaBitQ</td>
+          <td><span lang="ru">граница выводится из размерности, а не измеряется на удачном корпусе</span><span lang="en">the bound follows from the dimension, not from a lucky corpus</span></td>
+        </tr>
+        <tr>
+          <td><span lang="ru">Уже есть работающий IVF-PQ и метрики в норме</span><span lang="en">You already run IVF-PQ and the metrics hold</span></td>
+          <td class="cell-good"><span lang="ru">не трогать</span><span lang="en">leave it</span></td>
+          <td><span lang="ru">замена квантователя — не улучшение, а новый набор рисков</span><span lang="en">swapping the quantizer is not an upgrade, it is a fresh set of risks</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted center mt-3">
+    <span lang="ru">Где это уже стоит в проде: RaBitQ въехал в NVIDIA cuVS как <strong>IVF-RaBitQ</strong>. На полноте около \(0{,}95\) он даёт втрое больше запросов в секунду, чем графовый CAGRA, и строит индекс в \(14{,}7\) раза быстрее; против IVF-PQ — вчетверо с лишним по пропускной способности, причём не обращаясь к исходным векторам ради переранжирования.</span>
+    <span lang="en">Where it already runs in production: RaBitQ landed in NVIDIA cuVS as <strong>IVF-RaBitQ</strong>. At recall around \(0.95\) it serves three times the queries per second of the graph method CAGRA and builds indexes \(14.7\times\) faster; against IVF-PQ, better than four times the throughput — without touching raw vectors to re-rank.</span>
+  </p>
+  <aside class="slide-notes">Границы применимости — обязательный слайд акта. Смысл: это НЕ «RaBitQ победил PQ», а размен. Строки таблицы разводят четыре ситуации, включая «ничего не трогай, если работает» — самый частый правильный ответ в проде. Числа GPU-строки из data/l9-bench.json → rabitq.gpu (Shi et al., arXiv:2602.23999, интеграция в NVIDIA cuVS): при recall ≈ 0,95 — 3,0× QPS против CAGRA, 14,7× по времени сборки индекса, 4,5× против IVF-PQ. Сравнение 8 Б против 96 Б — из byHand того же файла.</aside>
+</section>

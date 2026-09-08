@@ -1,0 +1,167 @@
+{
+  "_doc": "Index-family comparison matrix. methods = flat / HNSW / IVF / IVF-PQ / HNSW-PQ. Qualitative cells (kind='qual') are build-time strings (search O-notation, update/build cost, best-for). Quantitative cells (kind='num') REFERENCE existing gated values — PQ compression from l9-pq.json, representative recall from l9-bench.json (with a source) — so this file introduces NO new computed decimals.",
+  "_source": "_research/gen_l9.py (qual = build-time strings; num = references to l9-pq.json + l9-bench.json).",
+  "methods": [
+    "flat",
+    "HNSW",
+    "IVF",
+    "IVF-PQ",
+    "HNSW-PQ"
+  ],
+  "rows": [
+    {
+      "criterion": "search complexity",
+      "cells": [
+        {
+          "method": "flat",
+          "value": "O(N·D)",
+          "kind": "qual"
+        },
+        {
+          "method": "HNSW",
+          "value": "O(log N)",
+          "kind": "qual"
+        },
+        {
+          "method": "IVF",
+          "value": "O(nprobe·N/nlist·D)",
+          "kind": "qual"
+        },
+        {
+          "method": "IVF-PQ",
+          "value": "O(nprobe·N/nlist) ADC lookups",
+          "kind": "qual"
+        },
+        {
+          "method": "HNSW-PQ",
+          "value": "O(log N) ADC lookups",
+          "kind": "qual"
+        }
+      ]
+    },
+    {
+      "criterion": "build / update cost",
+      "cells": [
+        {
+          "method": "flat",
+          "value": "none (append-only)",
+          "kind": "qual"
+        },
+        {
+          "method": "HNSW",
+          "value": "high build, incremental insert",
+          "kind": "qual"
+        },
+        {
+          "method": "IVF",
+          "value": "train centroids, cheap insert",
+          "kind": "qual"
+        },
+        {
+          "method": "IVF-PQ",
+          "value": "train centroids + codebooks",
+          "kind": "qual"
+        },
+        {
+          "method": "HNSW-PQ",
+          "value": "high build + codebooks",
+          "kind": "qual"
+        }
+      ]
+    },
+    {
+      "criterion": "memory / compression",
+      "cells": [
+        {
+          "method": "flat",
+          "value": "1× (raw float32)",
+          "kind": "qual"
+        },
+        {
+          "method": "HNSW",
+          "value": "1× + graph overhead",
+          "kind": "qual"
+        },
+        {
+          "method": "IVF",
+          "value": "1× + inverted lists",
+          "kind": "qual"
+        },
+        {
+          "method": "IVF-PQ",
+          "value": 8,
+          "kind": "num",
+          "source": "compression from l9-pq.json toy (float32/PQ); 768-d config = 32× (l9-pq.json scale)."
+        },
+        {
+          "method": "HNSW-PQ",
+          "value": 8,
+          "kind": "num",
+          "source": "same PQ compression as IVF-PQ — from l9-pq.json toy (float32/PQ)."
+        }
+      ]
+    },
+    {
+      "criterion": "representative recall",
+      "cells": [
+        {
+          "method": "flat",
+          "value": "1.0 (exact)",
+          "kind": "qual"
+        },
+        {
+          "method": "HNSW",
+          "value": "high (tunable via efSearch)",
+          "kind": "qual"
+        },
+        {
+          "method": "IVF",
+          "value": "tunable via nprobe",
+          "kind": "qual"
+        },
+        {
+          "method": "IVF-PQ",
+          "value": 0.7,
+          "kind": "num",
+          "source": "representative PQ-m4 recall@1 from l9-bench.json (Jégou et al., TPAMI 2011)."
+        },
+        {
+          "method": "HNSW-PQ",
+          "value": 0.7,
+          "kind": "num",
+          "source": "representative PQ-m4 recall@1 from l9-bench.json (Jégou et al., TPAMI 2011)."
+        }
+      ]
+    },
+    {
+      "criterion": "best for",
+      "cells": [
+        {
+          "method": "flat",
+          "value": "small N, exact baseline",
+          "kind": "qual"
+        },
+        {
+          "method": "HNSW",
+          "value": "low-latency in-memory recall",
+          "kind": "qual"
+        },
+        {
+          "method": "IVF",
+          "value": "large N with cheap training",
+          "kind": "qual"
+        },
+        {
+          "method": "IVF-PQ",
+          "value": "billion-scale, RAM-bound",
+          "kind": "qual"
+        },
+        {
+          "method": "HNSW-PQ",
+          "value": "low-latency + compressed",
+          "kind": "qual"
+        }
+      ]
+    }
+  ]
+}

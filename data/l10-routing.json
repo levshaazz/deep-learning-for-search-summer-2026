@@ -1,0 +1,66 @@
+{
+  "_doc": "Query routing + construction, exact (stdlib). Embed the query, take cosine to 3 prompt-template centroids (factQA / howTo / compare), route = argmax. The toy query [2,3,1] leans how-to → cos 0.81 / 0.97 / 0.64 → route 'howTo'. Construction: turn the NL query into a STRUCTURED retrieval — a metadata filter (self-query) or a SQL query (text-to-SQL) — descriptive examples below. Sims are recomputed from frozen vectors, never hand-picked.",
+  "_source": "_research/gen_l10.py (toy, stdlib): sims = cos(query, centroid); route = argmax.",
+  "dims": [
+    "factual-lookup",
+    "how-to/procedure",
+    "comparison"
+  ],
+  "query": [
+    2,
+    3,
+    1
+  ],
+  "centroids": [
+    {
+      "template": "factQA",
+      "centroid": [
+        3,
+        1,
+        1
+      ],
+      "cos": 0.8058
+    },
+    {
+      "template": "howTo",
+      "centroid": [
+        1,
+        3,
+        1
+      ],
+      "cos": 0.967
+    },
+    {
+      "template": "compare",
+      "centroid": [
+        1,
+        1,
+        3
+      ],
+      "cos": 0.6447
+    }
+  ],
+  "sims": [
+    0.8058,
+    0.967,
+    0.6447
+  ],
+  "route": "howTo",
+  "construct": {
+    "metadataFilter": {
+      "nl": "papers on retrieval published after 2020",
+      "filter": {
+        "topic": "retrieval",
+        "year": {
+          "$gt": 2020
+        }
+      },
+      "note": "self-query: NL → a metadata filter applied alongside vector search"
+    },
+    "textToSql": {
+      "nl": "how many documents did we index last month?",
+      "sql": "SELECT COUNT(*) FROM documents WHERE indexed_at >= date_trunc('month', now() - interval '1 month');",
+      "note": "text-to-SQL: NL → an executable query over a structured store"
+    }
+  }
+}

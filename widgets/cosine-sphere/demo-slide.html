@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cosine-sphere · slide-driver proof</title>
+  <!-- SLIDE CONTEXT proof: the same widget the Book uses, driven by ARROW KEYS (the deck's
+       step engine). Reads the same data/l2-cosine.json. No scroll involved. -->
+  <link rel="stylesheet" href="../../tokens/design-tokens.css" />
+  <link rel="stylesheet" href="./style.css" />
+  <style>
+    body { font-family: var(--font-sans); background: var(--bg); color: var(--ink); margin: 0; }
+    .slide { max-width: 760px; margin: 0 auto; padding: 40px 24px; }
+    .slide h1 { font-family: var(--font-serif); font-size: var(--fz-h2); margin: 0 0 4px; }
+    .kick { font-family: var(--font-mono); font-size: var(--fz-tiny); letter-spacing: 2px;
+            text-transform: uppercase; color: var(--warm-ink); }
+    .bar { display: flex; gap: 10px; align-items: center; margin-top: 16px; }
+    .bar button { font: inherit; padding: 6px 14px; border: 1.5px solid var(--rule-strong);
+                  background: var(--bg-card); border-radius: var(--r-sm); cursor: pointer; }
+    .hint { font-family: var(--font-mono); font-size: var(--fz-tiny); color: var(--ink-3); }
+  </style>
+</head>
+<body>
+  <div class="slide">
+    <div class="kick">L2 · First Contact · climb-cosine — SLIDE driver (← / →)</div>
+    <h1>Measure the angle, not the length</h1>
+    <div id="fig"></div>
+    <div class="bar">
+      <button id="prev" type="button">← prev</button>
+      <button id="next" type="button">next →</button>
+      <span class="hint">arrow keys drive the same <code>setStep()</code> the Book scroll uses</span>
+    </div>
+  </div>
+
+  <script type="module">
+    import { mountCosineSphere } from './logic.js';
+    const [data, i18n] = await Promise.all([
+      fetch('../../data/l2-cosine.json').then((r) => r.json()),
+      fetch('./i18n.json').then((r) => r.json()),
+    ]);
+    // SLIDE = English only; resolve EN labels from the widget i18n.
+    const labels = Object.fromEntries(Object.entries(i18n).map(([k, v]) => [k, (v && v.en) || '']));
+    const fig = mountCosineSphere(document.getElementById('fig'), { data, labels });
+    window.__fig = fig; // for headless verification
+
+    const go = (d) => fig.setStep(Math.max(0, Math.min(fig.maxStep, fig.step + d)));
+    document.getElementById('next').onclick = () => go(1);
+    document.getElementById('prev').onclick = () => go(-1);
+    addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') { go(1); e.preventDefault(); }
+      if (e.key === 'ArrowLeft') { go(-1); e.preventDefault(); }
+    });
+  </script>
+</body>
+</html>

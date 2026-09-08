@@ -1,0 +1,94 @@
+{
+  "_doc": "CITED published benchmarks for L9 — NOT computed in this repo. Use verbatim with source. HNSW (Malkov & Yashunin); PQ (Jégou et al.); IVF/FAISS (Johnson et al.); TurboQuant frontier (Zandieh et al., arXiv:2504.19874 — data-oblivious/online, no codebook; ≈2.7× from the distortion lower bound; better recall with near-zero indexing time). The PQ-m4 recall is representative.",
+  "_source": "_research/gen_l9.py (static, cited): HNSW, PQ, IVF/FAISS, TurboQuant",
+  "cited": true,
+  "hnsw": {
+    "complexity": "O(log N) search",
+    "knobs": [
+      "M",
+      "efConstruction",
+      "efSearch"
+    ],
+    "source": "Malkov & Yashunin, IEEE TPAMI 2018/2020 (arXiv:1603.09320)"
+  },
+  "pq": {
+    "recallRepresentativeM4": 0.7,
+    "representative": true,
+    "source": "Jégou, Douze & Schmid, IEEE TPAMI 2011 (Product Quantization for NN search)"
+  },
+  "ivfFaiss": {
+    "note": "coarse quantizer (IVF) + GPU-scale ANN",
+    "k256": 256,
+    "source": "Johnson, Douze & Jégou, 'Billion-scale similarity search with GPUs' (arXiv:1702.08734)"
+  },
+  "turboquant": {
+    "fromLowerBound": 2.7,
+    "online": true,
+    "noCodebook": true,
+    "mechanism": "random rotation → Beta-concentrated coordinates → per-coordinate optimal scalar quantizer; two-stage MSE + 1-bit QJL residual → unbiased inner product",
+    "claim": "outperforms existing PQ techniques in recall while reducing indexing time to ~0",
+    "source": "Zandieh, Daliri, Hadian & Mirrokni, arXiv:2504.19874 (2025, Google Research)"
+  },
+  "rabitq": {
+    "bitsPerDim": 1,
+    "codebookLearned": false,
+    "unbiased": true,
+    "pqMSongRelErrorPct": 50,
+    "pqMSongRecallCeilPct": 60,
+    "mechanism": "нормировать на единичную сферу → кодовая книга = вершины гиперкуба (±1/√D), случайно повёрнутые ортогональной матрицей (JL) → ближайшая вершина даёт D-битный код; оценка расстояния несмещённая, с резкой границей ошибки",
+    "source": "Gao & Long, SIGMOD 2024 (arXiv:2405.12497)",
+    "byHand": {
+      "dim": 768,
+      "fp32Bytes": 3072,
+      "rabitqBytes": 96,
+      "rabitqCompression": 32,
+      "pqM8Bytes": 8,
+      "pqM8Compression": 384,
+      "cubeCoord": 0.3536,
+      "boundToyD8": 0.378,
+      "boundRealD768": 0.03611
+    },
+    "toy": {
+      "dim": 8,
+      "normalized": [
+        0.3497,
+        -0.1354,
+        0.6204,
+        -0.4512,
+        0.203,
+        -0.2482,
+        0.4061,
+        -0.0564
+      ],
+      "code": "10101010",
+      "vertexCoord": 0.3536,
+      "vertex": [
+        0.3536,
+        -0.3536,
+        0.3536,
+        -0.3536,
+        0.3536,
+        -0.3536,
+        0.3536,
+        -0.3536
+      ],
+      "dotWithVertex": 0.8734,
+      "bytesPerVector": 1
+    },
+    "estimateCost": {
+      "pqSubquantizers": 8,
+      "pqCentroidsPerTable": 256,
+      "pqTableBuildOps": 2048,
+      "pqLookupsPerVector": 8,
+      "rabitqBits": 768,
+      "rabitqWords64": 12
+    },
+    "gpu": {
+      "qpsVsCagra": 3.0,
+      "buildSpeedupVsCagra": 14.7,
+      "qpsVsIvfPq": 4.5,
+      "atRecall": 0.95,
+      "source": "Shi, Gao, Xia, Fehér & Long, IVF-RaBitQ на GPU (arXiv:2602.23999), интегрировано в NVIDIA cuVS"
+    }
+  }
+}

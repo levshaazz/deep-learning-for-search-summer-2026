@@ -1,0 +1,38 @@
+<section class="slide" data-type="misconception" data-screen-label="27 Boundaries are characters">
+  <div class="slide-header">
+    <h2>
+      <span lang="ru">&laquo;Границы чанков считаются в символах&raquo;</span>
+      <span lang="en">&ldquo;Chunk boundaries are counted in characters&rdquo;</span>
+    </h2>
+    <span class="slide-kicker">
+      <span lang="ru">и два бага в самом псевдокоде статьи</span>
+      <span lang="en">and two bugs in the paper&rsquo;s own pseudocode</span>
+    </span>
+  </div>
+  <div class="misc-card">
+    <div class="misc-label">
+      <span lang="ru">Соблазнительное убеждение</span>
+      <span lang="en">The tempting belief</span>
+    </div>
+    <p class="misc-statement">
+      <span lang="ru">&laquo;Чанкер вернул мне границы &mdash; просто усредни всё, что между ними&raquo;.</span>
+      <span lang="en">&ldquo;The chunker gave me boundaries &mdash; just average everything between them.&rdquo;</span>
+    </p>
+    <button class="misc-reveal-btn" type="button">
+      <span lang="ru">Показать правду</span><span lang="en">Reveal truth</span>
+    </button>
+    <div class="misc-truth">
+      <span lang="ru">Чанкер режет <strong>символы</strong>, модель живёт в <strong>токенах</strong>, и одно в другое не переводится делением. Мост &mdash; \(o_i\), длина каждого токена в символах; на практике это <code>return_offsets_mapping=True</code>. Промахнёшься на один токен &mdash; и чанк начнётся с середины слова, а из последнего выпадет половина предложения. (Служебные \([\mathrm{CLS}]\) и \([\mathrm{SEP}]\) в первом и последнем чанке &mdash; это <em>не</em> промах: &sect;4.1 кладёт их туда намеренно, см. предыдущий слайд. Ошибка &mdash; поймать их <em>случайно</em>, вместо того чтобы добавить руками.)</span>
+      <span lang="en">The chunker cuts <strong>characters</strong>; the model lives in <strong>tokens</strong>; you do not convert one into the other by division. The bridge is \(o_i\), the character length of each token &mdash; in practice <code>return_offsets_mapping=True</code>. Be off by one token and a chunk starts mid-word while the last one loses half a sentence. (The \([\mathrm{CLS}]\) and \([\mathrm{SEP}]\) in the first and last chunk are <em>not</em> a slip: &sect;4.1 puts them there on purpose &mdash; see the previous slide. The bug is catching them <em>by accident</em> instead of adding them deliberately.)</span>
+      <p class="misc-anchor">
+        <span lang="ru"><strong>И читай псевдокод как код.</strong> В Алгоритме 1 присваивание \(\mathrm{cue}_{end}\) стоит <em>внутри</em> условия, поэтому хвостовой неполный чанк не получает пары подсказок &mdash; реализовавший буквально <strong>потеряет последний чанк</strong>. А Алгоритм 2 в версии v2 не выполняется ни разу (условие <code>while i_end &lt; l_max</code> при <code>i_end &larr; l_max</code>) и исправлен только в v3. Опубликовано &ne; проверено.</span>
+        <span lang="en"><strong>And read pseudocode like code.</strong> In Algorithm 1 the assignment to \(\mathrm{cue}_{end}\) sits <em>inside</em> the conditional, so a trailing partial chunk never gets its cue pair &mdash; implement it literally and you <strong>lose the last chunk</strong>. And Algorithm 2 as printed in v2 never executes at all (<code>while i_end &lt; l_max</code> with <code>i_end &larr; l_max</code>); it is fixed only in v3. Published &ne; verified.</span>
+      </p>
+    </div>
+  </div>
+  <div class="viz-frame fig-fit" style="--fig-max:32cqh; --fig-w:24%; margin:.3rem auto 0;">
+    <img src="assets/img/L16/L16-14-offsets.png?v=1" alt="S&#xE9;r&#xE9;ga holds two rulers over one line of text: the upper one ticked off letter by letter, where the chunker cut, and the lower one ticked in fatter token pieces, where the model actually reads; he pencils the letter-mark down onto the nearest token-mark, a small warm-orange tick where the two meet, while a CLS tag is tucked into the first bracket and a SEP tag into the last. His green t&#xFC;betey is the only green." />
+  </div>
+
+  <aside class="slide-notes">Misconception + the honesty beat. Truth: the chunker works in characters, the model in tokens, and o_i (the per-token character length; in practice return_offsets_mapping) is the only bridge. Then two real defects in the published pseudocode, both verified against the arXiv versions: Algorithm 1 assigns cue_end only inside the conditional, so a trailing partial chunk is dropped by a literal implementation; Algorithm 2 in v2 has a loop guard that can never be true (while i_end < l_max right after i_end ← l_max) and is corrected in v3. The lesson for the student is transferable: read pseudocode as code, and diff arXiv versions before trusting one. ⚠️ ДЕФЕКТ S9 ЗАКРЫТ: в примере промаха стояло «в первый чанк уедет служебный [CLS]» — но именно это §4.1 предписывает НАМЕРЕННО, и предыдущий слайд учит так делать. Дек называл дефектом собственное правило. Пример промаха заменён, а §4.1 явно защищён.</aside>
+</section>
