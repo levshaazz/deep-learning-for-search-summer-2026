@@ -1,6 +1,6 @@
     {
       id: 'catch-three-bpc-scales', kind: 'prose',
-      heading: { en: "Three incompatible «bits per character»", ru: "Три несовместимые шкалы «бит на символ»", tt: "«Символга бит»нең өч ярашмаган шкаласы" },
+      heading: { en: "Incompatible «bits per character» scales", ru: "Несовместимые шкалы «бит на символ»", tt: "«Символга бит»нең ярашмаган шкалалары" },
       body: {
         en: [
           "Now the comparison everybody makes, including people who ought to know better. A modern compressor squeezes a slab of Wikipedia to fewer bits per character than the figure I obtained with a pencil and a patient reader — therefore machines have beaten the human guesser and closed on the entropy of English. Two of those numbers are not on the same scale, and once you see why, you cannot unsee it.",
