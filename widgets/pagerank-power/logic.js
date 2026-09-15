@@ -239,7 +239,7 @@ export const mountPagerankPower = defineWidget({
       // bars track the iteration the reader is watching
       if (k <= 1) setBars(vInit, `${labels.iterLabel || 'iter'} 0`);
       else if (k === 2) setBars(vAfter1, `${labels.iterLabel || 'iter'} 1`);
-      else if (k === 3) setBars(vSettle, `${labels.iterLabel || 'iter'} 5`);
+      else if (k === 3) setBars(vSettle, `${labels.iterLabel || 'iter'} 4`);
       else setBars(vConverged, `${labels.iterLabel || 'iter'} 25 · ${labels.convergedTag || 'converged'}`);
 
       // the update panel reveals the worked B-substitution across steps 1→2

@@ -197,6 +197,14 @@ async function run() {
     const file = join(DOCS_LECT, deck + '.html');
     if (!existsSync(file)) continue;
     await page.goto('file://' + file, { waitUntil: 'load' });
+    // Анимации и переходы ВЫКЛЮЧЕНЫ: гейт меряет финальную вёрстку каждого состояния, а размер
+    // текста берёт из габаритов. Подпись, которая ещё проявляется или разворачивается, на лету
+    // «мелкая» — и 15.09.2026 гейт выдавал HARD «NEW tiny-text» то на одном слайде, то на другом
+    // (деки 06 и 18, которых никто не трогал): замер попадал в середину входной анимации, которая
+    // затихает к ~700 мс. Ждать её дорого — 4320 состояний × ~0,4 с = 1720 с вместо 121 с,
+    // измерено. Без анимаций каждое состояние рисуется сразу финальным. Единственный слушатель
+    // animationend в деке (deck.js, снятие .is-entering) на вёрстку не влияет.
+    await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important}' });
     await page.waitForTimeout(400);
     const meta = await page.evaluate(() => [...document.querySelectorAll('.slide')].map(s => ({
       label: s.getAttribute('data-screen-label') || '', type: s.getAttribute('data-type') || '',
