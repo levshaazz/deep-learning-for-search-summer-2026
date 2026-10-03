@@ -689,6 +689,49 @@
      purely mutates inline transforms. Cheap + idempotent. The container
      targets (table/two-col/walkthrough ledger) self-fit LOCALLY so a single
      dense box no longer drags the whole slide into the global shrink. */
+  const textFitOriginal = new WeakMap();
+  function fitTextLabel(el) {
+    /* Scale the LABEL, not its bordered parent. Scaling an overflowing card as
+       a whole preserves the defect inside it (L21: Probability). Reset first,
+       so changing language or widening the card can also grow the text back. */
+    if (!textFitOriginal.has(el)) textFitOriginal.set(el, {
+      value: el.style.getPropertyValue('font-size'),
+      priority: el.style.getPropertyPriority('font-size'),
+    });
+    const original = textFitOriginal.get(el);
+    if (original.value) el.style.setProperty('font-size', original.value, original.priority);
+    else el.style.removeProperty('font-size');
+    delete el.dataset.fitTextScale;
+    if (!el.getClientRects().length) return;
+    const base = parseFloat(getComputedStyle(el).fontSize);
+    let scale = 1;
+    for (let pass = 0; pass < 3; pass++) {
+      const box = el.getBoundingClientRect();
+      if (box.width <= 0) return;
+      const cs = getComputedStyle(el);
+      const zoom = box.width / el.offsetWidth;
+      const available = box.width - (parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight)) * zoom;
+      const range = document.createRange();
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      let node, left = Infinity, right = -Infinity;
+      while ((node = walker.nextNode())) {
+        if (!node.textContent.trim() || getComputedStyle(node.parentElement).visibility === 'hidden') continue;
+        range.selectNodeContents(node);
+        for (const r of range.getClientRects()) {
+          if (r.width <= 0 || r.height <= 0) continue;
+          left = Math.min(left, r.left); right = Math.max(right, r.right);
+        }
+      }
+      const width = right - left;
+      if (!(width > available + zoom)) break;
+      const wanted = scale * available / width * 0.99;
+      scale = Math.max(FITBOX_FLOOR, wanted);
+      el.style.fontSize = `${base * scale}px`;
+      el.dataset.fitTextScale = scale.toFixed(3);
+      if (wanted < FITBOX_FLOOR) { markFitClipped(el, wanted); break; }
+    }
+  }
+
   function fitElementsIn(slide) {
     if (!slide) return;
     /* Recompute local-fit clipping fresh each pass: clear the slide-level flag
@@ -698,6 +741,7 @@
        clear each other. Mirrors how autoFitSlide clears data-auto-fit-clipped. */
     delete slide.dataset.fitClipped;
     delete slide.dataset.fitClipScale;
+    slide.querySelectorAll('.arch-name, .def-term, [data-fit-text]').forEach(fitTextLabel);
     slide.querySelectorAll('.fit-box, .formula-stage, .step-formula').forEach(fitToBox);
     /* Container fits are scoped to the slide TYPE whose layout is the simple
        top-anchored body flow fitContainer's slide-relative maths assume

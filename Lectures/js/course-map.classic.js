@@ -76,6 +76,10 @@
         let same = k === step;
         step = k;
         host.dataset.step = String(k);
+        if (!rendered()) {
+          dirty = true;
+          return;
+        }
         if (dirty) {
           paint();
           same = false;
