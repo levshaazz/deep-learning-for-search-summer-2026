@@ -41,7 +41,7 @@
           el.textContent = 'Не загрузились ресурсы: ' + failed.join(', ') +
             '. Формулы/подсветка/QR могут не отрисоваться — запустите офлайн-файл ' +
             '«Lecture Template (Standalone).html». · Failed to load: ' + failed.join(', ') +
-            ' — use the Standalone file. (клик чтобы скрыть)';
+            ' — use the Standalone file. (нажми, чтобы скрыть)';
         }
         show();
       };
@@ -255,7 +255,7 @@
       <h3><span lang="ru">Разведчик (би-энкодер, L10)</span><span lang="en">The Scout (bi-encoder, L10)</span></h3>
       <ul class="obj-list">
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Сворачивает весь документ в <strong>один</strong> вектор — быстро, но детали тонут.</span><span lang="en">Pools the whole document into <strong>one</strong> vector — fast, but detail drowns.</span></span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Редкое слово или точное совпадение фразы размывается средним.</span><span lang="en">A rare word or an exact phrase match is washed out by the mean.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">При сжатии в один вектор могут теряться редкие слова и точные совпадения фраз.</span><span lang="en">A rare word or an exact phrase match is washed out by the mean.</span></span></li>
       </ul>
     </div>
     <div class="twocol-col">
@@ -269,7 +269,6 @@
   <p class="viz-caption"><span lang="ru">Серёга уже упирался в это в L10 («плотный не бесплатен»): позднее взаимодействие — путь назад к качеству, не отказываясь от предвычисления.</span><span lang="en">S&eacute;r&eacute;ga already hit this in L10 ("dense isn't free"): late interaction is the road back to quality without giving up precomputation.</span></p>
   <aside class="slide-notes">Motivate per-token. BEIR BM25 0.43 > DPR 0.23 from data/l3-benchmarks.json (callback). The fix is to keep token detail.</aside>
 </section>
-
 <section class="slide" data-type="definition" data-screen-label="08 Three ways to interact">
   <div class="slide-header">
     <h2><span lang="ru">Три способа взаимодействия</span><span lang="en">Three ways to interact</span></h2>
@@ -356,12 +355,37 @@
       "s0": "ColBERT keeps one vector PER TOKEN — no pooling into a single vector. Query tokens down the side, document tokens across the top.",
       "s1": "Fill every cell with the cosine between that query token and that document token. Darker means a stronger token-level match.",
       "s2": "For each query token, take its MAX across the row — the single document token it matches best. Every query token salutes its strongest partner.",
-      "s3": "Sum those row-maxes to get the MaxSim score. A high score needs MANY query tokens to find a match — not just one loud one." }
+      "s3": "Sum those row-maxes to get the MaxSim score. A high score needs MANY query tokens to find a match — not just one loud one." },
+    "i18n": {
+      "en": {
+        "role": "img",
+        "alt": "A token-by-token cosine matrix between the query tokens river, bank, flood and the document tokens; each query token's strongest cell is highlighted and the highlighted maxes are summed into MaxSim.",
+        "head": "every query token vs every document token — cosine in each cell",
+        "qLabel": "query ↓",
+        "maxLabel": "max",
+        "scoreLabel": "MaxSim",
+        "s0": "ColBERT keeps one vector PER TOKEN — no pooling into a single vector. Query tokens down the side, document tokens across the top.",
+        "s1": "Fill every cell with the cosine between that query token and that document token. Darker means a stronger token-level match.",
+        "s2": "For each query token, take its MAX across the row — the single document token it matches best. Every query token salutes its strongest partner.",
+        "s3": "Sum those row-maxes to get the MaxSim score. A high score needs MANY query tokens to find a match — not just one loud one."
+      },
+      "ru": {
+        "role": "img",
+        "alt": "Матрица сходства между токенами запроса и документа; для каждого токена запроса подсвечивается сильнейшая ячейка, а подсвеченные максимумы суммируются в оценку MaxSim.",
+        "head": "каждый токен запроса против каждого токена документа — косинус в каждой ячейке",
+        "qLabel": "запрос ↓",
+        "maxLabel": "макс.",
+        "scoreLabel": "MaxSim",
+        "s0": "ColBERT хранит по одному вектору НА КАЖДЫЙ ТОКЕН — без свёртки в один вектор. Слева — токены запроса, сверху — токены документа.",
+        "s1": "Заполняем каждую ячейку косинусом между этим токеном запроса и этим токеном документа. Темнее — сильнее совпадение на уровне токенов.",
+        "s2": "Для каждого токена запроса берём МАКСИМУМ по строке — тот единственный токен документа, с которым он совпадает лучше всего. Каждый токен запроса салютует сильнейшему партнёру.",
+        "s3": "Суммируем эти построчные максимумы — получаем оценку MaxSim. Оценка суммирует лучшие совпадения всех токенов запроса. В показанном примере несколько хороших совпадений перевешивают одно сильное; это не гарантия для любого запроса."
+      }
+    }
   }
   </script>
   <aside class="slide-notes">Mounted colbert-maxsim widget. Step through: matrix → argmax per row → sum. Data inlined from data/l8-colbert.json (no fetch, H1).</aside>
 </section>
-
 <section class="slide" data-type="formula" data-screen-label="12 MaxSim, by hand (relevant)">
   <div class="slide-header">
     <h2><span lang="ru">MaxSim вручную — релевантный документ</span><span lang="en">MaxSim by hand — the relevant doc</span></h2>
@@ -392,7 +416,7 @@
 <section class="slide" data-type="definition" data-screen-label="14 Why interact late">
   <div class="slide-header">
     <h2><span lang="ru">Почему взаимодействовать поздно</span><span lang="en">Why interact late</span></h2>
-    <span class="slide-kicker"><span lang="ru">деталь токенов <em>и</em> предвычисление документов сразу</span><span lang="en">token detail <em>and</em> precomputed docs at once</span></span>
+    <span class="slide-kicker"><span lang="ru">детализация по токенам <em>и</em> предвычисление документов сразу</span><span lang="en">token detail <em>and</em> precomputed docs at once</span></span>
   </div>
   <div class="def-card">
     <span class="def-tag"><span lang="ru">Золотая середина</span><span lang="en">The sweet spot</span></span>
@@ -407,7 +431,6 @@
   </div>
   <aside class="slide-notes">Late interaction sits between bi (one vector, cacheable) and cross (joint, uncacheable): token detail + precompute.</aside>
 </section>
-
 <section class="slide" data-type="viz" data-max-step="2" data-current-step="0" data-screen-label="14a NCD · the contraction moves late">
   <div class="slide-header">
     <h2><span lang="ru">Позднее взаимодействие на схеме</span><span lang="en">Late interaction, drawn</span></h2>
@@ -425,18 +448,18 @@
       "legMap": "карточка документа · операция на документ · полоска-оценка · top-k ✓",
       "query": "нейросети для поиска",
       "lblQuery": "запрос", "lblCorpus": "N · корпус (4 док.)", "lblScore": "оценка", "lblTopk": "top-k",
-      "lblPre": "предвыч.", "noPre": "предвычислить нечего",
+      "lblPre": "предвыч.", "noPre": "нет независимого вектора документа",
       "opBi": "q · dᵢ", "opCol": "MaxSim",
       "doc1": "Плотный поиск · DPR", "doc2": "Рецепт борща", "doc3": "Инвертированный индекс", "doc4": "ColBERT · late interaction",
       "tagBi": "N: дешёвый dot на документ", "tagCross": "N: ПОЛНЫЙ кодировщик на документ", "tagCol": "N: токенный MaxSim на документ",
       "costBi": "1 прогон кодировщика / запрос", "costCross": "N прогонов кодировщика / запрос", "costCol": "1 кодирование + N дешёвых MaxSim",
       "lgTitle": "стоимость и качество",
-      "lgEnc": "кодировщик / запрос", "lgPre": "предпосчёт", "lgPer": "на документ",
+      "lgEnc": "кодировщик / запрос", "lgPre": "предвычисление", "lgPer": "на документ",
       "lgPerBi": "q·dᵢ", "lgPerCross": "полный BERT", "lgPreTok": "по токенам",
       "lgYes": "да", "lgNo": "нет", "lgMrr": "MRR@10 · MS MARCO",
-      "lgN0": "Один прогон кодировщика — на запросе. Векторы документов посчитаны офлайн, поэтому в момент запроса корпус вообще не трогают — вот почему bi-encoder масштабируется на миллиарды. MRR@10 на MS MARCO: 0.33 у ANCE (RocketQA Table 2) против 0.187 у BM25.",
-      "lgN1": "Посчитайте прямоугольники кодировщика: их N. Кодировщик читает запрос и документ ВМЕСТЕ, поэтому предпосчитать нечего. Качество лучшее — и при корпусе в миллион это миллион прогонов BERT на каждый запрос. Поэтому он живёт только в реранке.",
-      "lgN2": "Один прогон на запрос, как у bi-encoder — но стягивание ПОЗДНЕЕ: MaxSim сравнивает токен с токеном. Платите хранением (вектор на каждый токен документа), получаете MRR@10 = 0.36 — выше одновекторного плотного (0.33)."
+      "lgN0": "Энкодер применяется один раз к запросу. Векторы документов уже сохранены, но поиск по индексу всё равно требует работы. В приведённом сравнении MRR@10: 0,33 у ANCE (RocketQA, таблица 2) против 0,187 у BM25.",
+      "lgN1": "У обычного кросс-энкодера независимый от запроса вектор документа заранее не получить. Перебор миллиона документов потребует миллиона парных вычислений, поэтому на практике модель обычно применяют для реранка кандидатов.",
+      "lgN2": "В приведённом сравнении один прогон на запрос, как у bi-encoder, — но стягивание ПОЗДНЕЕ: MaxSim сравнивает токен с токеном. Платишь хранением (вектор на каждый токен документа), получаешь 0,36 — выше одновекторного плотного (0,33)."
     },
     "en": {
       "alt": "A query scored against a toy corpus of four documents, drawn as a neural circuit diagram. The corpus is the broadcast axis N; each retriever runs a different operation per document. Bi-encoder: each document card carries a row of grey pre-encoded vector cells, so only a cheap dot product runs per document (one encoder pass, for the query). Cross-encoder: the grey vectors are gone — an empty dashed slot sits where the cached vector would be, because a full encoder must run on query+document for every document (N passes), reading both together. ColBERT: the grey vectors return as a grid, one per document token, and a token-level MaxSim runs per document. Score bars rank the documents; top-k are highlighted.",
@@ -533,7 +556,7 @@
     <div class="def-term"><span lang="ru">«Раз качество выше, всегда берём ColBERT»</span><span lang="en">"Higher quality, so always use ColBERT"</span></div>
     <div class="def-body">
       <ul class="obj-list">
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>✗</strong> Вектор на токен раздувает индекс (даже сжатый он больше одно-векторного).</span><span lang="en"><strong>✗</strong> A vector per token blows up the index (even compressed it's bigger than single-vector).</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>✗</strong> Вектор на токен раздувает индекс (даже сжатый он больше одновекторного).</span><span lang="en"><strong>✗</strong> A vector per token blows up the index (even compressed it's bigger than single-vector).</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>✗</strong> Многовекторный ANN сложнее, чем поиск по одному вектору.</span><span lang="en"><strong>✗</strong> Multi-vector ANN is harder than single-vector search.</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>✓</strong> Бери ColBERT, когда бюджет позволяет и качество критично; иначе — гибрид (дальше) или выученная разрежённость.</span><span lang="en"><strong>✓</strong> Use ColBERT when the budget allows and quality matters; otherwise hybrid (next) or learned sparse.</span></span></li>
       </ul>
@@ -541,7 +564,6 @@
   </div>
   <aside class="slide-notes">Honest limits: token storage, multi-vector ANN harder. Bridge to L9. Sets up the next pillar (learned sparse / hybrid).</aside>
 </section>
-
 <section class="slide" data-type="divider" data-screen-label="19 Divider · Teaching sparsity to read">
   <div class="divider-content">
     <div class="divider-num"><span lang="ru">Столп 2 · Выученная разрежённость</span><span lang="en">Pillar 2 · Learned sparse</span></div>
@@ -557,13 +579,13 @@
 <section class="slide" data-type="two-col" data-screen-label="20 BM25 counts; it can't expand">
   <div class="slide-header">
     <h2><span lang="ru">BM25 считает; расширять не умеет</span><span lang="en">BM25 counts; it can't expand</span></h2>
-    <span class="slide-kicker"><span lang="ru">сырой TF·IDF только по буквальным терминам (отсылка L3)</span><span lang="en">raw TF·IDF over literal terms only (callback L3)</span></span>
+    <span class="slide-kicker"><span lang="ru">IDF, насыщение TF и нормализация по длине; только буквальные термины (отсылка L3)</span><span lang="en">raw TF·IDF over literal terms only (callback L3)</span></span>
   </div>
   <div class="twocol">
     <div class="twocol-col">
       <h3><span lang="ru">BM25 (L3)</span><span lang="en">BM25 (L3)</span></h3>
       <ul class="obj-list">
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Вес = частота термина × IDF — <strong>только</strong> для слов, которые буквально есть в тексте.</span><span lang="en">Weight = term frequency × IDF — <strong>only</strong> for words literally present.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Вес учитывает IDF, насыщение частоты термина и длину документа — <strong>только</strong> для слов, которые буквально есть в тексте.</span><span lang="en">Weight = term frequency × IDF — <strong>only</strong> for words literally present.</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Запрос «river flood» никогда не «зажжёт» «water» или «riverbank» — словарный разрыв.</span><span lang="en">A query "river flood" never lights up "water" or "riverbank" — the lexical gap.</span></span></li>
       </ul>
     </div>
@@ -578,7 +600,6 @@
   <p class="viz-caption"><span lang="ru">SPLADE даёт и то, и другое: выученные веса по всему словарю, разрежённые настолько, что инвертированный индекс из L3 работает без изменений.</span><span lang="en">SPLADE gives both: learned weights over the whole vocabulary, sparse enough that the L3 inverted index works unchanged.</span></p>
   <aside class="slide-notes">Contrast BM25 (literal, raw counts) with the wish list (learned + expansion, still inverted-index). Callback L3.</aside>
 </section>
-
 <section class="slide" data-type="definition" data-screen-label="21 SPLADE — learned sparse">
   <div class="slide-header">
     <h2><span lang="ru">SPLADE — выученная разрежённость</span><span lang="en">SPLADE — learned sparse</span></h2>
@@ -633,12 +654,35 @@
       "s0": "You typed two words. BM25 would weight only these literal terms — raw frequency, nothing more.",
       "s1": "SPLADE turns each term's logit into a weight w = log(1 + ReLU(z)) — a learned, saturating weight, not a raw count. (Original SPLADE sums these over positions; SPLADE-v2 max-pools.)",
       "s2": "It also lights up related terms it never saw typed — that is expansion. The sparse vector grows richer, yet stays sparse.",
-      "s3": "Score the document by the sparse dot of the two weight vectors — sum the products over the shared terms. Same inverted index as BM25." }
+      "s3": "Score the document by the sparse dot of the two weight vectors — sum the products over the shared terms. Same inverted index as BM25." },
+    "i18n": {
+      "en": {
+        "role": "img",
+        "alt": "A bar chart of learned SPLADE term weights for the query river flood: the two literal terms, then expansion terms bank and water that light up, then the document weights overlaid and the sparse dot product.",
+        "head": "learned weights over the vocabulary: wⱼ = Σᵢ log(1 + ReLU(zᵢⱼ))",
+        "expandLabel": "+ expansion",
+        "dotLabel": "sparse dot",
+        "s0": "You typed two words. BM25 would weight only these literal terms — raw frequency, nothing more.",
+        "s1": "SPLADE turns each term's logit into a weight w = log(1 + ReLU(z)) — a learned, saturating weight, not a raw count. (Original SPLADE sums these over positions; SPLADE-v2 max-pools.)",
+        "s2": "It also lights up related terms it never saw typed — that is expansion. The sparse vector grows richer, yet stays sparse.",
+        "s3": "Score the document by the sparse dot of the two weight vectors — sum the products over the shared terms. Same inverted index as BM25."
+      },
+      "ru": {
+        "role": "img",
+        "alt": "Гистограмма выученных весов SPLADE для запроса: два буквальных термина, затем загорающиеся связанные термины расширения, затем наложенные веса документа и разрежённое скалярное произведение.",
+        "head": "выученные веса по словарю: wⱼ = log(1 + ReLU(zⱼ))",
+        "expandLabel": "+ расширение",
+        "dotLabel": "разреж. произв.",
+        "s0": "Ты ввёл два слова. BM25 взвесил бы совпадения этих термов с учётом частот, редкости термов и длины документа.",
+        "s1": "SPLADE превращает логит каждого термина в вес w = log(1 + ReLU(z)) — выученный, логарифмически растущий вес, а не сырой счётчик. ReLU отбрасывает отрицательные, логарифм усмиряет большие.",
+        "s2": "Он также зажигает связанные термины, которых ты не вводил — это расширение. Разрежённый вектор становится богаче, но остаётся разрежённым и совместимым с инвертированным индексом.",
+        "s3": "Оцениваем документ разрежённым скалярным произведением двух векторов весов — сумма произведений по общим терминам. Тот же инвертированный индекс, что у BM25, но сигнал богаче."
+      }
+    }
   }
   </script>
   <aside class="slide-notes">Mounted splade-expansion widget. Steps: literal bars → saturation curve → expansion bars (bank, water) → sparse dot. Data inlined from data/l8-splade.json.</aside>
 </section>
-
 <section class="slide" data-type="formula" data-screen-label="24 A learned weight, by hand">
   <div class="slide-header">
     <h2><span lang="ru">Выученный вес вручную</span><span lang="en">A learned weight, by hand</span></h2>
@@ -679,7 +723,7 @@
       <th>SPLADE</th>
     </tr></thead>
     <tbody>
-      <tr><td><span lang="ru">веса</span><span lang="en">weights</span></td><td><span lang="ru">сырые TF·IDF</span><span lang="en">raw TF·IDF</span></td><td class="cell-good"><span lang="ru">выученные, \(\log(1+\mathrm{ReLU})\)</span><span lang="en">learned, \(\log(1+\mathrm{ReLU})\)</span></td></tr>
+      <tr><td><span lang="ru">веса</span><span lang="en">weights</span></td><td><span lang="ru">IDF + насыщение TF + длина документа</span><span lang="en">raw TF·IDF</span></td><td class="cell-good"><span lang="ru">выученные, \(\log(1+\mathrm{ReLU})\)</span><span lang="en">learned, \(\log(1+\mathrm{ReLU})\)</span></td></tr>
       <tr><td><span lang="ru">термины</span><span lang="en">terms</span></td><td><span lang="ru">только буквальные</span><span lang="en">literal only</span></td><td class="cell-good"><span lang="ru">+ расширение (water, riverbank…)</span><span lang="en">+ expansion (water, riverbank…)</span></td></tr>
       <tr><td><span lang="ru">индекс</span><span lang="en">index</span></td><td><span lang="ru">инвертированный</span><span lang="en">inverted</span></td><td><span lang="ru">тот же инвертированный</span><span lang="en">same inverted</span></td></tr>
       <tr><td><span lang="ru">обучение</span><span lang="en">training</span></td><td><span lang="ru">нет</span><span lang="en">none</span></td><td><span lang="ru">контрастное + дистилляция</span><span lang="en">contrastive + distillation</span></td></tr>
@@ -688,7 +732,6 @@
   <p class="small muted center mt-2"><span lang="ru">Оба совместимы с инвертированным индексом — SPLADE добавляет выученные веса и расширение, не выходя из классического движка (отсылка L3).</span><span lang="en">Both are inverted-index friendly — SPLADE adds learned weights and expansion without leaving the classical engine (callback L3).</span></p>
   <aside class="slide-notes">SPLADE vs BM25: learned + expansion, both inverted-index. No gated numbers here.</aside>
 </section>
-
 <section class="slide" data-type="table" data-screen-label="27 SPLADE to v2 to plus-plus">
   <div class="slide-header">
     <h2><span lang="ru">SPLADE → v2 → ++</span><span lang="en">SPLADE → v2 → ++</span></h2>
@@ -706,10 +749,9 @@
       <tr><td class="cell-good">SPLADE++ <span class="muted">(SIGIR'22)</span></td><td><span lang="ru">трудные негативы</span><span lang="en">hard negatives</span></td><td>MRR@10 <strong>38.0</strong> · BEIR <strong>50.5</strong></td></tr>
     </tbody>
   </table>
-  <p class="small muted center mt-2"><span lang="ru">Пулинг — версионно-зависим: <strong>sum</strong> в оригинале, <strong>max</strong> с v2. SPLADE v2 — это препринт 2021; статья SIGIR'22 — это уже SPLADE++ («From Distillation to Hard Negative Sampling»). Цитируется: Formal и др.</span><span lang="en">Pooling is version-dependent: <strong>sum</strong> in the original, <strong>max</strong> from v2. SPLADE v2 is a 2021 preprint; the SIGIR'22 paper is SPLADE++ ("From Distillation to Hard Negative Sampling"). Cited: Formal et al.</span></p>
+  <p class="small muted center mt-2"><span lang="ru">Пулинг зависит от версии: <strong>sum</strong> в оригинале, <strong>max</strong> с v2. SPLADE v2 — это препринт 2021; статья SIGIR'22 — это уже SPLADE++ («From Distillation to Hard Negative Sampling»). Цитируется: Formal и др.</span><span lang="en">Pooling is version-dependent: <strong>sum</strong> in the original, <strong>max</strong> from v2. SPLADE v2 is a 2021 preprint; the SIGIR'22 paper is SPLADE++ ("From Distillation to Hard Negative Sampling"). Cited: Formal et al.</span></p>
   <aside class="slide-notes">Versions: 34.0 → 36.8 → 38.0, BEIR 50.5 (cited, l8-bench). ОБА числа — CoCondenser-EnsembleDistil (‡), тот же чекпойнт, что в демо слайда; 50.7 из Table 2 — это SelfDistil (†), у него MRR@10 37.5, смешивать нельзя. Flags: sum→max pooling, SPLADE v2 = preprint, SIGIR'22 = SPLADE++. 1-dp → coverage-free; gated for drift.</aside>
 </section>
-
 <section class="slide" data-type="table" data-screen-label="28 The learned-sparse zoo">
   <div class="slide-header">
     <h2><span lang="ru">Зоопарк выученной разрежённости</span><span lang="en">The learned-sparse zoo</span></h2>
@@ -840,12 +882,37 @@
       "s0": "Two armies return the same documents in two different orders. The sparse ranker trusts the literal words; the dense ranker trusts the meaning.",
       "s1": "Forget the raw scores — each army votes with 1/(k+rank), k=60. The same document gets one reciprocal-rank vote from each army.",
       "s2": "Sum the reciprocal ranks across both armies: RRF = Σ 1/(k+rank). The consensus document scored near the top of BOTH lists.",
-      "s3": "Sort by summed score and you get the fused ranking. The consensus doc rises; the sparse favourite — #1 by sparse but last by dense — falls." }
+      "s3": "Sort by summed score and you get the fused ranking. The consensus doc rises; the sparse favourite — #1 by sparse but last by dense — falls." },
+    "i18n": {
+      "en": {
+        "role": "img",
+        "alt": "Three ranked columns — a sparse ranker, a dense ranker, and the RRF-fused result — where the consensus document D2 rises to the top of the fused column while the sparse favourite D1 falls to third.",
+        "headSparse": "Sparse",
+        "headDense": "Dense",
+        "headFused": "Fused (RRF)",
+        "fallsLabel": "sparse #1 ↓",
+        "s0": "Two armies return the same documents in two different orders. The sparse ranker trusts the literal words; the dense ranker trusts the meaning.",
+        "s1": "Forget the raw scores — each army votes with 1/(k+rank), k=60. The same document gets one reciprocal-rank vote from each army.",
+        "s2": "Sum the reciprocal ranks across both armies: RRF = Σ 1/(k+rank). The consensus document scored near the top of BOTH lists.",
+        "s3": "Sort by summed score and you get the fused ranking. The consensus doc rises; the sparse favourite — #1 by sparse but last by dense — falls."
+      },
+      "ru": {
+        "role": "img",
+        "alt": "Три ранжированных столбца — разрежённый ранкер, плотный и итог слияния RRF — где консенсусный документ поднимается наверх итогового столбца, а фаворит разрежённого падает на третье место.",
+        "headSparse": "Разрежённый",
+        "headDense": "Плотный",
+        "headFused": "Слияние (RRF)",
+        "fallsLabel": "разреж. №1 ↓",
+        "s0": "Два войска возвращают одни и те же документы в разном порядке. BM25 сопоставляет термы; SPLADE может ещё и расширять запросы и документы выученными термами. Плотный ранкер (SBERT) сравнивает векторные представления.",
+        "s1": "Забудь про сырые оценки — каждое войско голосует величиной 1/(k+rank), k=60. Один и тот же документ получает по голосу от каждого войска.",
+        "s2": "Суммируем обратные ранги по обоим войскам: RRF = Σ 1/(k+rank). Сортируем по этой сумме — получаем итоговое слияние.",
+        "s3": "Консенсусный документ — высоко оценённый ОБОИМИ войсками — поднимается наверх. Фаворит разрежённого, №1 у разрежённого, но последний у плотного, падает на третье место. RRF не нужна калибровка."
+      }
+    }
   }
   </script>
   <aside class="slide-notes">Mounted hybrid-fusion widget. Steps: two columns → reciprocal-rank chips → fused column → D2 wins / D1 falls. Data inlined from data/l8-hybrid.json.</aside>
 </section>
-
 <section class="slide" data-type="formula" data-screen-label="35 RRF, by hand">
   <div class="slide-header">
     <h2><span lang="ru">RRF вручную &mdash; реприза</span><span lang="en">RRF, by hand &mdash; a reprise</span></h2>
@@ -982,7 +1049,7 @@
     <div class="def-term"><span lang="ru">Что мы учим: оценку, пару или список</span><span lang="en">What we teach: a score, a pair, or a list</span></div>
     <div class="def-body">
       <ul class="obj-list">
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Pointwise</strong> — <span lang="ru">оцени каждую пару отдельно, потом сортируй (как кросс-энкодер L10). Слаб: регрессирует абсолютную метку, слеп к позиции и форме nDCG — ошибка на ранге 2 и на ранге 800 стоят одинаково.</span><span lang="en">score each pair alone, then sort (like the L10 cross-encoder). Weak: regresses an absolute label, blind to position and the shape of nDCG — an error at rank 2 and at rank 800 cost the same.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Pointwise</strong> — <span lang="ru">оцени каждую пару отдельно, потом сортируй (как кросс-энкодер L10). Слаб: регрессирует абсолютную метку, слеп к позиции и форме nDCG — ошибки на ранге 2 и на ранге 800 стоят одинаково.</span><span lang="en">score each pair alone, then sort (like the L10 cross-encoder). Weak: regresses an absolute label, blind to position and the shape of nDCG — an error at rank 2 and at rank 800 cost the same.</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Pairwise</strong> — <span lang="ru">учи отвечать «\(d_i\) лучше \(d_j\)?» — это <strong>RankNet</strong>.</span><span lang="en">learn "is \(d_i\) better than \(d_j\)?" — this is <strong>RankNet</strong>.</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><strong>Listwise</strong> — <span lang="ru">оптимизируй <em>весь список</em> прямо под метрику (ListNet, ListMLE; LambdaMART взвешивает на \(\Delta\)nDCG).</span><span lang="en">optimize the <em>whole list</em> toward the metric (ListNet, ListMLE; LambdaMART weights by \(\Delta\)nDCG).</span></span></li>
       </ul>
@@ -990,7 +1057,6 @@
   </div>
   <aside class="slide-notes">Pointwise/pairwise/listwise. We focus on pairwise→listwise: RankNet→LambdaRank→LambdaMART.</aside>
 </section>
-
 <section class="slide" data-type="definition" data-screen-label="43 RankNet (pairwise)">
   <div class="slide-header">
     <h2><span lang="ru">RankNet (попарный)</span><span lang="en">RankNet (pairwise)</span></h2>
@@ -1042,12 +1108,37 @@
       "s0": "Two documents get scores from the model. docᵢ is the relevant one, doc_j is not — but the raw scores alone don't tell us how to train.",
       "s1": "RankNet reads the preference as a probability of the SCORE DIFFERENCE: P(i ≻ j) = σ(s_i − s_j). Above 0.5 leans the right way — not confidently enough.",
       "s2": "Swap the mis-ordered [j, i] into [i, j] and measure the jump in nDCG — that is ΔnDCG (callback L5).",
-      "s3": "LambdaRank defines the gradient directly: λ = gradient · ΔnDCG. A force pulling i up and j down — harder where the swap matters more. LambdaMART feeds these to its trees." }
+      "s3": "LambdaRank defines the gradient directly: λ = gradient · ΔnDCG. A force pulling i up and j down — harder where the swap matters more. LambdaMART feeds these to its trees." },
+    "i18n": {
+      "en": {
+        "role": "img",
+        "alt": "Two documents with model scores; the RankNet probability of the score difference on a gauge; the nDCG gained by swapping the mis-ordered pair; and the lambda force pulling the relevant doc up and the other down.",
+        "head": "two documents, two model scores — which should rank higher?",
+        "docI": "docᵢ (rel)",
+        "docJ": "doc_j",
+        "deltaLabel": "ΔnDCG",
+        "s0": "Two documents get scores from the model. docᵢ is the relevant one, doc_j is not — but the raw scores alone don't tell us how to train.",
+        "s1": "RankNet reads the preference as a probability of the SCORE DIFFERENCE: P(i ≻ j) = σ(s_i − s_j). Above 0.5 leans the right way — not confidently enough.",
+        "s2": "Swap the mis-ordered [j, i] into [i, j] and measure the jump in nDCG — that is ΔnDCG (callback L5).",
+        "s3": "LambdaRank defines the gradient directly: λ = gradient · ΔnDCG. A force pulling i up and j down — harder where the swap matters more. LambdaMART feeds these to its trees."
+      },
+      "ru": {
+        "role": "img",
+        "alt": "Два документа с оценками модели; вероятность RankNet от разности оценок на шкале 0–1; прирост nDCG от обмена неверно упорядоченной пары; и итоговая сила λ, тянущая релевантный документ вверх, а другой — вниз.",
+        "head": "два документа, две оценки модели — кто должен стоять выше?",
+        "docI": "докᵢ (рел)",
+        "docJ": "док_j",
+        "deltaLabel": "ΔnDCG",
+        "s0": "Два документа получают оценки от модели. докᵢ релевантен, док_j — нет, но одни лишь сырые оценки не говорят, как обучать.",
+        "s1": "RankNet получает вероятность предпочтения из разности оценок: P(i ≻ j) = σ(s_i − s_j). Выше 0,5 — модель предпочитает i. Это вероятность в модели, а не автоматически откалиброванная вероятность релевантности.",
+        "s2": "Что даёт правильный порядок пары? Меняем неверный [j, i] на [i, j] и измеряем изменение nDCG — ΔnDCG (возвращение к L5).",
+        "s3": "LambdaRank взвешивает попарный градиент модулем изменения метрики: λ = градиент · |ΔnDCG|. Документ i тянется вверх, j — вниз; вес зависит от важности обмена для ранжирования. LambdaMART использует эти λ при обучении деревьев."
+      }
+    }
   }
   </script>
   <aside class="slide-notes">Mounted ltr-lambda widget. Steps: score bars → RankNet σ gauge → ΔnDCG → λ force arrow. Data inlined from data/l8-ltr.json.</aside>
 </section>
-
 <section class="slide" data-type="formula" data-screen-label="46 RankNet, by hand">
   <div class="slide-header">
     <h2><span lang="ru">RankNet вручную</span><span lang="en">RankNet, by hand</span></h2>
@@ -1231,13 +1322,12 @@
       <tr><td><span lang="ru">жёсткая задержка / память</span><span lang="en">tight latency / memory</span></td><td><span lang="ru">BM25 — инвертированный индекс (SPLADE только с отсечением по df/impact: расширение удлиняет постинг-листы)</span><span lang="en">BM25 — an inverted index (SPLADE only with df/impact pruning: expansion lengthens the posting lists)</span></td></tr>
       <tr><td><span lang="ru">смена домена (out-of-domain)</span><span lang="en">domain shift (out-of-domain)</span></td><td class="cell-good"><span lang="ru">гибрид — лексика + семантика покрывают разрыв</span><span lang="en">hybrid — lexical + semantic cover the gap</span></td></tr>
       <tr><td><span lang="ru">качество важнее, бюджет есть</span><span lang="en">quality first, budget allows</span></td><td><span lang="ru">ColBERT (+ гибрид), затем реранк</span><span lang="en">ColBERT (+ hybrid), then rerank</span></td></tr>
-      <tr><td><span lang="ru">есть размеченные суждения</span><span lang="en">graded judgments available</span></td><td><span lang="ru">LTR (LambdaMART) поверх всего</span><span lang="en">LTR (LambdaMART) on top of everything</span></td></tr>
+      <tr><td><span lang="ru">есть градуированная разметка релевантности</span><span lang="en">graded judgments available</span></td><td><span lang="ru">LTR (LambdaMART) поверх всего</span><span lang="en">LTR (LambdaMART) on top of everything</span></td></tr>
     </tbody>
   </table>
-  <p class="small muted center mt-2"><span lang="ru">Нет одного правильного ответа — есть компромисс «задержка / память / домен / данные». Гибрид — хороший дефолт; ColBERT и LTR добавляют качество, когда бюджет и суждения позволяют.</span><span lang="en">There's no single right answer — only the latency / memory / domain / data tradeoff. Hybrid is a good default; ColBERT and LTR add quality when budget and judgments allow.</span></p>
+  <p class="small muted center mt-2"><span lang="ru">Нет одного правильного ответа — есть компромисс «задержка / память / домен / данные». Гибрид — хороший дефолт; ColBERT и LTR добавляют качество, когда позволяют бюджет и разметка.</span><span lang="en">There's no single right answer — only the latency / memory / domain / data tradeoff. Hybrid is a good default; ColBERT and LTR add quality when budget and judgments allow.</span></p>
   <aside class="slide-notes">Architecture choice by latency/memory/domain/data. Qualitative, no gated numbers.</aside>
 </section>
-
 <section class="slide" data-type="definition" data-screen-label="56 Pitfalls">
   <div class="slide-header">
     <h2><span lang="ru">Подводные камни</span><span lang="en">Pitfalls</span></h2>
@@ -1250,13 +1340,12 @@
       <ul class="obj-list">
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Калибровка</strong> — оценки разных систем несравнимы; используй слияние по рангам (RRF) или калибруй.</span><span lang="en"><strong>Calibration</strong> — different systems' scores are incomparable; use rank fusion (RRF) or calibrate.</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Размер индекса</strong> — ColBERT и SPLADE-расширение раздувают хранилище.</span><span lang="en"><strong>Index size</strong> — ColBERT and SPLADE expansion inflate storage.</span></span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Холодный старт / многоязычие</strong> — LTR требует суждений; подменишь их сырыми кликами — на пороге уже стоит Гудхарт; выученные модели нужно дообучать на новый язык/домен.</span><span lang="en"><strong>Cold-start / multilingual</strong> — LTR needs judgments; swap them for raw clicks and Goodhart the Trickster is already at the door; learned models need adapting to a new language/domain.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Холодный старт / многоязычие</strong> — LTR требует разметки релевантности; подменишь её сырыми кликами — на пороге уже стоит Гудхарт; выученные модели нужно дообучать на новый язык/домен.</span><span lang="en"><strong>Cold-start / multilingual</strong> — LTR needs judgments; swap them for raw clicks and Goodhart the Trickster is already at the door; learned models need adapting to a new language/domain.</span></span></li>
       </ul>
     </div>
   </div>
   <aside class="slide-notes">Pitfalls: calibration, index size, cold-start, multilingual. No gated numbers.</aside>
 </section>
-
 <section class="slide" data-type="definition" data-screen-label="57 Production checklist">
   <div class="slide-header">
     <h2><span lang="ru">Чек-лист для продакшна</span><span lang="en">Production checklist</span></h2>
@@ -1270,13 +1359,12 @@
         <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru"><strong>Гибрид по умолчанию</strong> — разрежённый + плотный через RRF: дёшево и устойчиво.</span><span lang="en"><strong>Hybrid by default</strong> — sparse + dense via RRF: cheap and robust.</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru"><strong>Выученная разрежённость</strong> для смены домена (out-of-domain) — расширение закрывает словарный разрыв.</span><span lang="en"><strong>Learned sparse</strong> for out-of-domain — expansion closes the lexical gap.</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru"><strong>ColBERT, когда бюджет позволяет</strong> — потокенное качество стоит индекса.</span><span lang="en"><strong>ColBERT when budget allows</strong> — per-token quality is worth the index.</span></span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru"><strong>LTR при хороших суждениях</strong> — LambdaMART поверх нейронных признаков.</span><span lang="en"><strong>LTR with good judgments</strong> — LambdaMART on top of the neural features.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru"><strong>LTR при качественной разметке релевантности</strong> — LambdaMART поверх нейронных признаков.</span><span lang="en"><strong>LTR with good judgments</strong> — LambdaMART on top of the neural features.</span></span></li>
       </ul>
     </div>
   </div>
   <aside class="slide-notes">Production checklist: hybrid default, learned-sparse for OOD, ColBERT when budget allows, LTR with judgments.</aside>
 </section>
-
 <section class="slide" data-type="final" data-screen-label="58 Under one banner">
   <div class="slide-header">
     <h2><span lang="ru">Под одним знаменем</span><span lang="en">Under one banner</span></h2>

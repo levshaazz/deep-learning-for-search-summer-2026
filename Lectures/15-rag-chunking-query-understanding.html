@@ -41,7 +41,7 @@
           el.textContent = 'Не загрузились ресурсы: ' + failed.join(', ') +
             '. Формулы/подсветка/QR могут не отрисоваться — запустите офлайн-файл ' +
             '«Lecture Template (Standalone).html». · Failed to load: ' + failed.join(', ') +
-            ' — use the Standalone file. (клик чтобы скрыть)';
+            ' — use the Standalone file. (нажми, чтобы скрыть)';
         }
         show();
       };
@@ -406,6 +406,56 @@
     "s1": "At query time: embed the query, retrieve the top-k from the index (the Scouts), rerank the shortlist (the Judges), assemble the survivors into a context. This is the per-request latency budget.",
     "s2": "The retrieve→rerank pair is exactly the neural cascade: the bi-encoder Scouts sweep wide and cheap; the cross-encoder Judges deliberate on the few. Cheap-and-wide first, dear-and-narrow last.",
     "s3": "For RAG, the LLM reads the reranked context and writes an answer grounded in those passages — with citations back to the sources. Retrieval quality caps answer quality: garbage in, garbage out."
+  },
+  "i18n": {
+    "en": {
+      "alt": "A left-to-right pipeline split into an offline build half (ingest, chunk, embed, index) and an online query half (retrieve, rerank, assemble, generate); the cascade is retrieve plus rerank, and the LLM produces a grounded answer with citations.",
+      "bandOffline": "OFFLINE · build-time (once)",
+      "bandOnline": "ONLINE · query-time (per request)",
+      "query": "query",
+      "ingest": "ingest",
+      "chunk": "chunk",
+      "embed": "embed",
+      "index": "index",
+      "qembed": "embed q",
+      "retrieve": "retrieve",
+      "rerank": "rerank",
+      "assemble": "assemble",
+      "generate": "generate",
+      "stuff": "stuff",
+      "flowLabel": "retrieve → augment → generate",
+      "cascadeTag": "the neural cascade",
+      "answerTag": "→ grounded + cited",
+      "citeTag": "+ citations",
+      "s0": "Offline, once per corpus: ingest documents, clean and chunk them, embed every chunk with the bi-encoder, and store the vectors in an ANN index. Expensive — but amortized over every future query.",
+      "s1": "At query time: embed the query, retrieve the top-k from the index (the Scouts), rerank the shortlist (the Judges), assemble the survivors into a context. This is the per-request latency budget.",
+      "s2": "The retrieve→rerank pair is exactly the neural cascade: the bi-encoder Scouts sweep wide and cheap; the cross-encoder Judges deliberate on the few. Cheap-and-wide first, dear-and-narrow last.",
+      "s3": "For RAG, the LLM reads the reranked context and writes an answer grounded in those passages — with citations back to the sources. Retrieval quality caps answer quality: garbage in, garbage out."
+    },
+    "ru": {
+      "alt": "Конвейер RAG слева направо: пять этапов — нарезка на чанки, кодирование, извлечение, сборка контекста и генерация ответа. Этапы появляются по шагам, а в конце показана общая схема: извлечь → дополнить → сгенерировать.",
+      "bandOffline": "ОФЛАЙН · сборка (один раз)",
+      "bandOnline": "ОНЛАЙН · запрос (на запрос)",
+      "query": "запрос",
+      "ingest": "приём",
+      "chunk": "нарезка",
+      "embed": "эмбеддинг",
+      "index": "индекс",
+      "qembed": "эмбед q",
+      "retrieve": "извлечь",
+      "rerank": "реранк",
+      "assemble": "сборка",
+      "generate": "генерация",
+      "stuff": "вставка",
+      "flowLabel": "извлечь → дополнить → сгенерировать",
+      "cascadeTag": "нейронный каскад",
+      "answerTag": "→ обоснованно + цитаты",
+      "citeTag": "+ ссылки",
+      "s0": "Офлайн, один раз на корпус: принять документы, очистить и нарезать, закодировать каждый кусок би-энкодером и сложить векторы в ANN-индекс. Дорого — но окупается на всех будущих запросах.",
+      "s1": "На запросе: закодировать запрос, извлечь топ-k из индекса (Разведчики), переранжировать шорт-лист (Судьи), собрать выживших в контекст. Это бюджет задержки на запрос.",
+      "s2": "Пара извлечь→переранжировать — это и есть нейронный каскад: Разведчики с би-энкодером дёшево охватывают много документов; Судьи с кросс-энкодером подробно оценивают немногие. Сначала дёшево-и-широко, потом дорого-и-узко.",
+      "s3": "Для RAG модель читает переранжированный контекст и пишет ответ, опирающийся на эти отрывки — со ссылками на источники. Качество поиска ограничивает качество ответа: мусор на входе — мусор на выходе."
+    }
   }
 }
   </script>
@@ -423,7 +473,7 @@
   "data": [],
   "i18n": {
     "ru": {
-      "alt": "RAG-петля в виде neural circuit diagram. Слева пунктирная область охватывает корпус: N векторов документов, нарисованных пятиугольниками, — они закодированы офлайн, и сейчас их лишь достают из индекса; их провода собраны в пучок и заведены в быстрый ретривер. Запрос входит в этот ретривер сверху — вторая входная ось. Шестиугольник, глиф среза, режет N до K кандидатов; более медленный cross-encoder переупорядочивает их, и второй шестиугольник режет K до k. Наконец k документов и запрос вместе обусловливают языковую модель, которая пишет обоснованный ответ: запрос входит второй раз, по пунктирной дуге. Воронка: N → K → k → один ответ.",
+      "alt": "RAG-петля в виде neural circuit diagram. Слева пунктирная фиолетовая область охватывает корпус: N векторов документов, нарисованных пятиугольниками, — они закодированы офлайн, и сейчас их лишь достают из индекса; их провода собраны в пучок и заведены в быстрый ретривер. Запрос входит в этот ретривер сверху — это вторая входная ось. Шестиугольник, глиф среза, режет N до K кандидатов; более медленный cross-encoder переупорядочивает их, и второй шестиугольник режет K до k. Наконец k документов и запрос ВМЕСТЕ обусловливают языковую модель, которая должна написать ответ с опорой на контекст: запрос входит второй раз, по пунктирной дуге, поэтому модель спрашивают, что эти документы говорят ровно о том вопросе, который их и достал. Воронка: N → K → k → один ответ.",
       "legMap": "область = ось корпуса N · шестиугольник = срез (top-k) · запрос входит ДВАЖДЫ",
       "lblQuery": "запрос",
       "tagCorpus": "N · корпус",
@@ -434,11 +484,11 @@
       "lgTitle": "воронка",
       "lgAxis": "broadcast-ось", "lgKept": "оставлено док.",
       "lgWork": "работа / запрос", "lgWorkBi": "N × один dot", "lgWorkCross": "+ K × полный BERT",
-      "lgOrder": "порядок", "lgOrderRough": "примерно верный", "lgOrderSharp": "точный",
+      "lgOrder": "порядок", "lgOrderRough": "примерно верный", "lgOrderSharp": "после реранка",
       "lgCtx": "что видит LLM", "lgCtxV": "k док. + запрос", "lgOut": "ответов",
       "lgN0": "Корпус — это не прямоугольник, из которого выходит стрелка: это ОСЬ, вдоль которой запрос уходит в broadcast, поэтому он нарисован областью, ОХВАТЫВАЮЩЕЙ N проводов документов. Первый шестиугольник — тот срез, что эту ось обрывает: N → K.",
-      "lgN1": "Второй шестиугольник — второй срез: K → k. Дорогой читатель по карману только потому, что первый срез уже выбросил всё, кроме K, — каскад это два шестиугольника, и ничего больше.",
-      "lgN2": "Запрос входит ДВАЖДЫ — эта пунктирная дуга и есть весь RAG. Модель спрашивают не о том, что она знает; её спрашивают, что говорят эти k документов, — и спрашивают ровно о том запросе, который их и достал."
+      "lgN1": "Второй шестиугольник — второй срез: K → k. Дорогой реранкер обрабатывает лишь K кандидатов, оставшихся после первого среза. Два шестиугольника показывают два отбора в этом каскаде.",
+      "lgN2": "Генератор получает и запрос, и найденные документы. Он должен опираться на этот контекст, но сама схема ещё не гарантирует обоснованность ответа."
     },
     "en": {
       "alt": "The RAG loop drawn as a neural circuit diagram. On the left, a dashed region encloses the corpus: N document vectors, drawn as pentagons because they were encoded offline and are only looked up now, their wires bundled and fed into a fast retriever. The query enters that retriever from above — a second axis in. A hexagon, the slice glyph, cuts N down to K candidates; a slower cross-encoder reranks them, and a second hexagon cuts K down to k. Finally the k documents and the query together condition a language model that writes the grounded answer: the query enters a second time, along the dashed arc. The funnel is N to K to k to one answer.",
@@ -514,7 +564,7 @@
   <div class="divider-content">
     <div class="divider-num"><span lang="ru">Акт 1 · Как ты режешь</span><span lang="en">Act 1 · How you cut</span></div>
     <h1>How you cut decides what you can find</h1>
-    <p class="divider-sub"><em><span lang="ru">Извлечь можно только целый чанк.</span><span lang="en">You can only retrieve a whole chunk.</span></em> <span lang="ru">Если ответ разрезан на два чанка, ни один поиск не вернёт его целиком. Чанк Норрис рубит свиток; Токенозавр напоминает, что куски — это под-словные токены. Ручки: <strong>размер</strong> и <strong>перекрытие</strong>.</span><span lang="en">If the answer is split across two chunks, no single retrieval brings it back whole. Chunk Norris chops the scroll; Tokenosaurus reminds us the pieces are sub-word tokens. The knobs: <strong>size</strong> and <strong>overlap</strong>.</span></p>
+    <p class="divider-sub"><em><span lang="ru">Извлечь можно только целый чанк.</span><span lang="en">You can only retrieve a whole chunk.</span></em> <span lang="ru">Если ответ разрезан на два чанка, ни один поиск не вернёт его целиком. Чанк Норрис рубит свиток; Токенозавр напоминает, что куски — это подсловные токены. Ручки: <strong>размер</strong> и <strong>перекрытие</strong>.</span><span lang="en">If the answer is split across two chunks, no single retrieval brings it back whole. Chunk Norris chops the scroll; Tokenosaurus reminds us the pieces are sub-word tokens. The knobs: <strong>size</strong> and <strong>overlap</strong>.</span></p>
   </div>
   <div class="viz-frame fig-fit" style="--fig-max:60cqh; --fig-w:54%;">
     <img src="assets/img/L10/L10-03-chunk-norris.webp?v=1" alt="Chunk Norris roundhouse-kicks a long scroll into equal passages; Tokenosaurus snips sub-words; Séréga measures the overlap." />
@@ -583,6 +633,34 @@
     "s1": "size=200, overlap=0 cuts the document into 5 back-to-back windows. The answer span crosses the boundary at token 400: 20 tokens fall in chunk [200,400], 70 in chunk [400,600]. No single chunk holds it whole — so retrieving any one chunk gives a fragment. Binary answer-containment: recall@3 = 0.",
     "s2": "Add overlap=50 and the windows step by 150 instead of 200, giving 7 windows. Now the window [300,500] contains the whole answer span [380,470]. Retrieve that chunk and the answer arrives intact: recall@3 = 1.0.",
     "s3": "The count is ⌈(L − overlap) / (size − overlap)⌉: 5 chunks at overlap 0, 7 at overlap 50. Overlap costs storage (more, fatter chunks) and buys recall (no answer falls between the cracks). That tension is exactly what the frontier — Late Chunking — attacks."
+  },
+  "i18n": {
+    "en": {
+      "alt": "A 1000-token document ruler with the answer span [380,470]; size=200/overlap=0 gives 5 windows that straddle the answer (recall 0), overlap=50 gives 7 windows where one holds the whole answer (recall 1.0).",
+      "docLabel": "document",
+      "tokens": "tokens",
+      "answer": "answer",
+      "chunks": "chunks",
+      "intact": "answer intact?",
+      "formulaLbl": "chunks",
+      "s0": "A 1000-token document, and the answer to our question lives in tokens [380, 470] — a 90-token span. Retrieval works on chunks, not whole documents, so the question becomes: will any chunk contain this answer whole?",
+      "s1": "size=200, overlap=0 cuts the document into 5 back-to-back windows. The answer span crosses the boundary at token 400: 20 tokens fall in chunk [200,400], 70 in chunk [400,600]. No single chunk holds it whole — so retrieving any one chunk gives a fragment. Binary answer-containment: recall@3 = 0.",
+      "s2": "Add overlap=50 and the windows step by 150 instead of 200, giving 7 windows. Now the window [300,500] contains the whole answer span [380,470]. Retrieve that chunk and the answer arrives intact: recall@3 = 1.0.",
+      "s3": "The count is ⌈(L − overlap) / (size − overlap)⌉: 5 chunks at overlap 0, 7 at overlap 50. Overlap costs storage (more, fatter chunks) and buys recall (no answer falls between the cracks). That tension is exactly what the frontier — Late Chunking — attacks."
+    },
+    "ru": {
+      "alt": "Линейка документа на 1000 токенов с ответом [380,470]; size=200/overlap=0 даёт 5 окон, рассекающих ответ (recall 0), а overlap=50 — 7 окон, одно из которых держит весь ответ (recall 1,0).",
+      "docLabel": "документ",
+      "tokens": "токенов",
+      "answer": "ответ",
+      "chunks": "чанков",
+      "intact": "ответ цел?",
+      "formulaLbl": "чанков",
+      "s0": "Документ на 1000 токенов, и ответ на наш вопрос лежит в токенах [380, 470] — отрезок в 90 токенов. Поиск работает по чанкам, а не по целым документам, поэтому вопрос такой: попадёт ли весь ответ целиком хоть в один чанк?",
+      "s1": "size=200, overlap=0 режет документ на 5 окон встык. Ответ пересекает границу на токене 400: 20 токенов попадают в чанк [200,400], 70 — в [400,600]. Ни один чанк не держит его целиком — значит, любой отдельный чанк даёт лишь фрагмент. Бинарное покрытие: recall@3 = 0.",
+      "s2": "Добавь overlap=50 — окна сдвигаются на 150 вместо 200, получается 7 окон. Теперь окно [300,500] содержит весь ответ [380,470]. Извлеки этот чанк — и ответ приходит целиком: recall@3 = 1,0.",
+      "s3": "Для показанных параметров число чанков — ⌈(L − overlap) / (size − overlap)⌉: 5 чанков при overlap 0, 7 при overlap 50. При фиксированном size перекрытие увеличивает число чанков и расход памяти. В этом примере оно сохраняет ответ целиком, но универсальной гарантии нет. Late Chunking решает смежную задачу: передаёт чанку контекст соседних фрагментов при кодировании."
+    }
   }
 }
   </script>
@@ -722,7 +800,7 @@
         <div class="def-term"><span lang="ru">Сначала кодируем <em>весь</em> документ; режем на чанки <strong>после</strong> трансформера, до mean-pooling токен-векторов каждого чанка.</span><span lang="en">Encode the <em>entire</em> document first; cut into chunks <strong>after</strong> the transformer, before mean-pooling each chunk's token vectors.</span></div>
         <div class="def-body">
           <ul class="obj-list">
-            <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Чинит:</strong> наивный чанкование кодирует каждый чанк <em>в одиночку</em> → «оно» / «компания» теряет свой референт.</span><span lang="en"><strong>Fixes:</strong> naïve chunking embeds each chunk <em>alone</em> → "it" / "the company" loses its referent.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Чинит:</strong> наивное чанкование кодирует каждый чанк <em>в одиночку</em> → «оно» / «компания» теряет свой референт.</span><span lang="en"><strong>Fixes:</strong> naïve chunking embeds each chunk <em>alone</em> → "it" / "the company" loses its referent.</span></span></li>
             <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Трюк:</strong> внимание видело весь документ → каждый токен-вектор контекстуализирован, пулинг это сохраняет. Нет компромисса «перекрытие против контекста».</span><span lang="en"><strong>Trick:</strong> attention saw the whole document → every token vector is contextualized, pooling keeps it. No overlap-vs-context tradeoff.</span></span></li>
             <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Без дообучения:</strong> переиспользует любой энкодер с длинным контекстом — переверни «резать-потом-кодировать» (Günther и др., 2024).</span><span lang="en"><strong>Training-free:</strong> reuses any long-context embedder — invert cut-then-embed (Günther et al., 2024).</span></span></li>
             <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Предел:</strong> компромисс исчезает лишь <em>внутри</em> контекстного окна энкодера; документ длиннее него нужно макро-делить (тогда «long late chunking» возвращает ограниченное перекрытие между окнами).</span><span lang="en"><strong>Limit:</strong> the tradeoff vanishes only <em>within</em> the encoder's context window; a longer document must be macro-split (then "long late chunking" restores a bounded overlap between windows).</span></span></li>
@@ -756,7 +834,7 @@
   </div>
   <div class="def-card">
     <span class="def-tag"><span lang="ru">Определение</span><span lang="en">Definition</span></span>
-    <div class="def-term"><span lang="ru">Эмбеддим и индексируем <em>производное</em> представление каждого документа — сводку, гипотетический вопрос, набор пропозиций — но генератору возвращаем <strong>полный</strong> чанк.</span><span lang="en">Embed and index a <em>derived</em> representation of each document — a summary, a hypothetical question, a set of propositions — but return the <strong>full</strong> chunk to the generator.</span></div>
+    <div class="def-term"><span lang="ru">Кодируем и индексируем <em>производное</em> представление каждого документа — сводку, гипотетический вопрос, набор пропозиций — но генератору возвращаем <strong>полный</strong> чанк.</span><span lang="en">Embed and index a <em>derived</em> representation of each document — a summary, a hypothetical question, a set of propositions — but return the <strong>full</strong> chunk to the generator.</span></div>
     <div class="def-body">
       <ul class="obj-list">
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Зачем:</strong> что лучше для <em>поиска</em> (краткая сводка под запрос) — не то, что лучше для <em>генерации</em> (полный пассаж с деталями). Разделим их: индексируем сводку, храним указатель на сырой чанк.</span><span lang="en"><strong>Why:</strong> what's best for <em>retrieval</em> (a tight summary matching the query) isn't what's best for <em>generation</em> (the full passage with details). So split them: index the summary, point to the raw chunk.</span></span></li>
@@ -804,6 +882,40 @@
     "s2": "Recurse: summarize the 3 summaries into 1 root node (3 → 1). The tree now has depth 3 — leaf, summary, root — a single index that holds the document at three zoom levels at once.",
     "s3": "Now route by question. A broad, zoomed-out question ('what is this document about?') lands at the ROOT: one summary node answers it directly — no need to read all 8 leaves.",
     "s4": "A zoomed-in, specific question ('what exact number is in passage 4?') lands at a LEAF: the detail lives in a raw chunk, so retrieval pulls the leaf. One tree, queried at the abstraction level the question needs — that is RAPTOR's payoff (Sarthi et al. 2024)."
+  },
+  "i18n": {
+    "en": {
+      "alt": "A recursive summary tree built bottom-up: 8 leaf chunks cluster into 3 summary nodes (fan-in 8 to 3), which summarize into 1 root (3 to 1), depth 3. A broad query is routed to the root overview; a detail query is routed to a leaf — any level is retrievable.",
+      "title": "Recursive summary tree",
+      "depth": "depth",
+      "leaf": "leaves",
+      "summary": "summaries",
+      "root": "root",
+      "fanin": "fan-in",
+      "broadQuery": "broad query → overview",
+      "detailQuery": "detail query → leaf",
+      "s0": "Start at the bottom: 8 leaf chunks — the raw passages, exactly the units a flat index would store. Standard retrieval stops here, so it can only ever answer at the granularity of a single chunk.",
+      "s1": "Cluster the leaves and summarize each cluster: the 8 chunks fan in to 3 summary nodes (8 → 3). Each summary node is a short abstraction over several leaves — a level of context no single chunk holds.",
+      "s2": "Recurse: summarize the 3 summaries into 1 root node (3 → 1). The tree now has depth 3 — leaf, summary, root — a single index that holds the document at three zoom levels at once.",
+      "s3": "Now route by question. A broad, zoomed-out question ('what is this document about?') lands at the ROOT: one summary node answers it directly — no need to read all 8 leaves.",
+      "s4": "A zoomed-in, specific question ('what exact number is in passage 4?') lands at a LEAF: the detail lives in a raw chunk, so retrieval pulls the leaf. One tree, queried at the abstraction level the question needs — that is RAPTOR's payoff (Sarthi et al. 2024)."
+    },
+    "ru": {
+      "alt": "Рекурсивное дерево саммари снизу вверх: 8 листовых чанков объединяются в 3 узла-саммари (8→3), те — в 1 корень (3→1), глубина 3. Широкий запрос идёт к корню-обзору; детальный — к листу: доступен любой уровень.",
+      "title": "Рекурсивное дерево саммари",
+      "depth": "глубина",
+      "leaf": "листья",
+      "summary": "саммари",
+      "root": "корень",
+      "fanin": "схождение",
+      "broadQuery": "широкий запрос → обзор",
+      "detailQuery": "детальный запрос → лист",
+      "s0": "Начни снизу: 8 листовых чанков — сырые фрагменты, те самые единицы, которые хранит плоский индекс. Обычный поиск по плоскому индексу возвращает исходные чанки; готовых обзоров нескольких фрагментов в таком индексе нет.",
+      "s1": "Сгруппируй листья и сделай саммари каждой группы: 8 чанков сходятся в 3 узла-саммари (8 → 3). Каждый узел — короткая абстракция над несколькими листьями: уровень контекста, которого нет ни у одного чанка.",
+      "s2": "Рекурсия: сведи 3 саммари в 1 корневой узел (3 → 1). Теперь глубина дерева — 3: лист, саммари, корень — единый индекс, держащий документ сразу на трёх уровнях приближения.",
+      "s3": "Теперь маршрутизируй по вопросу. Широкий, обзорный вопрос («о чём этот документ?») попадает в КОРЕНЬ: один узел-саммари отвечает напрямую — не нужно читать все 8 листьев.",
+      "s4": "Узкий, конкретный вопрос («какое именно число в фрагменте 4?») попадает в ЛИСТ: деталь лежит в сыром чанке, и поиск тянет лист. Одно дерево, опрашиваемое на нужном вопросу уровне абстракции, — в этом выигрыш RAPTOR (Sarthi et al. 2024)."
+    }
   }
 }
   </script>
@@ -951,10 +1063,53 @@
     "s1": "HyDE's trick: don't search with the bare question. First ask an LLM to write a hypothetical answer paragraph — full of the words a real answer would use (cardiac cycle, ventricles, systole) — and embed THAT paragraph instead of the question.",
     "s2": "The hypothetical answer's vector lands right next to the true doc — they speak the same vocabulary. Re-retrieve, and the true doc jumps from rank 8 to rank 2: now inside the top-5. recall@5 = 1, RR = 1/2 = 0.5. Same retriever, a better query.",
     "s3": "Multi-query attacks recall differently — on a SEPARATE query with 5 relevant docs (never blended with HyDE's single-doc count). The bare query retrieves 2 of 5 → recall@5 = 0.4. Issue 3 paraphrases and take the UNION of their top-5: it covers 4 of 5 → recall@5 = 0.8. More phrasings, more of the relevant set found."
+  },
+  "i18n": {
+    "en": {
+      "alt": "A ranked list where the true doc sits at rank 8 (below the top-5 cut) under the original query; HyDE lifts it to rank 2; a separate multi-query gold-set raises recall@5 from 0.4 to 0.8.",
+      "ranked": "retrieved, ranked",
+      "cut": "top-5 cut",
+      "trueDoc": "true doc",
+      "rank": "rank",
+      "origLbl": "original query",
+      "hydeLbl": "HyDE query",
+      "hydeTitle": "HyDE",
+      "hydeL1": "write a hypothetical",
+      "hydeL2": "answer, then embed",
+      "hydeL3": "THAT vector",
+      "mqHead": "multi-query · a separate 5-relevant gold-set",
+      "mqSingle": "single query",
+      "mqUnion": "union of 3 paraphrases",
+      "s0": "The query “How does the heart pump blood?” is short and vocabulary-poor. The true doc speaks of “cardiac cycle, ventricular systole” — a lexical and semantic mismatch. So the retriever ranks the true doc only 8th: below the top-5 cut, it is never read. recall@5 = 0, RR = 1/8 = 0.125.",
+      "s1": "HyDE's trick: don't search with the bare question. First ask an LLM to write a hypothetical answer paragraph — full of the words a real answer would use (cardiac cycle, ventricles, systole) — and embed THAT paragraph instead of the question.",
+      "s2": "The hypothetical answer's vector lands right next to the true doc — they speak the same vocabulary. Re-retrieve, and the true doc jumps from rank 8 to rank 2: now inside the top-5. recall@5 = 1, RR = 1/2 = 0.5. Same retriever, a better query.",
+      "s3": "Multi-query attacks recall differently — on a SEPARATE query with 5 relevant docs (never blended with HyDE's single-doc count). The bare query retrieves 2 of 5 → recall@5 = 0.4. Issue 3 paraphrases and take the UNION of their top-5: it covers 4 of 5 → recall@5 = 0.8. More phrasings, more of the relevant set found."
+    },
+    "ru": {
+      "alt": "Релевантный документ занимает 8-е место при исходном запросе и 2-е при поиске по вектору гипотетического ответа HyDE. В отдельном примере multi-query полнота растёт с 0,4 до 0,8 при объединении списков топ-5.",
+      "ranked": "ранжированная выдача",
+      "cut": "отсечка топ-5",
+      "trueDoc": "релевантный документ",
+      "rank": "ранг",
+      "origLbl": "исходный запрос",
+      "hydeLbl": "HyDE-запрос",
+      "hydeTitle": "HyDE",
+      "hydeL1": "пишем гипотетический",
+      "hydeL2": "ответ и ищем",
+      "hydeL3": "по его вектору",
+      "mqHead": "multi-query · 5 релевантных документов",
+      "mqSingle": "один запрос",
+      "mqUnion": "3 запроса вместе",
+      "s0": "В запросе «Как сердце качает кровь?» нет терминов «сердечный цикл» и «систола желудочков», которые встречаются в релевантном документе. В этом примере поисковик ставит его лишь на 8-е место, поэтому документ не попадает в контекст из топ-5. recall@5 = 0, RR = 1/8 = 0,125.",
+      "s1": "Идея HyDE — искать по вектору гипотетического ответа, а не самого вопроса. Просим LLM написать абзац с возможным ответом: в нём могут появиться термины «сердечный цикл», «желудочки», «систола». Затем кодируем этот абзац. Это текст для поиска, а не проверенный ответ пользователю.",
+      "s2": "В этом примере поиск по вектору гипотетического ответа поднимает релевантный документ с 8-го на 2-е место: теперь он входит в топ-5. recall@5 = 1, RR = 1/2 = 0,5. Поисковик тот же, изменился входной вектор. Улучшение в этом примере не гарантирует такого же эффекта для любого запроса.",
+      "s3": "Multi-query рассмотрим на отдельном запросе с 5 релевантными документами, не смешивая его с примером HyDE, где релевантный документ один. Исходный запрос находит 2 из 5 → recall@5 = 0,4. Объединим топ-5 для каждой из 3 формулировок: найдены 4 из 5 → полнота объединения = 0,8. Это не recall@5 итоговой выдачи: объединённый список может быть длиннее. Здесь дополнительные формулировки помогли найти больше релевантных документов.",
+      "mqRecall": "полнота"
+    }
   }
 }
   </script>
-  <p class="viz-caption"><span lang="ru">Истинный документ стоит на ранге 8 (recall@5=0, RR=0,125). HyDE кодирует гипотетический ответ → ранг 2 (recall@5=1, RR=0,5). Multi-query на отдельном золотом множестве из 5 релевантных поднимает recall@5 0,4→0,8 в этой игрушке (найдено 4 из 5 — последний золотой документ не достаёт ни одна из трёх формулировок).</span><span lang="en">The true doc sits at rank 8 (recall@5=0, RR=0.125). HyDE embeds a hypothetical answer → rank 2 (recall@5=1, RR=0.5). Multi-query, on a separate 5-relevant gold-set, lifts recall@5 0.4→0.8 in this toy (4 of 5 found — the last gold doc is reached by none of the three phrasings).</span></p>
+  <p class="viz-caption"><span lang="ru">В этом учебном примере релевантный документ занимает 8-е место (recall@5=0, RR=0,125). Поиск по вектору гипотетического ответа HyDE поднимает его на 2-е место (recall@5=1, RR=0,5). Отдельный пример multi-query: объединение выдач для трёх формулировок находит 4 из 5 релевантных документов и повышает полноту с 0,4 до 0,8. Пятый документ не найден ни по одной формулировке.</span><span lang="en">The true doc sits at rank 8 (recall@5=0, RR=0.125). HyDE embeds a hypothetical answer → rank 2 (recall@5=1, RR=0.5). Multi-query, on a separate 5-relevant gold-set, lifts recall@5 0.4→0.8 in this toy (4 of 5 found — the last gold doc is reached by none of the three phrasings).</span></p>
   <aside class="slide-notes">climb-queryrewrite widget (query-rewrite). Two recall senses on two gold-sets, never blended.</aside>
 </section>
 <section class="slide" data-type="formula" data-screen-label="28 Multi-query recall, by hand">
@@ -966,7 +1121,7 @@
     $$ \text{recall@5} = \frac{|\text{gold} \cap \text{found}|}{|\text{gold}|}, \qquad |\text{gold}| = 5 $$
     $$ \text{single query: } 2/5 \Rightarrow \mathbf{0.4} \qquad \text{union of 3 paraphrases: } 4/5 \Rightarrow \mathbf{0.8} $$
   </div>
-  <p class="small muted center mt-2"><span lang="ru">Голый запрос находит 2 из 5 релевантных документов; три парафраза вместе покрывают 4 из 5 — пятый золотой документ не находит <em>ни одна</em> из трёх формулировок, так что даже их объединение упирается в 4/5. Объединение поднимает полноту <em>не трогая ретривер</em> — просто задаёт один вопрос несколькими способами. Прирост зависит от разнообразия и быстро выдыхается, а лишние кандидаты конкурируют за бюджет токенов, так что это 0,4→0,8 — игрушка, а не гарантированное удвоение. (Это своё золотое множество, никогда не смешиваемое со счётом одного истинного документа у HyDE.)</span><span lang="en">The bare query finds 2 of the 5 relevant docs; three paraphrases together cover 4 of 5 — the fifth gold doc is found by <em>none</em> of the three phrasings, so even their union tops out at 4/5. The union lifts recall <em>without touching the retriever</em> — it just asks the same question several ways. The lift is diversity-dependent with fast diminishing returns, and the extra candidates compete for the token budget, so this 0.4→0.8 is a toy, not a guaranteed doubling. (This is its own gold-set, never blended with HyDE's single-true-doc count.)</span></p>
+  <p class="small muted center mt-2"><span lang="ru">Голый запрос находит 2 из 5 релевантных документов; три парафраза вместе покрывают 4 из 5 — пятый золотой документ не находит <em>ни одна</em> из трёх формулировок, так что даже их объединение упирается в 4/5. Объединение поднимает полноту, <em>не трогая ретривер</em> — просто задаёт один вопрос несколькими способами. Прирост зависит от разнообразия и быстро выдыхается, а лишние кандидаты конкурируют за бюджет токенов, так что это 0,4→0,8 — игрушка, а не гарантированное удвоение. (Это своё золотое множество, никогда не смешиваемое со счётом одного истинного документа у HyDE.)</span><span lang="en">The bare query finds 2 of the 5 relevant docs; three paraphrases together cover 4 of 5 — the fifth gold doc is found by <em>none</em> of the three phrasings, so even their union tops out at 4/5. The union lifts recall <em>without touching the retriever</em> — it just asks the same question several ways. The lift is diversity-dependent with fast diminishing returns, and the extra candidates compete for the token budget, so this 0.4→0.8 is a toy, not a guaranteed doubling. (This is its own gold-set, never blended with HyDE's single-true-doc count.)</span></p>
   <aside class="slide-notes">multi-query union recall by-hand. l10-rewrite.multiQuery: single 2/5 = 0.4 → union 4/5 = 0.8 (both gated, anchored 2/5⇒0.4 and 4/5⇒0.8). Separate 5-relevant gold-set — never blended with HyDE's binary recall.</aside>
 </section>
 <section class="slide" data-type="formula" data-screen-label="29 HyDE, by hand">
@@ -979,7 +1134,7 @@
     $$ \text{original: true doc rank } 8 \;\Longrightarrow\; \text{recall@5} = 0, \quad \text{RR} = 1/8 = \mathbf{0.125} $$
     $$ \text{HyDE: rank } 2 \;\Longrightarrow\; \text{recall@5} = 1, \quad \text{RR} = 1/2 = \mathbf{0.5} $$
   </div>
-  <p class="small muted center mt-2"><span lang="ru">HyDE закрывает словарный разрыв, ища текстом в форме ответа; multi-query расширяет покрытие, спрашивая несколькими способами. Оба поднимают ранжирование <em>не трогая ретривер</em> — они просто подают ему запрос получше.</span><span lang="en">HyDE closes the vocabulary gap by searching with answer-shaped text; multi-query widens coverage by asking several ways. Both lift the ranking <em>without touching the retriever</em> — they just feed it a better query.</span></p>
+  <p class="small muted center mt-2"><span lang="ru">HyDE закрывает словарный разрыв, ища текстом в форме ответа; multi-query расширяет покрытие, спрашивая несколькими способами. Оба улучшают ранжирование, <em>не трогая ретривер</em> — они просто подают ему запрос получше.</span><span lang="en">HyDE closes the vocabulary gap by searching with answer-shaped text; multi-query widens coverage by asking several ways. Both lift the ranking <em>without touching the retriever</em> — they just feed it a better query.</span></p>
   <aside class="slide-notes">HyDE single-doc binary recall (RR 0.125→0.5, anchored 1/8=0.125 and 1/2=0.5). provenance_l10 pins RR=1/rank and the two recall senses on their own gold-sets.</aside>
 </section>
 <section class="slide" data-type="definition" data-screen-label="30 HyDE, formally">
@@ -1072,6 +1227,42 @@
     "s2": "Retrieve each sub-question separately. Sub-answer 1 lives in its own chunk, sub-answer 2 in another: recall per sub = [1, 1] — both found. But a SINGLE retrieval over the joint question hits no chunk that contains both: recall on one joint retrieval = 0. Decomposition recovers what one pass drops.",
     "s3": "A different reshape: step-back. Start from a too-specific question — 'Why did my heart rate hit 180 bpm running up the stairs?' Taken literally, that exact event may not be in any chunk.",
     "s4": "Abstract UP the ladder: the specific question becomes a generic one — 'What mechanism regulates heart rate under exertion?' — which retrieves the underlying PRINCIPLE (the sympathetic nervous system raises heart rate). Answer the principle, then come back down to the specific. Climb to retrieve, descend to answer (Zheng et al. 2023)."
+  },
+  "i18n": {
+    "en": {
+      "alt": "A one-question-to-two fan-out (each sub-question retrieves its own chunk, recall 1 each, but one joint retrieval gets recall 0), above a three-rung step-back ladder: specific question abstracted to a generic one to retrieve the underlying principle.",
+      "fanTitle": "A · Decomposition fan-out",
+      "stepBackTitle": "B · Step-back ladder",
+      "subPrefix": "sub",
+      "chunk": "chunk",
+      "recallSub": "recall per sub",
+      "recallJoint": "recall on one joint retrieval",
+      "specific": "specific",
+      "generic": "generic",
+      "principle": "principle",
+      "s0": "Some questions ask two things at once. This one wants BOTH whether heart rate rises during exercise AND what controls it. Retrieval works on chunks, and these two facts may live in different chunks — so the multi-part query is a trap.",
+      "s1": "Decompose it. The one question fans out into two single-purpose sub-questions: 'Does heart rate increase during exercise?' and 'What controls heart rate?' Each is now a clean, atomic retrieval target.",
+      "s2": "Retrieve each sub-question separately. Sub-answer 1 lives in its own chunk, sub-answer 2 in another: recall per sub = [1, 1] — both found. But a SINGLE retrieval over the joint question hits no chunk that contains both: recall on one joint retrieval = 0. Decomposition recovers what one pass drops.",
+      "s3": "A different reshape: step-back. Start from a too-specific question — 'Why did my heart rate hit 180 bpm running up the stairs?' Taken literally, that exact event may not be in any chunk.",
+      "s4": "Abstract UP the ladder: the specific question becomes a generic one — 'What mechanism regulates heart rate under exertion?' — which retrieves the underlying PRINCIPLE (the sympathetic nervous system raises heart rate). Answer the principle, then come back down to the specific. Climb to retrieve, descend to answer (Zheng et al. 2023)."
+    },
+    "ru": {
+      "alt": "Веер из одного вопроса в два (каждый подвопрос достаёт свой чанк, полнота 1, но покрытие обоих фактов одним чанком равно 0), над трёхступенчатой лестницей step-back: конкретный вопрос абстрагируется в общий, чтобы достать принцип.",
+      "fanTitle": "A · Декомпозиция (веер)",
+      "stepBackTitle": "B · Лестница step-back",
+      "subPrefix": "под",
+      "chunk": "чанк",
+      "recallSub": "полнота по подвопросам",
+      "recallJoint": "оба факта в одном чанке",
+      "specific": "конкретный",
+      "generic": "общий",
+      "principle": "принцип",
+      "s0": "Некоторые вопросы спрашивают сразу о двух вещах. Здесь нужны ОБА ответа: растёт ли пульс при нагрузке И что им управляет. Поиск работает по чанкам, а эти два факта могут лежать в разных чанках — так что составной вопрос — ловушка.",
+      "s1": "Разложи его. Один вопрос распадается на два узких подвопроса: «Растёт ли пульс при нагрузке?» и «Что управляет пульсом?» Каждый теперь — чистая атомарная цель поиска.",
+      "s2": "Выполни поиск по каждому подвопросу отдельно. Подответ 1 — в своём чанке, подответ 2 — в другом: полнота по подвопросам = [1, 1] — найдены оба. Но в этом условном примере НИ ОДИН чанк не содержит оба факта: показатель «оба факта в одном чанке» = 0. Это не полнота обычной выдачи из нескольких чанков. Декомпозиция позволяет явно искать каждую часть ответа.",
+      "s3": "Другая перекройка: step-back. Начни со слишком конкретного вопроса — «Почему мой пульс достиг 180 уд/мин, когда я бежал по лестнице?» Буквально такого события может не быть ни в одном чанке.",
+      "s4": "Абстрагируй ВВЕРХ по лестнице: конкретный вопрос становится общим — «Какой механизм регулирует пульс при нагрузке?» — и достаёт лежащий в основе ПРИНЦИП (симпатическая нервная система повышает пульс). Найди объяснение общего принципа, затем спустись к конкретике. Поднимись, чтобы извлечь, спустись, чтобы ответить (Zheng et al. 2023)."
+    }
   }
 }
   </script>
@@ -1199,10 +1390,36 @@
     "s1": "Compute the cosine of the query to each centroid: the three bars grow to those similarities. The toy query leans how-to — factQA 0.8058, howTo 0.9670, compare 0.6447. Higher cosine means a closer template fit.",
     "s2": "The route is the argmax: the template with the highest cosine wins. howTo (0.9670) lights up — the query is sent down the how-to prompt. One router, many specialised prompts, chosen by similarity, no hand-written rules.",
     "s3": "Routing chooses the prompt; construction chooses the QUERY shape. The same natural-language question becomes a structured retrieval: self-query turns it into a metadata filter applied alongside vector search, and text-to-SQL turns it into an executable query over a structured store."
+  },
+  "i18n": {
+    "en": {
+      "alt": "A query is embedded and compared by cosine to three prompt-template centroids (factQA, howTo, compare); three bars grow to the cosine values, the highest (howTo) is highlighted as the chosen route, then the query is constructed into a metadata filter and a SQL query.",
+      "query": "embed the query · cosine to each template",
+      "routeTo": "route →",
+      "constructHead": "construct: turn NL into a structured retrieval",
+      "selfQuery": "self-query · NL → metadata filter",
+      "textToSql": "text-to-SQL · NL → SQL",
+      "s0": "Not every query wants the same prompt. A semantic router embeds the query and compares it (cosine) to one centroid per prompt template — here factQA (factual lookup), howTo (a procedure), and compare (a comparison). The targets start empty.",
+      "s1": "Compute the cosine of the query to each centroid: the three bars grow to those similarities. The toy query leans how-to — factQA 0.8058, howTo 0.9670, compare 0.6447. Higher cosine means a closer template fit.",
+      "s2": "The route is the argmax: the template with the highest cosine wins. howTo (0.9670) lights up — the query is sent down the how-to prompt. One router, many specialised prompts, chosen by similarity, no hand-written rules.",
+      "s3": "Routing chooses the prompt; construction chooses the QUERY shape. The same natural-language question becomes a structured retrieval: self-query turns it into a metadata filter applied alongside vector search, and text-to-SQL turns it into an executable query over a structured store."
+    },
+    "ru": {
+      "alt": "Запрос кодируется и сравнивается косинусом с тремя центроидами шаблонов промптов (factQA, howTo, compare); три полосы растут до значений косинуса, наибольшая (howTo) подсвечивается как выбранный маршрут, затем из исходного запроса строятся фильтр по метаданным и SQL-запрос.",
+      "query": "эмбед запроса · косинус к каждому шаблону",
+      "routeTo": "маршрут →",
+      "constructHead": "конструирование: превратить NL в структурированный запрос",
+      "selfQuery": "self-query · NL → фильтр по метаданным",
+      "textToSql": "text-to-SQL · NL → SQL",
+      "s0": "Не каждому запросу нужен один и тот же промпт. Семантический роутер кодирует запрос и сравнивает его (косинус) с центроидом каждого шаблона промпта — здесь factQA (фактический поиск), howTo (процедура) и compare (сравнение). Цели пока пусты.",
+      "s1": "Считаем косинус запроса к каждому центроиду: три полосы растут до этих сходств. Игрушечный запрос склоняется к how-to — factQA 0,8058, howTo 0,9670, compare 0,6447. Больший косинус — ближе подходит шаблон.",
+      "s2": "Маршрут — это argmax: побеждает шаблон с наибольшим косинусом. howTo (0,9670) подсвечивается — запрос идёт по how-to-промпту. Один роутер, много специализированных промптов, выбор по сходству, без ручных правил.",
+      "s3": "Маршрутизация выбирает промпт; конструирование выбирает ФОРМУ запроса. Тот же вопрос на естественном языке становится структурированным запросом: self-query превращает его в фильтр по метаданным рядом с векторным поиском, а text-to-SQL — в исполняемый запрос к структурированному хранилищу."
+    }
   }
 }
   </script>
-  <p class="viz-caption"><span lang="ru">Эмбеддим запрос, берём косинус к центроиду каждого шаблона промпта, направляем в argmax (побеждает howTo). Затем <em>конструируем</em>: тот же вопрос становится фильтром по метаданным (self-query) или исполняемым SQL-запросом (text-to-SQL).</span><span lang="en">Embed the query, take cosine to each prompt-template centroid, route to the argmax (howTo wins). Then <em>construct</em>: the same question becomes a metadata filter (self-query) or an executable SQL query (text-to-SQL).</span></p>
+  <p class="viz-caption"><span lang="ru">Кодируем запрос, берём косинус к центроиду каждого шаблона промпта, направляем в argmax (побеждает howTo). Затем <em>конструируем</em>: тот же вопрос становится фильтром по метаданным (self-query) или исполняемым SQL-запросом (text-to-SQL).</span><span lang="en">Embed the query, take cosine to each prompt-template centroid, route to the argmax (howTo wins). Then <em>construct</em>: the same question becomes a metadata filter (self-query) or an executable SQL query (text-to-SQL).</span></p>
   <aside class="slide-notes">semantic-routing walkthrough (semantic-router, l10-routing). sims 0.8058 / 0.9670 / 0.6447 (in widget-data JSON → stripped by the coverage-guard, rendered by the widget) → route howTo. Steps 3 introduces construction (self-query + text-to-SQL), expanded on the next slides.</aside>
 </section>
 <section class="slide" data-type="definition" data-screen-label="39 Query construction">
@@ -1217,7 +1434,7 @@
       <ul class="obj-list">
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Зачем:</strong> «статьи по поиску, <em>после 2020</em>» прячут жёсткое ограничение (год &gt; 2020), которое эмбеддинги приближают плохо. Фильтр даёт его точно; вектор ранжирует внутри.</span><span lang="en"><strong>Why:</strong> "papers on retrieval <em>published after 2020</em>" hides a hard constraint (year &gt; 2020) embeddings approximate poorly. A filter enforces it exactly; vector search ranks within it.</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Две формы:</strong> <em>self-query</em> извлекает фильтр по метаданным (рядом с векторным поиском); <em>text-to-SQL</em> компилирует вопрос в запрос над структурированным хранилищем.</span><span lang="en"><strong>Two forms:</strong> <em>self-query</em> extracts a metadata filter (applied beside vector search); <em>text-to-SQL</em> compiles the question into a query over a structured store.</span></span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Здесь неструктурированный поиск встречает структурированный мир — LLM это компилятор из намерения в запрос.</span><span lang="en">This is where unstructured retrieval meets the structured world — the LLM is the compiler from intent to query.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Здесь неструктурированный поиск встречает структурированный мир — LLM — это компилятор из намерения в запрос.</span><span lang="en">This is where unstructured retrieval meets the structured world — the LLM is the compiler from intent to query.</span></span></li>
       </ul>
     </div>
   </div>
@@ -1266,7 +1483,7 @@ WHERE indexed_at >= date_trunc(
       <th><span lang="ru">когда</span><span lang="en">when</span></th>
     </tr></thead>
     <tbody>
-      <tr><td><strong><span lang="ru">логическая маршрутизация</span><span lang="en">logical routing</span></strong></td><td><span lang="ru">источник данных / индекс / инструмент</span><span lang="en">the data source / index / tool</span></td><td><span lang="ru">LLM классифицирует в именованное меню (структурированный вывод)</span><span lang="en">LLM classifies into a named menu (structured output)</span></td><td><span lang="ru">варианты именуемы и различимы</span><span lang="en">choices are nameable &amp; distinct</span></td></tr>
+      <tr><td><strong><span lang="ru">логическая маршрутизация</span><span lang="en">logical routing</span></strong></td><td><span lang="ru">источник данных / индекс / инструмент</span><span lang="en">the data source / index / tool</span></td><td><span lang="ru">LLM выбирает вариант из именованного меню (структурированный вывод)</span><span lang="en">LLM classifies into a named menu (structured output)</span></td><td><span lang="ru">варианты именуемы и различимы</span><span lang="en">choices are nameable &amp; distinct</span></td></tr>
       <tr><td class="cell-good"><strong><span lang="ru">семантическая маршрутизация</span><span lang="en">semantic routing</span></strong></td><td><span lang="ru">шаблон промпта</span><span lang="en">the prompt template</span></td><td><span lang="ru">косинус запроса к центроиду каждого шаблона → argmax</span><span lang="en">cosine of the query to each template centroid → argmax</span></td><td><span lang="ru">варианты размыты / их много</span><span lang="en">choices are fuzzy / many</span></td></tr>
       <tr><td><strong>self-query</strong></td><td><span lang="ru">фильтр по метаданным рядом с векторным поиском</span><span lang="en">a metadata filter beside vector search</span></td><td><span lang="ru">LLM извлекает структурированные поля из вопроса</span><span lang="en">LLM extracts structured fields from the question</span></td><td><span lang="ru">жёсткие ограничения (дата, автор, тег)</span><span lang="en">hard constraints (date, author, tag)</span></td></tr>
       <tr><td><strong>text-to-SQL</strong></td><td><span lang="ru">исполняемый запрос к БД</span><span lang="en">an executable query over a DB</span></td><td><span lang="ru">LLM компилирует ЕЯ в SQL</span><span lang="en">LLM compiles NL into SQL</span></td><td><span lang="ru">ответ лежит в структурированном хранилище</span><span lang="en">the answer lives in a structured store</span></td></tr>
@@ -1298,7 +1515,7 @@ WHERE indexed_at >= date_trunc(
   <div class="divider-content">
     <div class="divider-num"><span lang="ru">Акт 4 · Сделай поиск надёжным</span><span lang="en">Act 4 · Make retrieval reliable</span></div>
     <h1>When one pass isn't enough</h1>
-    <p class="divider-sub"><em><span lang="ru">Нижняя граница полноты всё ещё ограничивает ответ.</span><span lang="en">The recall floor still caps the answer.</span></em> <span lang="ru">Так трать больше вычислений там, где это окупается: <strong>переранжируй</strong> шортлист кросс-энкодером, <strong>оцени</strong> поиск и самокорректируйся (CRAG, self-RAG), и <strong>маршрутизируй</strong> по сложности вопроса (adaptive-RAG). Затем прочитай всё меню как одну матрицу.</span><span lang="en">So spend more compute where it pays: <strong>re-rank</strong> the shortlist with a cross-encoder, <strong>grade</strong> the retrieval and self-correct (CRAG, self-RAG), and <strong>route</strong> by question complexity (adaptive-RAG). Then read the whole menu as one matrix.</span></p>
+    <p class="divider-sub"><em><span lang="ru">Полнота извлечения ограничивает ответ по контексту.</span><span lang="en">The recall floor still caps the answer.</span></em> <span lang="ru">Так трать больше вычислений там, где это окупается: <strong>переранжируй</strong> шортлист кросс-энкодером, <strong>оцени</strong> поиск и самокорректируйся (CRAG, self-RAG), и <strong>маршрутизируй</strong> по сложности вопроса (adaptive-RAG). Затем прочитай всё меню как одну матрицу.</span><span lang="en">So spend more compute where it pays: <strong>re-rank</strong> the shortlist with a cross-encoder, <strong>grade</strong> the retrieval and self-correct (CRAG, self-RAG), and <strong>route</strong> by question complexity (adaptive-RAG). Then read the whole menu as one matrix.</span></p>
   </div>
   <div class="viz-frame fig-fit" style="--fig-max:58cqh; --fig-w:46%;">
     <img src="assets/img/L10/L10-14-crag-inspect.webp?v=1" alt="RAGdoll the Oracle holds each retrieved scrap up to a magnifying glass and stamps it check, cross, or question-mark before stitching, tossing a rejected scrap toward a web basket (CRAG grade-then-correct)." />
@@ -1426,6 +1643,42 @@ WHERE indexed_at >= date_trunc(
     "s2": "Now act on the verdict. correct → use the retrieved context as-is. ambiguous → combine it with a corrective web search. wrong → discard it and fall back to web search or a query rewrite. The pipeline repairs its own bad retrievals.",
     "s3": "Self-RAG goes further: it trains the model to emit reflection tokens as it generates. Retrieve? decides whether retrieval is even needed; IsRel asks if a retrieved passage is relevant; IsSup asks if the claim is supported by it. Each is a gate in the chain.",
     "s4": "The last gate, IsUse, scores how useful the overall response is (1..5). Only a response that clears every reflection gate becomes the grounded answer — the model critiques itself before it commits, instead of trusting one retrieval blindly."
+  },
+  "i18n": {
+    "en": {
+      "alt": "A directed decision graph: CRAG retrieves, grades each document in a diamond as correct, ambiguous, or wrong, and branches to three actions (use as-is, combine with web search, or discard and fall back to web search); below, self-RAG strings four reflection-token decision diamonds (Retrieve, IsRel, IsSup, IsUse) into a chain ending in a grounded answer.",
+      "cragTitle": "CRAG · grade the retrieval, then act",
+      "selfRagTitle": "self-RAG · reflection-token gates",
+      "retrieve": "retrieve",
+      "grade": "grade each doc",
+      "correct": "correct",
+      "ambiguous": "ambiguous",
+      "wrong": "wrong",
+      "pass": "pass",
+      "answer": "grounded answer",
+      "s0": "Naive RAG retrieves once and trusts whatever comes back. Self-correcting RAG adds a gate. CRAG first retrieves, then runs a lightweight retrieval evaluator that GRADES each document — a decision diamond with toy score thresholds.",
+      "s1": "The grade falls into three buckets by score: correct (≥ 0.7), ambiguous (0.3 .. 0.7), or wrong (< 0.3). Each is a labelled branch out of the diamond — the same retrieval, three possible verdicts.",
+      "s2": "Now act on the verdict. correct → use the retrieved context as-is. ambiguous → combine it with a corrective web search. wrong → discard it and fall back to web search or a query rewrite. The pipeline repairs its own bad retrievals.",
+      "s3": "Self-RAG goes further: it trains the model to emit reflection tokens as it generates. Retrieve? decides whether retrieval is even needed; IsRel asks if a retrieved passage is relevant; IsSup asks if the claim is supported by it. Each is a gate in the chain.",
+      "s4": "The last gate, IsUse, scores how useful the overall response is (1..5). Only a response that clears every reflection gate becomes the grounded answer — the model critiques itself before it commits, instead of trusting one retrieval blindly."
+    },
+    "ru": {
+      "alt": "Направленный граф решений: CRAG извлекает, оценивает каждый документ в ромбе как correct, ambiguous или wrong и ветвится на три действия (использовать как есть, объединить с веб-поиском или отбросить и перейти к веб-поиску); ниже self-RAG выстраивает четыре ромба рефлексивных токенов (Retrieve, IsRel, IsSup, IsUse) в цепочку, завершающуюся обоснованным ответом.",
+      "cragTitle": "CRAG · оцени извлечение, затем действуй",
+      "selfRagTitle": "self-RAG · ворота рефлексивных токенов",
+      "retrieve": "извлечь",
+      "grade": "оценить каждый док",
+      "correct": "correct",
+      "ambiguous": "ambiguous",
+      "wrong": "wrong",
+      "pass": "пройдено",
+      "answer": "обоснованный ответ",
+      "s0": "Наивный RAG извлекает один раз и доверяет всему, что вернулось. Самокорректирующийся RAG добавляет ворота. CRAG сначала извлекает, затем запускает лёгкий оценщик извлечения, который ОЦЕНИВАЕТ каждый документ — ромб решения с игрушечными порогами оценки.",
+      "s1": "Оценка попадает в три корзины по баллу: correct (≥ 0,7), ambiguous (0,3 .. 0,7) или wrong (< 0,3). Каждая — помеченная ветвь из ромба — то же извлечение, три возможных вердикта.",
+      "s2": "Теперь действуем по вердикту. correct → использовать извлечённый контекст как есть. ambiguous → объединить его с корректирующим веб-поиском. wrong → отбросить и перейти к веб-поиску или переписыванию запроса. Конвейер чинит свои плохие извлечения.",
+      "s3": "Self-RAG идёт дальше: он учит модель выдавать рефлексивные токены по ходу генерации. Retrieve? решает, нужно ли вообще извлечение; IsRel спрашивает, релевантен ли извлечённый отрывок; IsSup — подтверждается ли им утверждение. Каждый — ворота в цепочке.",
+      "s4": "IsUse оценивает полезность ответа по шкале 1..5. В Self-RAG оценки рефлексивных токенов помогают выбирать продолжение: их можно учитывать как взвешенные мягкие оценки или жёсткие ограничения. Это не обязательная цепочка бинарных проверок и не гарантия истинности ответа."
+    }
   }
 }
   </script>
@@ -1556,7 +1809,7 @@ WHERE indexed_at >= date_trunc(
       <ul class="obj-list">
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Система:</strong> «Отвечай ТОЛЬКО по контексту ниже. Если его там нет — скажи, что не знаешь. Ссылайся на каждое утверждение». — она <em>вынуждает</em> заземление.</span><span lang="en"><strong>System:</strong> "Answer using ONLY the context below. If it isn't there, say you don't know. Cite every claim." — this <em>forces</em> grounding.</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Контекст:</strong> переранжированные top-<em>k</em> чанков, каждый с id источника — то, что влезает в бюджет токенов (вспомни \(k_{\max}\)).</span><span lang="en"><strong>Context:</strong> the reranked top-<em>k</em> chunks, each tagged with its source id — what fits the token budget (recall \(k_{\max}\)).</span></span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Вопрос:</strong> запрос пользователя. «Только контекст» + «ссылайся на источники» делают ответ ссылаемым и проверяемым — лекарство от провалов голой LLM.</span><span lang="en"><strong>Question:</strong> the user's query. "Only the context" + "cite sources" make the answer citeable and auditable — the cure for bare-LLM failures.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>Вопрос:</strong> запрос пользователя. «Только контекст» + «ссылайся на источники» делают источники ответа явными, а сам ответ — проверяемым — лекарство от провалов голой LLM.</span><span lang="en"><strong>Question:</strong> the user's query. "Only the context" + "cite sources" make the answer citeable and auditable — the cure for bare-LLM failures.</span></span></li>
       </ul>
     </div>
   </div>
@@ -1592,7 +1845,7 @@ WHERE indexed_at >= date_trunc(
     <div class="misc-label"><span lang="ru">Что думают студенты</span><span lang="en">What students think</span></div>
     <p class="misc-statement"><span lang="ru">&laquo;Гладкий вывод означает, что ответ верен &mdash; если модель пишет уверенный, складный ответ, значит система сработала&raquo;.</span><span lang="en">&ldquo;Fluent output means the answer is correct &mdash; if the model writes a confident, well-formed reply, the system worked.&rdquo;</span></p>
     <button class="misc-reveal-btn" type="button"><span lang="ru">Показать правду</span><span lang="en">Reveal truth</span></button>
-    <div class="misc-truth"><span lang="ru">Если <strong>поиск</strong> вернёт не те пассажи, <strong>дополнение</strong> набьёт их внутрь, а <strong>генерация</strong> послушно напишет гладкий, уверенный ответ, заземлённый на <em>мусоре</em>. Пол полноты бьёт снова: генератор не лучше того, что вернул поиск. Всё в этой лекции &mdash; чанкование, трансформация запроса, маршрутизация, переранжирование, самокоррекция &mdash; существует, чтобы держать <em>мусор</em> вне этого контекста. <strong>Confabulous</strong> вручает Оракулу поддельную ссылку, и тот декламирует её с той же уверенностью, что и настоящую.</span><span lang="en">If <strong>retrieve</strong> brings back wrong passages, <strong>augment</strong> stuffs them in, and <strong>generate</strong> dutifully writes a fluent, confident answer grounded in <em>garbage</em>. The recall floor strikes again: the generator can only be as good as what retrieval brought back. Everything in this lecture &mdash; chunking, query translation, routing, re-rank, self-correction &mdash; exists to keep <em>garbage</em> out of that context. <strong>Confabulous</strong> hands the Oracle a forged citation, and it recites it with the same assurance as a true one.</span></div>
+    <div class="misc-truth"><span lang="ru">Если <strong>поиск</strong> вернёт не те пассажи, <strong>дополнение</strong> набьёт их внутрь, а <strong>генерация</strong> послушно напишет гладкий, уверенный ответ, заземлённый на <em>мусоре</em>. Качество извлечения снова подводит: ответ по контексту опирается на то, что вернул поиск. Всё в этой лекции &mdash; чанкование, трансформация запроса, маршрутизация, переранжирование, самокоррекция &mdash; существует, чтобы держать <em>мусор</em> вне этого контекста. <strong>Конфабулус</strong> вручает Оракулу поддельную ссылку, и тот декламирует её с той же уверенностью, что и настоящую.</span><span lang="en">If <strong>retrieve</strong> brings back wrong passages, <strong>augment</strong> stuffs them in, and <strong>generate</strong> dutifully writes a fluent, confident answer grounded in <em>garbage</em>. The recall floor strikes again: the generator can only be as good as what retrieval brought back. Everything in this lecture &mdash; chunking, query translation, routing, re-rank, self-correction &mdash; exists to keep <em>garbage</em> out of that context. <strong>Confabulous</strong> hands the Oracle a forged citation, and it recites it with the same assurance as a true one.</span></div>
   </div>
   <p class="small muted center mt-2"><span lang="ru">Уверенный и верный выглядят снаружи одинаково — а это ровно та задача, которую должна решить следующая лекция. Как <em>оценить</em> Оракула?</span><span lang="en">Confident and correct look identical from the outside — which is precisely the problem the next lecture must solve. How do you <em>grade</em> an Oracle?</span></p>
   <aside class="slide-notes">catch-garbage-in (kept). Confabulous (first appearance, pays off as L16's villain). The faithfulness problem sets up L11. The whole lecture's machinery is in service of keeping garbage out of the context.</aside>
@@ -1641,6 +1894,36 @@ WHERE indexed_at >= date_trunc(
     "s1": "Query time, sharpened: query translation (multi-query, HyDE, RAG-Fusion, decomposition, step-back) and routing (logical, semantic, construction) decide WHAT enters retrieve. The same retriever, aimed better.",
     "s2": "Guard the shortlist: a cross-encoder re-ranks the top-k (precision), and self-correction (CRAG / self-RAG) grades and repairs the retrieval before it reaches the generator. adaptive-RAG decides how much of this to even run.",
     "s3": "Generate, grounded: the LLM reads the reranked, verified context and answers using ONLY it, with citations. Retrieve → augment → generate — but now the whole system feeds and guards that one loop."
+  },
+  "i18n": {
+    "en": {
+      "alt": "The same five-stage RAG spine — chunk, embed, retrieve, stuff, generate — now framed as the destination of the lecture: query translation and routing feed the retrieve stage, re-ranking and self-correction guard it, and generation grounds the answer with citations.",
+      "query": "query",
+      "chunk": "chunk",
+      "embed": "embed",
+      "retrieve": "retrieve",
+      "stuff": "stuff",
+      "generate": "generate",
+      "flowLabel": "translate → route → retrieve → re-rank → self-correct → generate",
+      "s0": "The build half, once per corpus: chunk (now smartly — fixed/recursive/semantic/late, or a RAPTOR tree) and embed into the index. How you cut and index decides the ceiling on everything downstream.",
+      "s1": "Query time, sharpened: query translation (multi-query, HyDE, RAG-Fusion, decomposition, step-back) and routing (logical, semantic, construction) decide WHAT enters retrieve. The same retriever, aimed better.",
+      "s2": "Guard the shortlist: a cross-encoder re-ranks the top-k (precision), and self-correction (CRAG / self-RAG) grades and repairs the retrieval before it reaches the generator. adaptive-RAG decides how much of this to even run.",
+      "s3": "Generate, grounded: the LLM reads the reranked, verified context and answers using ONLY it, with citations. Retrieve → augment → generate — but now the whole system feeds and guards that one loop."
+    },
+    "ru": {
+      "alt": "Тот же конвейер из пяти этапов — нарезка, кодирование, извлечение, сборка контекста, генерация — теперь объединяет всю лекцию: переписывание и маршрутизация уточняют запрос, переранжирование и самокоррекция проверяют найденное, а генератор отвечает по контексту со ссылками.",
+      "query": "запрос",
+      "chunk": "нарезка",
+      "embed": "эмбеддинг",
+      "retrieve": "извлечь",
+      "stuff": "вставка",
+      "generate": "генерация",
+      "flowLabel": "переписать → направить → найти → переранжировать → скорректировать → сгенерировать",
+      "s0": "Подготовка корпуса: разбить документы на чанки — фиксированные, рекурсивные, семантические, поздние или организованные в дерево RAPTOR — и закодировать их для индекса. Нарезка и индексирование определяют, какой контекст будет доступен следующим этапам.",
+      "s1": "На запросе: переписывание (multi-query, HyDE, RAG-Fusion, декомпозиция, step-back), логическая или семантическая маршрутизация и построение структурированного запроса определяют, что поступит в поиск. Ретривер тот же, но вход для него подготовлен точнее.",
+      "s2": "Проверка кандидатов: кросс-энкодер переранжирует top-k, а CRAG или Self-RAG добавляют оценивание и самокоррекцию до формирования окончательного ответа. Adaptive-RAG выбирает, насколько сложный путь обработки нужен запросу.",
+      "s3": "Генерация с опорой на источники: LLM получает переранжированный, проверенный контекст и инструкцию ответить только по нему, со ссылками. Поиск → дополнение → генерация: теперь весь конвейер подготавливает и проверяет вход для этого цикла."
+    }
   }
 }
   </script>

@@ -38,9 +38,14 @@
         if (fade) host.classList.add("wgt-fade");
       }
       host.innerHTML = "";
-      const base = { ...labels };
-      const active = labels;
       const i18nAll = rest && rest.i18nAll && typeof rest.i18nAll === "object" ? rest.i18nAll : null;
+      const active = { ...labels };
+      const localeKeys = /* @__PURE__ */ new Set();
+      if (i18nAll) for (const map of Object.values(i18nAll)) {
+        if (map && typeof map === "object") for (const key of Object.keys(map)) localeKeys.add(key);
+      }
+      const configKeys = /* @__PURE__ */ new Set(["role", "variant", "series"]);
+      const base = Object.fromEntries(Object.entries(labels).filter(([key]) => !localeKeys.has(key) || configKeys.has(key)));
       const ctx = { host, data, labels: active, el: svgEl, svg: svgEl, esc, fmt, maxStep: MAX, ...rest };
       let cap = null, counter = null;
       if (scaffold) {
@@ -51,6 +56,9 @@
       }
       const rendered = () => host.getClientRects().length > 0;
       let dirty = false;
+      const originalHostRole = host.getAttribute("role");
+      const originalHostAlt = host.getAttribute("aria-label");
+      let ownsHostAlt = false;
       let update = null;
       function paint() {
         if (!rendered()) {
@@ -63,6 +71,13 @@
         if (active.alt && !host.querySelector('[role="img"]')) {
           host.setAttribute("role", "img");
           host.setAttribute("aria-label", active.alt);
+          ownsHostAlt = true;
+        } else if (ownsHostAlt) {
+          for (const [key, value] of [["role", originalHostRole], ["aria-label", originalHostAlt]]) {
+            if (value === null) host.removeAttribute(key);
+            else host.setAttribute(key, value);
+          }
+          ownsHostAlt = false;
         }
         if (scaffold) {
           host.appendChild(cap);
@@ -124,9 +139,9 @@
           const lang = pickLang();
           if (lang === curLang) return;
           curLang = lang;
-          if (i18nAll && i18nAll[lang]) {
+          if (i18nAll) {
             for (const k of Object.keys(active)) delete active[k];
-            Object.assign(active, base, i18nAll[lang]);
+            Object.assign(active, i18nAll.en || {}, i18nAll[lang] || {}, base);
             const at = step;
             paint();
             step = -1;
@@ -197,7 +212,7 @@
         for (let i = 0; i < 5; i++) {
           el("circle", { cx: dotX0 + i * 22, cy: y + 8, r: 7, class: "qr-gold " + (i < foundN ? "is-found" : "is-miss") }, g);
         }
-        el("text", { x: dotX0 + 5 * 22 + 8, y: y + 12, class: "qr-mqrecall" }, g).textContent = `recall@5 = ${recall}`;
+        el("text", { x: dotX0 + 5 * 22 + 8, y: y + 12, class: "qr-mqrecall" }, g).textContent = `${labels.mqRecall || "recall@5"} = ${recall}`;
       }
       goldRow(mqTop + 12, (mq.foundSingle || []).length, labels.mqSingle || "single query", mq.recallAt5Single);
       goldRow(mqTop + 38, (mq.foundUnion || []).length, labels.mqUnion || "union of 3 paraphrases", mq.recallAt5Union);

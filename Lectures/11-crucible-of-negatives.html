@@ -41,7 +41,7 @@
           el.textContent = 'Не загрузились ресурсы: ' + failed.join(', ') +
             '. Формулы/подсветка/QR могут не отрисоваться — запустите офлайн-файл ' +
             '«Lecture Template (Standalone).html». · Failed to load: ' + failed.join(', ') +
-            ' — use the Standalone file. (клик чтобы скрыть)';
+            ' — use the Standalone file. (нажми, чтобы скрыть)';
         }
         show();
       };
@@ -173,7 +173,7 @@
     }
   }
   </script>
-  <p class="viz-caption"><span lang="ru">Одна остановка, <strong>Rank</strong>, и это не мелочь. Выбор негативов не меняет ни токенизацию, ни архитектуру &mdash; он меняет <em>что модель учится различать</em>, то есть порядок выдачи. Get Data остаётся тем же самым.</span><span lang="en">One stop, <strong>Rank</strong>, and that is the point. The choice of negatives changes neither tokenisation nor architecture &mdash; it changes <em>what the model learns to tell apart</em>, which is the order of results. Get Data stays exactly as it was.</span></p>
+  <p class="viz-caption"><span lang="ru">Одна остановка, <strong>Rank</strong>, и это не мелочь. Выбор негативов не меняет ни токенизацию, ни архитектуру &mdash; он меняет <em>то, что модель учится различать</em>, то есть порядок выдачи. Get Data остаётся тем же самым.</span><span lang="en">One stop, <strong>Rank</strong>, and that is the point. The choice of negatives changes neither tokenisation nor architecture &mdash; it changes <em>what the model learns to tell apart</em>, which is the order of results. Get Data stays exactly as it was.</span></p>
   <aside class="slide-notes">Spine anchor. Lit stop mirrors this lecture's course.json spine (Rank). Worth saying why the neighbouring stop stays dark: the encoder, the tokenizer and the index are untouched by this hour — the only thing that moves is the training signal, and a training signal is a statement about ordering.</aside>
 </section>
 <section class="slide" data-type="default" data-screen-label="02 You are here">
@@ -480,7 +480,33 @@
     "s2": "Halve the temperature to τ=0.1 and the softmax sharpens in the MIDDLE — P⁺ climbs further and the loss drops again, the easy negatives fading toward zero. The climb is monotone: lower τ, sharper target.",
     "s3": "Drop the temperature toward zero (τ=0.05) and the softmax SHARPENS hardest — P⁺ climbs and the loss falls, but the gradient now piles onto the single hardest negative. Temperature is the hardness amplifier.",
     "s4": "More negatives N raise the mutual-information CEILING log N (the InfoNCE bound I ≥ log N − L_N only saturates there) — this is why retrievers scale the negative count, NOT because 'InfoNCE maximises MI'."
-  }
+  },
+    "i18n": {
+      "en": {
+        "alt": "The query scored against its positive and five negatives, turned into a softmax (the InfoNCE target) at temperature τ; lowering τ sharpens it and growing the negative count raises the log N ceiling.",
+        "head": "q scored against d⁺ and the negatives",
+        "simHead": "cos(q, ·)",
+        "lossLine": "L = −log P⁺",
+        "ceilHead": "more negatives N raise the ceiling log N (the bound saturates there)",
+        "s0": "Score the query q against its true match d⁺ and the five candidate negatives n₁..n₅. The bars are cos(q,·): the lineup runs from an easy random negative up to the hardest near-miss.",
+        "s1": "A softmax over sim/τ is the InfoNCE target — it should put its mass on d⁺. The loss is L = −log P⁺. At τ=0.2 the mass is still spread across the hard negatives.",
+        "s2": "Halve the temperature to τ=0.1 and the softmax sharpens in the MIDDLE — P⁺ climbs further and the loss drops again, the easy negatives fading toward zero. The climb is monotone: lower τ, sharper target.",
+        "s3": "Drop the temperature toward zero (τ=0.05) and the softmax SHARPENS hardest — P⁺ climbs and the loss falls, but the gradient now piles onto the single hardest negative. Temperature is the hardness amplifier.",
+        "s4": "More negatives N raise the mutual-information CEILING log N (the InfoNCE bound I ≥ log N − L_N only saturates there) — this is why retrievers scale the negative count, NOT because 'InfoNCE maximises MI'."
+      },
+      "ru": {
+        "alt": "Запрос, оценённый против своего позитива и пяти негативов, превращён в софтмакс (цель InfoNCE) при температуре τ; меньшая τ его обостряет, а рост числа негативов поднимает потолок log N.",
+        "head": "q против d⁺ и негативов",
+        "simHead": "cos(q, ·)",
+        "lossLine": "L = −log P⁺",
+        "ceilHead": "больше кандидатов N → выше потолок оценки log N",
+        "s0": "Оцениваем запрос q против истинного соответствия d⁺ и пяти кандидатов-негативов n₁..n₅. Столбцы — это cos(q,·): набор идёт от лёгкого случайного негатива к самому трудному near-miss.",
+        "s1": "Софтмакс над sim/τ задаёт распределение для InfoNCE: масса должна лечь на d⁺. Потеря L = −log P⁺. При τ=0,2 масса всё ещё размазана по трудным негативам.",
+        "s2": "Делим температуру вдвое до τ=0,1 — софтмакс обостряется ПОСЕРЕДИНЕ: в этом примере P⁺ растёт дальше, потеря падает, лёгкие негативы тают к нулю. Подъём монотонный: ниже τ — острее цель.",
+        "s3": "Снижаем температуру к нулю (τ=0,05) — софтмакс ОБОСТРЯЕТСЯ сильнее всего: P⁺ растёт, потеря падает, а относительный вес среди негативов смещается к самому трудному. Температура — усилитель трудности.",
+        "s4": "Рост общего числа кандидатов N поднимает потолок log N у нижней оценки взаимной информации: I ≥ log N − L_N. Это не потолок самой I; граница требует соответствующей схемы выборки позитивов и негативов. В поиске размер батча выбирают по качеству и затратам, а не только по этой интерпретации."
+      }
+    }
 }
   </script>
   <p class="viz-caption"><span lang="ru">Запрос, оценённый против d&#8314; и пяти опорных негативов, превращается в софтмакс (цель InfoNCE). Меньшая &tau; заостряет его; больше негативов поднимают потолок <strong>log&nbsp;N</strong> &mdash; а не магически максимизируют взаимную информацию.</span><span lang="en">The query scored against d&#8314; and the five spine negatives becomes a softmax (the InfoNCE target). Lower &tau; sharpens it; more negatives raise the <strong>log&nbsp;N</strong> ceiling &mdash; not a magic maximisation of mutual information.</span></p>
@@ -706,10 +732,32 @@
     "s3": "The gradient weight on each negative is a Boltzmann softmax of sim/τ (Wang & Liu, 2021). At τ=0.2 the hard negatives n₄, n₅ already take most of the push — a negative is worth exactly its gradient.",
     "s4": "Halve the temperature to τ=0.1 and the weight marches further toward the hardest — n₅'s share climbs while the semi-hard negatives lose their push. The collapse onto the nearest neighbour is gradual, not a switch.",
     "s5": "Drop the temperature toward zero and the weight collapses onto the single hardest negative — the nearest-neighbour hard-max. A small τ amplifies hardness; the impostor n₅ now dominates the gradient."
-  }
+  },
+    "i18n": {
+      "en": {
+        "alt": "The query on a unit arc with its positive and five negatives placed by angle; hardness bands and a secretly-positive flag, plus the Boltzmann gradient weight on each negative as temperature falls.",
+        "weightHead": "gradient weight ∝ softmax(sim/τ)",
+        "s0": "Place the query q on a unit arc and drop its positive d⁺ and the five negatives by their angle to q — arccos cos(q,·). A small angle means a negative crowding the query: a hard one.",
+        "s1": "Three bands fall out of the angle: easy (far, wide angle), semi-hard, and hard (crowding the query). Easy negatives are already separated — they give almost no gradient.",
+        "s2": "The second channel: n₅ sits deep in the HARD band — yet it is an unlabelled positive, a paraphrase of the answer. Hardness alone cannot see it; that danger is a label property, not an angle.",
+        "s3": "The gradient weight on each negative is a Boltzmann softmax of sim/τ (Wang & Liu, 2021). At τ=0.2 the hard negatives n₄, n₅ already take most of the push — a negative is worth exactly its gradient.",
+        "s4": "Halve the temperature to τ=0.1 and the weight marches further toward the hardest — n₅'s share climbs while the semi-hard negatives lose their push. The collapse onto the nearest neighbour is gradual, not a switch.",
+        "s5": "Drop the temperature toward zero and the weight collapses onto the single hardest negative — the nearest-neighbour hard-max. A small τ amplifies hardness; the impostor n₅ now dominates the gradient."
+      },
+      "ru": {
+        "alt": "Запрос на единичной дуге с позитивом и пятью негативами, размещёнными по углу; полосы трудности и флаг скрытого позитива, плюс больцмановский вес градиента на каждом негативе по мере падения температуры.",
+        "weightHead": "вес градиента ∝ softmax(sim/τ)",
+        "s0": "Размещаем запрос q на единичной дуге и расставляем позитив d⁺ и пять негативов по их углу к q — arccos cos(q,·). Малый угол — негатив, теснящий запрос: трудный.",
+        "s1": "Из угла выделяются три полосы: лёгкие (далеко, широкий угол), полутрудные и трудные (теснят запрос). Лёгкие негативы уже разделены — они почти не дают градиента.",
+        "s2": "Второй канал: n₅ сидит глубоко в ТРУДНОЙ полосе — но это неразмеченный позитив, перефразировка ответа. Трудность одна его не видит; эта опасность — свойство метки, а не угла.",
+        "s3": "Вес градиента на каждом негативе — больцмановский софтмакс от sim/τ (Ван–Лю). При τ=0,2 трудные негативы n₄, n₅ уже забирают бо́льшую часть толчка — негатив стоит ровно своего градиента.",
+        "s4": "Делим температуру вдвое до τ=0,1 — вес идёт дальше к самому трудному: доля n₅ растёт, а полутрудные негативы теряют толчок. Схлопывание к ближайшему соседу постепенное, а не переключатель.",
+        "s5": "Снижаем температуру к нулю — вес сваливается на единственный самый трудный негатив: hard-max ближайшего соседа. Малая τ усиливает трудность; импостор n₅ теперь доминирует в градиенте."
+      }
+    }
 }
   </script>
-  <p class="viz-caption"><span lang="ru">Трудность &mdash; это угол: малый <em>cos(q,&middot;)</em> означает негатив, теснящий запрос. Градиент на каждый негатив &mdash; больцмановский вес; с уменьшением &tau; он схлопывается на самом трудном. Негатив стоит ровно своего градиента.</span><span lang="en">Hardness is an angle: small <em>cos(q,&middot;)</em> means a negative crowding the query. The per-negative gradient is a Boltzmann weight &mdash; as &tau; shrinks it collapses onto the hardest. A negative is worth exactly its gradient.</span></p>
+  <p class="viz-caption"><span lang="ru">Трудность &mdash; это угол: высокий <em>cos(q,&middot;)</em> означает негатив, теснящий запрос. Относительный вес негатива среди негативов &mdash; больцмановский вес; с уменьшением &tau; он схлопывается на самом трудном. Негатив стоит ровно своего градиента.</span><span lang="en">Hardness is an angle: small <em>cos(q,&middot;)</em> means a negative crowding the query. The per-negative gradient is a Boltzmann weight &mdash; as &tau; shrinks it collapses onto the hardest. A negative is worth exactly its gradient.</span></p>
   <aside class="slide-notes">hardness-sphere widget. The lineup on the unit arc; bands easy/semi/hard; the impostor n&#8325; flagged secretly-positive; Boltzmann gradient weights vs &tau; (Wang &amp; Liu, 2021). Numbers inline from spine.</aside>
 </section>
 <section class="slide" data-type="two-col" data-screen-label="17 The central lens">
@@ -722,10 +770,10 @@
       <div class="def-card">
         <span class="def-tag"><span lang="ru">Центральная линза (Wang &amp; Liu, 2021)</span><span lang="en">The central lens (Wang &amp; Liu, 2021)</span></span>
         <div class="def-term">$$ w_i = \frac{e^{\cos(q,\,d_i^-)/\tau}}{\sum_j e^{\cos(q,\,d_j^-)/\tau}} \;\;\text{(Boltzmann weight)} $$</div>
-        <p class="def-where"><span lang="ru">где <b>w<sub>i</sub></b> = доля градиента, достающаяся i-му негативу, <b>q</b> = запрос, <b>d<sub>i</sub><sup>&minus;</sup></b> = i-й негатив, <b>cos</b> = косинусная близость, <b>&tau;</b> = температура; сумма идёт по всем негативам <b>j</b>.</span><span lang="en">where <b>w<sub>i</sub></b> = the gradient share of the i-th negative, <b>q</b> = the query, <b>d<sub>i</sub><sup>&minus;</sup></b> = the i-th negative, <b>cos</b> = cosine similarity, <b>&tau;</b> = temperature; the sum runs over all negatives <b>j</b>.</span></p>
+        <p class="def-where"><span lang="ru">где <b>w<sub>i</sub></b> = относительная доля i-го негатива среди производных по сходствам негативов, <b>q</b> = запрос, <b>d<sub>i</sub><sup>&minus;</sup></b> = i-й негатив, <b>cos</b> = косинусная близость, <b>&tau;</b> = температура; сумма идёт по всем негативам <b>j</b>.</span><span lang="en">where <b>w<sub>i</sub></b> = the gradient share of the i-th negative, <b>q</b> = the query, <b>d<sub>i</sub><sup>&minus;</sup></b> = the i-th negative, <b>cos</b> = cosine similarity, <b>&tau;</b> = temperature; the sum runs over all negatives <b>j</b>.</span></p>
         <div class="def-body">
           <ul class="obj-list">
-            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Толчок каждого негатива &mdash; <strong>больцмановский вес</strong>: софтмакс его сходства на \(\tau\).</span><span lang="en">Each negative's push is a <strong>Boltzmann weight</strong> &mdash; a softmax of its similarity over \(\tau\).</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Относительный вес каждого негатива &mdash; <strong>больцмановский вес</strong>: софтмакс его сходства, делённого на \(\tau\), по всем негативам.</span><span lang="en">Each negative's push is a <strong>Boltzmann weight</strong> &mdash; a softmax of its similarity over \(\tau\).</span></span></li>
             <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Лёгкий</strong> негатив &mdash; почти нулевой вес &rarr; нулевой градиент &rarr; обучать на нём впустую.</span><span lang="en">An <strong>easy</strong> negative gets near-zero weight &rarr; near-zero gradient &rarr; training it is wasted.</span></span></li>
             <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Каждая стратегия майнинга &mdash; лишь способ <strong>потратить бюджет градиента</strong> на стоящие негативы.</span><span lang="en">Every mining strategy just <strong>spends the gradient budget</strong> on negatives worth it.</span></span></li>
           </ul>
@@ -876,7 +924,7 @@
 <section class="slide" data-type="default" data-screen-label="25 BM25-hard negatives">
   <div class="slide-header">
     <h2><span lang="ru">Трудные негативы BM25</span><span lang="en">BM25-hard negatives</span></h2>
-    <span class="slide-kicker"><span lang="ru">выглядит верно &mdash; но для не того судьи</span><span lang="en">looks right &mdash; but to the wrong judge</span></span>
+    <span class="slide-kicker"><span lang="ru">выглядит верно &mdash; но не для того судьи</span><span lang="en">looks right &mdash; but to the wrong judge</span></span>
   </div>
   <div class="def-card">
     <span class="def-tag"><span lang="ru">Стратегия 3 &middot; BM25-hard</span><span lang="en">Strategy 3 &middot; BM25-hard</span></span>
@@ -1064,7 +1112,7 @@
           <ul class="obj-list">
             <li class="obj-item"><span class="obj-check" aria-hidden="true">&times;</span><span class="obj-text"><span lang="ru">Самозванец n&#8325;: \(\cos(q)=0{,}79\) <strong>и</strong> \(\cos(d^+)=0{,}80\) &mdash; рядом с позитивом.</span><span lang="en">The impostor n&#8325;: \(\cos(q)=0.79\) <strong>and</strong> \(\cos(d^+)=0.80\) &mdash; beside the positive.</span></span></li>
             <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru">Трудный <em>истинный</em> негатив n&#8324;: \(\cos(q)=0{,}75\), но \(\cos(d^+)=0{,}31\) &mdash; ниже позитива.</span><span lang="en">A hard <em>true</em> negative n&#8324;: \(\cos(q)=0.75\) but \(\cos(d^+)=0.31\) &mdash; below the positive.</span></span></li>
-            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Та же трудность по оси запроса (\(\approx\)0,75 против 0,79) &mdash; в этом примере различие видно по второй оси (n&#8325; на <strong>0,80</strong> против n&#8324; на <strong>0,31</strong>), невидимая по одному запросу.</span><span lang="en">Same hardness on the query axis (\(\approx\)0.75 vs 0.79) &mdash; in this example the second axis distinguishes them (n&#8325; at <strong>0.80</strong> vs n&#8324; at <strong>0.31</strong>), invisible to a query-only view.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Та же трудность по оси запроса (\(\approx\)0,75 против 0,79) &mdash; в этом примере различие видно по второй оси (n&#8325; на <strong>0,80</strong> против n&#8324; на <strong>0,31</strong>), чего не видно по близости к одному запросу.</span><span lang="en">Same hardness on the query axis (\(\approx\)0.75 vs 0.79) &mdash; in this example the second axis distinguishes them (n&#8325; at <strong>0.80</strong> vs n&#8324; at <strong>0.31</strong>), invisible to a query-only view.</span></span></li>
           </ul>
         </div>
       </div>
@@ -1191,7 +1239,41 @@
     "s2": "BM25-static hard negatives (n₃) are lexically close but FROZEN — model-independent, so they soon stop matching what the dense model actually confuses. Recall barely moves off the baseline.",
     "s3": "The dynamic miner reaches for the model's own hardest near-misses — n₄ AND the impostor n₅. With no denoising it pushes n₅ (an unlabelled positive) away, dragging d⁺ down: recall DROPS below in-batch. This is the RocketQA inversion.",
     "s4": "Add a denoiser: a cross-encoder filters the suspected positive n₅ out of the mined set, keeping the worthy-but-true n₄. Recall recovers — and now clears every other strategy."
-  }
+  },
+    "i18n": {
+      "en": {
+        "alt": "Each negative-mining strategy in turn: the candidate it surfaces from the pool and the recall@10 it yields, with an in-batch baseline line so the undenoised drop and the denoised recovery read as the RocketQA inversion.",
+        "poolHead": "the candidate pool (d⁺ must stay on top)",
+        "recallHead": "recall@10 (measured on the toy, 20 seeds)",
+        "refLabel": "in-batch baseline",
+        "strat_random": "random",
+        "strat_inbatch": "in-batch",
+        "strat_bm25": "BM25-static",
+        "strat_undenoised": "undenoised",
+        "strat_denoised": "denoised",
+        "s0": "Random negatives pull n₁ from far away — easy, almost no gradient. Recall sits at the baseline; the model barely learns a boundary from negatives this loose.",
+        "s1": "In-batch negatives reuse other queries' positives (n₂) for free — a touch harder, a touch better. This is the baseline every later strategy is measured against.",
+        "s2": "BM25-static hard negatives (n₃) are lexically close but FROZEN — model-independent, so they soon stop matching what the dense model actually confuses. Recall barely moves off the baseline.",
+        "s3": "The dynamic miner reaches for the model's own hardest near-misses — n₄ AND the impostor n₅. With no denoising it pushes n₅ (an unlabelled positive) away, dragging d⁺ down: recall DROPS below in-batch. This is the RocketQA inversion.",
+        "s4": "Add a denoiser: a cross-encoder filters the suspected positive n₅ out of the mined set, keeping the worthy-but-true n₄. Recall recovers — and now clears every other strategy."
+      },
+      "ru": {
+        "alt": "Каждая стратегия майнинга по очереди: какой кандидат она достаёт из пула и какой recall@10 даёт, с линией бейзлайна in-batch, чтобы провал undenoised и восстановление denoised читались как инверсия RocketQA.",
+        "poolHead": "пул кандидатов (d⁺ должен остаться сверху)",
+        "recallHead": "recall@10 (измерено на игрушке, 20 случайных инициализаций)",
+        "refLabel": "бейзлайн in-batch",
+        "strat_random": "random",
+        "strat_inbatch": "in-batch",
+        "strat_bm25": "BM25-static",
+        "strat_undenoised": "undenoised",
+        "strat_denoised": "denoised",
+        "s0": "Случайный выбор берёт далёкий негатив n₁. В этом эксперименте он даёт слабый обучающий сигнал и полноту на базовом уровне. Случайные негативы не обязательно бесполезны: результат зависит от текущей модели и распределения кандидатов.",
+        "s1": "Негативы из батча используют позитивы других запросов (n₂) без отдельного прохода энкодера. Сравнения всё равно требуют вычислений. В данном эксперименте результат немного лучше случайного выбора; это бейзлайн для следующих стратегий.",
+        "s2": "Статические трудные негативы BM25 (n₃) фиксируются заранее. По мере обучения они могут перестать соответствовать текущим ошибкам плотной модели. Здесь random, in-batch и BM25-static дают близкую полноту; это результат данного опыта, не общий порядок качества стратегий.",
+        "s3": "Динамический майнер берёт самые трудные near-miss самой модели — n₄ И импостора n₅. Без очистки он отталкивает n₅ (неразмеченный позитив), утягивая d⁺ вниз: полнота ПРОВАЛИВАЕТСЯ ниже in-batch. В учебном опыте воспроизводится качественный эффект, обсуждаемый в RocketQA.",
+        "s4": "Добавляем очистку: кросс-энкодер исключает подозреваемый позитив n₅ из найденного набора, оставляя истинный негатив n₄. В этом эксперименте полнота восстанавливается и превышает результаты остальных сравниваемых стратегий."
+      }
+    }
 }
   </script>
   <p class="viz-caption"><span lang="ru">Каждая стратегия выносит на поверхность свой негатив и даёт свою полноту. Динамический майнер тянется к самозванцу n&#8325;, и полнота падает ниже бейзлайна in-batch &mdash; инверсия RocketQA &mdash; пока денойзер его не отфильтрует.</span><span lang="en">Each strategy surfaces a different negative and yields a different recall. The dynamic miner reaches for the impostor n&#8325; and recall falls below the in-batch baseline &mdash; the RocketQA inversion &mdash; until a denoiser filters it out.</span></p>
@@ -1291,7 +1373,37 @@
     "s1": "Mine both as negatives with no filter and push them away. Because n₅ lives right next to d⁺, pushing n₅ drags the true positive down with it — recall falls BELOW the in-batch baseline. This is the inversion.",
     "s2": "Note what the miner could NOT see: on the hardness axis n₄ and n₅ are twins. The damage lives entirely on cos(·,d⁺) — a label property. A query-only view of 'hardness' is blind to the impostor.",
     "s3": "Add a cross-encoder denoiser: it scores the mined candidates and strikes the suspected positive n₅, keeping the worthy-but-true n₄. Recall recovers — above in-batch and every other strategy."
-  }
+  },
+    "i18n": {
+      "en": {
+        "alt": "The cos(·,d⁺) collateral axis with n₄ safely far from the positive and n₅ inside its danger zone; pushing n₅ drags the positive so undenoised recall drops below in-batch, and a denoiser that filters n₅ restores it.",
+        "axisHead": "the second axis: cos(·, d⁺) — collateral danger",
+        "dangerLabel": "d⁺'s neighbourhood (danger)",
+        "recallHead": "recall@10 (measured, 20 seeds)",
+        "filteredLabel": "cross-encoder filters n₅",
+        "lbl_inbatch": "in-batch",
+        "lbl_undenoised": "+undenoised",
+        "lbl_denoised": "+denoised",
+        "s0": "Both n₄ and n₅ are equally hard to the query — the miner grabs both. But on the cos(·,d⁺) axis they split: n₄ is far from the positive and safe to push; n₅ sits right in d⁺'s neighbourhood — it is an unlabelled positive.",
+        "s1": "Mine both as negatives with no filter and push them away. Because n₅ lives right next to d⁺, pushing n₅ drags the true positive down with it — recall falls BELOW the in-batch baseline. This is the inversion.",
+        "s2": "Note what the miner could NOT see: on the hardness axis n₄ and n₅ are twins. The damage lives entirely on cos(·,d⁺) — a label property. A query-only view of 'hardness' is blind to the impostor.",
+        "s3": "Add a cross-encoder denoiser: it scores the mined candidates and strikes the suspected positive n₅, keeping the worthy-but-true n₄. Recall recovers — above in-batch and every other strategy."
+      },
+      "ru": {
+        "alt": "Ось риска побочного отталкивания cos(·,d⁺): n₄ безопасно далеко от позитива, а n₅ в его опасной зоне; отталкивание n₅ утягивает позитив, поэтому полнота без очистки проваливается ниже in-batch, а очистка n₅ её восстанавливает.",
+        "axisHead": "вторая ось: cos(·, d⁺) — риск побочного отталкивания",
+        "dangerLabel": "окрестность d⁺ (опасно)",
+        "recallHead": "recall@10 (измерено, 20 случайных инициализаций)",
+        "filteredLabel": "кросс-энкодер отсеивает n₅",
+        "lbl_inbatch": "in-batch",
+        "lbl_undenoised": "+без очистки",
+        "lbl_denoised": "+с очисткой",
+        "s0": "И n₄, и n₅ одинаково трудны для запроса — майнер берёт оба. Но по оси cos(·,d⁺) они расходятся: n₄ далеко от позитива и его безопасно толкать; n₅ сидит прямо в окрестности d⁺ — это неразмеченный позитив.",
+        "s1": "Майним оба как негативы без фильтра и отталкиваем. Так как n₅ живёт прямо рядом с d⁺, отталкивание n₅ утягивает истинный позитив вниз — полнота падает НИЖЕ бейзлайна in-batch. Это инверсия.",
+        "s2": "Заметь, чего майнер НЕ видел: по оси трудности n₄ и n₅ — близнецы. Здесь риск связан с близостью к позитиву; одна косинусная близость ещё не доказывает ошибку в метке. Взгляд на «трудность» только со стороны запроса слеп к импостору.",
+        "s3": "Добавляем очистку кросс-энкодером: он оценивает найденных кандидатов и вычёркивает подозреваемый позитив n₅, оставляя достойный, но истинный n₄. В этом эксперименте полнота восстанавливается и превышает результаты остальных сравниваемых стратегий."
+      }
+    }
 }
   </script>
   <p class="viz-caption"><span lang="ru">n&#8324; и n&#8325; одинаково трудны для запроса, но по оси <em>cos(&middot;,d&#8314;)</em> они расходятся: n&#8324; безопасно отталкивать, n&#8325; сидит в окрестности d&#8314;. Толчок самозванца тянет позитив вниз; денойзер, который его фильтрует, восстанавливает полноту.</span><span lang="en">n&#8324; and n&#8325; are equally hard to the query, but on the <em>cos(&middot;,d&#8314;)</em> axis they split: n&#8324; is safe to push, n&#8325; sits in d&#8314;’s neighbourhood. Pushing the impostor drags the positive down; a denoiser that filters it restores recall.</span></p>
@@ -1358,7 +1470,7 @@
 <section class="slide" data-type="two-col" data-screen-label="38 The teacher unmasks the impostor">
   <div class="slide-header">
     <h2><span lang="ru">Учитель разоблачает самозванца</span><span lang="en">The teacher unmasks the impostor</span></h2>
-    <span class="slide-kicker"><span lang="ru">учитель отличает достойный негатив от врага</span><span lang="en">a teacher tells a worthy negative from a foe</span></span>
+    <span class="slide-kicker"><span lang="ru">учитель отличает достойный негатив от замаскированного друга</span><span lang="en">a teacher tells a worthy negative from a foe</span></span>
   </div>
   <div class="twocol">
     <div class="twocol-col">
@@ -1589,7 +1701,7 @@
   <div class="divider-content">
     <div class="divider-num"><span lang="ru">Развязка · весь путь</span><span lang="en">Payoff · the whole arc</span></div>
     <h1>Forged by worthy opponents</h1>
-    <p class="divider-sub"><span lang="ru">Плотный ретривер выковывается противниками, против которых тренируется. Лёгкие негативы не учат ничему; самые трудные часто оказываются самозванцами; эффективность живёт в узкой <strong>трудной, но честной</strong> полосе &mdash; и вся история области есть её поиск.</span><span lang="en">A dense retriever is forged by the opponents it trains against. Easy negatives teach nothing; the hardest are often impostors; effectiveness lives in a narrow <strong>hard-but-honest</strong> band &mdash; and the field&rsquo;s whole history is the search for it.</span></p>
+    <p class="divider-sub"><span lang="ru">Плотный ретривер выковывается в тренировках с противниками. Лёгкие негативы не учат ничему; самые трудные часто оказываются самозванцами; эффективность живёт в узкой <strong>трудной, но честной</strong> полосе &mdash; и вся история области — её поиск.</span><span lang="en">A dense retriever is forged by the opponents it trains against. Easy negatives teach nothing; the hardest are often impostors; effectiveness lives in a narrow <strong>hard-but-honest</strong> band &mdash; and the field&rsquo;s whole history is the search for it.</span></p>
   </div>
   <div class="viz-frame fig-fit" style="--fig-max:66cqh; width:fit-content; max-width:52%;">
     <img src="assets/img/L13/L13-14-true-edge.webp?v=1" alt="Séréga raises a keen, true-edged blade overhead — forged in the narrow hard-but-honest band; the dull blade and the shattered too-hard blade lie discarded. His green tübetey is the only green." />
@@ -1729,7 +1841,7 @@
   <div class="title-body">
     <div class="eyebrow"><span lang="ru">Лекция 11 &middot; завершена</span><span lang="en">Lecture 11 &middot; complete</span></div>
     <h1>The Crucible of Negatives</h1>
-    <p class="subtitle"><span lang="ru">Плотный ретривер выковывается противниками, против которых он тренируется. Лёгкие негативы не учат ничему; самые трудные часто оказываются самозванцами, которые портят кромку; эффективность живёт в узкой <em>трудной, но честной</em> полосе &mdash; и вся история области есть её поиск. <strong>Спасибо.</strong></span><span lang="en">A dense retriever is forged by the opponents it trains against. Easy negatives teach nothing; the hardest are often impostors that corrupt the edge; effectiveness lives in a narrow <em>hard-but-honest</em> band &mdash; and the field&rsquo;s whole history is the search for it. <strong>Thank you.</strong></span></p>
+    <p class="subtitle"><span lang="ru">Плотный ретривер выковывается в тренировках с противниками. Лёгкие негативы не учат ничему; самые трудные часто оказываются самозванцами, которые портят кромку; эффективность живёт в узкой <em>трудной, но честной</em> полосе &mdash; и вся история области — её поиск. <strong>Спасибо.</strong></span><span lang="en">A dense retriever is forged by the opponents it trains against. Easy negatives teach nothing; the hardest are often impostors that corrupt the edge; effectiveness lives in a narrow <em>hard-but-honest</em> band &mdash; and the field&rsquo;s whole history is the search for it. <strong>Thank you.</strong></span></p>
   </div>
   <div class="title-footer">
     <div><div class="meta-label">Thesis</div><div class="meta-value">Forged by worthy opponents</div></div>
