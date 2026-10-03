@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lecture 11 — The Crucible of Negatives · Hard negative mining for dense retrieval</title>
+
+  <!-- Apply saved theme/lang BEFORE first paint to avoid a flash of the
+       wrong theme. Mirrors tools.js prefs key. -->
+  <script>
+    try {
+      var __p = JSON.parse(localStorage.getItem('lecture.template.prefs.v1') || '{}');
+      var __de = document.documentElement;
+      if (__p.theme === 'dark' || __p.theme === 'light') __de.setAttribute('data-theme', __p.theme);
+      if (__p.lang === 'ru' || __p.lang === 'en') {
+        __de.setAttribute('data-lang', __p.lang);
+        __de.setAttribute('lang', __p.lang);
+      }
+    } catch (e) {}
+  </script>
+
+  <!-- Asset-load failure banner. -->
+  <script>
+    window.__assetFail = (function () {
+      var failed = [];
+      return function (name) {
+        if (failed.indexOf(name) !== -1) return;
+        failed.push(name);
+        function show() {
+          if (!document.body) { document.addEventListener('DOMContentLoaded', show); return; }
+          var el = document.getElementById('__asset-banner');
+          if (!el) {
+            el = document.createElement('div');
+            el.id = '__asset-banner';
+            el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:2147483647;' +
+              'background:#D7522C;color:#fff;font:600 15px/1.4 system-ui,sans-serif;' +
+              'padding:10px 16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.3)';
+            el.addEventListener('click', function () { el.remove(); });
+            document.body.appendChild(el);
+          }
+          el.textContent = 'Не загрузились ресурсы: ' + failed.join(', ') +
+            '. Формулы/подсветка/QR могут не отрисоваться — запустите офлайн-файл ' +
+            '«Lecture Template (Standalone).html». · Failed to load: ' + failed.join(', ') +
+            ' — use the Standalone file. (клик чтобы скрыть)';
+        }
+        show();
+      };
+    })();
+  </script>
+
+  <!-- Fonts — vendored locally. -->
+  <link href="vendor/fonts/fonts.css" rel="stylesheet"
+        onerror="window.__assetFail&&window.__assetFail('Шрифты/Fonts')" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/template.css?v=6" />
+  <link rel="stylesheet" href="css/slides.css?v=6" />
+  <link rel="stylesheet" href="css/components.css?v=6" />
+  <link rel="stylesheet" href="css/presenter.css?v=6" />
+  <link rel="stylesheet" href="css/tweaks.css?v=6" />
+  <link rel="stylesheet" href="css/e2e.css?v=6" />
+  <link rel="stylesheet" href="css/lab.css?v=6" />
+  <link rel="stylesheet" href="css/archflow.css?v=6" />
+  <link rel="stylesheet" href="css/sysdesign.css?v=6" />
+  <link rel="stylesheet" href="css/preflight.css?v=6" />
+  <link rel="stylesheet" href="css/wbw-art.css?v=1" />
+  <link rel="stylesheet" href="css/autofit.css?v=1" />
+  <!-- L11 deck-mounted widget styles (widgets/_base.css + each DECK_WIDGETS style.css, incl. the four
+       L11 figures). BUILD OUTPUT (scripts/build-deck-widgets.mjs) — the deck doesn't load widgets/*/style.css like the Book. -->
+  <link rel="stylesheet" href="css/deck-widgets.css?v=1" />
+
+  <!-- KaTeX — vendored locally. -->
+  <link rel="stylesheet" href="vendor/katex/katex.min.css"
+        onerror="window.__assetFail&&window.__assetFail('KaTeX')">
+  <script defer src="vendor/katex/katex.min.js"
+        onerror="window.__assetFail&&window.__assetFail('KaTeX')"></script>
+  <script defer src="vendor/katex/auto-render.min.js"
+    onerror="window.__assetFail&&window.__assetFail('KaTeX')"
+    onload="renderMathInElement(document.body, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '\\[', right: '\\]', display: true },
+        { left: '\\(', right: '\\)', display: false }
+      ],
+      throwOnError: false,
+      strict: 'ignore'
+    });
+    document.dispatchEvent(new CustomEvent('katex:done'));"></script>
+
+  <!-- Prism — vendored. -->
+  <script src="vendor/prism/prism-core.min.js"
+        onerror="window.__assetFail&&window.__assetFail('Prism')"></script>
+  <script src="vendor/prism/prism-python.min.js"></script>
+  <script src="vendor/prism/prism-bash.min.js"></script>
+  <script src="vendor/prism/prism-yaml.min.js"></script>
+  <script src="vendor/prism/prism-json.min.js"></script>
+
+  <!-- QR code generator — vendored. -->
+  <script src="vendor/qrcode/qrcode.js"
+        onerror="window.__assetFail&&window.__assetFail('QR')"></script>
+
+  <!-- R8 deck auto-layout primitives → window.DeckLayout (esbuild of widgets/_layout.js). -->
+  <script src="js/layout.js"
+        onerror="window.__assetFail&&window.__assetFail('DeckLayout')"></script>
+</head>
+
+<body>
+  <!-- Bundler thumbnail -->
+  <template id="__bundler_thumbnail">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="var(--bg, #FBFAF6)"/>
+          <stop offset="1" stop-color="var(--accent-soft, #DCE8F8)"/>
+        </linearGradient>
+      </defs>
+      <rect width="600" height="600" fill="url(#bg)"/>
+      <g transform="translate(180,180)">
+        <rect x="0" y="0" width="240" height="240" rx="20" fill="var(--accent, #2A6FDB)"/>
+        <text x="120" y="160" font-family="Georgia, serif" font-size="120" font-weight="500"
+              text-anchor="middle" fill="white">∇</text>
+      </g>
+      <text x="300" y="490" font-family="Georgia, serif" font-size="40" font-weight="500"
+            text-anchor="middle" fill="var(--ink, #14181F)">Lecture Template</text>
+      <text x="300" y="528" font-family="ui-monospace, monospace" font-size="18"
+            text-anchor="middle" fill="var(--ink-3, #6B7280)" letter-spacing="3">LOADING…</text>
+    </svg>
+  </template>
+
+  <!-- Logo template -->
+  <template id="tpl-logo">
+    <div class="logo-mark">DLS</div>
+  </template>
+
+  <!-- Deck -->
+  <div class="deck">
+    <div class="stage">
+      <div class="slides" data-course-ru="Deep Learning for Search · 2026" data-course-en="Deep Learning for Search · 2026">
+<section class="slide" data-type="title" data-screen-label="01 Title">
+  <div class="title-header">
+    <div class="course-tag">DEEP LEARNING FOR SEARCH · 2026</div>
+    <div data-logo-slot></div>
+  </div>
+  <div class="title-body">
+    <div class="eyebrow"><span lang="ru">Лекция 11 · Клинок куют противники</span><span lang="en">Lecture 11 · The blade is forged by its opponents</span></div>
+    <h1>The Crucible of Negatives</h1>
+    <p class="subtitle"><span lang="ru">Тот же код &mdash; другой клинок: плотный ретривер куют противники, на которых он учится. Лёгкие негативы не учат ничему, самые трудные часто оказываются самозванцами &mdash; неразмеченными позитивами, &mdash; а сила живёт в узкой <em>трудной, но честной</em> полосе. Майнинг трудных негативов в контрастном обучении для плотного поиска &middot; пятнадцатилетний поиск хороших противников.</span><span lang="en">Same code, a different blade: a dense retriever is forged by the opponents it trains against. Easy negatives teach nothing, the hardest are often impostors &mdash; unlabelled positives that corrupt the edge &mdash; and effectiveness lives in a narrow <em>hard-but-honest</em> band. Hard negative mining in contrastive learning for dense retrieval &middot; the 15-year search for good opponents.</span></p>
+  </div>
+  <div class="title-footer">
+    <div><div class="meta-label">Lecturer</div><div class="meta-value">Albert Nasybullin</div></div>
+    <div><div class="meta-label">Track</div><div class="meta-value">Lecture 11 &middot; right after L10</div></div>
+  </div>
+  <aside class="slide-notes">Lecture 11 — "The Crucible of Negatives." It answers the question L10 left open: the scouts (bi-encoders) train contrastively — but how? Metaphor: Séréga is a blade forged in a crucible; negatives are the sparring opponents that give it an edge. Bridge → L12 "The Alliance"; a forward nod to L14 "The Curved Map" (anisotropy/hubness).</aside>
+</section>
+<section class="slide" data-type="viz" data-max-step="0" data-current-step="0" data-screen-label="01a Course map">
+  <div class="slide-header">
+    <h2><span lang="ru">Хребет курса &mdash; ты здесь</span><span lang="en">The spine of the course &mdash; you are here</span></h2>
+    <span class="slide-kicker"><span lang="ru">Get Data &rarr; Measure &rarr; <strong>Rank</strong> &rarr; Generate</span><span lang="en">Get Data &rarr; Measure &rarr; <strong>Rank</strong> &rarr; Generate</span></span>
+  </div>
+  <div class="widget-mount" data-widget="course-map"></div>
+  <script class="widget-data" type="application/json">
+  {
+    "data": {},
+    "labels": {
+      "role": "img",
+      "alt": "The four-stop course spine with Rank lit: choosing negatives changes what the ranker learns to separate, not how text becomes vectors.",
+      "leg0": "Get Data", "leg1": "Measure", "leg2": "Rank", "leg3": "Generate",
+      "active": ["rank"]
+    },
+    "i18n": {
+      "en": { "leg0": "Get Data", "leg1": "Measure", "leg2": "Rank", "leg3": "Generate" },
+      "ru": { "leg0": "Данные", "leg1": "Измерить", "leg2": "Ранжировать", "leg3": "Генерировать" }
+    }
+  }
+  </script>
+  <p class="viz-caption"><span lang="ru">Одна остановка, <strong>Rank</strong>, и это не мелочь. Выбор негативов не меняет ни токенизацию, ни архитектуру &mdash; он меняет <em>что модель учится различать</em>, то есть порядок выдачи. Get Data остаётся тем же самым.</span><span lang="en">One stop, <strong>Rank</strong>, and that is the point. The choice of negatives changes neither tokenisation nor architecture &mdash; it changes <em>what the model learns to tell apart</em>, which is the order of results. Get Data stays exactly as it was.</span></p>
+  <aside class="slide-notes">Spine anchor. Lit stop mirrors this lecture's course.json spine (Rank). Worth saying why the neighbouring stop stays dark: the encoder, the tokenizer and the index are untouched by this hour — the only thing that moves is the training signal, and a training signal is a statement about ordering.</aside>
+</section>
+<section class="slide" data-type="default" data-screen-label="02 You are here">
+  <div class="slide-header">
+    <h2><span lang="ru">Ты здесь &mdash; сразу после L10</span><span lang="en">You are here &mdash; straight after L10</span></h2>
+    <span class="slide-kicker"><span lang="ru">лекция 11 &middot; между «Разведчиками и судьями» (L10) и «Альянсом» (L12)</span><span lang="en">lecture 11 &middot; between Scouts and Judges (L10) and The Alliance (L12)</span></span>
+  </div>
+  <p class="lead"><span lang="ru">L10 собрала каскад: <strong>би-энкодер ищет</strong>, <strong>кросс-энкодер судит</strong> &mdash; и оставила одну строку без разбора: «разведчик обучается контрастно». Сегодня мы вскрываем именно её: <em>как на самом деле выковывается плотный ретривер</em>.</span><span lang="en">L10 assembled the cascade: the <strong>bi-encoder retrieves</strong>, the <strong>cross-encoder judges</strong> &mdash; and left one line unexamined: "the scout is trained contrastively". Today we crack that line open: <em>how the dense retriever is actually forged</em>.</span></p>
+  <ul class="obj-list">
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Хребет &mdash; Rank.</strong> Мы стоим ровно там, где остановилась L10: внутри обучения би-энкодера. Он &mdash; наш пациент; L12 продолжит путь дальше.</span><span lang="en"><strong>Spine &mdash; Rank.</strong> We stand exactly where L10 stopped: inside the bi-encoder's training. It is the patient; L12 will carry the spine on.</span></span></li>
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Единственный вопрос.</strong> Контрастный ретривер хорош ровно настолько, насколько хороши его <em>негативы</em> &mdash; так откуда берутся хорошие негативы?</span><span lang="en"><strong>The one question.</strong> A contrastive retriever is only as good as its <em>negatives</em> &mdash; so where do good negatives come from?</span></span></li>
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Тигель.</strong> Негативы &mdash; это жар, который куёт пространство эмбеддингов. Выбери их плохо &mdash; и клинок раскалывается; выбери хорошо &mdash; и он режет.</span><span lang="en"><strong>The crucible.</strong> Negatives are the heat that forges the embedding space. Pick them badly and the blade shatters; pick them well and it cuts.</span></span></li>
+  </ul>
+  <img src="assets/img/L13/L13-00-the-crucible.webp?v=1" alt="" aria-hidden="true"
+       class="cameo br" style="width:200px; border-radius:14px;" />
+  <aside class="slide-notes">Lecture 11 follows L10 directly: L10 built the bi-encoder/cross-encoder cascade and left "trained contrastively" unexamined. We open Rank and dissect how L10's dense retriever is forged, then hand the spine to L12. The driving question: where do good negatives come from?</aside>
+</section>
+<section class="slide" data-type="default" data-screen-label="03 Agenda">
+  <div class="slide-header">
+    <h2><span lang="ru">Форма этого часа</span><span lang="en">The shape of the hour</span></h2>
+    <span class="slide-kicker"><span lang="ru">пять актов, один вопрос о негативах</span><span lang="en">five acts, one question about negatives</span></span>
+  </div>
+  <ul class="obj-list">
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">1</span><span class="obj-text"><span lang="ru"><strong>Целевая функция.</strong> InfoNCE &mdash; потеря, которая превращает батч негативов в градиент.</span><span lang="en"><strong>The objective.</strong> InfoNCE &mdash; the loss that turns a batch of negatives into a gradient.</span></span></li>
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">2</span><span class="obj-text"><span lang="ru"><strong>Геометрия трудности.</strong> Где негатив лежит на сфере &mdash; и почему всё дело в расстоянии.</span><span lang="en"><strong>The geometry of hardness.</strong> Where a negative sits on the sphere &mdash; and why distance is the whole story.</span></span></li>
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">3</span><span class="obj-text"><span lang="ru"><strong>Исторический путь.</strong> Пятнадцатилетний поиск хороших негативов &mdash; random &rarr; in-batch &rarr; BM25 &rarr; ANCE и далее.</span><span lang="en"><strong>The historical arc.</strong> The 15-year search for good negatives &mdash; random &rarr; in-batch &rarr; BM25 &rarr; ANCE and beyond.</span></span></li>
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">4</span><span class="obj-text"><span lang="ru"><strong>Самозванец.</strong> Ложные негативы &mdash; неразмеченный позитив, который отравляет горн.</span><span lang="en"><strong>The Impostor.</strong> False negatives &mdash; the unlabelled positive that poisons the forge.</span></span></li>
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">5</span><span class="obj-text"><span lang="ru"><strong>Современный рецепт.</strong> Денойзинг, дистилляция, два этапа &mdash; как на самом деле обучают сегодняшние ретриверы.</span><span lang="en"><strong>The modern recipe.</strong> Denoise, distil, two-stage &mdash; how today's retrievers are actually trained.</span></span></li>
+  </ul>
+  <aside class="slide-notes">Five acts, all answering one question: where do good negatives come from? (1) InfoNCE objective; (2) the geometry of hardness; (3) the 15-year arc of mining; (4) false negatives — the impostor; (5) the modern denoise/distil/two-stage recipe.</aside>
+</section>
+<section class="slide" data-type="default" data-screen-label="04 Objectives · the mechanics">
+  <div class="slide-header">
+    <h2><span lang="ru">Что ты сможешь делать</span><span lang="en">What you will be able to do</span> <span style="font-weight:400;opacity:.6">(1 / 2)</span></h2>
+    <span class="slide-kicker"><span lang="ru">читай потерю, чувствуй градиент</span><span lang="en">read the loss, feel the gradient</span></span>
+  </div>
+  <ul class="obj-list">
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru"><strong>Прочитать потерю InfoNCE по батчу вручную</strong> &mdash; взять запрос, его позитив и \(k_\text{neg}=5\) негативов и превратить косинусы в одну софтмакс-потерю.</span><span lang="en"><strong>Read an InfoNCE loss off a batch by hand</strong> &mdash; take the query, its positive, and \(k_\text{neg}=5\) negatives, and turn the cosines into one softmax loss.</span></span></li>
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru"><strong>Объяснить «негатив стоит ровно своего градиента»</strong> &mdash; тяга каждого негатива есть его <em>больцмановский вес</em>, так что близкие промахи доминируют, а далёкие едва двигают модель.</span><span lang="en"><strong>Explain &ldquo;a negative is worth exactly its gradient&rdquo;</strong> &mdash; each negative's pull is its <em>Boltzmann weight</em>, so the near-misses dominate and the far ones barely move the model.</span></span></li>
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru"><strong>Разместить негатив на оси трудности</strong> &mdash; прочитать \(\cos(q,d^-)\) и упорядочить random <strong>0,05</strong> &rarr; in-batch <strong>0,41</strong> &rarr; BM25 <strong>0,63</strong> &rarr; dynamic <strong>0,75</strong>, против \(d^+\) на <strong>0,82</strong>.</span><span lang="en"><strong>Place a negative on the hardness axis</strong> &mdash; read \(\cos(q,d^-)\) and rank random <strong>0.05</strong> &rarr; in-batch <strong>0.41</strong> &rarr; BM25 <strong>0.63</strong> &rarr; dynamic <strong>0.75</strong>, against \(d^+\) at <strong>0.82</strong>.</span></span></li>
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru"><strong>Сказать, что делает температура \(\tau\)</strong> &mdash; как \(\tau=0{,}1\) заостряет софтмакс и решает, насколько яростно наказывается самый трудный негатив.</span><span lang="en"><strong>Say what temperature \(\tau\) does</strong> &mdash; how \(\tau=0.1\) sharpens the softmax and decides how fiercely the hardest negative is punished.</span></span></li>
+  </ul>
+  <aside class="slide-notes">Mechanics objectives 1–4: hand-compute InfoNCE (k_neg=5), the negative = its Boltzmann-weight gradient, place a negative on cos(q,d⁻) using the spine lineup, and the role of temperature τ=0.1. Four more (the judgment) on the next slide.</aside>
+</section>
+<section class="slide" data-type="default" data-screen-label="05 Objectives · the judgment">
+  <div class="slide-header">
+    <h2><span lang="ru">Что ты сможешь делать</span><span lang="en">What you will be able to do</span> <span style="font-weight:400;opacity:.6">(2 / 2)</span></h2>
+    <span class="slide-kicker"><span lang="ru">распознай самозванца, выбери стратегию</span><span lang="en">spot the impostor, pick the strategy</span></span>
+  </div>
+  <ul class="obj-list">
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru"><strong>Назвать лестницу майнинга</strong> &mdash; random &rarr; in-batch &rarr; BM25 &rarr; ANCE &rarr; per-step &rarr; denoised &rarr; two-stage &mdash; и указать <em>конкретный изъян</em>, который чинит каждая ступень.</span><span lang="en"><strong>Name the mining ladder</strong> &mdash; random &rarr; in-batch &rarr; BM25 &rarr; ANCE &rarr; per-step &rarr; denoised &rarr; two-stage &mdash; and state the <em>specific flaw</em> each rung fixes.</span></span></li>
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru"><strong>Распознать ложный негатив на второй оси</strong> &mdash; прочитать \(\cos(d^-,d^+)\): в среднем по корпусу самозванец сидит на <strong>0,80</strong>, трудный-истинный негатив на <strong>0,62</strong> &mdash; разрыв в <strong>0,18</strong>. (У спарринг-состава на слайдах разрыв ещё шире &mdash; там пример подобран нарочно.)</span><span lang="en"><strong>Spot a false negative on the second axis</strong> &mdash; read \(\cos(d^-,d^+)\): averaged over the corpus the impostor sits at <strong>0.80</strong>, a hard-true negative at <strong>0.62</strong> &mdash; a separation of <strong>0.18</strong>. (The sparring lineup on the slides shows an even wider gap &mdash; that example is designed on purpose.)</span></span></li>
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru"><strong>Объяснить инверсию</strong> &mdash; почему <em>неочищенные</em> трудные негативы обрушивают recall@10 до <strong>0,411</strong>, <em>ниже</em> простого in-batch с <strong>0,645</strong>, пока денойзинг не восстановит его до <strong>0,783</strong>.</span><span lang="en"><strong>Explain the inversion</strong> &mdash; why <em>undenoised</em> hard negatives crash recall@10 to <strong>0.411</strong>, <em>below</em> plain in-batch's <strong>0.645</strong>, until denoising recovers it to <strong>0.783</strong>.</span></span></li>
+    <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru"><strong>Выбрать стратегию майнинга под бюджет</strong> &mdash; сопоставить заданный бюджет вычислений и разметки с нужной ступенью лестницы.</span><span lang="en"><strong>Pick a mining strategy for a budget</strong> &mdash; match a given compute and label budget to the right rung of the ladder.</span></span></li>
+  </ul>
+  <aside class="slide-notes">Judgment objectives 5–8: name the mining ladder + the flaw each rung fixes; spot a false negative on cos(d⁻,d⁺) (impostor 0.80 vs hard-true 0.62, separation 0.18); explain why undenoised hard negatives invert recall (0.411 < 0.645) until denoising recovers (0.783); choose a strategy for a budget. Eight verbs across the hour.</aside>
+</section>
+<section class="slide" data-type="divider" data-screen-label="06 Divider · The Crucible">
+  <div class="divider-content">
+    <div class="divider-num"><span lang="ru">Часть 1 · Целевая функция</span><span lang="en">Part 1 · The objective</span></div>
+    <h1>The Crucible of Negatives</h1>
+    <p class="divider-sub"><span lang="ru">Тот же код, те же данные &mdash; различаются лишь <strong>негативы</strong>: клинок не наточить о воздух.</span><span lang="en">Same code, same data &mdash; only the <strong>negatives</strong> differ: you cannot sharpen a blade against air.</span></p>
+  </div>
+  <div class="viz-frame fig-fit" style="--fig-max:64cqh; --fig-w:50%;">
+    <img src="assets/img/L13/L13-00-the-crucible.webp?v=1" alt="Séréga, in his green tübetey, at the forge — heating a glowing blade in a crucible over an orange flame, hammer and anvil beside him. Training is the crucible; the negatives are the opponents that give the blade its edge." />
+  </div>
+  <aside class="slide-notes">Cold open / paradox — И ОТКРЫВАЕТ АКТ 1 «Целевая функция» по плану. Раньше ярлык был «Часть 0 · Парадокс», из-за чего нумерация на экране шла 0 → 2, а акт 1 (InfoNCE, разбор руками, потолок log N, границы) вообще не получал своего дивайдера. The team behind one of the first strong dense retrievers said it plainly: how you select negatives is often overlooked but can be decisive. Forge metaphor: Séréga is a blade; training is the crucible; negatives are sparring opponents.</aside>
+</section>
+<section class="slide" data-type="default" data-screen-label="07 Same code, a different blade">
+  <div class="slide-header">
+    <h2><span lang="ru">Тот же код &mdash; другой клинок</span><span lang="en">Same code, a different blade</span></h2>
+    <span class="slide-kicker"><span lang="ru">различался лишь выбор негативов</span><span lang="en">only the negatives were chosen differently</span></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <h3><span lang="ru">Две команды, один ретривер</span><span lang="en">Two teams, one retriever</span></h3>
+      <ul>
+        <li><span lang="ru">Обе клонируют <strong>один и тот же код плотного ретривера</strong>, те же данные, ту же архитектуру, тот же бюджет обучения.</span><span lang="en">Both clone the <strong>same dense-retriever code</strong>, same data, same architecture, same training budget.</span></li>
+        <li><span lang="ru">Одна находит нужный пассаж <strong>почти всегда</strong>; другая едва обгоняет поиск по ключевым словам.</span><span lang="en">One finds the right passage <strong>almost every time</strong>; the other barely beats keyword search.</span></li>
+        <li><span lang="ru">Единственное, что они выбрали по-разному, &mdash; это <strong>негативы</strong>: неверные ответы, которые каждый запрос учится отталкивать.</span><span lang="en">The only thing they chose differently was the <strong>negatives</strong> &mdash; the wrong answers each query is taught to push away.</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3><span lang="ru">Горн</span><span lang="en">The forge</span></h3>
+      <ul>
+        <li><span lang="ru">Представь ретривер как <strong>клинок</strong>, а обучение &mdash; как ковку.</span><span lang="en">Picture the retriever as a <strong>blade</strong> and training as a forge.</span></li>
+        <li><span lang="ru">Клинок не наточить <em>о воздух</em> &mdash; остроту ему дают <strong>противники</strong>, с которыми он спаррингует.</span><span lang="en">You cannot sharpen a blade <em>against air</em> &mdash; it is the <strong>opponents</strong> it spars against that give it an edge.</span></li>
+        <li><span lang="ru">Выбери их плохо &mdash; и кромка не образуется; выбери ещё хуже &mdash; и она <strong>тупится</strong>.</span><span lang="en">Choose them badly and the edge never forms; choose them worse and it <strong>dulls</strong>.</span></li>
+      </ul>
+    </div>
+  </div>
+  <img src="assets/img/L13/L13-01-two-blades.webp?v=1" alt="" aria-hidden="true"
+       class="cameo br" style="width:140px; border-radius:14px;" />
+  <aside class="slide-notes">The paradox: identical code, data, architecture — only the negatives differed, and the gap is the whole lecture. DPR's authors said negative selection is often overlooked but can be decisive. The blade-and-forge metaphor frames the deck: opponents give the edge.</aside>
+</section>
+<section class="slide" data-type="two-col" data-screen-label="08 Why opponents at all">
+  <div class="slide-header">
+    <h2><span lang="ru">Зачем вообще противники?</span><span lang="en">Why opponents at all?</span></h2>
+    <span class="slide-kicker"><span lang="ru">убери отталкивание &mdash; и пространство схлопывается</span><span lang="en">drop the push and the space collapses</span></span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag"><span lang="ru">Две силы &middot; притяжение и отталкивание</span><span lang="en">Two forces &middot; pull and push</span></span>
+        <div class="def-term"><span lang="ru">Притянуть запрос к его позитиву \(d^+\); оттолкнуть его от негативов \(d^-\).</span><span lang="en">Pull the query toward its positive \(d^+\); push it away from the negatives \(d^-\).</span></div>
+        <div class="def-body">
+          <ul class="obj-list">
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Убери отталкивание &mdash; и модель <strong>жульничает</strong>: схлопывает всё пространство в одну точку, где каждый пассаж одинаково близок, а потеря выглядит прекрасно.</span><span lang="en">Drop the push and the model <strong>cheats</strong> &mdash; collapse the whole space to one point, where every passage is equally close and the loss looks great.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Негативы &mdash; <strong>единственная сила</strong>, останавливающая это схлопывание.</span><span lang="en">Negatives are the <strong>only force</strong> stopping that collapse.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Это не деталь обучения &mdash; это <em>и есть</em> сигнал, придающий пространству его <strong>форму</strong>.</span><span lang="en">They are not a detail of training &mdash; they <em>are</em> the signal that gives the space its <strong>shape</strong>.</span></span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="twocol-col">
+      <div class="viz-frame fig-fit" style="--fig-max:56cqh; --fig-w:88%;">
+        <img src="assets/img/L13/L13-02-empty-arena.webp?v=1" alt="An empty arena with no opponents — the embedding space collapsing inward to a single point because nothing pushes the query away from wrong answers." />
+      </div>
+    </div>
+  </div>
+  <aside class="slide-notes">Without the push term the model collapses every embedding to one point: loss is minimal, retrieval is useless. Negatives are the sole anti-collapse force — the training signal that shapes the space. Sets up InfoNCE as the formal pull-vs-push objective.</aside>
+</section>
+<section class="slide" data-type="two-col" data-screen-label="09 InfoNCE, formally">
+  <div class="slide-header">
+    <h2><span lang="ru">InfoNCE: выбери позитив из N</span><span lang="en">InfoNCE: pick the positive out of N</span></h2>
+    <span class="slide-kicker"><span lang="ru">поиск как вопрос с выбором ответа</span><span lang="en">retrieval as a multiple-choice question</span></span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag"><span lang="ru">Определение &middot; контрастная потеря</span><span lang="en">Definition &middot; the contrastive loss</span></span>
+        <div class="def-term">$$ \mathcal{L} = -\log P^+,\quad P^+ = \frac{e^{\,\cos(q,d^+)/\tau}}{e^{\,\cos(q,d^+)/\tau} + \sum_{i=1}^{N-1} e^{\,\cos(q,d_i^-)/\tau}} $$</div>
+        <p class="def-where"><span lang="ru">где <b>&#8466;</b> = функция потерь, <b>q</b> = запрос, <b>d<sup>+</sup></b> = позитив, <b>d<sub>i</sub><sup>&minus;</sup></b> = i-й негатив, <b>cos</b> = косинусная близость, <b>&tau;</b> = температура, <b>N</b> = кандидаты (1 позитив + N&minus;1 негативов), <b>P<sup>+</sup></b> = вероятность на позитиве.</span><span lang="en">where <b>&#8466;</b> = the loss, <b>q</b> = the query, <b>d<sup>+</sup></b> = the positive, <b>d<sub>i</sub><sup>&minus;</sup></b> = the i-th negative, <b>cos</b> = cosine similarity, <b>&tau;</b> = temperature, <b>N</b> = candidates (1 positive + N&minus;1 negatives), <b>P<sup>+</sup></b> = probability on the positive.</span></p>
+        <div class="def-body">
+          <ul class="obj-list">
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Вопрос с выбором ответа</strong> среди \(N\) кандидатов &mdash; <strong>1 позитив + \(N-1\) негативов</strong>; оцени каждого по сходству, софтмакс при \(\tau\), вся вероятность на \(d^+\).</span><span lang="en">A <strong>multiple-choice question</strong> over \(N\) candidates &mdash; <strong>1 positive + \(N-1\) negatives</strong>; score each by similarity, softmax at \(\tau\), all probability on \(d^+\).</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Лучшие негативы делают вопрос <strong>труднее и информативнее</strong>.</span><span lang="en">Better negatives make the question <strong>harder and more informative</strong>.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">\(\tau\) управляет тем, насколько <strong>резко</strong> модель вынуждают выбирать.</span><span lang="en">\(\tau\) controls how <strong>sharply</strong> the model is forced to choose.</span></span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="twocol-col">
+      <div class="viz-frame fig-fit" style="--fig-max:56cqh; --fig-w:88%;">
+        <img src="assets/img/L13/L13-03-in-batch-arena.webp?v=1" alt="An arena where the query faces one true positive among a lineup of in-batch negatives — InfoNCE as a multiple-choice contest the model must win by scoring the positive highest." />
+      </div>
+    </div>
+  </div>
+  <aside class="slide-notes">InfoNCE = softmax over N candidates = 1 positive + (N−1) negatives, at temperature τ; loss is -log P+. (N is the number of CANDIDATES the softmax chooses among — the same N as the log N ceiling on S12.) Read once and the field clicks: harder negatives = harder, more informative question; τ sets choice sharpness. Right plate: the in-batch arena. Next: read the loss off a real lineup by hand.</aside>
+</section>
+<section class="slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="10 Climb &middot; infonce-calc">
+  <div class="slide-header">
+    <h2><span lang="ru">InfoNCE вручную &mdash; прочитай потерю по строю</span><span lang="en">InfoNCE by hand &mdash; read the loss off the lineup</span></h2>
+    <span class="slide-kicker"><span lang="ru">шаг (&larr;/&rarr;): сходства &rarr; софтмакс (&tau;=0,2) &rarr; заострить (&tau;=0,1) &rarr; острейший (&tau;=0,05) &rarr; потолок log&nbsp;N</span><span lang="en">step (&larr;/&rarr;): the similarities &rarr; the softmax (&tau;=0.2) &rarr; sharpen (&tau;=0.1) &rarr; sharpest (&tau;=0.05) &rarr; the log&nbsp;N ceiling</span></span>
+  </div>
+  <div class="widget-mount" data-widget="infonce-calc"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "spine": {
+      "positive": {
+        "id": "dPlus",
+        "label": "true positive",
+        "cosQ": 0.82
+      },
+      "lineup": [
+        {
+          "id": "n1",
+          "label": "random",
+          "cosQ": 0.05,
+          "cosPos": 0.03,
+          "band": "easy",
+          "isFalse": false
+        },
+        {
+          "id": "n2",
+          "label": "in-batch",
+          "cosQ": 0.41,
+          "cosPos": 0.37,
+          "band": "semi",
+          "isFalse": false
+        },
+        {
+          "id": "n3",
+          "label": "BM25-hard",
+          "cosQ": 0.63,
+          "cosPos": 0.34,
+          "band": "hard",
+          "isFalse": false
+        },
+        {
+          "id": "n4",
+          "label": "dynamic-hard",
+          "cosQ": 0.75,
+          "cosPos": 0.31,
+          "band": "hard",
+          "isFalse": false
+        },
+        {
+          "id": "n5",
+          "label": "impostor",
+          "cosQ": 0.79,
+          "cosPos": 0.8,
+          "band": "hard",
+          "isFalse": true
+        }
+      ],
+      "taus": [
+        0.5,
+        0.2,
+        0.1,
+        0.05
+      ],
+      "infonce": [
+        {
+          "tau": 0.5,
+          "softmax": [
+            0.241,
+            0.0517,
+            0.1061,
+            0.1648,
+            0.2095,
+            0.2269
+          ],
+          "pPos": 0.241,
+          "loss": 1.4231
+        },
+        {
+          "tau": 0.2,
+          "softmax": [
+            0.3224,
+            0.0069,
+            0.0415,
+            0.1247,
+            0.2272,
+            0.2775
+          ],
+          "pPos": 0.3224,
+          "loss": 1.1321
+        },
+        {
+          "tau": 0.1,
+          "softmax": [
+            0.416,
+            0.0002,
+            0.0069,
+            0.0622,
+            0.2066,
+            0.3082
+          ],
+          "pPos": 0.416,
+          "loss": 0.8771
+        },
+        {
+          "tau": 0.05,
+          "softmax": [
+            0.55,
+            0.0,
+            0.0002,
+            0.0123,
+            0.1356,
+            0.3019
+          ],
+          "pPos": 0.55,
+          "loss": 0.5978
+        }
+      ],
+      "logNBound": [
+        {
+          "N": 4,
+          "logN_nats": 1.3863
+        },
+        {
+          "N": 16,
+          "logN_nats": 2.7726
+        },
+        {
+          "N": 64,
+          "logN_nats": 4.1589
+        },
+        {
+          "N": 256,
+          "logN_nats": 5.5452
+        },
+        {
+          "N": 1024,
+          "logN_nats": 6.9315
+        },
+        {
+          "N": 16384,
+          "logN_nats": 9.7041
+        }
+      ]
+    }
+  },
+  "labels": {
+    "alt": "The query scored against its positive and five negatives, turned into a softmax (the InfoNCE target) at temperature τ; lowering τ sharpens it and growing the negative count raises the log N ceiling.",
+    "head": "q scored against d⁺ and the negatives",
+    "simHead": "cos(q, ·)",
+    "lossLine": "L = −log P⁺",
+    "ceilHead": "more negatives N raise the ceiling log N (the bound saturates there)",
+    "s0": "Score the query q against its true match d⁺ and the five candidate negatives n₁..n₅. The bars are cos(q,·): the lineup runs from an easy random negative up to the hardest near-miss.",
+    "s1": "A softmax over sim/τ is the InfoNCE target — it should put its mass on d⁺. The loss is L = −log P⁺. At τ=0.2 the mass is still spread across the hard negatives.",
+    "s2": "Halve the temperature to τ=0.1 and the softmax sharpens in the MIDDLE — P⁺ climbs further and the loss drops again, the easy negatives fading toward zero. The climb is monotone: lower τ, sharper target.",
+    "s3": "Drop the temperature toward zero (τ=0.05) and the softmax SHARPENS hardest — P⁺ climbs and the loss falls, but the gradient now piles onto the single hardest negative. Temperature is the hardness amplifier.",
+    "s4": "More negatives N raise the mutual-information CEILING log N (the InfoNCE bound I ≥ log N − L_N only saturates there) — this is why retrievers scale the negative count, NOT because 'InfoNCE maximises MI'."
+  }
+}
+  </script>
+  <p class="viz-caption"><span lang="ru">Запрос, оценённый против d&#8314; и пяти опорных негативов, превращается в софтмакс (цель InfoNCE). Меньшая &tau; заостряет его; больше негативов поднимают потолок <strong>log&nbsp;N</strong> &mdash; а не магически максимизируют взаимную информацию.</span><span lang="en">The query scored against d&#8314; and the five spine negatives becomes a softmax (the InfoNCE target). Lower &tau; sharpens it; more negatives raise the <strong>log&nbsp;N</strong> ceiling &mdash; not a magic maximisation of mutual information.</span></p>
+  <aside class="slide-notes">infonce-calc widget on the spine lineup. Steps: cos(q,&middot;) bars &rarr; softmax at a moderate &tau; &rarr; sharpen as &tau; falls &rarr; the log N MI ceiling. Numbers inline from data/l13-negatives.json (spine).</aside>
+</section>
+<section class="slide" data-type="formula" data-screen-label="11 InfoNCE, by hand">
+  <div class="slide-header">
+    <h2><span lang="ru">Прочитай потерю по строю, вручную</span><span lang="en">Read the loss off the lineup, by hand</span></h2>
+    <span class="slide-kicker"><span lang="ru">&tau;=0,1 умножает каждый косинус на 10</span><span lang="en">&tau;=0.1 multiplies every cosine by 10</span></span>
+  </div>
+  <div class="formula-stage">
+    $$ z_i = \cos(q,\cdot)/\tau,\quad \tau = 0.1 \;\Longrightarrow\; \text{every cosine} \times 10 $$
+    $$ \cos:\ d^+\,0.82\ \cdot\ n_1\,0.05\ \cdot\ n_2\,0.41\ \cdot\ n_3\,0.63\ \cdot\ n_4\,0.75\ \cdot\ n_5\,0.79 \;\Longrightarrow\; z:\ 8.2\ \cdot\ 0.5\ \cdot\ 4.1\ \cdot\ 6.3\ \cdot\ 7.5\ \cdot\ 7.9 $$
+    $$ P^+ = \frac{e^{8.2}}{e^{8.2}+e^{0.5}+e^{4.1}+e^{6.3}+e^{7.5}+e^{7.9}} \approx 0.42,\quad \mathcal{L} = -\log P^+ \approx 0.88 $$
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Деление на \(\tau=0{,}1\) умножает каждый косинус на 10, так что \(d^+\) (8,2) доминирует &mdash; но лишь чуть-чуть. Самые трудные негативы \(n_4\) (7,5) и \(n_5\) (7,9) несут почти всю конкурирующую массу: именно они, а не лёгкий \(n_1\), задают потерю.</span><span lang="en">Dividing by \(\tau=0.1\) multiplies every cosine by 10, so \(d^+\) (8.2) dominates &mdash; but only just. The hardest negatives \(n_4\) (7.5) and \(n_5\) (7.9) carry almost all the competing mass: they, not the easy \(n_1\), set the loss.</span></p>
+  <aside class="slide-notes">Worked InfoNCE from the spine lineup (data/l13-negatives.json cosines), τ=0.1. z = cos/τ scales every cosine ×10; softmax gives P+≈0.42, L=-log P+≈0.88 (recomputed exactly from these numbers). n4,n5 hold ~88% of the negatives' mass — the hardest opponents set the loss, not the easy random one.</aside>
+</section>
+<section class="slide" data-type="two-col" data-screen-label="12 Temperature & the ceiling">
+  <div class="slide-header">
+    <h2><span lang="ru">Температура заостряет; N поднимает потолок</span><span lang="en">Temperature sharpens; N raises the ceiling</span></h2>
+    <span class="slide-kicker"><span lang="ru">больше негативов поднимают потолок</span><span lang="en">more negatives raise the ceiling</span></span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag"><span lang="ru">Температура \(\tau\) &middot; усилитель трудности</span><span lang="en">Temperature \(\tau\) &middot; the hardness amplifier</span></span>
+        <div class="def-term"><span lang="ru">Снижение \(\tau\) сваливает вероятность на кандидата с наибольшим косинусом. Если позитив уже первый&nbsp;&mdash; потеря падает; если первым стоит негатив&nbsp;&mdash; растёт. В обоих случаях градиент концентрируется на самом трудном негативе.</span><span lang="en">Lowering \(\tau\) piles probability onto the hardest candidate, and the loss falls.</span></div>
+        <div class="def-body">
+          <ul class="obj-list">
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">\(\tau\) решает, насколько <strong>близкий промах</strong> доминирует в градиенте.</span><span lang="en">\(\tau\) decides how much a <strong>near-miss</strong> dominates the gradient.</span></span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag"><span lang="ru">Потолок \(\log N\) &middot; честная версия</span><span lang="en">The \(\log N\) ceiling &middot; honest version</span></span>
+        <div class="def-term">$$ I \ge \log N - L_N $$</div>
+        <p class="def-where"><span lang="ru">где <b>I</b> = ВИ запрос–позитив, <b>L<sub>N</sub></b> = потеря InfoNCE при N (зазор ниже потолка).</span><span lang="en">where <b>I</b> = query–positive MI, <b>L<sub>N</sub></b> = the InfoNCE loss at that N (the gap below).</span></p>
+        <div class="def-body">
+          <ul class="obj-list">
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Здесь \(N\) &mdash; число <strong>кандидатов</strong> софтмакса: 1 позитив + \((N-1)\) негативов, так что \(\log N\) &mdash; потолок.</span><span lang="en">Here \(N\) is the softmax&rsquo;s <strong>candidate</strong> count: 1 positive + \((N-1)\) negatives, so \(\log N\) is the ceiling.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Больше негативов <strong>не</strong> &lsquo;максимизируют&rsquo; ВИ &mdash; они поднимают <strong>потолок</strong>, а граница лишь <em>насыщается</em> на \(\log N\).</span><span lang="en">More negatives do <strong>not</strong> &lsquo;maximise&rsquo; MI &mdash; they raise the <strong>ceiling</strong>; the bound only <em>saturates</em> at \(\log N\).</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Как <strong>нижняя</strong> граница, InfoNCE подтверждает не более \(\log N\) нат ВИ (Poole 2019) &mdash; при высокой ВИ граница неточна, а большие батчи обязательны.</span><span lang="en">As a <strong>lower</strong> bound, InfoNCE certifies at most \(\log N\) nats of MI (Poole 2019) &mdash; for high-MI tasks the bound is loose and large batches are required.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Именно из-за этого потолка ретриверы <strong>масштабируют N</strong>.</span><span lang="en">That ceiling is why retrievers <strong>scale N</strong>.</span></span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <aside class="slide-notes">Two knobs: τ amplifies hardness (lower τ → probability piles on the hardest candidate → loss falls); N raises the log N ceiling in I ≥ log N − L_N, which the bound only saturates at. The honest reading: scaling N raises a ceiling, it does not magically maximise MI. Next: the boundaries slide.</aside>
+</section>
+<section class="slide" data-type="default" data-screen-label="13 InfoNCE boundaries">
+  <div class="slide-header">
+    <h2><span lang="ru">Границы &middot; что InfoNCE НЕ делает</span><span lang="en">Boundaries &middot; what InfoNCE is NOT</span></h2>
+    <span class="slide-kicker"><span lang="ru">честное прочтение границы</span><span lang="en">the honest reading of the bound</span></span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag"><span lang="ru">Три честные оговорки &middot; прежде чем майнить труднее</span><span lang="en">Three honest caveats &middot; before we mine harder</span></span>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&times;</span><span class="obj-text"><span lang="ru"><strong>Он не &lsquo;максимизирует ВИ&rsquo;.</strong> Он <em>насыщает</em> границу \(\log N\) &mdash; это потолок, а не оптимум.</span><span lang="en"><strong>It does not &lsquo;maximise MI&rsquo;.</strong> It <em>saturates</em> a \(\log N\) bound &mdash; a ceiling, not an optimum.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Больший батч покупает более трудные негативы, только если он разнообразен.</strong> Дубликаты и почти-клоны добавляют число, а не трудность.</span><span lang="en"><strong>A bigger batch buys harder negatives only if the batch is diverse.</strong> Duplicates and near-clones add count, not difficulty.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Температура &mdash; ручка с ценой.</strong> Слишком мала &mdash; и градиент сваливается на один негатив &mdash; возможно, <em>токсичный</em>.</span><span lang="en"><strong>Temperature is a knob with a cost.</strong> Too small and the gradient piles on one negative &mdash; possibly a <em>toxic</em> one.</span></span></li>
+      </ul>
+    </div>
+  </div>
+  <aside class="slide-notes">Three caveats that frame the rest of the deck: InfoNCE saturates a log N bound (not MI-maximisation); batch size only helps if the batch is diverse; low τ concentrates the gradient on one negative — which foreshadows the toxic-hardest / impostor failure mode coming next.</aside>
+</section>
+<section class="slide" data-type="divider" data-screen-label="14 Divider · The geometry of hardness">
+  <div class="divider-content">
+    <div class="divider-num"><span lang="ru">Часть 2 · Геометрия трудности</span><span lang="en">Part 2 · The geometry of hardness</span></div>
+    <h1>Hardness is an angle</h1>
+    <p class="divider-sub"><span lang="ru">Негатив <em>труден</em>, когда теснит запрос по углу &mdash; и он стоит ровно того градиента, что несёт.</span><span lang="en">A negative is <em>hard</em> when it crowds the query in angle &mdash; and it is worth exactly the gradient it carries.</span></p>
+  </div>
+  <div class="viz-frame fig-fit" style="--fig-max:64cqh; --fig-w:50%;">
+    <img src="assets/img/L13/L13-04-sir-cosine-hardness.webp?v=1" alt="Sir Cosine (Séréga as a knight, keeping his green tübetey) measuring with a protractor the small angle between the query and a crowding hard negative on a warm-orange unit-sphere arc — a small angle means a hard negative." />
+  </div>
+  <aside class="slide-notes">Sir Cosine returns to measure the angle. The central lens (Wang & Liu, 2021): the negative gradient is a Boltzmann softmax of sim/τ; τ→0 ⇒ nearest-neighbour hard-max. FaceNet warning: the very hardest negatives can collapse training (an optimisation failure of a genuine negative).</aside>
+</section>
+<section class="slide" data-type="two-col" data-screen-label="15 Hardness is an angle">
+  <div class="slide-header">
+    <h2><span lang="ru">Трудность &mdash; это угол</span><span lang="en">Hardness is an angle</span></h2>
+    <span class="slide-kicker"><span lang="ru">малый угол к запросу = трудный негатив</span><span lang="en">a small angle to the query = a hard negative</span></span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag"><span lang="ru">Определение &middot; геометрическая трудность</span><span lang="en">Definition &middot; geometric hardness</span></span>
+        <div class="def-term">$$ \text{hard}(d^-) \;\propto\; \cos(q,\,d^-) $$</div>
+        <p class="def-where"><span lang="ru">где <b>d<sup>&minus;</sup></b> = негатив, <b>q</b> = запрос, <b>cos(q,&hairsp;d<sup>&minus;</sup>)</b> = их косинусная близость (малый угол &rarr; высокий косинус &rarr; трудный).</span><span lang="en">where <b>d<sup>&minus;</sup></b> = a negative, <b>q</b> = the query, <b>cos(q,&hairsp;d<sup>&minus;</sup>)</b> = their cosine similarity (small angle &rarr; high cosine &rarr; hard).</span></p>
+        <div class="def-body">
+          <ul class="obj-list">
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Трудный</strong> негатив близок к запросу по углу &mdash; высокий \(\cos\) &mdash; его легко спутать с ответом.</span><span lang="en">A <strong>hard</strong> negative sits close to the query in angle &mdash; high \(\cos\) &mdash; easy to confuse with the answer.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Лёгкий</strong> негатив далёк, уже отделён &mdash; он даёт почти нулевой градиент.</span><span lang="en">An <strong>easy</strong> negative is far, already separated &mdash; it gives almost no gradient.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Разложи \(q\), \(d^+\) и негативы на <strong>единичной дуге</strong> по углу &mdash; трудность становится <em>видимой</em>. Сэр Косинус возвращается.</span><span lang="en">Lay \(q\), \(d^+\) and the negatives on a <strong>unit arc</strong> by angle &mdash; hardness becomes <em>visible</em>. Sir Cosine returns.</span></span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="twocol-col">
+      <div class="viz-frame fig-fit" style="--fig-max:56cqh; --fig-w:88%;">
+        <img src="assets/img/L13/L13-04-sir-cosine-hardness.webp?v=1" alt="Sir Cosine measuring the angle between the query and each negative on a unit arc — the closer a negative sits to the query in angle, the harder it is." />
+      </div>
+    </div>
+  </div>
+  <aside class="slide-notes">Hardness is an angle: hard(d⁻) ∝ cos(q,d⁻). High cos = crowds the query = easy to confuse = hard. Easy = far = no gradient. Lay q, d⁺, negatives on a unit arc by angle and you can SEE hardness. Sir Cosine returns (L13-04).</aside>
+</section>
+<section class="slide" data-type="viz" data-max-step="5" data-current-step="0" data-screen-label="16 Climb &middot; hardness-sphere">
+  <div class="slide-header">
+    <h2><span lang="ru">Геометрия трудности &mdash; и центральная градиентная линза</span><span lang="en">The geometry of hardness &mdash; and the central gradient lens</span></h2>
+    <span class="slide-kicker"><span lang="ru">шаг (&larr;/&rarr;): размести по углу &rarr; полосы &rarr; флаг «тайного позитива» &rarr; больцмановские веса (&tau;=0,2) &rarr; &tau;=0,1 &rarr; &tau;&rarr;0</span><span lang="en">step (&larr;/&rarr;): place by angle &rarr; the bands &rarr; the secretly-positive flag &rarr; Boltzmann weights (&tau;=0.2) &rarr; &tau;=0.1 &rarr; &tau;&rarr;0</span></span>
+  </div>
+  <div class="widget-mount" data-widget="hardness-sphere"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "spine": {
+      "positive": {
+        "id": "dPlus",
+        "label": "true positive",
+        "cosQ": 0.82
+      },
+      "lineup": [
+        {
+          "id": "n1",
+          "label": "random",
+          "cosQ": 0.05,
+          "cosPos": 0.03,
+          "band": "easy",
+          "isFalse": false
+        },
+        {
+          "id": "n2",
+          "label": "in-batch",
+          "cosQ": 0.41,
+          "cosPos": 0.37,
+          "band": "semi",
+          "isFalse": false
+        },
+        {
+          "id": "n3",
+          "label": "BM25-hard",
+          "cosQ": 0.63,
+          "cosPos": 0.34,
+          "band": "hard",
+          "isFalse": false
+        },
+        {
+          "id": "n4",
+          "label": "dynamic-hard",
+          "cosQ": 0.75,
+          "cosPos": 0.31,
+          "band": "hard",
+          "isFalse": false
+        },
+        {
+          "id": "n5",
+          "label": "impostor",
+          "cosQ": 0.79,
+          "cosPos": 0.8,
+          "band": "hard",
+          "isFalse": true
+        }
+      ],
+      "taus": [
+        0.5,
+        0.2,
+        0.1,
+        0.05
+      ],
+      "boltzmann": [
+        {
+          "tau": 0.5,
+          "weights": [
+            0.0681,
+            0.1398,
+            0.2171,
+            0.276,
+            0.299
+          ]
+        },
+        {
+          "tau": 0.2,
+          "weights": [
+            0.0101,
+            0.0612,
+            0.184,
+            0.3352,
+            0.4094
+          ]
+        },
+        {
+          "tau": 0.1,
+          "weights": [
+            0.0003,
+            0.0118,
+            0.1065,
+            0.3537,
+            0.5276
+          ]
+        },
+        {
+          "tau": 0.05,
+          "weights": [
+            0.0,
+            0.0003,
+            0.0273,
+            0.3014,
+            0.6709
+          ]
+        }
+      ]
+    }
+  },
+  "labels": {
+    "alt": "The query on a unit arc with its positive and five negatives placed by angle; hardness bands and a secretly-positive flag, plus the Boltzmann gradient weight on each negative as temperature falls.",
+    "weightHead": "gradient weight ∝ softmax(sim/τ)",
+    "s0": "Place the query q on a unit arc and drop its positive d⁺ and the five negatives by their angle to q — arccos cos(q,·). A small angle means a negative crowding the query: a hard one.",
+    "s1": "Three bands fall out of the angle: easy (far, wide angle), semi-hard, and hard (crowding the query). Easy negatives are already separated — they give almost no gradient.",
+    "s2": "The second channel: n₅ sits deep in the HARD band — yet it is an unlabelled positive, a paraphrase of the answer. Hardness alone cannot see it; that danger is a label property, not an angle.",
+    "s3": "The gradient weight on each negative is a Boltzmann softmax of sim/τ (Wang & Liu, 2021). At τ=0.2 the hard negatives n₄, n₅ already take most of the push — a negative is worth exactly its gradient.",
+    "s4": "Halve the temperature to τ=0.1 and the weight marches further toward the hardest — n₅'s share climbs while the semi-hard negatives lose their push. The collapse onto the nearest neighbour is gradual, not a switch.",
+    "s5": "Drop the temperature toward zero and the weight collapses onto the single hardest negative — the nearest-neighbour hard-max. A small τ amplifies hardness; the impostor n₅ now dominates the gradient."
+  }
+}
+  </script>
+  <p class="viz-caption"><span lang="ru">Трудность &mdash; это угол: малый <em>cos(q,&middot;)</em> означает негатив, теснящий запрос. Градиент на каждый негатив &mdash; больцмановский вес; с уменьшением &tau; он схлопывается на самом трудном. Негатив стоит ровно своего градиента.</span><span lang="en">Hardness is an angle: small <em>cos(q,&middot;)</em> means a negative crowding the query. The per-negative gradient is a Boltzmann weight &mdash; as &tau; shrinks it collapses onto the hardest. A negative is worth exactly its gradient.</span></p>
+  <aside class="slide-notes">hardness-sphere widget. The lineup on the unit arc; bands easy/semi/hard; the impostor n&#8325; flagged secretly-positive; Boltzmann gradient weights vs &tau; (Wang &amp; Liu, 2021). Numbers inline from spine.</aside>
+</section>
+<section class="slide" data-type="two-col" data-screen-label="17 The central lens">
+  <div class="slide-header">
+    <h2><span lang="ru">Негатив стоит своего градиента</span><span lang="en">A negative is worth its gradient</span></h2>
+    <span class="slide-kicker"><span lang="ru">софтмакс-толчок; лёгкие негативы пропадают зря</span><span lang="en">a softmax push; easy negatives are wasted</span></span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag"><span lang="ru">Центральная линза (Wang &amp; Liu, 2021)</span><span lang="en">The central lens (Wang &amp; Liu, 2021)</span></span>
+        <div class="def-term">$$ w_i = \frac{e^{\cos(q,\,d_i^-)/\tau}}{\sum_j e^{\cos(q,\,d_j^-)/\tau}} \;\;\text{(Boltzmann weight)} $$</div>
+        <p class="def-where"><span lang="ru">где <b>w<sub>i</sub></b> = доля градиента, достающаяся i-му негативу, <b>q</b> = запрос, <b>d<sub>i</sub><sup>&minus;</sup></b> = i-й негатив, <b>cos</b> = косинусная близость, <b>&tau;</b> = температура; сумма идёт по всем негативам <b>j</b>.</span><span lang="en">where <b>w<sub>i</sub></b> = the gradient share of the i-th negative, <b>q</b> = the query, <b>d<sub>i</sub><sup>&minus;</sup></b> = the i-th negative, <b>cos</b> = cosine similarity, <b>&tau;</b> = temperature; the sum runs over all negatives <b>j</b>.</span></p>
+        <div class="def-body">
+          <ul class="obj-list">
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Толчок каждого негатива &mdash; <strong>больцмановский вес</strong>: софтмакс его сходства на \(\tau\).</span><span lang="en">Each negative's push is a <strong>Boltzmann weight</strong> &mdash; a softmax of its similarity over \(\tau\).</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Лёгкий</strong> негатив &mdash; почти нулевой вес &rarr; нулевой градиент &rarr; обучать на нём впустую.</span><span lang="en">An <strong>easy</strong> negative gets near-zero weight &rarr; near-zero gradient &rarr; training it is wasted.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Каждая стратегия майнинга &mdash; лишь способ <strong>потратить бюджет градиента</strong> на стоящие негативы.</span><span lang="en">Every mining strategy just <strong>spends the gradient budget</strong> on negatives worth it.</span></span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="twocol-col">
+      <div class="viz-frame fig-fit" style="--fig-max:72cqh; --fig-w:100%; aspect-ratio:4/3;">
+        <img src="assets/img/L13/L13-15-gradient-budget.webp?v=1" alt="Séréga as quartermaster pours one pouch of glowing sparks — the whole gradient budget — over the single opponent crowding his guard, while the far, easy opponents get barely a fleck each." />
+      </div>
+      <p class="viz-caption"><span lang="ru">весь бюджет градиента достаётся тому, кто теснит &mdash; лёгким не достаётся почти ничего</span><span lang="en">the whole gradient budget goes to the one crowding the guard &mdash; the easy ones earn almost nothing</span></p>
+    </div>
+  </div>
+  <aside class="slide-notes">Central lens (Wang & Liu, 2021): each negative's push is a Boltzmann weight wᵢ = softmax(cos/τ). Easy negative → tiny weight → tiny gradient → wasted. Mining = spending the gradient budget on negatives worth it (L13-15 gradient budget — the quartermaster pouring the whole pouch of sparks on the near opponent; the mirror plate now lives only on the ANCE slide).</aside>
+</section>
+<section class="slide" data-type="formula" data-screen-label="18 The gradient weights, by hand">
+  <div class="slide-header">
+    <h2><span lang="ru">Веса градиента, вручную</span><span lang="en">The gradient weights, by hand</span></h2>
+    <span class="slide-kicker"><span lang="ru">два негатива несут ~&frac78; толчка</span><span lang="en">two negatives carry ~&frac78; of the push</span></span>
+  </div>
+  <div class="formula-stage">
+    $$ w_i = \frac{e^{z_i}}{\sum_j e^{z_j}}, \qquad z_i = \cos(q,\,d_i^-)/\tau, \quad \tau = 0.1 $$
+    $$ \cos: \;\; n_1\,0.05 \;\;\; n_2\,0.41 \;\;\; n_3\,0.63 \;\;\; n_4\,0.75 \;\;\; n_5\,0.79 $$
+    $$ w: \;\; n_1\,0.00 \;\;\; n_2\,0.01 \;\;\; n_3\,0.11 \;\;\; \mathbf{n_4\,0.35} \;\;\; \mathbf{n_5\,0.53} $$
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">При \(z=\cos\times 10\) почти весь вес приходится на два самых трудных: \(w_5\approx0{,}53,\ w_4\approx0{,}35\) &mdash; вместе \(\approx0{,}88\) толчка, тогда как \(n_1\) не получает по сути ничего. При \(\tau\to0\) вес схлопывается на единственном самом трудном (<strong>hard-max</strong> ближайшего соседа). Негатив стоит <em>ровно</em> своего градиента.</span><span lang="en">With \(z=\cos\times 10\), almost all the weight lands on the two hardest: \(w_5\approx0.53,\ w_4\approx0.35\) &mdash; together \(\approx0.88\) of the push, while \(n_1\) gets essentially nothing. As \(\tau\to0\) the weight collapses onto the single hardest (nearest-neighbour <strong>hard-max</strong>). A negative is worth <em>exactly</em> its gradient.</span></p>
+  <aside class="slide-notes">Gradient-by-hand on the spine negatives, τ=0.1 so z=cos×10. Boltzmann weights over the 5 negatives: w5≈0.53, w4≈0.35 (sum ≈0.88 ≈ 7/8), n3≈0.11, n2≈0.01, n1≈0.00 — sum to 1. As τ→0 weight collapses onto the hardest (hard-max). Recomputed from cos {0.05,0.41,0.63,0.75,0.79}.</aside>
+</section>
+<section class="slide" data-type="two-col" data-screen-label="19 The hardest can break the blade">
+  <div class="slide-header">
+    <h2><span lang="ru">Самые трудные могут сломать клинок</span><span lang="en">The hardest can break the blade</span></h2>
+    <span class="slide-kicker"><span lang="ru">слишком остро &mdash; и сталь трескается</span><span lang="en">too sharp and the steel shatters</span></span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag"><span lang="ru">FaceNet, 2015 &mdash; коллапс триплета</span><span lang="en">FaceNet, 2015 &mdash; triplet collapse</span></span>
+        <div class="def-term"><span lang="ru">Подавай только <strong>самые трудные</strong> негативы &mdash; и обучение может <strong>схлопнуться</strong>.</span><span lang="en">Feed only the <strong>very hardest</strong> negatives and training can <strong>collapse</strong>.</span></div>
+        <div class="def-body">
+          <ul class="obj-list">
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Градиенты становятся <strong>огромными и нестабильными</strong> &mdash; модель ломается.</span><span lang="en">Gradients become <strong>huge and unstable</strong> &mdash; the model folds.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Поэтому FaceNet с самого начала брал выборку в <strong>полутрудной полосе</strong> &mdash; достаточно трудно, чтобы учить, но не настолько, чтобы дестабилизировать.</span><span lang="en">So FaceNet sampled in a <strong>semi-hard band</strong> from the outset &mdash; hard enough to teach, not so hard it destabilises.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Это сбой оптимизации на <em>настоящем</em> негативе &mdash; в следующем акте нас ждёт более мрачный.</span><span lang="en">This is an optimisation failure of a <em>genuine</em> negative &mdash; the next act meets a darker one.</span></span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="twocol-col">
+      <div class="viz-frame fig-fit" style="--fig-max:56cqh; --fig-w:88%;">
+        <img src="assets/img/L13/L13-05-shattered-blade.webp?v=1" alt="A shattered blade — quenching the steel too hard makes it brittle, just as feeding only the hardest negatives collapses training." />
+      </div>
+    </div>
+  </div>
+  <aside class="slide-notes">Toxic hardest: FaceNet (Schroff 2015). Only the very hardest negatives → gradients huge/unstable → triplet collapse, the model folds. FaceNet sampled in a semi-hard band from the outset, citing the collapse risk as the motivation: hard enough to teach, not so hard it destabilises. An optimisation failure of a GENUINE negative; the next act is a darker failure (L13-05 shattered blade).</aside>
+</section>
+<section class="slide" data-type="default" data-screen-label="20 Boundaries of hardness">
+  <div class="slide-header">
+    <h2><span lang="ru">Границы &middot; трудность необходима, но не достаточна</span><span lang="en">Boundaries &middot; hardness is necessary, not sufficient</span></h2>
+    <span class="slide-kicker"><span lang="ru">высокий cos(q,d&#8315;) лишь начинает вопрос</span><span lang="en">a high cos(q,d&#8315;) starts the question</span></span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag"><span lang="ru">Пределы угловой линзы</span><span lang="en">Limits of the angle lens</span></span>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&times;</span><span class="obj-text"><span lang="ru"><strong>Одной трудностью не отличить</strong> достойный негатив от <em>токсичного</em> (FaceNet) &mdash; или от <em>самозванца</em> (следующий акт).</span><span lang="en"><strong>Hardness alone can't sort</strong> a worthy negative from a <em>toxic</em> one (FaceNet) &mdash; or from an <em>impostor</em> (next act).</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Градиентная линза объясняет, <em>почему</em></strong> майнинг помогает &mdash; но никогда, <em>какие</em> кандидаты безопасно отталкивать.</span><span lang="en"><strong>The gradient lens explains <em>why</em></strong> mining helps &mdash; but never <em>which</em> candidates are safe to push on.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&rarr;</span><span class="obj-text"><span lang="ru"><strong>Нужна вторая ось</strong> &mdash; одного числа \(\cos(q,d^-)\) мало, чтобы отличить учителя от самозванца.</span><span lang="en"><strong>We need a second axis</strong> &mdash; one number, \(\cos(q,d^-)\), is not enough to tell teacher from impostor.</span></span></li>
+      </ul>
+    </div>
+  </div>
+  <aside class="slide-notes">Boundaries: hardness is necessary, not sufficient. A high cos can't separate a worthy negative from a toxic one (FaceNet) or an impostor (next act). The gradient lens says WHY mining helps, not WHICH candidates are safe. We need a second axis. Sets up cos(q,·) vs cos(d⁺,·).</aside>
+</section>
+<section class="slide" data-type="divider" data-screen-label="21 Divider · The historical arc">
+  <div class="divider-content">
+    <div class="divider-num"><span lang="ru">Часть 3 · Исторический путь</span><span lang="en">Part 3 · The historical arc</span></div>
+    <h1>The search for good opponents</h1>
+    <p class="divider-sub"><span lang="ru">Пятнадцать лет область задаёт один вопрос, всё лучше раз за разом: <em>откуда берутся хорошие негативы?</em></span><span lang="en">For fifteen years the field has asked one question, better each time: <em>where do good negatives come from?</em></span></p>
+  </div>
+  <div class="viz-frame fig-fit" style="--fig-max:64cqh; --fig-w:54%;">
+    <img src="assets/img/L13/L13-06-forge-path.webp?v=1" alt="A winding forge-path of milestone anvils marching into the distance — pebble, wooden dummy, sparring partner, mirror, filtered flame — the fifteen-year history of how good negatives got chosen, one anvil at a time." />
+  </div>
+  <aside class="slide-notes">The arc divider. Each step = mechanism + the failure it fixes. Random (useless) → in-batch (DPR, free but easy/local) → BM25 (lexical, model-independent) → ANCE (mine your own index) → ADORE (per-step, fixes staleness; STAR stabilises static training) → false-negative cures → distillation → modern two-stage.</aside>
+</section>
+<section class="slide" data-type="default" data-screen-label="22 The search for good opponents">
+  <div class="slide-header">
+    <h2><span lang="ru">Поиск хороших противников</span><span lang="en">The search for good opponents</span></h2>
+    <span class="slide-kicker"><span lang="ru">один вопрос, задаваемый всё лучше</span><span lang="en">one question, asked better each time</span></span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag"><span lang="ru">Путь &middot; откуда берутся хорошие негативы?</span><span lang="en">The arc &middot; where do good negatives come from?</span></span>
+    <div class="def-term"><span lang="ru">Один вопрос, на который ответили семью способами &mdash; каждая наковальня перекована, чтобы починить изъян предыдущей.</span><span lang="en">One question, answered seven ways &mdash; each anvil reforged to fix the flaw in the one before.</span></div>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>random</strong> &rarr; <strong>in-batch</strong> &rarr; <strong>BM25-static</strong> &mdash; дёшево, но они никогда не адаптируются к модели.</span><span lang="en"><strong>random</strong> &rarr; <strong>in-batch</strong> &rarr; <strong>BM25-static</strong> &mdash; cheap, but they never adapt to the model.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>ANCE</strong> (добыт моделью) &rarr; <strong>ADORE</strong> (по шагам) &mdash; поворот: пусть модель сама выбирает противников и держит их актуальными.</span><span lang="en"><strong>ANCE</strong> (model-mined) &rarr; <strong>ADORE</strong> (per-step) &mdash; the turn: let the model pick its own opponents, and keep them current.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>denoised</strong> &rarr; <strong>современный two-stage</strong> &mdash; вылечи самозванца, затем перегони урок в один рецепт.</span><span lang="en"><strong>denoised</strong> &rarr; <strong>modern two-stage</strong> &mdash; cure the impostor, then distil the lesson into one recipe.</span></span></li>
+      </ul>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Читай как лестницу: <em>каждая наковальня чинит изъян предыдущей.</em></span><span lang="en">Read it as a ladder: <em>each anvil fixes the flaw in the one before.</em></span></p>
+  <aside class="slide-notes">Frames Act 3 as a 15-year history with one driving question. The roadmap: random → in-batch → BM25-static → ANCE → STAR/ADORE → denoised → modern two-stage. Each slide that follows = one strategy, its mechanism, and the flaw it fixes.</aside>
+</section>
+<section class="slide" data-type="default" data-screen-label="23 Random negatives">
+  <div class="slide-header">
+    <h2><span lang="ru">Случайные негативы</span><span lang="en">Random negatives</span></h2>
+    <span class="slide-kicker"><span lang="ru">первая ступень &mdash; легче всего её перешагнуть</span><span lang="en">the first rung &mdash; easiest to climb past</span></span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag"><span lang="ru">Стратегия 1 &middot; random</span><span lang="en">Strategy 1 &middot; random</span></span>
+    <div class="def-term"><span lang="ru">Возьми любой пассаж, кроме позитива, и назови его негативом.</span><span lang="en">Sample any passage that isn&rsquo;t the positive, and call it a negative.</span></div>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Механизм</strong> &mdash; берём \(d^-\) равномерно из корпуса. Бесплатно, тривиально, без лишних вызовов модели.</span><span lang="en"><strong>Mechanism</strong> &mdash; draw \(d^-\) uniformly from the corpus. Free, trivial, no extra model calls.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&times;</span><span class="obj-text"><span lang="ru"><strong>Изъян</strong> &mdash; случайный пассаж почти всегда <em>лёгкий</em>: \(\cos(q, d^-) \approx 0\) (наш \(n_1 = 0{,}05\)). Толчок едва срабатывает &mdash; почти нулевой градиент, потраченные впустую вычисления.</span><span lang="en"><strong>Flaw</strong> &mdash; a random passage is almost always <em>easy</em>: \(\cos(q, d^-) \approx 0\) (our \(n_1 = 0.05\)). The push barely fires &mdash; near-zero gradient, wasted compute.</span></span></li>
+      </ul>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Дёшево, и модель почти ничему не учится.</span><span lang="en">Cheap, and the model learns almost nothing.</span></p>
+  <aside class="slide-notes">Strategy 1. Random = uniform sample from the corpus. Flaw: cos(q,·)≈0 (spine n1=0.05), so the negative is already pushed away — tiny gradient. Sets up the need for HARDER negatives.</aside>
+</section>
+<section class="slide" data-type="two-col" data-screen-label="24 In-batch negatives (DPR)">
+  <div class="slide-header">
+    <h2><span lang="ru">Внутрибатчевые негативы (DPR)</span><span lang="en">In-batch negatives (DPR)</span></h2>
+    <span class="slide-kicker"><span lang="ru">негативы, за которые ты уже заплатил</span><span lang="en">the negatives you already paid for</span></span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag"><span lang="ru">Стратегия 2 &middot; in-batch (Karpukhin 2020)</span><span lang="en">Strategy 2 &middot; in-batch (Karpukhin 2020)</span></span>
+        <div class="def-term"><span lang="ru">Переиспользуй позитивы <em>других</em> запросов из батча как негативы для этого запроса.</span><span lang="en">Reuse the <em>other</em> queries&rsquo; positives in the batch as this query&rsquo;s negatives.</span></div>
+        <div class="def-body">
+          <ul class="obj-list">
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Механизм</strong> &mdash; позитивы батча уже закодированы; спаривай их бесплатно &mdash; без лишнего прохода. Больший батч покупает больше (и чуть более трудных) негативов.</span><span lang="en"><strong>Mechanism</strong> &mdash; the batch&rsquo;s positives are already encoded; cross-pair them for free &mdash; no extra forward pass. A bigger batch buys more (and slightly harder) negatives.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&times;</span><span class="obj-text"><span lang="ru"><strong>Изъян</strong> &mdash; это случайные соседи по батчу: <em>локально</em> и в основном легко (наш \(n_2 = 0{,}41\)).</span><span lang="en"><strong>Flaw</strong> &mdash; they&rsquo;re just batch-mates: <em>local</em>, and mostly easy (our \(n_2 = 0.41\)).</span></span></li>
+          <li class="obj-item"><span class="obj-check" aria-hidden="true">+</span><span class="obj-text"><span lang="ru"><strong>Лучшее у DPR</strong> &mdash; больший in-batch набор <em>плюс один</em> трудный негатив BM25: NQ top-20 растёт \(69{,}1 \to 78{,}0\) (негатив BM25 добавляет ~5 при равном батче; остальное &mdash; больший батч). Второй негатив BM25 не помогает.</span><span lang="en"><strong>DPR&rsquo;s best</strong> &mdash; a larger in-batch set <em>plus one</em> BM25 hard negative: NQ top-20 climbs \(69.1 \to 78.0\) (the BM25 negative adds ~5 at a matched batch; the bigger batch supplies the rest). A 2nd BM25 negative doesn&rsquo;t help.</span></span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="twocol-col">
+      <div class="viz-frame fig-fit" style="--fig-max:56cqh; --fig-w:88%;">
+        <img src="assets/img/L13/L13-03-in-batch-arena.webp?v=1" alt="An arena where each query&rsquo;s own positive doubles as every other query&rsquo;s opponent — Séréga sparring against the partners already standing in the ring, free negatives reused from the batch." />
+      </div>
+    </div>
+  </div>
+  <aside class="slide-notes">Strategy 2 (DPR, Karpukhin 2020). Reuse other queries' positives in the batch as negatives — free, no extra forward pass; batch size buys harder negatives. Flaw: local, batch-luck, mostly easy (spine n2=0.41).</aside>
+</section>
+<section class="slide" data-type="default" data-screen-label="25 BM25-hard negatives">
+  <div class="slide-header">
+    <h2><span lang="ru">Трудные негативы BM25</span><span lang="en">BM25-hard negatives</span></h2>
+    <span class="slide-kicker"><span lang="ru">выглядит верно &mdash; но для не того судьи</span><span lang="en">looks right &mdash; but to the wrong judge</span></span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag"><span lang="ru">Стратегия 3 &middot; BM25-hard</span><span lang="en">Strategy 3 &middot; BM25-hard</span></span>
+    <div class="def-term"><span lang="ru">Извлеки лексически похожие пассажи: с виду ответ, а на деле нет.</span><span lang="en">Retrieve lexically-similar passages that <em>look</em> like the answer but aren&rsquo;t.</span></div>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Механизм</strong> &mdash; запусти BM25, возьми его верхние не-позитивы. Совпадение слов делает их по-настоящему труднее случайных (наш \(n_3 = 0{,}63\)).</span><span lang="en"><strong>Mechanism</strong> &mdash; run BM25, take its top non-positives. Word-overlap makes them genuinely harder than random (our \(n_3 = 0.63\)).</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&times;</span><span class="obj-text"><span lang="ru"><strong>Изъян</strong> &mdash; BM25 лексичен и <strong>не зависит от модели</strong>. Он никогда не видит <em>плотную</em> модель, поэтому скоро перестаёт совпадать с тем, что эта модель на самом деле путает. Негативы <em>статичны</em>.</span><span lang="en"><strong>Flaw</strong> &mdash; BM25 is lexical and <strong>model-independent</strong>. It never sees the <em>dense</em> model, so it soon stops matching what that model actually confuses. The negatives are <em>static</em>.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">!</span><span class="obj-text"><span lang="ru"><strong>И полон ложных негативов</strong> &mdash; на MS MARCO ~70% верхних пассажей <em>плотного</em> ретривера на самом деле релевантны, но не размечены (RocketQA мерила именно его выдачу, не BM25) (лишь ~1,1 позитива отмечено на запрос при 8,8M пассажей), поэтому наивные трудные негативы BM25 <em>отравляют</em> обучение, если их не очистить (RocketQA).</span><span lang="en"><strong>And false-negative-dense</strong> &mdash; on MS MARCO ~70% of the <em>dense</em> retriever&rsquo;s top passages are actually relevant but unlabelled (RocketQA measured its output, not BM25&rsquo;s) (only ~1.1 positives marked per query over 8.8M passages), so naive BM25 hard negatives <em>poison</em> training unless denoised (RocketQA).</span></span></li>
+      </ul>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Лексически трудное &ne; то, что путает плотная модель.</span><span lang="en">Lexically hard &ne; what the dense model confuses.</span></p>
+  <aside class="slide-notes">Strategy 3. BM25-hard = lexically similar top non-positives (spine n3=0.63) — harder than random. Flaw: BM25 is model-independent and static, so it drifts away from the dense model's actual confusions. Motivates model-mined negatives next.</aside>
+</section>
+<section class="slide" data-type="two-col" data-screen-label="26 ANCE · mine your own">
+  <div class="slide-header">
+    <h2><span lang="ru">ANCE &mdash; пусть модель добывает своё</span><span lang="en">ANCE &mdash; let the model mine its own</span></h2>
+    <span class="slide-kicker"><span lang="ru">поворот, обогнавший лексические бейзлайны</span><span lang="en">the turn that beat lexical baselines</span></span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag"><span lang="ru">Стратегия 4 &middot; ANCE (Xiong 2021)</span><span lang="en">Strategy 4 &middot; ANCE (Xiong 2021)</span></span>
+        <div class="def-term"><span lang="ru">Проиндексируй корпус <em>текущей</em> моделью; обучайся на негативах, которые она путает.</span><span lang="en">Index the corpus with the <em>current</em> model; train on the negatives it confuses.</span></div>
+        <div class="def-body">
+          <ul class="obj-list">
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Механизм</strong> &mdash; закодируй корпус, извлеки ближайшие не-позитивы, обучайся против <em>них</em> (наш \(n_4 = 0{,}75\)). Модель обостряется &mdash; обостряются и негативы.</span><span lang="en"><strong>Mechanism</strong> &mdash; encode the corpus, retrieve the nearest non-positives, train against <em>those</em> (our \(n_4 = 0.75\)). As the model sharpens, so do its negatives.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru"><strong>Чинит</strong> &mdash; слепоту BM25: негативы <em>добыты моделью</em> и адаптируются по ходу обучения. Этот поворот вывел плотные ретриверы за сильные лексические бейзлайны.</span><span lang="en"><strong>Fixes</strong> &mdash; BM25&rsquo;s blindness: negatives are <em>model-mined</em> and adapt as it learns. This turn pushed dense retrievers past strong lexical baselines.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><strong><span lang="ru">Истинно трудное перекрытие</span><span lang="en">True-hard overlap</span></strong> &mdash; <span lang="ru">какая доля добытых негативов — реально самые трудные для модели:</span><span lang="en">of mined negatives, what fraction are the model&rsquo;s actual hardest:</span> in-batch <strong>0%</strong> &middot; BM25 <strong>15%</strong> &middot; ANCE <strong>100%</strong>. <span lang="ru">Только ANCE добывает именно то, что модель правда путает</span><span lang="en">Only ANCE mines the ones the model truly confuses</span> (MS&nbsp;MARCO MRR@10 <strong>0.33</strong>, NQ&nbsp;top-20 <strong>81.9</strong>; <span lang="ru">индекс обновляется каждые ~10k батчей</span><span lang="en">index refreshed every ~10k batches</span>).</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="twocol-col">
+      <div class="viz-frame fig-fit" style="--fig-max:62cqh; --fig-w:100%;">
+        <img src="assets/img/L13/L13-07-mirror-opponent.webp?v=1" alt="Séréga sparring against a mirror image of himself — the model mining its own hardest opponents from its current index, an opponent that grows as the fighter grows." />
+      </div>
+      <div class="def-card" style="margin-top: var(--sp-4);">
+        <span class="def-tag"><span lang="ru">Итог шага</span><span lang="en">The takeaway</span></span>
+        <div class="def-term"><span lang="ru">Хватит гадать, что модели трудно, &mdash; добудь это у самой модели.</span><span lang="en">Stop guessing what the model finds hard &mdash; mine it from the model itself.</span></div>
+      </div>
+    </div>
+  </div>
+  <aside class="slide-notes">Strategy 4 (ANCE, Xiong 2021). Index corpus with current model → retrieve nearest non-positives → train on those (spine n4=0.75). Fixes BM25 model-independence; negatives adapt to the model. Stop guessing what's hard — mine it.</aside>
+</section>
+<section class="slide" data-type="two-col" data-screen-label="27 The sparring ghosts">
+  <div class="slide-header">
+    <h2><span lang="ru">Призраки спарринга &mdash; застой</span><span lang="en">The sparring ghosts &mdash; staleness</span></h2>
+    <span class="slide-kicker"><span lang="ru">подвох, скрытый в майнинге моделью</span><span lang="en">the catch hidden inside model-mining</span></span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag"><span lang="ru">Изъян Стратегии 4 &middot; застой</span><span lang="en">The flaw in Strategy 4 &middot; staleness</span></span>
+        <div class="def-term"><span lang="ru">Индекс обновляется лишь изредка &mdash; негативы отстают от модели.</span><span lang="en">The index is refreshed only now and then &mdash; so negatives fall behind the model.</span></div>
+        <div class="def-body">
+          <ul class="obj-list">
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Механизм</strong> &mdash; переиндексация миллионов пассажей медленна, поэтому редка. Между обновлениями модель улучшается, а негативы остаются <em>замороженными</em>.</span><span lang="en"><strong>Mechanism</strong> &mdash; re-indexing millions of passages is slow, so it&rsquo;s rare. Between refreshes the model keeps improving while its negatives stay <em>frozen</em>.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&times;</span><span class="obj-text"><span lang="ru"><strong>Изъян</strong> &mdash; замороженные негативы дрейфуют из трудных&nbsp;&rarr;&nbsp;в лёгкие &mdash; как призраки, бьющиеся с тенью там, где бойца давно нет.</span><span lang="en"><strong>Flaw</strong> &mdash; frozen negatives drift hard&nbsp;&rarr;&nbsp;easy &mdash; like ghosts shadow-boxing where the fighter no longer stands.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><strong><span lang="ru">Цена застоя</span><span lang="en">Cost of staleness</span></strong> &mdash; <span lang="ru">при обновлении негативы дают 100% истинно трудного перекрытия; между обновлениями индекс устаревает и перекрытие падает. Насколько — мы не меряли: 15% с соседнего слайда относятся к <em>BM25-майнингу</em>, а не к распаду ANCE.</span><span lang="en">at refresh the negatives hit 100% true-hard overlap; between refreshes the index goes stale and the overlap falls. By how much we do not measure: the 15% on the neighbouring slide is <em>BM25's</em> mining overlap, not ANCE's decay.</span></span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="twocol-col">
+      <div class="viz-frame fig-fit" style="--fig-max:56cqh; --fig-w:88%;">
+        <img src="assets/img/L13/L13-08-sparring-ghosts.webp?v=1" alt="Faded ghost opponents still throwing punches at where Séréga used to stand — stale negatives frozen at the last index refresh while the model has already moved on." />
+      </div>
+    </div>
+  </div>
+  <aside class="slide-notes">The flaw in ANCE: re-indexing is expensive, refreshed only periodically. Between refreshes the model improves but negatives are frozen → they go hard→easy (the Sparring Ghosts mascot). Motivates per-step mining in ADORE.</aside>
+</section>
+<section class="slide" data-type="default" data-screen-label="28 STAR / ADORE · distinct roles">
+  <div class="slide-header">
+    <h2><span lang="ru">STAR и ADORE: устойчивость и актуальность</span><span lang="en">STAR and ADORE: stability and freshness</span></h2>
+    <span class="slide-kicker"><span lang="ru">актуальные противники, без переиндексации</span><span lang="en">current opponents, no re-indexing</span></span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag"><span lang="ru">Стратегия 5 &middot; STAR / ADORE (Zhan 2021)</span><span lang="en">Strategy 5 &middot; STAR / ADORE (Zhan 2021)</span></span>
+    <div class="def-term"><span lang="ru"><strong>ADORE:</strong> заморозь энкодер документов и обучай только энкодер запросов, доставая трудные негативы из <em>замороженного</em> индекса на каждом шаге. <strong>STAR</strong> — другая половина статьи: он добавляет <em>случайные</em> негативы ради устойчивости.</span><span lang="en"><strong>ADORE:</strong> freeze the document encoder and train only the query encoder, pulling hard negatives from the <em>frozen</em> index at every step. <strong>STAR</strong> is the paper's other half: it adds <em>random</em> negatives for stability.</span></div>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Механизм</strong> &mdash; при фиксированной стороне документов индекс никогда не устаревает. Каждый шаг извлекает против актуальных эмбеддингов, поэтому негативы остаются по-настоящему свежими.</span><span lang="en"><strong>Mechanism</strong> &mdash; with the document side fixed, the index never goes stale. Every step retrieves against current embeddings, so negatives stay genuinely fresh.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru"><strong>Чинит</strong> &mdash; <em>разрыв застоя</em>: более острые противники на каждом шаге, куда дешевле, чем переиндексировать весь мир каждый раунд.</span><span lang="en"><strong>Fixes</strong> &mdash; the <em>staleness gap</em>: sharper opponents at every step, far cheaper than re-indexing the world each round.</span></span></li>
+      </ul>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Актуальные негативы без переиндексации всего мира.</span><span lang="en">Current negatives, without re-indexing the world.</span></p>
+  <aside class="slide-notes">Strategy 5 (ADORE, Zhan 2021). STAR separately stabilises static hard-negative training with random negatives. ADORE: freeze docs, train the query encoder → negatives stay current every step. Fixes the staleness gap from the sparring ghosts; cheap vs full re-indexing. Closes the dynamic-mining sub-arc.</aside>
+</section>
+<section class="slide" data-type="table" data-screen-label="29 Static vs dynamic">
+  <div class="slide-header">
+    <h2><span lang="ru">Статические против динамических, бок о бок</span><span lang="en">Static vs dynamic, side by side</span></h2>
+    <span class="slide-kicker"><span lang="ru">от фиксированных негативов к тем, которые поспевают</span><span lang="en">from fixed negatives to ones that keep up</span></span>
+  </div>
+  <table class="cmp-table">
+    <thead><tr>
+      <th><span lang="ru">стратегия</span><span lang="en">strategy</span></th>
+      <th><span lang="ru">источник</span><span lang="en">source</span></th>
+      <th><span lang="ru">адаптируется к модели?</span><span lang="en">adapts to model?</span></th>
+      <th><span lang="ru">стоимость</span><span lang="en">cost</span></th>
+      <th><span lang="ru">трудность</span><span lang="en">hardness</span></th>
+    </tr></thead>
+    <tbody>
+      <tr><td><strong>random</strong></td><td><span lang="ru">равномерно из корпуса</span><span lang="en">uniform corpus</span></td><td><span lang="ru">нет</span><span lang="en">no</span></td><td><span lang="ru">бесплатно</span><span lang="en">free</span></td><td><span lang="ru">легко</span><span lang="en">easy</span></td></tr>
+      <tr><td><strong>in-batch</strong></td><td><span lang="ru">позитивы батча</span><span lang="en">batch positives</span></td><td><span lang="ru">нет</span><span lang="en">no</span></td><td><span lang="ru">бесплатно</span><span lang="en">free</span></td><td><span lang="ru">легко &ndash; средне</span><span lang="en">easy &ndash; medium</span></td></tr>
+      <tr><td><strong>BM25</strong></td><td><span lang="ru">лексический поиск</span><span lang="en">lexical retrieval</span></td><td><span lang="ru">нет</span><span lang="en">no</span></td><td><span lang="ru">дёшево, разово</span><span lang="en">cheap, one-off</span></td><td><span lang="ru">средне</span><span lang="en">medium</span></td></tr>
+      <tr><td><strong>ANCE</strong></td><td><span lang="ru">собственный индекс модели</span><span lang="en">model&rsquo;s own index</span></td><td class="cell-good"><span lang="ru">да (при обновлении)</span><span lang="en">yes (per refresh)</span></td><td><span lang="ru">переиндексация</span><span lang="en">re-index</span></td><td class="cell-good"><span lang="ru">трудно</span><span lang="en">hard</span></td></tr>
+      <tr><td><strong>ADORE</strong></td><td><span lang="ru">живой энкодер запросов</span><span lang="en">live query encoder</span></td><td class="cell-good"><span lang="ru">да (на каждом шаге)</span><span lang="en">yes (per step)</span></td><td><span lang="ru">низкая</span><span lang="en">low</span></td><td class="cell-good"><span lang="ru">трудно, актуально</span><span lang="en">hard, current</span></td></tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2"><span lang="ru">Измеренный recall@10 (20 сидов): три статические стратегии <em>кучкуются</em> &mdash; random <strong>0,62</strong>, in-batch <strong>0,645</strong>, BM25 <strong>0,625</strong> &mdash; все в пределах одного стандартного отклонения друг от друга, так что игрушка не может их разделить; настоящая статическая лестница (in-batch &lt; +BM25) &mdash; это заявленный результат DPR, а не игрушки. Именно <em>динамический</em> майнинг раскрывает выигрыш. <em>Статические негативы перестают совпадать с моделью; динамические поспевают.</em></span><span lang="en">Measured recall@10 (20 seeds): the three static strategies <em>cluster</em> &mdash; random <strong>0.62</strong>, in-batch <strong>0.645</strong>, BM25 <strong>0.625</strong> &mdash; all within one std of each other, so the toy can&rsquo;t separate them; the real static ladder (in-batch &lt; +BM25) is DPR&rsquo;s reported result, not the toy&rsquo;s. It is <em>dynamic</em> mining that unlocks the gains. <em>Static negatives stop matching the model; dynamic ones keep up.</em></span></p>
+  <aside class="slide-notes">Static vs dynamic table. The three static strategies cluster (random 0.62, in-batch 0.645, BM25 0.625 — recall@10, 20 seeds, data/l13-negatives.json) — all within one std, so the toy can't separate them; the real static ladder (in-batch < +BM25) is DPR's reported result, not the toy's. cell-good marks where ANCE/ADORE adapt and reach hard negatives. The model-adaptation line is what unlocks the gains.</aside>
+</section>
+<section class="slide" data-type="default" data-screen-label="30 Boundaries · the price of mining">
+  <div class="slide-header">
+    <h2><span lang="ru">Границы &mdash; у динамического майнинга есть цена</span><span lang="en">Boundaries &mdash; dynamic mining has a price</span></h2>
+    <span class="slide-kicker"><span lang="ru">труднее противники, труднее компромиссы</span><span lang="en">harder opponents, harder trade-offs</span></span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag"><span lang="ru">Применимость &middot; чего стоит майнинг</span><span lang="en">Applicability &middot; what mining costs</span></span>
+    <div class="def-term"><span lang="ru">Динамический майнинг выигрывает в трудности &mdash; но выигрыш не бесплатен.</span><span lang="en">Dynamic mining wins on hardness &mdash; but the gains are not free.</span></div>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Стоимость и сложность</strong> &mdash; переиндексация корпуса и инженерия, чтобы держать его актуальным, &mdash; реальные накладные расходы, которых статические ступени никогда не несли.</span><span lang="en"><strong>Cost &amp; complexity</strong> &mdash; re-indexing the corpus and the engineering to keep it current are real overhead the static rungs never paid.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Клиффхэнгер</strong> &mdash; более трудные негативы повышают риск зачерпнуть <em>ложные</em> негативы: неразмеченные позитивы, принятые за врагов.</span><span lang="en"><strong>The cliffhanger</strong> &mdash; harder negatives raise the risk of scooping up <em>false</em> negatives: unlabelled positives mistaken for enemies.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Разные ограничения</strong> &mdash; STAR стабилизирует статические негативы случайными. ADORE обновляет запросы при фиксированных представлениях документов; статья сообщает выигрыш качества.</span><span lang="en"><strong>Different constraints</strong> &mdash; STAR stabilises static negatives with random ones. ADORE updates queries against fixed document representations; the paper reports quality gains.</span></span></li>
+      </ul>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Чем труднее майнишь, тем больше друзей принимаешь за врагов.</span><span lang="en">The harder you mine, the more friends you mistake for enemies.</span></p>
+  <aside class="slide-notes">Boundaries of dynamic mining: re-index cost + engineering complexity; harder negatives risk false negatives (the cliffhanger into Act 4 — the impostor); STAR uses static hard negatives plus random negatives; ADORE mines with the current query encoder against fixed documents. Neither implies an obligatory quality loss. Source: Zhan et al. §6 and §8.3, https://arxiv.org/html/2104.08051. Sets up the denoising act.</aside>
+</section>
+<section class="slide" data-type="divider" data-screen-label="31 Divider · The Impostor">
+  <div class="divider-content">
+    <div class="divider-num"><span lang="ru">Часть 4 · Самозванец</span><span lang="en">Part 4 · The Impostor</span></div>
+    <h1>What if the opponent is a friend?</h1>
+    <p class="divider-sub"><span lang="ru">Добудь самых трудных кандидатов &mdash; и некоторые вовсе не враги, а <strong>позитивы, которых никто не разметил</strong>.</span><span lang="en">Mine the hardest candidates and some are not enemies at all, but <strong>positives nobody labelled</strong>.</span></p>
+  </div>
+  <div class="viz-frame fig-fit" style="--fig-max:64cqh; --fig-w:50%;">
+    <img src="assets/img/L13/L13-09-the-impostor.webp?v=1" alt="Séréga freezes mid-strike facing the Impostor — a masked duelist whose fencing mask is half-lifted to reveal a friendly warm-orange plus-badge underneath: the enemy he was about to push away is actually an unlabelled positive." />
+  </div>
+  <aside class="slide-notes">The Impostor (NEW mascot): an ally wearing an enemy's mask. Two orthogonal axes — geometric hardness vs collateral danger. The next two climbs make it visceral: the inversion (mining-comparator) and the second axis + denoising (impostor-denoise). Cures: filter (RocketQA) · sample (SimANS) · co-train (AR2) · distil (Margin-MSE).</aside>
+</section>
+<section class="slide" data-type="two-col" data-screen-label="32 Unlabelled positives">
+  <div class="slide-header">
+    <h2><span lang="ru">Что, если противник &mdash; друг?</span><span lang="en">What if the opponent is a friend?</span></h2>
+    <span class="slide-kicker"><span lang="ru">самый трудный «негатив» может оказаться позитивом</span><span lang="en">the hardest &lsquo;negative&rsquo; may be a positive</span></span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag"><span lang="ru">Определение &middot; неразмеченный позитив</span><span lang="en">Definition &middot; the unlabelled positive</span></span>
+        <div class="def-term"><span lang="ru">Реальные датасеты размечают едва <strong>один</strong> верный пассаж на запрос &mdash; против корпуса в миллионы.</span><span lang="en">Real datasets label barely <strong>one</strong> correct passage per query &mdash; against a corpus of millions.</span></div>
+        <div class="def-body">
+          <ul class="obj-list">
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Многие <em>другие</em> пассажи тоже релевантны &mdash; просто их не разметили.</span><span lang="en">Many <em>other</em> passages are also relevant &mdash; just never labelled.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&times;</span><span class="obj-text"><span lang="ru">Добудь самых трудных кандидатов &mdash; и зачерпнёшь эти <strong>неразмеченные позитивы</strong>, а затем обучаешься против них как против негативов.</span><span lang="en">Mine the hardest candidates and you scoop up these <strong>unlabelled positives</strong>, then train against them as negatives.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Ложный негатив</strong>: союзник в маске врага &mdash; оттолкни его, и испортишь клинок.</span><span lang="en">A <strong>false negative</strong>: an ally in an enemy&rsquo;s mask &mdash; push it away and you corrupt the blade.</span></span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="twocol-col">
+      <div class="viz-frame fig-fit" style="--fig-max:56cqh; --fig-w:88%;">
+        <img src="assets/img/L13/L13-09-the-impostor.webp?v=1" alt="The Impostor — a passage in an enemy's mask that is secretly a correct, unlabelled answer slipped into the line-up of negatives." />
+      </div>
+    </div>
+  </div>
+  <aside class="slide-notes">Turn-impostor. Datasets label ~1 positive/query vs millions; many other passages are relevant but unlabelled. Hard mining scoops these unlabelled positives and trains against them as negatives — a false negative that corrupts the blade. The hardest 'negative' may be a positive nobody labelled.</aside>
+</section>
+<section class="slide" data-type="two-col" data-screen-label="33 Two axes, not one">
+  <div class="slide-header">
+    <h2><span lang="ru">Две оси, а не одна</span><span lang="en">Two axes, not one</span></h2>
+    <span class="slide-kicker"><span lang="ru">два связанных признака требуют проверки</span><span lang="en">two related signals need validation</span></span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag"><span lang="ru">2&times;2 трудности</span><span lang="en">The 2&times;2 of hardness</span></span>
+        <div class="def-term">$$ \text{hardness}=\cos(q,d^-)\qquad \text{collateral danger}=\cos(d^-,d^+) $$</div>
+        <p class="def-where"><span lang="ru">где <b>q</b> = запрос, <b>d<sup>&minus;</sup></b> = негатив, <b>d<sup>+</sup></b> = позитив, <b>cos</b> = косинусная близость. Близость к позитиву — диагностический признак, а не метка релевантности; независимость осей не предполагается.</span><span lang="en">where <b>q</b> = the query, <b>d<sup>&minus;</sup></b> = a negative, <b>d<sup>+</sup></b> = the positive, <b>cos</b> = cosine similarity. Proximity to the positive is a diagnostic signal, not a relevance label; the axes need not be independent.</span></p>
+        <div class="def-body">
+          <ul class="obj-list">
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&times;</span><span class="obj-text"><span lang="ru">Самозванец n&#8325;: \(\cos(q)=0{,}79\) <strong>и</strong> \(\cos(d^+)=0{,}80\) &mdash; рядом с позитивом.</span><span lang="en">The impostor n&#8325;: \(\cos(q)=0.79\) <strong>and</strong> \(\cos(d^+)=0.80\) &mdash; beside the positive.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru">Трудный <em>истинный</em> негатив n&#8324;: \(\cos(q)=0{,}75\), но \(\cos(d^+)=0{,}31\) &mdash; ниже позитива.</span><span lang="en">A hard <em>true</em> negative n&#8324;: \(\cos(q)=0.75\) but \(\cos(d^+)=0.31\) &mdash; below the positive.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Та же трудность по оси запроса (\(\approx\)0,75 против 0,79) &mdash; в этом примере различие видно по второй оси (n&#8325; на <strong>0,80</strong> против n&#8324; на <strong>0,31</strong>), невидимая по одному запросу.</span><span lang="en">Same hardness on the query axis (\(\approx\)0.75 vs 0.79) &mdash; in this example the second axis distinguishes them (n&#8325; at <strong>0.80</strong> vs n&#8324; at <strong>0.31</strong>), invisible to a query-only view.</span></span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="twocol-col">
+      <div class="viz-frame fig-fit" style="--fig-max:56cqh; --fig-w:88%;">
+        <img src="assets/img/L13/L13-10-two-by-two.webp?v=1" alt="A 2x2 plane: the horizontal query-hardness axis where n4 and n5 are twins, and the vertical collateral-danger axis cos(d-,d+) where only n5 sits in the positive's neighbourhood." />
+      </div>
+    </div>
+  </div>
+  <aside class="slide-notes">Two-axis. hardness=cos(q,d⁻), proximity-to-positive=cos(d⁻,d⁺). These are related diagnostic coordinates, not orthogonal or independent random variables. If q=d⁺ they coincide; relevance still needs labels or a validated evaluator. Impostor n₅: cos(q)=0.79, cos(d⁺)=0.80; hard true negative n₄: cos(q)=0.75, cos(d⁺)=0.31 (spine lineup, data/l13-negatives.json). Same query-axis hardness (~0.75/0.79); the illustrative difference is visible on the second axis — n₅ sits at 0.80 in the positive's neighbourhood while n₄ is far below at 0.31, invisible to a query-only view.</aside>
+</section>
+<section class="slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="34 Climb &middot; mining-comparator">
+  <div class="slide-header">
+    <h2><span lang="ru">Стратегии майнинга в сравнении &mdash; инверсия вживую</span><span lang="en">Mining strategies compared &mdash; the inversion, live</span></h2>
+    <span class="slide-kicker"><span lang="ru">шаг (&larr;/&rarr;): random &rarr; in-batch &rarr; BM25-static &rarr; неочищенные (падает) &rarr; очищенные (восстанавливается)</span><span lang="en">step (&larr;/&rarr;): random &rarr; in-batch &rarr; BM25-static &rarr; undenoised (drops) &rarr; denoised (recovers)</span></span>
+  </div>
+  <div class="widget-mount" data-widget="mining-comparator"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "spine": {
+      "positive": {
+        "id": "dPlus",
+        "label": "true positive",
+        "cosQ": 0.82
+      },
+      "lineup": [
+        {
+          "id": "n1",
+          "label": "random",
+          "cosQ": 0.05,
+          "cosPos": 0.03,
+          "band": "easy",
+          "isFalse": false
+        },
+        {
+          "id": "n2",
+          "label": "in-batch",
+          "cosQ": 0.41,
+          "cosPos": 0.37,
+          "band": "semi",
+          "isFalse": false
+        },
+        {
+          "id": "n3",
+          "label": "BM25-hard",
+          "cosQ": 0.63,
+          "cosPos": 0.34,
+          "band": "hard",
+          "isFalse": false
+        },
+        {
+          "id": "n4",
+          "label": "dynamic-hard",
+          "cosQ": 0.75,
+          "cosPos": 0.31,
+          "band": "hard",
+          "isFalse": false
+        },
+        {
+          "id": "n5",
+          "label": "impostor",
+          "cosQ": 0.79,
+          "cosPos": 0.8,
+          "band": "hard",
+          "isFalse": true
+        }
+      ],
+      "minedByStrategy": {
+        "random": [
+          "n1"
+        ],
+        "inbatch": [
+          "n2"
+        ],
+        "bm25": [
+          "n3"
+        ],
+        "undenoised": [
+          "n4",
+          "n5"
+        ],
+        "denoised": [
+          "n4"
+        ]
+      }
+    },
+    "recallAt10": {
+      "random": {
+        "mean": 0.62,
+        "std": 0.033
+      },
+      "inbatch": {
+        "mean": 0.645,
+        "std": 0.037
+      },
+      "bm25": {
+        "mean": 0.625,
+        "std": 0.037
+      },
+      "undenoised": {
+        "mean": 0.411,
+        "std": 0.03
+      },
+      "denoised": {
+        "mean": 0.783,
+        "std": 0.039
+      }
+    }
+  },
+  "labels": {
+    "alt": "Each negative-mining strategy in turn: the candidate it surfaces from the pool and the recall@10 it yields, with an in-batch baseline line so the undenoised drop and the denoised recovery read as the RocketQA inversion.",
+    "poolHead": "the candidate pool (d⁺ must stay on top)",
+    "recallHead": "recall@10 (measured on the toy, 20 seeds)",
+    "refLabel": "in-batch baseline",
+    "strat_random": "random",
+    "strat_inbatch": "in-batch",
+    "strat_bm25": "BM25-static",
+    "strat_undenoised": "undenoised",
+    "strat_denoised": "denoised",
+    "s0": "Random negatives pull n₁ from far away — easy, almost no gradient. Recall sits at the baseline; the model barely learns a boundary from negatives this loose.",
+    "s1": "In-batch negatives reuse other queries' positives (n₂) for free — a touch harder, a touch better. This is the baseline every later strategy is measured against.",
+    "s2": "BM25-static hard negatives (n₃) are lexically close but FROZEN — model-independent, so they soon stop matching what the dense model actually confuses. Recall barely moves off the baseline.",
+    "s3": "The dynamic miner reaches for the model's own hardest near-misses — n₄ AND the impostor n₅. With no denoising it pushes n₅ (an unlabelled positive) away, dragging d⁺ down: recall DROPS below in-batch. This is the RocketQA inversion.",
+    "s4": "Add a denoiser: a cross-encoder filters the suspected positive n₅ out of the mined set, keeping the worthy-but-true n₄. Recall recovers — and now clears every other strategy."
+  }
+}
+  </script>
+  <p class="viz-caption"><span lang="ru">Каждая стратегия выносит на поверхность свой негатив и даёт свою полноту. Динамический майнер тянется к самозванцу n&#8325;, и полнота падает ниже бейзлайна in-batch &mdash; инверсия RocketQA &mdash; пока денойзер его не отфильтрует.</span><span lang="en">Each strategy surfaces a different negative and yields a different recall. The dynamic miner reaches for the impostor n&#8325; and recall falls below the in-batch baseline &mdash; the RocketQA inversion &mdash; until a denoiser filters it out.</span></p>
+  <aside class="slide-notes">mining-comparator (centerpiece). recall@10 bars per strategy with an in-batch reference line; undenoised drops below it, denoised recovers above. Recall measured on the toy (20 seeds); mined set from spine.minedByStrategy.</aside>
+</section>
+<section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="35 Climb &middot; impostor-denoise">
+  <div class="slide-header">
+    <h2><span lang="ru">Самозванец и денойзинг &mdash; вторая ось</span><span lang="en">The impostor &amp; denoising &mdash; the second axis</span></h2>
+    <span class="slide-kicker"><span lang="ru">шаг (&larr;/&rarr;): ось cos(&middot;,d&#8314;) &rarr; толчок n&#8325; тянет d&#8314; &rarr; почему &rarr; денойзинг восстанавливает</span><span lang="en">step (&larr;/&rarr;): the cos(&middot;,d&#8314;) axis &rarr; pushing n&#8325; drags d&#8314; &rarr; why &rarr; denoise recovers</span></span>
+  </div>
+  <div class="widget-mount" data-widget="impostor-denoise"></div>
+  <script class="widget-data" type="application/json">
+{
+  "data": {
+    "spine": {
+      "positive": {
+        "id": "dPlus",
+        "label": "true positive",
+        "cosQ": 0.82
+      },
+      "lineup": [
+        {
+          "id": "n1",
+          "label": "random",
+          "cosQ": 0.05,
+          "cosPos": 0.03,
+          "band": "easy",
+          "isFalse": false
+        },
+        {
+          "id": "n2",
+          "label": "in-batch",
+          "cosQ": 0.41,
+          "cosPos": 0.37,
+          "band": "semi",
+          "isFalse": false
+        },
+        {
+          "id": "n3",
+          "label": "BM25-hard",
+          "cosQ": 0.63,
+          "cosPos": 0.34,
+          "band": "hard",
+          "isFalse": false
+        },
+        {
+          "id": "n4",
+          "label": "dynamic-hard",
+          "cosQ": 0.75,
+          "cosPos": 0.31,
+          "band": "hard",
+          "isFalse": false
+        },
+        {
+          "id": "n5",
+          "label": "impostor",
+          "cosQ": 0.79,
+          "cosPos": 0.8,
+          "band": "hard",
+          "isFalse": true
+        }
+      ]
+    },
+    "recallAt10": {
+      "random": {
+        "mean": 0.62,
+        "std": 0.033
+      },
+      "inbatch": {
+        "mean": 0.645,
+        "std": 0.037
+      },
+      "bm25": {
+        "mean": 0.625,
+        "std": 0.037
+      },
+      "undenoised": {
+        "mean": 0.411,
+        "std": 0.03
+      },
+      "denoised": {
+        "mean": 0.783,
+        "std": 0.039
+      }
+    }
+  },
+  "labels": {
+    "alt": "The cos(·,d⁺) collateral axis with n₄ safely far from the positive and n₅ inside its danger zone; pushing n₅ drags the positive so undenoised recall drops below in-batch, and a denoiser that filters n₅ restores it.",
+    "axisHead": "the second axis: cos(·, d⁺) — collateral danger",
+    "dangerLabel": "d⁺'s neighbourhood (danger)",
+    "recallHead": "recall@10 (measured, 20 seeds)",
+    "filteredLabel": "cross-encoder filters n₅",
+    "lbl_inbatch": "in-batch",
+    "lbl_undenoised": "+undenoised",
+    "lbl_denoised": "+denoised",
+    "s0": "Both n₄ and n₅ are equally hard to the query — the miner grabs both. But on the cos(·,d⁺) axis they split: n₄ is far from the positive and safe to push; n₅ sits right in d⁺'s neighbourhood — it is an unlabelled positive.",
+    "s1": "Mine both as negatives with no filter and push them away. Because n₅ lives right next to d⁺, pushing n₅ drags the true positive down with it — recall falls BELOW the in-batch baseline. This is the inversion.",
+    "s2": "Note what the miner could NOT see: on the hardness axis n₄ and n₅ are twins. The damage lives entirely on cos(·,d⁺) — a label property. A query-only view of 'hardness' is blind to the impostor.",
+    "s3": "Add a cross-encoder denoiser: it scores the mined candidates and strikes the suspected positive n₅, keeping the worthy-but-true n₄. Recall recovers — above in-batch and every other strategy."
+  }
+}
+  </script>
+  <p class="viz-caption"><span lang="ru">n&#8324; и n&#8325; одинаково трудны для запроса, но по оси <em>cos(&middot;,d&#8314;)</em> они расходятся: n&#8324; безопасно отталкивать, n&#8325; сидит в окрестности d&#8314;. Толчок самозванца тянет позитив вниз; денойзер, который его фильтрует, восстанавливает полноту.</span><span lang="en">n&#8324; and n&#8325; are equally hard to the query, but on the <em>cos(&middot;,d&#8314;)</em> axis they split: n&#8324; is safe to push, n&#8325; sits in d&#8314;’s neighbourhood. Pushing the impostor drags the positive down; a denoiser that filters it restores recall.</span></p>
+  <aside class="slide-notes">impostor-denoise. The collateral axis cos(&middot;,d&#8314;): n&#8324; safe / n&#8325; in the danger zone; recall in-batch &rarr; +undenoised (drop) &rarr; +denoised (recover). Recall measured (20 seeds).</aside>
+</section>
+<section class="slide" data-type="default" data-screen-label="36 The inversion · by the numbers">
+  <div class="slide-header">
+    <h2><span lang="ru">Инверсия в цифрах</span><span lang="en">The inversion, by the numbers</span></h2>
+    <span class="slide-kicker"><span lang="ru">результаты статей против нашей игрушки &mdash; та же форма</span><span lang="en">reported papers vs our toy &mdash; same shape</span></span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr><th><span lang="ru">настройка</span><span lang="en">setting</span></th><th><span lang="ru">бейзлайн in-batch</span><span lang="en">in-batch baseline</span></th><th><span lang="ru">+ неочищенные трудные</span><span lang="en">+ undenoised hard</span></th><th><span lang="ru">+ лекарство</span><span lang="en">+ the cure</span></th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>DPR <span class="dim">NQ R@20</span></td>
+        <td><span lang="ru">gold-7 in-batch <strong>69,1</strong></span><span lang="en">gold-7 in-batch <strong>69.1</strong></span></td>
+        <td class="dim">&mdash;</td>
+        <td class="cell-good"><span lang="ru">больший батч + один трудный негатив BM25 <strong>78,0</strong></span><span lang="en">larger batch + one BM25 hard negative <strong>78.0</strong></span></td>
+      </tr>
+      <tr>
+        <td>RocketQA <span class="dim">MRR@10</span></td>
+        <td><span lang="ru">базовый in-batch <strong>32,39</strong></span><span lang="en">baseline in-batch <strong>32.39</strong></span></td>
+        <td><span lang="ru">неочищенные трудные негативы <strong>26,03</strong> &darr;</span><span lang="en">undenoised hard negatives <strong>26.03</strong> &darr;</span></td>
+        <td class="cell-good"><span lang="ru">денойзинг кросс-энкодером <strong>36,38</strong> &middot; аугментация данных <strong>37,02</strong></span><span lang="en">cross-encoder denoising <strong>36.38</strong> &middot; data augmentation <strong>37.02</strong></span></td>
+      </tr>
+      <tr>
+        <td><span lang="ru">наша игрушка</span><span lang="en">our toy</span> <span class="dim">R@10, 20 seeds</span></td>
+        <td><span lang="ru">игрушка in-batch <strong>0,645</strong></span><span lang="en">toy in-batch <strong>0.645</strong></span></td>
+        <td><span lang="ru">игрушка +неочищенные <strong>0,411</strong> &darr;</span><span lang="en">toy +undenoised <strong>0.411</strong> &darr;</span></td>
+        <td class="cell-good"><span lang="ru">игрушка +очищенные <strong>0,783</strong></span><span lang="en">toy +denoised <strong>0.783</strong></span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2"><span lang="ru">Неочищенные трудные негативы отправляют полноту <strong>ниже</strong> дешёвого бейзлайна in-batch &mdash; инверсия &mdash; затем лекарство, знающее о релевантности, обгоняет всё. Игрушка воспроизводит <em>форму</em>, но никогда величину; настоящие числа принадлежат статьям.</span><span lang="en">Undenoised hard negatives send recall <strong>below</strong> the cheap in-batch baseline &mdash; the inversion &mdash; then a relevance-aware cure clears everything. The toy reproduces the <em>shape</em>, never the magnitude; the real numbers belong to the papers.</span></p>
+  <aside class="slide-notes">The climax, by the numbers. DPR Table 3 (negative selection + batch size both matter: the 69.1&rarr;78.0 jump folds in a 16&times; larger batch, so the BM25 negative alone adds ~5 at a matched batch, 73.0&rarr;78.0) + RocketQA ablation (undenoised hard negs drop MRR 32.39&rarr;26.03 below in-batch, denoising recovers to 36.38, augmentation 37.02) + our toy reproducing the SHAPE over 20 seeds (0.645&rarr;0.411&rarr;0.783). Reported vs measured kept on separate axes (provenance). Numbers gated in check_claims (l13_deck_claims).</aside>
+</section>
+<section class="slide" data-type="default" data-screen-label="37 Three cures for the impostor">
+  <div class="slide-header">
+    <h2><span lang="ru">Стратегия 6 &middot; три лекарства от самозванца</span><span lang="en">Strategy 6 &middot; three cures for the impostor</span></h2>
+    <span class="slide-kicker"><span lang="ru">только релевантность отличает друга от врага</span><span lang="en">only relevance can tell friend from foe</span></span>
+  </div>
+  <div class="cards--autofit">
+    <div class="def-card">
+      <span class="def-tag"><span lang="ru">Фильтр &middot; RocketQA</span><span lang="en">Filter &middot; RocketQA</span></span>
+      <div class="def-term"><span lang="ru">Кросс-энкодер оценивает добытых кандидатов и <strong>отбрасывает</strong> подозреваемые позитивы.</span><span lang="en">A cross-encoder scores the mined candidates and <strong>drops</strong> the suspected positives.</span></div>
+      <div class="def-body"><ul class="obj-list"><li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">очисти добытый набор <em>прежде</em>, чем он обучит энкодер.</span><span lang="en">denoise the mined set <em>before</em> it ever trains the encoder.</span></span></li></ul></div>
+    </div>
+    <div class="def-card">
+      <span class="def-tag"><span lang="ru">Сэмплирование &middot; SimANS</span><span lang="en">Sample &middot; SimANS</span></span>
+      <div class="def-term"><span lang="ru">Сэмплируй <strong>неоднозначные</strong> негативы у золотой середины &mdash; не самые трудные абсолютно.</span><span lang="en">Sample <strong>ambiguous</strong> negatives near a sweet spot &mdash; not the absolute hardest.</span></div>
+      <div class="def-body"><ul class="obj-list"><li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">провал вероятности прямо там, где живут самозванцы.</span><span lang="en">a probability dip right where the impostors live.</span></span></li></ul></div>
+    </div>
+    <div class="def-card">
+      <span class="def-tag"><span lang="ru">Совместное обучение / дистилляция &middot; AR2, Margin-MSE</span><span lang="en">Co-train / distil &middot; AR2, Margin-MSE</span></span>
+      <div class="def-term"><span lang="ru">Пусть <strong>учитель</strong>, знающий релевантность, формирует негативы.</span><span lang="en">Let a <strong>teacher</strong> that knows relevance shape the negatives.</span></div>
+      <div class="def-body"><ul class="obj-list"><li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">перегони зазоры кросс-энкодера в би-энкодер.</span><span lang="en">distil the cross-encoder's margins into the bi-encoder.</span></span></li></ul></div>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Все три принимают одну истину: при равной трудности только нечто, знающее о <em>релевантности</em> &mdash; фильтр, учитель, метка &mdash; может отличить достойный негатив от друга.</span><span lang="en">All three accept one truth: at equal hardness, only something that knows about <em>relevance</em> &mdash; a filter, a teacher, a label &mdash; can tell a worthy negative from a friend.</span></p>
+  <aside class="slide-notes">Three cures. Filter (RocketQA): cross-encoder drops suspected positives. Sample (SimANS): ambiguous negatives near a sweet spot, not the absolute hardest. Co-train/distil (AR2, Margin-MSE): a relevance-aware teacher shapes the negatives. Only relevance knowledge separates friend from foe at equal hardness.</aside>
+</section>
+<section class="slide" data-type="two-col" data-screen-label="38 The teacher unmasks the impostor">
+  <div class="slide-header">
+    <h2><span lang="ru">Учитель разоблачает самозванца</span><span lang="en">The teacher unmasks the impostor</span></h2>
+    <span class="slide-kicker"><span lang="ru">учитель отличает достойный негатив от врага</span><span lang="en">a teacher tells a worthy negative from a foe</span></span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag"><span lang="ru">Дистилляция &middot; Margin-MSE</span><span lang="en">Distillation &middot; Margin-MSE</span></span>
+        <div class="def-term">$$ \text{margin}_{\text{teacher}}(q,d^+,d^-) \;\longrightarrow\; \text{bi-encoder} $$</div>
+        <p class="def-where"><span lang="ru">где <b>margin<sub>teacher</sub></b> = зазор в баллах кросс-энкодера между пассажами, <b>q</b> = запрос, <b>d<sup>+</sup></b> = позитив, <b>d<sup>&minus;</sup></b> = добытый негатив, стрелка = перегони этот зазор в би-энкодер-ученик (Margin-MSE).</span><span lang="en">where <b>margin<sub>teacher</sub></b> = the cross-encoder&rsquo;s score gap between the passages, <b>q</b> = the query, <b>d<sup>+</sup></b> = the positive, <b>d<sup>&minus;</sup></b> = the mined negative, arrow = distil that margin into the student bi-encoder (Margin-MSE).</span></p>
+        <div class="def-body">
+          <ul class="obj-list">
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Кросс-энкодер</strong> читает \((q, d)\) вместе, оценивая истинную релевантность.</span><span lang="en">A <strong>cross-encoder</strong> reads \((q, d)\) together, scoring true relevance.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Перегони его <strong>зазоры</strong> в би-энкодер (Margin-MSE) &mdash; ученик копирует учителя.</span><span lang="en">Distil its <strong>margins</strong> into the bi-encoder (Margin-MSE) &mdash; the student matches the teacher.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru">Так ученик учится <strong>сохранять n&#8324;</strong> (достойный) и <strong>отбрасывать n&#8325;</strong> (переодетого друга).</span><span lang="en">So the student learns to <strong>keep n&#8324;</strong> (worthy) and <strong>drop n&#8325;</strong> (the friend in disguise).</span></span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="twocol-col">
+      <div class="viz-frame fig-fit" style="--fig-max:72cqh; --fig-w:100%; aspect-ratio:4/3;">
+        <img src="assets/img/L13/L13-12-master-smith.webp?v=1" alt="The master smith — a cross-encoder teacher reading query and passage together, grading each negative so the student keeps the worthy n4 and drops the impostor n5." />
+      </div>
+      <p class="viz-caption"><span lang="ru">если добытый &laquo;негатив&raquo; &mdash; непомеченный позитив, зазор учителя мал, и ученик не станет его отталкивать</span><span lang="en">if a mined &ldquo;negative&rdquo; is an unlabelled positive, the teacher&rsquo;s margin is small &mdash; so the student never pushes it away</span></p>
+    </div>
+  </div>
+  <aside class="slide-notes">Turn-teacher. A cross-encoder reads (q,d) together and scores true relevance; distil its margins into the bi-encoder via Margin-MSE. When a mined negative is really an unlabelled positive, the teacher's score is high, the target margin shrinks — the student keeps n₄ and drops n₅.</aside>
+</section>
+<section class="slide" data-type="formula" data-screen-label="38a Margin-MSE, the loss itself">
+  <div class="slide-header">
+    <h2><span lang="ru">Сама функция потерь: ученик копирует не метку, а зазор</span><span lang="en">The loss itself: the student copies a margin, not a label</span></h2>
+    <span class="slide-kicker"><span lang="ru">строка, в которой релевантность наконец входит в обучение</span><span lang="en">the line where relevance finally enters training</span></span>
+  </div>
+  <div class="formula-stage">
+    $$ \mathcal{L} \;=\; \big(m_\theta - m_T\big)^{2}, \qquad m(q,d^+,d^-) \;=\; s(q,d^+) - s(q,d^-) $$
+  </div>
+  <p class="def-where"><span lang="ru">где <b>s</b> &mdash; балл пары, <b>&theta;</b> &mdash; ученик (би-энкодер), <b>T</b> &mdash; учитель (кросс-энкодер), <b>d<sup>&minus;</sup></b> &mdash; добытый негатив.</span><span lang="en">where <b>s</b> is a pair&rsquo;s score, <b>&theta;</b> the student (bi-encoder), <b>T</b> the teacher (cross-encoder), <b>d<sup>&minus;</sup></b> the mined negative.</span></p>
+  <div class="formula-caption">
+    <div class="var-block">
+      <div class="var-symbol">\(m_T\)</div>
+      <div class="var-desc"><span lang="ru"><strong>Зазор учителя</strong><br />кросс-энкодер читает пару целиком. У непомеченного позитива он около нуля.</span><span lang="en"><strong>The teacher&rsquo;s margin</strong><br />the cross-encoder reads the pair whole. For an unlabelled positive it is near zero.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">\(m_\theta\)</div>
+      <div class="var-desc"><span lang="ru"><strong>Зазор ученика</strong><br />та же разность у би-энкодера &mdash; единственное, что штрафуется.</span><span lang="en"><strong>The student&rsquo;s margin</strong><br />the same difference in the bi-encoder &mdash; the only thing penalised.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">\((\cdot)^{2}\)</div>
+      <div class="var-desc"><span lang="ru"><strong>Цель, а не направление</strong><br />ученик целится в чужое число, а не толкает негатив прочь.</span><span lang="en"><strong>A target, not a direction</strong><br />the student aims at someone else&rsquo;s number rather than always pushing.</span></div>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">InfoNCE знает лишь &laquo;позитив ближе всех&raquo; и толкает прочь любой негатив. Здесь цель приходит извне: у самозванца \(m_T\approx 0\) &mdash; значит и \(m_\theta\) обязан быть около нуля, ученик просто не разводит эту пару. Достойный негатив с большим \(m_T\) отталкивается по-прежнему. Релевантность вошла в обучение ровно одним числом &mdash; чужим зазором.</span><span lang="en">InfoNCE knows only &ldquo;the positive is nearest&rdquo; and pushes every negative away. Here the target comes from outside: for an impostor \(m_T\approx 0\) &mdash; so \(m_\theta\) must be near zero and the student never separates that pair. A worthy negative with a large \(m_T\) is still pushed. Relevance entered training as exactly one number &mdash; somebody else&rsquo;s margin.</span></p>
+  <aside class="slide-notes">The act named the third cure and drew an arrow — margin_teacher → bi-encoder — but never wrote the objective, so "the teacher unmasks the impostor" stayed a slogan. Margin-MSE (Hofstätter et al. 2020) is a squared error between two MARGINS: the student's s(q,d+) − s(q,d−) against the teacher's. Say the contrast aloud: InfoNCE has no notion of relevance, only "the positive must win", so it pushes every mined negative away with the Boltzmann weight from slide 18 — which is exactly what makes an unlabelled positive toxic. Margin-MSE replaces the direction with a target. When the mined negative is really a positive, the cross-encoder scores both passages alike, the target margin collapses to about zero, and the student is penalised for separating them at all. A genuinely worthy negative keeps a large teacher margin and is still pushed. That is the whole mechanism of the impostor act in one line, and it is also why the modern recipe on the next slides can afford to mine aggressively.</aside>
+</section>
+<section class="slide" data-type="two-col" data-screen-label="39 Boundaries · the impostor">
+  <div class="slide-header">
+    <h2><span lang="ru">Границы &middot; лекарствам нужен сигнал релевантности</span><span lang="en">Boundaries &middot; cures need a relevance signal</span></h2>
+    <span class="slide-kicker"><span lang="ru">денойзинг не бывает бесплатным</span><span lang="en">you cannot denoise for free</span></span>
+  </div>
+  <div class="twocol">
+    <div class="twocol-col">
+      <div class="def-card">
+        <span class="def-tag"><span lang="ru">Пределы &middot; чего стоит каждое лекарство</span><span lang="en">Limits &middot; what every cure costs</span></span>
+        <div class="def-term"><span lang="ru">Денойзинг самозванца не бесплатен &mdash; он заимствует <strong>сигнал релевантности</strong> и платит за него.</span><span lang="en">Denoising the impostor is not free &mdash; it borrows a <strong>relevance signal</strong> and pays for it.</span></div>
+        <div class="def-body">
+          <ul class="obj-list">
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru">Каждому лекарству нужно НЕЧТО, знающее релевантность &mdash; <strong>фильтр</strong>, <strong>учитель</strong> или <strong>метка</strong>.</span><span lang="en">Every cure needs SOMETHING that knows relevance &mdash; a <strong>filter</strong>, a <strong>teacher</strong>, or a <strong>label</strong>.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&times;</span><span class="obj-text"><span lang="ru">Денойзинг добавляет <strong>стоимость</strong> &mdash; лишний проход кросс-энкодера по добытым кандидатам.</span><span lang="en">Denoising adds <strong>cost</strong> &mdash; an extra cross-encoder pass over the mined candidates.</span></span></li>
+            <li class="obj-item"><span class="obj-check" aria-hidden="true">&times;</span><span class="obj-text"><span lang="ru">Задай порог <strong>слишком агрессивно</strong> &mdash; и выбросишь по-настоящему трудные <em>истинные</em> негативы.</span><span lang="en">Set the threshold <strong>too aggressively</strong> and you throw away genuinely hard <em>true</em> negatives.</span></span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="twocol-col">
+      <div class="viz-frame fig-fit" style="--fig-max:56cqh; --fig-w:88%;">
+        <img src="assets/img/L13/L13-11-blade-dulls.webp?v=1" alt="Séréga strikes the Impostor and his own keen blade dulls and chips — pushing away a hidden ally drags the true target with it — while Goodhart the Trickster smirks, pleased that a metric is chased blind." />
+      </div>
+    </div>
+  </div>
+  <aside class="slide-notes">Impostor boundaries. Every cure needs a relevance signal — a filter, a teacher, or a label. Denoising adds cost (an extra cross-encoder pass). Too-aggressive a threshold discards genuinely hard true negatives. You cannot denoise for free. Plate L13-11 (blade dulls / Goodhart): chasing the metric blind drags the true target down with the hidden ally — the cost the cures undo.</aside>
+</section>
+<section class="slide" data-type="divider" data-screen-label="40 Divider · The modern recipe">
+  <div class="divider-content">
+    <div class="divider-num"><span lang="ru">Часть 5 &middot; Современный рецепт</span><span lang="en">Part 5 &middot; The modern recipe</span></div>
+    <h1>Putting it together</h1>
+    <p class="divider-sub"><span lang="ru">Пятнадцать лет исправлений сходятся к одной форме: широкое равномерное пространство плюс чистая горстка трудных негативов для кромки.</span><span lang="en">Fifteen years of fixes converge on one shape: a broad even space, plus a clean handful of hard negatives for the edge.</span></p>
+  </div>
+  <div class="viz-frame fig-fit" style="--fig-max:64cqh; --fig-w:50%;">
+    <img src="assets/img/L13/L13-13-modern-forge.webp?v=1" alt="Séréga at a modern forge (keeping his green tübetey): one bellows blasts a wide even heat across the whole blade, while a fine hammer taps a single sharp edge — the two-stage recipe rendered as a smithy." />
+  </div>
+  <aside class="slide-notes">Opens Act 5, the modern recipe. The whole chapter compresses into a two-stage shape: massive in-batch for uniformity, a few mined-and-filtered hard negatives for the boundary, plus GradCache + topic sampling to make it cheap. Sets up TAS-B and E5/BGE/GTE.</aside>
+</section>
+<section class="slide" data-type="default" data-screen-label="41 Manufacture hard negatives for free (TAS-B)">
+  <div class="slide-header">
+    <h2><span lang="ru">Производи трудные негативы бесплатно (TAS-B)</span><span lang="en">Manufacture hard negatives for free (TAS-B)</span></h2>
+    <span class="slide-kicker"><span lang="ru">кластеризация по темам удешевляет трудные негативы</span><span lang="en">topic clustering makes hard negatives cheap</span></span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag"><span lang="ru">Приём вне лестницы &middot; тематическое сэмплирование (Hofst&auml;tter 2021)</span><span lang="en">Off-ladder trick &middot; topic-aware sampling (Hofst&auml;tter 2021)</span></span>
+    <div class="def-term"><span lang="ru">Кластеризуй запросы по темам; собирай каждый батч из <em>одного</em> кластера, так что каждый внутрибатчевый негатив автоматически по теме &mdash; и труден.</span><span lang="en">Cluster the queries by topic; build each batch from a <em>single</em> cluster, so every in-batch negative is automatically on-topic &mdash; and hard.</span></div>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Механизм</strong> &mdash; запросы одной темы теснятся по углу, поэтому их переиспользованные позитивы ложатся рядом с \(d^+\). Ни индекса обновлять, ни лишнего прямого прохода.</span><span lang="en"><strong>Mechanism</strong> &mdash; same-topic queries crowd in angle, so their reused positives land near \(d^+\). No index to refresh, no extra forward pass.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Чинит</strong> &mdash; добывает трудность <em>дёшево</em> (без прохода майнинга) и <strong>балансирует</strong> батч по темам.</span><span lang="en"><strong>Fixes</strong> &mdash; gets hardness <em>cheaply</em> (no mining pass) and <strong>balances</strong> the batch across topics.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Оговорка</strong> &mdash; одной кластеризации по темам <em>мало</em> для полного рецепта: TAS-B сочетает её с <strong>margin-MSE-дистилляцией от двух учителей</strong> и сбалансированным попарным сэмплером. И это выигрыш в домене &mdash; на BEIR zero-shot он всё ещё <em>ниже</em> BM25.</span><span lang="en"><strong>Caveat</strong> &mdash; topic clustering alone is <em>not</em> the whole recipe: TAS-B pairs it with <strong>margin-MSE dual-teacher distillation</strong> and a balanced pairwise sampler. And it is an in-domain gain &mdash; on BEIR zero-shot it still sits <em>below</em> BM25.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><strong><span lang="ru">Цена и честность</span><span lang="en">Cost &amp; honesty</span></strong> &mdash; <span lang="ru">TAS-B достигает MS&nbsp;MARCO MRR@10 &asymp; </span><span lang="en">TAS-B reaches MS&nbsp;MARCO MRR@10 &asymp; </span><strong>0.34</strong> <span lang="ru">на одной 11&nbsp;ГБ GPU менее чем за 48&nbsp;ч — но на BEIR zero-shot всё ещё на ~2,8&nbsp;% <em>ниже</em> BM25 (относительных, не пунктов).</span><span lang="en">on a single 11&nbsp;GB GPU in under 48&nbsp;h &mdash; yet on BEIR zero-shot it still sits ~2.8% <em>below</em> BM25 (relative, not points).</span></span></li>
+      </ul>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Бесплатные внутрибатчевые негативы перестают быть случайной удачей: <em>произведи</em> трудность вместо того, чтобы её майнить.</span><span lang="en">The free in-batch negatives stop being random luck: <em>manufacture</em> the hardness instead of mining for it.</span></p>
+  <aside class="slide-notes">TAS-B (Hofstätter 2021). Cluster queries by topic, sample each batch from one cluster: in-batch negatives are on-topic and hard for free — no giant index to refresh. Balanced sampler keeps topics even. Caveat: TAS-B needs margin-MSE dual-teacher distillation + a balanced sampler too (topic clustering alone is not enough), and it remains below BM25 on BEIR zero-shot (in-domain win, not out-of-domain). Hardness manufactured, not mined.</aside>
+</section>
+<section class="slide" data-type="default" data-screen-label="42 The two-stage recipe (E5 / BGE / GTE)">
+  <div class="slide-header">
+    <h2><span lang="ru">Двухэтапный рецепт (E5 / BGE / GTE)</span><span lang="en">The two-stage recipe (E5 / BGE / GTE)</span></h2>
+    <span class="slide-kicker"><span lang="ru">равномерность от in-batch, немного чистых трудных негативов</span><span lang="en">in-batch uniformity, a few clean hard negs</span></span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag"><span lang="ru">Стратегия 7 &middot; современный синтез</span><span lang="en">Strategy 7 &middot; the modern synthesis</span></span>
+    <div class="def-term"><span lang="ru">Сильнейшие открытые эмбеддеры сегодня сходятся к одной двухэтапной форме.</span><span lang="en">Today&rsquo;s strongest open embedders converge on one two-stage shape.</span></div>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">1</span><span class="obj-text"><span lang="ru"><strong>Массивный in-batch-контраст</strong> &mdash; десятки тысяч лёгких негативов разом равномерно распределяют пространство. Это покупает <em>равномерность</em>.</span><span lang="en"><strong>Massive in-batch contrast</strong> &mdash; tens of thousands of easy negatives at once spread the space evenly. This buys <em>uniformity</em>.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">2</span><span class="obj-text"><span lang="ru"><strong>Несколько добытых-и-отфильтрованных трудных негативов</strong> &mdash; самозванцы удалены &mdash; заостряют <em>решающую границу</em>.</span><span lang="en"><strong>A few mined-and-filtered hard negatives</strong> &mdash; impostors removed &mdash; sharpen the <em>decision boundary</em>.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>GradCache</strong> кэширует градиент, чтобы огромный батч поместился на одной GPU.</span><span lang="en"><strong>GradCache</strong> caches the gradient so the huge batch fits on a single GPU.</span></span></li>
+      </ul>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Вся глава в одной строке: <em>равномерность от in-batch, граница от нескольких чистых трудных негативов.</em></span><span lang="en">The whole chapter in one line: <em>uniformity from in-batch, the boundary from a few clean hard negatives.</em></span></p>
+  <aside class="slide-notes">The modern synthesis (E5/BGE/GTE). Stage 1: massive in-batch contrast → uniformity. Stage 2: a handful of mined-and-filtered hard negatives → sharp boundary. GradCache makes the huge batch affordable on one GPU. The forge image lives on the divider, so no image here.</aside>
+</section>
+<section class="slide" data-type="formula" data-screen-label="42a Why two stages &middot; one sum, two samples">
+  <div class="slide-header slide-header--flush">
+    <h2><span lang="ru">Почему этапов два, а не один</span><span lang="en">Why two stages, not one</span></h2>
+    <span class="slide-kicker"><span lang="ru">потеря распадается надвое &mdash; и слагаемые кормятся разными негативами</span><span lang="en">the loss splits in two, and the halves eat different negatives</span></span>
+  </div>
+  <div class="formula-stage">
+    $$ \mathcal{L} \;=\; \underbrace{-\frac{\cos(q,d^{+})}{\tau}}_{A} \;+\; \underbrace{\log \sum_{c \,\in\, \{d^{+}\}\cup D^{-}} e^{\,\cos(q,\,c)/\tau}}_{U} $$
+  </div>
+  <p class="def-where"><span lang="ru">где <b>A</b> &mdash; притяжение к позитиву, <b>U</b> &mdash; log-sum-exp по кандидатам батча: оценка, насколько густо корпус лежит вокруг запроса. Чем больше негативов, тем ближе она к корпусу.</span><span lang="en">where <b>A</b> pulls the positive in and <b>U</b> is a log-sum-exp over the batch's candidates &mdash; an estimate of how densely the corpus crowds the query. More negatives, closer to the corpus.</span></p>
+  <div class="formula-caption">
+    <div class="var-block"><div class="var-symbol">\(A\)</div><div class="var-desc"><strong><span lang="ru">тянет, и только</span><span lang="en">it only pulls</span></strong><br /><span lang="ru">не зависит от того, сколько негативов в батче</span><span lang="en">independent of how many negatives the batch holds</span></div></div>
+    <div class="var-block"><div class="var-symbol">\(U\) &middot; <span lang="ru">много лёгких</span><span lang="en">many easy</span></div><div class="var-desc"><strong><span lang="ru">оценка широкая</span><span lang="en">a broad estimate</span></strong><br /><span lang="ru">десятки тысяч случайных негативов &mdash; почти несмещённая выборка корпуса, толчок расходится по всей сфере: вот она, равномерность</span><span lang="en">tens of thousands of random negatives are a near-unbiased corpus sample, so the push spreads over the whole sphere: uniformity</span></div></div>
+    <div class="var-block"><div class="var-symbol">\(U\) &middot; <span lang="ru">горстка трудных</span><span lang="en">a few hard</span></div><div class="var-desc"><strong><span lang="ru">оценка острая</span><span lang="en">a sharp estimate</span></strong><br /><span lang="ru">софтмакс отдаёт почти весь вес ближайшим (разбор градиента руками) &mdash; эти немногие и решают, где ляжет граница</span><span lang="en">the softmax hands nearly all weight to the closest (the gradient worked by hand) &mdash; those few decide where the boundary falls</span></div></div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Оба этапа кормят <em>одну</em> сумму разной выборкой: массовый батч держит её честной, чистая горстка трудных &mdash; острой. И вот почему горстка: смести выборку сильно &mdash; и модель разложит красиво лишь окрестность кромки. Самозванец из акта&nbsp;4 &mdash; то же смещение, с неверным знаком.</span><span lang="en">Both stages feed <em>one</em> sum with different samples: the massive batch keeps it honest, the clean handful keeps it sharp. That is why the handful stays small &mdash; bias it too far and the model tidies only the edge's neighbourhood. The impostor of act&nbsp;4 is the same bias, wrong sign.</span></p>
+  <aside class="slide-notes">The mechanism under the act's headline claim — "uniformity from in-batch, the boundary from a few clean hard negatives" — which slides 41-43 assert but never derive. Write InfoNCE as two terms: an alignment term A that pulls the positive in, and a log-sum-exp term U over every candidate in the batch. Only U sees the negatives, and U is a sampled estimate of how crowded the corpus is around the query. That single observation explains the whole two-stage recipe. Tens of thousands of cheap in-batch negatives make that estimate broad and nearly unbiased, so the repulsion is spread across the sphere — that is what "uniformity" actually is, not a slogan. A handful of mined hard negatives does the opposite: as slide eighteen showed by hand, the softmax weights collapse onto the nearest few, so those few dominate the direction of the push and set the decision boundary. So the two stages are not two ideas glued together — they are two samplers feeding the same sum. It also answers the question the recipe leaves open, namely why the hard set stays small: push the sample too far toward the edge and the estimate stops being about the corpus at all, and the model only tidies the neighbourhood of the boundary. The impostor from act four is the same bias with the sign of the error flipped. Symbolic on purpose — batch sizes and hard-negative counts are recipe-specific.</aside>
+</section>
+<section class="slide" data-type="default" data-screen-label="43 An honest toy">
+  <div class="slide-header">
+    <h2><span lang="ru">Честная игрушка</span><span lang="en">An honest toy</span></h2>
+    <span class="slide-kicker"><span lang="ru">доверяй форме, а не абсолютным числам</span><span lang="en">trust the shape, not the absolute numbers</span></span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag"><span lang="ru">Как честно читать числа</span><span lang="en">Reading the numbers honestly</span></span>
+    <div class="def-term"><span lang="ru">Каждое число здесь &mdash; из крошечной <strong>32-мерной игрушки</strong> &mdash; 40 тем, по \(R=4\) позитива на каждую &mdash; обученной воспроизводимо, а не бенчмарк.</span><span lang="en">Every number here comes from a tiny <strong>32-dim toy</strong> &mdash; 40 topics, \(R=4\) positives each &mdash; trained reproducibly, not a benchmark.</span></div>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Форма реальна</strong> &mdash; инверсия (неочищенные падают до <strong>0,411</strong>), денойзинг восстанавливает (<strong>0,783</strong>) и dynamic&gt;static &mdash; всё держится на <strong>20 сидах</strong>.</span><span lang="en"><strong>The shape is real</strong> &mdash; the inversion (undenoised drops to <strong>0.411</strong>), denoising recovers (<strong>0.783</strong>), and dynamic&gt;static all hold across <strong>20 seeds</strong>.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&times;</span><span class="obj-text"><span lang="ru"><strong>Ось Y &mdash; нет</strong> &mdash; величины принадлежат игрушке. Настоящие числа принадлежат статьям.</span><span lang="en"><strong>The y-axis is not</strong> &mdash; the magnitudes belong to the toy. The papers own the real numbers.</span></span></li>
+      </ul>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Та же форма, но никогда та же ось Y: <em>доверяй направлению, которое заслужила игрушка, а не её абсолютной высоте.</em></span><span lang="en">Same shape, never the same y-axis: <em>trust the direction the toy earns, not its absolute height.</em></span></p>
+  <aside class="slide-notes">Honesty slide. The widgets run on a small 32-dim synthetic corpus (40 topics, R=4) constructed to be dense in unlabelled positives. The SHAPE reproduces across 20 seeds — inversion, recovery, dynamic>static — but the y-axis is not a benchmark. Trust the shape.</aside>
+</section>
+<section class="slide" data-type="table" data-screen-label="44 The whole arc, in one view">
+  <div class="slide-header">
+    <h2><span lang="ru">Весь путь одним взглядом</span><span lang="en">The whole arc, in one view</span></h2>
+    <span class="slide-kicker"><span lang="ru">каждый шаг покупал более трудного противника</span><span lang="en">every step bought a harder opponent</span></span>
+  </div>
+  <table class="cmp-table">
+    <thead><tr>
+      <th><span lang="ru">шаг</span><span lang="en">step</span></th>
+      <th><span lang="ru">изъян, который он починил</span><span lang="en">the flaw it fixed</span></th>
+    </tr></thead>
+    <tbody>
+      <tr><td><strong>random</strong></td><td><span lang="ru">пока ничего &mdash; но негативы слишком <em>лёгкие</em>, чтобы учить</span><span lang="en">nothing yet &mdash; but the negatives are far too <em>easy</em> to teach</span></td></tr>
+      <tr><td><strong>in-batch</strong></td><td><span lang="ru">бесплатно, но лишь <em>локально</em> &mdash; удача батча, а не корпус</span><span lang="en">free, but only <em>local</em> &mdash; batch luck, not the corpus</span></td></tr>
+      <tr><td><strong>BM25-hard</strong></td><td><span lang="ru">по-настоящему трудно, но <em>слеп к модели</em> &mdash; лексический, не адаптируется</span><span lang="en">genuinely hard, but <em>model-blind</em> &mdash; lexical, never adapts</span></td></tr>
+      <tr><td><strong>ANCE</strong></td><td class="cell-good"><span lang="ru">модель добывает своих противников &mdash; <em>динамически</em></span><span lang="en">the model mines its own opponents &mdash; <em>dynamic</em></span></td></tr>
+      <tr><td><strong>ADORE</strong></td><td class="cell-good"><span lang="ru">держит их <em>свежими</em> &mdash; добыты пошагово, никогда не устаревают</span><span lang="en">keeps them <em>fresh</em> &mdash; mined per step, never stale</span></td></tr>
+      <tr><td><strong>denoise</strong></td><td class="cell-good"><span lang="ru">фильтрует самозванцев &mdash; <em>без ложных негативов</em> в кромке</span><span lang="en">filters the impostors &mdash; <em>no false negatives</em> in the edge</span></td></tr>
+      <tr><td><strong>two-stage</strong></td><td class="cell-good"><span lang="ru"><em>равномерность</em> от in-batch + чистая трудная <em>граница</em>, в одном рецепте</span><span lang="en">in-batch <em>uniformity</em> + a clean hard <em>boundary</em>, in one recipe</span></td></tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2"><span lang="ru"><em>Каждый шаг покупал более трудного, более честного противника.</em></span><span lang="en"><em>Every step bought a harder, more honest opponent.</em></span></p>
+  <aside class="slide-notes">The ladder in one table: random (too easy) → in-batch (local) → BM25 (model-blind) → ANCE (dynamic) → ADORE (fresh; STAR separately stabilises static training) → denoise (no impostors) → two-stage (uniformity+boundary). Each row names the flaw the step fixed. The whole arc at a glance.</aside>
+</section>
+<section class="slide" data-type="table" data-screen-label="45 When to reach for what">
+  <div class="slide-header">
+    <h2><span lang="ru">Когда за чем тянуться</span><span lang="en">When to reach for what</span></h2>
+    <span class="slide-kicker"><span lang="ru">сопоставь стратегию с бюджетом и разметкой</span><span lang="en">match the strategy to budget and labels</span></span>
+  </div>
+  <table class="cmp-table">
+    <thead><tr>
+      <th><span lang="ru">твоя ситуация</span><span lang="en">your situation</span></th>
+      <th><span lang="ru">тянись за</span><span lang="en">reach for</span></th>
+    </tr></thead>
+    <tbody>
+      <tr><td><span lang="ru">мало данных, быстрый бейзлайн</span><span lang="en">small data, fast baseline</span></td><td class="cell-good"><span lang="ru">in-batch + BM25-hard &mdash; дёшево, без цикла майнинга</span><span lang="en">in-batch + BM25-hard &mdash; cheap, no mining loop</span></td></tr>
+      <tr><td><span lang="ru">хочешь SOTA плотный поиск</span><span lang="en">want SOTA dense retrieval</span></td><td class="cell-good"><span lang="ru">майнинг в стиле ANCE + фильтр денойзинга</span><span lang="en">ANCE-style mining + a denoising filter</span></td></tr>
+      <tr><td><span lang="ru">жёсткий бюджет вычислений</span><span lang="en">tight compute budget</span></td><td class="cell-good"><span lang="ru">тематическое сэмплирование TAS-B + GradCache</span><span lang="en">TAS-B topic sampling + GradCache</span></td></tr>
+      <tr><td><span lang="ru">шумная или разреженная разметка</span><span lang="en">noisy or sparse labels</span></td><td class="cell-good"><span lang="ru">дистилляция кросс-энкодером (Margin-MSE)</span><span lang="en">cross-encoder distillation (Margin-MSE)</span></td></tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2"><span lang="ru">Нет одной лучшей стратегии &mdash; <em>сопоставь стратегию негативов со своим бюджетом и своей разметкой.</em></span><span lang="en">No single best strategy &mdash; <em>match the negative strategy to your budget and your labels.</em></span></p>
+  <aside class="slide-notes">Decision guide. Small data/fast baseline → in-batch + BM25. SOTA dense → ANCE mining + denoising filter. Tight compute → TAS-B topic sampling + GradCache. Noisy labels → cross-encoder distillation. The negative strategy follows your budget and your labels.</aside>
+</section>
+<section class="slide" data-type="default" data-screen-label="46 What you can now build">
+  <div class="slide-header">
+    <h2><span lang="ru">Что ты теперь можешь построить</span><span lang="en">What you can now build</span></h2>
+    <span class="slide-kicker"><span lang="ru">тигель в твоём собственном цикле обучения</span><span lang="en">the crucible, in your own training loop</span></span>
+  </div>
+  <div class="def-card">
+    <span class="def-tag"><span lang="ru">От стенда к твоему коду</span><span lang="en">From the bench to your code</span></span>
+    <div class="def-term"><span lang="ru">Теперь у тебя есть детали, чтобы выковать клинок самому, от начала до конца.</span><span lang="en">You now have the parts to forge a blade yourself, end to end.</span></div>
+    <div class="def-body">
+      <ul class="obj-list">
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Тренер InfoNCE</strong> с нуля с in-batch + добытыми трудными негативами.</span><span lang="en">A from-scratch <strong>InfoNCE trainer</strong> with in-batch + mined hard negatives.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Фильтр денойзинга</strong>, ловящий ложные негативы, прежде чем они испортят кромку.</span><span lang="en">A <strong>denoising filter</strong> that catches the false negatives before they corrupt the edge.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Абляция</strong>, воспроизводящая инверсию &mdash; неочищенные падают, очищенные восстанавливаются.</span><span lang="en">An <strong>ablation</strong> that reproduces the inversion &mdash; undenoised drops, denoised recovers.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">&middot;</span><span class="obj-text"><span lang="ru"><strong>Двухэтапный рецепт</strong> с GradCache &mdash; огромный батч на одной GPU.</span><span lang="en">A <strong>two-stage recipe</strong> with GradCache &mdash; a huge batch on a single GPU.</span></span></li>
+      </ul>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru"><em>Тигель в твоём собственном цикле обучения.</em></span><span lang="en"><em>The crucible, in your own training loop.</em></span></p>
+  <aside class="slide-notes">Capstone — what you can now build. InfoNCE trainer (in-batch + mined hard negatives), a denoising filter for false negatives, an ablation reproducing the inversion, and a two-stage recipe with GradCache. The whole crucible, in the student's own training loop.</aside>
+</section>
+<section class="slide" data-type="divider" data-screen-label="47 Payoff · Forged by worthy opponents">
+  <div class="divider-content">
+    <div class="divider-num"><span lang="ru">Развязка · весь путь</span><span lang="en">Payoff · the whole arc</span></div>
+    <h1>Forged by worthy opponents</h1>
+    <p class="divider-sub"><span lang="ru">Плотный ретривер выковывается противниками, против которых тренируется. Лёгкие негативы не учат ничему; самые трудные часто оказываются самозванцами; эффективность живёт в узкой <strong>трудной, но честной</strong> полосе &mdash; и вся история области есть её поиск.</span><span lang="en">A dense retriever is forged by the opponents it trains against. Easy negatives teach nothing; the hardest are often impostors; effectiveness lives in a narrow <strong>hard-but-honest</strong> band &mdash; and the field&rsquo;s whole history is the search for it.</span></p>
+  </div>
+  <div class="viz-frame fig-fit" style="--fig-max:66cqh; width:fit-content; max-width:52%;">
+    <img src="assets/img/L13/L13-14-true-edge.webp?v=1" alt="Séréga raises a keen, true-edged blade overhead — forged in the narrow hard-but-honest band; the dull blade and the shattered too-hard blade lie discarded. His green tübetey is the only green." />
+  </div>
+  <aside class="slide-notes">Final / payoff. Thesis restated; bridge to L12 The Alliance, with a forward nod to The Curved Map (anisotropy/hubness). The two-stage modern recipe (E5/BGE/GTE): massive in-batch for uniformity + a few mined-and-filtered hard negatives for the boundary; GradCache makes the huge batch affordable. TAS-B manufactures hard negatives by topic-clustering.</aside>
+</section>
+<section class="slide" data-type="divider" data-screen-label="48 Bridge &middot; The Alliance">
+  <div class="divider-content">
+    <div class="divider-num"><span lang="ru">Мост &middot; к лекции 12</span><span lang="en">Bridge &middot; to Lecture 12</span></div>
+    <h1>The Alliance</h1>
+    <p class="divider-sub"><span lang="ru">Клинок выкован и честен &mdash; но он один. L12 ставит плотную армию в строй рядом с разрежённой: позднее взаимодействие, SPLADE, гибрид, обучение ранжированию. А <strong>геометрия</strong> под клинком ещё ждёт ремонта &mdash; курс вернётся к ней в &laquo;Кривой карте&raquo;.</span><span lang="en">The blade is forged and honest &mdash; but it fights alone. L12 lines the dense army up beside the sparse one: late interaction, SPLADE, hybrid, learning to rank. And the <strong>geometry</strong> under the blade still needs repair &mdash; the course returns to it in &ldquo;The Curved Map&rdquo;.</span></p>
+  </div>
+  <div class="viz-frame fig-fit" style="--fig-max:54cqh; --fig-w:40%;">
+    <img src="assets/img/L13/L13-14-true-edge.webp?v=1" alt="" aria-hidden="true" />
+  </div>
+  <aside class="slide-notes">Bridge to L12, The Alliance: the negatives blade is forged and honest, but it fights alone — next the dense army stands beside the sparse one (late interaction, SPLADE, hybrid, LTR). Also plant the forward nod: the embedding geometry itself misbehaves (anisotropy — a narrow cone — and hubness), which "The Curved Map" takes up a few lectures later.</aside>
+</section>
+<section class="slide" data-type="refs" data-screen-label="49 References · the negatives canon (I)">
+  <div class="slide-header">
+    <h2><span lang="ru">Источники</span><span lang="en">References</span> <span style="font-weight:400;opacity:.6">(1 / 2)</span></h2>
+    <span class="slide-kicker"><span lang="ru">откуда пришли идеи &mdash; канон</span><span lang="en">where the ideas come from &mdash; the canon</span></span>
+  </div>
+  <ol class="ref-list">
+    <li data-paper-id="karpukhin-2020-dpr">
+      <span class="ref-body">
+        <span class="ref-authors">Karpukhin, V. et al.</span> ·
+        <span class="ref-title"><a href="https://arxiv.org/abs/2004.04906" target="_blank" rel="noopener">Dense Passage Retrieval for Open-Domain QA</a></span> ·
+        <span class="ref-venue">EMNLP 2020 &middot; DPR &mdash; in-batch negatives</span>
+      </span>
+      <span class="ref-year">2020</span>
+    </li>
+    <li data-paper-id="xiong-2020-ance">
+      <span class="ref-body">
+        <span class="ref-authors">Xiong, L. et al.</span> ·
+        <span class="ref-title"><a href="https://arxiv.org/abs/2007.00808" target="_blank" rel="noopener">Approximate Nearest Neighbor Negative Contrastive Learning</a></span> ·
+        <span class="ref-venue">ICLR 2021 (arXiv 2020) &middot; ANCE &mdash; model-mined dynamic negatives</span>
+      </span>
+      <span class="ref-year">2021</span>
+    </li>
+    <li data-paper-id="qu-2021-rocketqa">
+      <span class="ref-body">
+        <span class="ref-authors">Qu, Y. et al.</span> ·
+        <span class="ref-title"><a href="https://arxiv.org/abs/2010.08191" target="_blank" rel="noopener">RocketQA: An Optimized Training Approach to Dense Passage Retrieval</a></span> ·
+        <span class="ref-venue">NAACL 2021 &middot; denoising false negatives</span>
+      </span>
+      <span class="ref-year">2021</span>
+    </li>
+    <li data-paper-id="schroff-2015-facenet">
+      <span class="ref-body">
+        <span class="ref-authors">Schroff, F. et al.</span> ·
+        <span class="ref-title"><a href="https://arxiv.org/abs/1503.03832" target="_blank" rel="noopener">FaceNet: A Unified Embedding for Face Recognition and Clustering</a></span> ·
+        <span class="ref-venue">CVPR 2015 &middot; triplet loss &mdash; the too-hard-negative warning</span>
+      </span>
+      <span class="ref-year">2015</span>
+    </li>
+    <li data-paper-id="wang-isola-2020-uniformity">
+      <span class="ref-body">
+        <span class="ref-authors">Wang, T. &amp; Isola, P.</span> ·
+        <span class="ref-title"><a href="https://arxiv.org/abs/2005.10242" target="_blank" rel="noopener">Understanding Contrastive Representation Learning through Alignment and Uniformity on the Hypersphere</a></span> ·
+        <span class="ref-venue">ICML 2020 &middot; why in-batch spreads the space</span>
+      </span>
+      <span class="ref-year">2020</span>
+    </li>
+    <li data-paper-id="wang-liu-2021-hardness">
+      <span class="ref-body">
+        <span class="ref-authors">Wang, F. &amp; Liu, H.</span> ·
+        <span class="ref-title"><a href="https://arxiv.org/abs/2012.09740" target="_blank" rel="noopener">Understanding the Behaviour of Contrastive Loss</a></span> ·
+        <span class="ref-venue">CVPR 2021 &middot; the Boltzmann gradient lens &mdash; hard-max as &tau;&rarr;0</span>
+      </span>
+      <span class="ref-year">2021</span>
+    </li>
+  </ol>
+  <aside class="slide-notes">References 1/2 — foundations: DPR (Karpukhin 2020, in-batch), ANCE (Xiong 2021, dynamic mining), RocketQA (Qu 2021, denoising), FaceNet (Schroff 2015, triplet / too-hard warning), alignment & uniformity (Wang & Isola 2020), the Boltzmann gradient lens (Wang & Liu 2021 — hard-max as τ→0). All ids hand-verified.</aside>
+</section>
+<section class="slide" data-type="refs" data-screen-label="50 References · the negatives canon (II)">
+  <div class="slide-header">
+    <h2><span lang="ru">Источники</span><span lang="en">References</span> <span style="font-weight:400;opacity:.6">(2 / 2)</span></h2>
+    <span class="slide-kicker"><span lang="ru">динамичный, очищенный, дистиллированный &mdash; современный канон</span><span lang="en">dynamic, denoised, distilled &mdash; modern canon</span></span>
+  </div>
+  <ol class="ref-list">
+    <li data-paper-id="zhan-2021-star-adore">
+      <span class="ref-body">
+        <span class="ref-authors">Zhan, J. et al.</span> ·
+        <span class="ref-title"><a href="https://arxiv.org/abs/2104.08051" target="_blank" rel="noopener">Optimizing Dense Retrieval Model Training with Hard Negatives</a></span> ·
+        <span class="ref-venue">SIGIR 2021 &middot; STAR &mdash; static stabilisation; ADORE &mdash; query-side dynamic mining</span>
+      </span>
+      <span class="ref-year">2021</span>
+    </li>
+    <li data-paper-id="zhou-2022-simans">
+      <span class="ref-body">
+        <span class="ref-authors">Zhou, K. et al.</span> ·
+        <span class="ref-title"><a href="https://arxiv.org/abs/2210.11773" target="_blank" rel="noopener">SimANS: Simple Ambiguous Negatives Sampling for Dense Text Retrieval</a></span> ·
+        <span class="ref-venue">EMNLP 2022 (Industry) &middot; sample the ambiguous, not the hardest</span>
+      </span>
+      <span class="ref-year">2022</span>
+    </li>
+    <li data-paper-id="zhang-2022-ar2">
+      <span class="ref-body">
+        <span class="ref-authors">Zhang, H. et al.</span> ·
+        <span class="ref-title"><a href="https://arxiv.org/abs/2110.03611" target="_blank" rel="noopener">Adversarial Retriever-Ranker for Dense Text Retrieval</a></span> ·
+        <span class="ref-venue">ICLR 2022 &middot; AR2 &mdash; ranker teaches retriever</span>
+      </span>
+      <span class="ref-year">2022</span>
+    </li>
+    <li data-paper-id="hofstatter-2020-margin-mse">
+      <span class="ref-body">
+        <span class="ref-authors">Hofst&auml;tter, S. et al.</span> ·
+        <span class="ref-title"><a href="https://arxiv.org/abs/2010.02666" target="_blank" rel="noopener">Improving Efficient Neural Ranking Models with Cross-Architecture Knowledge Distillation</a></span> ·
+        <span class="ref-venue">arXiv:2010.02666 &middot; cross-encoder distillation</span>
+      </span>
+      <span class="ref-year">2020</span>
+    </li>
+    <li data-paper-id="hofstatter-2021-tasb">
+      <span class="ref-body">
+        <span class="ref-authors">Hofst&auml;tter, S. et al.</span> ·
+        <span class="ref-title"><a href="https://arxiv.org/abs/2104.06967" target="_blank" rel="noopener">Efficiently Teaching an Effective Dense Retriever with Balanced Topic-Aware Sampling</a></span> ·
+        <span class="ref-venue">SIGIR 2021 &middot; TAS-B &mdash; topic-clustered batches</span>
+      </span>
+      <span class="ref-year">2021</span>
+    </li>
+    <li data-paper-id="gao-2021-gradcache">
+      <span class="ref-body">
+        <span class="ref-authors">Gao, L. et al.</span> ·
+        <span class="ref-title"><a href="https://arxiv.org/abs/2101.06983" target="_blank" rel="noopener">Scaling Deep Contrastive Learning Batch Size under Memory Limited Setup</a></span> ·
+        <span class="ref-venue">RepL4NLP @ ACL 2021 &middot; GradCache &mdash; huge batches on one GPU</span>
+      </span>
+      <span class="ref-year">2021</span>
+    </li>
+  </ol>
+  <aside class="slide-notes">References 2/2 — the modern canon: STAR/ADORE (Zhan 2021, static stabilisation / query-side dynamic mining), SimANS (Zhou 2022, ambiguous sampling), AR2 (Zhang 2022, adversarial), Margin-MSE (Hofstätter 2020, distillation), TAS-B (Hofstätter 2021, topic-aware), GradCache (Gao 2021). All ids hand-verified.</aside>
+</section>
+<section class="slide" data-type="title" data-screen-label="51 Final · The Crucible of Negatives">
+  <div class="title-header">
+    <div class="course-tag">DEEP LEARNING FOR SEARCH &middot; 2026</div>
+    <div data-logo-slot></div>
+  </div>
+  <div class="title-body">
+    <div class="eyebrow"><span lang="ru">Лекция 11 &middot; завершена</span><span lang="en">Lecture 11 &middot; complete</span></div>
+    <h1>The Crucible of Negatives</h1>
+    <p class="subtitle"><span lang="ru">Плотный ретривер выковывается противниками, против которых он тренируется. Лёгкие негативы не учат ничему; самые трудные часто оказываются самозванцами, которые портят кромку; эффективность живёт в узкой <em>трудной, но честной</em> полосе &mdash; и вся история области есть её поиск. <strong>Спасибо.</strong></span><span lang="en">A dense retriever is forged by the opponents it trains against. Easy negatives teach nothing; the hardest are often impostors that corrupt the edge; effectiveness lives in a narrow <em>hard-but-honest</em> band &mdash; and the field&rsquo;s whole history is the search for it. <strong>Thank you.</strong></span></p>
+  </div>
+  <div class="title-footer">
+    <div><div class="meta-label">Thesis</div><div class="meta-value">Forged by worthy opponents</div></div>
+    <div><div class="meta-label">Next</div><div class="meta-value">L12 &middot; The Alliance</div></div>
+    <div><div class="meta-label">Lecturer</div><div class="meta-value">Albert Nasybullin</div></div>
+  </div>
+  <img src="assets/img/L13/L13-14-true-edge.webp?v=1" alt="" aria-hidden="true" class="cameo br" style="width:240px;border-radius:14px;" />
+  <aside class="slide-notes">Closing slide. Thesis restated: a dense retriever is forged by the opponents it trains against; effectiveness lives in a narrow hard-but-honest band. Séréga's true-edge plate closes the deck (final-plate brand requirement). Next lecture: L12, The Alliance.</aside>
+</section>
+
+      </div><!-- /.slides -->
+    </div><!-- /.stage -->
+  </div><!-- /.deck -->
+
+  <!-- JS -->
+  <script src="js/deck.js"></script>
+  <script src="js/tools.js"></script>
+  <script src="js/pen.js"></script>
+  <script src="js/notes.js"></script>
+  <script src="js/handout.js"></script>
+  <script src="js/presenter.js"></script>
+  <script src="js/tweaks.js"></script>
+  <script src="js/demos.js"></script>
+  <script src="js/e2e.js"></script>
+  <script src="js/lab.js"></script>
+  <script src="js/archflow.js"></script>
+  <script src="js/sequence.js"></script>
+  <script src="js/budget.js"></script>
+  <script src="js/preflight.js"></script>
+
+  <!-- L11 deck-mounted widgets: classic offline bundles register window.mount<Pascal>; the deck-adapter
+       (loaded after deck.js) drives them with the deck step engine. BUILD OUTPUT (scripts/build-deck-widgets.mjs). -->
+  <script src="js/course-map.classic.js"></script>
+  <script src="js/infonce-calc.classic.js"></script>
+  <script src="js/hardness-sphere.classic.js"></script>
+  <script src="js/mining-comparator.classic.js"></script>
+  <script src="js/impostor-denoise.classic.js"></script>
+  <script src="js/deck-adapter.js"></script>
+</body>
+</html>

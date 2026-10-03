@@ -1,0 +1,298 @@
+/* AUTO-GENERATED offline classic bundle of widgets/semantic-router/logic.js — do not edit. Rebuild: node scripts/build-deck-widgets.mjs */
+(() => {
+  // widgets/_widget-base.js
+  var SVGNS = "http://www.w3.org/2000/svg";
+  function svgEl(tag, attrs, parent) {
+    const n = document.createElementNS(SVGNS, tag);
+    if (attrs) for (const k in attrs) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
+  }
+  function fmt(n, digits = 6) {
+    if (typeof n !== "number" || !isFinite(n)) return "";
+    return Number.isInteger(n) ? String(n) : n.toFixed(digits);
+  }
+  function mountName(id) {
+    return "mount" + String(id).split("-").map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join("");
+  }
+  function defineWidget({
+    id,
+    maxStep,
+    render,
+    rootClass,
+    exportName,
+    fade = true,
+    bareRoot = false,
+    scaffold = true
+  }) {
+    const MAX = maxStep;
+    const cls = rootClass || `${id}-root`;
+    function mount(host, { data, labels = {}, ...rest } = {}) {
+      if (bareRoot) {
+        host.classList.add(cls);
+      } else {
+        host.classList.add("wgt-root", cls);
+        if (fade) host.classList.add("wgt-fade");
+      }
+      host.innerHTML = "";
+      const base = { ...labels };
+      const active = labels;
+      const i18nAll = rest && rest.i18nAll && typeof rest.i18nAll === "object" ? rest.i18nAll : null;
+      const ctx = { host, data, labels: active, el: svgEl, svg: svgEl, esc, fmt, maxStep: MAX, ...rest };
+      let cap = null, counter = null;
+      if (scaffold) {
+        cap = document.createElement("div");
+        cap.className = "wgt-caption";
+        counter = document.createElement("div");
+        counter.className = "wgt-counter";
+      }
+      const rendered = () => host.getClientRects().length > 0;
+      let dirty = false;
+      let update = null;
+      function paint() {
+        if (!rendered()) {
+          dirty = true;
+          return;
+        }
+        dirty = false;
+        host.innerHTML = "";
+        update = render(ctx);
+        if (active.alt && !host.querySelector('[role="img"]')) {
+          host.setAttribute("role", "img");
+          host.setAttribute("aria-label", active.alt);
+        }
+        if (scaffold) {
+          host.appendChild(cap);
+          host.appendChild(counter);
+        }
+      }
+      paint();
+      let step = -1;
+      function setStep(k) {
+        k = Math.max(0, Math.min(MAX, k | 0));
+        let same = k === step;
+        step = k;
+        host.dataset.step = String(k);
+        if (dirty) {
+          paint();
+          same = false;
+        }
+        if (typeof update === "function" && !same) update(k);
+        if (scaffold) {
+          cap.textContent = active["s" + k] || "";
+          counter.textContent = `${k} / ${MAX}`;
+        }
+      }
+      setStep(0);
+      if (typeof document !== "undefined" && document.fonts && document.fonts.status !== "loaded") {
+        document.fonts.ready.then(() => {
+          const at = step;
+          paint();
+          step = -1;
+          setStep(at);
+          lockCaptionHeight();
+        });
+      }
+      function lockCaptionHeight() {
+        if (!scaffold || !cap || cap.offsetParent === null) return;
+        const langs = i18nAll ? Object.values(i18nAll) : [active];
+        const prevText = cap.textContent, prevMin = cap.style.minHeight;
+        cap.style.minHeight = "0px";
+        let max = 0;
+        for (const L of langs) for (let k = 0; k <= MAX; k++) {
+          cap.textContent = L && L["s" + k] || "";
+          const h = cap.getBoundingClientRect().height;
+          if (h > max) max = h;
+        }
+        cap.textContent = prevText;
+        cap.style.minHeight = max > 0 ? Math.ceil(max) + "px" : prevMin;
+      }
+      lockCaptionHeight();
+      let obs = null;
+      if (typeof MutationObserver === "function" && typeof document !== "undefined" && document.documentElement) {
+        const rootEl = document.documentElement;
+        const pickLang = () => (rootEl.dataset.lang || rootEl.lang || "en").slice(0, 2);
+        let curLang = pickLang();
+        obs = new MutationObserver(() => {
+          const lang = pickLang();
+          if (lang === curLang) return;
+          curLang = lang;
+          if (i18nAll && i18nAll[lang]) {
+            for (const k of Object.keys(active)) delete active[k];
+            Object.assign(active, base, i18nAll[lang]);
+            const at = step;
+            paint();
+            step = -1;
+            setStep(at);
+          }
+          lockCaptionHeight();
+        });
+        obs.observe(rootEl, { attributes: true, attributeFilter: ["data-lang", "lang"] });
+      }
+      return {
+        setStep,
+        get step() {
+          return step;
+        },
+        get maxStep() {
+          return MAX;
+        },
+        root: host,
+        relock: lockCaptionHeight,
+        destroy() {
+          if (obs) obs.disconnect();
+        }
+      };
+    }
+    if (typeof window !== "undefined") window[exportName || mountName(id)] = mount;
+    return mount;
+  }
+
+  // widgets/_plot-util.js
+  function frameHeightFor(maxY, pad = 24) {
+    return Math.ceil(maxY + pad);
+  }
+
+  // widgets/semantic-router/logic.js
+  var mountSemanticRouter = defineWidget({
+    id: "semantic-router",
+    rootClass: "sr-root",
+    exportName: "mountSemanticRouter",
+    maxStep: 3,
+    render({ host, data, labels, el }) {
+      data = data || {};
+      const cents = data.centroids || [];
+      const sims = data.sims || cents.map((c) => c.cos || 0);
+      const route = data.route || (cents.length ? cents[0].template : "");
+      const construct = data.construct || {};
+      const fmt4 = (x) => typeof x !== "number" || !isFinite(x) ? "" : x.toFixed(4);
+      const N = Math.max(1, cents.length);
+      const argmax = sims.reduce((best, v, i) => v > sims[best] ? i : best, 0);
+      const W = 480, PAD = 22;
+      const svg = el("svg", {
+        viewBox: `0 0 ${W} 10`,
+        class: "wgt-svg sr-svg",
+        role: "img",
+        "aria-label": labels.alt || ""
+      }, host);
+      const defs = el("defs", {}, svg);
+      const mk = el("marker", {
+        id: "sr-ar",
+        viewBox: "0 0 10 10",
+        refX: "8",
+        refY: "5",
+        markerWidth: "7",
+        markerHeight: "7",
+        orient: "auto-start-reverse"
+      }, defs);
+      el("path", { d: "M0,0 L10,5 L0,10 z", class: "sr-arhead" }, mk);
+      const layers = {};
+      const layer = (name, from) => layers[name] = { from, nodes: [] };
+      const add = (name, node) => {
+        layers[name].nodes.push(node);
+        return node;
+      };
+      layer("query", 0);
+      const qW = Math.min(300, W - 2 * PAD), qx = W / 2 - qW / 2, qy = 20;
+      add("query", el("rect", { x: qx, y: qy, width: qW, height: 30, rx: 15, class: "sr-query" }, svg));
+      add("query", el("text", { x: W / 2, y: qy + 20, class: "sr-querytxt", "text-anchor": "middle" }, svg)).textContent = labels.query || "embed the query \xB7 cosine to each template";
+      const rowTop = 72, rowH = 34, rowGap = 18, labelW = 96;
+      const barX = PAD + labelW, barMaxW = W - barX - PAD - 64;
+      const rowY = (i) => rowTop + i * (rowH + rowGap);
+      const SIMMAX = 1;
+      layer("targets", 0);
+      const bars = [], barVals = [], rowGroups = [];
+      cents.forEach((c, i) => {
+        const y = rowY(i), tmpl = c.template;
+        const g = el("g", { class: "sr-row" }, svg);
+        add("targets", g);
+        rowGroups.push(g);
+        el("text", { x: PAD, y: y + rowH / 2 + 5, class: "sr-tmpl", "text-anchor": "start" }, g).textContent = tmpl;
+        el("rect", { x: barX, y: y + 4, width: barMaxW, height: rowH - 8, rx: 6, class: "sr-track" }, g);
+        const bar = el("rect", { x: barX, y: y + 4, width: 0, height: rowH - 8, rx: 6, class: "sr-bar" }, g);
+        bars.push(bar);
+        const val = el("text", { x: barX + barMaxW + 8, y: y + rowH / 2 + 5, class: "sr-barval is-hidden" }, g);
+        barVals.push(val);
+      });
+      layer("route", 2);
+      const wy = rowY(argmax);
+      const flag = add("route", el("text", { x: barX, y: wy - 6, class: "sr-routeflag", "text-anchor": "start" }, svg));
+      flag.textContent = `${labels.routeTo || "route \u2192"} ${route}`;
+      const cardsTop = rowY(N - 1) + rowH + 28;
+      layer("construct", 3);
+      add("construct", el("text", { x: PAD, y: cardsTop, class: "sr-conhead" }, svg)).textContent = labels.constructHead || "construct: turn NL into a structured retrieval";
+      function wrapCode(s, maxChars) {
+        const toks = String(s || "").split(/\s+/);
+        const lines = [];
+        let cur = "";
+        for (const t of toks) {
+          if (!cur) {
+            cur = t;
+            continue;
+          }
+          if ((cur + " " + t).length <= maxChars) cur += " " + t;
+          else {
+            lines.push(cur);
+            cur = t;
+          }
+        }
+        if (cur) lines.push(cur);
+        return lines;
+      }
+      const cardW = W - 2 * PAD, cardGap = 12, codeLH = 15;
+      function card(cy2, title, nlText, codeLines) {
+        const cardH = 50 + codeLines.length * codeLH;
+        add("construct", el("rect", { x: PAD, y: cy2, width: cardW, height: cardH, rx: 9, class: "sr-card" }, svg));
+        add("construct", el("text", { x: PAD + 12, y: cy2 + 18, class: "sr-cardttl" }, svg)).textContent = title;
+        add("construct", el("text", { x: PAD + 12, y: cy2 + 35, class: "sr-cardnl" }, svg)).textContent = "\u201C" + nlText + "\u201D";
+        codeLines.forEach((ln, i) => {
+          add("construct", el("text", { x: PAD + 12, y: cy2 + 51 + i * codeLH, class: "sr-cardcode" }, svg)).textContent = ln;
+        });
+        return cy2 + cardH;
+      }
+      const mf = construct.metadataFilter || {};
+      const ts = construct.textToSql || {};
+      let deepest = cardsTop + 12;
+      let cy = cardsTop + 12;
+      if (mf.nl) {
+        deepest = card(
+          cy,
+          labels.selfQuery || "self-query \xB7 NL \u2192 metadata filter",
+          mf.nl,
+          wrapCode(JSON.stringify(mf.filter || {}), 56)
+        );
+        cy = deepest + cardGap;
+      }
+      if (ts.nl) {
+        deepest = card(
+          cy,
+          labels.textToSql || "text-to-SQL \xB7 NL \u2192 SQL",
+          ts.nl,
+          wrapCode(ts.sql || "", 56)
+        );
+      }
+      const H = frameHeightFor(Math.max(rowY(N - 1) + rowH, deepest) + 16, 14);
+      svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+      return function update(k) {
+        bars.forEach((bar, i) => {
+          const grown = k >= 1;
+          const w = grown ? Math.max(2, Math.min(1, sims[i] / SIMMAX) * barMaxW) : 0;
+          bar.setAttribute("width", w);
+          bar.classList.toggle("is-win", k >= 2 && i === argmax);
+          bar.classList.toggle("is-faint", k >= 2 && i !== argmax);
+          barVals[i].classList.toggle("is-hidden", !grown);
+          barVals[i].textContent = fmt4(sims[i]);
+          barVals[i].classList.toggle("is-win", k >= 2 && i === argmax);
+          rowGroups[i].classList.toggle("is-win", k >= 2 && i === argmax);
+        });
+        for (const name in layers) {
+          const on = k >= layers[name].from;
+          for (const node of layers[name].nodes) node.classList.toggle("is-hidden", !on);
+        }
+      };
+    }
+  });
+})();

@@ -1,0 +1,221 @@
+/* =========================================================
+   autofit.css — additive auto-layout utility layer (Phase A)
+   =========================================================
+
+   PURPOSE
+   -------
+   An OPT-IN utility layer for slide-relative, self-fitting figures and
+   headers. Loading this file changes NOTHING on its own: every rule here
+   either (a) applies only when a NEW utility class is present on an element,
+   or (b) establishes a containment context on `.slide` that is inert until a
+   container-query unit (`cqw`/`cqh`) is actually used.
+
+   WHY CONTAINER UNITS
+   -------------------
+   The deck stage is a fixed 1920×1080 canvas that CSS-`transform: scale()`s to
+   the viewport. Viewport units (`vh`/`vw`) are measured against the REAL
+   browser window, so an inline `max-height: 40vh` figure is correct only when
+   the window happens to be exactly 1080px tall — it drifts under any scaling
+   (projector, overview, print, presenter). Making the `.slides` wrapper a
+   size-query CONTAINER lets `cqh`/`cqw` resolve against the 1920×1080 slide
+   canvas itself, so `40cqh` is always 40% of the slide height regardless of how
+   the stage is scaled. On the gate's 1920×1080 viewport `cqh == vh`, so this is
+   a behaviour-NEUTRAL swap there, and it becomes robust everywhere else.
+
+   WHAT IT PROVIDES
+   ----------------
+   .fig-fit            slide-relative figure box (replaces inline `max-height:NNvh`)
+                       knobs (inline custom props, only set when they differ):
+                         --fig-max : max-height cap  (default 52cqh)
+                         --fig-w   : max-width        (default 100%)
+                         --fig-mt  : top margin       (default var(--sp-2))
+   .slide-header--flush  flush header (no rule/no bottom padding) — replaces the
+                         inline `style="border:none; padding-bottom:0;"`.
+   .cards--autofit       responsive auto-fit card grid (no media queries).
+
+   This file does NOT redefine any design token or `:root`. It only consumes
+   existing tokens (`--sp-*`) and standard properties.
+   ========================================================= */
+
+/* Establish a size-query container so `cqw`/`cqh` resolve against the full
+   1920×1080 slide canvas. We put this on `.slides` (the `position:absolute;
+   inset:0` wrapper that fills the un-padded stage) rather than `.slide` itself:
+   `.slide` carries the slide PADDING, so its content box is shorter than 1080
+   and `cqh` there would be < `vh` (figures capped in `cqh` would render smaller
+   than the old `vh` cap). `.slides` is the true 1920×1080 box, so `1cqh == 1vh`
+   on the gate viewport — making the `vh`→`cqh` migration pixel-identical there
+   and scale-robust everywhere else. Inert until a container unit is used —
+   changes no layout by itself. */
+.slides {
+  container-name: slide;
+  container-type: size;
+}
+
+/* Slide-relative figure box. Replaces viewport-`vh` figure sizing with a cap
+   that is a fraction of the SLIDE (`cqh`) — always-resolving and scale-robust.
+   This sets ONLY box-geometry properties — height/max-height/max-width/
+   aspect-ratio/margin — exactly the set the old inline `style=` controlled. It
+   deliberately does NOT set `display` or restyle the child: on a `.viz-frame
+   fig-fit` element the frame keeps its own `display:grid; place-items:center`
+   and its `.viz-frame > img` intrinsic-sizing rule, so the figure sizes to its
+   contained image exactly as before — only the unit changed (`vh`→`cqh`). */
+.fig-fit {
+  height: auto;
+  /* Slide-relative cap. `cqh` always resolves (the slide is a definite-size
+     container), so this is a single, always-effective constraint — the exact
+     role the old inline `max-height:NNvh` played. A `min(…,100%)` cap-against-
+     parent was tried but a percentage max-height resolves to `none` on the
+     indefinite-height parents these figures live in (divider/quote blocks),
+     which silently disabled the cap and let the 16/9 box overflow. */
+  max-height: var(--fig-max, 52cqh);
+  max-width: var(--fig-w, 100%);
+  aspect-ratio: 16 / 9;
+  margin: var(--fig-mt, var(--sp-2)) auto 0;
+}
+/* Child sizing for a STANDALONE `.fig-fit` (no `.viz-frame`): contain the
+   image/SVG within the box without forcing it to overflow. Mirrors the
+   `.viz-frame > img` intrinsic rule (equal specificity, same effect) so the two
+   compose without conflict. */
+.fig-fit > img,
+.fig-fit > svg {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+/* Flush slide-header. Replaces the inline `style="border:none; padding-bottom:0;"`.
+   Scoped under `.slide` (specificity 0-2-0) so it overrides the WBW base rule
+   `.slide .slide-header { border-bottom-width: 3px }` — this file loads after
+   wbw-art.css, so on equal specificity it wins. The decorative hand-drawn
+   ::before/::after swipes (separate boxes) are intentionally preserved, exactly
+   as the inline `border:none` left them. */
+.slide .slide-header--flush {
+  border: none;
+  padding-bottom: 0;
+}
+
+/* Responsive auto-fit card grid — no media queries. Cards wrap and share width
+   down to a 280px floor (or 100% on very narrow tracks). Opt-in. */
+.cards--autofit {
+  display: grid;
+  gap: var(--sp-4);
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+}
+
+/* =========================================================
+   SYSTEMIC DIVIDER FIT — flex-aware, single DOM shape
+   =========================================================
+   All 28 dividers across the 5 decks are now ONE markup shape:
+
+     <section class="slide" data-type="divider" …>
+       <div class="divider-content"> …num / h1 / sub / [recap] … </div>
+       <div class="viz-frame fig-fit" style="--fig-max:…;--fig-w:…"> img </div>
+       <aside class="slide-notes">…</aside>
+     </section>
+
+   (text-only dividers omit the `.viz-frame`; absolute corner art —
+   `.cameo`, decorative inline-positioned `<img>` — is out of flow and is
+   intentionally NOT a flex child.)
+
+   WHY FLEX, NOT GRID
+   ------------------
+   The old `.slide[data-type="divider"].is-active { display:grid;
+   place-items:center }` centred children but could not make the figure GIVE
+   WAY under a tall text block — a divider with sub + recap + a big figure
+   overflowed 1080 because dividers are EXCLUDED from the engine's autoFitSlide
+   (CSS is the only fitter). A flex column lets the figure flex-SHRINK so the
+   slide always fits the 1080 stage.
+
+   WHY THE PREVIOUS ATTEMPT FAILED (and how this avoids it)
+   --------------------------------------------------------
+   The generic `.fig-fit` rule sets `aspect-ratio:16/9`, which PINS the
+   figure's height to its width, so `flex-shrink` had nothing to reduce, and a
+   `max-height:min(…,100%)` cap resolved to `none` on the indefinite-height
+   parent. Here we UNPIN with `aspect-ratio:auto` and add `min-height:0`, so
+   `flex:0 1 auto` can actually shrink the figure; the `<img>` keeps its own
+   ratio via `object-fit:contain`. We also avoid an additive `gap` blow-up by
+   using a small gap token and folding the figure's old top margin into it.
+
+   SPECIFICITY
+   -----------
+   Scoped to `.slide[data-type="divider"].is-active` (0-2-1) to MATCH the old
+   `slides.css` divider rule and respect the engine's `is-active` display
+   toggle (inactive dividers stay `display:none`). autofit.css loads LAST, so
+   on equal specificity these win — no `!important` needed. */
+.slide[data-type="divider"].is-active {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  /* Single gap between the text block and the figure. Kept SMALL (sp-2, was
+     sp-3) so it never pushes a tall text+figure stack past 1080 — the
+     additive-gap blow-up that regressed the earlier attempt. */
+  gap: var(--sp-2);
+}
+/* The TEXT BLOCK of a divider must not grow — the figure gets what is left.
+   This used to be written as `> .divider-content`, which made the whole layout hostage to a class name
+   the author had to remember. Forget it and nothing errors: the bare <div> grows, the flex figure is
+   squeezed, and the illustration ships as a postage stamp — L18's dividers render at 262×196 and one at
+   0×0 (invisible) for exactly this reason, and no gate saw it, because slide-viz only discovers STEPPED
+   slides and a divider has no steps. So key the rule on the STRUCTURE instead: any direct child of an
+   active divider that is not the figure is the text block. A layout that depends on a remembered class
+   is a layout that will be forgotten. */
+.slide[data-type="divider"].is-active > :not(.viz-frame):not(.slide-notes):not(script) {
+  flex: 0 0 auto;
+  text-align: center;
+}
+/* Tighten the lead-paragraph gap on dividers (slides.css gives `.divider-sub`
+   a `margin-top: var(--sp-5)` = 48px). On the text-heaviest dividers (an L4
+   Part break with sub + recap) that 48px inflates the text block enough that
+   the figure, after flex-shrinking to fit 1080, is squeezed below the gate's
+   150px-min-side TINY floor. Trimming to sp-4 (32px) frees ~16px for the
+   figure so it stays LEGIBLE while still shrinking under the text — and reads
+   identically on lighter dividers. autofit.css loads last; equal specificity
+   (0-2-1) → wins. */
+/* …and the sub-font cap must reach the sub wherever it sits, wrapper or not — same reason. */
+.slide[data-type="divider"].is-active .divider-sub {
+  margin-top: var(--sp-4);
+  /* Cap the divider-sub font on ACTIVE dividers. slides.css sets it to --fs-lead
+     (44px); RU runs ~15% longer, so a two-clause sub wraps to 4 lines and the
+     text block fills the 1080 stage — the flex figure then shrinks to its floor
+     (measured 38px < the gate's 40px COLLAPSED line) on the text-heaviest
+     dividers (L14 HyDE/step-back/fusion/decomp/workshop). Holding the sub at
+     ≤~35px keeps the block short enough that the figure stays legible in BOTH
+     languages; EN dividers (already headroom-rich) just gain a little more
+     figure. Uses the --fs-small scale token (not a raw literal) to respect the
+     font-gate's token discipline. */
+  font-size: var(--fs-small);
+  line-height: 1.28;
+}
+.slide[data-type="divider"].is-active > .viz-frame {
+  flex: 0 1 auto;
+  min-height: 0;
+  aspect-ratio: auto;     /* UNPIN height so flex-shrink can reduce the figure */
+  max-height: var(--fig-max, 40cqh);
+  width: var(--fig-w, 46%);
+  margin: 0;              /* gap handles spacing — no additive --fig-mt blow-up */
+}
+.slide[data-type="divider"].is-active > .viz-frame > img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+/* A FIGURE MAY NOT BE SQUEEZED OUT OF EXISTENCE BY THE TEXT ABOVE IT.
+   A `formula`/`definition` slide body is a GRID with sized rows. Add a figure and it lands in the last
+   row — which, when the text above has already eaten the height, is handed 18px. The frame then collapses
+   and the <img> inside it renders 0×0: the illustration is in the deck, it passed the brand gate, and
+   nobody can see it. Four of them shipped that way (L9 s35, L10 s32, L11 s12, L11 s27) and no gate looked,
+   because composition only ever asked whether content spills OUT of the frame, never whether it vanished
+   inside it. It asks both now.
+   The floor is small on purpose: enough that the plate EXISTS, not enough to blow the slide's height
+   budget (the deck auto-fits the body, so every px here is paid for in type size). A slide that cannot
+   afford even this much figure is not a layout problem — it is an over-stuffed slide, and it should be
+   trimmed rather than propped up. */
+.slide-body > .viz-frame.fig-fit { min-height: 14cqh; }
