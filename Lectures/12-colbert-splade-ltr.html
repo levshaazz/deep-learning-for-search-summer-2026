@@ -188,19 +188,19 @@
       <span class="toc-num">01</span>
       <span class="toc-text"><span class="toc-title"><span lang="ru">Позднее взаимодействие — ColBERT</span><span lang="en">Late interaction — ColBERT</span></span><span class="toc-sub">one vector per token · MaxSim · the lexical trap</span></span>
     </a>
-    <a class="toc-item" href="#/20">
+    <a class="toc-item" href="#/26">
       <span class="toc-num">02</span>
       <span class="toc-text"><span class="toc-title"><span lang="ru">Выученная разрежённость — SPLADE</span><span lang="en">Learned sparse — SPLADE</span></span><span class="toc-sub">log(1+ReLU) weights · term expansion · still inverted-index</span></span>
     </a>
-    <a class="toc-item" href="#/31">
+    <a class="toc-item" href="#/42">
       <span class="toc-num">03</span>
       <span class="toc-text"><span class="toc-title"><span lang="ru">Гибрид — под одно знамя</span><span lang="en">Hybrid — under one banner</span></span><span class="toc-sub">run both · fuse with RRF · consensus wins</span></span>
     </a>
-    <a class="toc-item" href="#/41">
+    <a class="toc-item" href="#/54">
       <span class="toc-num">04</span>
       <span class="toc-text"><span class="toc-title"><span lang="ru">Обучение ранжированию</span><span lang="en">Learning to Rank</span></span><span class="toc-sub">RankNet → LambdaRank → LambdaMART · the L10 bridge paid</span></span>
     </a>
-    <a class="toc-item" href="#/54">
+    <a class="toc-item" href="#/79">
       <span class="toc-num">05</span>
       <span class="toc-text"><span class="toc-title"><span lang="ru">Альянс на практике</span><span lang="en">The Alliance in practice</span></span><span class="toc-sub">full pipeline · choose by latency / memory / domain</span></span>
     </a>
@@ -255,19 +255,20 @@
       <h3><span lang="ru">Разведчик (би-энкодер, L10)</span><span lang="en">The Scout (bi-encoder, L10)</span></h3>
       <ul class="obj-list">
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Сворачивает весь документ в <strong>один</strong> вектор — быстро, но детали тонут.</span><span lang="en">Pools the whole document into <strong>one</strong> vector — fast, but detail drowns.</span></span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">При сжатии в один вектор могут теряться редкие слова и точные совпадения фраз.</span><span lang="en">A rare word or an exact phrase match is washed out by the mean.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">При сжатии в один вектор могут теряться редкие слова и точные совпадения фраз.</span><span lang="en">Pooling into a single vector can lose rare words and exact phrase matches.</span></span></li>
       </ul>
     </div>
     <div class="twocol-col">
       <h3><span lang="ru">Что говорит BEIR</span><span lang="en">What BEIR says</span></h3>
       <ul class="obj-list">
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Вне домена крепкий <strong>BM25</strong> достигает nDCG@10 \(= 0{,}43\), а плотный <strong>DPR</strong> — лишь \(0{,}23\) (L3).</span><span lang="en">Out of domain, robust <strong>BM25</strong> reaches nDCG@10 \(= 0.43\), while dense <strong>DPR</strong> trails at \(0.23\) (L3).</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Среднее nDCG@10: <strong>BM25</strong> — \(0{,}4234\), <strong>Multi-DPR</strong> — \(0{,}2371\).</span><span lang="en">Mean nDCG@10: <strong>BM25</strong> — \(0.4234\), <strong>Multi-DPR</strong> — \(0.2371\).</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Пересчёт 18 строк Table 2: <strong>без MS MARCO</strong>, но с Natural Questions — обучающим доменом Multi-DPR. Это не целиком zero-shot набор.</span><span lang="en">Recomputed over 18 Table 2 rows: <strong>excluding MS MARCO</strong>, but including Natural Questions — an in-domain task for Multi-DPR. This is not an entirely zero-shot set.</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Один вектор — не вся история. Что, если хранить вектор <em>на каждый токен</em>?</span><span lang="en">One vector isn't the whole story. What if we kept a vector <em>per token</em>?</span></span></li>
       </ul>
     </div>
   </div>
-  <p class="viz-caption"><span lang="ru">Серёга уже упирался в это в L10 («плотный не бесплатен»): позднее взаимодействие — путь назад к качеству, не отказываясь от предвычисления.</span><span lang="en">S&eacute;r&eacute;ga already hit this in L10 ("dense isn't free"): late interaction is the road back to quality without giving up precomputation.</span></p>
-  <aside class="slide-notes">Motivate per-token. BEIR BM25 0.43 > DPR 0.23 from data/l3-benchmarks.json (callback). The fix is to keep token detail.</aside>
+  <p class="viz-caption"><span lang="ru">Multi-DPR обучен на четырёх наборах вопросов и ответов. Источник: <a href="https://arxiv.org/html/2104.08663v4#S5.T2" target="_blank" rel="noopener">BEIR (2021), §4 и Table 2</a>; среднее по опубликованным округлённым значениям. Не сопоставляем напрямую с BEIR-13 у SPLADE++.</span><span lang="en">Multi-DPR was trained on four question-answering datasets. Source: <a href="https://arxiv.org/html/2104.08663v4#S5.T2" target="_blank" rel="noopener">BEIR (2021), §4 and Table 2</a>; means of the published rounded values. Not directly comparable to SPLADE++'s BEIR-13.</span></p>
+  <aside class="slide-notes">Motivate per-token, as in L10. L12-specific evidence: data/l12-expanded-evidence.json. Unweighted arithmetic mean of all 18 BEIR v4 Table 2 dataset rows except MS MARCO: BM25 7.622/18 = 0.423444… → 0.4234; Multi-DPR 4.268/18 = 0.237111… → 0.2371. NQ is included and marked in-domain for Multi-DPR, so the set is not wholly zero-shot for that model. §4 explicitly chooses Multi-DPR trained on Natural Questions, TriviaQA, WebQuestions, CuratedTREC, rather than the NQ-only checkpoint. These are recomputed means of the rounded per-dataset values, not a printed aggregate. Full primary source: https://arxiv.org/html/2104.08663v4#S4 and #S5.T2. General course BENCH data is unchanged.</aside>
 </section>
 <section class="slide" data-type="definition" data-screen-label="08 Three ways to interact">
   <div class="slide-header">
@@ -322,6 +323,26 @@
   <aside class="slide-notes">Architecture: per-token embeddings, doc precomputed, MaxSim at query time. Shapes E_q ∈ ℝ^(|q|×128).</aside>
 </section>
 
+<section class="slide" data-type="formula" data-screen-label="09a ColBERT · project each token">
+  <div class="slide-header slide-header--flush">
+    <h2><span lang="ru">От состояния BERT к поисковому вектору</span><span lang="en">From a BERT state to a retrieval vector</span></h2>
+    <span class="slide-kicker"><span lang="ru">проекция меняет размерность, а не число токенов</span><span lang="en">projection changes the width, not the number of tokens</span></span>
+  </div>
+  <div class="formula-stage" style="font-size:calc(var(--fs-body) * .55)">
+    $$ \begin{gathered}
+      h_i=\operatorname{BERT}_{\theta}(x)_i\in\mathbb R^{768},
+       \qquad W\in\mathbb R^{128\times768} \\[.35em]
+      e_i=\frac{Wh_i}{\lVert Wh_i\rVert_2}\in\mathbb R^{128}
+      \end{gathered} $$
+  </div>
+  <div class="formula-support">
+<p class="def-where" data-defines="x i theta h_i W e_i L2"><span lang="ru"><b>x</b> — запрос или документ; <b>i</b> — токенная позиция; <b>θ</b> — параметры общего BERT; <b>h<sub>i</sub></b> — его состояние; <b>W</b> — обучаемая проекция; <b>e<sub>i</sub></b> — поисковый вектор; <b>‖·‖<sub>2</sub></b> — евклидова длина.</span><span lang="en"><b>x</b> is a query or document; <b>i</b> is a token position; <b>θ</b> denotes the shared BERT parameters; <b>h<sub>i</sub></b> is its state; <b>W</b> is a learned projection; <b>e<sub>i</sub></b> is the retrieval vector; <b>‖·‖<sub>2</sub></b> is Euclidean length.</span></p>
+  <p class="small muted center mt-2"><span lang="ru">У каждой строки остаётся свой токен. <strong>768 → 128</strong> — ширина состояния <b>BERT-base</b> и ширина поискового вектора, а не пулинг всего текста в одну строку. Маркеры <b>[Q]</b>/<b>[D]</b> различают режимы; документы по-прежнему предвычисляются.</span><span lang="en">Every row still represents its own token. <strong>768 → 128</strong> is the <b>BERT-base</b> state width versus retrieval width, not pooling the whole text into one row. <b>[Q]</b>/<b>[D]</b> markers distinguish the modes; documents remain precomputable.</span></p>
+  <p class="small muted center mt-2"><a href="https://arxiv.org/abs/2004.12832" target="_blank" rel="noopener">Khattab &amp; Zaharia, ColBERT (2020), §3.2</a></p>
+  </div>
+  <aside class="slide-notes">New depth after the original architecture screen. The original notes distinguish BERT's internal width from the final 128-dimensional retrieval vector; this slide makes that distinction visible. Column-vector convention: h_i is 768×1 and W is 128×768. The projection is learned and has no nonlinearity; each output is L2-normalized. The 768-dimensional width is the BERT-base configuration, not a universal requirement of late interaction. The formula assumes a nonzero projected vector. Document vectors are produced offline; query vectors use the same architecture with query markers and augmentation. Primary source: Khattab and Zaharia, SIGIR 2020, §3.2, https://arxiv.org/abs/2004.12832. Do not describe projection as selecting the first 128 coordinates.</aside>
+</section>
+
 <section class="slide" data-type="formula" data-screen-label="10 The MaxSim operator">
   <div class="slide-header slide-header--flush">
     <h2><span lang="ru">Оператор MaxSim</span><span lang="en">The MaxSim operator</span></h2>
@@ -331,8 +352,26 @@
     $$ S_{q,d} \;=\; \sum_{i \in q} \max_{j \in d} \; E_{q_i} \cdot E_{d_j} $$
   </div>
   <p class="def-where"><span lang="ru">где <b>S<sub>q,d</sub></b> = оценка релевантности пары запрос&ndash;документ, <b>i</b> = токен запроса, <b>j</b> = токен документа, <b>E<sub>q<sub>i</sub></sub></b> = эмбеддинг токена запроса, <b>E<sub>d<sub>j</sub></sub></b> = эмбеддинг токена документа (оба L2-нормированы, поэтому скалярное произведение — это косинус).</span><span lang="en">where <b>S<sub>q,d</sub></b> = the query&ndash;document relevance score, <b>i</b> = a query token, <b>j</b> = a document token, <b>E<sub>q<sub>i</sub></sub></b> = the query token's embedding, <b>E<sub>d<sub>j</sub></sub></b> = the document token's embedding (both L2-normalized, so the dot is a cosine).</span></p>
-  <p class="small muted center mt-2"><span lang="ru">Векторы L2-нормированы, поэтому скалярное произведение — это косинус. Каждый токен запроса «салютует» <em>одному</em> токену документа, с которым совпадает лучше всего (\(\max_j\)); оценка — сумма этих лучших салютов. Не средний по всем парам — именно <strong>максимум</strong>, затем сумма (отсылка L2: косинус как линейка). MaxSim — это <strong>оценка</strong> релевантности, а не метрика: внутренний \(\max\) нарушает неравенство треугольника и несимметричен по запросу/документу, поэтому, в отличие от одного косинусного вектора, его нельзя проиндексировать обычным ANN в метрическом пространстве — именно поэтому PLAID (и L13) нужен особый многовекторный каскад поиска.</span><span lang="en">Vectors are L2-normalized, so the dot product is a cosine. Each query token "salutes" the <em>one</em> document token it matches best (\(\max_j\)); the score is the sum of those best salutes. Not an average over all pairs — a <strong>max</strong>, then a sum (callback L2: cosine as a ruler). MaxSim is a relevance <strong>score</strong>, not a metric: the inner \(\max\) breaks the triangle inequality and symmetry, so unlike a single cosine vector it cannot be indexed by a generic metric-space ANN — which is precisely why PLAID (and L13) need a special multi-vector retrieval cascade.</span></p>
+  <p class="small muted center mt-2"><span lang="ru">Векторы L2-нормированы, поэтому скалярное произведение — это косинус. Каждый токен запроса «салютует» <em>одному</em> токену документа, с которым совпадает лучше всего (\(\max_j\)); оценка — сумма этих лучших салютов. Не средний по всем парам — именно <strong>максимум</strong>, затем сумма (отсылка L2: косинус как линейка). MaxSim — несимметричная <strong>оценка</strong>, а не вероятность. Для эффективного поиска по нему нужен <strong>многовекторный каскад</strong>: одно скалярное произведение двух суммарных векторов не воспроизводит сумму максимумов. ANN бывает и неметрическим — здесь важна форма взаимодействия многих векторов.</span><span lang="en">Vectors are L2-normalized, so the dot product is a cosine. Each query token "salutes" the <em>one</em> document token it matches best (\(\max_j\)); the score is the sum of those best salutes. Not an average over all pairs — a <strong>max</strong>, then a sum (callback L2: cosine as a ruler). MaxSim is an asymmetric <strong>score</strong>, not a probability. Efficient retrieval needs a <strong>multi-vector cascade</strong>: a single dot product between two pooled vectors does not reproduce the max-then-sum operation. ANN can be non-metric too; the issue here is the form of multi-vector interaction.</span></p>
   <aside class="slide-notes">MaxSim operator. L2-norm → dot = cosine. Max-then-sum is the key: reward matching many query tokens, each to its best partner.</aside>
+</section>
+
+<section class="slide" data-type="table" data-screen-label="10a MaxSim · what the score means">
+  <div class="slide-header">
+    <h2><span lang="ru">Что обещает MaxSim</span><span lang="en">What MaxSim promises</span></h2>
+    <span class="slide-kicker"><span lang="ru">независимые лучшие соответствия — оценка, а не доказательство релевантности</span><span lang="en">independent best matches — a score, not a proof of relevance</span></span>
+  </div>
+  <table class="cmp-table">
+    <thead><tr><th><span lang="ru">свойство</span><span lang="en">property</span></th><th><span lang="ru">как читать</span><span lang="en">how to read it</span></th></tr></thead>
+    <tbody>
+      <tr><td><span lang="ru">Повторы разрешены</span><span lang="en">Reuse is allowed</span></td><td><span lang="ru">И <b>river</b>, и <b>bank</b> могут выбрать один <b>riverside</b>. Максимум каждой строки выбирается независимо.</span><span lang="en">Both <b>river</b> and <b>bank</b> may select the same <b>riverside</b>. Each row chooses its maximum independently.</span></td></tr>
+      <tr><td><span lang="ru">Направления различаются</span><span lang="en">The direction matters</span></td><td><span lang="ru">Суммируем по токенам <b>запроса</b>. Поменять запрос и документ местами — значит изменить набор строк и максимумов.</span><span lang="en">We sum over <b>query</b> tokens. Swapping query and document changes the rows and the maxima being summed.</span></td></tr>
+      <tr><td><span lang="ru">Это не вероятность</span><span lang="en">It is not a probability</span></td><td><span lang="ru">В нашем примере сумма косинусов <b>2,35 &gt; 1</b>. Её сравнивают с оценкой другого документа для того же запроса.</span><span lang="en">Our example sums cosines to <b>2.35 &gt; 1</b>. Compare it with another document's score for the same query.</span></td></tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2"><span lang="ru">MaxSim не требует, чтобы выбранные токены составляли одну согласованную фразу. Отрицания и отношения между сущностями должны отразиться в <strong>контекстных векторах и обучении</strong>. Фиксированная сумма максимумов сама этого не доказывает.</span><span lang="en">MaxSim does not require the selected tokens to form one coherent phrase. Negation and relations between entities must be captured by the <strong>contextual vectors and training</strong>; the fixed max-then-sum operator does not prove them.</span></p>
+  <p class="small muted center mt-2"><a href="https://arxiv.org/abs/2004.12832" target="_blank" rel="noopener">ColBERT (2020), §3.3</a><span lang="ru"> · 2,35 — учебная матрица лекции</span><span lang="en"> · 2.35 is from the lecture's toy matrix</span></p>
+  <aside class="slide-notes">This screen exposes the score contract already explained in the detailed notes: independent row-wise maxima, asymmetry, and a non-probabilistic sum. The river/bank→riverside reuse and 2.35 value are the existing local toy, not published checkpoint measurements. Contextual encoding can help with semantic composition, but MaxSim is not a logical verifier. The operator does not impose a one-to-one matching constraint or a phrase-consistency constraint. It is not useful to assign a universal relevance threshold of 2.35 across query lengths or models. Primary mechanism: ColBERT §3.3, https://arxiv.org/abs/2004.12832. Existing examples: data/l8-colbert.json, toy.docRel.</aside>
 </section>
 
 <section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="11 The similarity matrix">
@@ -485,6 +524,25 @@
   <p class="viz-caption"><span lang="ru">Считай <strong>ячейки</strong>. У ColBERT <strong>один</strong> прогон кодировщика запроса, как у разведчика; <strong>стягивание</strong> перенесено в MaxSim — токен с токеном. Серые векторы образуют сетку: по одному на <em>токен</em> документа. Это детализация без \(N\) онлайн-прогонов BERT. Цена сетки — на следующем слайде.</span><span lang="en">Count the <strong>cells</strong>. ColBERT makes <strong>one</strong> query-encoder pass, like the Scout; the <strong>contraction</strong> moves to MaxSim, token against token. The grey vectors form a grid: one per document <em>token</em>. That is token detail without \(N\) online BERT passes. The next slide counts the grid's cost.</span></p>
   <aside class="slide-notes">The same circuit L10 used to count encoder boxes, now stepped one further — and this time the thing to watch is not the boxes but the cells. Step zero is the bi-encoder, for calibration: one encoder box, on the query; a row of grey pre-encoded cells on each document card; a cheap cup per document. Step one is the cross-encoder, and the grey cells vanish — an empty dashed slot where the cache would have been, a full encoder box on every row, N of them. That is the wall Lecture 10 hit. Now step two, and read it as a diff against both. Against the cross-encoder: the vectors are BACK, so the corpus is precomputable again and the encoder count drops from N to one. Against the bi-encoder: the vectors have multiplied — each card now carries a GRID of grey cells, not a row, one per document token, and the query is encoded once into a grid of token vectors too. Nothing has been pooled into a single vector before the query meets the document. That is what late interaction actually means, in ink: the contraction did not disappear, it MOVED — from the moment of encoding to the moment of scoring, where it becomes MaxSim, each query token against its best document token. So the encoder count is the bi-encoder's, and the detail is the cross-encoder's. What did we pay? Look at the grid again: a vector per token, not per document. That is the storage bill, and it is exactly what the next slide prices — two hundred and eighty-six gibibytes, naive, on MS MARCO.</aside>
 </section>
+<section class="slide" data-type="formula" data-screen-label="14b ColBERT · matrix and work">
+  <div class="slide-header slide-header--flush">
+    <h2><span lang="ru">Матрица показывает объём работы</span><span lang="en">The matrix shows the work</span></h2>
+    <span class="slide-kicker"><span lang="ru">один online-энкодер запроса не означает одну операцию поиска</span><span lang="en">one online query encoder does not mean one retrieval operation</span></span>
+  </div>
+  <div class="formula-stage" style="font-size:calc(var(--fs-body) * .55)">
+    $$ \begin{gathered}
+      M=E_qE_d^{\mathsf T}\in\mathbb R^{m\times n} \\[.35em]
+      O(mnh)
+      \end{gathered} $$
+  </div>
+  <div class="formula-support">
+<p class="def-where" data-defines="E_q E_d m n h M T O"><span lang="ru"><b>E<sub>q</sub></b>/<b>E<sub>d</sub></b> — матрицы токенов запроса/документа; <b>m</b>/<b>n</b> — число их строк; <b>h</b> — координаты вектора, здесь 128; <b>T</b> — транспонирование; <b>M</b> — матрица сходств; <b>O</b> — порядок роста числа операций.</span><span lang="en"><b>E<sub>q</sub></b>/<b>E<sub>d</sub></b> are query/document token matrices; <b>m</b>/<b>n</b> are their row counts; <b>h</b> is vector width, here 128; <b>T</b> is transpose; <b>M</b> is the similarity matrix; <b>O</b> describes operation-count growth.</span></p>
+  <p class="small muted center mt-2"><span lang="ru"><strong>m·n</strong> клеток × работа по <strong>h</strong> координатам; затем максимум каждой строки и сумма. Векторы документов уже сохранены, но их чтение и сравнение остаются. Индекс и отбор кандидатов нужны, чтобы не повторять полное сравнение со всем корпусом.</span><span lang="en"><strong>m·n</strong> cells × work across <strong>h</strong> coordinates; then row maxima and a sum. Document vectors are cached, but reading and comparing them still costs work. Indexing and candidate selection avoid full scoring against the entire corpus.</span></p>
+  <p class="small muted center mt-2"><a href="https://arxiv.org/abs/2004.12832" target="_blank" rel="noopener">ColBERT (2020), §3.3–3.6</a></p>
+  </div>
+  <aside class="slide-notes">The detailed notes name m, n, h and the O(mnh) cost that the original slide only summarized as |q|×|d| dot products. This makes the same arithmetic explicit. E_q and E_d store vectors as rows, so multiplication by E_d transpose gives an m×n matrix. Computing dense dot products costs O(mnh); row maxima cost O(mn), and the final sum O(m). This is the direct per-pair scoring cost, not a latency model for a pruned search engine and not a claim that every corpus document must be fully scored online. The diagram still has one query encoder; candidate generation, memory access, and scoring remain separate work. Primary source: ColBERT §3.3–3.6, https://arxiv.org/abs/2004.12832.</aside>
+</section>
+
 <section class="slide" data-type="viz" data-screen-label="15 The price of detail">
   <div class="slide-header">
     <h2><span lang="ru">Цена детали</span><span lang="en">The price of detail</span></h2>
@@ -508,6 +566,29 @@
   <aside class="slide-notes">Storage blow-up: 286 GiB → 27 GiB on MS MARCO (cited, data/l8-bench.json colbert.storageGiB). Integers, so coverage-free; the point is the order of magnitude.</aside>
 </section>
 
+<section class="slide" data-type="table" data-screen-label="15a ColBERT v1 · storage and quality">
+  <div class="slide-header">
+    <h2><span lang="ru">За компактность тоже платят качеством</span><span lang="en">Compactness can cost quality too</span></h2>
+    <span class="slide-kicker"><span lang="ru">ColBERT v1 · MS MARCO · один режим cosine reranking</span><span lang="en">ColBERT v1 · MS MARCO · the same cosine reranking mode</span></span>
+  </div>
+  <table class="cmp-table">
+    <thead><tr>
+      <th><span lang="ru">вариант</span><span lang="en">setting</span></th>
+      <th><span lang="ru">координат</span><span lang="en">dimensions</span></th>
+      <th><span lang="ru">байт / коорд.</span><span lang="en">bytes / dim</span></th>
+      <th>GiB</th><th>MRR@10 ×100</th>
+    </tr></thead>
+    <tbody>
+      <tr><td><span lang="ru">Полный</span><span lang="en">Full</span></td><td>128</td><td>4</td><td>286</td><td><span lang="ru">34,9</span><span lang="en">34.9</span></td></tr>
+      <tr><td class="cell-good"><span lang="ru">Компактный</span><span lang="en">Compact</span></td><td>24</td><td>2</td><td class="cell-good">27</td><td><span lang="ru">33,9</span><span lang="en">33.9</span></td></tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2"><span lang="ru">Примерно <strong>в 10 раз меньше места</strong> — и <strong>минус один пункт MRR@10</strong> в показанной шкале. Меняются сразу размерность и точность хранения. Это измеренный компромисс двух конфигураций, а не бесплатная замена представления.</span><span lang="en">About <strong>10× less space</strong> and <strong>one MRR@10 point lower</strong> on this scale. Both dimensionality and storage precision change. This is a measured tradeoff between two configurations, not a free representation swap.</span></p>
+  <p class="small muted center mt-2"><span lang="ru"><b>GiB</b> — гибибайт; <b>MRR@10</b> — средний обратный ранг первого релевантного результата в пределах первой десятки. Здесь не сравниваются v1 и v2: остаточное сжатие v2 — следующий шаг.</span><span lang="en"><b>GiB</b> means gibibytes; <b>MRR@10</b> is mean reciprocal rank of the first relevant result within the top ten. This is not v1 versus v2; v2 residual compression is the next step.</span></p>
+  <p class="small muted center mt-2"><a href="https://arxiv.org/abs/2004.12832" target="_blank" rel="noopener">Khattab &amp; Zaharia (2020), Table 4</a></p>
+  <aside class="slide-notes">Exact rows from ColBERT Table 4, Space Footprint vs MRR@10 (Dev) on MS MARCO: Re-rank Cosine, 128 dimensions, 4 bytes/dimension, 286 GiB, MRR@10 34.9; Re-rank Cosine, 24 dimensions, 2 bytes/dimension, 27 GiB, MRR@10 33.9. Both are cosine reranking settings. Do not substitute the 154-GiB end-to-end L2 row, and do not describe 286 GiB as the 16-bit v2 baseline. The reduction combines width and precision changes; this experiment does not isolate their individual causal effects. Source verified against cached source-2004.12832.html/txt: https://arxiv.org/abs/2004.12832.</aside>
+</section>
+
 <section class="slide" data-type="definition" data-screen-label="16 ColBERTv2">
   <div class="slide-header">
     <h2>ColBERTv2</h2>
@@ -527,6 +608,27 @@
   <aside class="slide-notes">ColBERTv2: distillation + hard negatives (L10 callback) + residual compression (20/36 B/vec vs 256, 6–10×). MS MARCO MRR@10 39.7 (cited, l8-bench).</aside>
 </section>
 
+<section class="slide" data-type="walkthrough" data-screen-label="16a ColBERTv2 · encode a residual">
+  <div class="slide-header">
+    <h2><span lang="ru">Остаточное сжатие: адрес и поправка</span><span lang="en">Residual compression: an address and an offset</span></h2>
+    <span class="slide-kicker"><span lang="ru">общая кодовая книга центроидов + компактная запись каждого вектора</span><span lang="en">a shared centroid codebook + a compact code per vector</span></span>
+  </div>
+  <div class="formula-stage" style="font-size:var(--fs-body)">
+    $$ r=e-c_t,\qquad \widehat e=c_t+\operatorname{quantize}_{b}(r) $$
+  </div>
+  <p class="def-where" data-defines="e c_t t r b quantize e_hat"><span lang="ru"><b>e</b> — исходный вектор; <b>c<sub>t</sub></b> — ближайший центроид; <b>t</b> — его id в кодовой книге; <b>r</b> — остаток; <b>quantize<sub>b</sub></b> — квантование до b бит на координату; <b>ê</b> — восстановленное приближение.</span><span lang="en"><b>e</b> is the original vector; <b>c<sub>t</sub></b> is its nearest centroid; <b>t</b> is its codebook id; <b>r</b> is the residual; <b>quantize<sub>b</sub></b> quantizes each coordinate to b bits; <b>ê</b> is the reconstructed approximation.</span></p>
+  <table class="cmp-table">
+    <thead><tr><th><span lang="ru">бит / коорд.</span><span lang="en">bits / dim</span></th><th><span lang="ru">id центроида</span><span lang="en">centroid id</span></th><th><span lang="ru">остаток, 128 коорд.</span><span lang="en">residual, 128 dims</span></th><th><span lang="ru">всего / вектор</span><span lang="en">total / vector</span></th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><span lang="ru">4 байта</span><span lang="en">4 bytes</span></td><td><span lang="ru">16 байт</span><span lang="en">16 bytes</span></td><td class="cell-good"><span lang="ru">20 байт</span><span lang="en">20 bytes</span></td></tr>
+      <tr><td>2</td><td><span lang="ru">4 байта</span><span lang="en">4 bytes</span></td><td><span lang="ru">32 байта</span><span lang="en">32 bytes</span></td><td class="cell-good"><span lang="ru">36 байт</span><span lang="en">36 bytes</span></td></tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2"><span lang="ru">Квантуем <em>поправку</em>, а не записываем все координаты заново. Сравнение — с <strong>256 байтами</strong> для 128 координат по 16 бит. Кодовая книга и метаданные тоже занимают место: <strong>6–10×</strong> относится к индексу целиком.</span><span lang="en">Quantize the <em>offset</em> instead of storing every full coordinate again. Compare with <strong>256 bytes</strong> for 128 dimensions at 16 bits. Codebook and metadata also take space: <strong>6–10×</strong> describes the whole index.</span></p>
+  <p class="small muted center mt-2"><a href="https://arxiv.org/abs/2112.01488" target="_blank" rel="noopener">Santhanam et al., ColBERTv2 (2022), §3.3</a></p>
+  <aside class="slide-notes">Expose the codebook, quantization, and reconstruction mechanism already described verbally in the original notes. ColBERTv2 §3.3 assigns each normalized 128-dimensional token vector to a nearest centroid and stores a quantized residual. The practical encoding allocates 4 bytes for the centroid id and 1 or 2 bits per residual dimension: 16/32 bytes residual, 20/36 bytes total. A 128-dimensional 16-bit full vector occupies 256 bytes. The reported whole-index reduction of 6–10× is not simply 256 divided by 20 or 36 because it includes other index costs. The schematic reconstructs an approximation; it does not claim lossless storage. Source verified against cached source-2112.01488.txt/html: https://arxiv.org/abs/2112.01488. These ratios do not multiply the original v1 286→27-GiB comparison.</aside>
+</section>
+
 <section class="slide" data-type="definition" data-screen-label="17 PLAID — fast late interaction">
   <div class="slide-header">
     <h2><span lang="ru">PLAID — быстрое позднее взаимодействие</span><span lang="en">PLAID — fast late interaction</span></h2>
@@ -539,11 +641,29 @@
       <ul class="obj-list">
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Кандидаты сперва отбираются по <strong>центроидам</strong>; полная остаточная декомпрессия — только для выживших.</span><span lang="en">Candidates are first pruned by <strong>centroids</strong>; full residual decompression runs only for survivors.</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Типично: ≈ \(6{,}8\times\) на GPU / \(45\times\) на CPU без потери качества (MS MARCO; зависит от датасета).</span><span lang="en">Representative: ≈ \(6.8\times\) on GPU / \(45\times\) on CPU with no quality loss (MS MARCO; dataset-dependent).</span></span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Многовекторный ANN — это уже L13: как сделать ColBERT и гибрид сублинейными.</span><span lang="en">Multi-vector ANN is L13: making ColBERT and hybrid sublinear.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Индексные методы — это уже L13: как ускорять ColBERT и гибрид, сокращая число подробных сравнений.</span><span lang="en">Indexing is L13: accelerating ColBERT and hybrid by reducing the number of fully scored candidates.</span></span></li>
       </ul>
     </div>
   </div>
   <aside class="slide-notes">PLAID centroid pruning, 6.8×/45× representative (cited, l8-bench plaid). Bridge to L13 (ANN). 1-dp values, coverage-free but gated for drift.</aside>
+</section>
+
+<section class="slide" data-type="table" data-screen-label="17a PLAID · the measured comparison">
+  <div class="slide-header">
+    <h2><span lang="ru">PLAID: что стоит за 6,8× и 45×</span><span lang="en">PLAID: what 6.8× and 45× compare</span></h2>
+    <span class="slide-kicker"><span lang="ru">MS MARCO v1 · опубликованная конфигурация, не прогноз для любого сервера</span><span lang="en">MS MARCO v1 · a reported configuration, not a forecast for every server</span></span>
+  </div>
+  <table class="cmp-table">
+    <thead><tr><th><span lang="ru">поиск</span><span lang="en">retrieval</span></th><th>MRR@10</th><th>R@1000</th><th><span lang="ru">CPU, 8 потоков</span><span lang="en">CPU, 8 threads</span></th><th>GPU</th></tr></thead>
+    <tbody>
+      <tr><td>Vanilla ColBERTv2<br><span class="small">\(p=4,\ c=2^{16}\)</span></td><td><span lang="ru">39,7</span><span lang="en">39.7</span></td><td><span lang="ru">98,3</span><span lang="en">98.3</span></td><td><span lang="ru">4568,5 мс</span><span lang="en">4568.5 ms</span></td><td><span lang="ru">259,6 мс</span><span lang="en">259.6 ms</span></td></tr>
+      <tr><td class="cell-good">PLAID ColBERTv2<br><span class="small">\(k=1000\)</span></td><td class="cell-good"><span lang="ru">39,8</span><span lang="en">39.8</span></td><td><span lang="ru">97,5</span><span lang="en">97.5</span></td><td class="cell-good"><span lang="ru">101,3 мс</span><span lang="en">101.3 ms</span></td><td class="cell-good"><span lang="ru">38,4 мс</span><span lang="en">38.4 ms</span></td></tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2"><span lang="ru"><strong>GPU ≈ 6,8×; CPU ≈ 45×.</strong> MRR@10 не падает, но полнота R@1000 различается; обе метрики показаны в шкале ×100. <b>p</b> — число проб центроидов, <b>c</b> — лимит кандидатов исходного поиска, <b>k</b> — число возвращаемых результатов PLAID.</span><span lang="en"><strong>GPU ≈ 6.8×; CPU ≈ 45×.</strong> MRR@10 is preserved, but R@1000 recall differs; both metrics use the ×100 scale. <b>p</b> is centroid probes, <b>c</b> the vanilla candidate limit, and <b>k</b> PLAID's requested result count.</span></p>
+  <p class="small muted center mt-2"><span lang="ru">Условия: <strong>кодирование запроса исключено</strong>; минимум средней задержки из 3 прогонов; GPU — NVIDIA TITAN V, 12 ГБ. В CPU-режиме ограничены <em>потоки</em>, не заявлены 8 отдельных процессоров.</span><span lang="en">Conditions: <strong>query encoding excluded</strong>; minimum mean latency across 3 trials; NVIDIA TITAN V GPU, 12 GB. The CPU setting limits <em>threads</em>; it does not mean 8 separate processors.</span></p>
+  <p class="small muted center mt-2"><a href="https://arxiv.org/abs/2205.09707" target="_blank" rel="noopener">Santhanam et al., PLAID (2022), §5.1 &amp; Table 3</a></p>
+  <aside class="slide-notes">Exact MS MARCO v1 rows from PLAID Table 3. Vanilla ColBERTv2 p=4,c=2^16: MRR@10=39.7, R@1000=98.3, 8-thread CPU latency4568.5ms, GPU259.6ms. PLAID k=1000: MRR@10=39.8, R@1000=97.5, CPU101.3ms, GPU38.4ms. Ratios are259.6/38.4=6.7604≈6.8 and4568.5/101.3=45.0987≈45. Source §5.1: query encoding latency is excluded; end-to-end retrieval measurements report the minimum average latency over3 trials on an idle server. CPU-only runs use torch.set_num_threads(8) for the8-CPU column. GPU runs may use all56 CPU threads on the host; GPU is TITAN V12GB. These are retrieval-engine measurements, not complete application latency or p95. Preserve MRR@10 versus recall distinction: no MRR loss does not imply every metric is unchanged. Sources verified against cached source-2205.09707.txt/html, https://arxiv.org/abs/2205.09707.</aside>
 </section>
 
 <section class="slide" data-type="definition" data-screen-label="18 Late interaction isn't free">
@@ -612,11 +732,12 @@
       <ul class="obj-list">
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Каждый токен порождает логиты по всему словарю BERT (\(|V| = 30\,522\)) — как голова маскированного языкового моделирования.</span><span lang="en">Each token emits logits over the whole BERT vocabulary (\(|V| = 30{,}522\)) — the masked-language-modeling head.</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">ReLU + насыщение + регуляризатор разрежённости → почти все веса равны нулю. Ненулевые становятся <strong>терминами постинг-листов</strong>.</span><span lang="en">ReLU + saturation + a sparsity regularizer → almost all weights are zero. The nonzero ones become <strong>posting-list terms</strong>.</span></span></li>
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Те же постинг-листы и тот же инвертированный индекс, что у BM25 — нейросеть встаёт в классический движок (отсылка L2: словарь BPE, нарезанный Токенозавром).</span><span lang="en">Same posting lists, same inverted index as BM25 — the network drops into the classical engine (callback L2: the BPE vocabulary Tokenosaurus snipped).</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru">Те же постинг-листы и инвертированный индекс, что у BM25. Координаты здесь — <strong>WordPiece-словарь BERT</strong>: целые слова и подслова.</span><span lang="en">Same posting lists and inverted index as BM25. The coordinates here use <strong>BERT's WordPiece vocabulary</strong>: whole words and subwords.</span></span></li>
       </ul>
     </div>
   </div>
-  <aside class="slide-notes">SPLADE: MLM-head logits over |V|=30,522, sparsified, index-compatible. 30,522 has no decimal → coverage-free.</aside>
+  <p class="small muted center mt-2"><a href="https://arxiv.org/abs/2109.10086" target="_blank" rel="noopener">SPLADE v2 (2021), §3.1: BERT WordPiece vocabulary</a></p>
+  <aside class="slide-notes">SPLADE: MLM-head logits over |V|=30,522, sparsified, index-compatible. For the BERT-based model here the vocabulary is WordPiece, including full words and subwords; the earlier general BPE callback was inaccurate. The toy slides show whole words only for readability. Primary source: Formal et al., SPLADE v2, https://arxiv.org/abs/2109.10086, §3.1, explicitly describes BERT WordPiece vocabulary and its 30,522 dimensions. BPE means Byte Pair Encoding, a different subword-tokenization procedure; this screen does not equate them.</aside>
 </section>
 
 <section class="slide" data-type="formula" data-screen-label="22 The SPLADE weight">
@@ -631,6 +752,31 @@
   <aside class="slide-notes">The SPLADE weight: log(1+ReLU(logit)) summed over input positions; FLOPS regularizer for sparsity. Operator only here; numbers on the worked slides.</aside>
 </section>
 
+<section class="slide" data-type="formula" data-screen-label="22a SPLADE · positions become one weight">
+  <div class="slide-header slide-header--flush">
+    <h2><span lang="ru">Много позиций → один вес</span><span lang="en">Many positions → one weight</span></h2>
+    <span class="slide-kicker"><span lang="ru">сначала преобразование, затем пулинг по входу</span><span lang="en">transform first, then pool over the input</span></span>
+  </div>
+  <div class="formula-stage" style="font-size: calc(var(--fs-body) * .55)">
+    $$ \begin{gathered}
+       a_{ij}=\ln\!\bigl(1+\max(0,z_{ij})\bigr) \\[.35em]
+       w_j^{\mathrm{sum}}=\sum_{i=1}^{n}a_{ij},\qquad
+       w_j^{\mathrm{max}}=\max_{1\leq i\leq n}a_{ij}
+       \end{gathered} $$
+  </div>
+  <div class="formula-support">
+<p class="def-where" data-defines="a_ij z_ij i j n w_j sum max ln"><span lang="ru"><b>i</b> — позиция входа, <b>n</b> — число позиций; <b>j</b> — координата словаря. <b>z<sub>ij</sub></b> — логит термина j на позиции i; <b>a<sub>ij</sub></b> — его преобразованный вклад; <b>ln</b> — натуральный логарифм. <b>w<sub>j</sub></b> — итоговый вес; надписи <b>sum / max</b> обозначают способ пулинга, а не степень.</span><span lang="en"><b>i</b> is an input position; <b>n</b> is the number of positions; <b>j</b> is a vocabulary coordinate. <b>z<sub>ij</sub></b> is term j's logit at position i; <b>a<sub>ij</sub></b> is its transformed contribution; <b>ln</b> is the natural logarithm. <b>w<sub>j</sub></b> is the final weight; <b>sum / max</b> label the pooling rule, not an exponent.</span></p>
+  <table class="cmp-table">
+    <thead><tr><th style="width:25%;font-size:var(--fs-small)"><span lang="ru">пулинг</span><span lang="en">pooling</span></th><th><span lang="ru">что остаётся для одного термина j</span><span lang="en">what remains for one term j</span></th></tr></thead>
+    <tbody>
+      <tr><td style="font-size:var(--fs-small)">sum · SPLADE</td><td><span lang="ru">Поддержка всех позиций складывается.</span><span lang="en">Contributions from all positions accumulate.</span></td></tr>
+      <tr><td style="font-size:var(--fs-small)">max · SPLADE v2</td><td><span lang="ru">Остаётся самый сильный вклад одной позиции.</span><span lang="en">Only the strongest positional contribution remains.</span></td></tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2"><span lang="ru">Пулинг идёт по <strong>позициям входа</strong>, отдельно для каждого словарного термина.</span><span lang="en">Pool over <strong>input positions</strong>, separately for every vocabulary term.</span> · <a href="https://arxiv.org/abs/2109.10086" target="_blank" rel="noopener">SPLADE v2 (2021), §3.1–3.2</a></p>
+  </div>
+  <aside class="slide-notes">This screen makes the intermediate a_ij from the detailed notes visible. It is a notational decomposition of the original log(1+ReLU(logit)) transformation, followed by pooling across input positions for each vocabulary coordinate. max(0,z) is ReLU, Rectified Linear Unit. The original SPLADE used sum pooling; SPLADE v2 replaces it with max pooling. The superscripts name two alternatives rather than powers or sequential stages. The maximum is over positions, never over vocabulary coordinates. ln compresses growth without imposing a finite upper bound. Primary sources: Formal et al., SPLADE, https://arxiv.org/abs/2107.05720, §3.2; Formal et al., SPLADE v2, https://arxiv.org/abs/2109.10086, §3.1–3.2. No new empirical result or numerical example is introduced.</aside>
+</section>
 <section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="23 Weights and expansion">
   <div class="slide-header">
     <h2><span lang="ru">Веса и расширение</span><span lang="en">Weights and expansion</span></h2>
@@ -711,6 +857,51 @@
   <aside class="slide-notes">Sparse dot: round-then-sum, 0.9887+0.2839+0.7517+1.0251 = 3.0494. doc weights 0.90/0.70/0.60/1.30. All gated vs data/l8-splade.json.</aside>
 </section>
 
+<section class="slide" data-type="formula" data-screen-label="25a SPLADE · the sparse dot explicitly">
+  <div class="slide-header slide-header--flush">
+    <h2><span lang="ru">Один словарь, одно скалярное произведение</span><span lang="en">One vocabulary, one dot product</span></h2>
+    <span class="slide-kicker"><span lang="ru">обобщаем только что посчитанные четыре произведения</span><span lang="en">generalizing the four products we just computed</span></span>
+  </div>
+  <div class="formula-stage" style="font-size: calc(var(--fs-body) * .65)">
+    $$ S(q,d)=\sum_{j\in V}w_j(q)\,w_j(d) $$
+  </div>
+  <div class="formula-support">
+<p class="def-where" data-defines="S q d V j w_j(q) w_j(d)"><span lang="ru"><b>q</b> — запрос, <b>d</b> — документ; <b>V</b> — общий словарь; <b>j</b> — одна его координата. <b>w<sub>j</sub>(q)</b> и <b>w<sub>j</sub>(d)</b> — веса одного и того же термина у запроса и документа. <b>S(q,d)</b> — итоговая оценка пары.</span><span lang="en"><b>q</b> is the query; <b>d</b> is the document; <b>V</b> is their shared vocabulary; <b>j</b> is one vocabulary coordinate. <b>w<sub>j</sub>(q)</b> and <b>w<sub>j</sub>(d)</b> are the query and document weights of the same term. <b>S(q,d)</b> is the pair's final score.</span></p>
+  <div class="formula-caption">
+    <div class="var-block">
+      <div class="var-symbol">\(j\)</div>
+      <div class="var-desc"><span lang="ru"><strong>Точное совпадение координаты</strong><br />river встречается с river; расширение заранее добавляет другие координаты.</span><span lang="en"><strong>Exact coordinate match</strong><br />river meets river; expansion activates other coordinates beforehand.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">\(\times\)</div>
+      <div class="var-desc"><span lang="ru"><strong>Ноль не даёт вклада</strong><br />если с любой стороны вес нулевой, это произведение можно пропустить.</span><span lang="en"><strong>Zero adds nothing</strong><br />if either weight is zero, that product can be skipped.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">\(\sum\)</div>
+      <div class="var-desc"><span lang="ru"><strong>Индекс накапливает балл</strong><br />список термина → веса документов → произведения в накопитель.</span><span lang="en"><strong>The index accumulates a score</strong><br />term list → document weights → products added to an accumulator.</span></div>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Смысловое расширение происходит при построении весов; само сопоставление остаётся разрежённой арифметикой.</span><span lang="en">Semantic expansion happens while building the weights; matching remains sparse arithmetic.</span> · <a href="https://arxiv.org/abs/2109.10086" target="_blank" rel="noopener">SPLADE v2 (2021), §3.1</a></p>
+  </div>
+  <aside class="slide-notes">Explicit sparse dot from original notes screen 26 and the mathematical appendix. Both representations have coordinates in the same tokenizer vocabulary. A term contributes only when its query and document weights are both nonzero; the summation over the whole vocabulary is the mathematical definition, not an instruction to materialize every zero. The index associates an active term with documents and their learned weights so products can be accumulated. Semantic expansion is already represented by activated coordinates such as bank and water; scoring itself does not compare every word against every other word. This is a score, not a probability. Primary sources: Formal et al., SPLADE, https://arxiv.org/abs/2107.05720, §3.2; SPLADE v2, https://arxiv.org/abs/2109.10086, §3.1, which explicitly scores query and document through the dot product of their sparse representations. This screen generalizes the preceding toy arithmetic rather than introducing a benchmark result.</aside>
+</section>
+<section class="slide" data-type="table" data-screen-label="25b SPLADE · which numbers were rounded">
+  <div class="slide-header">
+    <h2><span lang="ru">Последняя цифра зависит от округления</span><span lang="en">The last digit depends on rounding</span></h2>
+    <span class="slide-kicker"><span lang="ru">тот же учебный пример, три прозрачные процедуры</span><span lang="en">the same toy example, three explicit procedures</span></span>
+  </div>
+  <table class="cmp-table">
+    <thead><tr><th><span lang="ru">что округляем</span><span lang="en">what is rounded</span></th><th><span lang="ru">как считаем</span><span lang="en">calculation</span></th><th><span lang="ru">итог</span><span lang="en">result</span></th></tr></thead>
+    <tbody>
+      <tr><td><span lang="ru">веса и произведения</span><span lang="en">weights and products</span></td><td><span lang="ru">Показанные веса → каждое произведение до 4 знаков → сумма.</span><span lang="en">Displayed weights → round each product to 4 decimals → add.</span></td><td class="cell-good"><span lang="ru">3,0494</span><span lang="en">3.0494</span></td></tr>
+      <tr><td><span lang="ru">только веса</span><span lang="en">weights only</span></td><td><span lang="ru">Показанные веса → сумма без округления произведений: 3,04932.</span><span lang="en">Displayed weights → sum without rounding products: 3.04932.</span></td><td><span lang="ru">3,0493</span><span lang="en">3.0493</span></td></tr>
+      <tr><td><span lang="ru">только ответ</span><span lang="en">final answer only</span></td><td><span lang="ru">Логарифмы с полной точностью → сумма ≈ 3,049228985.</span><span lang="en">Full-precision logarithms → sum ≈ 3.049228985.</span></td><td><span lang="ru">3,0492</span><span lang="en">3.0492</span></td></tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2"><span lang="ru">Первая строка воспроизводит экран: 0,9887 + 0,2839 + 0,7517 + 1,0251. Для неё округляем половины вверх. Веса документа 0,90 / 0,70 / 0,60 / 1,30 считаем заданными.</span><span lang="en">The first row reproduces the slide: 0.9887 + 0.2839 + 0.7517 + 1.0251. It uses round-half-up. The document weights 0.90 / 0.70 / 0.60 / 1.30 are treated as given.</span></p>
+  <p class="small muted center mt-2"><span lang="ru"><strong>Источник чисел — учебный пример этой лекции.</strong> При ранжировании сохраняем вычислительную точность, округляем отображение.</span><span lang="en"><strong>Numbers come from this lecture's toy example.</strong> Preserve computation precision for ranking; round the display.</span></p>
+  <aside class="slide-notes">Provenance: this lecture's existing worked example in 24-a-learned-weight-by-hand.html and 25-the-sparse-dot.html, and original notes screen 26. This is a reproducibility check, not a number taken from a paper. Query logits for river, bank, flood, water are 2, 0.5, 2.5, 1.2; the transformed weights ln(3), ln(1.5), ln(3.5), ln(2.2) display as 1.0986, 0.4055, 1.2528, 0.7885. Document weights are fixed as 0.90, 0.70, 0.60, 1.30. Decimal products of the displayed query weights are 0.988740, 0.283850, 0.751680, 1.025050. Round-half-up at four decimal places gives the existing slide's 0.9887, 0.2839, 0.7517, 1.0251; their sum is 3.0494. Without intermediate product rounding the displayed weights give 3.049320, rounded to 3.0493. Using full-precision logarithms gives 3.0492289850477858, rounded to 3.0492. The slide explicitly discloses the rounding convention and treats these as the same dot-product rule. Stable ties in a real ranked list need a separate deterministic policy. Mathematical transformation: Formal et al., SPLADE v2, https://arxiv.org/abs/2109.10086, §3.1.</aside>
+</section>
 <section class="slide" data-type="table" data-screen-label="26 SPLADE vs BM25">
   <div class="slide-header">
     <h2><span lang="ru">SPLADE против BM25</span><span lang="en">SPLADE vs BM25</span></h2>
@@ -749,7 +940,7 @@
       <tr><td class="cell-good">SPLADE++ <span class="muted">(SIGIR'22)</span></td><td><span lang="ru">трудные негативы</span><span lang="en">hard negatives</span></td><td>MRR@10 <strong>38.0</strong> · BEIR <strong>50.5</strong></td></tr>
     </tbody>
   </table>
-  <p class="small muted center mt-2"><span lang="ru">Пулинг зависит от версии: <strong>sum</strong> в оригинале, <strong>max</strong> с v2. SPLADE v2 — это препринт 2021; статья SIGIR'22 — это уже SPLADE++ («From Distillation to Hard Negative Sampling»). Цитируется: Formal и др.</span><span lang="en">Pooling is version-dependent: <strong>sum</strong> in the original, <strong>max</strong> from v2. SPLADE v2 is a 2021 preprint; the SIGIR'22 paper is SPLADE++ ("From Distillation to Hard Negative Sampling"). Cited: Formal et al.</span></p>
+  <p class="small muted center mt-2"><span lang="ru"><strong>sum</strong> в оригинале, <strong>max</strong> с v2 (препринт 2021); SIGIR'22 — SPLADE++. Оба числа SPLADE++ — <strong>CoCondenser-EnsembleDistil‡</strong>, шкалы ×100; BEIR — среднее по <strong>13 наборам</strong>, не по 18 строкам выше. Источник: <a href="https://arxiv.org/html/2205.04733v2#S4.T2" target="_blank" rel="noopener">Formal и др., Tables 1–2</a>.</span><span lang="en"><strong>sum</strong> in the original, <strong>max</strong> from v2 (2021 preprint); SIGIR'22 is SPLADE++. Both SPLADE++ scores use <strong>CoCondenser-EnsembleDistil‡</strong>, on ×100 scales; BEIR is a mean over <strong>13 datasets</strong>, not the 18 rows used earlier. Source: <a href="https://arxiv.org/html/2205.04733v2#S4.T2" target="_blank" rel="noopener">Formal et al., Tables 1–2</a>.</span></p>
   <aside class="slide-notes">Versions: 34.0 → 36.8 → 38.0, BEIR 50.5 (cited, l8-bench). ОБА числа — CoCondenser-EnsembleDistil (‡), тот же чекпойнт, что в демо слайда; 50.7 из Table 2 — это SelfDistil (†), у него MRR@10 37.5, смешивать нельзя. Flags: sum→max pooling, SPLADE v2 = preprint, SIGIR'22 = SPLADE++. 1-dp → coverage-free; gated for drift.</aside>
 </section>
 <section class="slide" data-type="table" data-screen-label="28 The learned-sparse zoo">
@@ -783,16 +974,65 @@
     <div class="def-term"><span lang="ru">«Разрежённое = всегда быстро, как BM25»</span><span lang="en">"Sparse = always fast, like BM25"</span></div>
     <div class="def-body">
       <ul class="obj-list">
-        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>✗</strong> Расширение добавляет термины в запрос → длиннее постинг-листы → выше задержка, чем у голого BM25.</span><span lang="en"><strong>✗</strong> Expansion adds query terms → longer posting lists → higher latency than bare BM25.</span></span></li>
+        <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>✗</strong> Расширение добавляет термины в запрос → нужно просмотреть больше списков, иногда очень длинных → задержка может вырасти.</span><span lang="en"><strong>✗</strong> Expansion adds query terms → more posting lists to visit, sometimes very long ones → latency can grow.</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>✗</strong> Слишком плотные веса убивают преимущество инвертированного индекса.</span><span lang="en"><strong>✗</strong> Too-dense weights kill the inverted-index advantage.</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>✗</strong> Затраты часто диктует горстка частых терминов расширения с огромными постинг-листами — одной разрежённости мало; поэтому деплои отсекают по документной частоте / порогу влияния.</span><span lang="en"><strong>✗</strong> The cost is often dominated by a handful of common expansion terms with huge posting lists — sparsity alone doesn't bound latency, so deployments prune by document frequency / impact threshold.</span></span></li>
         <li class="obj-item"><span class="obj-check" aria-hidden="true">·</span><span class="obj-text"><span lang="ru"><strong>✓</strong> Регуляризатор <strong>FLOPS</strong> — это ручка компромисса «разрежённость ↔ задержка»: настраивай под бюджет.</span><span lang="en"><strong>✓</strong> The <strong>FLOPS</strong> regularizer is the sparsity ↔ latency dial: tune it to your budget.</span></span></li>
       </ul>
     </div>
   </div>
-  <aside class="slide-notes">Sparse-isn't-free: expansion lengthens posting lists; FLOPS is the tradeoff dial. No gated numbers.</aside>
+  <aside class="slide-notes">Sparse-isn't-free: expanding a query activates more terms, so more posting lists may be visited. It does not by itself lengthen each fixed term's list; document-side expansion and term frequency determine list lengths. FLOPS is a tradeoff dial, not a latency guarantee. No gated numbers.</aside>
 </section>
 
+<section class="slide" data-type="formula" data-screen-label="29a SPLADE · the batch FLOPS penalty">
+  <div class="slide-header slide-header--flush">
+    <h2><span lang="ru">FLOPS: штраф за частую активность</span><span lang="en">FLOPS: penalizing frequent activity</span></h2>
+    <span class="slide-kicker"><span lang="ru">Floating Point Operations · суррогат стоимости, не секундомер</span><span lang="en">Floating Point Operations · a cost surrogate, not a stopwatch</span></span>
+  </div>
+  <div class="formula-stage" style="font-size: calc(var(--fs-body) * .58)">
+    $$ \mathcal R(X)=\sum_{j\in V}\left(\frac1B\sum_{b=1}^{B}w_j(x_b)\right)^2 $$
+  </div>
+  <div class="formula-support">
+    <p class="def-where" data-defines="R X V j B b x_b w_j"><span lang="ru"><b>X</b> — батч из <b>B</b> текстов; <b>b</b> — номер текста <b>x<sub>b</sub></b>; <b>j</b> — термин словаря <b>V</b>; <b>w<sub>j</sub>(x<sub>b</sub>)</b> — его вес. <b>ℛ(X)</b> — штраф FLOPS для этого батча.</span><span lang="en"><b>X</b> is a batch of <b>B</b> texts; <b>b</b> indexes text <b>x<sub>b</sub></b>; <b>j</b> is a term in vocabulary <b>V</b>; <b>w<sub>j</sub>(x<sub>b</sub>)</b> is its weight. <b>ℛ(X)</b> is the batch's FLOPS penalty.</span></p>
+    <div class="formula-caption">
+      <div class="var-block">
+        <div class="var-symbol">1</div>
+        <div class="var-desc"><span lang="ru"><strong>Среднее</strong><br />для одного термина усредняем вес по текстам батча.</span><span lang="en"><strong>Average</strong><br />average one term's weight across the batch's texts.</span></div>
+      </div>
+      <div class="var-block">
+        <div class="var-symbol">2</div>
+        <div class="var-desc"><span lang="ru"><strong>Квадрат</strong><br />возводим в квадрат среднее, а не каждый исходный вес.</span><span lang="en"><strong>Square</strong><br />square the mean, not each individual weight.</span></div>
+      </div>
+      <div class="var-block">
+        <div class="var-symbol">3</div>
+        <div class="var-desc"><span lang="ru"><strong>Сумма</strong><br />складываем результаты по словарным терминам.</span><span lang="en"><strong>Sum</strong><br />add the results across vocabulary terms.</span></div>
+      </div>
+    </div>
+    <p class="small muted center mt-2"><span lang="ru">Не число ненулей одного текста: штраф видит среднюю активность термина по батчу.</span><span lang="en">Not one text's nonzero count: the penalty sees each term's average batch activity.</span> · <a href="https://arxiv.org/abs/2109.10086" target="_blank" rel="noopener">SPLADE v2 (2021), §3.1, Eq. 4</a></p>
+  </div>
+  <aside class="slide-notes">This screen exposes the batch regularizer already present in the detailed notes' mathematical appendix. R(X) abbreviates R_FLOPS(X) to keep the display readable. For each vocabulary term, average the nonnegative learned weights across a batch, square that average, and then sum across terms. The square is outside the batch mean; this is not a per-example count of nonzeros or the mean of squared weights. SPLADE's regularization is a differentiable surrogate related to matching cost, not a latency measurement or guarantee. Frequent strong activity across the batch increases this penalty. The following screen places this same R in the training objective with separate query and document coefficients. Primary source: Formal et al., SPLADE v2, https://arxiv.org/abs/2109.10086, §3.1, equation 4; original SPLADE regularization discussion: https://arxiv.org/abs/2107.05720, §3.2.</aside>
+</section>
+<section class="slide" data-type="formula" data-screen-label="29b SPLADE · two sparsity coefficients">
+  <div class="slide-header slide-header--flush">
+    <h2><span lang="ru">Две стороны — два коэффициента</span><span lang="en">Two sides, two coefficients</span></h2>
+    <span class="slide-kicker"><span lang="ru">качество поиска плюс контроль стоимости представлений</span><span lang="en">retrieval quality plus control of representation cost</span></span>
+  </div>
+  <div class="formula-stage" style="font-size: calc(var(--fs-body) * .58)">
+    $$ \mathcal L=\mathcal L_{\mathrm{rank}}+\lambda_q\mathcal R(Q)+\lambda_d\mathcal R(D) $$
+  </div>
+  <div class="formula-support">
+    <p class="def-where" data-defines="L L_rank R Q D lambda_q lambda_d"><span lang="ru"><b>ℒ</b> — полная цель; <b>ℒ<sub>rank</sub></b> — поисковая функция потерь; <b>ℛ</b> — штраф FLOPS с предыдущего экрана. <b>Q / D</b> — батч запросов / документов. <b>λ<sub>q</sub>, λ<sub>d</sub> ≥ 0</b> — неотрицательные коэффициенты для запросной / документной стороны.</span><span lang="en"><b>ℒ</b> is the full objective; <b>ℒ<sub>rank</sub></b> is the retrieval loss; <b>ℛ</b> is the previous screen's FLOPS penalty. <b>Q / D</b> are query / document batches. <b>λ<sub>q</sub>, λ<sub>d</sub> ≥ 0</b> are the nonnegative query / document coefficients.</span></p>
+    <table class="cmp-table">
+      <thead><tr><th><span lang="ru">где давление</span><span lang="en">where pressure acts</span></th><th><span lang="ru">что контролируем</span><span lang="en">what it controls</span></th></tr></thead>
+      <tbody>
+        <tr><td>\(\lambda_q\)</td><td><span lang="ru">Активность запроса → сколько постинг-листов приходится открывать.</span><span lang="en">Query activity → how many posting lists must be opened.</span></td></tr>
+        <tr><td>\(\lambda_d\)</td><td><span lang="ru">Активность документов → плотность и размер индекса.</span><span lang="en">Document activity → index density and size.</span></td></tr>
+      </tbody>
+    </table>
+    <p class="small muted center mt-2"><span lang="ru">Больше коэффициент → сильнее соответствующий штраф. Реальная задержка зависит и от частот терминов, отсечения и движка.</span><span lang="en">A larger coefficient gives its penalty more weight. Actual latency also depends on term frequencies, pruning, and the engine.</span> · <a href="https://arxiv.org/abs/2109.10086" target="_blank" rel="noopener">SPLADE v2 (2021), §3.1, Eq. 5</a></p>
+  </div>
+  <aside class="slide-notes">This screen completes the training objective from the detailed notes' mathematical appendix. L_rank rewards retrieval quality, while nonnegative lambda_q and lambda_d weight the FLOPS regularizers for separate batches of queries Q and documents D. The q and d subscripts name query and document sides. In SPLADE v2 both regularizers are FLOPS; this statement is version-specific rather than a claim about every SPLADE variant. A larger coefficient increases the penalty's contribution to the training objective, not a guaranteed monotonic decrease in measured latency. More pressure on query sparsity can reduce posting lists touched; document activity affects index density and size. Term-frequency distributions, pruning, and the execution engine still affect latency. Primary source: Formal et al., SPLADE v2, https://arxiv.org/abs/2109.10086, §3.1, equation 5 and its surrounding discussion. Original SPLADE regularization discussion: https://arxiv.org/abs/2107.05720, §3.2. No universal optimal lambda values or latency guarantees are asserted.</aside>
+</section>
 <section class="slide" data-type="divider" data-screen-label="30 Divider · Under one banner">
   <div class="divider-content">
     <div class="divider-num"><span lang="ru">Столп 3 · Гибрид</span><span lang="en">Pillar 3 · Hybrid</span></div>
@@ -808,10 +1048,10 @@
 <section class="slide" data-type="viz" data-screen-label="31 Neither army wins alone">
   <div class="slide-header">
     <h2><span lang="ru">Ни одна армия не побеждает в одиночку</span><span lang="en">Neither army wins alone</span></h2>
-    <span class="slide-kicker"><span lang="ru">лексика и семантика ловят разное; никто не доминирует</span><span lang="en">lexical and semantic catch different things; neither dominates</span></span>
+    <span class="slide-kicker"><span lang="ru">гипотеза: лексика и семантика могут дополнять друг друга</span><span lang="en">hypothesis: lexical and semantic retrieval can complement each other</span></span>
   </div>
   <div class="viz-frame">
-    <svg viewBox="0 0 1400 460" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="Two overlapping sets — a lexical sparse set and a semantic dense set — that overlap only partially. Each catches relevant documents the other misses, so neither dominates and fusing the two covers more.">
+    <svg viewBox="0 0 1400 460" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="Schematic hypothesis of complementarity: partially overlapping lexical and semantic result sets. This is not a measured overlap of retrieval outputs.">
       <g font-family="var(--font-sans)">
         <circle cx="560" cy="230" r="190" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="3.5" opacity="0.7"/>
         <circle cx="840" cy="230" r="190" fill="var(--warm-soft, #FBE6D8)" stroke="var(--warm, #E8743B)" stroke-width="3.5" opacity="0.7"/>
@@ -824,8 +1064,8 @@
       </g>
     </svg>
   </div>
-  <p class="viz-caption"><span lang="ru">По BEIR крепкий <strong>BM25</strong> держит nDCG@10 \(= 0{,}43\), а плотный <strong>DPR</strong> — лишь \(0{,}23\) (L3): лексика ловит точные слова, семантика — перефразы. Каждый находит то, что упускает другой; в домене (на MS MARCO) порядок и вовсе меняется: плотный вырывается вперёд — поэтому никто не доминирует и слияние покрывает больше (отсылка L3/L7).</span><span lang="en">On BEIR, robust <strong>BM25</strong> holds nDCG@10 \(= 0.43\), while dense <strong>DPR</strong> trails at \(0.23\) (L3): lexical catches exact words, semantic catches paraphrase. Each finds what the other misses; in-domain on MS MARCO the order even flips — dense pulls ahead — so neither dominates and fusing covers more (callback L3/L7).</span></p>
-  <aside class="slide-notes">Complementarity: BM25 0.43 vs dense 0.23 (callback l3-benchmarks). Neither dominates → fuse. Numbers in the caption (gated), SVG abstract.</aside>
+  <p class="viz-caption"><span lang="ru">Пересчёт <a href="https://arxiv.org/html/2104.08663v4#S5.T2" target="_blank" rel="noopener">BEIR, Table 2</a>: среднее nDCG@10 <strong>BM25</strong> \(= 0{,}4234\), <strong>Multi-DPR</strong> — \(0{,}2371\); 18 строк без MS MARCO, включая Natural Questions (для Multi-DPR — in-domain). Эти средние <strong>не измеряют пересечение выдач</strong>: круги — схема гипотезы, пользу слияния проверяют на конкретных запросах. С BEIR-13 у SPLADE++ напрямую не сопоставляем.</span><span lang="en">Recomputed from <a href="https://arxiv.org/html/2104.08663v4#S5.T2" target="_blank" rel="noopener">BEIR, Table 2</a>: mean nDCG@10 <strong>BM25</strong> \(= 0.4234\), <strong>Multi-DPR</strong> — \(0.2371\); 18 rows excluding MS MARCO, including Natural Questions (in-domain for Multi-DPR). These means <strong>do not measure result overlap</strong>: the circles illustrate a hypothesis; fusion gains must be tested on actual queries. Not directly comparable to SPLADE++'s BEIR-13.</span></p>
+  <aside class="slide-notes">SVG is a schematic complementarity hypothesis, not empirical overlap. L12-specific evidence: data/l12-expanded-evidence.json. Recompute the unweighted mean of the 18 BEIR v4 Table 2 rows excluding MS MARCO, including the NQ row marked in-domain for Multi-DPR: BM25 0.4234, Multi-DPR 0.2371 (rounded from published per-dataset scores). §4: Multi-DPR was trained on NQ, TriviaQA, WebQuestions and CuratedTREC. Do not infer complementarity from these means, or claim that this same DPR reverses the ordering on MS MARCO. The 18-row aggregation differs from the 13-dataset SPLADE++ Table 2 protocol. Primary: https://arxiv.org/html/2104.08663v4#S4 and #S5.T2.</aside>
 </section>
 
 <section class="slide" data-type="definition" data-screen-label="32 Hybrid retrieval">
@@ -860,6 +1100,28 @@
   <aside class="slide-notes">RRF formula, k=60. Callback L3 (now neural). Operator only; numbers on the worked slide.</aside>
 </section>
 
+<section class="slide" data-type="formula" data-screen-label="33a RRF · support is limited by list depth">
+  <div class="slide-header slide-header--flush">
+    <h2><span lang="ru">Кто не попал в список, не голосует</span><span lang="en">No list entry, no vote</span></h2>
+    <span class="slide-kicker"><span lang="ru">Reciprocal Rank Fusion · слияние обратных рангов</span><span lang="en">Reciprocal Rank Fusion · three separate choices</span></span>
+  </div>
+  <div class="formula-stage" style="font-size: calc(var(--fs-body) * .58)">
+    $$ \mathrm{RRF}(d)=\sum_{i:\,d\in L_i}\frac1{k+r_i(d)},\qquad k=60 $$
+  </div>
+  <div class="formula-support">
+<p class="def-where" data-defines="RRF d i L_i r_i(d) k"><span lang="ru"><b>d</b> — документ; <b>i</b> — поисковая ветвь; <b>L<sub>i</sub></b> — её возвращённый список; <b>r<sub>i</sub>(d)</b> — место документа в нём, начиная с 1. <b>k</b> — константа сглаживания, здесь 60. <b>RRF(d)</b> — сумма голосов только тех списков, где d присутствует.</span><span lang="en"><b>d</b> is a document; <b>i</b> is a retrieval branch; <b>L<sub>i</sub></b> is its returned list; <b>r<sub>i</sub>(d)</b> is the document's position, starting at 1. <b>k</b> is the smoothing constant, here 60. <b>RRF(d)</b> sums votes only from lists that contain d.</span></p>
+  <table class="cmp-table">
+    <thead><tr><th><span lang="ru">настройка</span><span lang="en">choice</span></th><th><span lang="ru">последствие</span><span lang="en">consequence</span></th></tr></thead>
+    <tbody>
+      <tr><td><span lang="ru">пропуск \(d\)</span><span lang="en">\(d\) is absent</span></td><td><span lang="ru">От этой ветви вклад 0; «последнее место» не придумываем.</span><span lang="en">This branch contributes 0; do not invent a last-place rank.</span></td></tr>
+      <tr><td>\(k\) ≠ <span lang="ru">глубина</span><span lang="en">depth</span></td><td><span lang="ru">k сглаживает веса мест; глубина определяет, какие документы вообще видны.</span><span lang="en">k smooths rank weights; depth determines which documents are visible at all.</span></td></tr>
+      <tr><td><span lang="ru">поддержка ветвей</span><span lang="en">branch support</span></td><td><span lang="ru">Несколько списков дают несколько голосов — но могут повторять одну ошибку.</span><span lang="en">Several lists give several votes — but may repeat the same mistake.</span></td></tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2"><a href="https://cormack.uwaterloo.ca/cormacksigir09-rrf.pdf" target="_blank" rel="noopener">Cormack et al. (2009)</a> · <a href="https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion" target="_blank" rel="noopener">Elasticsearch: rank_constant / rank_window_size</a></p>
+  </div>
+  <aside class="slide-notes">This is the conditional-list definition in original notes screen 34 and the appendix. Rank starts at one. A document absent from a returned/truncated list receives no contribution from that list; the definition does not require fabricating a last rank or an original score. k is a smoothing constant, not a candidate count; k=60 follows the lecture's example and the classic paper. Input list depths are independent choices and changing them can change which votes exist. Several supporting branches can help a document under this arithmetic, but correlated rankings can share errors, so agreement does not establish relevance. Primary sources: Cormack, Clarke, Buettcher, Reciprocal Rank Fusion outperforms Condorcet and individual Rank Learning Methods (SIGIR 2009), https://cormack.uwaterloo.ca/cormacksigir09-rrf.pdf, formula 1 and the description of k; Elasticsearch official RRF documentation, https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion, rank_constant/rank_window_size and pagination example explicitly assigning zero to an absent document. We use the generic rule, not a claim that all products share a default.</aside>
+</section>
 <section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="34 Fuse two rankings">
   <div class="slide-header">
     <h2><span lang="ru">Слить два ранжирования</span><span lang="en">Fuse two rankings</span></h2>
@@ -949,6 +1211,30 @@
   <aside class="slide-notes">RRF (rank-based, no calibration) vs min-max / z-score / convex (need calibration). No gated numbers (α, [0,1] are not data).</aside>
 </section>
 
+<section class="slide" data-type="formula" data-screen-label="36a Hybrid · normalize then mix">
+  <div class="slide-header slide-header--flush">
+    <h2><span lang="ru">Сначала шкала, затем вес ветви</span><span lang="en">First the scale, then the branch weight</span></h2>
+    <span class="slide-kicker"><span lang="ru">min–max и α решают две разные задачи</span><span lang="en">min–max and α solve two different problems</span></span>
+  </div>
+  <div class="formula-stage" style="font-size: calc(var(--fs-body) * .55)">
+    $$ \begin{gathered}
+       \widetilde s(d)=\frac{s(d)-s_{\min}}{s_{\max}-s_{\min}},\qquad s_{\max}>s_{\min} \\[.35em]
+       S(d)=\alpha\widetilde s_{\mathrm{dense}}(d)+(1-\alpha)\widetilde s_{\mathrm{sparse}}(d),\qquad 0\leq\alpha\leq1
+       \end{gathered} $$
+  </div>
+  <div class="formula-support">
+<p class="def-where" data-defines="d s s_min s_max s_tilde S alpha dense sparse"><span lang="ru"><b>d</b> — документ; <b>s(d)</b> — исходный балл одной ветви; <b>s<sub>min</sub>, s<sub>max</sub></b> — её минимум и максимум на выбранном наборе кандидатов; <b>s̃</b> — преобразованный балл. <b>dense / sparse</b> — плотная / разрежённая ветвь; <b>α</b> и <b>1 − α</b> — их коэффициенты; <b>S(d)</b> — итог смеси. Запрос фиксирован.</span><span lang="en"><b>d</b> is a document; <b>s(d)</b> is one branch's raw score; <b>s<sub>min</sub>, s<sub>max</sub></b> are its minimum and maximum over the chosen candidate set; <b>s̃</b> is the transformed score. <b>dense / sparse</b> label the two branches; <b>α</b> and <b>1 − α</b> are their weights; <b>S(d)</b> is the mixed score. The query is fixed.</span></p>
+  <table class="cmp-table">
+    <thead><tr><th style="width:25%;font-size:var(--fs-small)"><span lang="ru">проверка</span><span lang="en">check</span></th><th><span lang="ru">как читать формулу</span><span lang="en">how to read the formula</span></th></tr></thead>
+    <tbody>
+      <tr><td style="font-size:var(--fs-small)">min = max</td><td><span lang="ru">Делить на ноль нельзя. Все баллы равны: отдельно задаём правило для этой ветви.</span><span lang="en">Do not divide by zero. All scores are tied: define this branch's handling separately.</span></td></tr>
+      <tr><td style="font-size:var(--fs-small)"><span lang="ru">\(\alpha=0{,}5\)</span><span lang="en">\(\alpha=0.5\)</span></td><td><span lang="ru">Равные коэффициенты после нормировки — не доказательство равного качества.</span><span lang="en">Equal weights after normalization do not establish equal retrieval quality.</span></td></tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2"><span lang="ru">Набор кандидатов задаёт минимум и максимум; выброс может сжать остальные баллы. Правило для отсутствующих оценок тоже задаём явно.</span><span lang="en">The candidate set defines the extrema; an outlier can compress other scores. Specify how missing scores are handled too.</span> · <a href="https://arxiv.org/abs/2210.11934" target="_blank" rel="noopener">Bruch et al. (2023), §4</a></p>
+  </div>
+  <aside class="slide-notes">Original notes screen 37 and the mathematical appendix contain these min-max and convex-combination formulas; this slide brings both onto the visible deck. For a fixed query and branch, s_min and s_max are computed over the selected candidate set. Apply min-max independently to each branch, then combine transformed scores with alpha and 1-alpha. The formula as written requires s_max greater than s_min. If all branch scores are equal, it provides no within-set ordering signal; the implementation needs an explicit degenerate-case rule rather than a division by zero. The slide does not prescribe a universal numeric fallback. It also does not prescribe missing-score imputation: the cited analysis assumes both scores are computed on the union candidate set, whereas a system using only returned lists must state its own policy. Alpha=0.5 is an explicit equal-weight example, not a product default or an optimality claim. Min-max depends on the set's extrema and does not turn scores into calibrated probabilities. Primary source: Bruch, Gai, Ingber, An Analysis of Fusion Functions for Hybrid Retrieval, https://arxiv.org/abs/2210.11934, §4, equations 2–3 and zero-variance discussion. No new empirical gain is asserted.</aside>
+</section>
 <section class="slide" data-type="table" data-screen-label="37 Hybrid in the wild">
   <div class="slide-header">
     <h2><span lang="ru">Гибрид на практике</span><span lang="en">Hybrid in the wild</span></h2>
@@ -962,13 +1248,14 @@
     <tbody>
       <tr><td>Vespa</td><td><span lang="ru">RRF / выученное слияние рангов</span><span lang="en">RRF / learned rank fusion</span></td></tr>
       <tr><td>Elasticsearch</td><td>RRF · <code>rank_constant = 60</code></td></tr>
-      <tr><td>OpenSearch</td><td><span lang="ru">пайплайн нормализации + RRF</span><span lang="en">normalization pipeline + RRF</span></td></tr>
-      <tr><td>Qdrant</td><td>RRF / DBSF</td></tr>
+      <tr><td>OpenSearch</td><td><span lang="ru">нормализация оценок / ранговое RRF</span><span lang="en">score normalization / rank-based RRF</span></td></tr>
+      <tr><td>Qdrant</td><td><span lang="ru">RRF / DBSF — слияние оценок по распределениям</span><span lang="en">RRF / DBSF — Distribution-Based Score Fusion</span></td></tr>
       <tr><td>Weaviate</td><td><span lang="ru">гибрид · </span><span lang="en">hybrid · </span><code>alpha = 0.5</code></td></tr>
     </tbody>
   </table>
-  <p class="small muted center mt-2"><span lang="ru">Дефолты не случайны: <code>rank_constant 60</code> у Elasticsearch — это \(k=60\) Кормака; <code>alpha 0.5</code> у Weaviate — равный вес разрежённого и плотного (цитируется по документации).</span><span lang="en">The defaults aren't arbitrary: Elasticsearch's <code>rank_constant 60</code> is Cormack's \(k=60\); Weaviate's <code>alpha 0.5</code> weights sparse and dense equally (cited from the docs).</span></p>
-  <aside class="slide-notes">Production hybrid: Vespa, ES (rank_constant 60), OpenSearch, Qdrant (RRF/DBSF), Weaviate (alpha 0.5). 60 is int (free); 0.5 is 1-dp (free).</aside>
+  <p class="small muted center mt-2"><span lang="ru">Читаем параметры примеров: <code>rank_constant 60</code> — константа \(k\); <code>alpha 0.5</code> — равные коэффициенты плотной и разрежённой сторон. DBSF (<strong>Distribution-Based Score Fusion</strong>) нормирует по среднему и разбросу возвращённых баллов, затем складывает.</span><span lang="en">Read the example parameters: <code>rank_constant 60</code> is the constant \(k\); <code>alpha 0.5</code> gives dense and sparse equal weights. DBSF normalizes using the mean and spread of returned scores, then sums them.</span></p>
+  <p class="small muted center mt-2"><a href="https://qdrant.tech/documentation/search/hybrid-queries/" target="_blank" rel="noopener">Qdrant: DBSF</a> · <a href="https://docs.opensearch.org/latest/search-plugins/search-pipelines/score-ranker-processor/" target="_blank" rel="noopener">OpenSearch: rank fusion</a></p>
+  <aside class="slide-notes">Production hybrid examples: Vespa, Elasticsearch (rank_constant 60), OpenSearch, Qdrant (RRF / DBSF), Weaviate (explicit alpha 0.5 example). The table is an orientation to mechanisms, not a cross-version overview of current product defaults. DBSF is Distribution-Based Score Fusion: it uses the mean and sample-standard-deviation spread of scores returned by each branch to normalize, then sums contributions per document. Full source: Qdrant official documentation, https://qdrant.tech/documentation/search/hybrid-queries/, Distribution-Based Score Fusion. OpenSearch normalization and rank-based fusion are alternative processors, not a mandatory normalization-then-RRF chain: https://docs.opensearch.org/latest/search-plugins/search-pipelines/score-ranker-processor/. Elasticsearch: https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion. Weaviate alpha interprets the dense/sparse mix; here 0.5 is an explicit equal-weight example: https://docs.weaviate.io/weaviate/concepts/search/hybrid-search. No new default survey or empirical quality claim.</aside>
 </section>
 
 <section class="slide" data-type="definition" data-screen-label="38 The full retrieval menu">
@@ -1039,6 +1326,34 @@
   <aside class="slide-notes">LTR setup: feature vectors per (q,d), learn one order optimizing nDCG. The neural scores become features.</aside>
 </section>
 
+<section class="slide" data-type="formula" data-screen-label="41a Features become a score">
+  <div class="slide-header">
+    <h2><span lang="ru">Вектор признаков превращается в оценку</span><span lang="en">A feature vector becomes a score</span></h2>
+    <span class="slide-kicker"><span lang="ru">одна строка о паре → одна выученная функция</span><span lang="en">one row about a pair → one learned function</span></span>
+  </div>
+  <div class="formula-stage">
+    $$ x_{q,d}\in\mathbb{R}^{p},\qquad s(q,d)=f_\theta(x_{q,d}) $$
+  </div>
+  <div class="formula-support">
+<p class="def-where"><span lang="ru"><b>q</b> — запрос, <b>d</b> — документ, <b>x<sub>q,d</sub></b> — вектор из <b>p</b> вещественных признаков; <b>f<sub>θ</sub></b> — функция с обучаемыми параметрами <b>θ</b>, <b>s</b> — её оценка.</span><span lang="en"><b>q</b> is a query, <b>d</b> a document, <b>x<sub>q,d</sub></b> a vector of <b>p</b> real-valued features; <b>f<sub>θ</sub></b> is a function with learned parameters <b>θ</b>, and <b>s</b> its score.</span></p>
+  <div class="formula-caption">
+    <div class="var-block">
+      <div class="var-symbol">x</div>
+      <div class="var-desc"><span lang="ru"><strong>Вход</strong><br>BM25, плотный косинус, SPLADE, MaxSim, свежесть, клики.</span><span lang="en"><strong>Input</strong><br>BM25, dense cosine, SPLADE, MaxSim, freshness, clicks.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">f<sub>θ</sub></div>
+      <div class="var-desc"><span lang="ru"><strong>Капитан</strong><br>учится сочетать признаки на примерах релевантности.</span><span lang="en"><strong>The captain</strong><br>learns to combine features from relevance examples.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">s</div>
+      <div class="var-desc"><span lang="ru"><strong>Выход</strong><br>сортируем кандидатов одного запроса по оценке.</span><span lang="en"><strong>Output</strong><br>sort one query’s candidates by this score.</span></div>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Оценка задаёт порядок; сама по себе она не обязана быть вероятностью релевантности.</span><span lang="en">The score defines an order; by itself it need not be a relevance probability.</span></p>
+  </div>
+  <aside class="slide-notes">Expanded LTR derivation. Sources: https://www.microsoft.com/en-us/research/publication/from-ranknet-to-lambdarank-to-lambdamart-an-overview/. This slide covers: Экран 42 · Много признаков и один порядок: x∈R^p; s=fθ; чтение обозначений.</aside>
+</section>
 <section class="slide" data-type="definition" data-screen-label="42 Three ways to learn order">
   <div class="slide-header">
     <h2><span lang="ru">Три способа выучить порядок</span><span lang="en">Three ways to learn an order</span></h2>
@@ -1088,6 +1403,65 @@
   <aside class="slide-notes">RankNet probability P=σ(s_i−s_j); cross-entropy cost. Operator only; numbers on the worked slides.</aside>
 </section>
 
+<section class="slide" data-type="formula" data-screen-label="44a RankNet target and cross-entropy">
+  <div class="slide-header">
+    <h2><span lang="ru">Какое предпочтение задано разметкой?</span><span lang="en">What preference does the label specify?</span></h2>
+    <span class="slide-kicker"><span lang="ru">RankNet: вероятность модели сравнивается с целью</span><span lang="en">RankNet: compare the model probability with a target</span></span>
+  </div>
+  <div class="formula-stage">
+    $$ \mathcal L_{ij}=-y_{ij}\log P_{ij}-(1-y_{ij})\log(1-P_{ij}) $$
+  </div>
+  <div class="formula-support">
+<p class="def-where"><span lang="ru"><b>i, j</b> — документы одного запроса; <b>P<sub>ij</sub></b> — вероятность предпочтения i перед j; <b>y<sub>ij</sub></b> — целевое предпочтение, <b>ℒ<sub>ij</sub></b> — стоимость пары; <b>log</b> — натуральный логарифм.</span><span lang="en"><b>i, j</b> are documents for one query; <b>P<sub>ij</sub></b> is the model probability of preferring i to j; <b>y<sub>ij</sub></b> the target preference, <b>ℒ<sub>ij</sub></b> the pair cost; <b>log</b> is the natural logarithm.</span></p>
+  <div class="formula-caption">
+    <div class="var-block">
+      <div class="var-symbol">y = 1</div>
+      <div class="var-desc"><span lang="ru"><strong>i выше j</strong><br>штрафуется малая вероятность правильного предпочтения.</span><span lang="en"><strong>i above j</strong><br>a low probability of the correct preference is penalized.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">y = 0</div>
+      <div class="var-desc"><span lang="ru"><strong>j выше i</strong><br>цель меняет направление предпочтения.</span><span lang="en"><strong>j above i</strong><br>the target reverses the preference.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">y = ½</div>
+      <div class="var-desc"><span lang="ru"><strong>Ничья</strong><br>равное предпочтение в этой попарной модели.</span><span lang="en"><strong>A tie</strong><br>equal preference in this pairwise model.</span></div>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru"><strong>Кросс-энтропия</strong> сравнивает два распределения предпочтений. Для пары с i ≻ j остаётся только −log P<sub>ij</sub>.</span><span lang="en"><strong>Cross-entropy</strong> compares two preference distributions. For a pair with i ≻ j, only −log P<sub>ij</sub> remains.</span></p>
+  </div>
+  <aside class="slide-notes">Expanded LTR derivation. Sources: https://www.microsoft.com/en-us/research/publication/learning-to-rank-using-gradient-descent/ https://www.microsoft.com/en-us/research/publication/from-ranknet-to-lambdarank-to-lambdamart-an-overview/. This slide covers: Экран 45 · Вероятность RankNet: общая BCE и целевая вероятность y_ij.</aside>
+</section>
+<section class="slide" data-type="formula" data-screen-label="44b RankNet softplus and derivative">
+  <div class="slide-header">
+    <h2><span lang="ru">Для правильной пары: softplus от −z</span><span lang="en">For the preferred pair: softplus of −z</span></h2>
+    <span class="slide-kicker"><span lang="ru">положительная цель упрощает стоимость</span><span lang="en">a positive target simplifies the cost</span></span>
+  </div>
+  <div class="formula-stage" style="font-size:calc(var(--fs-body) * .55)">
+    $$ \begin{gathered}
+      \mathcal L=-\log\sigma(z)=\log(1+e^{-z})=\operatorname{softplus}(-z) \\[.35em]
+      \frac{\partial\mathcal L}{\partial z}=\sigma(z)-1=P_{ij}-1
+      \end{gathered} $$
+  </div>
+  <div class="formula-support">
+<p class="def-where"><span lang="ru"><b>z=s<sub>i</sub>−s<sub>j</sub></b> — разность оценок, <b>y<sub>ij</sub>=1</b>; <b>σ</b> — сигмоида, <b>P<sub>ij</sub>=σ(z)</b>; <b>ℒ</b> — стоимость; <b>∂ℒ/∂z</b> — её производная по разности; <b>e</b> — основание натурального логарифма.</span><span lang="en"><b>z=s<sub>i</sub>−s<sub>j</sub></b> is the score difference, with <b>y<sub>ij</sub>=1</b>; <b>σ</b> is sigmoid and <b>P<sub>ij</sub>=σ(z)</b>; <b>ℒ</b> is the cost; <b>∂ℒ/∂z</b> its derivative with respect to the difference; <b>e</b> the natural-logarithm base.</span></p>
+  <div class="formula-caption">
+    <div class="var-block">
+      <div class="var-symbol">−log P</div>
+      <div class="var-desc"><span lang="ru"><strong>Вероятность</strong><br>правильное предпочтение должно стать увереннее.</span><span lang="en"><strong>Probability</strong><br>the correct preference should become more confident.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">softplus(−z)</div>
+      <div class="var-desc"><span lang="ru"><strong>Та же стоимость</strong><br>гладкая функция от отрицательной разности оценок.</span><span lang="en"><strong>The same cost</strong><br>a smooth function of the negative score difference.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">∂ℒ / ∂z ≤ 0</div>
+      <div class="var-desc"><span lang="ru"><strong>Направление</strong><br>увеличение z уменьшает стоимость этой пары.</span><span lang="en"><strong>Direction</strong><br>increasing z reduces this pair’s cost.</span></div>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Так как z = s<sub>i</sub> − s<sub>j</sub>, производные по двум оценкам имеют противоположные знаки. Их численный шаг разберём после подстановки.</span><span lang="en">Because z = s<sub>i</sub> − s<sub>j</sub>, the two score derivatives have opposite signs. We will inspect their numerical update after substitution.</span></p>
+  </div>
+  <aside class="slide-notes">Expanded LTR derivation. Sources: https://www.microsoft.com/en-us/research/publication/learning-to-rank-using-gradient-descent/ https://www.microsoft.com/en-us/research/publication/from-ranknet-to-lambdarank-to-lambdamart-an-overview/. This slide covers: Экран 45 · Вероятность RankNet: L=−logP=softplus(−z); производная по разности.</aside>
+</section>
 <section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="45 RankNet to lambda">
   <div class="slide-header">
     <h2><span lang="ru">RankNet → λ</span><span lang="en">RankNet → λ</span></h2>
@@ -1137,6 +1511,7 @@
     }
   }
   </script>
+  <p class="small muted center mt-2"><span lang="ru">Оценки \(s_i &gt; s_j\) уже задают порядок \([i,j]\). Нижняя рамка отдельно сравнивает \([j,i]\) и \([i,j]\): для λ нужен <strong>модуль эффекта обмена</strong>, а не неверный порядок из этих оценок.</span><span lang="en">The scores \(s_i &gt; s_j\) already imply \([i,j]\). The lower box separately compares \([j,i]\) with \([i,j]\): λ uses the <strong>swap-effect magnitude</strong>, not an incorrect order produced by these scores.</span></p>
   <aside class="slide-notes">Mounted ltr-lambda widget. Steps: score bars → RankNet σ gauge → ΔnDCG → λ force arrow. Data inlined from data/l8-ltr.json.</aside>
 </section>
 <section class="slide" data-type="formula" data-screen-label="46 RankNet, by hand">
@@ -1153,6 +1528,76 @@
   <aside class="slide-notes">RankNet by hand: σ(1.2)=0.7685, cost=log(1+e^-1.2)=0.2633. Scores/diff are 1-dp (free); the two 4-dp results gated vs data/l8-ltr.json.</aside>
 </section>
 
+<section class="slide" data-type="formula" data-screen-label="46a RankNet gradient versus update">
+  <div class="slide-header">
+    <h2><span lang="ru">Производная и шаг смотрят в разные стороны</span><span lang="en">The derivative and the update point opposite ways</span></h2>
+    <span class="slide-kicker"><span lang="ru">та же пара: sᵢ = 1,5; sⱼ = 0,3; P = 0,7685</span><span lang="en">the same pair: sᵢ = 1.5; sⱼ = 0.3; P = 0.7685</span></span>
+  </div>
+  <div class="formula-stage" style="font-size:calc(var(--fs-body) * .60)">
+    <div lang="ru">$$ \begin{gathered}
+      g=1-P_{ij}\approx0{,}2315,\qquad\left(\frac{\partial\mathcal L}{\partial s_i},\frac{\partial\mathcal L}{\partial s_j}\right)=(-g,+g) \\[.35em]
+      (s_i,s_j)\leftarrow(1{,}5+\eta g,\;0{,}3-\eta g),\qquad\eta&gt;0
+      \end{gathered} $$</div>
+    <div lang="en">$$ \begin{gathered}
+      g=1-P_{ij}\approx0.2315,\qquad\left(\frac{\partial\mathcal L}{\partial s_i},\frac{\partial\mathcal L}{\partial s_j}\right)=(-g,+g) \\[.35em]
+      (s_i,s_j)\leftarrow(1.5+\eta g,\;0.3-\eta g),\qquad\eta&gt;0
+      \end{gathered} $$</div>
+  </div>
+  <div class="formula-support">
+  <p class="def-where"><span lang="ru"><b>g</b> — положительный модуль толчка, <b>P<sub>ij</sub></b> — вероятность предпочтения; <b>ℒ</b> — стоимость пары, <b>s<sub>i</sub>, s<sub>j</sub></b> — оценки; <b>η</b> — положительный шаг; <b>∇ℒ</b> — вектор производных по оценкам; стрелка — их обновление.</span><span lang="en"><b>g</b> is the positive push magnitude, <b>P<sub>ij</sub></b> the preference probability; <b>ℒ</b> is the pair cost and <b>s<sub>i</sub>, s<sub>j</sub></b> the scores; <b>η</b> is a positive step size; <b>∇ℒ</b> is the vector of score derivatives; the arrow updates scores.</span></p>
+  <div class="formula-caption">
+    <div class="var-block">
+      <div class="var-symbol">−g</div>
+      <div class="var-desc"><span lang="ru"><strong>Производная по i</strong><br>отрицательна; вычитая её, увеличиваем sᵢ.</span><span lang="en"><strong>Derivative for i</strong><br>negative; subtracting it increases sᵢ.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">+g</div>
+      <div class="var-desc"><span lang="ru"><strong>Производная по j</strong><br>положительна; вычитая её, уменьшаем sⱼ.</span><span lang="en"><strong>Derivative for j</strong><br>positive; subtracting it decreases sⱼ.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">−∇ℒ</div>
+      <div class="var-desc"><span lang="ru"><strong>Движение</strong><br>стрелки «i вверх, j вниз» — направление спуска.</span><span lang="en"><strong>Movement</strong><br>“i up, j down” shows the descent direction.</span></div>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Это иллюстрация шага по оценкам. В модели обновляются общие параметры через обратное распространение; на результат влияют и другие пары.</span><span lang="en">This illustrates a step on scores. A model updates shared parameters by backpropagation, with other pairs also contributing.</span></p>
+  </div>
+  <aside class="slide-notes">Expanded LTR derivation. Sources: https://www.microsoft.com/en-us/research/publication/learning-to-rank-using-gradient-descent/ https://www.microsoft.com/en-us/research/publication/from-ranknet-to-lambdarank-to-lambdamart-an-overview/. This slide covers: Экран 45: знаки частных производных; Экран 47: g=1−P, численный модуль и шаг ηg.</aside>
+</section>
+<section class="slide" data-type="formula" data-screen-label="46b nDCG of two documents by hand">
+  <div class="slide-header">
+    <h2><span lang="ru">Откуда взялись 0,6309 и 1?</span><span lang="en">Where did 0.6309 and 1 come from?</span></h2>
+    <span class="slide-kicker"><span lang="ru">два документа, релевантности 1 и 0; считаем обе позиции</span><span lang="en">two documents, relevance 1 and 0; count both positions</span></span>
+  </div>
+  <div class="formula-stage" style="font-size:calc(var(--fs-body) * .60)">
+    <div lang="ru">$$ \begin{gathered}
+      \operatorname{DCG}([j,i])=\frac{0}{\log_2 2}+\frac{1}{\log_2 3}\approx0{,}6309 \\[.35em]
+      \operatorname{nDCG}=\frac{\operatorname{DCG}}{\operatorname{IDCG}},\qquad\operatorname{IDCG}=1,\quad\operatorname{nDCG}([i,j])=1
+      \end{gathered} $$</div>
+    <div lang="en">$$ \begin{gathered}
+      \operatorname{DCG}([j,i])=\frac{0}{\log_2 2}+\frac{1}{\log_2 3}\approx0.6309 \\[.35em]
+      \operatorname{nDCG}=\frac{\operatorname{DCG}}{\operatorname{IDCG}},\qquad\operatorname{IDCG}=1,\quad\operatorname{nDCG}([i,j])=1
+      \end{gathered} $$</div>
+  </div>
+  <div class="formula-support">
+  <p class="def-where"><span lang="ru"><b>i</b> имеет релевантность <b>1</b>, <b>j</b> — <b>0</b>. <b>DCG</b> — Discounted Cumulative Gain, накопленный выигрыш с позиционным дисконтированием; <b>IDCG</b> — идеальный DCG; <b>nDCG</b> — нормированный DCG; <b>log₂</b> — логарифм по основанию 2.</span><span lang="en"><b>i</b> has relevance <b>1</b> and <b>j</b> relevance <b>0</b>. <b>DCG</b> is Discounted Cumulative Gain; <b>IDCG</b> its ideal value; <b>nDCG</b> normalized DCG; <b>log₂</b> is logarithm base 2.</span></p>
+  <div class="formula-caption">
+    <div class="var-block">
+      <div class="var-symbol">[j, i]</div>
+      <div class="var-desc"><span lang="ru"><strong>Полезный второй</strong><br>его вклад уменьшает дисконт второй позиции.</span><span lang="en"><strong>The useful document is second</strong><br>its gain is reduced by the second-position discount.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">IDCG = 1</div>
+      <div class="var-desc"><span lang="ru"><strong>Идеальный порядок</strong><br>единственный полезный документ стоит первым.</span><span lang="en"><strong>The ideal order</strong><br>the only useful document ranks first.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">[i, j]</div>
+      <div class="var-desc"><span lang="ru"><strong>Нормированная метрика</strong><br>идеальный список получает единицу.</span><span lang="en"><strong>The normalized metric</strong><br>the ideal list receives one.</span></div>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Это отдельное сравнение порядков. Оценки 1,5 и 0,3 из RankNet уже сортируются как [i,j]; на следующем экране используем модуль эффекта обмена.</span><span lang="en">This is a separate comparison of orders. RankNet scores 1.5 and 0.3 already sort as [i,j]; next we use the magnitude of the swap effect.</span></p>
+  </div>
+  <aside class="slide-notes">Expanded LTR derivation. Sources: https://www.microsoft.com/en-us/research/publication/from-ranknet-to-lambdarank-to-lambdamart-an-overview/. This slide covers: Экран 48 · LambdaRank: DCG([j,i])=1/log₂3; IDCG=1; нормировка для меток 1/0.</aside>
+</section>
 <section class="slide" data-type="formula" data-screen-label="47 LambdaRank">
   <div class="slide-header">
     <h2>LambdaRank</h2>
@@ -1163,10 +1608,72 @@
     $$ [\,j,i\,]: \text{nDCG} = \mathbf{0.6309} \;\longrightarrow\; [\,i,j\,]: \text{nDCG} = 1.0 $$
     $$ \Delta\text{nDCG} = 1.0 - 0.6309 = \mathbf{0.3691}, \qquad \lambda = 0.2315 \cdot 0.3691 = \mathbf{0.0854} $$
   </div>
-  <p class="small muted center mt-2"><span lang="ru">LambdaRank не дифференцирует метрику — он сразу задаёт силу \(\lambda = \text{градиент} \cdot |\Delta\text{nDCG}|\). Перестановка \([j,i] \to [i,j]\) поднимает nDCG с \(\mathbf{0{,}6309}\) до \(1{,}0\) (отсылка L5), значит \(\Delta\text{nDCG} = \mathbf{0{,}3691}\); сила \(\lambda = \mathbf{0{,}0854}\) тянет \(i\) вверх, \(j\) вниз — тем сильнее, чем больше выигрыш метрики.</span><span lang="en">LambdaRank doesn't differentiate the metric — it directly defines the force \(\lambda = \text{gradient} \cdot |\Delta\text{nDCG}|\). Swapping \([j,i] \to [i,j]\) lifts nDCG from \(\mathbf{0.6309}\) to \(1.0\) (callback L5), so \(\Delta\text{nDCG} = \mathbf{0.3691}\); the force \(\lambda = \mathbf{0.0854}\) pulls \(i\) up and \(j\) down — harder where the metric gain is larger.</span></p>
-  <aside class="slide-notes">LambdaRank by hand: gradient 0.2315, nDCG current 0.6309 → 1.0, ΔnDCG 0.3691, λ=0.2315·0.3691=0.0854. All 4-dp gated vs data/l8-ltr.json.</aside>
+  <p class="small muted center mt-2"><span lang="ru">Здесь <strong>gradient — модуль попарного толчка</strong>, λ тянет i вверх, j вниз. Рамка сравнивает два порядка отдельно от оценок \(s_i&gt;s_j\), которые уже ставят i первым. nDCG меняется дискретно: это <strong>эффект обмена</strong>, а не её производная.</span><span lang="en">Here <strong>gradient is the pairwise push magnitude</strong>; λ pulls i up and j down. The box compares two orders separately from scores \(s_i&gt;s_j\), which already place i first. nDCG changes discretely: this is a <strong>swap effect</strong>, not its derivative.</span></p>
+  <aside class="slide-notes">LambdaRank by hand: gradient 0.2315, hypothetical nDCG order comparison 0.6309 → 1.0, ΔnDCG 0.3691, λ=0.2315·0.3691=0.0854. All 4-dp gated vs data/l8-ltr.json.</aside>
 </section>
 
+<section class="slide" data-type="formula" data-screen-label="47a Lambda pair and document signal">
+  <div class="slide-header">
+    <h2><span lang="ru">От силы одной пары к сигналу документа</span><span lang="en">From one pair’s force to a document signal</span></h2>
+    <span class="slide-kicker"><span lang="ru">знак задаёт предпочтение; метрика задаёт вес</span><span lang="en">the preference sets direction; the metric sets weight</span></span>
+  </div>
+  <div class="formula-stage" style="font-size:calc(var(--fs-body) * .65)">
+    $$ \begin{aligned}
+      \ell_{ij}&=(1-P_{ij})\,|\Delta\operatorname{nDCG}_{ij}|,\qquad i\succ j \\[.35em]
+      u_i&=\sum_{j:\,i\succ j}\ell_{ij}-\sum_{j:\,j\succ i}\ell_{ji}
+    \end{aligned} $$
+  </div>
+  <div class="formula-support">
+<p class="def-where" data-defines="i j P_ij ell_ij Delta_nDCG_ij u_i"><span lang="ru"><b>i, j</b> — документы одного запроса; <b>i ≻ j</b> — предпочтение по релевантности; <b>P<sub>ij</sub></b> — вероятность модели; <b>ℓ<sub>ij</sub> ≥ 0</b> — сила пары; <b>|ΔnDCG<sub>ij</sub>|</b> — модуль эффекта обмена; <b>u<sub>i</sub></b> — суммарный сигнал для i.</span><span lang="en"><b>i, j</b> are one query's documents; <b>i ≻ j</b> is the relevance preference; <b>P<sub>ij</sub></b> is the model probability; <b>ℓ<sub>ij</sub> ≥ 0</b> is pair-force magnitude; <b>|ΔnDCG<sub>ij</sub>|</b> is the swap effect's magnitude; <b>u<sub>i</sub></b> is the total signal for i.</span></p>
+  <div class="formula-caption">
+    <div class="var-block">
+      <div class="var-symbol">i ≻ j</div>
+      <div class="var-desc"><span lang="ru"><strong>i должен подняться</strong><br>добавляем +ℓᵢⱼ.</span><span lang="en"><strong>i should rise</strong><br>add +ℓᵢⱼ.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">j ≻ i</div>
+      <div class="var-desc"><span lang="ru"><strong>i должен опуститься</strong><br>вычитаем ℓⱼᵢ.</span><span lang="en"><strong>i should fall</strong><br>subtract ℓⱼᵢ.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">uᵢ</div>
+      <div class="var-desc"><span lang="ru"><strong>Общий сигнал</strong><br>суммируем вклады пар.</span><span lang="en"><strong>The total signal</strong><br>sum the pair contributions.</span></div>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">uᵢ — отрицательный псевдоградиент. Если λ называют производной, знаки обратны. LambdaMART учит деревья по uᵢ.</span><span lang="en">uᵢ is a negative pseudo-gradient. Calling λ a derivative reverses the signs. LambdaMART trains trees on uᵢ.</span></p>
+  </div>
+  <aside class="slide-notes">Expanded LTR derivation. Sources: https://www.microsoft.com/en-us/research/publication/from-ranknet-to-lambdarank-to-lambdamart-an-overview/. This slide covers: Экран 48: общая сила lambda и сумма вкладов пар; Приложение · LambdaRank: знаковое соглашение и агрегация.</aside>
+</section>
+<section class="slide" data-type="formula" data-screen-label="47b The nDCG swap weight">
+  <div class="slide-header">
+    <h2><span lang="ru">Вес обмена: выигрыш × разница позиций</span><span lang="en">A swap’s weight: gain difference × position difference</span></h2>
+    <span class="slide-kicker"><span lang="ru">конечная разница метрики, не её производная</span><span lang="en">a finite metric difference, not its derivative</span></span>
+  </div>
+  <div class="formula-stage" style="font-size:calc(var(--fs-body) * .65)">
+    $$ \begin{aligned}
+      |\Delta\operatorname{nDCG}_{ij}|&=\frac{|G(y_i)-G(y_j)|}{\operatorname{IDCG}}\,|D(r_i)-D(r_j)| \\[.35em]
+      G(y)&=2^y-1,\qquad D(r)=\begin{cases}\dfrac{1}{\log_2(r+1)},&amp;r\le K,\\0,&amp;r&gt;K.\end{cases}
+    \end{aligned} $$
+  </div>
+  <div class="formula-support">
+<p class="def-where" data-defines="y_i y_j r_i r_j G D K IDCG Delta i j log2"><span lang="ru"><b>y<sub>i</sub>, y<sub>j</sub></b> — релевантности; <b>r<sub>i</sub>, r<sub>j</sub></b> — места; <b>G</b> — выигрыш; <b>D</b> — дисконт; <b>K</b> — отсечение nDCG@K; <b>IDCG &gt; 0</b> — идеальный DCG запроса; <b>Δ</b> — изменение от обмена i, j; <b>log₂</b> — логарифм по основанию 2.</span><span lang="en"><b>y<sub>i</sub>, y<sub>j</sub></b> are relevance labels; <b>r<sub>i</sub>, r<sub>j</sub></b> are ranks; <b>G</b> is gain; <b>D</b> is discount; <b>K</b> is the nDCG@K cutoff; <b>IDCG &gt; 0</b> is the query's ideal DCG; <b>Δ</b> is the change from swapping i, j; <b>log₂</b> is logarithm base 2.</span></p>
+  <div class="formula-caption">
+    <div class="var-block">
+      <div class="var-symbol">G(yᵢ) − G(yⱼ)</div>
+      <div class="var-desc"><span lang="ru"><strong>Документы</strong><br>равный выигрыш → вес 0.</span><span lang="en"><strong>Documents</strong><br>equal gain → weight 0.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">D(rᵢ) − D(rⱼ)</div>
+      <div class="var-desc"><span lang="ru"><strong>Места</strong><br>дисконт задаёт цену обмена.</span><span lang="en"><strong>Positions</strong><br>discount sets the swap's cost.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">|ΔnDCG|</div>
+      <div class="var-desc"><span lang="ru"><strong>Вес пары</strong><br>величина из метрики, знак — из предпочтения.</span><span lang="en"><strong>Pair weight</strong><br>metric gives magnitude; preference gives direction.</span></div>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">За отсечением D = 0. При фиксированном порядке nDCG постоянна: это эффект обмена, а не гладкая производная по оценкам.</span><span lang="en">Beyond the cutoff D = 0. With order fixed, nDCG is constant: this is a swap effect, not a smooth score derivative.</span></p>
+  </div>
+  <aside class="slide-notes">Expanded LTR derivation. Sources: https://www.microsoft.com/en-us/research/publication/from-ranknet-to-lambdarank-to-lambdamart-an-overview/. This slide covers: Приложение · Изменение nDCG от обмена местами: G, D, IDCG и cutoff.</aside>
+</section>
 <section class="slide" data-type="definition" data-screen-label="48 LambdaMART">
   <div class="slide-header">
     <h2>LambdaMART</h2>
@@ -1186,6 +1693,34 @@
   <aside class="slide-notes">LambdaMART: λ inside GBRT; LambdaMART-based ensemble won Yahoo! 2010 (cited). Pays off the L10 promise (32-pointwise-pairwise-listwise, beat 20). 2010 is int → free.</aside>
 </section>
 
+<section class="slide" data-type="formula" data-screen-label="48a Additive tree boosting">
+  <div class="slide-header">
+    <h2><span lang="ru">Каждое дерево добавляет поправку</span><span lang="en">Each tree adds a correction</span></h2>
+    <span class="slide-kicker"><span lang="ru">LambdaMART: тот же λ-сигнал, аддитивная модель</span><span lang="en">LambdaMART: the same λ signal, an additive model</span></span>
+  </div>
+  <div class="formula-stage">
+    $$ F_m(x)=F_{m-1}(x)+\eta\,h_m(x) $$
+  </div>
+  <div class="formula-support">
+<p class="def-where"><span lang="ru"><b>x</b> — вектор признаков пары; <b>F<sub>m−1</sub></b> — текущая оценка ансамбля, <b>h<sub>m</sub></b> — новое регрессионное дерево; <b>m</b> — номер шага, <b>η &gt; 0</b> — темп обучения; <b>F<sub>m</sub></b> — обновлённая оценка.</span><span lang="en"><b>x</b> is a pair’s feature vector; <b>F<sub>m−1</sub></b> is the current ensemble score and <b>h<sub>m</sub></b> the new regression tree; <b>m</b> is the boosting step, <b>η &gt; 0</b> the learning rate, and <b>F<sub>m</sub></b> the updated score.</span></p>
+  <div class="formula-caption">
+    <div class="var-block">
+      <div class="var-symbol">Fₘ₋₁</div>
+      <div class="var-desc"><span lang="ru"><strong>Уже выучено</strong><br>текущий ансамбль оценивает кандидатов.</span><span lang="en"><strong>Already learned</strong><br>the current ensemble scores the candidates.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">hₘ</div>
+      <div class="var-desc"><span lang="ru"><strong>Новая поправка</strong><br>дерево учится по агрегированным λ-сигналам.</span><span lang="en"><strong>A new correction</strong><br>the tree fits aggregated λ signals.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">η</div>
+      <div class="var-desc"><span lang="ru"><strong>Размер вклада</strong><br>темп обучения масштабирует новое дерево.</span><span lang="en"><strong>Contribution size</strong><br>the learning rate scales the new tree.</span></div>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru"><strong>MART</strong> — Multiple Additive Regression Trees. Это ансамбль деревьев; реализации могут использовать и кривизну для расчёта значений листьев. Признаки сочетаются нелинейно.</span><span lang="en"><strong>MART</strong> means Multiple Additive Regression Trees. This is a tree ensemble; implementations may also use curvature for leaf values. Feature combinations can be nonlinear.</span></p>
+  </div>
+  <aside class="slide-notes">Expanded LTR derivation. Sources: https://www.microsoft.com/en-us/research/publication/from-ranknet-to-lambdarank-to-lambdamart-an-overview/. This slide covers: Экран 49 · LambdaMART: F_m=F_prev+ηh; деревья, темп обучения и поправки.</aside>
+</section>
 <section class="slide" data-type="definition" data-screen-label="49 Features for the Captain">
   <div class="slide-header">
     <h2><span lang="ru">Признаки для капитана</span><span lang="en">Features for the Captain</span></h2>
@@ -1202,6 +1737,23 @@
     </div>
   </div>
   <aside class="slide-notes">Features: the neural scores (BM25, dense, SPLADE, ColBERT) become LTR features. Links pillars 1–3 into pillar 4.</aside>
+</section>
+
+<section class="slide" data-type="table" data-screen-label="49a Feature availability and cost">
+  <div class="slide-header">
+    <h2><span lang="ru">Пропущенный признак и цена оценки</span><span lang="en">Missing features and scoring cost</span></h2>
+    <span class="slide-kicker"><span lang="ru">отчёт разведчика ещё нужно получить</span><span lang="en">a scout's report still has to be computed</span></span>
+  </div>
+  <table class="cmp-table">
+    <thead><tr><th style="width:30%"><span lang="ru">Ситуация</span><span lang="en">Situation</span></th><th><span lang="ru">Смысл для ранкера</span><span lang="en">Meaning for the ranker</span></th></tr></thead>
+    <tbody>
+      <tr><td><span lang="ru">Оценка вычислена и равна нулю</span><span lang="en">The score was computed and is zero</span></td><td><span lang="ru">Известное значение признака</span><span lang="en">An observed feature value</span></td></tr>
+      <tr><td><span lang="ru">Документ отсутствует в верхушке ветви</span><span lang="en">The document is absent from a branch's top results</span></td><td><span lang="ru">Оценка может быть неизвестна. Нужна явная обработка пропуска</span><span lang="en">Its score may be unknown. Missing values need an explicit policy</span></td></tr>
+      <tr><td><span lang="ru">MaxSim стал одной координатой</span><span lang="en">MaxSim became a single feature</span></td><td><span lang="ru">Вычислительная цена ColBERT сохраняется для каждого оцениваемого кандидата</span><span lang="en">ColBERT's computation is still required for each scored candidate</span></td></tr>
+    </tbody>
+  </table>
+  <p class="small muted center mt-2"><span lang="ru">Набор признаков выбирают вместе с бюджетом задержки. Отсутствие в коротком списке не задаёт метку нерелевантности.</span><span lang="en">Choose features together with the latency budget. Absence from a short list does not assign an irrelevance label.</span></p>
+  <aside class="slide-notes">The detailed lecture script's feature section distinguishes zero from an uncomputed score and explains that a neural score remains costly when used as one LTR feature. This is a design consequence of truncated candidate lists, not a measured benchmark. Background: Burges, 2010, https://www.microsoft.com/en-us/research/publication/from-ranknet-to-lambdarank-to-lambdamart-an-overview/ .</aside>
 </section>
 
 <section class="slide" data-type="table" data-screen-label="50 LETOR and MSLR">
@@ -1223,6 +1775,24 @@
   <aside class="slide-notes">LETOR / MSLR-WEB30K: 136 features, grades 0–4, ≈30K queries (cited). All ints/ranges → coverage-free.</aside>
 </section>
 
+<section class="slide" data-type="table" data-screen-label="50a Query group splits">
+  <div class="slide-header">
+    <h2><span lang="ru">Разбиение по запросам</span><span lang="en">Splitting by query</span></h2>
+    <span class="slide-kicker"><span lang="ru">одна группа запроса целиком попадает в одну часть</span><span lang="en">keep each query's candidate group in one partition</span></span>
+  </div>
+  <table class="cmp-table">
+    <thead><tr><th><span lang="ru">Часть</span><span lang="en">Partition</span></th><th><span lang="ru">MSLR, разбиение 1</span><span lang="en">MSLR, first fold</span></th><th><span lang="ru">Назначение</span><span lang="en">Purpose</span></th></tr></thead>
+    <tbody>
+      <tr><td><span lang="ru">Обучение</span><span lang="en">Training</span></td><td>S1, S2, S3</td><td><span lang="ru">Обучить ранкер</span><span lang="en">Fit the ranker</span></td></tr>
+      <tr><td><span lang="ru">Валидация</span><span lang="en">Validation</span></td><td>S4</td><td><span lang="ru">Выбрать гиперпараметры</span><span lang="en">Choose hyperparameters</span></td></tr>
+      <tr><td><span lang="ru">Тест</span><span lang="en">Test</span></td><td>S5</td><td><span lang="ru">Оценить итоговую модель</span><span lang="en">Evaluate the final model</span></td></tr>
+    </tbody>
+  </table>
+  <p class="small center mt-2"><span lang="ru">S1–S5 — группы запросов. Случайное перемешивание строк «запрос–документ» может поместить один запрос и в обучение, и в тест и исказить проверку переноса на новые запросы.</span><span lang="en">S1–S5 are query groups. Randomly shuffling query–document rows can put the same query in training and test, distorting evaluation on unseen queries.</span></p>
+  <p class="small muted center mt-2"><a href="https://www.microsoft.com/en-us/research/project/mslr/">Microsoft Research · MSLR dataset partitions</a></p>
+  <aside class="slide-notes">Source: https://www.microsoft.com/en-us/research/project/mslr/ , Dataset Partition. Five roughly equal query partitions, five-fold cross-validation. Fold 1 uses S1/S2/S3 for training, S4 for validation and S5 for test. The warning concerns the goal of generalizing to unseen queries; it is not a claim that every task must exclude repeated queries.</aside>
+</section>
+
 <section class="slide" data-type="table" data-screen-label="51 Listwise">
   <div class="slide-header">
     <h2><span lang="ru">Listwise</span><span lang="en">Listwise</span></h2>
@@ -1242,6 +1812,68 @@
   <aside class="slide-notes">Listwise: ListNet (top-one perm), ListMLE (Plackett–Luce). No gated numbers.</aside>
 </section>
 
+<section class="slide" data-type="formula" data-screen-label="51a ListNet top-one and cross-entropy">
+  <div class="slide-header">
+    <h2><span lang="ru">ListNet: кто должен быть первым?</span><span lang="en">ListNet: who should rank first?</span></h2>
+    <span class="slide-kicker"><span lang="ru">распределение модели по всему списку → кросс-энтропия</span><span lang="en">a model distribution over the list → cross-entropy</span></span>
+  </div>
+  <div class="formula-stage" style="font-size:calc(var(--fs-body) * .65)">
+    $$ \begin{aligned}
+      p_i&=\frac{e^{s_i}}{\sum_{k=1}^{m}e^{s_k}} \\[.35em]
+      \mathcal L_{\mathrm{ListNet}}&=-\sum_{i=1}^{m}t_i\log p_i
+    \end{aligned} $$
+  </div>
+  <div class="formula-support">
+<p class="def-where" data-defines="m i k s_i p_i t_i L log e"><span lang="ru"><b>m</b> — число кандидатов запроса; <b>i, k</b> — их индексы; <b>s<sub>i</sub></b> — оценка; <b>p<sub>i</sub></b> — вероятность первого места; <b>t<sub>i</sub></b> — цель из меток; <b>ℒ</b> — кросс-энтропия; <b>log</b> — натуральный логарифм, <b>e</b> — его основание.</span><span lang="en"><b>m</b> is the query's candidate count; <b>i, k</b> index them; <b>s<sub>i</sub></b> is a score; <b>p<sub>i</sub></b> is top-one probability; <b>t<sub>i</sub></b> is the label-derived target; <b>ℒ</b> is cross-entropy; <b>log</b> is natural logarithm and <b>e</b> its base.</span></p>
+  <div class="formula-caption">
+    <div class="var-block">
+      <div class="var-symbol">pᵢ</div>
+      <div class="var-desc"><span lang="ru"><strong>Софтмакс</strong><br>общий знаменатель связывает оценки.</span><span lang="en"><strong>Softmax</strong><br>one denominator couples the scores.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">tᵢ</div>
+      <div class="var-desc"><span lang="ru"><strong>Цель из меток</strong><br>тоже задаётся софтмаксом.</span><span lang="en"><strong>Target from labels</strong><br>also defined by softmax.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">−Σ tᵢ log pᵢ</div>
+      <div class="var-desc"><span lang="ru"><strong>Обучение</strong><br>сближаем распределения p и t.</span><span lang="en"><strong>Training</strong><br>align distributions p and t.</span></div>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Top-one вариант ListNet: кросс-энтропия — суррогат ранжирования, не сама дискретная nDCG.</span><span lang="en">Top-one ListNet: cross-entropy is a ranking surrogate, not discrete nDCG itself.</span></p>
+  </div>
+  <aside class="slide-notes">Expanded LTR derivation. Sources: https://doi.org/10.1145/1273496.1273513. This slide covers: Экран 52 · Listwise: ListNet top-one softmax и кросс-энтропия.</aside>
+</section>
+<section class="slide" data-type="formula" data-screen-label="51b ListMLE permutation likelihood">
+  <div class="slide-header">
+    <h2><span lang="ru">ListMLE: вероятность всего порядка</span><span lang="en">ListMLE: a likelihood for the whole order</span></h2>
+    <span class="slide-kicker"><span lang="ru">выбираем первое место, затем следующее из оставшихся</span><span lang="en">choose first place, then the next from those remaining</span></span>
+  </div>
+  <div class="formula-stage" style="font-size:calc(var(--fs-body) * .65)">
+    $$ \begin{aligned}
+      P_\theta(\pi)&=\prod_{r=1}^{m}\frac{e^{s_{\pi_r}}}{\sum_{t=r}^{m}e^{s_{\pi_t}}} \\[.35em]
+      \mathcal L_{\mathrm{ListMLE}}&=-\log P_\theta(\pi)
+    \end{aligned} $$
+  </div>
+  <div class="formula-support">
+<p class="def-where" data-defines="pi m pi_r r t s_pi_r theta P_theta L e"><span lang="ru"><b>π</b> — целевой порядок <b>m</b> кандидатов; <b>π<sub>r</sub></b> — документ на месте <b>r</b>; <b>t</b> перебирает оставшиеся места; <b>s<sub>πr</sub></b> — оценка; <b>θ</b> — параметры; <b>P<sub>θ</sub></b> — вероятность порядка; <b>ℒ</b> — её отрицательный натуральный логарифм; <b>e</b> — основание логарифма.</span><span lang="en"><b>π</b> is the target order of <b>m</b> candidates; <b>π<sub>r</sub></b> is the document at rank <b>r</b>; <b>t</b> indexes remaining ranks; <b>s<sub>πr</sub></b> is its score; <b>θ</b> denotes parameters; <b>P<sub>θ</sub></b> is order probability; <b>ℒ</b> is its negative natural logarithm; <b>e</b> is the logarithm's base.</span></p>
+  <div class="formula-caption">
+    <div class="var-block">
+      <div class="var-symbol">r = 1</div>
+      <div class="var-desc"><span lang="ru"><strong>Первый выбор</strong><br>в знаменателе все кандидаты.</span><span lang="en"><strong>First choice</strong><br>all candidates in the denominator.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">r → r + 1</div>
+      <div class="var-desc"><span lang="ru"><strong>Следующий выбор</strong><br>выбранный документ исключён.</span><span lang="en"><strong>Next choice</strong><br>exclude the selected document.</span></div>
+    </div>
+    <div class="var-block">
+      <div class="var-symbol">−log Pθ(π)</div>
+      <div class="var-desc"><span lang="ru"><strong>MLE</strong><br>Maximum Likelihood Estimation — делаем нужный порядок вероятнее.</span><span lang="en"><strong>MLE</strong><br>Maximum Likelihood Estimation: make the target order more likely.</span></div>
+    </div>
+  </div>
+  <p class="small muted center mt-2"><span lang="ru">Вероятность по модели Плакетта–Люса. При равных метках явно задаём целевой порядок.</span><span lang="en">Probability follows the Plackett–Luce model. Tied labels require an explicit target order.</span></p>
+  </div>
+  <aside class="slide-notes">Expanded LTR derivation. Sources: https://doi.org/10.1145/1390156.1390306. This slide covers: Экран 52 · Listwise: ListMLE, Plackett–Luce, отрицательный log-likelihood.</aside>
+</section>
 <section class="slide" data-type="definition" data-screen-label="52 The modern Captain">
   <div class="slide-header">
     <h2><span lang="ru">Современный капитан</span><span lang="en">The modern Captain</span></h2>
@@ -1306,6 +1938,23 @@
   </div>
   <p class="viz-caption"><span lang="ru">Три армии добывают кандидатов, гибрид (RRF) сливает их в один набор, капитан (LambdaMART) переупорядочивает верх — Серёга наконец видит одно войско вместо трёх. Сублинейную скорость каждой армии обеспечивает ANN — это L13; готовый ответ генерирует RAG — это L15. <span class="small muted">(Фиолетовый — не четвёртый сигнал, а <em>стадия слияния</em>: синий — разрежённый, оранжевый — плотный, фиолетовый — где они сходятся.)</span></span><span lang="en">Three armies retrieve candidates, hybrid (RRF) fuses them into one set, the captain (LambdaMART) reranks the top &mdash; S&eacute;r&eacute;ga finally sees one host instead of three. ANN makes each army sublinear — that's L13; RAG turns the result into an answer — that's L15. <span class="small muted">(Violet is not a fourth signal but the <em>fused stage</em>: blue = sparse, orange = dense, violet = where they merge.)</span></span></p>
   <aside class="slide-notes">Full pipeline: sparse+dense+ColBERT → hybrid fuse → LTR rerank → (L13 ANN). Bridges to L13/L15. No gated numbers.</aside>
+</section>
+
+<section class="slide" data-type="table" data-screen-label="54a Candidate recall ceiling">
+  <div class="slide-header">
+    <h2><span lang="ru">Полнота кандидатов ограничивает реранкер</span><span lang="en">Candidate recall limits reranking</span></h2>
+    <span class="slide-kicker"><span lang="ru">учебная ситуация: нужная инструкция не попала в список</span><span lang="en">toy scenario: the needed manual never enters the candidate list</span></span>
+  </div>
+  <table class="cmp-table">
+    <thead><tr><th><span lang="ru">Этап</span><span lang="en">Stage</span></th><th><span lang="ru">Что происходит с нужным документом</span><span lang="en">What happens to the relevant document</span></th></tr></thead>
+    <tbody>
+      <tr><td><span lang="ru">Корпус</span><span lang="en">Corpus</span></td><td><span lang="ru">Инструкция по ошибке E17 на модели X200 существует</span><span lang="en">The manual for error E17 on model X200 exists</span></td></tr>
+      <tr><td><span lang="ru">Кандидаты после слияния</span><span lang="en">Candidates after fusion</span></td><td><span lang="ru">Инструкция не прошла отбор ни в одной ветви</span><span lang="en">No branch retrieved the manual into its selected results</span></td></tr>
+      <tr><td><span lang="ru">Реранкер</span><span lang="en">Reranker</span></td><td><span lang="ru">Меняет порядок поступившего списка. Пропущенная инструкция остаётся за его пределами</span><span lang="en">Reorders the supplied list. The missed manual remains outside it</span></td></tr>
+    </tbody>
+  </table>
+  <p class="small center mt-2"><span lang="ru">Измеряй полноту набора кандидатов отдельно от качества их порядка. Дополнительные ветви помогают лишь тогда, когда приносят полезные новые документы.</span><span lang="en">Measure candidate recall separately from ranking quality. Extra branches help when they contribute useful additional documents.</span></p>
+  <aside class="slide-notes">The detailed script's full-pipeline section explains the candidate-recall ceiling. This table is an explicit toy scenario reusing the opening E17/X200 example; it is not an empirical result. A pure reranker permutes the supplied candidate set. Query expansion or additional retrieval would be a separate operation.</aside>
 </section>
 
 <section class="slide" data-type="table" data-screen-label="55 When to pick what">
