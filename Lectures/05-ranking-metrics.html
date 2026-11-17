@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lecture 5 — Ranking Metrics</title>
 
-  <!-- Apply saved theme/lang BEFORE first paint to avoid a flash of the
-       wrong theme. Mirrors tools.js prefs key. -->
+  
   <script>
     try {
       var __p = JSON.parse(localStorage.getItem('lecture.template.prefs.v1') || '{}');
@@ -19,9 +18,7 @@
     } catch (e) {}
   </script>
 
-  <!-- Asset-load failure banner. If a vendored dependency fails to load
-       (e.g. the vendor/ folder was lost when copying the deck), tell the
-       lecturer in plain language instead of silently degrading. -->
+  
   <script>
     window.__assetFail = (function () {
       var failed = [];
@@ -50,11 +47,11 @@
     })();
   </script>
 
-  <!-- Fonts — vendored locally (run `node build-vendor.mjs` to refresh). -->
+  
   <link href="vendor/fonts/fonts.css" rel="stylesheet"
         onerror="window.__assetFail&&window.__assetFail('Шрифты/Fonts')" />
 
-  <!-- Styles -->
+  
   <link rel="stylesheet" href="css/template.css?v=6" />
   <link rel="stylesheet" href="css/slides.css?v=6" />
   <link rel="stylesheet" href="css/components.css?v=6" />
@@ -67,12 +64,11 @@
   <link rel="stylesheet" href="css/preflight.css?v=6" />
   <link rel="stylesheet" href="css/wbw-art.css?v=1" />
   <link rel="stylesheet" href="css/autofit.css?v=1" />
-  <!-- deck-mounted widget styles (widgets/_base.css + course-map style.css). BUILD OUTPUT (scripts/build-deck-widgets.mjs). -->
+  
   <link rel="stylesheet" href="css/deck-widgets.css?v=1" />
 
 
-  <!-- KaTeX — vendored locally (zero runtime CDN). 4× faster + lighter than
-       MathJax; handles 99% of CS/ML formulas. See README to swap to MathJax. -->
+  
   <link rel="stylesheet" href="vendor/katex/katex.min.css"
         onerror="window.__assetFail&&window.__assetFail('KaTeX')">
   <script defer src="vendor/katex/katex.min.js"
@@ -90,10 +86,7 @@
     });
     document.dispatchEvent(new CustomEvent('katex:done'));"></script>
 
-  <!-- Prism — vendored core + python/bash/yaml/json. The autoloader is
-       intentionally dropped: it fetches grammars from a CDN at runtime,
-       which defeats the zero-network goal. Long-tail languages won't
-       highlight; add their grammar files to vendor/prism/ if needed. -->
+  
   <script src="vendor/prism/prism-core.min.js"
         onerror="window.__assetFail&&window.__assetFail('Prism')"></script>
   <script src="vendor/prism/prism-python.min.js"></script>
@@ -101,13 +94,13 @@
   <script src="vendor/prism/prism-yaml.min.js"></script>
   <script src="vendor/prism/prism-json.min.js"></script>
 
-  <!-- QR code generator — vendored. -->
+  
   <script src="vendor/qrcode/qrcode.js"
         onerror="window.__assetFail&&window.__assetFail('QR')"></script>
 </head>
 
 <body>
-  <!-- Bundler thumbnail (shown while standalone-HTML unpacks; also no-JS fallback) -->
+  
   <template id="__bundler_thumbnail">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
       <defs>
@@ -129,19 +122,19 @@
     </svg>
   </template>
 
-  <!-- Logo template — edit once, reused on every slide -->
+  
   <template id="tpl-logo">
     <div class="logo-mark">DLS</div>
   </template>
 
-  <!-- Deck -->
+  
   <div class="deck">
     <div class="stage">
       <div class="slides" data-course-ru="Deep Learning for Search · 2026" data-course-en="Deep Learning for Search · 2026">
 
-        <!-- ==================== PART 00 · FRONT MATTER ==================== -->
+        
 
-        <!-- ============================================ 01 · TITLE ============================================ -->
+        
 <section class="slide" data-type="title" data-screen-label="01 Title">
           <div class="title-header">
             <div class="course-tag">DEEP LEARNING FOR SEARCH · 2026</div>
@@ -156,10 +149,10 @@
             <div><div class="meta-label">Lecturer</div><div class="meta-value">Albert Nasybullin</div></div>
             <div><div class="meta-label">Date</div><div class="meta-value">22.09.2026</div></div>
           </div>
-          <aside class="slide-notes">I'm Serega, and today we're at the proving grounds. Two search systems, same query — which one is better? "Looks good to me" is not an answer. Today we learn to put an honest, comparable number on a ranking, and then to ask the harder question: is the difference real, or did we just get lucky? Offline metrics, statistical significance, and the whole online stack — A/B tests, interleaving, position bias. Every later claim ("neural beats BM25", "reranking helps") can then be checked rather than asserted.</aside>
+          
         </section>
 
-        <!-- ============================================ 02 · SPINE · you are here ============================================ -->
+        
         <section class="slide" data-type="viz" data-max-step="0" data-current-step="0" data-screen-label="02 You are here">
   <div class="slide-header">
     <h2><span lang="ru">Хребет курса — ты здесь</span><span lang="en">The spine of the course — you are here</span></h2>
@@ -182,7 +175,7 @@
   }
   </script>
   <p class="viz-caption"><span lang="ru">Полигон: мы на этапе <strong>Измерить</strong> — построй честную таблицу результатов (qrels + метрики), прежде чем доверять любому ранжированию.</span><span lang="en">The Proving Grounds: we are in <strong>Measure</strong> — build an honest scoreboard (qrels + metrics) before trusting any ranking.</span></p>
-  <aside class="slide-notes">Spine anchor (migrated to the shared course-map widget). Lit stop(s) mirror this lecture's course.json spine. Generate joins the map for good at L15 (RAG).</aside>
+  
 </section>
 <section class="slide" data-type="agenda" data-screen-label="03 Agenda">
           <div class="slide-header">
@@ -240,10 +233,10 @@
               </span>
             </a>
           </div>
-          <aside class="slide-notes">Seven parts. Motivation, then ground truth, then the family of counting metrics, then graded nDCG done properly, then statistics — is a difference real — then the full online stack, and finally Goodhart with the payoff. Click any item to jump. Two regimes run through everything: offline test collections and online experiments on live users.</aside>
+          
         </section>
 
-        <!-- ============================================ 04 · OBJECTIVES ============================================ -->
+        
         <section class="slide" data-type="two-col" data-screen-label="04 Objectives">
           <div class="slide-header">
             <h2><span lang="ru">Что ты сможешь делать</span><span lang="en">What you'll be able to do</span></h2>
@@ -268,22 +261,22 @@
             </div>
           </div>
           <p class="small muted center mt-3"><span lang="ru">В одну строку: <strong>собери оценки, вычисли метрики, оцени свидетельства различия, и прочитай онлайн A/B-результат</strong> — превращая «выглядит хорошо» в обоснованное число.</span><span lang="en">In one line: <strong>collect judgments, compute the metrics, prove the difference is real, and read an online A/B result</strong> — turning "looks good to me" into a defensible number.</span></p>
-          <aside class="slide-notes">Here is my promise for the next ninety minutes. By the end you can collect relevance judgments, compute every offline metric on this list — Recall@k, P@k, MRR, MAP, nDCG — by hand, prove that a difference between two systems is real rather than lucky, and read an online A/B result with its position-bias caveats. And you'll know when a metric has stopped measuring what you care about. Each of these maps directly onto a Part of the agenda you just saw.</aside>
+          
         </section>
 
-        <!-- ============================================ 05 · QUOTE · HOOK ============================================ -->
+        
 <section class="slide" data-type="quote" data-screen-label="05 Hook">
           <div>
             <div class="quote-mark">"</div>
             <blockquote><span lang="ru">Две системы. Какая лучше?<br />«Выглядит нормально» — это не ответ.</span><span lang="en">Two systems. Which is better?<br />"Looks good to me" is not an answer.</span></blockquote>
             <div class="quote-attr"><span lang="ru">— Серёга, на полигоне · каждая система заслуживает доверия тестом, а не мнением</span><span lang="en">— Serega, at the proving grounds · every system earns trust by test, not by opinion</span></div>
           </div>
-          <aside class="slide-notes">This is my hook for the whole lecture. At my proving grounds nothing is taken on faith — every ship runs the course and the scoreboard decides. The number I want you to hold in your head: a real search team judges on the order of ten thousand queries, twice a day, on every code change. Opinions don't survive that volume. Numbers do.</aside>
+          
         </section>
 
-        <!-- ==================== PART 01 · WHY EVALUATE ==================== -->
+        
 
-        <!-- ============================================ 06 · DIVIDER · PART 01 ============================================ -->
+        
 <section class="slide" data-type="divider" data-screen-label="06 Divider P1">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 01</span><span lang="en">Part 01</span></div>
@@ -296,10 +289,10 @@
                  />
           </div>
 
-          <aside class="slide-notes">This is my proving grounds — the place where every system gets tested before it earns my trust. I'm at the scoreboard comparing two ships' runs. The whole spine of this course is Measure, and without an honest measure of ranking quality every later claim I make is hot air. This part is me showing you why a single number is unavoidable.</aside>
+          
         </section>
 
-        <!-- ============================================ 06 · VIZ · can't eyeball ============================================ -->
+        
         <section class="slide" data-type="viz" data-screen-label="07 Can't eyeball">
           <div class="slide-header">
             <h2><span lang="ru">На масштабе качество на глаз не оценишь</span><span lang="en">You can't eyeball quality at scale</span></h2>
@@ -309,10 +302,10 @@
             <img src="assets/img/L4/L4-01-cant-eyeball.webp?v=1" alt="One ranking is easy to skim; thousands of queries are impossible to judge by eye" />
           </div>
           <p class="viz-caption"><span lang="ru">Прочитать одно ранжирование глазами — нормально. Оценить \(10^{4}\) запросов глазами — нет, и «выглядит хорошо» нельзя усреднить, сравнить или отследить во времени. Нужны три вещи: <strong>метка релевантности</strong> на каждый результат (ground truth), <strong>метрика</strong>, превращающая ранжирование в одно сравнимое число, и <strong>статистика</strong>, чтобы отличить сигнал от шума.</span><span lang="en">Reading one ranking by eye is fine. Judging \(10^{4}\) queries by eye is not — and "looks good" cannot be averaged, compared, or trended over time. We need three things: a <strong>relevance label</strong> per result (ground truth), a <strong>metric</strong> that turns a ranking into one comparable score, and <strong>statistics</strong> to tell signal from noise.</span></p>
-          <aside class="slide-notes">The core problem. With one query you can skim the list and form an opinion. But a real evaluation set has thousands of queries, and opinions don't aggregate: you cannot average "looks good", you cannot tell whether yesterday's change helped, and you cannot compare two systems fairly. The fix is a number — but a number needs ground truth to compare against, and a difference between two numbers needs a significance test before you believe it. Labels, metric, statistics: that is the spine of the lecture.</aside>
+          
         </section>
 
-        <!-- ============================================ 08 · TWO-COL · offline vs online ============================================ -->
+        
         <section class="slide" data-type="two-col" data-screen-label="08 Offline vs online">
           <div class="slide-header">
             <h2><span lang="ru">Два режима: офлайн и онлайн</span><span lang="en">Two regimes: offline and online</span></h2>
@@ -339,12 +332,12 @@
             </div>
           </div>
           <p class="small muted center mt-3"><span lang="ru">Офлайн = быстрая итерация на прокси. Онлайн = медленное подтверждение на правде. Зрелые команды используют <strong>оба</strong> режима и проверяют, что офлайн-выигрыши предсказывают онлайн-победы.</span><span lang="en">Offline = fast iteration on a proxy. Online = slow confirmation on the truth. Mature teams run <strong>both</strong>, and check that offline gains predict online wins.</span></p>
-          <aside class="slide-notes">This is the map for the whole day. Offline evaluation uses a frozen test collection: a set of queries with human labels, so you can score any system instantly and repeatably — perfect for the inner loop of development. But labels are a proxy. Online evaluation puts the change in front of real users and measures behaviour, which is the real thing you care about — but it is slow, noisy, biased by position, and risky. Parts 2–5 are offline; Part 6 is online; Part 7 is the bridge — and the warning that the two can disagree.</aside>
+          
         </section>
 
-        <!-- ==================== PART 02 · RELEVANCE JUDGMENTS ==================== -->
+        
 
-        <!-- ============================================ 09 · DIVIDER · PART 02 ============================================ -->
+        
         <section class="slide" data-type="divider" data-screen-label="09 Divider P2">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 02</span><span lang="en">Part 02</span></div>
@@ -358,10 +351,10 @@
                  />
           </div>
 
-          <aside class="slide-notes">Every offline metric I compute compares the system's ranking against a set of relevance judgments — qrels. My referee decides, for each (query, document) pair, whether it is relevant. Without this ground truth I have nothing to measure against. This part is where that ground truth comes from and how much I should trust it.</aside>
+          
         </section>
 
-        <!-- ============================================ 10 · DEFINITION · qrels ============================================ -->
+        
         <section class="slide" data-type="definition" data-screen-label="10 Definition qrels">
           <div class="slide-header">
             <h2><span lang="ru">Ключевой термин</span><span lang="en">Key term</span></h2>
@@ -375,10 +368,10 @@
               <p class="small muted"><span lang="ru">Наши — бинарные и достаются бесплатно из корпуса: документ <strong>релевантен</strong>, если относится к <strong>категории 20&nbsp;Newsgroups</strong>, соответствующей запросу. У текущего запроса интент <em>space</em>, поэтому релевантный означает категорию <code>sci.space</code> — та же конвенция «метки как истина», что мы использовали в Лекциях 1–3.</span><span lang="en">Ours are binary and come for free from the corpus: a document is <strong>relevant</strong> if it shares the query's <strong>20&nbsp;Newsgroups category</strong>. The running query has intent <em>space</em>, so relevant means category <code>sci.space</code> — the same labels-as-truth convention we used in Lectures 1–3.</span></p>
             </div>
           </div>
-          <aside class="slide-notes">Qrels are the answer key. In a production system humans annotate them; here we reuse the 20 Newsgroups category labels as ground truth, so a document about space (category sci.space) is relevant to a space query and anything else is not. Binary relevance for the counting metrics; we add graded relevance later for nDCG. This continuity with L1–L3 is deliberate: we grade the very catalog we already built.</aside>
+          
         </section>
 
-        <!-- ============================================ 11 · TWO-COL · binary vs graded ============================================ -->
+        
 <section class="slide" data-type="two-col" data-screen-label="11 Binary vs graded">
           <div class="slide-header">
             <h2><span lang="ru">Бинарная vs градуированная релевантность</span><span lang="en">Binary vs graded relevance</span></h2>
@@ -410,10 +403,10 @@
           </div>
           <p class="small muted center" style="margin-top:var(--sp-2)"><span lang="ru"><strong>Правило оценивания (чтобы оценки не были выдуманы):</strong> документ, прямо по теме запроса — сфокусированная статья <code>sci.space</code> — получает \(3\); тот, который задевает её лишь вскользь (упоминает запуск в посте на другую тему), получает \(1\); всё не по теме получает \(0\). Та же рубрика, которую используют асессоры TREC, масштабированная до трёх уровней.</span><span lang="en"><strong>Grading rule (so the grades aren't invented):</strong> a doc squarely on the query topic — a focused <code>sci.space</code> article — scores \(3\); one that only touches it in passing (mentions a launch inside an off-topic post) scores \(1\); anything off-topic scores \(0\). Same rubric TREC assessors use, scaled to three levels.</span></p>
           <p class="small muted center mt-3"><span lang="ru">Бинарная выбрасывает «насколько релевантно». Градуированная сохраняет это — и идеальное попадание на ранге 1 должно превосходить маргинальное на ранге 1. Часть 04 построена на градуированной шкале.</span><span lang="en">Binary throws away "how relevant". Graded keeps it — and a rank-1 perfect hit should out-score a rank-1 marginal one. Part 04 is built on the graded scale.</span></p>
-          <aside class="slide-notes">The label scale decides which metrics you can even compute. Binary is yes/no — cheap and the foundation of the counting family. Graded — TREC uses 0 through 4, we use 0/1/3 — captures that some relevant docs are far better than others, which is exactly what nDCG needs. We carry both scales for the same running ranking, so you'll see the very same eight documents scored binary in Part 3 and graded in Part 4.</aside>
+          
         </section>
 
-        <!-- ============================================ 12 · TWO-COL · collecting judgments ============================================ -->
+        
 <section class="slide" data-type="two-col" data-screen-label="12 Collecting judgments">
           <div class="slide-header">
             <h2><span lang="ru">Откуда берутся оценки</span><span lang="en">Where judgments come from</span></h2>
@@ -440,10 +433,10 @@
               <p class="small muted"><span lang="ru">Поэтому мы оцениваем лишь <em>выборку</em> документов на запрос. <strong>Какую</strong> выборку? Это проблема пулинга на следующем слайде.</span><span lang="en">So we judge only a <em>sample</em> of documents per query. <strong>Which</strong> sample? That is the pooling problem on the next slide.</span></p>
             </div>
           </div>
-          <aside class="slide-notes">Judgments are expensive human labour. A guideline document pins down what the query means and what counts as relevant, so different assessors agree. The fundamental problem is scale: you cannot label every document for every query — the product is astronomical. Real corpora are judged on a sample, and the sampling strategy matters enormously, because a metric only sees the docs that were judged. That sets up pooling.</aside>
+          
         </section>
 
-        <!-- ============================================ 13 · DEFINITION · pooling / TREC ============================================ -->
+        
 <section class="slide" data-type="definition" data-screen-label="13 Pooling TREC">
           <div class="slide-header">
             <h2><span lang="ru">Пулинг &amp; парадигма Cranfield / TREC</span><span lang="en">Pooling &amp; the Cranfield / TREC paradigm</span></h2>
@@ -457,10 +450,10 @@
               <p class="small muted"><span lang="ru"><strong>Парадигма Cranfield</strong> (1960-е) установила переиспользуемые тестовые коллекции (оценённые почти исчерпывающе); <strong>пулинг</strong> появился в 1970-е как техника выборки, а <strong>TREC</strong> (1992–) индустриализировал его: переиспользуемая тестовая коллекция = запросы + пулинговые qrels. Документ вне топ-\(k\) каждой системы считается нерелевантным — обычно безопасно, потому что релевантные документы обычно всплывают у вершины <em>какой-нибудь</em> системы.</span><span lang="en">The <strong>Cranfield paradigm</strong> (1960s) established reusable test collections (judged near-exhaustively); <strong>pooling</strong> arrived in the 1970s as a sampling technique and <strong>TREC</strong> (1992–) industrialised it: a reusable test collection = queries + pooled qrels. A document outside every system's top-\(k\) is assumed non-relevant — usually safe, because relevant docs tend to surface near the top of <em>some</em> system.</span></p>
             </div>
           </div>
-          <aside class="slide-notes">Cranfield in the 1960s established the recipe that still rules: fixed queries, fixed documents, fixed relevance judgments, so any system can be scored offline and compared — Cranfield itself judged near-exhaustively. The trick that makes large collections affordable is pooling, introduced as a sampling technique in the 1970s: instead of judging all documents, you pool the top-k of every participating system and judge only that union. TREC industrialised it from 1992. The bet is that any genuinely relevant document is found by at least one decent system and lands in the pool. Voorhees showed pooled collections are robust enough to reuse for years.</aside>
+          
         </section>
 
-        <!-- ============================================ 14 · MISCONCEPTION · unjudged = non-relevant ============================================ -->
+        
         <section class="slide" data-type="misconception" data-screen-label="14 Unjudged">
           <div class="slide-header">
             <h2><span lang="ru">Распространённое заблуждение</span><span lang="en">Common misconception</span></h2>
@@ -476,10 +469,10 @@
               </p>
             </div>
           </div>
-          <aside class="slide-notes">This is the subtle trap of reusing a test collection. Within the pool, "unjudged = non-relevant" is fine. But a brand-new system — say, a dense retriever that ranks documents nobody pooled — surfaces relevant docs that were never judged, and the standard convention scores them as wrong. The system gets punished precisely for being different and good. bpref and condensed-list metrics restrict scoring to judged documents, removing the penalty. Buckley and Voorhees introduced bpref for exactly this reason. Modern pooled collections also use inferred-AP estimators (infAP / statAP, Yilmaz and Aslam) that estimate the metric under sampled judgments.</aside>
+          
         </section>
 
-        <!-- ============================================ 15 · FORMULA · inter-annotator agreement (kappa) ============================================ -->
+        
 <section class="slide" data-type="formula" data-screen-label="15 Kappa">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">А судьи вообще согласны?</span><span lang="en">Do the judges even agree?</span></h2>
@@ -494,10 +487,10 @@
             <div class="var-block"><div class="var-symbol">\(\kappa\)</div><div class="var-desc"><span lang="ru"><strong>Согласие</strong><br />\(1\) идеально, \(0\) случайно, \(<0\) хуже</span><span lang="en"><strong>Agreement</strong><br />\(1\) perfect, \(0\) chance, \(<0\) worse</span></div></div>
           </div>
           <p class="small muted mt-3 center"><span lang="ru">Практическое правило: \(\kappa>0{,}6\) — существенное, \(>0{,}8\) — почти эталон. Много судей → <strong>каппа Фляйсса</strong>. Низкая \(\kappa\) означает, что твоя «истина» зашумлена и ограничивает разрешающую способность метрики. <strong>Остерегайся парадокса распространённости:</strong> когда одна метка доминирует (большинство пулинговых документов нерелевантны), \(p_e\) высока, и \(\kappa\) может выглядеть низкой несмотря на почти идеальное согласие — сообщай сырое согласие вместе с \(\kappa\).</span><span lang="en">Rule of thumb: \(\kappa>0.6\) substantial, \(>0.8\) near-gold. Many judges → <strong>Fleiss' \(\kappa\)</strong>. Low \(\kappa\) means your "ground truth" is noisy and caps the metric's resolution. <strong>Beware the prevalence paradox:</strong> when one label dominates (most pooled docs are non-relevant), \(p_e\) is high and \(\kappa\) can look low despite near-perfect agreement — report raw agreement alongside \(\kappa\).</span></p>
-          <aside class="slide-notes">Ground truth is not handed down from heaven — humans disagree, especially on borderline relevance. Cohen's kappa corrects raw agreement for the agreement you'd get by chance: subtract chance, normalise by the room left above chance. Above 0.6 is usually called substantial, above 0.8 near-gold; Fleiss generalises to more than two judges. The practical lesson: if your annotators only weakly agree, your labels are noisy, and no metric can resolve system differences finer than that noise. Measure agreement before you trust the qrels.</aside>
+          
         </section>
 
-        <!-- ============================================ 16 · VIZ · running example ranking ============================================ -->
+        
         <section class="slide" data-type="viz" data-screen-label="16 Running example">
           <div class="slide-header">
             <h2><span lang="ru">Наш сквозной пример: BM25-ранжирование 8 документов</span><span lang="en">Our running example: a BM25 ranking of 8 docs</span></h2>
@@ -545,10 +538,10 @@
             </svg>
           </div>
           <p class="viz-caption"><span lang="ru">Паттерн релевантности — \([0,1,0,1,0,1,0,1]\): всего \(4\) релевантных документа, на рангах \(2,4,6,8\). Каждая офлайн-метрика сегодня вычисляется именно на этом списке, так что ты можешь наблюдать, как они измеряют одно и то же ранжирование под разными углами. <em>Внимание:</em> поскольку это реальное BM25-ранжирование случайно чередуется равномерно, некоторые из этих углов (AP, R-precision, точность на чётных рангах) здесь совпадают — причуда симметричной раскладки, а не признак того, что метрики эквивалентны. nDCG уже отделяется от них, а примеры прямого сравнения и накрученного ранжирования впереди резко разводят их.</span><span lang="en">The relevance pattern is \([0,1,0,1,0,1,0,1]\): \(4\) relevant docs total, at ranks \(2,4,6,8\). Every offline metric today is computed on exactly this list, so you can watch them measure the same ranking from different angles. <em>Heads-up:</em> because this real BM25 ranking happens to alternate evenly, a few of those angles (AP, R-precision, precision at even ranks) coincide here — a quirk of the symmetric layout, not a sign the metrics are equivalent. nDCG already separates from them, and the head-to-head &amp; gamed-ranking examples ahead drive them sharply apart.</span></p>
-          <aside class="slide-notes">This is the spine of Parts 3 and 4. Eight documents returned by the BM25 ranker from Lecture 3 for a space query. The relevant ones (category sci.space) are D3, D2, D0, D1 — and BM25 unfortunately interleaved them with hockey docs, so they sit at the even ranks 2, 4, 6, 8. Four relevant out of four possible appear in the top eight. Keep this picture in mind: every number that follows is just a different summary of this one ranking. Note for the metric slides: this ranking is the genuine L3 BM25 output, not a hand-picked pattern, and its even alternation makes AP, R-precision, and precision-at-even-k all land at the same value — call that out as a coincidence of this particular ranking, then lean on nDCG (which already differs) and especially the head-to-head and Goodhart-gamed examples, where the metrics diverge and disagree, to show they are genuinely different lenses.</aside>
+          
         </section>
 
-        <!-- ============================================ 17 · QUIZ · qrels ============================================ -->
+        
         <section class="slide" data-type="quiz" data-screen-label="17 Quiz P2">
           <div class="slide-header">
             <h2><span lang="ru">Быстрая проверка</span><span lang="en">Quick check</span></h2>
@@ -566,12 +559,12 @@
               <div class="ha-content"><span lang="ru"><strong>A</strong>. Пул был построен из топ-\(k\) <em>старых</em> систем; документ, который ни одна из них не выдала, неоценён, и конвенция «неоценённый = нерелевантный» помечает настоящие находки новой системы как промахи. Это предел переиспользуемости пулинговых коллекций — используй <code>bpref</code> или condensed-метрики для честной оценки.</span><span lang="en"><strong>A</strong>. The pool was built from the <em>old</em> systems' top-\(k\); a document none of them retrieved is unjudged, and the "unjudged = non-relevant" convention marks the new system's genuine finds as misses. This is the reusability limit of pooled collections — use <code>bpref</code> or condensed metrics to evaluate fairly.</span></div>
             </details>
           </div>
-          <aside class="slide-notes">Consolidates Part 2. The point: a test collection is only as reusable as its pool is complete relative to the system you're testing. If your new system retrieves in a genuinely different way, its best documents may be invisible to the qrels and you'll under-credit it. The defensive move is to know your pool depth and prefer robust measures when evaluating off-pool systems.</aside>
+          
         </section>
 
-        <!-- ==================== PART 03 · COUNTING METRICS ==================== -->
+        
 
-        <!-- ============================================ 18 · DIVIDER · PART 03 ============================================ -->
+        
 <section class="slide" data-type="divider" data-screen-label="18 Divider P3">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 03</span><span lang="en">Part 03</span></div>
@@ -579,10 +572,10 @@
             <p class="divider-sub"><span lang="ru">Теперь, когда мой рефери зафиксировал истину, я могу наконец <em>считать</em>: \(\mathrm{P}@k\), \(\mathrm{R}@k\), F, MRR, MAP.</span><span lang="en">Now that my referee has fixed the truth, I can finally <em>count</em>: \(\mathrm{P}@k\), \(\mathrm{R}@k\), F, MRR, MAP.</span></p>
             <p class="small muted" style="margin-top:var(--sp-2); opacity:.85">✓ <span lang="ru">Теперь ты умеешь собирать оценки и читать их согласованность. Далее: превратим их в балл.</span><span lang="en">You can now collect judgments and read their agreement. Next: turn them into a score.</span></p>
           </div>
-          <aside class="slide-notes">With my ground truth fixed, I can count. These metrics all treat relevance as yes/no. Precision and Recall answer "how clean / how much" at a cutoff; F combines them; MRR asks "how soon the first hit"; MAP rolls precision over every hit into one number. I compute them all on the running ranking — and MRR and MAP get a second query so you see the averaging actually do something.</aside>
+          
         </section>
 
-        <!-- ============================================ 19 · DEFINITION · precision & recall roots ============================================ -->
+        
         <section class="slide" data-type="formula" data-screen-label="19 P/R roots">
           <div class="slide-header">
             <h2><span lang="ru">Точность и полнота: корни — в матрице ошибок</span><span lang="en">Precision &amp; Recall: the confusion-matrix roots</span></h2>
@@ -598,10 +591,10 @@
             <div class="var-block"><div class="var-symbol">FN</div><div class="var-desc"><strong>False negative</strong><br />relevant doc you missed</div></div>
           </div>
           <p class="small muted mt-3 center"><span lang="ru">В ранжировании мы применяем их на <strong>отсечке \(k\)</strong> — «извлечённые» = топ-\(k\) — получая \(\mathrm{Precision}@k\) и \(\mathrm{Recall}@k\).</span><span lang="en">In ranking we apply these at a <strong>cutoff \(k\)</strong> — "retrieved" = the top \(k\) — giving \(\mathrm{Precision}@k\) and \(\mathrm{Recall}@k\).</span></p>
-          <aside class="slide-notes">Precision and recall are not IR inventions — they are the confusion matrix from classification, read through a retrieval lens. Precision is "of what I returned, how much was right"; recall is "of all the right answers, how many did I return". In ranking there is no single "returned" set, so we impose a cutoff k: the top k is the retrieved set. That turns both into functions of k, which is where the real story begins on the next slide.</aside>
+          
         </section>
 
-        <!-- ============================================ 20 · FORMULA · P@k & R@k ============================================ -->
+        
         <section class="slide" data-type="formula" data-screen-label="20 P@k R@k">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">\(\mathrm{Precision}@k\) и \(\mathrm{Recall}@k\)</span><span lang="en">\(\mathrm{Precision}@k\) and \(\mathrm{Recall}@k\)</span></h2>
@@ -616,10 +609,10 @@
             <div class="var-block"><div class="var-symbol">\(\mathrm{Recall}@k\)</div><div class="var-desc"><strong>Coverage</strong><br />fraction of all relevant docs found by rank \(k\)</div></div>
           </div>
           <p class="small muted mt-3 center"><span lang="ru">Один и тот же числитель, разный знаменатель: \(\mathrm{Precision}@k\) делит на \(k\), \(\mathrm{Recall}@k\) делит на общее число релевантных.</span><span lang="en">Same numerator, different denominator: \(\mathrm{Precision}@k\) divides by \(k\), \(\mathrm{Recall}@k\) divides by total relevant.</span></p>
-          <aside class="slide-notes">Two sides of the same coin. Both count how many relevant docs sit in the top k; they differ only in what they divide by. Recall measures coverage — of everything relevant, how much did we surface — and rises monotonically toward 1 as k grows. Precision measures purity — of what we showed, how much was good — and tends to fall as k grows because you scrape further down. Next slide walks the exact values, then we look at the tradeoff curve they trace.</aside>
+          
         </section>
 
-        <!-- ============================================ 21 · WALKTHROUGH · P@k/R@k values ============================================ -->
+        
         <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="21 P/R walked">
           <div class="slide-header">
             <h2><span lang="ru">\(\mathrm{Precision}@k\) и \(\mathrm{Recall}@k\), шаг за шагом</span><span lang="en">\(\mathrm{Precision}@k\) and \(\mathrm{Recall}@k\), step by step</span></h2>
@@ -653,10 +646,10 @@
             <span class="step-counter">4/4</span>
             <button data-step-act="next" aria-label="Next step">→</button>
           </div>
-          <aside class="slide-notes">Walk it one row at a time, reading numerator/denominator aloud. Precision rises 0 → 0.333 → 0.4 → 0.5 — it never gets high because the relevant docs are diluted by hockey docs at every odd rank. Recall marches 0 → 0.25 → 0.5 → 1.0: by rank 8 we have found all four relevant docs. The two metrics disagree on purpose; that disagreement is exactly why we report both at chosen cutoffs — and why the tradeoff curve on the next slide matters.</aside>
+          
         </section>
 
-        <!-- ============================================ 22 · VIZ · PR tradeoff & F ============================================ -->
+        
         <section class="slide" data-type="viz" data-screen-label="22 PR curve F">
           <div class="slide-header">
             <h2><span lang="ru">Компромисс точность–полнота и \(F_1\)</span><span lang="en">The precision–recall tradeoff &amp; \(F_1\)</span></h2>
@@ -664,10 +657,10 @@
           </div>
           <div class="viz-frame">
             <svg viewBox="0 0 1600 560" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">
-              <!-- axes: x = recall (180→0 … 1180→1.0), y = precision (480→0 … 60→1.0) -->
+              
               <line x1="180" y1="480" x2="1180" y2="480" stroke="var(--rule)" stroke-width="2"/>
               <line x1="180" y1="480" x2="180" y2="60" stroke="var(--rule)" stroke-width="2"/>
-              <!-- tick labels for the real coordinates -->
+              
               <g font-family="var(--font-mono)" font-size="18" fill="var(--ink-3)">
                 <text x="180"  y="510" text-anchor="middle">0</text>
                 <text x="430"  y="510" text-anchor="middle">.25</text>
@@ -680,11 +673,10 @@
               </g>
               <text x="680" y="540" text-anchor="middle" font-family="var(--font-mono)" font-size="26" fill="var(--ink-3)">recall →</text>
               <text x="116" y="270" text-anchor="middle" font-family="var(--font-mono)" font-size="26" fill="var(--ink-3)" transform="rotate(-90 116 270)">precision →</text>
-              <!-- curve drawn THROUGH the real operating points:
-                   @1 (R0,P0)=180,480 · @3 (R.25,P.333)=430,340 · @5 (R.5,P.40)=680,312 · @8 (R1,P.50)=1180,270 -->
+              
               <path d="M 180 480 Q 300 362 430 340 Q 560 322 680 312 Q 930 294 1180 270"
                     fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round"/>
-              <!-- the four operating points sit ON the curve -->
+              
               <circle cx="180" cy="480" r="10" fill="var(--c-red)"/>
               <text x="202" y="476" text-anchor="start" font-family="var(--font-mono)" font-size="20" fill="var(--ink-2)">@1 (0, 0)</text>
               <circle cx="430" cy="340" r="10" fill="var(--accent)"/>
@@ -702,10 +694,10 @@
             </svg>
           </div>
           <p class="viz-caption"><span lang="ru">Четыре точки нанесены в масштабе — \(@1\,(0,0)\), \(@3\,(0{,}25,0{,}333)\), \(@5\,(0{,}5,0{,}4)\), \(@8\,(1{,}0,0{,}5)\) — и кривая проходит <em>через</em> них. (На этом конкретном ранжировании попадания сгруппированы на чётных позициях, поэтому точность фактически <em>растёт</em> с \(k\); учебная кривая обычно падает.) \(F_1=\dfrac{2PR}{P+R}\) — их среднее гармоническое, наказывающее дисбаланс, — а <strong>11-точечная интерполированная</strong> кривая и \(F_\beta\) (\(\beta>1\) в пользу полноты) обобщают его.</span><span lang="en">The four points are plotted to scale — \(@1\,(0,0)\), \(@3\,(0.25,0.333)\), \(@5\,(0.5,0.4)\), \(@8\,(1.0,0.5)\) — and the curve runs <em>through</em> them. (On this particular ranking the hits cluster at even ranks, so precision actually <em>rises</em> with \(k\); the textbook curve usually falls.) \(F_1=\dfrac{2PR}{P+R}\) is their harmonic mean — punishing imbalance — and the <strong>11-point interpolated</strong> curve and \(F_\beta\) (\(\beta>1\) favours recall) generalise it.</span></p>
-          <aside class="slide-notes">Precision and recall pull against each other, and the PR curve draws that tension: every cutoff is one operating point. F1 collapses the two into one number using the harmonic mean, which — unlike the arithmetic mean — refuses to be fooled by a system that maxes one and tanks the other. F-beta tilts the balance: beta above 1 weights recall more, useful when missing a relevant doc is costlier than showing a bad one. The 11-point interpolated precision is the classic smoothing TREC used to average PR curves across queries.</aside>
+          
         </section>
 
-        <!-- ============================================ 23 · DEFINITION · R-precision ============================================ -->
+        
         <section class="slide" data-type="definition" data-screen-label="23 R-precision">
           <div class="slide-header">
             <h2><span lang="ru">R-precision: самомасштабирующаяся отсечка</span><span lang="en">R-precision: a self-scaling cutoff</span></h2>
@@ -719,10 +711,10 @@
               <p class="small muted"><span lang="ru">У нашего запроса \(R=4\), поэтому R-precision \(=\mathrm{P}@4\). Топ-4 содержит релевантные документы на позициях \(2,4\) → \(2/4 = 0{,}5\). Метрика автоматически адаптируется: запрос со 100 релевантными документами оценивается при \(k=100\), а не при фиксированном 10.</span><span lang="en">Our query has \(R=4\), so R-precision \(=\mathrm{P}@4\). Top-4 contains relevant docs at ranks \(2,4\) → \(2/4 = 0.5\). It auto-adapts: a query with 100 relevant docs is judged at \(k=100\), not a fixed 10.</span></p>
             </div>
           </div>
-          <aside class="slide-notes">A fixed cutoff like P@10 is unfair across queries: a query with three relevant docs can never exceed 0.3, while one with fifty is judged on a tiny window. R-precision fixes this by setting the cutoff to R, the number of relevant docs for that query. A neat property falls out: at k = R, precision equals recall, because the denominators k and R are the same. For our query R = 4, so it's P@4 = 0.5. It's a single, query-adaptive number that correlates strongly with MAP in practice.</aside>
+          
         </section>
 
-        <!-- ============================================ 24 · FORMULA · MRR ============================================ -->
+        
 <section class="slide" data-type="formula" data-screen-label="24 MRR">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">Средний обратный ранг (MRR)</span><span lang="en">Mean Reciprocal Rank (MRR)</span></h2>
@@ -737,10 +729,10 @@
             <div class="var-block"><div class="var-symbol">\(|Q|\)</div><div class="var-desc"><strong>Query count</strong><br />average over the query set</div></div>
           </div>
           <p class="small muted mt-3 center"><span lang="ru">Идеально для <strong>поиска известного элемента</strong> / QA-поиска: один хороший ответ, найденный быстро. Игнорирует всё после первого попадания.</span><span lang="en">Ideal for <strong>known-item</strong> / QA search: one good answer, found fast. Ignores everything after the first hit.</span></p>
-          <aside class="slide-notes">MRR cares about one thing only: how far you must scroll before the first correct answer. The reciprocal makes rank 1 worth 1.0, rank 2 worth 0.5, rank 10 worth 0.1 — it rewards getting something right immediately and ignores everything after the first hit. Perfect for "I need one good answer fast" tasks like question answering or navigational queries. Next slide computes it over two queries so the mean does real work — MRR is not just one query's RR.</aside>
+          
         </section>
 
-        <!-- ============================================ 25 · WALKTHROUGH · MRR two queries ============================================ -->
+        
         <section class="slide" data-type="walkthrough" data-max-step="3" data-current-step="0" data-screen-label="25 MRR walked">
           <div class="slide-header">
             <h2><span lang="ru">MRR по двум запросам</span><span lang="en">MRR over two queries</span></h2>
@@ -769,10 +761,10 @@
             <span class="step-counter">3/3</span>
             <button data-step-act="next" aria-label="Next step">→</button>
           </div>
-          <aside class="slide-notes">This is why we add a second query: with one query, MRR collapses to that query's RR and the "mean" is invisible. Here Q1's first hit is at rank 2 (RR 0.5) and Q2's is at rank 1 (RR 1.0). The mean is 0.75 — and crucially it is not equal to either query's reciprocal rank. That's the whole point of the leading "M": MRR summarises a query set, and a single-query demo hides the averaging that makes it a real evaluation metric.</aside>
+          
         </section>
 
-        <!-- ============================================ 26 · FORMULA · MAP ============================================ -->
+        
         <section class="slide" data-type="formula" data-screen-label="26 MAP">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">Средняя усреднённая точность (MAP)</span><span lang="en">Mean Average Precision (MAP)</span></h2>
@@ -787,10 +779,10 @@
             <div class="var-block"><div class="var-symbol">\(\mathrm{AP}\)</div><div class="var-desc"><strong>Average precision</strong><br />\(\approx\) area under the PR curve; MAP averages it</div></div>
           </div>
           <p class="small muted mt-3 center"><span lang="ru">AP смотрит на <em>каждую</em> позицию, где появляется релевантный документ, поэтому вознаграждает более высокое ранжирование релевантных документов. AP интегрирует <em>неинтерполированную ступенчатую</em> PR-кривую: каждый прирост полноты взвешивается точностью на этом попадании. Интерполяция верхней огибающей даёт другую оценку. <strong>GMAP</strong> использует среднее геометрическое — подчёркивая трудные запросы.</span><span lang="en">AP looks at <em>every</em> rank where a relevant doc appears, so it rewards ranking relevant docs higher. AP integrates the <em>uninterpolated step</em> PR curve, weighting each recall increment by precision at that hit. Integrating an interpolated upper envelope gives a different score. <strong>GMAP</strong> uses the geometric mean — emphasising hard queries.</span></p>
-          <aside class="slide-notes">MAP is the workhorse of binary-relevance IR. Average Precision evaluates Precision@k at each rank where a relevant document actually sits, then averages those values over the number of relevant docs — which is, to a good approximation, the area under the precision-recall curve. Because precision is higher when hits are near the top, AP rewards surfacing relevant docs early. MAP is AP averaged over queries arithmetically; GMAP uses the geometric mean, which weights improvements on already-hard queries more heavily. Next, the per-hit table and a second query so MAP differs from AP.</aside>
+          
         </section>
 
-        <!-- ============================================ 27 · E2E · MAP multi-query ============================================ -->
+        
 <section class="slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="26a Climb &middot; ndcg-multiquery">
   <div class="slide-header">
     <h2><span lang="ru">MRR и MAP живут на наборе запросов</span><span lang="en">MRR and MAP live on a query set</span></h2>
@@ -961,7 +953,7 @@
 }
   </script>
   <p class="viz-caption"><span lang="ru">Один запрос умеет врать &mdash; поэтому усредняем. Прощёлкай оба запроса сам: сперва каждый получает свой обратный ранг и свою среднюю точность, и только потом из них собираются MRR и MAP. Обрати внимание: итог не совпадает ни с одним запросом по отдельности &mdash; именно поэтому метрику всегда сообщают по набору, а не по любимому примеру.</span><span lang="en">A single query can lie &mdash; so we average. Click through both queries yourself: first each one earns its own reciprocal rank and its own average precision, and only then do MRR and MAP get assembled out of them. Notice that the final number matches neither query on its own &mdash; which is exactly why a metric is always reported over a set, never over a favourite example.</span></p>
-  <aside class="slide-notes">Act 3&rsquo;s climb, placed after the MAP definition and before the worked AP/MAP slide. Both queries and every intermediate value come from data/l4-multiquery.json &mdash; the same two-query setup the MRR-walked slide used, so students recognise the material. Steps: (0) the two hit patterns; (1) reciprocal ranks &mdash; only the FIRST hit matters, contrast the two queries; (2) average precisions &mdash; every hit matters now; (3) averaging into MRR; (4) averaging into MAP &mdash; DWELL on &ldquo;the final number is neither query&rdquo;. Students stumble on RR vs AP on the same ranking (one number from one position vs one number from all hit positions); the side-by-side at steps 1&ndash;2 is built to separate them. The worked slide that follows then serves as the on-paper replay.</aside>
+  
 </section>
 <section class="slide" data-type="e2e" data-max-step="5" data-current-step="0" data-screen-label="27 MAP worked">
           <div class="slide-header">
@@ -1017,12 +1009,12 @@
             <span class="e2e-stage-name">overview</span>
             <button type="button" class="e2e-toggle"><span lang="ru">Только теория</span><span lang="en">Theory only</span></button>
           </div>
-          <aside class="slide-notes">The full MAP computation, with two queries so MAP differs from AP. Q1's relevant docs sit at ranks 2,4,6,8 — each just below a non-relevant doc — so Precision@k at every hit is exactly one-half, giving AP1 = 0.5. Q2's relevant docs are front-loaded at ranks 1,3,4,7, so its precisions are higher and AP2 = 0.747. MAP is the arithmetic mean, 0.6235 — equal to neither AP. The uniform 0.5 in Q1 is a tidy artifact of the alternating pattern; on real query sets these vary and MAP separates good systems from bad.</aside>
+          
         </section>
 
-        <!-- ==================== PART 04 · GRADED RELEVANCE: nDCG ==================== -->
+        
 
-        <!-- ============================================ 28 · DIVIDER · PART 04 ============================================ -->
+        
         <section class="slide" data-type="divider" data-screen-label="28 Divider P4">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 04</span><span lang="en">Part 04</span></div>
@@ -1036,10 +1028,10 @@
                  />
           </div>
 
-          <aside class="slide-notes">My counting metrics treat every relevant doc as equally good and only loosely reward position. nDCG fixes both: it uses graded gains (some docs are more relevant than others) and a smooth logarithmic position discount, then normalises by the best possible ordering so the score lands in [0, 1] and is comparable across queries. This is the headline metric of modern web ranking, and the one I'll lean on hardest.</aside>
+          
         </section>
 
-        <!-- ============================================ 29 · TWO-COL · why graded ============================================ -->
+        
         <section class="slide" data-type="two-col" data-screen-label="29 Why graded">
           <div class="slide-header">
             <h2><span lang="ru">Почему важны градуированная релевантность и позиция</span><span lang="en">Why graded relevance &amp; position matter</span></h2>
@@ -1069,10 +1061,10 @@
               </div>
             </div>
           </div>
-          <aside class="slide-notes">nDCG exists because the counting family ignores two facts. First, relevance is graded: an authoritative, exactly-on-topic document beats a tangential one, and we lose that with 0/1 labels. Second, position is everything: people scan from the top and almost never reach rank 8, so a hit there is nearly worthless compared to a hit at rank 1. nDCG bakes both in — graded gain in the numerator, a position discount that shrinks with depth. The next slides build it piece by piece.</aside>
+          
         </section>
 
-        <!-- ============================================ 30 · FORMULA · gain functions ============================================ -->
+        
 <section class="slide" data-type="formula" data-screen-label="30 Gain functions">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">Функции выигрыша (gain): линейная и экспоненциальная</span><span lang="en">Gain functions: linear vs exponential</span></h2>
@@ -1087,10 +1079,10 @@
             <div class="var-block"><div class="var-symbol">why exp</div><div class="var-desc"><strong>amplifies</strong><br />a grade-3 hit dwarfs a grade-1</div></div>
           </div>
           <p class="small muted mt-3 center"><span lang="ru"><strong>Экспоненциальный</strong> выигрыш \(2^{\mathrm{rel}}-1\) — отраслевой стандарт (веб-поиск): он позволяет документам высшей градации доминировать. Линейный мягче. Оба питают один и тот же механизм DCG.</span><span lang="en">The <strong>exponential</strong> gain \(2^{\mathrm{rel}}-1\) is the industry default (web search): it makes top-grade documents dominate. Linear is gentler. Both feed the same DCG machinery.</span></p>
-          <aside class="slide-notes">A gain function maps a relevance grade to a reward. Linear is the obvious choice — the gain is the grade. Exponential, 2 to the rel minus 1, is what Google-scale web search uses, because it makes the difference between "perfect" and "okay" enormous: with our 0/1/3 grades, linear gives 0/1/3 but exponential gives 0/1/7, so a grade-3 doc is worth seven marginal ones rather than three. The choice changes the numbers but not the procedure; the next E2E computes nDCG under both.</aside>
+          
         </section>
 
-        <!-- ============================================ 31 · FORMULA · DCG / IDCG / nDCG ============================================ -->
+        
 <section class="slide" data-type="formula" data-screen-label="31 nDCG formula">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">DCG, IDCG и nDCG</span><span lang="en">DCG, IDCG, and nDCG</span></h2>
@@ -1105,10 +1097,10 @@
             <div class="var-block"><div class="var-symbol">\(\mathrm{IDCG}@k\)</div><div class="var-desc"><strong>Ideal DCG</strong><br />DCG of the best possible ordering</div></div>
           </div>
           <p class="small muted mt-3 center"><span lang="ru">Почему \(\log_2(i+1)\)? Гладкий, медленно затухающий дисконт — мягче, чем \(1/i\), поэтому ранг 10 всё ещё учитывается. Деление на \(\mathrm{IDCG}\) помещает \(\mathrm{nDCG}\) в \([0,1]\): \(1\) — идеальное ранжирование. Мы используем стандартный современный дисконт \(1/\log_2(i+1)\) (Burges et al./LambdaMART); оригинал Järvelin–Kekäläinen не применяет дисконт выше ранга \(b\) — та же идея, немного другой верх списка.</span><span lang="en">Why \(\log_2(i+1)\)? A smooth, slowly-decaying discount — gentler than \(1/i\), so rank 10 still counts. Dividing by \(\mathrm{IDCG}\) puts \(\mathrm{nDCG}\) in \([0,1]\): \(1\) is a perfect ranking. We use the standard modern discount \(1/\log_2(i+1)\) (Burges et al./LambdaMART); Järvelin–Kekäläinen's original applies no discount above rank \(b\) — same idea, slightly different head.</span></p>
-          <aside class="slide-notes">Three pieces. DCG sums each doc's gain divided by a logarithmic position discount, so a relevant doc high up contributes more than the same doc buried deep. The log is deliberately gentle — unlike 1/i it doesn't crush deep ranks to nothing, which matches how users still occasionally scroll. IDCG is the DCG of the ideal ranking — all highest-gain docs first — the maximum achievable. Dividing DCG by IDCG normalises to [0,1], making nDCG comparable across queries with different numbers and grades of relevant docs. One honest footnote: the 1/log2(i+1) discount we use is the modern Burges/LambdaMART convention; Järvelin–Kekäläinen's original 2002 formula applies no discount for the top b ranks and 1/log_b(i) below — same intuition, a slightly different head. Next slide walks it on our graded ranking, both gain functions.</aside>
+          
         </section>
 
-        <!-- ============================================ 32 · E2E · nDCG graded worked ============================================ -->
+        
         <section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="32 nDCG worked">
           <div class="slide-header">
             <h2><span lang="ru">nDCG на нашем ранжировании — градуированные выигрыши (gain)</span><span lang="en">nDCG on our ranking — graded gains</span></h2>
@@ -1162,10 +1154,10 @@
             <span class="e2e-stage-name"><span lang="ru">обзор</span><span lang="en">overview</span></span>
             <button type="button" class="e2e-toggle"><span lang="ru">Только теория</span><span lang="en">Theory only</span></button>
           </div>
-          <aside class="slide-notes">The headline graded computation, all exact, linear gain. Discounts: 1/log2 3 = 0.6309, 1/log2 5 = 0.4307, 1/log2 7 = 0.3562, 1/log2 9 = 0.3155. Contributions: grade 3 at rank 2 → 1.8928, grade 3 at rank 4 → 1.2920, grade 1 at rank 6 → 0.3562, grade 1 at rank 8 → 0.3155. DCG = 3.8565. The ideal ordering is grades 3,3,1,1 at ranks 1–4, giving IDCG = 5.8235. nDCG = 3.8565 / 5.8235 ≈ 0.6622. Next slide reruns this with the exponential gain to show the metric shifts but the verdict holds.</aside>
+          
         </section>
 
-        <!-- ============================================ 33 · TABLE · linear vs exponential nDCG ============================================ -->
+        
         <section class="slide" data-type="table" data-screen-label="33 Lin vs exp">
           <div class="slide-header">
             <h2><span lang="ru">То же ранжирование, две функции выигрыша (gain)</span><span lang="en">Same ranking, two gain functions</span></h2>
@@ -1191,10 +1183,10 @@
             </div>
           </div>
           <p class="small muted mt-3 center"><span lang="ru">Экспоненциальный выигрыш раздувает документы градации 3 (\(3\to 7\)), поэтому и \(\mathrm{DCG}\), и \(\mathrm{IDCG}\) растут — но <strong>отношение</strong> почти не меняется (\(0{,}6622 \to 0{,}6563\)). Функция выигрыша меняет масштаб, но редко — вердикт.</span><span lang="en">Exponential gain inflates the grade-3 docs (\(3\to 7\)), so both \(\mathrm{DCG}\) and \(\mathrm{IDCG}\) grow — but the <strong>ratio</strong> barely moves (\(0.6622 \to 0.6563\)). The gain function changes the scale, rarely the verdict.</span></p>
-          <aside class="slide-notes">Two gain functions on the identical ranking. Linear keeps grades as 0,3,1; exponential maps them to 0,7,1, amplifying the strong hits. Both numerator (DCG) and denominator (IDCG) inflate, so the normalised score moves only slightly: 0.6622 to 0.6563. The lesson: report which gain you used because absolute numbers differ, but the relative ordering of systems is usually robust to the choice. Web search defaults to exponential precisely because it sharpens the reward for perfect results, which matters when grade-4 documents are rare and precious.</aside>
+          
         </section>
 
-        <!-- ============================================ 34 · VIZ · ideal vs actual ladder ============================================ -->
+        
         <section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="33a Climb &middot; ndcg-graded">
   <div class="slide-header">
     <h2><span lang="ru">Один список, три шкалы усиления</span><span lang="en">One ranking, three gain scales</span></h2>
@@ -1633,7 +1625,7 @@
 }
   </script>
   <p class="viz-caption"><span lang="ru">Тот же список, что живёт в этом акте, &mdash; но теперь шкалу усиления переключаешь ты. Смотри, как бинарная шкала стирает разницу между отличным и терпимым результатом, линейная её возвращает, а экспоненциальная жёстко наказывает за похороненный сильный результат. Выбор шкалы &mdash; это выбор того, за что именно ты штрафуешь ранкер.</span><span lang="en">The same ranking this act lives on &mdash; but now you flip the gain scale yourself. Watch the binary scale erase the difference between an excellent result and a tolerable one, the linear scale bring it back, and the exponential scale punish a buried strong result hard. Choosing the scale is choosing what exactly you fine the ranker for.</span></p>
-  <aside class="slide-notes">Act 4&rsquo;s climb, right after the two-gain-functions comparison and before the ideal-ladder slide. Grades, discounts and every DCG sum come from data/l4-graded.json &mdash; the same eight-result ranking as the worked slide, so the numbers are already familiar. Steps: (0) the graded list &mdash; grades, not checkmarks; (1) binary gain &mdash; the flattening, DWELL: this is what act 3&rsquo;s metrics silently did all along; (2) linear gain; (3) exponential gain &mdash; the buried grade-3 doc suddenly dominates the bill. Students stumble on &ldquo;which gain is correct&rdquo; &mdash; the honest answer is that it is a product decision about what to punish, and that answer IS the slide&rsquo;s takeaway. Keep the pitfalls slide two ahead in mind: ties and cutoff choices are where this bites in practice.</aside>
+  
 </section>
 <section class="slide" data-type="viz" data-screen-label="34 Ideal vs actual">
           <div class="slide-header">
@@ -1642,58 +1634,58 @@
           </div>
           <div class="viz-frame">
             <svg viewBox="0 0 1600 700" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="Two stacked-gain ladders drawn to scale: ideal IDCG 5.8235 front-loads the big gems, actual DCG 3.8565 scatters them">
-              <!-- baseline -->
+              
               <line x1="120" y1="620" x2="1480" y2="620" stroke="var(--ink)" stroke-width="2"/>
-              <!-- scale: 1.0 gain·discount unit = 82.4px ; baseline y=620 -->
+              
 
-              <!-- ===== IDEAL column (left): grades [3,3,1,1] at ranks 1–4 ===== -->
+              
               <text x="430" y="92" text-anchor="middle" font-family="var(--font-sans)" font-size="30" fill="var(--accent-ink)" font-weight="600">Ideal ranking</text>
               <text x="430" y="126" text-anchor="middle" font-family="var(--font-mono)" font-size="22" fill="var(--ink-3)">grades [3, 3, 1, 1] at ranks 1–4</text>
               <g font-family="var(--font-mono)" font-size="22">
-                <!-- rank1 g3 → 3.000 → 247px : y 373→620 -->
+                
                 <rect x="300" y="373" width="260" height="247" rx="6" fill="var(--c-green)" opacity="0.68" stroke="var(--c-green)"/>
                 <text x="430" y="505" text-anchor="middle" fill="var(--ink)" font-size="24">r1 · 3·1.000 = 3.000</text>
-                <!-- rank2 g3 → 1.8927 → 156px : y 217→373 -->
+                
                 <rect x="300" y="217" width="260" height="156" rx="6" fill="var(--c-green)" opacity="0.62" stroke="var(--c-green)"/>
                 <text x="430" y="302" text-anchor="middle" fill="var(--ink)" font-size="22">r2 · 3·.631 = 1.893</text>
-                <!-- rank3 g1 → 0.5 → 41px : y 176→217 -->
+                
                 <rect x="300" y="176" width="260" height="41" rx="4" fill="var(--accent)" opacity="0.55" stroke="var(--accent)"/>
                 <text x="540" y="201" text-anchor="end" fill="var(--ink-2)" font-size="19">r3 · 1·.500 = .500</text>
-                <!-- rank4 g1 → 0.4307 → 35px : y 141→176 -->
+                
                 <rect x="300" y="141" width="260" height="35" rx="4" fill="var(--accent)" opacity="0.4" stroke="var(--accent)"/>
                 <text x="540" y="164" text-anchor="end" fill="var(--ink-2)" font-size="19">r4 · 1·.431 = .431</text>
               </g>
               <text x="430" y="666" text-anchor="middle" font-family="var(--font-mono)" font-size="28" fill="var(--accent-ink)" font-weight="700">IDCG = 5.8235</text>
 
-              <!-- ===== ACTUAL column (right): grades [0,3,0,3,0,1,0,1] ===== -->
+              
               <text x="1050" y="92" text-anchor="middle" font-family="var(--font-sans)" font-size="30" fill="var(--ink)" font-weight="600">Our BM25 ranking</text>
               <text x="1050" y="126" text-anchor="middle" font-family="var(--font-mono)" font-size="22" fill="var(--ink-3)">gems scattered to ranks 2, 4, 6, 8</text>
               <g font-family="var(--font-mono)" font-size="22">
-                <!-- rank2 g3 → 1.8927 → 156px : y 464→620 -->
+                
                 <rect x="920" y="464" width="260" height="156" rx="6" fill="var(--c-green)" opacity="0.62" stroke="var(--c-green)"/>
                 <text x="1050" y="549" text-anchor="middle" fill="var(--ink)" font-size="22">r2 · 3·.631 = 1.893</text>
-                <!-- rank4 g3 → 1.2921 → 106px : y 358→464 -->
+                
                 <rect x="920" y="358" width="260" height="106" rx="6" fill="var(--c-green)" opacity="0.45" stroke="var(--c-green)"/>
                 <text x="1050" y="416" text-anchor="middle" fill="var(--ink)" font-size="21">r4 · 3·.431 = 1.292</text>
-                <!-- rank6 g1 → 0.3562 → 29px : y 329→358 -->
+                
                 <rect x="920" y="329" width="260" height="29" rx="4" fill="var(--accent)" opacity="0.45" stroke="var(--accent)"/>
                 <text x="1205" y="350" text-anchor="start" fill="var(--ink-2)" font-size="19">r6 · 1·.356 = .356</text>
-                <!-- rank8 g1 → 0.3155 → 26px : y 303→329 -->
+                
                 <rect x="920" y="303" width="260" height="26" rx="4" fill="var(--accent)" opacity="0.32" stroke="var(--accent)"/>
                 <text x="1205" y="322" text-anchor="start" fill="var(--ink-2)" font-size="19">r8 · 1·.316 = .316</text>
               </g>
               <text x="1050" y="666" text-anchor="middle" font-family="var(--font-mono)" font-size="28" fill="var(--ink)" font-weight="700">DCG = 3.8565</text>
 
-              <!-- gap bracket: how much we leave on the table -->
+              
               <line x1="600" y1="141" x2="880" y2="303" stroke="var(--c-red)" stroke-width="2" stroke-dasharray="8 6"/>
               <text x="740" y="210" text-anchor="middle" font-family="var(--font-sans)" font-size="22" fill="var(--c-red)" transform="rotate(30 740 210)">the lost gain</text>
             </svg>
           </div>
           <p class="viz-caption"><span lang="ru">Обе лестницы нарисованы <strong>в масштабе</strong>. Идеал складывает два самородка градации 3 на рангах 1–2, давая \(\mathrm{IDCG}=3{\cdot}1 + 3{\cdot}0{,}631 + 1{\cdot}0{,}5 + 1{\cdot}0{,}431 = 5{,}8235\); наше ранжирование BM25 сдвигает те же самородки вниз на ранги 2 и 4, платя более крутой дисконт, давая \(\mathrm{DCG}=3{,}8565\). Их отношение \(\mathrm{nDCG}=3{,}8565/5.8235\approx 0{,}662\) — около двух третей достижимого выигрыша (gain).</span><span lang="en">Both ladders are drawn <strong>to scale</strong>. The ideal stacks the two grade-3 gems at ranks 1–2 for \(\mathrm{IDCG}=3{\cdot}1 + 3{\cdot}0.631 + 1{\cdot}0.5 + 1{\cdot}0.431 = 5.8235\); our BM25 ranking pushes the same gems down to ranks 2 and 4, paying a steeper discount, for \(\mathrm{DCG}=3.8565\). Their ratio \(\mathrm{nDCG}=3.8565/5.8235\approx 0.662\) — about two-thirds of the achievable gain.</span></p>
-          <aside class="slide-notes">The intuition behind normalization. IDCG is the score of a perfect ranker that puts every relevant doc — highest grade first — as high as possible; it is the ceiling for this query. Our ranker scattered the relevant docs down the list, paying the log discount each time, so it earns only 3.8565 of the available 5.8235 — about two-thirds. nDCG = 0.662 is therefore "two-thirds of the way to perfect", a phrase you can compare directly against any other system on the same query set, regardless of how many relevant docs each query has.</aside>
+          
         </section>
 
-        <!-- ============================================ 35 · TWO-COL · nDCG@k, ties, pitfalls ============================================ -->
+        
         <section class="slide" data-type="two-col" data-screen-label="35 nDCG pitfalls">
           <div class="slide-header">
             <h2><span lang="ru">nDCG@k, ничьи и подводные камни</span><span lang="en">nDCG@k, ties, and pitfalls</span></h2>
@@ -1720,10 +1712,10 @@
               <p class="small muted"><span lang="ru">Две системы с разными отсечками, функциями выигрыша или полнотой разметки <strong>не</strong> сопоставимы — сначала зафиксируй протокол.</span><span lang="en">Two systems with different cutoffs, gain functions, or label completeness are <strong>not</strong> comparable — fix the protocol first.</span></p>
             </div>
           </div>
-          <aside class="slide-notes">nDCG is the right metric but it has sharp edges. Always state the cutoff — nDCG@10 is the web standard — and make sure IDCG is computed at the same k. When a query has very few relevant docs, IDCG is tiny and the score swings wildly, so per-query nDCG can be noisy. Ties in score make the order arbitrary, which can quietly change the number; average over random tie-breaks. And the unjudged-document bias from Part 2 returns: an unlabelled relevant doc scored as gain 0 understates your DCG. The meta-lesson: comparisons are only valid under an identical protocol.</aside>
+          
         </section>
 
-        <!-- ============================================ 36 · TWO-COL · ERR & RBP (concept) ============================================ -->
+        
         <section class="slide" data-type="two-col" data-screen-label="36 ERR RBP">
           <div class="slide-header">
             <h2><span lang="ru">Смежные градуированные метрики: ERR и RBP</span><span lang="en">Adjacent graded metrics: ERR &amp; RBP</span></h2>
@@ -1754,12 +1746,12 @@
             </div>
           </div>
           <p class="small muted center mt-3"><span lang="ru">Обе заменяют фиксированный log-дисконт nDCG на <strong>явную модель пользователя</strong>. Алгебра тебе не нужна; для справки: \(\mathrm{ERR}=\sum_r \tfrac{1}{r}R_r\!\prod_{i \lt r}(1-R_i)\) и \(\mathrm{RBP}=(1-p)\sum_r g_r\,p^{\,r-1}\), с вероятностью остановки \(R_r\propto 2^{\mathrm{rel}_r}-1\).</span><span lang="en">Both swap nDCG's fixed log discount for an <strong>explicit user model</strong>. You don't need the algebra; for reference: \(\mathrm{ERR}=\sum_r \tfrac{1}{r}R_r\!\prod_{i \lt r}(1-R_i)\) and \(\mathrm{RBP}=(1-p)\sum_r g_r\,p^{\,r-1}\), with stop-prob \(R_r\propto 2^{\mathrm{rel}_r}-1\).</span></p>
-          <aside class="slide-notes">Two metrics worth knowing because they encode an explicit user model, unlike nDCG's fixed log discount. Expected Reciprocal Rank assumes a cascade: the user reads down the list and stops as soon as a document satisfies them, so a great result early makes everything below it nearly irrelevant — it's a graded, cascade-aware cousin of MRR. Rank-Biased Precision assumes a persistent user who continues to the next rank with probability p; tune p to model patient versus impatient users. You don't need the algebra memorised — I've left it as a one-line reference at the foot of the slide — but know they exist and why a user model can beat a fixed discount.</aside>
+          
         </section>
 
-        <!-- ==================== PART 05 · COMPARING SYSTEMS & STATISTICS ==================== -->
+        
 
-        <!-- ============================================ 37 · DIVIDER · PART 05 ============================================ -->
+        
         <section class="slide" data-type="divider" data-screen-label="37 Divider P5">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 05</span><span lang="en">Part 05</span></div>
@@ -1774,10 +1766,10 @@
                  />
           </div>
 
-          <aside class="slide-notes">This is where I see most evaluations go wrong. I compute a metric for System A and System B, B is higher, and the temptation is to just ship B. But every metric is an average over a finite, noisy query sample — my dice of chance. A 0.04 nDCG gap might be a genuine improvement or might vanish on the next 15 queries. This part is the statistics I use to separate signal from noise: paired tests, confidence intervals, power. If the divider image 404s the slide still stands.</aside>
+          
         </section>
 
-        <!-- ============================================ 38 · TABLE · two systems head-to-head ============================================ -->
+        
 <section class="slide" data-type="table" data-screen-label="38 Two systems">
           <div class="slide-header">
             <h2><span lang="ru">Две системы, 15 запросов, nDCG@10 по каждому запросу</span><span lang="en">Two systems, 15 queries, per-query nDCG@10</span></h2>
@@ -1795,10 +1787,10 @@
           </table>
           <p class="small muted mt-3 center"><span lang="ru">Средний nDCG: \(A = 0{,}6046\), \(B = 0{,}6443\), значит \(\overline{\Delta} = +0{,}0397\). B выглядит лучше — но заметь: \(4\) из \(15\) разностей по запросам <strong>отрицательны</strong>. Реально ли \(+0{,}04\)?</span><span lang="en">Mean nDCG: \(A = 0.6046\), \(B = 0.6443\), so \(\overline{\Delta} = +0.0397\). B looks better — but note \(4\) of \(15\) per-query diffs are <strong>negative</strong>. Is \(+0.04\) real?</span></p>
           <p class="small muted center" style="font-size:0.7em;"><span lang="ru">\(+.00\) у q6 — это крошечный плюс (\(+0{,}0001\)), а не ничья: Wilcoxon отбрасывает <em>точные</em> нули, поэтому все \(15\) разностей сохраняются и ранжируются.</span><span lang="en">q6's \(+.00\) is a tiny positive (\(+0.0001\)), not a tie — Wilcoxon drops <em>exact</em> zeros, so all \(15\) diffs are kept and ranked.</span></p>
-          <aside class="slide-notes">This pays off the "two rankers" hook from slide one with a real second system: B is a tuned BM25 with a small genuine edge over baseline A, measured per-query over 15 queries. The means are 0.6046 and 0.6443, a difference of 0.0397 in B's favour. But look at the delta row — B loses on four queries. The mean improvement is small relative to the per-query spread. A naive reading says "B wins, ship it"; a careful one asks whether 0.04 could arise by chance from 15 noisy queries. That question is the rest of Part 5.</aside>
+          
         </section>
 
-        <!-- ============================================ 39 · VIZ · per-query variance ============================================ -->
+        
         <section class="slide" data-type="viz" data-screen-label="39 Per-query variance">
           <div class="slide-header">
             <h2><span lang="ru">Средние скрывают разброс по запросам</span><span lang="en">Averages hide per-query variance</span></h2>
@@ -1808,7 +1800,7 @@
             <svg viewBox="0 0 1600 520" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">
               <line x1="80" y1="260" x2="1540" y2="260" stroke="var(--ink)" stroke-width="2"/>
               <text x="1500" y="250" font-family="var(--font-mono)" font-size="22" fill="var(--ink-3)">0</text>
-              <!-- 15 per-query diff bars; baseline at y=260, scale 1 unit = 900px per 1.0 → 0.12 ≈ 108px -->
+              
               <g>
                 <rect x="100" y="148" width="70" height="112" fill="var(--c-green)" opacity="0.8"/>
                 <rect x="190" y="244" width="70" height="16"  fill="var(--c-green)" opacity="0.8"/>
@@ -1833,10 +1825,10 @@
             </svg>
           </div>
           <p class="viz-caption"><span lang="ru">Стандартное отклонение разностей по запросам (\(0{,}0676\)) <em>больше</em>, чем средняя разность (\(0{,}0397\)). Одно среднее способно скрыть, действительно ли система стабильно лучше или ей просто повезло на нескольких запросах.</span><span lang="en">The standard deviation of the per-query differences (\(0.0676\)) is <em>larger</em> than the mean difference (\(0.0397\)). A single average can hide whether a system is reliably better or just lucky on a few queries.</span></p>
-          <aside class="slide-notes">This is the picture that should make you cautious. Each bar is one query's B-minus-A difference: most are green (B wins) but four are red (A wins), and the magnitudes scatter widely. The mean improvement, the dashed line, is real but modest — and the spread of differences (sd 0.0676) is bigger than the mean itself. When variance dwarfs the effect, you cannot eyeball significance; you need a test that accounts for how noisy the per-query differences are. That's the next slide.</aside>
+          
         </section>
 
-        <!-- ============================================ 40 · E2E · significance tests ============================================ -->
+        
         <section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="40 Significance">
           <div class="slide-header">
             <h2><span lang="ru">Три теста значимости</span><span lang="en">Three significance tests</span></h2>
@@ -1883,10 +1875,10 @@
             <span class="e2e-stage-name">overview</span>
             <button type="button" class="e2e-toggle">Theory only</button>
           </div>
-          <aside class="slide-notes">The paired t-test concerns population mean difference; its exact small-sample calibration assumes independent normally distributed differences. The exact sign-flip calculation needs invariance under independent sign flips, justified by exchangeability within pairs or symmetric independent differences under the null. Equal means alone are insufficient. Wilcoxon signed-rank also needs a symmetric continuous difference distribution for its standard exact calibration; it does not test arbitrary mean equality. The displayed dataset gives t=2.275, permutation p=0.03979 and W=25. Agreement is not three independent replications. Rejecting at 0.05 is evidence under assumptions, not proof that chance played no role. Smucker et al. 2007 recommend randomization for their IR comparison; SciPy permutation_test and wilcoxon document the distinct nulls.</aside>
+          
         </section>
 
-        <!-- ============================================ 41 · FORMULA · confidence interval ============================================ -->
+        
 <section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="40a Climb &middot; significance-test">
   <div class="slide-header">
     <h2><span lang="ru">Прогони все три теста на одном разрыве</span><span lang="en">Run all three tests on one gap</span></h2>
@@ -2149,7 +2141,7 @@
 }
   </script>
   <p class="viz-caption"><span lang="ru">Те же две системы и те же запросы, что открыли этот акт, &mdash; теперь пропусти их через все три теста сам. Начни с гистограммы разностей: часть запросов голосует против победителя, и это нормально. Три дороги приводят к одному ответу &mdash; а доверительный интервал говорит больше любого из p, и это мостик к следующему слайду.</span><span lang="en">The same two systems and the same queries that opened this act &mdash; now push them through all three tests yourself. Start at the histogram of differences: some queries vote against the winner, and that is normal. Three roads lead to one answer &mdash; and the confidence interval says more than any of the p&rsquo;s, which is the bridge to the next slide.</span></p>
-  <aside class="slide-notes">Act 5&rsquo;s climb, right after the three-tests slide and right before the confidence-interval slide it hands over to. Every difference, statistic and p-value comes from data/l4-systems.json &mdash; the same fifteen-query comparison the act opened with. Steps: (0) the per-query differences &mdash; DWELL on the queries that vote against the winner, they are why eyeballing fails; (1) the permutation test &mdash; the null made concrete by flipping signs, this is where the concept clicks, go slow; (2) the paired t-test as the fast approximation of the same idea; (3) all three p&rsquo;s converging, plus the interval &mdash; hand off to the next slide with &ldquo;the interval is the honest headline&rdquo;. Students stumble on what the null hypothesis physically IS; the sign-flip framing at step 1 exists precisely to fix that.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="41 CI">
           <div class="slide-header slide-header--flush">
@@ -2166,10 +2158,10 @@
           </div>
           <p class="small muted center"><span lang="ru">\(\Rightarrow [\,0{,}0397-0{,}0375,\ 0{,}0397+0{,}0375\,] \approx [\,0{,}0023,\ 0{,}0772\,]\). Критическое \(t\)-значение \(2{,}145\) — табличное, а не вычисленное вручную.</span><span lang="en">\(\Rightarrow [\,0.0397-0.0375,\ 0.0397+0.0375\,] \approx [\,0.0023,\ 0.0772\,]\). The \(t\)-critical \(2.145\) is a table value, not computed by hand.</span></p>
           <p class="small muted mt-3 center"><span lang="ru">CI исключает \(0\) (значит \(p<0.05\)), но опускается до \(+0.002\): B, <em>вероятно</em>, лучше, но истинный выигрыш может быть пренебрежимо мал. Один \(p\)-value этого не покажет.</span><span lang="en">The CI excludes \(0\) (so \(p<0.05\)) but reaches down to \(+0.002\): B is <em>probably</em> better, but the true gain might be negligible. A \(p\)-value alone hides this.</span></p>
-          <aside class="slide-notes">A p-value tells you the difference is unlikely to be zero; a confidence interval tells you how big it plausibly is, which is what actually matters for a ship decision. Here the 95% CI is 0.0023 to 0.0772 — it excludes zero, consistent with the significant p-values, but its lower edge is almost zero, so the real improvement could be trivially small. And it's wide because 15 queries is few. Always report the interval, not just the star: significant and large are different claims, and only the CI distinguishes them.</aside>
+          
         </section>
 
-        <!-- ============================================ 42 · TWO-COL · power & query count ============================================ -->
+        
         <section class="slide" data-type="two-col" data-screen-label="42 Power">
           <div class="slide-header">
             <h2><span lang="ru">Мощность: сколько запросов тебе нужно?</span><span lang="en">Power: how many queries do you need?</span></h2>
@@ -2197,10 +2189,10 @@
               <p class="small muted"><span lang="ru">\(n \approx \left(\dfrac{(z_\alpha + z_\beta)\,\mathrm{sd}}{\text{MDD}}\right)^2\). Вдвое уменьшишь обнаружимую разность → вчетверо больше запросов.</span><span lang="en">\(n \approx \left(\dfrac{(z_\alpha + z_\beta)\,\mathrm{sd}}{\text{MDD}}\right)^2\). Halve the detectable difference → quadruple the queries.</span></p>
             </div>
           </div>
-          <aside class="slide-notes">Significance and power are two failure modes. Significance controls false positives — saying B won when it didn't. Power controls false negatives — missing a real win because the test was too small. The required query count grows with variance and shrinks with the effect you're willing to call meaningful; crucially, it scales with the inverse square of the minimum detectable difference, so chasing a tiny improvement costs a lot of queries. Fifteen queries can catch a 0.04 gap but would routinely miss a real 0.01 gap. Decide the smallest gain you care about before you size the test.</aside>
+          
         </section>
 
-        <!-- ============================================ 43 · MISCONCEPTION · multiple comparisons ============================================ -->
+        
         <section class="slide" data-type="misconception" data-screen-label="43 Multiple comparisons">
           <div class="slide-header">
             <h2><span lang="ru">Распространённое заблуждение</span><span lang="en">Common misconception</span></h2>
@@ -2216,10 +2208,10 @@
               </p>
             </div>
           </div>
-          <aside class="slide-notes">This is the most common statistical sin in applied ranking work. A p-value below 0.05 means a 5% chance of a false alarm per test. Run twenty tests and the expected number of false alarms is one — so the "winner" you cherry-picked may be pure noise. Bonferroni divides alpha by the number of tests (conservative); Benjamini-Hochberg controls the false-discovery rate (more powerful). The cleanest defence is to confirm an offline winner on held-out queries or, better, in an online experiment — which is exactly where Part 6 takes us.</aside>
+          
         </section>
 
-        <!-- ============================================ 44 · TABLE · metric selection matrix ============================================ -->
+        
 <section class="slide" data-type="table" data-screen-label="44 Metric matrix · binary">
           <div class="slide-header">
             <h2><span lang="ru">Какая метрика для какой задачи?</span><span lang="en">Which metric for which task?</span> <span style="font-weight:400;opacity:.6">(1 / 2)</span></h2>
@@ -2236,12 +2228,10 @@
               <tr><td><span lang="ru">Ранжированный поиск, качество набора</span><span lang="en">Ranked retrieval, set quality</span></td><td><span lang="ru">бинарная</span><span lang="en">binary</span></td><td class="cell-good">MAP</td><td><span lang="ru">площадь под PR; награждает ранние попадания</span><span lang="en">area under PR; rewards early hits</span></td></tr>
             </tbody>
           </table>
-          <aside class="slide-notes">The practical close to the offline half, part 1 — the binary-relevance tasks. One-answer tasks like QA or navigation → MRR. Exhaustive tasks like legal discovery → recall. Snippet quality → precision at the visible cutoff. General ranked retrieval with binary labels → MAP. The graded-relevance tasks and the closing rule are on the next slide.</aside>
+          
         </section>
 
-        <!-- ============================================
-             44b · TABLE — Metric matrix (graded)
-             ============================================ -->
+        
         <section class="slide" data-type="table" data-screen-label="45 Metric matrix · graded">
           <div class="slide-header">
             <h2><span lang="ru">Какая метрика для какой задачи?</span><span lang="en">Which metric for which task?</span> <span style="font-weight:400;opacity:.6">(2 / 2)</span></h2>
@@ -2257,10 +2247,10 @@
             </tbody>
           </table>
           <p class="small muted mt-3 center"><span lang="ru">Ни одна метрика не «лучшая» — подбирай метрику под <strong>задачу пользователя</strong>. Сообщай основную метрику плюс один-два диагностических показателя.</span><span lang="en">No single metric is "best" — match the metric to the <strong>user's task</strong>. Report a primary metric plus one or two diagnostics.</span></p>
-          <aside class="slide-notes">Part 2 — the graded-relevance tasks. Graded web search → nDCG@10, the de facto standard. Cascade behaviour → ERR or RBP. The rule: pick one primary metric tied to the task, and keep a couple of diagnostics alongside. Then — because offline labels are still a proxy — confirm online, which is Part 6.</aside>
+          
         </section>
 
-        <!-- ============================================ 45 · QUIZ · significance ============================================ -->
+        
         <section class="slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="45a Climb &middot; ranking-metrics">
   <div class="slide-header">
     <h2><span lang="ru">Все метрики на одном списке</span><span lang="en">Every metric, one ranking</span></h2>
@@ -2490,7 +2480,7 @@
 }
   </script>
   <p class="viz-caption"><span lang="ru">Перед квизом &mdash; вся лекция на одном экране: знакомый список результатов и все метрики, посчитанные на нём бок о бок. Прощёлкай и проверь себя: какая метрика на что смотрит &mdash; и чего в упор не видит. Если какой-то шаг удивил, вернись к его акту, пока сводные таблицы с двух прошлых слайдов ещё перед глазами.</span><span lang="en">Right before the quiz &mdash; the whole lecture on one screen: the familiar ranking, and every metric computed on it side by side. Click through and test yourself: what each metric looks at &mdash; and what it is blind to. If any step surprises you, revisit its act while the summary tables from the last two slides are still fresh.</span></p>
-  <aside class="slide-notes">A deliberate recap climb, mounted after the which-metric-for-which-task tables and before the act&rsquo;s quiz &mdash; not after any single formal slide, because its material spans acts 3 and 4. Everything is read from data/l4-metrics.json: the SAME eight-document BM25 ranking introduced as the running example in act 2, now carrying every metric at once. Steps: (0) the checked list; (1) precision/recall at a movable cut &mdash; both depend on where you cut, that is their blindness; (2) MRR &mdash; blind to everything after the first hit; (3) MAP &mdash; every hit pulls weight; (4) nDCG &mdash; positions discount the gain. Run it as a self-check dialogue (&ldquo;which metric would NOT notice if we swapped ranks seven and eight?&rdquo;) &mdash; it warms the class up for the quiz that follows.</aside>
+  
 </section>
 <section class="slide" data-type="quiz" data-screen-label="46 Quiz P5">
           <div class="slide-header">
@@ -2509,12 +2499,12 @@
               <div class="ha-content"><span lang="ru"><strong>B</strong>. \(p<0.05\) само по себе недостаточно: 95%-й доверительный интервал \([0.0023,0.0772]\) почти достигает 0, так что выигрыш может быть крошечным, а 15 запросов — это недостаточная мощность. Перезапуск <em>тех же</em> запросов (C) ничего не даёт и провоцирует p-хакинг — подтверждай на независимых данных, лучше всего живым A/B-тестом.</span><span lang="en"><strong>B</strong>. \(p<0.05\) is necessary, not sufficient: the 95% CI \([0.0023,0.0772]\) nearly reaches 0, so the gain could be tiny, and 15 queries is under-powered. Re-running the <em>same</em> queries (C) adds nothing and invites p-hacking — confirm on independent data, ideally a live A/B test.</span></div>
             </details>
           </div>
-          <aside class="slide-notes">Consolidates Part 5. The discipline is: a single significant offline result on a small query set is a hint, not a verdict. The CI tells you the effect might be negligible; the small n tells you you're under-powered. The right move is independent confirmation — more queries, a fresh test set, or best of all a real online experiment, which measures the thing the offline labels were only approximating. That's the bridge into the online half of the lecture.</aside>
+          
         </section>
 
-        <!-- ==================== PART 06 · ONLINE EVALUATION ==================== -->
+        
 
-        <!-- ============================================ 46 · DIVIDER · PART 06 ============================================ -->
+        
 <section class="slide" data-type="divider" data-screen-label="47 Divider P6">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 06</span><span lang="en">Part 06</span></div>
@@ -2529,10 +2519,10 @@
                  />
           </div>
 
-          <aside class="slide-notes">My offline evaluation optimises a proxy: human labels that approximate what users want. But labels drift, intents change, and no qrel captures whether a user was actually satisfied. So I leave the test range and close the loop by measuring real behaviour — clicks, dwell, conversion. The catch: that behaviour is noisy, biased by position, and influenced by the very system that logged it. This part is the full online stack, ending with the question of whether offline ever predicts online.</aside>
+          
         </section>
 
-        <!-- ============================================ 47 · TWO-COL · why offline isn't enough ============================================ -->
+        
 <section class="slide" data-type="two-col" data-screen-label="48 Why online">
           <div class="slide-header">
             <h2><span lang="ru">Почему офлайна недостаточно</span><span lang="en">Why offline isn't enough</span></h2>
@@ -2557,10 +2547,10 @@
             </div>
           </div>
           <p class="small muted center mt-3"><span lang="ru">Офлайн быстро находит кандидатов; онлайн подтверждает их на единственном судье, который важен, — на пользователе.</span><span lang="en">Offline finds candidates fast; online confirms them on the only judge that matters — the user.</span></p>
-          <aside class="slide-notes">Offline metrics are indispensable for iteration speed, but they answer a question one step removed from the goal: does this match our labels, not does this satisfy users. Labels are a proxy created at one moment by assessors with a guideline; real intent drifts and is personal, and presentation, speed, and UI never show up in a qrel file. Online evaluation measures actual behaviour and ties to business outcomes. The mature workflow uses offline to generate and pre-filter candidates cheaply, then online to confirm the survivors on live traffic.</aside>
+          
         </section>
 
-        <!-- ============================================ 48 · E2E · A/B test ============================================ -->
+        
         <section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="49 AB test">
           <div class="slide-header">
             <h2><span lang="ru">A/B-тест: CTR контроля против теста</span><span lang="en">A/B test: control vs treatment CTR</span></h2>
@@ -2603,10 +2593,10 @@
             <span class="e2e-stage-name">overview</span>
             <button type="button" class="e2e-toggle">Theory only</button>
           </div>
-          <aside class="slide-notes">The canonical online experiment. Split traffic: control sees the old ranking, treatment sees the new one — here 10000 sessions each. The metric is click-through rate: 1200 clicks gives 0.12 for control, 1320 gives 0.132 for treatment. To test the 0.012 difference, pool the rates (0.126), compute the standard error of the difference in proportions (0.00469), and form z = 0.012 / 0.00469 = 2.557, two-sided p = 0.01056 — significant. The relative lift is 0.012 / 0.12 = 10%. Significant and sizeable, so ship treatment. Note the same logic as the paired t-test, just for proportions.</aside>
+          
         </section>
 
-        <!-- ============================================ 49 · TWO-COL · A/B pitfalls ============================================ -->
+        
 <section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="49a Climb &middot; ab-test">
   <div class="slide-header">
     <h2><span lang="ru">A/B-тест: прирост или удача?</span><span lang="en">The A/B test: lift or luck?</span></h2>
@@ -2835,7 +2825,7 @@
 }
   </script>
   <p class="viz-caption"><span lang="ru">Тот же тест, что и на прошлом слайде, &mdash; теперь доведи его до вердикта сам. Прирост на поверхности ещё ничего не значит: сначала спроси, насколько удивителен такой разрыв, если оба ранкера на самом деле равны. Только после этого ответа слово &laquo;выкатываем&raquo; имеет право прозвучать &mdash; а подводные камни ждут на следующем слайде.</span><span lang="en">The same test as the previous slide &mdash; now carry it to the verdict yourself. A lift on the surface means nothing yet: first ask how surprising a gap this size would be if the two rankers were actually equal. Only after that answer does the word &ldquo;ship&rdquo; earn the right to be said &mdash; and the pitfalls are waiting on the next slide.</span></p>
-  <aside class="slide-notes">Act 6&rsquo;s climb, straight after the A/B definition slide and before the guardrails-and-pitfalls slide. Counts, rates and the test statistic all come from data/l4-online.json. Steps: (0) the traffic split &mdash; emphasise randomisation, it is what makes the later inference legal; (1) the surface lift &mdash; PAUSE and ask the room &ldquo;ship it?&rdquo;, let them commit; (2) the luck check &mdash; same logic as the offline act&rsquo;s significance climb, one act earlier: how surprising is this gap under equality?; (3) the verdict. The deliberate echo between this climb and the significance climb is the lecture&rsquo;s spine: offline or online, the question is always &ldquo;real or luck?&rdquo;. Students stumble on absolute vs relative lift &mdash; step 1 shows both, read them aloud carefully.</aside>
+  
 </section>
 <section class="slide" data-type="two-col" data-screen-label="50 AB pitfalls">
           <div class="slide-header">
@@ -2863,10 +2853,10 @@
             </div>
           </div>
           <p class="small muted center mt-3"><span lang="ru">A/B-тест отвечает на вопрос «изменилось ли поведение», а не «стало ли ранжирование лучше» — страховки и чистый дизайн помогают согласовать эти два ответа.</span><span lang="en">An A/B test answers "did behaviour change", not "did the ranking get better" — guardrails and a clean design keep the two aligned.</span></p>
-          <aside class="slide-notes">A/B tests are powerful but easy to fool. Guardrail metrics catch a treatment that wins on the target while quietly hurting something else — latency, revenue, long-term retention. CTR especially can be gamed by clickbait, so always pair it with a satisfaction signal like dwell time or conversion. Three procedural traps: peeking at the p-value repeatedly is the online cousin of multiple comparisons and inflates false positives — commit to a sample size or use a sequential test; novelty effects make anything new look good for a few days; and seasonality means you must run full weekly cycles. Design first, then run.</aside>
+          
         </section>
 
-        <!-- ============================================ 50 · VIZ · position bias ============================================ -->
+        
 <section class="slide" data-type="viz" data-screen-label="51 Position bias">
           <div class="slide-header">
             <h2><span lang="ru">Клики смещены позицией</span><span lang="en">Clicks are biased by position</span></h2>
@@ -2878,7 +2868,7 @@
               <line x1="160" y1="460" x2="160" y2="60" stroke="var(--rule)" stroke-width="2"/>
               <text x="800" y="515" text-anchor="middle" font-family="var(--font-mono)" font-size="24" fill="var(--ink-3)">rank →</text>
               <text x="90" y="260" text-anchor="middle" font-family="var(--font-mono)" font-size="22" fill="var(--ink-3)" transform="rotate(-90 90 260)">P(examine)</text>
-              <!-- bars: examProb [1.0,.94,.884,.831,.781,.734,.690,.649,.610,.573], baseline y=460, scale 400px=1.0 -->
+              
               <g fill="var(--accent)" opacity="0.85">
                 <rect x="180"  y="60"  width="90" height="400"/>
                 <rect x="310"  y="84"  width="90" height="376"/>
@@ -2906,10 +2896,10 @@
             </svg>
           </div>
           <p class="viz-caption"><span lang="ru">Геометрическая модель просмотра: \(P(\text{exam}\mid \text{rank}) = \gamma^{\,\text{rank}-1}\) при \(\gamma=0{,}94\). Документ на ранге 1 просматривается с вероятностью \(1{,}0\); на ранге 10 — лишь \(0{,}57\). Клик означает «релевантно <em>и</em> просмотрено» — поэтому низкие ранги получают меньше кликов независимо от качества.</span><span lang="en">Geometric examination model: \(P(\text{exam}\mid \text{rank}) = \gamma^{\,\text{rank}-1}\) with \(\gamma=0.94\). A doc at rank 1 is examined with prob \(1.0\); at rank 10 only \(0.57\). A click means "relevant <em>and</em> examined" — so low ranks get fewer clicks regardless of quality.</span></p>
-          <aside class="slide-notes">The single biggest reason raw clicks lie. Users examine the top of the list far more than the bottom, so a click conflates two things: was the result relevant, and was it even looked at. The examination (position-based) model formalises this — examination depends only on rank; here we use a geometric form, probability of examining rank r is gamma to the r minus 1, gamma 0.94. Rank 1 is examined with certainty, rank 10 only 57% of the time. So a great result buried at rank 8 earns few clicks not because it's bad but because nobody saw it. Any click-based metric must correct for this. One caveat: this examination model is the simplest of a family. The cascade model (Craswell et al. 2008) makes examination of rank r conditional on not being satisfied by anything above it, so the ranks couple — a strong rank-1 result starves the clicks below it (the same intuition ERR uses on slide 36). And a click also needs the snippet to be attractive: caption/trust bias means users sometimes click on the wording, not the true relevance. So debiasing position alone is incomplete.</aside>
+          
         </section>
 
-        <!-- ============================================ 51 · E2E · interleaving ============================================ -->
+        
         <section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="52 Interleaving">
           <div class="slide-header">
             <h2><span lang="ru">Командно-жеребьёвочное чередование</span><span lang="en">Team-draft interleaving</span></h2>
@@ -2959,10 +2949,10 @@
             <span class="e2e-stage-name">overview</span>
             <button type="button" class="e2e-toggle">Theory only</button>
           </div>
-          <aside class="slide-notes">Interleaving is the sharpest tool in online evaluation. Instead of showing A to one group and B to another, you blend both rankers into a single list the user sees — team-draft alternates picks like captains choosing a team, tagging each slot with its source. Every click credits the ranker that placed that result. Because both rankers compete within the same list for the same user, position bias largely cancels: each occupies high and low slots equally often. Each round both teams pick, so the slots split evenly; B wins on the clicks. Over five queries A earns 9 credits, B earns 16, preference for B is 16/25 = 0.64, B preferred in four of five queries. Joachims showed interleaving needs far less traffic than A/B to reach the same confidence. Two caveats. First, you don't declare a winner from the bare 0.64 — you run a binomial/sign test on the per-query preferences (the per-query pairing is exactly why interleaving is more sensitive than A/B at equal traffic). Second, team-draft can mis-credit documents the two rankings share, and it has a known tie bias; probabilistic and optimised interleaving (Radlinski &amp; Craswell; Chapelle et al. 2012, already cited on slide 60) fix these.</aside>
+          
         </section>
 
-        <!-- ============================================ 52 · FORMULA · counterfactual / IPS ============================================ -->
+        
 <section class="slide" data-type="formula" data-screen-label="53 IPS">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">Контрфактическая оценка: IPS</span><span lang="en">Counterfactual evaluation: IPS</span></h2>
@@ -2977,10 +2967,10 @@
             <div class="var-block"><div class="var-symbol">\(\pi/\mu\)</div><div class="var-desc"><span lang="ru"><strong>Отношение вероятностей</strong><br />новая политика задаёт числитель</span><span lang="en"><strong>Importance weight</strong><br />the target policy supplies the numerator</span></div></div>
           </div>
           <p class="small muted mt-3 center"><span lang="ru"><strong>IPS для выбора действия.</strong> При верных склонностях и одинаковом механизме наград оценка несмещённа. Нужна поддержка: \(\mu>0\) всюду, где \(\pi>0\). Большие отношения дают высокую дисперсию; обрезка весов и SNIPS добавляют смещение ради устойчивости. Для позиционной поправки в LTR нужны вероятность просмотра и вклад документа в <em>оцениваемом</em> ранжировании.</span><span lang="en"><strong>Action-policy IPS.</strong> Correct propensities and a stable reward mechanism give an unbiased estimate. Support requires \(\mu>0\) wherever \(\pi>0\). Large ratios cause high variance; clipping and SNIPS trade bias for stability. Position-debiased LTR instead needs examination propensities and a document's contribution under the <em>evaluated</em> ranking.</span></p>
-          <aside class="slide-notes">Contextual-bandit IPS explicitly names logging policy mu and target pi. Correct propensities, overlap and an unchanged conditional reward mechanism justify cancellation of mu in expectation. Without pi the formula cannot distinguish targets. For a slate action define the slate propensity or justify a decomposable estimator; itemwise probabilities are not automatically slate probabilities. Examination and action-selection propensities are distinct. Position-debiased LTR also includes the evaluated ranker's contribution: Joachims et al. 2017, Eq. 5 (https://www.cs.cornell.edu/people/tj/publications/joachims_etal_17a.pdf). Clipping and SNIPS generally sacrifice finite-sample unbiasedness; unsupported target actions are unidentified from these logs without additional assumptions.</aside>
+          
         </section>
 
-        <!-- ============================================ 53 · VIZ · offline ↔ online correlation ============================================ -->
+        
 <section class="slide" data-type="viz" data-screen-label="54 Offline online">
           <div class="slide-header">
             <h2><span lang="ru">Предсказывает ли офлайн онлайн?</span><span lang="en">Does offline predict online?</span></h2>
@@ -2992,7 +2982,7 @@
               <line x1="160" y1="470" x2="160" y2="60" stroke="var(--rule)" stroke-width="2"/>
               <text x="750" y="520" text-anchor="middle" font-family="var(--font-sans)" font-size="26" fill="var(--ink-3)">offline Δ nDCG →</text>
               <text x="95" y="265" text-anchor="middle" font-family="var(--font-sans)" font-size="26" fill="var(--ink-3)" transform="rotate(-90 95 265)">online Δ CTR →</text>
-              <!-- rough positive-correlation cloud -->
+              
               <g fill="var(--accent)" opacity="0.8">
                 <circle cx="280" cy="400" r="12"/><circle cx="360" cy="360" r="12"/>
                 <circle cx="470" cy="330" r="12"/><circle cx="560" cy="300" r="12"/>
@@ -3000,7 +2990,7 @@
                 <circle cx="860" cy="220" r="12"/><circle cx="980" cy="180" r="12"/>
                 <circle cx="1080" cy="160" r="12"/><circle cx="1180" cy="130" r="12"/>
               </g>
-              <!-- the outlier where offline says up but online says down -->
+              
               <circle cx="980" cy="410" r="14" fill="var(--c-red)"/>
               <text x="980" y="445" text-anchor="middle" font-family="var(--font-sans)" font-size="22" fill="var(--c-red)">offline ↑ but online ↓</text>
               <path d="M 240 420 L 1240 120" stroke="var(--ink-2)" stroke-width="3" stroke-dasharray="10 8" fill="none"/>
@@ -3008,12 +2998,12 @@
             </svg>
           </div>
           <p class="viz-caption"><span lang="ru">На множестве запусков прирост офлайн-nDCG обычно <em>коррелирует</em> с приростом онлайн-CTR — но не всегда. Красная точка — опасный случай: изменение, которое улучшило офлайн-метрику и <strong>навредило</strong> пользователям. Офлайн — это фильтр, а не приговор.</span><span lang="en">Across many launches, offline nDCG gains usually <em>correlate</em> with online CTR gains — but not always. The red point is the dangerous case: a change that improved the offline metric and <strong>hurt</strong> users. Offline is a filter, not a verdict.</span></p>
-          <aside class="slide-notes">The empirical question that ties the lecture together. If offline metrics perfectly predicted online outcomes, we'd never need experiments — but they don't, only correlate. Most of the time a real offline nDCG gain shows up as an online click or conversion gain, which is why offline iteration works at all. The red outlier is the trap: a change that games the offline metric — maybe by exploiting label quirks or the unjudged-document bias — looks like an improvement offline yet degrades the real user experience. That's Goodhart, which is exactly where Part 7 goes. Validate offline winners online before you trust them.</aside>
+          
         </section>
 
-        <!-- ==================== PART 07 · GOODHART & PAYOFF ==================== -->
+        
 
-        <!-- ============================================ 54 · DIVIDER · PART 07 ============================================ -->
+        
         <section class="slide" data-type="divider" data-screen-label="55 Divider P7">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 07</span><span lang="en">Part 07</span></div>
@@ -3028,10 +3018,10 @@
                  />
           </div>
 
-          <aside class="slide-notes">My payoff and my warning. I now have a full toolbox — offline metrics, significance, online experiments. But every one of them is a proxy, and a proxy I optimise hard enough will eventually be gamed. This whole lecture lives in the Measure box of the course spine — and Measure is exactly where Goodhart the Trickster makes his home, because his law is about what happens when you turn a measure into a target. This final part is Goodhart's law made concrete on my running ranking, the real-world ways it bites, and the bridge to Lecture 6.</aside>
+          
         </section>
 
-        <!-- ============================================ 55 · MISCONCEPTION · Goodhart ============================================ -->
+        
         <section class="slide" data-type="misconception" data-screen-label="56 Goodhart">
           <div class="slide-header">
             <h2><span lang="ru">Распространённое заблуждение</span><span lang="en">Common misconception</span></h2>
@@ -3055,10 +3045,10 @@
               </p>
             </div>
           </div>
-          <aside class="slide-notes">Goodhart the Trickster returns — first met in Lecture 1, now in his home territory of Measure. The trap: teams chase an easy proxy like click-through or popularity, assuming it tracks relevance. It does not. The gamed ranking here stuffs popular hockey docs at the top; it looks engaging but pushes every space doc downward, so binary-gain nDCG drops from 0.6766 to 0.5434 (shared binary IDCG = 2.5616; gamed DCG = 1.3919, honest DCG = 1.7333). Note this is the binary-gain nDCG; the same honest ranking scored 0.6622 in the Part 04 graded nDCG worked example under graded 0/1/3 gains. The lesson: a metric is only honest while it is not the thing being gamed — which is exactly why we evaluate against held-out relevance judgments and confirm online, not against the signal we optimised. Goodhart returns in Lecture 16 to game the LLM judge.</aside>
+          
         </section>
 
-        <!-- ============================================ 56 · TWO-COL · gaming in practice ============================================ -->
+        
         <section class="slide" data-type="two-col" data-screen-label="57 Gaming in practice">
           <div class="slide-header">
             <h2><span lang="ru">Накрутка на практике</span><span lang="en">Gaming in practice</span></h2>
@@ -3084,10 +3074,10 @@
             </div>
           </div>
           <p class="small muted center mt-3"><span lang="ru">Каждая метрика в этой лекции — прокси. Дисциплина в том, чтобы держать один честный сигнал, которого оптимизатор не может коснуться.</span><span lang="en">Every metric in this lecture is a proxy. The discipline is to keep one honest signal the optimiser can't touch.</span></p>
-          <aside class="slide-notes">Goodhart isn't abstract; it's the daily reality of running a search engine. SEO spam games lexical signals; clickbait games CTR; and the nastiest case is the feedback loop — you train a ranker on click logs, which are biased toward whatever the old ranker showed at the top, so the model learns to reinforce position bias rather than relevance, and the next round of logs is even more biased. The defences echo the whole lecture: keep held-out judgments the optimiser never sees, watch guardrails and satisfaction not just the target, debias clicks with IPS before learning from them, and always confirm an offline win online. One honest, untouchable signal is what keeps the rest from rotting.</aside>
+          
         </section>
 
-        <!-- ============================================ 57 · FINAL / PAYOFF ============================================ -->
+        
         <section class="slide" data-type="formula" data-screen-label="57a Gaming &middot; the loop that feeds itself">
   <div class="slide-header slide-header--flush">
     <h2><span lang="ru">Почему петля обратной связи затягивается сама</span><span lang="en">Why the feedback loop tightens on its own</span></h2>
@@ -3103,7 +3093,7 @@
     <div class="var-block"><div class="var-symbol">\(\widehat{r}\,/\,P(e{=}1\mid k)\)</div><div class="var-desc"><strong><span lang="ru">разрыв петли</span><span lang="en">the loop cut</span></strong><br /><span lang="ru">делим на склонность &mdash; множитель позиции сокращается</span><span lang="en">divide by the propensity and the rank factor cancels</span></div></div>
   </div>
   <p class="small muted center mt-2"><span lang="ru">Вот точная форма закона Гудхарта: в измеряемой величине сидит множитель, которым ранкер управляет сам. Убери его &mdash; делением на склонность или отложенной оценкой &mdash; и табло снова меряет релевантность.</span><span lang="en">Goodhart's law in exact form: the quantity you score carries a factor the ranker itself controls. Take it out &mdash; by the propensity, or by a held-out judgment &mdash; and the scoreboard measures relevance again.</span></p>
-  <aside class="slide-notes">The mechanism under the previous slide's third bullet, which asserted the feedback loop — "train on biased clicks, reinforce position bias, train on it again" — as a chain of arrows with nothing under them. Start from the examination hypothesis the position-bias slide already drew: a click happens only if the user looked at the rank AND found the document relevant, so the click probability factors into an examination term that depends only on rank and a relevance term that depends only on the document. Now take the naive estimate every logs-driven pipeline computes: clicks over impressions. It does not estimate relevance — it estimates relevance times the examination probability of whatever rank the OLD ranker chose. That is the loop, stated exactly: the ranker's own past decision is a multiplicative factor inside its next training label, so whatever it put on top gets a higher estimate and stays on top, and the next round of logs is more skewed than the last. Nothing adversarial is required — no SEO spammer, no clickbait — the system games itself. Then the two defences on the previous slide stop being a list and become the same fix twice: IPS divides the term out, and held-out human judgments never contained it. Connect back to slide 53: this is why propensities have to be right, because they are what the division removes. Purely symbolic, as this deck's numbers all come from data/.</aside>
+  
 </section>
 <section class="slide" data-type="final" data-screen-label="58 Final">
           <div class="final-body">
@@ -3122,10 +3112,10 @@
           <img src="assets/img/L4/L4-03-goodhart-trickster.webp?v=1" alt="" aria-hidden="true"
                class="cameo bl" style="width:300px; border-radius:14px;" />
 
-          <aside class="slide-notes">My honest scoreboard at last. With P@k, R@k, MRR, MAP and nDCG offline; permutation, t-test and Wilcoxon to know a difference is real; and A/B, interleaving and IPS online — I can finally say which ranker is better, and I know that gaming a metric (Goodhart) backfires. My bridge to Lecture 6: my BM25 catalog is fast and measurable but synonym-blind — it cannot tell that "spacecraft" and "shuttle" mean the same thing. Can a neural system beat it? Now I have the instruments to find out honestly. To give words meaning we turn to embeddings. The QR points to the course hub; references follow on the appendix slide.</aside>
+          
         </section>
 
-        <!-- ============================================ 58 · REFERENCES (appendix) ============================================ -->
+        
         <section class="slide" data-type="refs" data-screen-label="59 References · metrics &amp; collections">
           <div class="slide-header">
             <h2><span lang="ru">Ссылки и что почитать дальше</span><span lang="en">References &amp; further reading</span> <span style="font-weight:400;opacity:.6">(1 / 3)</span></h2>
@@ -3136,12 +3126,10 @@
             <li data-paper-id="manning-2008-iir"><span class="ref-body"><span class="ref-authors">Manning, C., Raghavan, P. &amp; Schütze, H.</span> · <span class="ref-title"><a href="https://nlp.stanford.edu/IR-book/" target="_blank" rel="noopener">Introduction to Information Retrieval</a> — ch. 8 (\(\mathrm{P}@k\), MAP, MRR)</span> · <span class="ref-venue">Cambridge UP</span></span><span class="ref-year">2008</span></li>
             <li data-paper-id="voorhees-2000-trec"><span class="ref-body"><span class="ref-authors">Voorhees, E.</span> · <span class="ref-title"><a href="https://doi.org/10.1016/S0306-4573(00)00010-8" target="_blank" rel="noopener">Variations in Relevance Judgments and the Measurement of Retrieval Effectiveness</a></span> · <span class="ref-venue">Information Processing & Management &middot; Information Processing &amp; Management</span></span><span class="ref-year">2000</span></li>
           </ol>
-          <aside class="slide-notes">Appendix references, part 1 — the metrics lineage. Järvelin and Kekäläinen is the original nDCG paper; Manning et al. chapter 8 is the textbook for the counting metrics. Voorhees shows that test-collection rankings stay stable even when relevance judgments vary between assessors.</aside>
+          
         </section>
 
-        <!-- ============================================
-             59b · APPENDIX · REFERENCES (2/3)
-             ============================================ -->
+        
         <section class="slide" data-type="refs" data-screen-label="60 References · collections &amp; significance">
           <div class="slide-header">
             <h2><span lang="ru">Ссылки и что почитать дальше</span><span lang="en">References &amp; further reading</span> <span style="font-weight:400;opacity:.6">(2 / 3)</span></h2>
@@ -3153,12 +3141,10 @@
             <li data-paper-id="chapelle-2012-largescale-eval"><span class="ref-body"><span class="ref-authors">Chapelle, O., Joachims, T., Radlinski, F. &amp; Yue, Y.</span> · <span class="ref-title"><a href="https://doi.org/10.1145/2094072.2094078" target="_blank" rel="noopener">Large-Scale Validation and Analysis of Interleaved Search Evaluation</a></span> · <span class="ref-venue">ACM TOIS</span></span><span class="ref-year">2012</span></li>
             <li data-paper-id="joachims-2017-ultr"><span class="ref-body"><span class="ref-authors">Joachims, T., Swaminathan, A. &amp; Schnabel, T.</span> · <span class="ref-title"><a href="https://doi.org/10.1145/3018661.3018699" target="_blank" rel="noopener">Unbiased Learning-to-Rank with Biased Feedback (IPS)</a></span> · <span class="ref-venue">WSDM</span></span><span class="ref-year">2017</span></li>
           </ol>
-          <aside class="slide-notes">Appendix references, part 2 — collections and significance. Sanderson is the survey of test-collection-based evaluation. Smucker, Allan and Carterette is the definitive comparison of significance tests for IR — it argues for the randomization/permutation test, which is why we started there. Chapelle et al. is the large-scale validation of interleaved evaluation; Joachims, Swaminathan and Schnabel is the IPS/unbiased learning-to-rank paper.</aside>
+          
         </section>
 
-        <!-- ============================================
-             59c · APPENDIX · REFERENCES (3/3)
-             ============================================ -->
+        
         <section class="slide" data-type="refs" data-screen-label="61 References · graded &amp; Goodhart">
           <div class="slide-header">
             <h2><span lang="ru">Ссылки и что почитать дальше</span><span lang="en">References &amp; further reading</span> <span style="font-weight:400;opacity:.6">(3 / 3)</span></h2>
@@ -3170,14 +3156,14 @@
             <li data-paper-id="goodhart-1975"><span class="ref-body"><span class="ref-authors">Goodhart, C.</span> · <span class="ref-title"><a href="https://en.wikipedia.org/wiki/Goodhart%27s_law" target="_blank" rel="noopener">Goodhart's law (original monetary-aggregates formulation)</a></span> · <span class="ref-venue">Papers in Monetary Economics, Reserve Bank of Australia &middot; monetary-policy commentary</span></span><span class="ref-year">1975</span></li>
             <li data-paper-id="strathern-1997-goodhart"><span class="ref-body"><span class="ref-authors">Strathern, M.</span> · <span class="ref-title"><a href="https://doi.org/10.1002/(SICI)1234-981X(199707)5:3<305::AID-EURO184>3.0.CO;2-4" target="_blank" rel="noopener">"When a measure becomes a target, it ceases to be a good measure"</a></span> · <span class="ref-venue">European Review (crisp restatement)</span></span><span class="ref-year">1997</span></li>
           </ol>
-          <aside class="slide-notes">Appendix references, part 3 — graded relevance and the closing law. Chapelle introduced ERR; Moffat and Zobel introduced RBP. Goodhart (1975) stated the original law about monetary aggregates; the crisp aphorism we quote is Strathern's 1997 restatement. Goodhart's law anchors the final misconception.</aside>
+          
         </section>
 
-      </div><!-- /.slides -->
-    </div><!-- /.stage -->
-  </div><!-- /.deck -->
+      </div>
+    </div>
+  </div>
 
-  <!-- JS -->
+  
   <script src="js/deck.js"></script>
   <script src="js/tools.js"></script>
   <script src="js/pen.js"></script>
@@ -3192,7 +3178,7 @@
   <script src="js/sequence.js"></script>
   <script src="js/budget.js"></script>
   <script src="js/preflight.js"></script>
-  <!-- deck-mounted spine widget (course-map): classic offline bundle + the deck-adapter (after deck.js). BUILD OUTPUT. -->
+  
   <script src="js/course-map.classic.js"></script>
   <script src="js/ndcg-multiquery.classic.js"></script>
   <script src="js/ndcg-graded.classic.js"></script>

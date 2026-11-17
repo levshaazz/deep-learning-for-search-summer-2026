@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lecture 8 — BERT &amp; other Transformers · From attention to RLHF</title>
 
-  <!-- Apply saved theme/lang BEFORE first paint to avoid a flash of the
-       wrong theme. Mirrors tools.js prefs key. -->
+  
   <script>
     try {
       var __p = JSON.parse(localStorage.getItem('lecture.template.prefs.v1') || '{}');
@@ -19,7 +18,7 @@
     } catch (e) {}
   </script>
 
-  <!-- Asset-load failure banner. -->
+  
   <script>
     window.__assetFail = (function () {
       var failed = [];
@@ -48,11 +47,11 @@
     })();
   </script>
 
-  <!-- Fonts — vendored locally. -->
+  
   <link href="vendor/fonts/fonts.css" rel="stylesheet"
         onerror="window.__assetFail&&window.__assetFail('Шрифты/Fonts')" />
 
-  <!-- Styles -->
+  
   <link rel="stylesheet" href="css/template.css?v=6" />
   <link rel="stylesheet" href="css/slides.css?v=6" />
   <link rel="stylesheet" href="css/components.css?v=6" />
@@ -67,7 +66,7 @@
   <link rel="stylesheet" href="css/autofit.css?v=1" />
   <link rel="stylesheet" href="css/deck-widgets.css?v=1" />
 
-  <!-- KaTeX — vendored locally. -->
+  
   <link rel="stylesheet" href="vendor/katex/katex.min.css"
         onerror="window.__assetFail&&window.__assetFail('KaTeX')">
   <script defer src="vendor/katex/katex.min.js"
@@ -85,7 +84,7 @@
     });
     document.dispatchEvent(new CustomEvent('katex:done'));"></script>
 
-  <!-- Prism — vendored. -->
+  
   <script src="vendor/prism/prism-core.min.js"
         onerror="window.__assetFail&&window.__assetFail('Prism')"></script>
   <script src="vendor/prism/prism-python.min.js"></script>
@@ -93,17 +92,17 @@
   <script src="vendor/prism/prism-yaml.min.js"></script>
   <script src="vendor/prism/prism-json.min.js"></script>
 
-  <!-- QR code generator — vendored. -->
+  
   <script src="vendor/qrcode/qrcode.js"
         onerror="window.__assetFail&&window.__assetFail('QR')"></script>
 
-  <!-- R8 deck auto-layout primitives → window.DeckLayout (esbuild of widgets/_layout.js). -->
+  
   <script src="js/layout.js"
         onerror="window.__assetFail&&window.__assetFail('DeckLayout')"></script>
 </head>
 
 <body>
-  <!-- Bundler thumbnail -->
+  
   <template id="__bundler_thumbnail">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
       <defs>
@@ -125,12 +124,12 @@
     </svg>
   </template>
 
-  <!-- Logo template -->
+  
   <template id="tpl-logo">
     <div class="logo-mark">DLS</div>
   </template>
 
-  <!-- Deck -->
+  
   <div class="deck">
     <div class="stage">
       <div class="slides" data-course-ru="Deep Learning for Search · 2026" data-course-en="Deep Learning for Search · 2026">
@@ -165,7 +164,7 @@
     </div>
   </div>
 
-  <aside class="slide-notes">Лекция 08 курса: идёт сразу после L07 («Внимание и трансформеры») и прямо перед L09 («Монтажная схема»). Дуга от RNN-узких мест через attention и Transformer-блок к BERT, GPT, декодингу, эффективному вниманию и RLHF. Билингва RU/EN, переключение — клавиша L.</aside>
+  
 </section>
 
 <section class="slide" data-type="viz" data-max-step="0" data-current-step="0" data-screen-label="01a Course map">
@@ -190,7 +189,7 @@
   }
   </script>
   <p class="viz-caption"><span lang="ru">BERT и его родня стоят на <strong>Get Data</strong> и <strong>Measure</strong>: стек кодирует текст в векторы &mdash; это Архивы; внимание внутри него сравнивает токены между собой &mdash; это Инструменты. Порядок выдачи здесь ещё никто не строит.</span><span lang="en">BERT and its kin stand on <strong>Get Data</strong> and <strong>Measure</strong>: the stack turns text into vectors &mdash; the Archives; the attention inside it compares tokens with one another &mdash; the Instruments. Nobody builds a ranking here yet.</span></p>
-  <aside class="slide-notes">Spine anchor. Lit stops mirror this lecture's course.json spine (Get Data, Measure). Say the division of labour out loud: the encoder is a machine for producing representations (Archives) whose internal operation is a comparison (Instruments). Ranking is deliberately untouched — the cascade that uses these vectors arrives in L10.</aside>
+  
 </section>
 <section class="slide" data-type="two-col" data-screen-label="02 You are here">
   <div class="slide-header">
@@ -228,7 +227,7 @@
     </div>
   </div>
   <p class="small muted center mt-2"><span lang="ru">Лекция 8 &mdash; <strong>&laquo;Ткацкий станок внимания&raquo;</strong> (The Loom of Attention): экскурсия в машинное отделение Корабля. Дальше &mdash; <strong>L9, &laquo;Монтажная схема&raquo;</strong>: цену этого же блока научимся читать прямо с картинки.</span><span lang="en">Lecture 8 &mdash; <strong>&ldquo;The Loom of Attention&rdquo;</strong>: a tour of the Ship&rsquo;s engine room. Next comes <strong>L9, &ldquo;The Wiring Diagram&rdquo;</strong>, where the cost of this very block is read straight off the picture.</span></p>
-  <aside class="slide-notes">You-are-here. Lecture 8 sits between L7 and L9: it takes L7 (which built attention and the Transformer block only as far as search needs) into the full machine room — BERT family, GPT line, decoding, efficient attention, RLHF. L9 then prices that machine room glyph by glyph, and L10's bi-/cross-encoders (SBERT and DPR are BERT's children) are built on it. Framing: the Loom of Attention; a tour of the engine room.</aside>
+  
 </section>
 <section class="slide" data-type="agenda" data-screen-label="03 Agenda 1/2">
   <div class="slide-header">
@@ -309,7 +308,7 @@
 
   <p class="small muted center mt-2"><span lang="ru">После части 04 — перерыв 5 минут, затем декодерная половина (план 2/2).</span><span lang="en">After part 04 — a 5-minute break, then the decoder half (outline 2/2).</span></p>
 
-  <aside class="slide-notes">Кликните по пункту, чтобы перейти к разделу. Часть 01 — это экспресс-повтор, не вывод: станок (Q/K/V → блок) собран в лекции 7, здесь только конспект с числами с доски. Энкодерная половина (BERT) и декодерная (GPT → декодинг → RLHF) — примерно равного объёма.</aside>
+  
 </section>
 <section class="slide" data-type="agenda" data-screen-label="04 Agenda 2/2">
   <div class="slide-header">
@@ -427,7 +426,7 @@
         </a>
   </div>
 
-  <aside class="slide-notes">Кликните по пункту, чтобы перейти к разделу. Хвост GPT → декодинг → RLHF помечен как «за границей поиска»: это контекст для общей культуры, экзаменационного веса у него нет — но его не вырезаем, потому что LLM-судьи (L16) и генераторы RAG (L15) стоят на этих механизмах.</aside>
+  
 </section>
 
 <section class="slide" data-type="objectives" data-screen-label="05 Objectives">
@@ -470,7 +469,7 @@
     </li>
   </ul>
 
-  <aside class="slide-notes">Это измеримые результаты к концу лекции, а не тайминг. К каждому пункту мы вернёмся в соответствующем разделе.</aside>
+  
 </section>
 
 <section class="slide" data-type="divider" data-screen-label="06 Divider 00 · От RNN к attention">
@@ -489,7 +488,7 @@
     </p>
   </div>
 
-  <aside class="slide-notes">Мост из прошлой лекции (L7): там внимание собрали поверх эмбеддингов L6 — здесь начинаем ровно с того места, где упёрлись RNN. Визуальная пауза перед сменой темы.</aside>
+  
 </section>
 
 <section class="slide" data-type="misconception" data-screen-label="07 Misconception · RNN-узкие места">
@@ -520,7 +519,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:34cqh; --fig-w:30%;">
     <img src="assets/img/L15/L15-00-the-loom.webp?v=1" alt="Séréga at his loom pulling one long overloaded thread across a vast scroll, its far end already frayed and unravelling into loose fibres; the scroll&#x27;s opening words have faded to grey behind him." />
   </div>
-  <aside class="slide-notes">Произнесите миф вслух, затем разрушьте его. Это мотивирует attention на следующих слайдах.</aside>
+  
 </section>
 
 <section class="slide" data-type="arch" data-screen-label="08 Arch · seq2seq bottleneck">
@@ -552,7 +551,7 @@
             <span lang="en">A <strong>single</strong> vector \(c\) is the bottleneck: the whole meaning is squeezed into it, and long inputs lose detail. Attention removes this limit.</span>
           </p>
 
-          <aside class="slide-notes">Классический seq2seq без attention: энкодер сжимает вход в фиксированный вектор, декодер читает только его. Attention снимет это ограничение, дав декодеру доступ ко всем состояниям энкодера.</aside>
+          
         </section>
 
 <section class="slide" data-type="formula" data-screen-label="08a Path length · формально">
@@ -565,7 +564,7 @@
   </div>
   <p class="def-where"><span lang="ru">где <b>path(i, j)</b> = число операций между токенами <b>i</b> и <b>j</b>, через которые обязан пройти сигнал (и градиент). В рекуррентной сети он идёт через все промежуточные состояния; во внимании любая пара связана напрямую одной матрицей весов.</span><span lang="en">where <b>path(i, j)</b> = the number of operations a signal (and its gradient) must cross between tokens <b>i</b> and <b>j</b>. In an RNN it walks every intermediate state; in attention any pair is wired directly through one weight matrix.</span></p>
   <p class="small muted center mt-2"><span lang="ru">Это не деталь реализации, а причина всей лекции: чем длиннее путь, тем сильнее градиент затухает или взрывается, и тем хуже сеть учит дальние зависимости. Внимание сжимает худший случай с \(n\) шагов до одного — ценой квадратичной таблицы пар, за которую мы заплатим в акте про эффективность. Не показано здесь: рекуррентность выигрывает по памяти на очень длинных последовательностях — упражнение зала: где именно проходит эта граница?</span><span lang="en">This is not an implementation detail — it is the reason for this whole lecture: the longer the path, the more the gradient decays or explodes, and the worse the network learns long-range dependencies. Attention collapses the worst case from \(n\) hops to one — at the price of a quadratic pair table, which the efficiency act will bill us for. Not shown here: recurrence wins on memory for very long sequences — exercise for the room: where exactly is that boundary?</span></p>
-  <aside class="slide-notes">New mechanism slide for the intro act (plan: фаза 5.1 — акт был без единого формального). Path length argument from Vaswani 2017 §4, symbolic only (no gated numbers needed). Sets up the quadratic-cost bill paid later in the efficiency act.</aside>
+  
 </section>
 <section class="slide" data-type="quote" data-screen-label="09 Quote · прямой доступ к токенам">
   <div>
@@ -582,7 +581,7 @@
       <img src="assets/img/L15/L15-01-attention-table.webp?v=1" alt="Word-thread spools arranged around a round table, every spool joined to all the others by thin lines of differing thickness with a few clearly bolder than the rest, as S&#xE9;r&#xE9;ga leans in to tune the strongest link; tags read query and keys." />
     </div>
   </div>
-  <aside class="slide-notes">Слайд-якорь перед разделом про attention. Вместо последовательного прохода и единственного вектора — попарные связи всех токенов.</aside>
+  
 </section>
 
 <section class="slide" data-type="divider" data-screen-label="10 Divider 01 · Экспресс-повтор станка">
@@ -601,7 +600,7 @@
     </p>
   </div>
 
-  <aside class="slide-notes">Раздел-повтор, не раздел-вывод: L7 уже вывел attention, √d_k, multi-head, PE, FFN и residual+LayerNorm подробно (слайды 13–41 того дека). Наш прежний параллельный вывод удалён в пользу callback'ов на L7 — здесь остаются только рабочие числа с доски (они же прогоняются через facts-gate) и мост к BERT. Если группа плавает — вернитесь в L7, не растягивайте этот раздел.</aside>
+  
 </section>
 
 <section class="slide" data-type="definition" data-screen-label="11 Recap · Q/K/V и формула attention">
@@ -634,7 +633,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:30cqh; --fig-w:28%;">
     <img src="assets/img/L15/L15-02-self-attention.webp?v=1" alt="Séréga at his loom holds up a single sheet of cloth — one sentence of coloured threads — and from each thread three glowing tags unspool (query, key, value); the word-thread &#x27;bank&#x27; shifts from muddy river-green to golden vault-tint as the threads around it lean in, while a small squinting Lexical Gremlin off to the side only holds up two identical letter-cards." />
   </div>
-  <aside class="slide-notes">Recap-слайд, не вывод: Q/K/V-роли + формула + числа Ex1 (scores (1,0,3) → A=(0.114,0.042,0.844) → Y1=(0.958,0.886); те же числа гейтит facts-gate). Если что-то из этого ново — это сигнал вернуться в L7, слайды 13–19, где формула выводится и разбирается по шагам. Здесь не задерживаемся: цель раздела — восстановить общий словарь и идти к BERT.</aside>
+  
 </section>
 
 <section class="slide" data-type="definition" data-screen-label="12 Recap · √dₖ и Multi-Head">
@@ -669,7 +668,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:26cqh; --fig-w:26%;">
     <img src="assets/img/L15/L15-03-multi-head.webp?v=1" alt="Séréga in his green tübetey stands amid several small looms in a row, each weaving a different pattern — one a lattice of grammar, one a looping thread of coreference — all drawing from the same bundle of coloured threads, then merging into one wide cloth under a final comb labelled W_O." />
   </div>
-  <aside class="slide-notes">Recap: два факта, один слайд. (1) √d_k — числа с доски: softmax(0,0,6)=(0.002,0.002,0.995) peaky vs softmax(0,0,3)=(0.045,0.045,0.909) мягче; сам вывод дисперсии здесь НЕ повторяем — он в L7, слайд 23 (наш прежний, более рыхлый вариант вывода удалён в пользу этого callback). (2) Multi-head: d_k=d_model/h=64, головы делят ширину — h голов ≠ h моделей. Схемную арифметику осей (почему concat — точная обратная к разрезанию) доводит следующая лекция, L9.</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="13 Recap · PE, FFN, residual + LayerNorm">
   <div class="slide-header">
@@ -702,7 +701,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:28cqh; --fig-w:26%;">
     <img src="assets/img/L15/L15-04-transformer-block.webp?v=1" alt="Séréga stands beside a single tall loom frame whose panel reads, top to bottom, attention → add &amp; LayerNorm → feed-forward → add &amp; LayerNorm; a bright original warp-thread runs straight up the side, untouched, while the woven detail is added beside it and a tension-comb keeps every thread evenly taut." />
   </div>
-  <aside class="slide-notes">Recap: три механизма блока одним экраном. PE — самовнимание без позиции и маски эквивариантно перестановкам; добавка PE_t задаёт позицию (число с доски: pos=1, d=4 → (0.841,0.540,0.010,1.000), гейтится facts-gate); FFN d→4d→d; Add&Norm = LayerNorm(x+Sublayer(x)), Post-LN в BERT. Частотную развёртку PE, сравнение fixed/learned и полный разбор блока НЕ повторяем — лекция 7, слайды 28–40.</aside>
+  
 </section>
 <section class="slide" data-type="arch" data-screen-label="14 Recap · параметры блока и три варианта">
   <div class="slide-header">
@@ -762,7 +761,7 @@
     </tbody>
   </table>
 
-  <aside class="slide-notes">Последний recap-слайд — арифметика и мост. 4d²+8d²=12d²; 12·768²=7 077 888 ≈ 7.08M на блок (число гейтится facts-gate); 12 блоков + эмбеддинги ≈ 110M. Дальше повторов не будет: таблица трёх вариантов — это карта остатка лекции (encoder → BERT, decoder → GPT, enc-dec → T5/BART). Детали размеров — L7 слайд 41; схемная ведомость FLOPs — следующая лекция, L9.</aside>
+  
 </section>
 
 <section class="slide" data-type="formula" data-screen-label="14a Стек · почему блок штабелируется">
@@ -780,7 +779,7 @@
     <div class="var-block"><div class="var-symbol">\(d\)</div><div class="var-desc"><strong><span lang="ru">параметры — по ширине</span><span lang="en">the bill is width only</span></strong><br /><span lang="ru">число параметров блока зависит от \(d\), а не от числа голов и не от длины входа</span><span lang="en">the block's price comes from \(d\), not from the head count or the input length</span></div></div>
   </div>
   <p class="small muted center mt-2"><span lang="ru">Отсюда данность всего остатка: BERT, GPT и T5 — не разные станки, а разное число одинаковых блоков и разная маска. Поэтому слои делят веса, выбрасываются и несут голову задачи сверху. Граница: форма держится, а цена — нет; таблица пар растёт как \(n^2\), и счёт придёт в акте про эффективность.</span><span lang="en">Hence the given the rest of today stands on: BERT, GPT and T5 are not different machines but different counts of one block under different masks. So layers share weights, get dropped, or carry a task head. Boundary: shape holds, price does not — the pair table grows as \(n^2\), and the efficiency act settles that bill.</span></p>
-  <aside class="slide-notes">Механизм экспресс-повтора: не пересказ L7, а ровно то звено, которое дальше идёт как данность. Residual вынуждает Sublayer(x) иметь форму x — значит блок отображает n×d в n×d. Три следствия, на которых стоит остаток лекции: (1) стек из L блоков собирается без переходников, поэтому «12 блоков» и «24 блока» — это одно и то же устройство; (2) n не входит в веса, поэтому одни веса обслуживают любую длину — упирается только в таблицу обучаемых позиций BERT; (3) число параметров блока зависит от d — это и есть 12d² со слайда 14, и она не зависит от h. Отсюда же законность ALBERT (делит веса между слоями), DistilBERT (выбрасывает слои) и fine-tuning-голов (навешивает поверх). Форма сохраняется, стоимость — нет: n² приходит счётом в акте про эффективность. Полный вывод блока — L7, слайды 34–40; ведомость FLOPs — L9.</aside>
+  
 </section>
 <section class="slide" data-type="divider" data-screen-label="15 Divider 02 · BERT">
           <div>
@@ -798,12 +797,10 @@
             </p>
           </div>
 
-          <aside class="slide-notes">Открываем якорный раздел лекции. До этого мы собрали Transformer-блок; теперь берём стек энкодеров и превращаем его в BERT. Дайте паузу: дальше — главный герой; «другие трансформеры» будут сравниваться именно с ним.</aside>
+          
         </section>
 
-        <!-- ============================================
-             34 · DEFINITION · BERT
-             ============================================ -->
+        
 <section class="slide" data-type="definition" data-screen-label="16 Definition · BERT">
           <div class="slide-header">
             <h2>
@@ -832,12 +829,10 @@
             </div>
           </div>
 
-          <aside class="slide-notes">Ключевой контраст с прошлой лекцией: ELMo склеивал два независимых LSTM (left-to-right и right-to-left). BERT — единый энкодер, где self-attention видит обе стороны в одном проходе. «Bidirectional» здесь = архитектура внимания + цель обучения MLM, а не два прохода. Это разовьём на слайдах 37 и 39.</aside>
+          
         </section>
 
-        <!-- ============================================
-             35 · ARCH · BERT input embeddings
-             ============================================ -->
+        
 <section class="slide" data-type="arch" data-screen-label="17 Arch · BERT input">
           <div class="slide-header">
             <h2>
@@ -891,12 +886,10 @@
             <span lang="en">Per position: <span class="term">input = token + segment + position</span>. Special tokens: <span class="term">\([CLS]\)</span> at the start (classification aggregate), <span class="term">\([SEP]\)</span> the segment separator. Position embeddings are <strong>learned</strong> (unlike Vaswani 2017's sinusoidal ones). Remember the \([CLS]\) vector: these are the aggregates Sir Cosine will compare by angle once L10 assembles the bi-encoder.</span>
           </p>
 
-          <aside class="slide-notes">Три эмбеддинга складываются поэлементно в один вектор \(x_i\in\mathbb{R}^d\) на каждую позицию. Сегментный эмбеддинг (\(E_A/E_B\)) различает пару предложений — он нужен для NSP (слайд 41) и для пар-задач (например, QQP, MNLI). Подчеркните: позиционные эмбеддинги обучаемые, контекст ограничен 512 токенами.</aside>
+          
         </section>
 
-        <!-- ============================================
-             36 · DEFINITION · WordPiece
-             ============================================ -->
+        
         <section class="slide" data-type="definition" data-screen-label="18 Definition · WordPiece">
           <div class="slide-header">
             <h2>
@@ -928,12 +921,10 @@
           <div class="viz-frame fig-fit" style="--fig-max:30cqh; --fig-w:28%;">
             <img src="assets/img/L15/L15-13-wordpiece-threads.webp?v=1" alt="Tokenosaurus bites one long unfamiliar word-thread into three shorter lengths and knots them straight back into a single continuous thread, each continuation starting with a small hook-eyelet; behind them a shallow drawer holds only common ready-made spools, and two already-common threads lie beside it uncut." />
           </div>
-          <aside class="slide-notes">Контраст с GPT (часть 08): GPT использует byte-level BPE, T5 — SentencePiece. У всех идея общая — sub-word словарь фиксированного размера. Префикс ## означает «это не начало слова». Размер словаря 30 522 пригодится при подсчёте параметров (слайд-повтор про параметры блока) и эмбеддинг-таблицы. Токенозавр — callback к L2 (BPE): тот же динозавр, другое правило укуса.</aside>
+          
         </section>
 
-        <!-- ============================================
-             37 · DEFINITION · MLM
-             ============================================ -->
+        
 <section class="slide" data-type="definition" data-screen-label="19 Definition · MLM">
           <div class="slide-header">
             <h2>
@@ -962,12 +953,10 @@
             </div>
           </div>
 
-          <aside class="slide-notes">Числа критичны: маскируется 15%, расщепление 80/10/10. 10% random и 10% keep заставляют модель строить хорошее представление КАЖДОГО токена, а не только тех, что заменены на [MASK] — иначе она бы «ленилась» вне маски. Пример 5 (следующий слайд) показывает forward pass MLM на числах.</aside>
+          
         </section>
 
-        <!-- ============================================
-             38 · WALKTHROUGH · Пример 5 — MLM forward
-             ============================================ -->
+        
         <section class="slide" data-type="walkthrough" data-max-step="3" data-current-step="0" data-screen-label="20 Walk · Пример 5 — MLM forward">
           <div class="slide-header">
             <h2>
@@ -1040,12 +1029,10 @@
             <button data-step-act="next" aria-label="Next step">→</button>
           </div>
 
-          <aside class="slide-notes">Числа сверены в Python: softmax(3,1,0) = (0.844, 0.114, 0.042), сумма ровно 1.000, top-1 «sat». Подчеркните, что предсказание опирается на ОБЕ стороны контекста — это и есть практический смысл «bidirectional». При обучении лосс — cross-entropy только по замаскированным позициям.</aside>
+          
         </section>
 
-        <!-- ============================================
-             39 · MISCONCEPTION · bidirectional
-             ============================================ -->
+        
         <section class="slide" data-type="misconception" data-screen-label="21 Misconception · bidirectional">
           <div class="slide-header">
             <h2>
@@ -1074,12 +1061,10 @@
   <div class="viz-frame fig-fit" style="--fig-max:30cqh; --fig-w:28%;">
     <img src="assets/img/L15/L15-05-bert-bidirectional.webp?v=1" alt="S&#xE9;r&#xE9;ga mends a small hole in a finished piece of cloth, reading the threads from both sides of the gap at once &#x2014; arrows come in from the left and from the right into a masked-out square patch &#x2014; so he knows which colour to fill in." />
   </div>
-  <aside class="slide-notes">Это центральное концептуальное различие лекции. ELMo = два независимых LSTM, склеенных постфактум (shallow bidirectional). BERT = глубокая двунаправленность через self-attention + MLM. Причина, по которой нельзя просто учить left-to-right двунаправленно: токен увидел бы свой собственный ответ. MLM именно поэтому и нужен.</aside>
+  
         </section>
 
-        <!-- ============================================
-             40 · DEFINITION · NSP
-             ============================================ -->
+        
 <section class="slide" data-type="definition" data-screen-label="22 Definition · NSP">
           <div class="slide-header">
             <h2>
@@ -1108,12 +1093,10 @@
             </div>
           </div>
 
-          <aside class="slide-notes">NSP — вторая цель обучения оригинального BERT (вместе с MLM). Сегментные эмбеддинги (\(E_A/E_B\), слайд 36) нужны именно для него. Важная честность: последующие работы (RoBERTa) показали, что NSP не помогает или мешает; ALBERT заменил его на SOP. Это хороший пример того, что не все компоненты исходной статьи выдержали проверку временем.</aside>
+          
         </section>
 
-        <!-- ============================================
-             41 · REFS · Devlin 2019
-             ============================================ -->
+        
 <section class="slide" data-type="refs" data-screen-label="23 Refs · Devlin 2019">
           <div class="slide-header">
             <h2>
@@ -1158,12 +1141,10 @@
             </li>
           </ol>
 
-          <aside class="slide-notes">Каноническая ссылка раздела — Devlin et al. 2019, NAACL, arXiv:1810.04805. До 2018 — площадка «NIPS» (Vaswani 2017), не «NeurIPS». ELMo (Peters 2018) — предшественник, с которым полезно сравнивать (shallow vs deep bidirectional). WordPiece введён в Schuster & Nakajima, ICASSP 2012 («WordPieceModel»); Wu et al. 2016 его применили и популяризовали.</aside>
+          
         </section>
 
-        <!-- ============================================
-             42 · DIVIDER 05 · Pretraining → fine-tuning
-             ============================================ -->
+        
         <section class="slide" data-type="divider" data-screen-label="24 Divider 03 · Pretraining → fine-tuning">
           <div>
             <div class="divider-num">
@@ -1180,12 +1161,10 @@
             </p>
           </div>
 
-          <aside class="slide-notes">Это та парадигма, которая сделала BERT практичным: self-supervised предобучение на огромном неразмеченном корпусе + дешёвое дообучение на маленьком размеченном датасете под задачу. Дальше — головы дообучения, бенчмарки GLUE/SQuAD и размеры моделей.</aside>
+          
         </section>
 
-        <!-- ============================================
-             43 · DEFINITION · парадигма pretrain → finetune
-             ============================================ -->
+        
         <section class="slide" data-type="default" data-screen-label="24a Одна модель — тысяча задач">
   <div class="slide-header">
     <h2><span lang="ru">Одна модель — тысяча задач</span><span lang="en">One model, a thousand tasks</span></h2>
@@ -1200,7 +1179,7 @@
       </ul>
     </div>
   </div>
-  <aside class="slide-notes">New hook for the pretraining act (opened with a bare definition before). Frames MLM as the answer to the transfer question; 046a formalises it.</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="25 Definition · парадигма">
           <div class="slide-header">
@@ -1235,12 +1214,10 @@
           <div class="viz-frame fig-fit" style="--fig-max:24cqh; --fig-w:24%;">
             <img src="assets/img/L15/L15-06-pretrain-finetune.webp?v=1" alt="One huge heavy bolt of woven cloth stands on a stand, woven once and expensively, and beside it S&#xE9;r&#xE9;ga tailors a small neat garment cut from that same bolt, scissors and pins in hand, with a thin thread running from the big bolt to the little garment." />
           </div>
-          <aside class="slide-notes">Контраст с GPT-парадигмой (часть 08): BERT — pretrain + fine-tune (обновляем веса под задачу), GPT-3 — pretrain + prompt (веса не трогаем, см. слайд про in-context learning). Слайд 47 визуализирует экономику: одна дорогая фаза предобучения амортизируется на много дешёвых дообучений.</aside>
+          
         </section>
 
-        <!-- ============================================
-             44 · ARCH · fine-tuning heads
-             ============================================ -->
+        
         <section class="slide" data-type="arch" data-screen-label="26 Arch · fine-tuning heads">
           <div class="slide-header">
             <h2>
@@ -1296,12 +1273,10 @@
             <span lang="en"><strong>Classification:</strong> the <span class="term">\([CLS]\)</span> vector → linear layer → softmax over classes (SST-2, MNLI…). <strong>QA (SQuAD):</strong> two span heads predict the start and end positions of the answer over the context tokens. The base is usually fine-tuned end-to-end with the head.</span>
           </p>
 
-          <aside class="slide-notes">Главный приём: поверх замороженного или (чаще) дообучаемого BERT добавляется минимальная голова. \([CLS]\)-голова — один линейный слой для классификации; span-головы для SQuAD — два линейных классификатора по позициям (start/end). Метрики SQuAD — Exact Match и F1; подробнее о них — на слайде 46.</aside>
+          
         </section>
 
-        <!-- ============================================
-             45 · TABLE · GLUE / SuperGLUE / SQuAD
-             ============================================ -->
+        
 <section class="slide" data-type="table" data-screen-label="27 Table · GLUE/SuperGLUE/SQuAD">
           <div class="slide-header">
             <h2>
@@ -1371,12 +1346,10 @@
             <span lang="en"><strong>GLUE / SuperGLUE</strong> are language-understanding task suites; <strong>SQuAD</strong> is a separate QA benchmark. Note: <span class="term">STS-B</span> is <em>sentence</em>-pair similarity (GLUE), <strong>not</strong> word similarity (for words: WordSim-353 / SimLex-999, Spearman \(\rho\)).</span>
           </p>
 
-          <aside class="slide-notes">Категории бенчмарков нельзя путать. GLUE/SuperGLUE — наборы задач (single-sentence и sentence-pair). SQuAD — extractive QA, метрики Exact Match и F1. STS-B — sentence-pair similarity внутри GLUE, метрика Spearman ρ; это НЕ intrinsic word-similarity (WordSim-353/SimLex-999). Эту ловушку особо подчеркните.</aside>
+          
         </section>
 
-        <!-- ============================================
-             46 · TABLE · BERT-base vs BERT-large
-             ============================================ -->
+        
         <section class="slide" data-type="formula" data-screen-label="27a MLM · формально">
   <div class="slide-header slide-header--flush">
     <h2><span lang="ru">Чем BERT предобучается: цель MLM, формально</span><span lang="en">What BERT pre-trains on: the MLM objective, formally</span></h2>
@@ -1387,7 +1360,7 @@
   </div>
   <p class="def-where"><span lang="ru">где <b>M</b> = множество замаскированных позиций, <b>x<sub>\M</sub></b> = предложение со скрытыми позициями, <b>P<sub>θ</sub></b> = распределение модели над словарём. Сумма идёт только по спрятанным позициям — остальные в лосс не входят.</span><span lang="en">where <b>M</b> = the set of masked positions, <b>x<sub>\M</sub></b> = the sentence with those positions hidden, <b>P<sub>θ</sub></b> = the model's distribution over the vocabulary. The sum runs over masked positions only — the rest contribute nothing to the loss.</span></p>
   <p class="small muted center mt-2"><span lang="ru">Разница с языковой моделью — в условии: GPT предсказывает следующий токен по левому контексту, MLM — спрятанный по <em>обоим</em> сторонам сразу. Отсюда и сила BERT как энкодера (каждый токен видит всё предложение), и его слабость как генератора: модель никогда не училась продолжать текст. Границы: лосс считается лишь на малой доле позиций за проход — предобучение оттого дороже авторегрессионного при том же корпусе; и токен маски на дообучении не встречается — этот зазор чинят рецепты маскирования, а позже ELECTRA (следующий акт).</span><span lang="en">The difference from a language model is the conditioning: GPT predicts the next token from the left context, MLM predicts a hidden one from <em>both</em> sides at once. Hence BERT's strength as an encoder (every token sees the whole sentence) and its weakness as a generator: the model never learned to continue text. Boundaries: the loss touches only a small share of positions per pass — pre-training is costlier than autoregressive on the same corpus; and the mask token never appears at fine-tuning time — masking recipes patch that gap, and ELECTRA (next act) removes it.</span></p>
-  <aside class="slide-notes">New mechanism slide for the pretraining act (was mechanism-less). Symbolic MLM objective; deliberately no masking-percentage literal (keeps the facts-gate untouched). Bridges forward to ELECTRA's RTD in the variants act.</aside>
+  
 </section>
 <section class="slide" data-type="table" data-screen-label="28 Table · BERT-base vs large">
           <div class="slide-header">
@@ -1443,12 +1416,10 @@
             <span lang="en">We assembled the <span class="term">≈ 110M</span> figure on the recap slide about block parameters: \(12\cdot d^2 \approx 7.08\text{M}\) per block, ×12 blocks + embeddings ≈ 110M. Large is deeper and wider, but the context is the same — <strong>512</strong> tokens.</span>
           </p>
 
-          <aside class="slide-notes">Числа канонические: base 12L·d768·12 heads·110M; large 24L·d1024·16 heads·340M. Контекст BERT — 512 токенов в обеих версиях: это максимальная длина входа (предел позиционных эмбеддингов), не hidden size — тот 768/1024; у современных LLM контекст растёт, у BERT фиксирован. Связь с Примером 4 (подсчёт параметров блока) делает 110M не магией, а арифметикой.</aside>
+          
         </section>
 
-        <!-- ============================================
-             47 · VIZ · pretrain → finetune economics (inline SVG)
-             ============================================ -->
+        
         <section class="slide" data-type="viz" data-screen-label="29 Viz · pretrain→finetune">
           <div class="slide-header">
             <h2>
@@ -1488,11 +1459,9 @@
             <span lang="en">One expensive pretraining phase is amortized over many cheap fine-tunes — that's why BERT is practical: pretrain once, reuse for every task.</span>
           </p>
 
-          <aside class="slide-notes">Нативный inline-SVG bar-chart: одна высокая violet-колонка (pretrain ×1) → стрелка amber → ряд низких green-колонок (fine-tune под каждую задачу). Без растра и без светлой заливки фона, ink = currentColor, палитра violet/green/amber. Это завершает раздел 05 и мотивирует следующий: варианты BERT, которые удешевляют именно фазу 1.</aside>
+          
         </section>
-<!-- ============================================
-             48 · DIVIDER 06 · Варианты BERT
-             ============================================ -->
+
         <section class="slide" data-type="divider" data-screen-label="30 Divider 04 · Варианты BERT">
           <div>
             <div class="divider-num">
@@ -1508,12 +1477,10 @@
               <span lang="en">RoBERTa, ALBERT, DistilBERT, ELECTRA — what they fixed in the pretraining recipe.</span>
             </p>
           </div>
-          <aside class="slide-notes">Section divider — переход к семейству пост-BERT моделей. Общая мысль: архитектура та же (encoder-only), меняют цель обучения, данные, размер или скорость.</aside>
+          
         </section>
 
-        <!-- ============================================
-             49 · DEFINITION · RoBERTa
-             ============================================ -->
+        
 <section class="slide" data-type="default" data-screen-label="30a Меньше новизны — больше очков">
   <div class="slide-header">
     <h2><span lang="ru">Меньше новизны — больше очков</span><span lang="en">Less novelty, better scores</span></h2>
@@ -1528,7 +1495,7 @@
       </ul>
     </div>
   </div>
-  <aside class="slide-notes">New hook for the variants act (opened with the RoBERTa card before). Sets the lens: variants differ by objective/data/scale, not architecture; 052a pays it off with RTD.</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="31 Definition · RoBERTa">
           <div class="slide-header">
@@ -1557,12 +1524,10 @@
               </p>
             </div>
           </div>
-          <aside class="slide-notes">Подчеркнуть: архитектура BERT не менялась. Динамическое маскирование = маска генерируется на лету для каждого предъявления, статическое = одна маска на весь датасет. NSP убрали — это честный пересмотр в пользу качества.</aside>
+          
         </section>
 
-        <!-- ============================================
-             50 · DEFINITION · ALBERT
-             ============================================ -->
+        
 <section class="slide" data-type="definition" data-screen-label="32 Definition · ALBERT">
           <div class="slide-header">
             <h2>
@@ -1590,12 +1555,10 @@
               </p>
             </div>
           </div>
-          <aside class="slide-notes">Две независимые идеи: (1) факторизация эмбеддингов снижает память на словарь; (2) sharing делит веса между слоями. Важная честность: параметры падают, но FLOPs на инференс — нет.</aside>
+          
         </section>
 
-        <!-- ============================================
-             51 · DEFINITION · DistilBERT
-             ============================================ -->
+        
         <section class="slide" data-type="definition" data-screen-label="33 Definition · DistilBERT">
           <div class="slide-header">
             <h2>
@@ -1623,12 +1586,10 @@
               </p>
             </div>
           </div>
-          <aside class="slide-notes">Учитель→ученик. Мягкие метки (softmax с температурой) несут больше информации, чем жёсткие. Цифры 40/60/97 — из статьи Sanh 2019.</aside>
+          
         </section>
 
-        <!-- ============================================
-             52 · DEFINITION · ELECTRA
-             ============================================ -->
+        
         <section class="slide" data-type="formula" data-screen-label="33a ELECTRA · формально">
   <div class="slide-header slide-header--flush">
     <h2><span lang="ru">Чем ELECTRA отличается: цель RTD, формально</span><span lang="en">What makes ELECTRA different: the RTD objective, formally</span></h2>
@@ -1639,7 +1600,7 @@
   </div>
   <p class="def-where"><span lang="ru">где <b>x̃</b> = предложение, в котором часть токенов заменена правдоподобными подделками маленького генератора, <b>D<sub>θ</sub></b> = дискриминатор, отвечающий для каждой позиции «настоящий или подменённый», <b>𝟙[·]</b> = индикатор. Сумма — по <em>всем</em> позициям.</span><span lang="en">where <b>x̃</b> = the sentence with some tokens swapped for plausible fakes from a small generator, <b>D<sub>θ</sub></b> = a discriminator answering “real or replaced” at every position, <b>𝟙[·]</b> = the indicator. The sum runs over <em>all</em> positions.</span></p>
   <p class="small muted center mt-2"><span lang="ru">Сравни знаки суммирования с MLM: там сигнал приходит только со спрятанных позиций, здесь — с каждой. Та же выборка текста даёт в разы больше обучающего сигнала за проход — вот механизм, которым ELECTRA при равном железе догоняет более крупные MLM-модели из таблицы выше. И зазор маски исчезает: на дообучении модель видит ровно такие же предложения, как при предобучении. Граница: задача «настоящий/подделка» бинарна — распределения над словарём дискриминатор не выучивает, и генератором такую модель не сделать вовсе.</span><span lang="en">Compare the summation signs with MLM: there the signal comes only from hidden positions, here from every one. The same text sample yields far more training signal per pass — that is the mechanism by which ELECTRA matches larger MLM models from the table above at equal compute. And the mask gap disappears: at fine-tuning the model sees exactly the sentences it pre-trained on. Boundary: “real vs fake” is binary — the discriminator never learns a distribution over the vocabulary, so this model cannot be turned into a generator at all.</span></p>
-  <aside class="slide-notes">New mechanism slide for the variants act (8 definition/table slides, zero mechanism before this). RTD objective symbolic, Clark 2020. The «в разы больше сигнала» phrasing is qualitative on purpose — no un-gated numeral.</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="34 Definition · ELECTRA">
           <div class="slide-header">
@@ -1671,12 +1632,10 @@
           <div class="viz-frame fig-fit" style="--fig-max:34cqh; --fig-w:32%;">
             <img src="assets/img/L15/L15-14-replaced-thread.webp?v=1" alt="On the left a small apprentice weaver quietly swaps a handful of threads in a finished cloth for plausible look-alikes; on the right S&#xE9;r&#xE9;ga runs one finger along every thread of that cloth, flicking each end up or down, while an older cloth behind him carries verdict-marks only on its few pinned patches." />
           </div>
-          <aside class="slide-notes">Генератор+дискриминатор — но это НЕ GAN (генератор учится на MLM-лоссе, без adversarial-градиента). Ключ к эффективности: лосс на каждом токене, а не на доле замаскированных.</aside>
+          
         </section>
 
-        <!-- ============================================
-             53 · TABLE · варианты сравнение
-             ============================================ -->
+        
         <section class="slide" data-type="definition" data-screen-label="34b Definition · ModernBERT">
   <div class="slide-header">
     <h2>
@@ -1706,7 +1665,7 @@
     <span lang="ru">Почему это важно именно для поиска: длина входа — это и есть предел чанкования из лекции 15. Энкодер, который держит 8192 токена, режет документ там, где кончается мысль, а не там, где кончается окно.</span>
     <span lang="en">Why this matters for search specifically: the input length <em>is</em> the chunking limit from lecture 16. An encoder that holds 8192 tokens cuts the document where the thought ends, not where the window does.</span>
   </p>
-  <aside class="slide-notes">ModernBERT (Warner et al., arXiv:2412.13663). Числа из data/l15-bench.json → modernbert, все дословно из §2 статьи: 22 слоя и 149M в базовой, 28 и 395M в большой; нативные 8192; локальное окно 128 токенов, глобальный слой каждый третий (RoPE theta 160000 против 10000 на локальных); GeGLU; unpadding на обучении И инференсе. Тезис слайда, который стоит проговорить: архитектура трансформера не изменилась — изменились позиционное кодирование, активация, схема внимания и работа с паддингом. Связь с курсом: 8192 против 512 — это прямо про предел чанкования (лекция 15) и про late chunking (лекция 18).</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="34c ModernBERT · цена длины, руками">
   <div class="slide-header" style="border:none; padding-bottom:0;">
@@ -1743,7 +1702,7 @@
     <span lang="ru">Сложи проход целиком: \(8 \times 67\,108\,864 + 14 \times 1\,048\,576 \approx 552\) млн пар против \(22 \times 67\,108\,864 \approx 1476\) млн, если бы каждый слой смотрел глобально. Примерно в 2,7 раза меньше пар в приближении окна n·w. Это оценка работы внимания, а не измеренное ускорение. Глобальных слоёв восемь. Дальние связи остаются, платит за них не каждый слой.</span>
     <span lang="en">Add up a whole pass: \(8 \times 67\,108\,864 + 14 \times 1\,048\,576 \approx 552\)M pairs against \(22 \times 67\,108\,864 \approx 1476\)M if every layer looked globally. About 2.7 times fewer pairs in the n·w window approximation. This counts attention work, not measured runtime. Eight layers remain global. The long-range wiring stays; not every layer pays for it.</span>
   </p>
-  <aside class="slide-notes">ModernBERT-base has 22 layers. Official attention.py makes layer_id % 3 == 0 global, starting at zero: 0,3,6,9,12,15,18,21. Thus 8 global and 14 local layers. In the n*w local-window proxy, 8*8192^2+14*8192*128=551550976 pairs versus 1476395008 for all-global, a ratio about 2.7. Window boundaries and implementation details are abstracted away; pair counts are not runtime measurements. Source: https://github.com/AnswerDotAI/ModernBERT/blob/main/src/bert_layers/attention.py and ModernBERT-base config.json. data/l15-bench.json → modernbert.byHand.</aside>
+  
 </section>
 <section class="slide" data-type="table" data-screen-label="35 Table · варианты сравнение">
           <div class="slide-header">
@@ -1798,12 +1757,10 @@
             <span lang="ru">Все четыре остаются <strong>encoder-only</strong>; различаются данными, размером или целью обучения.</span>
             <span lang="en">All four stay <strong>encoder-only</strong>; they differ in data, size, or objective.</span>
           </p>
-          <aside class="slide-notes">Только ELECTRA заменяет основную задачу MLM на RTD. ALBERT заменяет NSP на SOP (sentence-order prediction). RoBERTa/DistilBERT остаются на MLM. Ни один не меняет базовую архитектуру.</aside>
+          
         </section>
 
-        <!-- ============================================
-             54 · REFS · BERT-варианты
-             ============================================ -->
+        
 <section class="slide" data-type="refs" data-screen-label="36 Refs · BERT-варианты">
           <div class="slide-header">
             <h2>
@@ -1847,12 +1804,10 @@
               <span class="ref-year">2020</span>
             </li>
           </ol>
-          <aside class="slide-notes">Все четыре arXiv-id выверены. ALBERT и ELECTRA — ICLR 2020; RoBERTa и DistilBERT остались препринтами/воркшоп-работами.</aside>
+          
         </section>
 
-        <!-- ============================================
-             55 · QUOTE · Перерыв 5 мин
-             ============================================ -->
+        
         <section class="slide" data-type="quote" data-screen-label="37 Break · 5 мин">
           <div>
             <div class="quote-mark">"</div>
@@ -1865,12 +1820,10 @@
               <span lang="en">pause · then §05</span>
             </div>
           </div>
-          <aside class="slide-notes">Перерыв 5 минут. Тизер: переходим от encoder-only (BERT) к decoder-only (GPT) — другая цель обучения, другая маска.</aside>
+          
         </section>
 
-        <!-- ============================================
-             56 · DIVIDER 07 · Декодеры и авторегрессия
-             ============================================ -->
+        
 <section class="slide" data-type="divider" data-screen-label="38 Divider 05 · Декодеры и авторегрессия">
           <div>
             <div class="divider-num">
@@ -1886,12 +1839,10 @@
               <span lang="en">A different mode: predict the next token from the past — with a causal mask.</span>
             </p>
           </div>
-          <aside class="slide-notes">Section divider. Главный контраст всей лекции: BERT (encoder, MLM, полная маска) vs decoder (next-token LM, causal-маска). Не путать.</aside>
+          
         </section>
 
-        <!-- ============================================
-             57 · DEFINITION · авторегрессия
-             ============================================ -->
+        
         <section class="slide" data-type="definition" data-screen-label="39 Definition · авторегрессия">
           <div class="slide-header">
             <h2>
@@ -1920,12 +1871,10 @@
               </p>
             </div>
           </div>
-          <aside class="slide-notes">Цепное правило точно, без приближений. Контраст с MLM: там предсказываем замаскированные токены по обе стороны; здесь — только следующий по левому контексту. Цель обучения — обычная CE на следующий токен.</aside>
+          
         </section>
 
-        <!-- ============================================
-             58 · DEFINITION · teacher forcing
-             ============================================ -->
+        
 <section class="slide" data-type="definition" data-screen-label="40 Definition · teacher forcing">
           <div class="slide-header">
             <h2>
@@ -1951,12 +1900,10 @@
               <p lang="en"><strong>Inference:</strong> no ground truth — we generate <em>one at a time</em>, feeding our own output back into the input (step by step).</p>
             </div>
           </div>
-          <aside class="slide-notes">Ключевая асимметрия train/inference. На обучении параллельность — потому что истинный префикс дан целиком. На генерации — строго последовательно, токен за токеном. Это источник exposure bias.</aside>
+          
         </section>
 
-        <!-- ============================================
-             59 · DEFINITION · causal self-attention
-             ============================================ -->
+        
         <section class="slide" data-type="definition" data-screen-label="41 Definition · causal self-attention">
           <div class="slide-header">
             <h2>
@@ -1985,12 +1932,10 @@
               </p>
             </div>
           </div>
-          <aside class="slide-notes">Маска применяется ДО softmax — это критично: после неё −∞ превращается в нулевой вес. Сравнение масок (полная BERT vs треугольная decoder) — на следующем слайде.</aside>
+          
         </section>
 
-        <!-- ============================================
-             60 · VIZ · causal vs full mask (inline SVG)
-             ============================================ -->
+        
         <section class="slide" data-type="viz" data-screen-label="42 Viz · causal vs full mask">
           <div class="slide-header">
             <h2><span lang="ru">Полная маска vs causal-маска</span><span lang="en">Full mask vs causal mask</span></h2>
@@ -2017,12 +1962,10 @@
             <span lang="en">Left — every query sees all keys (BERT's full attention). Right — query \(q_i\) sees only \(k_j,\ j\le i\); the future is blocked with \(-\infty\).</span>
           </p>
 
-          <aside class="slide-notes">Зелёные ячейки — разрешённые позиции (вес после softmax), красные с −∞ — запрещённые (вес 0). Полная матрица слева = BERT; верхнетреугольно-закрытая справа = decoder. Маска применяется до softmax.</aside>
+          
         </section>
 
-        <!-- ============================================
-             61 · WALKTHROUGH · Пример 6 — causal-attention
-             ============================================ -->
+        
         <section class="slide" data-type="walkthrough" data-max-step="3" data-current-step="0" data-screen-label="43 Walk · Пример 6 — causal-attention">
           <div class="slide-header">
             <h2>
@@ -2092,12 +2035,10 @@
             <span class="step-counter">0/3</span>
             <button data-step-act="next" aria-label="Next step">→</button>
           </div>
-          <aside class="slide-notes">Пример 6. Числа байт-в-байт из board-numbers.md: no-mask softmax(0,2,3)=(0.035,0.259,0.705); causal softmax(0,2)=(0.119,0.881), вес t3=0. Обе суммы = 1.000. Маска применяется ДО softmax, поэтому −∞ → вес 0.</aside>
+          
         </section>
 
-        <!-- ============================================
-             62 · ARCH · decoder-only блок
-             ============================================ -->
+        
         <section class="slide" data-type="viz" data-max-step="2" data-current-step="0" data-screen-label="44 NCD · the leak is a MISSING hexagon">
           <div class="slide-header">
             <h2><span lang="ru">Пропущенный шестиугольник</span><span lang="en">The missing hexagon</span></h2>
@@ -2233,7 +2174,7 @@
 }
           </script>
           <p class="viz-caption"><span lang="ru">Разбор напротив <em>посчитал</em> утечку: без маски \(\mathrm{softmax}(0,2,3)\) отдаёт <strong>0,705</strong> внимания токену из будущего — модель читает ответ. Это не баг обучения, а утечка, и в нотации она видна как <strong>дыра</strong>: шестиугольник-маска перед треугольником \(\sigma\) не поставлен. Поставили — остаётся (0,119, 0,881). Шаг 2: верхний треугольник выброшен, а память всё равно \(O(n^2)\) — ты платишь за весь квадрат и пользуешься половиной.</span><span lang="en">The worked example <em>computed</em> the leak: with no mask \(\mathrm{softmax}(0,2,3)\) puts <strong>0.705</strong> of the attention on the FUTURE token — the model is reading the answer. Not a training bug but a leak, and in this notation it shows as a <strong>hole</strong>: the mask hexagon before the \(\sigma\) triangle was never placed. Place it, and (0.119, 0.881) is what remains. Step 2: the upper triangle is thrown away — and the memory is still \(O(n^2)\). You pay for the whole square and use half.</span></p>
-          <aside class="slide-notes">ncd-causal, three steps, and it turns the mask from a line of code into a glyph you can miss. Step zero: no mask. The query at position t2 scores against all three keys — including t3, the very token it is being trained to predict — and softmax of zero, two, three hands t3 nought point seven zero five of the attention. Read that again: seven tenths of the model attention is spent looking at the answer. This is not a slow bug you find in a loss curve; it is a leak, and the loss curve will look GREAT, because the task has become copying. In this notation the defect has a shape: there is a hole in the circuit where a hexagon should be. Step one places it. The hexagon — the reindex-slash-mask glyph — goes between the scores and the softmax triangle, and that ORDER is the whole content of the rule "mask before softmax": it keeps j less-than-or-equal-to i and sends everything ahead of the query to minus infinity, so exp of minus infinity is zero and the future gets exactly zero weight. Softmax then renormalises over the allowed keys alone: nought point one one nine and nought point eight eight one. Nothing else in the diagram changed — same q, same K, same triangle. The entire difference between a language model and a cheat is one glyph. Step two steps back from one row to the whole n-by-n score matrix: each row a query, each column a key, and the mask kills the strictly upper triangle, about half the square, including the red cell where our seven-tenths went. Now look at what you still pay for: the tensor is allocated n by n BEFORE the mask touches it, and a minus infinity occupies exactly as many bytes as any other number. The mask changes what softmax SEES; it does not change what memory ALLOCATES. Causal attention is not cheaper than full attention — you buy the whole square and use half of it. That is the honest bill, and it is why FlashAttention and the sparse family exist at all.</aside>
+          
         </section>
 <section class="slide" data-type="arch" data-screen-label="45 Arch · decoder-only блок">
           <div class="slide-header">
@@ -2297,12 +2238,10 @@
             <span lang="ru"><strong>Weight tying:</strong> входная матрица эмбеддингов = выходная проекция в \(|V|\) (одни веса, экономия параметров).</span>
             <span lang="en"><strong>Weight tying:</strong> the input embedding matrix = the output projection to \(|V|\) (shared weights, parameter saving).</span>
           </p>
-          <aside class="slide-notes">Decoder-only блок: только masked self-attn (нет cross-attention — её нет в decoder-only, только в enc-dec). Стек ×L, затем линейная проекция в |V| и softmax. Weight tying: вход-эмбеддинги и выходная матрица — одни веса.</aside>
+          
         </section>
 
-        <!-- ============================================
-             63 · DERIVATION · causal-маска = авторегрессия
-             ============================================ -->
+        
         <section class="slide" data-type="definition" data-screen-label="46 Derivation · causal-маска = авторегрессия">
           <div class="slide-header">
             <h2>
@@ -2332,12 +2271,9 @@
               </div>
             </div>
           </div>
-          <aside class="slide-notes">Вывод: треугольная маска делает выход каждой позиции зависимым только от прошлого, что и есть p(x_t | x_<t). Бонус: при teacher forcing все T предсказаний считаются за один проход параллельно — без маски это было бы невозможно сделать корректно.</aside>
-        </section>
+          </section>
 
-        <!-- ============================================
-             64 · DEFINITION · KV-cache
-             ============================================ -->
+        
         <section class="slide" data-type="definition" data-screen-label="47 Definition · KV-cache">
           <div class="slide-header">
             <h2>
@@ -2368,12 +2304,10 @@
           <div class="viz-frame fig-fit" style="--fig-max:34cqh; --fig-w:30%;">
     <img src="assets/img/L15/L15-07-decoder-forward.webp?v=1" alt="Séréga at the loom weaving forward, one bright thread at a time; behind his working hand the cloth is finished, while ahead a translucent grey curtain (the causal mask) veils the un-woven warp so he cannot peek at the future." />
   </div>
-  <aside class="slide-notes">Кэшируем именно K,V прошлых позиций (Q нового токена считается каждый раз). Trade-off: экономим вычисления, тратим память. Только инференс — на обучении (teacher forcing) весь префикс и так считается за один проход.</aside>
+  
         </section>
 
-        <!-- ============================================
-             65 · WALKTHROUGH · Пример 7 — авторегрессия + KV-cache
-             ============================================ -->
+        
         <section class="slide" data-type="walkthrough" data-max-step="3" data-current-step="0" data-screen-label="48 Walk · Пример 7 — авторегрессия">
           <div class="slide-header">
             <h2>
@@ -2443,12 +2377,10 @@
             <span class="step-counter">0/3</span>
             <button data-step-act="next" aria-label="Next step">→</button>
           </div>
-          <aside class="slide-notes">Пример 7. Числа из board-numbers.md: step1 softmax(2,0,1)=(0.665,0.090,0.245)→«a»; step2 softmax(0,3,1)=(0.042,0.844,0.114)→«b». Итог «a b». KV-cache: K,V для «a» переиспользуются на шаге 2, не пересчитываются. Обе суммы = 1.000.</aside>
+          
         </section>
 
-        <!-- ============================================
-             66 · MISCONCEPTION · decoder
-             ============================================ -->
+        
         <section class="slide" data-type="viz" data-max-step="2" data-current-step="0" data-screen-label="49 NCD · the axis that grows">
           <div class="slide-header">
             <h2><span lang="ru">Ось, которая растёт</span><span lang="en">The axis that grows</span></h2>
@@ -2566,7 +2498,7 @@
 }
           </script>
           <p class="viz-caption"><span lang="ru">Экономия кэша видна как <strong>отсутствие</strong> прямоугольника: перед сохранёнными строками \(K\) и \(V\) больше нет проекции — их не пересчитывают, а <em>читают</em>. Prefill считает и сохраняет каждую строку; шаг декодирования добавляет ровно одну. Отсюда инверсия, ради которой существуют MQA, GQA и paged-attention: на генерации дорогая ось — <strong>кэш</strong> (\(2\cdot n\cdot d\) на слой на голову, растёт с каждым токеном), а внимание шага дёшево: оценки — \(1\times(n{+}1)\), а не \(n\times n\). Квадрат — это счёт prefill.</span><span lang="en">The saving shows up as the <strong>absence</strong> of a box: in front of the stored \(K\) and \(V\) rows there is no projection any more — they are not recomputed, they are <em>read</em>. Prefill computes and keeps every row; a decode step adds exactly one. Hence the inversion MQA, GQA and paged-attention exist for: while you generate the expensive axis is the <strong>cache</strong> (\(2\cdot n\cdot d\) per layer per head, growing with every token), and a step&rsquo;s attention is cheap — the scores are \(1\times(n{+}1)\), not \(n\times n\). The square is prefill&rsquo;s bill.</span></p>
-          <aside class="slide-notes">ncd-kvcache, three steps, and it is the slide that fixes the mental model most people carry out of a decoding lecture. Step zero is prefill: the whole prompt, all n tokens at once, goes through L_Q, L_K, L_V exactly once. Here the query really IS a block of n rows, so attention really does build the full n-by-n score matrix — in fp16 across twelve heads that is twenty-five point eight gigabytes at thirty-two thousand tokens, and the ledger bills it. This is the ONE step where that bill is real. And the K and V rows are not thrown away at the end of it: they are KEPT, and the dashed figure around them is the cache. Step one is a single decode step, and the picture changes completely. One token arrives, so exactly one q, one new k row and one new v row are computed — that is everything the step costs. Now look at the OLD rows: in front of them there is no box at all. The path is empty. They are not recomputed, they are read — the projections that made them ran once, at prefill, and never run again. That absence, that missing rectangle, IS the saving; there is nothing else to see, and there does not need to be. And the scores: the query is one row, so the scores are one row too — one by n plus one. No n-by-n matrix is built here. Step two states the trade in shapes, and then the inversion. With the cache, one more token costs one K row and one V row; without it you would push L_K and L_V over all n+1 positions — redoing the whole prefill for every single token. So you buy compute with memory. And here is the thing nearly everyone has backwards: while you are DECODING, the expensive axis is the cache, not the attention. The cache holds K and V both — two times n times d per layer per head — and it grows linearly with every token you emit, forever, which is exactly why MQA, GQA and paged attention exist and why context length is a memory problem before it is a compute problem. The quadratic bill belongs to prefill. The decode step is cheap; it is the axis that grows underneath it that eventually eats the GPU.</aside>
+          
         </section>
 <section class="slide" data-type="misconception" data-screen-label="50 Misconception · decoder">
           <div class="slide-header">
@@ -2593,14 +2525,11 @@
               <span lang="en">Decoder-only is a general <strong>next-token LM</strong>: the same objective handles classification, translation, code, reasoning — not "just text". And scale buys <em>plausibility</em>, not "understanding": the objective is to predict a token, not truth. Size ≠ alignment (RLHF will show this).</span>
             </div>
           </div>
-          <aside class="slide-notes">Две связанные ловушки: (1) decoder-only — универсальный LM, а не текст-генератор узкого назначения; (2) больше параметров → лучше предсказание токена, но не «понимание» и не выравнивание. Мост к RLHF позже.</aside>
+          
         </section>
-<!-- ============================================================
-     SLIDES 67–86 · «BERT и другие трансформеры»
-     §8 GPT-линейка (67–74) · §9 Декодинг (75–80) · §10 Enc/Dec/Enc-Dec (81–86)
-     ============================================================ -->
 
-<!-- ====================== 67 · DIVIDER 08 ====================== -->
+
+
 <section class="slide" data-type="divider" data-screen-label="51 Divider 06 · GPT-линейка">
   <div>
     <div class="divider-num">
@@ -2616,10 +2545,10 @@
       <span lang="en">From a decoder-only LM to in-context learning: GPT-1 → GPT-2 → GPT-3.</span>
     </p>
   </div>
-  <aside class="slide-notes">Раздел про линейку GPT — decoder-only архитектуры. Якорь — масштаб и in-context learning. Дальше: GPT-1 (pretrain+finetune), GPT-2 (zero-shot через промпт), GPT-3 (few-shot без обновления весов).</aside>
+  
 </section>
 
-<!-- ====================== 68 · DEFINITION · GPT-1 ====================== -->
+
 <section class="slide" data-type="default" data-screen-label="51a Читатель и писатель">
   <div class="slide-header">
     <h2><span lang="ru">Читатель и писатель</span><span lang="en">The reader and the writer</span></h2>
@@ -2634,7 +2563,7 @@
       </ul>
     </div>
   </div>
-  <aside class="slide-notes">New hook for the GPT act (opened with the GPT-1 card before). The reading/writing dichotomy; 071a formalises the causal mask.</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="52 Definition · GPT-1">
   <div class="slide-header">
@@ -2667,10 +2596,10 @@
   <div class="viz-frame fig-fit" style="--fig-max:34cqh; --fig-w:30%;">
     <img src="assets/img/L15/L15-08-gpt-scale.webp?v=1" alt="Séréga stands before a colossal forward-weaving loom that towers into the workshop rafters; three pinned swatches beside it — GPT-1, GPT-2, GPT-3 — each larger than the last, and a fresh cloth whose pattern the loom copies from a few example threads clipped to its beam, with no one re-tuning the gears." />
   </div>
-  <aside class="slide-notes">GPT-1 — decoder-only, next-token LM. Контраст с BERT (encoder, MLM). Ещё нужен per-task fine-tuning. Источник: OpenAI tech report 2018, не arXiv.</aside>
+  
 </section>
 
-<!-- ====================== 69 · DEFINITION · GPT-2 ====================== -->
+
 <section class="slide" data-type="definition" data-screen-label="53 Definition · GPT-2">
   <div class="slide-header">
     <h2>
@@ -2707,10 +2636,10 @@
       </div>
     </div>
   </div>
-  <aside class="slide-notes">GPT-2: до 1.5B. Zero-shot через формулировку задачи в промпте — отказ от per-task fine-tuning. Не путать масштаб с GPT-3 (175B).</aside>
+  
 </section>
 
-<!-- ====================== 70 · DEFINITION · GPT-3 ====================== -->
+
 <section class="slide" data-type="definition" data-screen-label="54 Definition · GPT-3">
   <div class="slide-header">
     <h2>
@@ -2738,10 +2667,10 @@
       </p>
     </div>
   </div>
-  <aside class="slide-notes">GPT-3 = 175B. In-context learning (zero/one/few-shot) НЕ обновляет веса — conditioning на промпте. Scaling laws — Kaplan 2020. Brown 2020 arXiv:2005.14165.</aside>
+  
 </section>
 
-<!-- ====================== 71 · VIZ · in-context few-shot ====================== -->
+
 <section class="slide" data-type="formula" data-screen-label="54a Causal mask · формально">
   <div class="slide-header slide-header--flush">
     <h2><span lang="ru">Чем GPT держит порядок: причинная маска, формально</span><span lang="en">How GPT keeps causality: the causal mask, formally</span></h2>
@@ -2752,7 +2681,7 @@
   </div>
   <p class="def-where"><span lang="ru">где <b>x<sub>&lt;t</sub></b> = все токены строго левее позиции <b>t</b>, <b>M</b> = маска, прибавляемая к логитам внимания до софтмакса: минус бесконечность превращается в нулевой вес. Всё остальное — тот же блок из экспресс-повтора.</span><span lang="en">where <b>x<sub>&lt;t</sub></b> = every token strictly left of position <b>t</b>, and <b>M</b> = a mask added to the attention logits before softmax: minus infinity becomes zero weight. Everything else is the very block from the express recap.</span></p>
   <p class="small muted center mt-2"><span lang="ru">Одна треугольная маска — вся разница между энкодером и декодером: BERT-класс видит обе стороны и потому читает, GPT-класс видит только левую и потому пишет. Факторизация произведением — не свойство модели, а тождество теории вероятностей; модель лишь параметризует каждый сомножитель. Граница: за строгую причинность платим тем, что представление токена не знает своего правого контекста — для поиска это хуже двунаправленного чтения, и мостик «декодер → эмбеддер» в L10 существует ровно поэтому.</span><span lang="en">One triangular mask is the entire difference between encoder and decoder: the BERT family sees both sides and therefore reads, the GPT family sees only the left and therefore writes. The product factorisation is not a property of the model but an identity of probability theory; the model merely parameterises each factor. Boundary: strict causality costs each token any knowledge of its right context — worse than bidirectional reading for retrieval, which is exactly why the “decoder → embedder” bridge in L10 exists.</span></p>
-  <aside class="slide-notes">New mechanism slide for the GPT act (7 definition slides, zero mechanism before this). Chain rule + masked attention, symbolic. Bridges to L10's decoder-to-embedder slide.</aside>
+  
 </section>
 <section class="slide" data-type="viz" data-screen-label="55 Viz · in-context few-shot">
           <div class="slide-header">
@@ -2796,10 +2725,10 @@
     <span lang="en">\(k\) input→output pairs in the prompt specify the task. The model answers the query by analogy — weights <strong>do not change</strong>.</span>
   </p>
 
-          <aside class="slide-notes">In-context few-shot: k демонстраций в промпте → ответ на запрос. Веса заморожены (фиолетовый = промпт/вход, cyan = модель, green = выход, amber = запрос). Это conditioning, а не обучение.</aside>
+          
         </section>
 
-<!-- ====================== 72 · TWO-COL · BERT vs GPT парадигмы ====================== -->
+
 <section class="slide" data-type="two-col" data-screen-label="56 Two-col · BERT vs GPT парадигмы">
   <div class="slide-header">
     <h2>
@@ -2846,10 +2775,10 @@
       </div>
     </div>
   </div>
-  <aside class="slide-notes">Контраст парадигм: BERT обновляет веса (fine-tune), GPT получает задачу через промпт (few-shot, без обновления весов). Не смешивать.</aside>
+  
 </section>
 
-<!-- ====================== 73 · MISCONCEPTION · few-shot ====================== -->
+
 <section class="slide" data-type="misconception" data-screen-label="57 Misconception · few-shot">
   <div class="slide-header">
     <h2>
@@ -2875,10 +2804,10 @@
       <span lang="en">No. Few-shot is <strong>conditioning</strong>, not a gradient step: the examples only change the <em>context</em> on which <span class="term">\(p(x_t\mid x_{&lt;t})\)</span> is computed. The weights <strong>stay the same</strong>. And the LM objective (predict a token) <strong>≠ &laquo;understanding&raquo;</strong>.</span>
     </div>
   </div>
-  <aside class="slide-notes">Главное: in-context few-shot не обновляет веса. Это conditioning на промпте. цель обучения языковой модели ≠ понимание. Контраст с fine-tuning (там веса меняются).</aside>
+  
 </section>
 
-<!-- ====================== 74 · REFS · GPT + scaling ====================== -->
+
 <section class="slide" data-type="refs" data-screen-label="58 Refs · GPT + scaling">
   <div class="slide-header">
     <h2>
@@ -2925,10 +2854,10 @@
     <span lang="ru">GPT-1 / GPT-2 — tech reports OpenAI (без arXiv-id); GPT-3 и scaling laws — с arXiv.</span>
     <span lang="en">GPT-1 / GPT-2 are OpenAI tech reports (no arXiv id); GPT-3 and scaling laws have arXiv ids.</span>
   </p>
-  <aside class="slide-notes">GPT-1/2 — tech reports, без arXiv. GPT-3 — Brown 2020 arXiv:2005.14165. Scaling — Kaplan 2020 arXiv:2001.08361.</aside>
+  
 </section>
 
-<!-- ====================== 75 · DIVIDER 09 ====================== -->
+
 <section class="slide" data-type="divider" data-screen-label="59 Divider 07 · Декодинг">
   <div>
     <div class="divider-num">
@@ -2944,10 +2873,10 @@
       <span lang="en">How to turn <span class="term">\(p(x_t\mid x_{&lt;t})\)</span> into tokens: greedy, beam, temperature, top-k, top-p.</span>
     </p>
   </div>
-  <aside class="slide-notes">Раздел про стратегии генерации. Детерминированные (greedy/beam) vs стохастические (temperature/top-k/top-p). Дальше — разбор на маленьком распределении.</aside>
+  
 </section>
 
-<!-- ====================== 76 · DEFINITION · greedy / beam ====================== -->
+
 <section class="slide" data-type="definition" data-screen-label="60 Definition · greedy / beam">
   <div class="slide-header">
     <h2>
@@ -2980,10 +2909,10 @@
       </div>
     </div>
   </div>
-  <aside class="slide-notes">Greedy = argmax. Beam = b гипотез, поправка на длину. Вырождение: повторы. Здесь разбираем детерминированный beam search, не отдельный вариант beam sampling.</aside>
+  
 </section>
 
-<!-- ====================== 77 · FORMULA · temperature ====================== -->
+
 <section class="slide" data-type="formula" data-screen-label="61 Formula · temperature">
   <div class="slide-header" style="border:none; padding-bottom:0;">
     <h2>
@@ -3018,10 +2947,10 @@
       </div>
     </div>
   </div>
-  <aside class="slide-notes">temperature: softmax(z/T). T<1 — острее (детерминированнее), T>1 — мягче (разнообразнее), T→0 ≈ greedy. Направление не перепутать.</aside>
+  
 </section>
 
-<!-- ====================== 78 · DEFINITION · top-k / top-p ====================== -->
+
 <section class="slide" data-type="definition" data-screen-label="62 Definition · top-k / top-p">
   <div class="slide-header">
     <h2>
@@ -3057,10 +2986,10 @@
   <div class="viz-frame fig-fit" style="--fig-max:26cqh; --fig-w:26%;">
     <img src="assets/img/L15/L15-15-truncated-sampling.webp?v=1" alt="Two racks of candidate thread-spools sized fattest to thinnest: over the first S&#xE9;r&#xE9;ga lowers a rigid tray with a fixed number of slots that lifts exactly that many spools every time; over the second he tips spools fattest-first into a measuring jar and stops at a single fill-line, so a steep rack fills after two fat spools and a flat one swallows a long row of small ones." />
   </div>
-  <aside class="slide-notes">top-k = фиксированное число кандидатов. top-p (nucleus) = минимальное множество с массой ≥ p (адаптивный размер). Разные критерии усечения.</aside>
+  
 </section>
 
-<!-- ====================== 79 · WALKTHROUGH · Пример 8 — декодинг ====================== -->
+
 <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="63 Walk · Пример 8 — декодинг">
   <div class="slide-header">
     <h2>
@@ -3148,10 +3077,10 @@
     <button data-step-act="next" aria-label="Next step">→</button>
   </div>
 
-  <aside class="slide-notes">Пример 8. z=(2,1,0.5,0,−1) → softmax (0.563,0.207,0.126,0.076,0.028); cum 0.563/0.770/0.896/0.972. greedy→t1; top-k(2)→{t1,t2} (0.731,0.269); top-p(0.9)→{t1,t2,t3,t4} (0.896<0.9, добираем t4→0.972); T=0.5→(0.829,…); T=2.0→(0.375,…). Все суммы = 1.000.</aside>
+  
 </section>
 
-<!-- ====================== 80 · TABLE · стратегии когда ====================== -->
+
 <section class="slide" data-type="table" data-screen-label="64 Table · стратегии когда">
   <div class="slide-header">
     <h2>
@@ -3214,10 +3143,10 @@
     <span lang="ru">Правило: детерминированные / фактические задачи → greedy / beam; открытая генерация → nucleus (top-p).</span>
     <span lang="en">Rule: deterministic / factual tasks → greedy / beam; open-ended generation → nucleus (top-p).</span>
   </p>
-  <aside class="slide-notes">Детерминированные (greedy/beam) — для фактических/seq2seq задач. Стохастические (temperature/top-k/top-p) — для открытой генерации; top-p адаптивен.</aside>
+  
 </section>
 
-<!-- ====================== 81 · DIVIDER 10 ====================== -->
+
 <section class="slide" data-type="divider" data-screen-label="65 Divider 08 · Enc / Dec / Enc-Dec">
   <div>
     <div class="divider-num">
@@ -3233,10 +3162,10 @@
       <span lang="en">Three transformer families, three masks, three task classes.</span>
     </p>
   </div>
-  <aside class="slide-notes">Раздел сводит вместе encoder (BERT), decoder (GPT) и encoder-decoder (T5, BART). Ключ — маска внимания и cross-attention.</aside>
+  
 </section>
 
-<!-- ====================== 82 · TABLE · три архитектуры ====================== -->
+
 <section class="slide" data-type="default" data-screen-label="65a Зачем два стека">
   <div class="slide-header">
     <h2><span lang="ru">Зачем два стека, если каждый работает и по одному</span><span lang="en">Why two stacks, when each works alone</span></h2>
@@ -3251,7 +3180,7 @@
       </ul>
     </div>
   </div>
-  <aside class="slide-notes">New hook for the enc-dec act. Sets up cross-attention (084a) as the bridge; forward echo to L15 RAG.</aside>
+  
 </section>
 <section class="slide" data-type="table" data-screen-label="66 Table · три архитектуры">
   <div class="slide-header">
@@ -3301,10 +3230,10 @@
     <span lang="ru"><strong>Cross-attention</strong> есть только в encoder-decoder: \(Q\) из декодера, \(K,V\) из энкодера.</span>
     <span lang="en"><strong>Cross-attention</strong> exists only in encoder-decoder: \(Q\) from the decoder, \(K,V\) from the encoder.</span>
   </p>
-  <aside class="slide-notes">Encoder = полная маска, MLM (BERT). Decoder = causal маска, next-token LM (GPT). Enc-dec = + cross-attention, seq2seq (T5/BART). Не путать маски и архитектуры.</aside>
+  
 </section>
 
-<!-- ====================== 83 · ARCH · cross-attention ====================== -->
+
 <section class="slide" data-type="arch" data-screen-label="67 Arch · cross-attention">
   <div class="slide-header">
     <h2>
@@ -3358,10 +3287,10 @@
   <div class="viz-frame fig-fit" style="--fig-max:24cqh; --fig-w:26%;">
     <img src="assets/img/L15/L15-16-cross-shuttle.webp?v=1" alt="Two looms face each other: the right one weaves forward under a curtain drawn over its un-woven rows, and its shuttle reaches across to the left loom&#x27;s fully woven, open cloth to draw thread from there; off to one side a single writing loom stands alone with its shuttle-arm hanging in empty air." />
   </div>
-  <aside class="slide-notes">Cross-attention: Q из декодера, K/V из энкодера. Есть только в enc-dec (T5/BART/оригинальный Transformer). В decoder-only (GPT) его нет — только causal self-attention.</aside>
+  
 </section>
 
-<!-- ====================== 84 · DEFINITION · T5 ====================== -->
+
 <section class="slide" data-type="formula" data-screen-label="67a Cross-attention · формально">
   <div class="slide-header slide-header--flush">
     <h2><span lang="ru">Как декодер читает энкодер: cross-attention, формально</span><span lang="en">How the decoder reads the encoder: cross-attention, formally</span></h2>
@@ -3372,7 +3301,7 @@
   </div>
   <p class="def-where"><span lang="ru">где <b>y</b> = состояния декодера (что уже написано), <b>z</b> = выход энкодера (что прочитано), <b>Q(y)</b> = запросы от декодера, <b>K(z), V(z)</b> = ключи и значения от энкодера. В self-attention все три проекции берутся из одного места — здесь источники разные.</span><span lang="en">where <b>y</b> = decoder states (what has been written so far), <b>z</b> = encoder output (what was read), <b>Q(y)</b> = queries from the decoder, <b>K(z), V(z)</b> = keys and values from the encoder. Self-attention takes all three projections from one place — here the sources differ.</span></p>
   <p class="small muted center mt-2"><span lang="ru">Одна формула объясняет таблицу трёх архитектур, показанную выше: энкодер — только self-attention над входом; декодер — причинное self-attention над выходом; энкодер-декодер добавляет этот мост, где каждый генерируемый токен запрашивает всё прочитанное. С RAG из L15 его роднит идея генерации с опорой на другой текст. Но документы в промпте decoder-only модели читаются её self-attention, а не отдельным cross-attention. Граница: мост оплачивается произведением длин входа и выхода — на длинных документах он и становится узким местом.</span><span lang="en">One formula explains the three-architecture table above: an encoder is self-attention over the input; a decoder is causal self-attention over the output; encoder–decoder adds this bridge, where every token being written queries everything that was read. It is also the direct ancestor of L15's RAG: “put the retrieved documents in the context” is cross-attention over foreign text, with the bridge moved from architecture into the prompt. Boundary: the bridge costs the product of input and output lengths — on long documents it becomes the bottleneck.</span></p>
-  <aside class="slide-notes">New mechanism slide for the enc-dec act (was mechanism-less). Symbolic; ties the act's comparison table to one formula and bridges forward to L15 RAG.</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="68 Definition · T5">
   <div class="slide-header">
@@ -3404,10 +3333,10 @@
   <div class="viz-frame fig-fit" style="--fig-max:34cqh; --fig-w:30%;">
     <img src="assets/img/L15/L15-09-three-families.webp?v=1" alt="Séréga stands before three looms in a row: the first weaves an open cloth crossed in both directions (encoder/BERT), the second weaves a single thread strictly forward (decoder/GPT), and the third pairs a reading loom to a writing loom joined by a bright cross-stitch shuttle labelled cross-attention (encoder-decoder/T5-BART)." />
   </div>
-  <aside class="slide-notes">T5 — encoder-decoder, всё как text-to-text. Pretrain — span-corruption denoising. Raffel 2020, arXiv:1910.10683. Токенизация — SentencePiece.</aside>
+  
 </section>
 
-<!-- ====================== 85 · DEFINITION · BART ====================== -->
+
 <section class="slide" data-type="definition" data-screen-label="69 Definition · BART">
   <div class="slide-header">
     <h2>
@@ -3435,10 +3364,10 @@
       </p>
     </div>
   </div>
-  <aside class="slide-notes">BART — encoder-decoder, denoising autoencoder. BERT-подобный энкодер + GPT-подобный декодер. Lewis 2020, arXiv:1910.13461.</aside>
+  
 </section>
 
-<!-- ====================== 86 · REFS · enc-dec ====================== -->
+
 <section class="slide" data-type="refs" data-screen-label="70 Refs · enc-dec">
   <div class="slide-header">
     <h2>
@@ -3469,14 +3398,11 @@
     <span lang="ru">Оба — encoder-decoder; cross-attention соединяет энкодер и декодер (\(Q\) из декодера, \(K,V\) из энкодера).</span>
     <span lang="en">Both are encoder-decoder; cross-attention links encoder and decoder (\(Q\) from the decoder, \(K,V\) from the encoder).</span>
   </p>
-  <aside class="slide-notes">T5 — Raffel 2020 arXiv:1910.10683. BART — Lewis 2020 arXiv:1910.13461. Оба encoder-decoder.</aside>
+  
 </section>
-<!-- ============================================
-     §11 · ЭФФЕКТИВНОЕ ВНИМАНИЕ
-     slides 87–94
-     ============================================ -->
 
-<!-- 87 · DIVIDER 11 -->
+
+
 <section class="slide" data-type="divider" data-screen-label="71 Divider 09 · Эффективное внимание">
   <div>
     <div class="divider-num">
@@ -3492,10 +3418,10 @@
       <span lang="en">Self-attention costs \(O(n^2)\) memory. How to scale to long context — exactly and approximately.</span>
     </p>
   </div>
-  <aside class="slide-notes">Раздел про масштабирование attention. Главный тезис: узкое место — память n×n, а не только FLOPs. Дальше: FlashAttention (точное) vs линейные/разреженные (приближённые).</aside>
+  
 </section>
 
-<!-- 88 · WALKTHROUGH · Пример 9 — память n×n -->
+
 <section class="slide" data-type="walkthrough" data-max-step="3" data-current-step="0" data-screen-label="72 Walk · Пример 9 — память n×n">
   <div class="slide-header">
     <h2>
@@ -3568,10 +3494,10 @@
     <button data-step-act="next" aria-label="Next step">→</button>
   </div>
 
-  <aside class="slide-notes">Пример 9. Числа: n=512 → 0.52 МБ/голова, n=4k → 33.6 МБ/голова, n=32k → 2.15 ГБ/голова; ×12 голов = 6.3 МБ / 403 МБ / 25.8 ГБ. Память растёт квадратично по длине. Узкое место — именно материализация матрицы n×n в HBM, а не FLOPs.</aside>
+  
 </section>
 
-<!-- 89 · DEFINITION · FlashAttention -->
+
 <section class="slide" data-type="definition" data-screen-label="73 Definition · FlashAttention">
   <div class="slide-header">
     <h2>
@@ -3603,10 +3529,10 @@
   <div class="viz-frame fig-fit" style="--fig-max:24cqh; --fig-w:24%;">
     <img src="assets/img/L15/L15-17-tiling-not-approximation.webp?v=1" alt="A colossal crossing-sheet stays rolled up against the wall, never unrolled; S&#xE9;r&#xE9;ga instead carries one block of warp-threads and one block of weft-threads to a small bench-tray, weaves that single tile, slides a running tally-bead along a wire, and holds the finished strip against a sample cut from the rolled sheet &#x2014; the two match thread for thread." />
   </div>
-  <aside class="slide-notes">Ключевой факт: FlashAttention = ТОЧНОЕ внимание. Считается та же softmax-формула, не аппроксимация; тайлинг + online-softmax меняют порядок FP-суммирования, поэтому результат совпадает с обычным с точностью до порядка операций (не бит-в-бит). Экономия — память/IO, n×n не материализуется в HBM. Не путать с линейным/разреженным вниманием, которые приближают softmax.</aside>
+  
 </section>
 
-<!-- 90 · VIZ · tiling + online softmax -->
+
 <section class="slide" data-type="viz" data-screen-label="74 Viz · tiling + online softmax">
           <div class="slide-header">
     <h2>
@@ -3646,10 +3572,10 @@
     <span lang="en">Instead of one big \(n\times n\) matrix (left, \(O(n^2)\)) we compute tile by tile in fast SRAM (right), updating a running \(\max\) and sum — the online softmax gives the <strong>same</strong> result with \(O(n)\) memory.</span>
   </p>
 
-          <aside class="slide-notes">Viz для FlashAttention. Слева — наивная материализация всей матрицы n×n в HBM (красный, O(n²)). Справа — тайлинг: блоки Q,K,V обрабатываются по одному в SRAM (cyan), а online softmax (зелёный аккумулятор m, ℓ, O) хранит бегущий максимум и сумму. Итог идентичен обычному attention, память O(n).</aside>
+          
         </section>
 
-<!-- 91 · DEFINITION · linear / sparse -->
+
 <section class="slide" data-type="definition" data-screen-label="75 Definition · linear/sparse">
   <div class="slide-header">
     <h2>
@@ -3683,10 +3609,10 @@
   <div class="viz-frame fig-fit" style="--fig-max:28cqh; --fig-w:28%;">
     <img src="assets/img/L15/L15-10-efficient-attention.webp?v=1" alt="An enormous run of cloth far too long to cross every thread with every other is woven instead in tidy separate blocks, with just a few long skip-threads jumping between distant blocks; a crossed-out n&#xB2; sits beside a giant tangle, next to the neat blocked weave." />
   </div>
-  <aside class="slide-notes">Линейное (Linformer низкоранг, Performer kernel/FAVOR+) и разреженное (Longformer, BigBird — локальные окна + глобальные токены) внимание приближают softmax ради O(n). Это приближения — в отличие от FlashAttention (точное). Reformer (LSH) — тоже приближённое.</aside>
+  
 </section>
 
-<!-- 92 · TABLE · методы -->
+
 <section class="slide" data-type="table" data-screen-label="76 Table · методы">
   <div class="slide-header">
     <h2>
@@ -3742,10 +3668,10 @@
     </tbody>
   </table>
 
-  <aside class="slide-notes">Сравнение: обычное O(n²) точное; FlashAttention O(n) и ТОЧНОЕ (IO-trick); Linformer/Performer/Longformer/BigBird — O(n), но приближают softmax. Ключевая колонка — «точное?»: только FlashAttention считает ту же формулу без аппроксимации — результат совпадает с обычным с точностью до порядка FP-суммирования (тайлинг меняет порядок операций).</aside>
+  
 </section>
 
-<!-- 93 · MISCONCEPTION · FlashAttention -->
+
 <section class="slide" data-type="misconception" data-screen-label="77 Misconception · FlashAttention">
   <div class="slide-header">
     <h2>
@@ -3771,10 +3697,10 @@
       <span lang="en">No. FlashAttention computes the <strong>same</strong> softmax attention — not an approximation: the result matches standard <em>up to floating-point operation order</em>. It is an <strong>IO trick</strong>: tiling + online softmax save <strong>memory/IO</strong> (\(O(n^2)\!\to\!O(n)\)), not the math. The methods that <em>approximate</em> softmax are Linformer, Performer, Longformer, BigBird.</span>
     </div>
   </div>
-  <aside class="slide-notes">Главное заблуждение раздела: FlashAttention ≠ линейное/приближённое. Оно ТОЧНОЕ — IO-aware-алгоритм, та же softmax-формула, не аппроксимация; результат совпадает с точностью до порядка FP-суммирования (тайлинг + online-softmax меняют порядок операций); выигрыш по памяти/IO. Приближают — Linformer/Performer/Longformer/BigBird.</aside>
+  
 </section>
 
-<!-- 94 · REFS · эффективное внимание -->
+
 <section class="slide" data-type="refs" data-screen-label="78 Refs · эффективное внимание">
   <div class="slide-header">
     <h2>
@@ -3827,15 +3753,12 @@
     </li>
   </ol>
 
-  <aside class="slide-notes">Ссылки: FlashAttention (Dao 2022, 2205.14135), Linformer (2006.04768), Performer (2009.14794), Longformer (2004.05150), BigBird (2007.14062).</aside>
+  
 </section>
 
-<!-- ============================================
-     §12 · RLHF / INSTRUCT
-     slides 95–102
-     ============================================ -->
 
-<!-- 95 · DIVIDER 12 -->
+
+
 <section class="slide" data-type="divider" data-screen-label="79 Divider 10 · RLHF / instruct">
   <div>
     <div class="divider-num">
@@ -3851,10 +3774,10 @@
       <span lang="en"><strong>Beyond the border of search — context for general culture.</strong> The bridge to modern LLMs: base LM → SFT → RLHF / DPO → chat model. Aligning behavior, not knowledge. Search does not need this directly — but the LLM judges (L16) and RAG generators (L15) are built exactly this way.</span>
     </p>
   </div>
-  <aside class="slide-notes">Явный дивайдер-граница: отсюда и до практики — контекст для общей культуры, за пределами собственно поиска (не вырезаем: LLM-судьи из L16 и генераторы RAG из L15 стоят на этих механизмах). Раздел про выравнивание. Главное: RLHF = 3 стадии (SFT → Reward Model → RL/PPO с KL-штрафом); промптинг и in-context ≠ RLHF; DPO без RM/RL; цель RLHF — согласование поведения с человеческими предпочтениями, а не гарантия неизменности знаний.</aside>
+  
 </section>
 
-<!-- 96 · MISCONCEPTION · alignment -->
+
 <section class="slide" data-type="misconception" data-screen-label="80 Misconception · alignment">
   <div class="slide-header">
     <h2>
@@ -3883,10 +3806,10 @@
   <div class="viz-frame fig-fit" style="--fig-max:28cqh; --fig-w:26%;">
     <img src="assets/img/L15/L15-11-rlhf.webp?v=1" alt="S&#xE9;r&#xE9;ga the master weaver adjusts the finished pattern to please a customer trying the garment on in front of a mirror, turning a small round reward-dial and re-threading a row to match the customer&#x27;s happy nod." />
   </div>
-  <aside class="slide-notes">Постановка проблемы alignment: base LM предсказывает токен, но не следует инструкциям и не выровнен (helpful/harmless/honest). Промпт ≠ выравнивание. Это мотивирует RLHF на следующем слайде.</aside>
+  
 </section>
 
-<!-- 97 · ARCHFLOW · RLHF 3 стадии (SFT → RM → PPO) -->
+
 <section class="slide" data-type="archflow" data-max-step="3" data-current-step="0" data-screen-label="81 Archflow · RLHF 3 стадии">
   <div class="slide-header">
     <h2>
@@ -3898,13 +3821,13 @@
 
   <div class="af-stage">
     <div class="af-canvas">
-      <!-- EDGES (explicit anchors, left→right) -->
+      
       <div class="af-edge" data-from-node="af-base" data-to-node="af-sft" data-from="1" data-from-anchor="right" data-to-anchor="left"></div>
       <div class="af-edge" data-from-node="af-sft" data-to-node="af-rm" data-from="2" data-from-anchor="right" data-to-anchor="left"></div>
       <div class="af-edge" data-from-node="af-rm" data-to-node="af-ppo" data-from="3" data-from-anchor="right" data-to-anchor="left"></div>
       <div class="af-edge" data-from-node="af-sft" data-to-node="af-ppo" data-from="3" data-from-anchor="bottom" data-to-anchor="bottom"></div>
 
-      <!-- NODES -->
+      
       <div class="af-node" id="af-base" data-role="input" data-from="0" data-focus="0" style="left:10%;top:42%">
         <span lang="ru">Base LM</span><span lang="en">Base LM</span>
       </div>
@@ -3963,10 +3886,10 @@
     <button data-step-act="next" aria-label="Next step">→</button>
   </div>
 
-  <aside class="slide-notes">RLHF (InstructGPT, Ouyang 2022) — 3 стадии: (1) SFT на демонстрациях; (2) Reward Model на человеческих сравнениях (скаляр-награда, RM ≠ финальная модель); (3) RL/PPO — оптимизация политики-LM под RM с KL-штрафом к SFT (защита от reward hacking). Простой left→right flow, анкоры явные.</aside>
+  
 </section>
 
-<!-- 98 · DEFINITION · Reward Model -->
+
 <section class="slide" data-type="definition" data-screen-label="82 Definition · Reward Model">
   <div class="slide-header">
     <h2>
@@ -4001,10 +3924,10 @@
   <div class="viz-frame fig-fit" style="--fig-max:28cqh; --fig-w:26%;">
     <img src="assets/img/L15/L15-18-reward-from-pairs.webp?v=1" alt="On the left a seated customer is handed two finished swatches at a time and points at the better one, building a pile of pointed-at pairs; from that pile S&#xE9;r&#xE9;ga trains an apprentice judge at a pan-balance who, the customer&#x27;s chair now empty, hangs each new swatch and reads off one single weight, carried back to the loom by a dotted line." />
   </div>
-  <aside class="slide-notes">Reward Model: обучается на человеческих сравнениях/ранжированиях (loss Брэдли–Терри: −log σ(r(y_w) − r(y_l))), выдаёт скаляр. RM ≠ финальная модель — она лишь сигнал награды для PPO.</aside>
+  
 </section>
 
-<!-- 99 · VIZ · InstructGPT 1.3B > GPT-3 175B -->
+
 <section class="slide" data-type="viz" data-screen-label="83 Viz · InstructGPT 1.3B &gt; GPT-3 175B">
           <div class="slide-header">
     <h2>
@@ -4038,10 +3961,10 @@
     <span lang="en">By <strong>human preference</strong> the small InstructGPT (1.3B), aligned via SFT + RLHF, is preferred over the <strong>100×+ larger</strong> base GPT-3 (175B). Alignment is about <em>behavior</em>, not size.</span>
   </p>
 
-          <aside class="slide-notes">Viz: human-preference win-rate. Base GPT-3 175B (фиолетовый, низко) проигрывает InstructGPT 1.3B (зелёный, высоко) — выровненная модель в 100+ раз меньше, но предпочтительнее. Это про выравнивание поведения, не про размер/знания.</aside>
+          
         </section>
 
-<!-- 100 · DEFINITION · DPO -->
+
 <section class="slide" data-type="definition" data-screen-label="84 Definition · DPO">
   <div class="slide-header">
     <h2>
@@ -4070,10 +3993,10 @@
       </p>
     </div>
   </div>
-  <aside class="slide-notes">DPO (Rafailov 2023, 2305.18290): прямая оптимизация на парах предпочтений, без отдельной reward-модели и без RL/PPO. Это всё ещё preference optimization — та же цель выравнивания, но проще и стабильнее.</aside>
+  
 </section>
 
-<!-- 101 · MISCONCEPTION · RLHF -->
+
 <section class="slide" data-type="misconception" data-screen-label="85 Misconception · RLHF">
   <div class="slide-header">
     <h2>
@@ -4099,10 +4022,10 @@
       <span lang="en">RLHF <strong>aligns behavior and preferences</strong> but <strong>does not add factual knowledge</strong> — knowledge comes from pretraining. Risks: <em>reward hacking</em> and <em>sycophancy</em> (the model placates). The reward model is a proxy, and a proxy is Goodhart's home turf: the measure became the target again. And <strong>in-context / few-shot \(\neq\) RLHF</strong>: a prompt is inference-time conditioning, RLHF/SFT updates weights.</span>
     </div>
   </div>
-  <aside class="slide-notes">Различай цель RLHF и результат: обучение согласует поведение с человеческими предпочтениями, но из этого нельзя вывести неизменность знаний. Риски: reward hacking, sycophancy. In-context / few-shot ≠ RLHF: промпт — conditioning, RLHF — обновление весов. Гудхарт — отсылка к L1/L5/L16: reward hacking — его закон в чистом виде.</aside>
+  
 </section>
 
-<!-- 102 · REFS · RLHF -->
+
 <section class="slide" data-type="refs" data-screen-label="86 Refs · RLHF">
   <div class="slide-header">
     <h2>
@@ -4147,15 +4070,12 @@
     </li>
   </ol>
 
-  <aside class="slide-notes">Ссылки RLHF: InstructGPT (Ouyang 2022, 2203.02155), Christiano 2017 (1706.03741), Stiennon 2020 (2009.01325), DPO (Rafailov 2023, 2305.18290).</aside>
+  
 </section>
 
-<!-- ============================================
-     §13 · ПРАКТИКА
-     slides 103–105
-     ============================================ -->
 
-<!-- 103 · DIVIDER 13 -->
+
+
 <section class="slide" data-type="divider" data-screen-label="87 Divider 11 · Практика">
   <div>
     <div class="divider-num">
@@ -4171,10 +4091,10 @@
       <span lang="en">HuggingFace, hands-on: classification with BERT and generation with GPT.</span>
     </p>
   </div>
-  <aside class="slide-notes">Практический раздел. Два коротких code-слайда: BERT для классификации (AutoModelForSequenceClassification) и GPT для генерации (model.generate с параметрами декодинга).</aside>
+  
 </section>
 
-<!-- 104 · CODE · BERT classification -->
+
 <section class="slide" data-type="code" data-screen-label="88 Code · BERT classification">
   <div class="slide-header">
     <h2>
@@ -4212,10 +4132,10 @@ pred = probs.argmax(-1).item()                              # 0 / 1</code></pre>
     <span lang="en">The classification head sits on <span class="term">[CLS]</span>; BERT context is 512 tokens; tokenization is WordPiece. An alternative to <span class="term">[CLS]</span> is mean-pooling over tokens.</span>
   </p>
 
-  <aside class="slide-notes">Code BERT: AutoTokenizer + AutoModelForSequenceClassification, max_length=512, голова на [CLS], softmax по логитам. Подводные камни: 512-контекст, WordPiece, [CLS] vs mean-pooling.</aside>
+  
 </section>
 
-<!-- 105 · CODE · GPT generation -->
+
 <section class="slide" data-type="code" data-screen-label="89 Code · GPT generation">
   <div class="slide-header">
     <h2>
@@ -4256,15 +4176,12 @@ print(tokenizer.decode(out[0], skip_special_tokens=True))</code></pre>
     <span lang="en">Decoder-only with a causal mask; tokenization is byte-level BPE (not WordPiece). KV-cache is on by default; for long context use <span class="term">attn_implementation="flash_attention_2"</span>.</span>
   </p>
 
-  <aside class="slide-notes">Code GPT: AutoModelForCausalLM + model.generate(do_sample, temperature, top_k, top_p, num_beams, max_new_tokens). BPE-токенизация, causal-маска, KV-cache по умолчанию, FlashAttention через attn_implementation.</aside>
+  
 </section>
 
-<!-- ============================================
-     §14 · ИТОГИ
-     slides 106–111
-     ============================================ -->
 
-<!-- 106 · DIVIDER 14 -->
+
+
 <section class="slide" data-type="divider" data-screen-label="90 Divider 12 · Итоги">
   <div>
     <div class="divider-num">
@@ -4280,10 +4197,10 @@ print(tokenizer.decode(out[0], skip_special_tokens=True))</code></pre>
       <span lang="en">Cheat sheet, a quick check, references — and thanks for your attention.</span>
     </p>
   </div>
-  <aside class="slide-notes">Финальный раздел: cheat sheet по архитектурам/маскам/целям обучения/декодингу/эффективному вниманию/SFT→RM→PPO, quiz, references, финал.</aside>
+  
 </section>
 
-<!-- 107 · TABLE · cheat sheet -->
+
 <section class="slide" data-type="table" data-screen-label="91 Table · cheat sheet">
   <div class="slide-header">
     <h2>
@@ -4336,10 +4253,10 @@ print(tokenizer.decode(out[0], skip_special_tokens=True))</code></pre>
     <span lang="en"><strong>Decoding:</strong> facts → greedy/beam; open generation → nucleus (top-p) + temperature. <strong>Efficiency:</strong> FlashAttention (exact) vs linear/sparse (approximate). <strong>Alignment:</strong> SFT → RM → PPO, or DPO.</span>
   </p>
 
-  <aside class="slide-notes">Cheat sheet: encoder (полная маска, MLM, BERT) / decoder (causal, next-token LM, GPT) / enc-dec (+ cross-attention, denoising, T5/BART). Внизу — декодинг, эффективное внимание (FlashAttention точное vs линейное/sparse приближённое), выравнивание (SFT→RM→PPO или DPO).</aside>
+  
 </section>
 
-<!-- 108 · QUIZ · spot the architecture -->
+
 <section class="slide" data-type="quiz" data-screen-label="92 Quiz · spot the architecture">
   <div class="slide-header">
     <h2>
@@ -4390,10 +4307,10 @@ print(tokenizer.decode(out[0], skip_special_tokens=True))</code></pre>
     </details>
   </div>
 
-  <aside class="slide-notes">Quiz «spot the architecture». Правильный ответ B: генерация слева направо → decoder-only (GPT) с causal-маской и next-token LM. Ровно один data-correct="true".</aside>
+  
 </section>
 
-<!-- 109 · REFS · References (part 1) -->
+
 <section class="slide" data-type="refs" data-screen-label="93 References (part 1)">
   <div class="slide-header">
     <h2>
@@ -4457,10 +4374,10 @@ print(tokenizer.decode(out[0], skip_special_tokens=True))</code></pre>
     </li>
   </ol>
 
-  <aside class="slide-notes">References part 1: Vaswani 2017 (NIPS, 1706.03762), Devlin 2019 (NAACL, 1810.04805), RoBERTa (1907.11692), ALBERT (1909.11942), DistilBERT (1910.01108), ELECTRA (2003.10555).</aside>
+  
 </section>
 
-<!-- 110 · REFS · References (part 2) -->
+
 <section class="slide" data-type="refs" data-screen-label="94 References (part 2)">
   <div class="slide-header">
     <h2>
@@ -4532,10 +4449,10 @@ print(tokenizer.decode(out[0], skip_special_tokens=True))</code></pre>
     </li>
   </ol>
 
-  <aside class="slide-notes">References part 2: GPT-3 (Brown 2020, 2005.14165), scaling (Kaplan 2020, 2001.08361), T5 (1910.10683), BART (1910.13461), FlashAttention (2205.14135), InstructGPT (2203.02155), DPO (2305.18290).</aside>
+  
 </section>
 
-<!-- 111 · FINAL -->
+
 <section class="slide" data-type="final" data-screen-label="95 Final">
           <div class="final-body">
             <h1>
@@ -4550,14 +4467,14 @@ print(tokenizer.decode(out[0], skip_special_tokens=True))</code></pre>
           <div class="viz-frame fig-fit" style="--fig-max:40cqh; --fig-w:30%;">
     <img src="assets/img/L15/L15-12-the-whole-loom.webp?v=1" alt="Séréga steps back from his great loom, arms folded, green tübetey catching the light, as a single finished bolt of cloth unrolls before him — every thread crossing every other, while the villainous frayed RNN bottleneck-thread lies cut loose and spent on the floor." />
   </div>
-  <aside class="slide-notes">Финальный слайд. Q&amp;A и благодарность. Лекция 08 «BERT и другие трансформеры»; выходной мост — на L9 «Монтажная схема», где этот же блок считается по схеме (оси и цена), а затем L10 строит на нём би- и кросс-энкодеры.</aside>
+  
         </section>
 
-      </div><!-- /.slides -->
-    </div><!-- /.stage -->
-  </div><!-- /.deck -->
+      </div>
+    </div>
+  </div>
 
-  <!-- JS -->
+  
   <script src="js/deck.js"></script>
   <script src="js/tools.js"></script>
   <script src="js/pen.js"></script>
@@ -4572,12 +4489,7 @@ print(tokenizer.decode(out[0], skip_special_tokens=True))</code></pre>
   <script src="js/sequence.js"></script>
   <script src="js/budget.js"></script>
   <script src="js/preflight.js"></script>
-  <!-- deck-mounted widgets: classic offline bundles register window.mount<Pascal>; the deck-adapter (after
-       deck.js) drives them with the deck step engine. The neural-circuit-diagram notation is TAUGHT in L7
-       (14c grammar · 22a the n×n bill) and here simply USED: the four circuits that carry an argument the
-       prose can only assert — heads SPLIT the width (21a), where the parameters actually live + no-residual
-       (31a), the leak as a MISSING hexagon (61a), the cache as the axis that grows (65a). BUILD OUTPUT
-       (scripts/build-deck-widgets.mjs). -->
+  
   <script src="js/course-map.classic.js"></script>
   <script src="js/ncd-multihead.classic.js"></script>
   <script src="js/ncd-block.classic.js"></script>

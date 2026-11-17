@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lecture 10 — Scouts and Judges · Bi-encoders, Cross-encoders &amp; Reranking</title>
 
-  <!-- Apply saved theme/lang BEFORE first paint to avoid a flash of the
-       wrong theme. Mirrors tools.js prefs key. -->
+  
   <script>
     try {
       var __p = JSON.parse(localStorage.getItem('lecture.template.prefs.v1') || '{}');
@@ -19,7 +18,7 @@
     } catch (e) {}
   </script>
 
-  <!-- Asset-load failure banner. -->
+  
   <script>
     window.__assetFail = (function () {
       var failed = [];
@@ -48,11 +47,11 @@
     })();
   </script>
 
-  <!-- Fonts — vendored locally. -->
+  
   <link href="vendor/fonts/fonts.css" rel="stylesheet"
         onerror="window.__assetFail&&window.__assetFail('Шрифты/Fonts')" />
 
-  <!-- Styles -->
+  
   <link rel="stylesheet" href="css/template.css?v=6" />
   <link rel="stylesheet" href="css/slides.css?v=6" />
   <link rel="stylesheet" href="css/components.css?v=6" />
@@ -65,11 +64,10 @@
   <link rel="stylesheet" href="css/preflight.css?v=6" />
   <link rel="stylesheet" href="css/wbw-art.css?v=1" />
   <link rel="stylesheet" href="css/autofit.css?v=1" />
-  <!-- L10 deck-mounted widget styles (widgets/_base.css + biencoder/crossencoder/neural-cascade style.css).
-       BUILD OUTPUT (scripts/build-deck-widgets.mjs) — the deck doesn't load widgets/*/style.css like the Book. -->
+  
   <link rel="stylesheet" href="css/deck-widgets.css?v=1" />
 
-  <!-- KaTeX — vendored locally. -->
+  
   <link rel="stylesheet" href="vendor/katex/katex.min.css"
         onerror="window.__assetFail&&window.__assetFail('KaTeX')">
   <script defer src="vendor/katex/katex.min.js"
@@ -87,7 +85,7 @@
     });
     document.dispatchEvent(new CustomEvent('katex:done'));"></script>
 
-  <!-- Prism — vendored. -->
+  
   <script src="vendor/prism/prism-core.min.js"
         onerror="window.__assetFail&&window.__assetFail('Prism')"></script>
   <script src="vendor/prism/prism-python.min.js"></script>
@@ -95,18 +93,17 @@
   <script src="vendor/prism/prism-yaml.min.js"></script>
   <script src="vendor/prism/prism-json.min.js"></script>
 
-  <!-- QR code generator — vendored. -->
+  
   <script src="vendor/qrcode/qrcode.js"
         onerror="window.__assetFail&&window.__assetFail('QR')"></script>
 
-  <!-- R8 deck auto-layout primitives → window.DeckLayout (esbuild of widgets/_layout.js).
-       Synchronous + in <head> so it is defined before any slide IIFE runs on parse. Like L5. -->
+  
   <script src="js/layout.js"
         onerror="window.__assetFail&&window.__assetFail('DeckLayout')"></script>
 </head>
 
 <body>
-  <!-- Bundler thumbnail -->
+  
   <template id="__bundler_thumbnail">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
       <defs>
@@ -128,12 +125,12 @@
     </svg>
   </template>
 
-  <!-- Logo template -->
+  
   <template id="tpl-logo">
     <div class="logo-mark">DLS</div>
   </template>
 
-  <!-- Deck -->
+  
   <div class="deck">
     <div class="stage">
       <div class="slides" data-course-ru="Deep Learning for Search · 2026" data-course-en="Deep Learning for Search · 2026">
@@ -151,7 +148,7 @@
             <div><div class="meta-label">Lecturer</div><div class="meta-value">Albert Nasybullin</div></div>
             <div><div class="meta-label">Date</div><div class="meta-value">13.10.2026</div></div>
           </div>
-          <aside class="slide-notes">L6 gave words coordinates; L7 gave the encoder a contrastively-trained space and attention. Today we put that encoder to work two ways. A search system can be fast or careful, but not both everywhere — so it splits the crew. Scouts (bi-encoders) encode the query and every document separately, precompute the doc vectors offline, and sweep the whole corpus with cheap dot-products. Judges (cross-encoders) read the query and a document together, with full attention, and score the pair — accurate, but uncacheable, so they only ever see a shortlist. Stage them and you get the neural cascade, the core architecture of modern neural search. Catchphrase: Scouts and Judges.</aside>
+          
         </section>
 <section class="slide" data-type="viz" data-max-step="0" data-current-step="0" data-screen-label="02 You are here">
   <div class="slide-header">
@@ -175,7 +172,7 @@
   }
   </script>
   <p class="viz-caption"><span lang="ru">Разведчики и Судьи: мы в <strong>Rank</strong> — нейронный каскад извлекает широко и переранжирует немногих.</span><span lang="en">Scouts and Judges: we are in <strong>Rank</strong> — the neural cascade retrieves wide and reranks the few.</span></p>
-  <aside class="slide-notes">Spine anchor (migrated to the shared course-map widget). Lit stop(s) mirror this lecture's course.json spine. Generate joins the map for good at L15 (RAG).</aside>
+  
 </section>
         <section class="slide" data-type="agenda" data-screen-label="03 Agenda">
           <div class="slide-header">
@@ -208,7 +205,7 @@
               <span class="toc-text"><span class="toc-title"><span lang="ru">Пределы и прод</span><span lang="en">Limits &amp; production</span></span><span class="toc-sub">recall floor &middot; rerank depth vs SLA &middot; dense &ne; free</span></span>
             </a>
           </div>
-          <aside class="slide-notes">Six moves, about ninety minutes. One: the bi-encoder, the fast Scout, and the real-world embedder zoo with its tricks — prefixes, Matryoshka, quantization. Two: the cross-encoder, the careful Judge, and the reranker family from monoBERT to LLM rerankers. Three: how these models are actually trained — the contrastive objective, in-batch and hard negatives, and cross-encoder distillation. Four: the offline stage — preparing data and building the ANN index, and the build-time versus query-time split. Five: staging them into the neural cascade, the full pipeline, vector databases, hybrid search and RAG. Six: the engineering limits — the recall floor, rerank depth against a latency budget, and the honest twist that a single dense vector does not always beat BM25. Click any item to jump.</aside>
+          
         </section>
         <section class="slide" data-type="objectives" data-screen-label="04 Objectives · score a pair">
           <div class="slide-header">
@@ -220,7 +217,7 @@
             <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong><span lang="ru">Оценить ту же пару кросс-энкодером</span><span lang="en">Score the same pair with a cross-encoder</span></strong> — <span lang="ru">совместный вход \([\text{CLS}]\,q\,[\text{SEP}]\,d\,[\text{SEP}]\) &rarr; полное внимание &rarr; один логит; и что это даёт.</span><span lang="en">joint input \([\text{CLS}]\,q\,[\text{SEP}]\,d\,[\text{SEP}]\) &rarr; full attention &rarr; one logit; and what it buys.</span></span></li>
             <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong><span lang="ru">Собрать нейронный каскад</span><span lang="en">Assemble the neural cascade</span></strong> — <span lang="ru">би-энкодер извлекает top-k &rarr; кросс-энкодер переранжирует top-10.</span><span lang="en">bi-encoder retrieve top-k &rarr; cross-encoder rerank top-10.</span></span></li>
           </ul>
-          <aside class="slide-notes">Measurable outcomes, part one. First: draw the bi-encoder — two towers, one shared space, the score is a dot product or cosine — and compute it by hand on toy vectors. Second: draw the cross-encoder — the query and document concatenated into one joint input, full attention, one logit out — and say what joint reading buys and what it costs. Third: assemble the neural cascade from the two, a fast wide retriever feeding a slow narrow reranker. The reasoning objectives — depth, the recall floor, dense versus BM25 — are on the next slide.</aside>
+          
         </section>
         <section class="slide" data-type="objectives" data-screen-label="05 Objectives · reason about">
           <div class="slide-header">
@@ -232,7 +229,7 @@
             <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong><span lang="ru">Рассуждать о глубине и потолке</span><span lang="en">Reason about depth &amp; the ceiling</span></strong> — <span lang="ru">глубина переранжирования \(k\) против задержки/SLA; пайплайн \(\le\) recall@k ретривера.</span><span lang="en">rerank depth \(k\) vs latency/SLA; the pipeline \(\le\) the retriever&rsquo;s recall@k.</span></span></li>
             <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong><span lang="ru">Опровергнуть «плотный всегда бьёт BM25»</span><span lang="en">Refute &ldquo;dense always beats BM25&rdquo;</span></strong> — <span lang="ru">zero-shot BEIR (отсылка к L3); мост к гибриду/ColBERT (L12) и ANN (L13).</span><span lang="en">with the zero-shot BEIR evidence (callback L3); bridge to hybrid/ColBERT (L12) and ANN (L13).</span></span></li>
           </ul>
-          <aside class="slide-notes">Measurable outcomes, part two. First: name the families — on the Scout side DPR versus SBERT, in-batch negatives, CLS versus mean pooling; on the Judge side monoBERT and monoT5, with ms-marco-MiniLM as the small practical reranker. Second: reason about rerank depth k against a latency budget, and state the recall floor — a Judge can only rank what the Scouts brought back, so the whole pipeline is capped by the retriever&rsquo;s recall at k. Third: refute the myth that dense always beats BM25, using the zero-shot BEIR evidence from Lecture 3, and place hybrid retrieval and ColBERT in Lecture 12 and approximate nearest neighbour in Lecture 13 as the next steps.</aside>
+          
         </section>
         <section class="slide" data-type="divider" data-screen-label="06 Divider · Scouts and Judges">
           <div class="divider-content">
@@ -243,7 +240,7 @@
           <div class="viz-frame fig-fit" style="--fig-max:64cqh; --fig-w:60%;">
             <img src="assets/img/L7/L7-00-scouts-and-judges.webp?v=1" alt="A wide frontier split in two: on the left a loose band of fast scout figures sweeping across a vast field; on the right a few heavy judges on a raised bench, leaning over a single object — many-fast versus few-careful" />
           </div>
-          <aside class="slide-notes">Cold open. Picture a search frontier split in two. On the left, a loose band of Scouts sweeps across the whole field — fast, fanned out, covering everything cheaply. On the right, a few Judges sit on a raised bench and deliberate, slowly and carefully, over a single case at a time. That is the whole lecture in one image: you cannot run the careful Judge on a galaxy of documents, so you send the Scouts first to bring back a shortlist. Bi-encoders are the Scouts; cross-encoders are the Judges. The catchphrase — Scouts and Judges — opens here and closes the lecture.</aside>
+          
         </section>
         <section class="slide" data-type="two-col" data-screen-label="07 Speed or accuracy">
           <div class="slide-header">
@@ -269,7 +266,7 @@
             </div>
           </div>
           <p class="viz-caption"><span lang="ru">Как при найме: можно <em>просмотреть</em> тысячи резюме дёшево, но <em>собеседовать</em> можно лишь немногих. Нельзя собеседовать всех&nbsp;&mdash; с этого признания Серёга и начинает лекцию.</span><span lang="en">Like hiring: you can <em>screen</em> thousands of r&eacute;sum&eacute;s cheaply, but you can only <em>interview</em> a few. You can&rsquo;t interview everyone &mdash; and that admission is where S&eacute;r&eacute;ga starts.</span></p>
-          <aside class="slide-notes">Frame the tension as a contrast card. The Scout is fast and wide because it encodes the query and the document separately and precomputes the document side offline; at query time it only does cheap dot-products, so it can sweep millions. The Judge is slow and precise because it reads the query and the document together — but that means its score is a property of the pair, not of the document, so nothing can be precomputed and it costs an O of N read per query. The hiring analogy: screen every résumé cheaply, interview only the finalists. You cannot interview everyone — and you cannot run a cross-encoder over the whole corpus.</aside>
+          
         </section>
         <section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="08 One judge, a galaxy">
           <div class="slide-header">
@@ -280,7 +277,7 @@
             <svg viewBox="0 0 1500 540" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="One query needs one cross-encoder read per document, so reads grow linearly with corpus size: a hundred documents is a hundred reads, ten thousand is ten thousand, a million is a million reads that won't finish in time">
               <g font-family="var(--font-sans)">
                 <text x="60" y="56" font-size="26" fill="var(--ink-2)" font-weight="700"><tspan font-family="var(--font-mono)">1 query</tspan> &times; <tspan font-family="var(--font-mono)">N docs</tspan> = N joint reads</text>
-                <!-- three rows: corpus size → reads, bar length ∝ log10(N) -->
+                
                 <g data-step="1">
                   <text x="60" y="170" font-size="24" fill="var(--ink-2)" font-family="var(--font-mono)">N = 10²</text>
                   <rect x="300" y="146" width="180" height="36" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
@@ -309,7 +306,7 @@
             <span class="step-counter">0/3</span>
             <button data-step-act="next" aria-label="Next step">&rarr;</button>
           </div>
-          <aside class="slide-notes">State the wall. A cross-encoder must read the query and a document together to score them, so its score is a property of the pair, not of the document — there is nothing to precompute and cache. That forces one model read per document, for every query: O of N. At a hundred documents it is instant; at ten thousand it is seconds; at a million it will not finish in any reasonable time, and real corpora are a billion. This is the problem the rest of the lecture solves: send a cheap Scout first.</aside>
+          
         </section>
         <section class="slide" data-type="definition" data-screen-label="09 The Scout fix">
           <div class="slide-header">
@@ -325,7 +322,7 @@
               <p class="small muted"><span lang="ru">Дорогой прогон модели \(\times 10^6\) превращается в дешёвое произведение \(\times 10^6\). Это и есть Разведчик — би-энкодер.</span><span lang="en">An expensive model pass \(\times 10^6\) becomes a cheap dot-product \(\times 10^6\). That is the Scout — the bi-encoder.</span></p>
             </div>
           </div>
-          <aside class="slide-notes">The fix in one line: encode separately so the document side is query-independent, then precompute it. The expensive part — running the encoder — happens once per document, offline. At query time you run the encoder once on the query and then sweep cheap dot products. That trade, a million model passes down to one model pass plus a million dot products, is the entire reason retrieval is feasible. The architecture that does it is the bi-encoder.</aside>
+          
         </section>
         <section class="slide" data-type="divider" data-screen-label="10 Divider · Encode apart or together">
           <div class="divider-content">
@@ -336,7 +333,7 @@
           <div class="viz-frame fig-fit" style="--fig-max:64cqh; --fig-w:60%;">
             <img src="assets/img/L7/L7-01-cant-judge-everyone.webp?v=1" alt="One lone Judge at a tiny desk, dwarfed by an endless toppling stack of cases climbing out of frame — one cross-encoder read per document, the O(N) wall that forces this fork." />
           </div>
-          <aside class="slide-notes">The pivot. We have an encoder. Apply it to a query-document pair in one of two ways: run it twice and compare the outputs (the bi-encoder), or feed the pair in together and let attention mix them before scoring (the cross-encoder). Separate buys precompute; joint buys interaction. Everything follows from this choice.</aside>
+          
         </section>
         <section class="slide" data-type="viz" data-screen-label="11 The Bi-encoder (Scouts)">
           <div class="slide-header">
@@ -347,24 +344,24 @@
             <svg viewBox="0 0 1500 560" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="A query encoder and a document encoder map their inputs separately into one shared embedding space; the score is the cosine of the two vectors. Because both towers are trained into that one shared space q and d are comparable, and the doc tower never sees the query, document vectors are precomputed and cached offline.">
               <defs><marker id="b11a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-3)"/></marker></defs>
               <g font-family="var(--font-sans)">
-                <!-- score box (top) -->
+                
                 <rect x="610" y="58" width="280" height="74" rx="12" fill="none" stroke="var(--ink-2)" stroke-width="3"/>
                 <text x="750" y="103" text-anchor="middle" font-size="28" fill="var(--ink)" font-family="var(--font-mono)">score = cos(q, d)</text>
                 <line x1="750" y1="208" x2="750" y2="136" stroke="var(--ink-3)" stroke-width="3" marker-end="url(#b11a)"/>
-                <!-- shared space box -->
+                
                 <rect x="558" y="210" width="384" height="122" rx="16" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="3" stroke-dasharray="8 5"/>
                 <text x="750" y="258" text-anchor="middle" font-size="27" fill="var(--accent-ink)" font-weight="700">one embedding space</text>
                 <text x="750" y="296" text-anchor="middle" font-size="19" fill="var(--accent-ink)">trained into one space &rarr; q and d comparable</text>
-                <!-- query tower (left) -->
+                
                 <rect x="150" y="400" width="240" height="92" rx="14" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="3"/>
                 <text x="270" y="453" text-anchor="middle" font-size="26" fill="#fff" font-weight="700">query encoder</text>
                 <text x="270" y="524" text-anchor="middle" font-size="21" fill="var(--ink-3)" font-family="var(--font-mono)">"river bank"</text>
-                <!-- doc tower (right, offline) -->
+                
                 <rect x="1110" y="400" width="240" height="92" rx="14" fill="var(--warm, #E8743B)" stroke="var(--warm-ink, #B4521F)" stroke-width="3"/>
                 <text x="1230" y="446" text-anchor="middle" font-size="26" fill="#fff" font-weight="700">doc encoder</text>
                 <text x="1230" y="474" text-anchor="middle" font-size="18" fill="#fff">offline &middot; once</text>
                 <text x="1230" y="524" text-anchor="middle" font-size="21" fill="var(--ink-3)" font-family="var(--font-mono)">"a beaver by the river bank"</text>
-                <!-- single clean arrows tower -> shared space (labels are OFF the arrows) -->
+                
                 <path d="M 270 400 Q 400 300 556 270" fill="none" stroke="var(--ink-3)" stroke-width="3" marker-end="url(#b11a)"/>
                 <path d="M 1230 400 Q 1100 300 944 270" fill="none" stroke="var(--ink-3)" stroke-width="3" marker-end="url(#b11a)"/>
                 <text x="524" y="236" text-anchor="end" font-size="24" fill="var(--accent-ink)" font-family="var(--font-mono)">q</text>
@@ -373,7 +370,7 @@
             </svg>
           </div>
           <p class="viz-caption"><span lang="ru">Запрос и документ кодируются <strong>порознь</strong> в одно пространство; оценка&nbsp;&mdash; косинус. Обе башни обучены отображать тексты в одно пространство, поэтому \(q\) и \(d\) сравнимы; башня документа не видит запрос и работает <strong>офлайн</strong>&nbsp;&mdash; её векторы кэшируются (callback L2: косинус&nbsp;&mdash; линейка Сэра Косинуса; L6: слова имеют координаты).</span><span lang="en">Query and document are encoded <strong>separately</strong> into one space; the score is a cosine. Both towers are trained into one space, so \(q\) and \(d\) are comparable; the document tower never sees the query and runs <strong>offline</strong> &mdash; its vectors are cached (callback L2: cosine is Sir Cosine&rsquo;s ruler; L6: words have coordinates).</span></p>
-          <aside class="slide-notes">The architecture, redrawn. Two towers, the query encoder and the document encoder, map their inputs into one shared embedding space — and because they are trained into that one space (a single siamese encoder for SBERT, or two separately-weighted ones for DPR), a query vector and a document vector are directly comparable. The score is the cosine between the two output vectors, Sir Cosine's ruler from Lecture 2. The crucial asymmetry: the document tower never sees the query, so it runs offline, once, and its vectors are cached — that is what the label d-cached marks. The next slides mount the live widget and then compute the score by hand.</aside>
+          
         </section>
         <section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="12 Two towers, one space">
           <div class="slide-header">
@@ -428,7 +425,7 @@
     }
           }
           </script>
-          <aside class="slide-notes">The bi-encoder forward pass, as a mounted widget driven by the deck&rsquo;s arrow keys. Step zero: two separate towers, one for the query and one for the document — crucially, they never attend to each other. Step one: each tower emits a single vector, a point in one shared space — the map from Lecture 6. Step two: the score is the angle between those two vectors; a small angle is a high cosine, which is Sir Cosine&rsquo;s ruler from Lecture 2. Step three: because the document tower never depends on the query, every document vector is computed once, offline, and cached — so at query time you do one encode and a sweep of cheap dot-products. That precompute is the entire reason the Scouts are fast.</aside>
+          
         </section>
         <section class="slide" data-type="formula" data-screen-label="13 The dot-product, by hand">
           <div class="slide-header slide-header--flush">
@@ -440,7 +437,7 @@
             $$ q\cdot d_{\text{rel}} = (0)(0){+}(1)(1){+}(0)(1){+}(1)(1) = \mathbf{2}, \qquad q\cdot d_{\text{irr}} = \mathbf{0} $$
           </div>
           <p class="small muted center mt-2"><span lang="ru">\(q=\) &laquo;river bank&raquo;, \(d_{\text{rel}}=\) &laquo;a beaver by the river bank&raquo;, \(d_{\text{irr}}=\) &laquo;the bank approved my loan&raquo;. У релевантного с запросом общие оси <em>geography</em> и <em>water</em> \(\to\) произведение \(2\); нерелевантный сидит на оси <em>finance</em> \(\to 0\).</span><span lang="en">\(q=\) &ldquo;river bank&rdquo;, \(d_{\text{rel}}=\) &ldquo;a beaver by the river bank&rdquo;, \(d_{\text{irr}}=\) &ldquo;the bank approved my loan&rdquo;. The relevant doc shares the <em>geography</em> and <em>water</em> axes \(\to\) dot \(2\); the irrelevant one sits on <em>finance</em> \(\to 0\).</span></p>
-          <aside class="slide-notes">StatQuest mode: tiny steps, real numbers. Four toy axes — finance, geography, animal, water. The query river bank is one on geography and water. The relevant document, a beaver by the river bank, shares those plus animal. Multiply component-wise and add: zero, one, zero, one — dot product two. The irrelevant document, the bank approved my loan, lives only on the finance axis, so every product is zero — dot product zero. The dot already separates them; the cosine normalises for length next.</aside>
+          
         </section>
         <section class="slide" data-type="formula" data-screen-label="14 ...and the cosine">
           <div class="slide-header slide-header--flush">
@@ -456,7 +453,7 @@
             <div class="var-block"><div class="var-symbol">\(0.4082\)</div><div class="var-desc"><strong><span lang="ru">реальный SBERT</span><span lang="en">real SBERT</span></strong><br /><span lang="ru">cos&#8209;irr</span><span lang="en">cos&#8209;irr</span></div></div>
           </div>
           <p class="small muted center mt-2"><span lang="ru"><strong>BAM</strong>&nbsp;&mdash; высоко для релевантного, ноль для постороннего. Реальный 384-мерный SBERT (all-MiniLM-L6-v2) указывает туда же: \(0{,}6838 \gt 0{,}4082\). Игрушка и реальность сходятся (callback L2).</span><span lang="en"><strong>BAM</strong>&nbsp;&mdash; high for relevant, zero for off-topic. The real 384-dim SBERT (all-MiniLM-L6-v2) points the same way: \(0.6838 \gt 0.4082\). Toy and reality converge (callback L2).</span></p>
-          <aside class="slide-notes">Finish the hand-calc and check it against the real model. The query norm is root two, the relevant document norm root three; divide the dot product two by their product and you get two over root six, about zero-point-eight-two — high. The irrelevant document divides zero, so its cosine is exactly zero. That is the StatQuest BAM. Now the reality check: real SBERT, all-MiniLM-L6-v2, on the same three strings gives cosine zero-point-six-eight for the relevant pair versus zero-point-four-one for the irrelevant — the relevant document scores clearly higher. Toy arithmetic and the real encoder agree.</aside>
+          
         </section>
         <section class="slide" data-type="viz" data-screen-label="15 Nearness is an angle">
           <div class="slide-header">
@@ -468,21 +465,21 @@
               <g font-family="var(--font-sans)">
                 <circle cx="430" cy="300" r="210" fill="none" stroke="var(--rule-strong)" stroke-width="2" stroke-dasharray="5 5"/>
                 <circle cx="430" cy="300" r="5" fill="var(--ink)"/>
-                <!-- q ray (straight up); label ABOVE the tip -->
+                
                 <line x1="430" y1="300" x2="430" y2="92" stroke="var(--accent)" stroke-width="4"/>
                 <text x="430" y="74" text-anchor="middle" font-size="24" fill="var(--accent-ink)" font-family="var(--font-mono)">q</text>
-                <!-- d_rel ray at 35° from q; label BEYOND the tip, off the ray -->
+                
                 <line x1="430" y1="300" x2="550" y2="128" stroke="var(--warm, #E8743B)" stroke-width="4"/>
                 <text x="572" y="118" text-anchor="start" font-size="24" fill="var(--warm-ink, #B4521F)" font-family="var(--font-mono)">d&#8209;rel</text>
-                <!-- d_irr ray at 90° (horizontal); label ABOVE the ray end, off the ray -->
+                
                 <line x1="430" y1="300" x2="640" y2="300" stroke="var(--ink-3)" stroke-width="3" stroke-dasharray="6 4"/>
                 <text x="648" y="286" text-anchor="start" font-size="22" fill="var(--ink-3)" font-family="var(--font-mono)">d&#8209;irr</text>
-                <!-- right-angle marker between q (up) and d_irr (right) -->
+                
                 <path d="M 430 278 L 452 278 L 452 300" fill="none" stroke="var(--ink-3)" stroke-width="2"/>
-                <!-- angle arc q↔d_rel near the centre; label to the UPPER-LEFT, off both rays -->
+                
                 <path d="M 430 210 A 90 90 0 0 1 507 254" fill="none" stroke="var(--ink-2)" stroke-width="2.5"/>
                 <text x="372" y="196" text-anchor="end" font-size="22" fill="var(--ink-2)">&theta; &approx; 35&deg;</text>
-                <!-- readout -->
+                
                 <rect x="760" y="150" width="380" height="220" rx="14" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
                 <text x="950" y="212" text-anchor="middle" font-size="26" fill="var(--accent-ink)" font-weight="700">cos &theta; = nearness</text>
                 <text x="950" y="272" text-anchor="middle" font-size="30" fill="var(--accent-ink)" font-family="var(--font-mono)">cos &theta; &asymp; 0.8165</text>
@@ -491,7 +488,7 @@
             </svg>
           </div>
           <p class="viz-caption"><span lang="ru">Тот же \(0{,}8165\)&nbsp;&mdash; как угол: малый угол = высокий косинус = близко. Прямой угол = косинус \(0\) = ничего общего. Это и есть линейка Сэра Косинуса (callback L2).</span><span lang="en">The same \(0.8165\) as an angle: a small angle = high cosine = near. A right angle = cosine \(0\) = nothing in common. That is Sir Cosine&rsquo;s ruler (callback L2).</span></p>
-          <aside class="slide-notes">The geometry, so the number has a picture. Put both vectors on the unit circle. The query points up and the relevant document sits about thirty-five degrees away, and the cosine of thirty-five degrees is zero-point-eight-two — the exact number we computed by hand. The irrelevant document sits at a right angle, ninety degrees, marked by the little square, and its cosine is zero. Small angle means near means high score; right angle means unrelated. This is all Sir Cosine ever measures.</aside>
+          
         </section>
         <section class="slide" data-type="definition" data-screen-label="16 Why Scouts are fast">
           <div class="slide-header">
@@ -506,7 +503,7 @@
               <p class="small muted"><span lang="ru">А ещё эти \(N\) произведений можно свести к сублинейному числу через приближённый поиск соседей&nbsp;&mdash; это L13 (ANN, джамп-гейты).</span><span lang="en">And even the \(N\) dots can be made sub-linear with approximate nearest-neighbour search &mdash; that is L13 (ANN, jump-gates).</span></p>
             </div>
           </div>
-          <aside class="slide-notes">The speed case, stated once. Because the document tower is query-independent, you file every document vector in advance, like a card catalog. Searching means flipping cards — cheap dot products — instead of re-reading every book, which would be a full model pass each. Building the catalog is the expensive part, but you do it once, offline. Using it is cheap. The forward link: even the linear sweep of dot products can be made sub-linear with approximate nearest neighbour search, which is Lecture 13.</aside>
+          
         </section>
         <section class="slide" data-type="table" data-screen-label="17 DPR vs SBERT">
           <div class="slide-header">
@@ -523,7 +520,7 @@
             </tbody>
           </table>
           <p class="small muted center mt-2"><span lang="ru">Асимметричные башни&nbsp;&mdash; для поиска <em>вопрос&rarr;пассаж</em>; общая башня&nbsp;&mdash; для близости предложений. DPR использует контрастную цель. SBERT 2019 обучается на NLI-классификации и STS-регрессии.</span><span lang="en">Asymmetric towers suit <em>question&rarr;passage</em> retrieval; a shared tower suits sentence similarity. DPR uses a contrastive objective. Original SBERT uses NLI classification and STS regression.</span></p>
-          <aside class="slide-notes">Two landmark Scouts. DPR uses two separate encoders, one for questions and one for passages, pools with the CLS token, and trains with in-batch negatives plus one BM25 hard negative per question — the contrastive trick from Lecture 7. It is asymmetric: query and document are different kinds of text. SBERT shares a siamese encoder, mean-pools token vectors, and uses NLI classification cross-entropy and STS cosine regression; the paper also describes a triplet objective. Later SentenceTransformers models can use InfoNCE/MNRL, but this is not the original 2019 recipe. Source: Reimers and Gurevych 2019, §3 and §4.2, https://aclanthology.org/D19-1410/. Asymmetric towers fit question-to-passage retrieval; a shared tower fits sentence similarity.</aside>
+          
         </section>
         <section class="slide" data-type="divider" data-screen-label="18 Divider · The embedder zoo">
           <div class="divider-content">
@@ -534,7 +531,7 @@
           <div class="viz-frame fig-fit" style="--fig-max:64cqh; --fig-w:60%;">
             <img src="assets/img/L7/L7-09-embedder-zoo.webp?v=1" alt="A roster of scout figures of different builds and sizes lined up for selection, one highlighted — the family of embedding models you choose from" />
           </div>
-          <aside class="slide-notes">A turn outward, from the idea to the market. The bi-encoder is not one model but a whole family. DPR and SBERT were the openers; the MTEB leaderboard now ranks dozens — E5, BGE, GTE, Nomic, Jina, mxbai, Arctic, plus the API models from OpenAI, Cohere and Voyage. The next slides give you the map: what they differ on, how to choose, and the production tricks — instruction prefixes, Matryoshka truncation, quantization — that decide whether your Scout is fast and cheap or slow and expensive.</aside>
+          
         </section>
         <section class="slide" data-type="table" data-screen-label="19 The embedder landscape">
           <div class="slide-header">
@@ -559,7 +556,7 @@
             </tbody>
           </table>
           <p class="small muted center mt-2"><span lang="ru"><strong>MTEB&nbsp;&mdash; это лидерборд, а не истина.</strong> Числа не сравнимы между версиями бенчмарка, и часто их публикуют сами авторы моделей. Выбирай под <em>свой</em> домен, язык и SLA, а не по верхней строчке.</span><span lang="en"><strong>MTEB is a leaderboard, not gospel.</strong> Scores are not comparable across benchmark versions and are often self-reported. Choose for <em>your</em> domain, language and SLA &mdash; not for the top row.</span></p>
-          <aside class="slide-notes">The market, on one slide. all-MiniLM-L6-v2 is still the most-downloaded retriever for its speed and 384 dimensions, even though modern large encoders beat it by eight-plus MTEB points. E5 introduced the query and passage prefixes; BGE a query instruction; GTE and Nomic and Jina push context to eight thousand tokens; OpenAI's text-embedding-3 lets you truncate the dimension. The warning matters: MTEB averages are computed on different benchmark versions and many vendor numbers are self-reported, so treat the leaderboard as a starting shortlist, then evaluate the finalists on your own domain.</aside>
+          
         </section>
         <section class="slide" data-type="definition" data-screen-label="19a The LLM tier">
           <div class="slide-header">
@@ -578,7 +575,7 @@
               <p class="small muted"><span lang="ru">Разрыв ощутимый: топовые LLM-эмбеддеры держат MTEB ≈70+ там, где сильный BERT-класс останавливался на ≈65.</span><span lang="en">The gap is real: top LLM embedders hold MTEB ≈70+ where the strong BERT class plateaued near ≈65.</span></p>
             </div>
           </div>
-          <aside class="slide-notes">The 2024&ndash;2026 shift in the embedder zoo. The top of MTEB is now decoder-LLM-based: NV-Embed (arXiv:2405.17428), E5-mistral (2401.00368), Qwen3-Embedding (2506.05176), gemini-embedding (2503.07891), RepLLaMA (2310.08319) — 0.6&ndash;8B decoders instead of 0.1&ndash;0.3B BERT-class encoders. They win because scale buys semantics before contrastive tuning starts, and instruction prompts make one model multi-task. Crucially the bi-encoder contract is unchanged — one vector per text, cosine score — so everything else in this lecture (caching, ANN, the cascade) applies verbatim. Scores are leaderboard-approximate (~70+ vs ~65), not gospel — the MTEB warning from the previous slide stands.</aside>
+          
         </section>
         <section class="slide" data-type="definition" data-screen-label="19b Decoder to embedder">
           <div class="slide-header">
@@ -597,7 +594,7 @@
               <p class="small muted"><span lang="ru">Дальше&nbsp;&mdash; обычное контрастное обучение из этой же лекции: позитивы, трудные негативы, InfoNCE (акт про контрастное обучение).</span><span lang="en">From there it is the ordinary contrastive training of this very lecture: positives, hard negatives, InfoNCE (the contrastive-training act).</span></p>
             </div>
           </div>
-          <aside class="slide-notes">The recipe box, three moves. (1) Pooling: causal models make the last token (EOS) the only one that attended over everything, so RepLLaMA and E5-mistral read the embedding there; NV-Embed instead trains a latent-attention pooling layer over all token states. (2) Un-mask: LLM2Vec (arXiv:2404.05961) enables bidirectional attention plus masked-next-token-prediction adaptation; NV-Embed simply removes the causal mask during contrastive training. (3) Instructions inherited from the E5/BGE prefix idea, now free-text; LoRA makes the fine-tune affordable. After these three moves the training story is exactly the contrastive objective taught later in this deck — positives, hard negatives, InfoNCE.</aside>
+          
         </section>
         <section class="slide" data-type="table" data-screen-label="19c The LLM-embedder roster">
           <div class="slide-header">
@@ -621,7 +618,7 @@
             </tbody>
           </table>
           <p class="small muted center mt-2"><span lang="ru">Та же оговорка, что и для всего зоопарка: числа лидерборда&nbsp;&mdash; ориентир для шорт-листа, финалистов меряй на <em>своих</em> данных.</span><span lang="en">Same caveat as the whole zoo: leaderboard numbers build a shortlist &mdash; measure the finalists on <em>your</em> data.</span></p>
-          <aside class="slide-notes">The roster, one row per idea. RepLLaMA (Ma et al. 2023) opened the road: fine-tune LLaMA-2 with a last-token embedding and beat the BERT-class retrievers. E5-mistral added LLM-synthesized training pairs and instructions. LLM2Vec is a portable recipe (un-mask, adapt, contrast) that turns any decoder into an encoder. NV-Embed's latent-attention pooling plus two-stage instruction tuning held the MTEB top for months (score around 72.3). Qwen3-Embedding ships a 0.6-to-8B ladder with 100+ languages and Matryoshka dims; gemini-embedding is the API-only frontier on multilingual MTEB. All approximate leaderboard readings — shortlist, then evaluate on your own domain.</aside>
+          
         </section>
         <section class="slide" data-type="two-col" data-screen-label="19d The price of a 7B Scout">
           <div class="slide-header">
@@ -656,7 +653,7 @@
               </div>
             </div>
           </div>
-          <aside class="slide-notes">The trade-off slide, deliberately qualitative. A 7B decoder embedder buys roughly five-plus MTEB points over the strong BERT class, but the bill arrives three ways: 2048-4096-dim vectors make the ANN index an order larger per million chunks, corpus encoding needs GPUs, and per-query encoding latency grows. The decision rule mirrors the cascade logic of this whole lecture: spend where a miss is expensive (legal, medical, cross-lingual), keep MiniLM-class + reranker where it clears the bar. Matryoshka truncation and quantization (next slides) recover much of the index cost — and remember the asymmetry: the corpus is encoded offline once, only the query is encoded per request.</aside>
+          
         </section>
         <section class="slide" data-type="definition" data-screen-label="20 Choosing an embedder">
           <div class="slide-header">
@@ -677,7 +674,7 @@
               </ul>
             </div>
           </div>
-          <aside class="slide-notes">A practical decision rule. The single most common mistake is to pick the top of the MTEB leaderboard and ship it — but the leaderboard is averaged over generic benchmarks, and a model that wins there can lose on your domain zero-shot. So evaluate finalists on your own data. Then constrain by language, by document length (chunk or pick an 8K-context model), by the dimension you can afford to index and search, and by latency and licence. Matryoshka models let you trade dimension for cost after training, which we see next.</aside>
+          
         </section>
         <section class="slide" data-type="definition" data-screen-label="21 Instruction prefixes &amp; asymmetry">
           <div class="slide-header">
@@ -697,7 +694,7 @@
               <p class="small muted"><span lang="ru">Симметричные задачи (STS, кластеризация) используют <code>query:</code> для обеих сторон.</span><span lang="en">Symmetric tasks (STS, clustering) use <code>query:</code> on both sides.</span></p>
             </div>
           </div>
-          <aside class="slide-notes">A silent accuracy lever most people miss. The query and the passage live on different distributions — one short and vague, one long and declarative — so several modern encoders are trained to be told which role a text plays. E5 wants the literal strings query colon and passage colon; BGE wants a represent-this-sentence instruction on the query only. Forget the prefix and you lose points for free. Conceptually this is DPR's asymmetric two towers folded into one shared encoder with a role token — and for symmetric tasks you simply use the query prefix on both sides.</aside>
+          
         </section>
         <section class="slide" data-type="viz" data-screen-label="22 Matryoshka — one vector, many lengths">
           <div class="slide-header">
@@ -708,14 +705,14 @@
             <svg viewBox="0 0 1280 470" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="A 768-dimension embedding shown as a bar; truncating to the first 512 or 256 dimensions keeps almost all of the MTEB quality, so the index can be 3 times smaller for about one point of quality">
               <g font-family="var(--font-sans)">
                 <text x="90" y="150" font-size="24" fill="var(--ink-2)"><tspan font-weight="700">768-dim</tspan> vector — train it nested</text>
-                <!-- nested prefix bar -->
+                
                 <rect x="90"  y="186" width="65"  height="74" fill="var(--accent, #2A6FDB)"/>
                 <rect x="155" y="186" width="65"  height="74" fill="var(--accent, #2A6FDB)" opacity="0.82"/>
                 <rect x="220" y="186" width="130" height="74" fill="var(--accent, #2A6FDB)" opacity="0.62"/>
                 <rect x="350" y="186" width="260" height="74" fill="var(--accent, #2A6FDB)" opacity="0.42"/>
                 <rect x="610" y="186" width="260" height="74" fill="var(--accent, #2A6FDB)" opacity="0.26"/>
                 <rect x="90"  y="186" width="780" height="74" fill="none" stroke="var(--accent-ink, #1B4FA0)" stroke-width="2"/>
-                <!-- dim ticks BELOW the bar (never on it) -->
+                
                 <g font-family="var(--font-mono)" font-size="19" fill="var(--ink-3)" text-anchor="middle">
                   <text x="155" y="290">64</text>
                   <text x="220" y="290">128</text>
@@ -724,7 +721,7 @@
                   <text x="870" y="290">768</text>
                 </g>
                 <text x="90" y="330" font-size="19" fill="var(--ink-3)"><tspan font-style="italic">truncate &amp; re-normalize — no retraining</tspan></text>
-                <!-- readout panel (right) -->
+                
                 <rect x="930" y="150" width="300" height="200" rx="14" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
                 <text x="950" y="186" font-size="20" font-weight="700" fill="var(--accent-ink)">nomic-embed-v1.5</text>
                 <g font-family="var(--font-mono)" font-size="22" fill="var(--accent-ink)">
@@ -737,7 +734,7 @@
             </svg>
           </div>
           <p class="viz-caption"><span lang="ru">Matryoshka-обучение (Kusupati 2022) складывает самое общее в <strong>первые</strong> измерения. Усечёшь \(768\!\to\!256\)&nbsp;&mdash; индекс втрое меньше, качество падает на ~1 пункт. OpenAI text-embedding-3-large на 256 измерениях обходит ada-002 на 1536.</span><span lang="en">Matryoshka training (Kusupati 2022) packs coarse information into the <strong>first</strong> dimensions. Truncate \(768\!\to\!256\) and the index is 3× smaller for about one point of quality. OpenAI text-embedding-3-large at 256 dims beats ada-002 at 1536.</span></p>
-          <aside class="slide-notes">Matryoshka representation learning, the trick that decouples dimension from quality. You train so that the first k coordinates are themselves a valid embedding — coarse-to-fine, like nested dolls. Then at deploy time you truncate to the budget you can afford and re-normalize, with no retraining. nomic at 512 dims loses a quarter of a point versus 768, and at 256 about one point — for a three-times-smaller index. OpenAI exposes this as the dimensions parameter, and their large model truncated to 256 still beats the old ada-002 at 1536. This is the dimension-versus-cost dial from the previous slide, made real.</aside>
+          
         </section>
         <section class="slide" data-type="viz" data-screen-label="23 Quantization — int8 &amp; binary">
           <div class="slide-header">
@@ -748,16 +745,16 @@
             <svg viewBox="0 0 1280 470" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="Per-vector storage at 1024 dimensions: float32 is 4096 bytes, int8 is 1024 bytes (4 times smaller, over 99% quality), binary is 128 bytes (32 times smaller, about 96% quality after rescoring and around 25 times faster search)">
               <g font-family="var(--font-sans)">
                 <text x="60" y="120" font-size="22" fill="var(--ink-3)"><tspan font-family="var(--font-mono)">per vector @ 1024-dim</tspan></text>
-                <!-- bars; lengths ∝ sqrt(bytes) so binary stays visible; exact bytes labelled to the right -->
-                <!-- float32 -->
+                
+                
                 <text x="290" y="172" font-size="22" font-weight="700" fill="var(--ink)" text-anchor="end" font-family="var(--font-mono)">float32</text>
                 <rect x="305" y="150" width="760" height="34" rx="6" fill="var(--ink-3, #6B7280)"/>
                 <text x="1080" y="173" font-size="20" fill="var(--ink-2)" font-family="var(--font-mono)">4096 B · 1×</text>
-                <!-- int8 -->
+                
                 <text x="290" y="252" font-size="22" font-weight="700" fill="var(--ink)" text-anchor="end" font-family="var(--font-mono)">int8</text>
                 <rect x="305" y="230" width="380" height="34" rx="6" fill="var(--accent, #2A6FDB)"/>
                 <text x="700" y="253" font-size="20" fill="var(--accent-ink)" font-family="var(--font-mono)">1024 B · 4× · &gt;99%</text>
-                <!-- binary -->
+                
                 <text x="290" y="332" font-size="22" font-weight="700" fill="var(--ink)" text-anchor="end" font-family="var(--font-mono)">binary</text>
                 <rect x="305" y="310" width="134" height="34" rx="6" fill="var(--warm, #E8743B)"/>
                 <text x="454" y="333" font-size="20" fill="var(--warm-ink, #B4521F)" font-family="var(--font-mono)">128 B · 32× · ~96%</text>
@@ -765,7 +762,7 @@
             </svg>
           </div>
           <p class="viz-caption"><span lang="ru">Бинарные эмбеддинги&nbsp;&mdash; <strong>32×</strong> меньше памяти и <strong>~25×</strong> быстрее поиск (расстояние Хэмминга), теряя ~4% качества; int8&nbsp;&mdash; 4× меньше, &gt;99%. Приём: ищем по квантованным, затем <em>переоцениваем</em> топ-\(k\) с полной точностью. Так Вики из 41M текстов ищется за ~1 c на CPU.</span><span lang="en">Binary embeddings are <strong>32×</strong> smaller and search <strong>~25×</strong> faster (Hamming distance) for ~4% quality; int8 is 4× smaller at &gt;99%. The trick: search the quantized vectors, then <em>rescore</em> the top-\(k\) at full precision. That searches Wikipedia&rsquo;s 41M texts in ~1 s on CPU.</span></p>
-          <aside class="slide-notes">Quantization is the other lever on index cost. A thousand-and-twenty-four-dimension float32 vector is four kilobytes; cast it to int8 and it is one kilobyte, four times smaller, with over ninety-nine percent of retrieval quality. Cast it all the way to one bit per dimension — binary — and it is one hundred twenty-eight bytes, thirty-two times smaller, with search about twenty-five times faster because comparisons become Hamming distance, for roughly a four percent quality cost. The standard recipe recovers most of that: retrieve on the quantized vectors, then rescore the top-k at full precision. Hugging Face showed this searches all forty-one million Wikipedia texts in about a second on a CPU.</aside>
+          
         </section>
         <section class="slide" data-type="misconception" data-screen-label="24 The Scout that travels badly">
           <div class="slide-header">
@@ -780,7 +777,7 @@
               <p class="misc-anchor"><strong><span lang="ru">Урок.</span><span lang="en">Lesson.</span></strong> <span lang="ru">Обобщение не бесплатно: <em>мерь</em> на своём домене, <em>адаптируй</em> (дообучение, GPL) или <em>гибридизуй</em> с BM25 (см. дальше).</span><span lang="en">Generalization is not free: <em>measure</em> on your domain, <em>adapt</em> (fine-tune, GPL), or <em>hybridize</em> with BM25 (coming up).</span></p>
             </div>
           </div>
-          <aside class="slide-notes">The corner case that bites every team. The MTEB leaderboard is an average over generic benchmarks; a model that wins there can lose on your corpus, because dense retrievers degrade out of domain — that is the central BEIR finding. Be precise about whose number is whose: BM25's zero-shot average nDCG is 0.43, and the famous 0.23 belongs to the original DPR checkpoint, which was trained on question-answering datasets, not MS MARCO; MS MARCO-trained encoders like ANCE and TAS-B land around zero-point-four — much better, yet on average still below BM25. Add the other traps: documents longer than the token limit get silently truncated, and an English-only model fails on other languages. The fixes are the throughline of the rest of the lecture — measure on your own domain, adapt with fine-tuning or generative pseudo-labeling, or hybridize with the lexical signal of BM25.</aside>
+          
         </section>
         <section class="slide" data-type="divider" data-screen-label="24a Divider · The Judge">
           <div class="divider-content">
@@ -791,7 +788,7 @@
           <div class="viz-frame fig-fit" style="--fig-max:64cqh; --fig-w:60%;">
             <img src="assets/img/L7/L7-13-the-judge-enters.webp?v=1" alt="A tall judge at a high desk reads a query sheet and a document sheet held together through one lens while S&#xE9;r&#xE9;ga presents the pair from below and a queue of scouts waits behind him with single sheets — the cross-encoder scores the pair jointly" />
           </div>
-          <aside class="slide-notes">The missing curtain. Every other agenda item of this lecture opens on its own divider; the cross-encoder — the second protagonist of a lecture literally titled "bi- and cross-encoders" — used to start mid-act, and the agenda link had nowhere honest to land. Say the mirrored trade out loud before any architecture appears: the Scout's speed comes from reading apart (precompute everything, compare cheaply), the Judge's quality comes from reading together (full token-level interaction between query and document inside one forward pass) — and reading together is exactly what cannot be precomputed. The next slide opens the architecture.</aside>
+          
         </section>
         <section class="slide" data-type="viz" data-screen-label="25 The Cross-encoder (Judges)">
           <div class="slide-header">
@@ -802,7 +799,7 @@
             <svg viewBox="0 0 1320 470" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="The cross-encoder concatenates CLS, the query, a SEP, the document and a SEP into one joint input, runs it through a transformer with full attention, and reads the CLS vector through a linear head into one relevance score">
               <defs><marker id="c18a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-3)"/></marker></defs>
               <g font-family="var(--font-sans)">
-                <!-- joint input row -->
+                
                 <g font-family="var(--font-mono)" font-size="20">
                   <rect x="60"  y="380" width="80" height="44" rx="8" fill="var(--bg-inset)" stroke="var(--ink-3)"/><text x="100" y="408" text-anchor="middle" fill="var(--ink-2)">[CLS]</text>
                   <rect x="150" y="380" width="190" height="44" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"/><text x="245" y="408" text-anchor="middle" fill="var(--accent-ink)">q tokens</text>
@@ -810,27 +807,27 @@
                   <rect x="440" y="380" width="190" height="44" rx="8" fill="var(--warm-soft, #FBE6D8)" stroke="var(--warm, #E8743B)"/><text x="535" y="408" text-anchor="middle" fill="var(--warm-ink, #B4521F)">d tokens</text>
                   <rect x="640" y="380" width="80" height="44" rx="8" fill="var(--bg-inset)" stroke="var(--rule-strong)"/><text x="680" y="408" text-anchor="middle" fill="var(--ink-3)">[SEP]</text>
                 </g>
-                <!-- transformer -->
+                
                 <line x1="390" y1="380" x2="390" y2="300" stroke="var(--ink-3)" stroke-width="3" marker-end="url(#c18a)"/>
                 <rect x="160" y="210" width="460" height="86" rx="14" fill="var(--accent)" stroke="var(--accent-ink)" stroke-width="3"/>
                 <text x="390" y="248" text-anchor="middle" font-size="26" fill="#fff" font-weight="700">Transformer &mdash; full attention</text>
                 <text x="390" y="278" text-anchor="middle" font-size="18" fill="#fff">q tokens attend to d tokens (across [SEP])</text>
-                <!-- CLS out -->
+                
                 <line x1="390" y1="210" x2="390" y2="150" stroke="var(--ink-3)" stroke-width="3" marker-end="url(#c18a)"/>
                 <rect x="300" y="100" width="180" height="48" rx="10" fill="none" stroke="var(--ink-2)" stroke-width="3"/>
                 <text x="390" y="131" text-anchor="middle" font-size="22" fill="var(--ink)" font-family="var(--font-mono)">[CLS] vector</text>
-                <!-- head → score -->
+                
                 <line x1="480" y1="124" x2="700" y2="124" stroke="var(--ink-3)" stroke-width="3" marker-end="url(#c18a)"/>
                 <text x="590" y="112" text-anchor="middle" font-size="18" fill="var(--ink-3)">w&middot;cls+b, &sigma;</text>
                 <rect x="710" y="92" width="240" height="64" rx="12" fill="var(--warm-soft, #FBE6D8)" stroke="var(--warm, #E8743B)" stroke-width="3"/>
                 <text x="830" y="132" text-anchor="middle" font-size="26" fill="var(--warm-ink, #B4521F)" font-family="var(--font-mono)">one score</text>
-                <!-- interview image -->
+                
                 <image href="assets/img/L7/L7-04-interview-room.webp?v=1" x="1000" y="90" width="300" height="300" preserveAspectRatio="xMidYMid meet"/>
               </g>
             </svg>
           </div>
           <p class="viz-caption"><span lang="ru">Запрос и документ читаются <strong>вместе</strong>: токены запроса смотрят на токены документа через \([\text{SEP}]\) (callback L7: внимание). Точно, но оценка&nbsp;&mdash; свойство <em>пары</em>: кэша нет. Это интервью один-на-один. И запрос, и документ делят <strong>один</strong> бюджет токенов модели, а внимание квадратично по длине \((q{+}d)\): длинный документ обрезается, и верный фрагмент за порогом отрезки молча оценивается как не-ответ.</span><span lang="en">Query and document are read <strong>together</strong>: query tokens attend to doc tokens across \([\text{SEP}]\) (callback L7: attention). Accurate, but the score is a property of the <em>pair</em>: no cache. It is a one-on-one interview. Both query and document share <strong>one</strong> token budget and attention is quadratic in the \((q{+}d)\) length: a long document is truncated, and the right span past the cut is silently scored as a non-answer.</span></p>
-          <aside class="slide-notes">The Judge's architecture. Concatenate CLS, the query tokens, a SEP, the document tokens, and a SEP into one joint input. Run it through the transformer with full self-attention, so query tokens attend to document tokens across the separator — the interaction a bi-encoder can never have. Read the CLS vector through a small linear head and a sigmoid into one relevance score. It is a one-on-one interview: accurate because both are read together, uncacheable for the same reason.</aside>
+          
         </section>
         <section class="slide" data-type="definition" data-screen-label="26 Build the joint input">
           <div class="slide-header">
@@ -845,7 +842,7 @@
               <p><span lang="ru">Токены запроса и документа склеиваются в <strong>одну</strong> последовательность с разделителями. \([\text{CLS}]\)&nbsp;&mdash; «итоговый слот», его финальный вектор и станет оценкой; \([\text{SEP}]\) размечает границу. Теперь внимание может дотянуться от любого токена запроса до любого токена документа (callback L2: токены).</span><span lang="en">Query and document tokens are glued into <strong>one</strong> sequence with separators. \([\text{CLS}]\) is the &ldquo;summary slot&rdquo; whose final vector becomes the score; \([\text{SEP}]\) marks the boundary. Now attention can reach from any query token to any document token (callback L2: tokens).</span></p>
             </div>
           </div>
-          <aside class="slide-notes">The construction, token by token. Start with CLS, append the query tokens, a SEP, the document tokens, and a final SEP. CLS is a summary slot; its final-layer vector becomes the score. The SEP markers tell the model where the query ends and the document begins. Crucially, all of these sit in one sequence, so attention can connect any query token to any document token — the next slide shows that interaction live.</aside>
+          
         </section>
         <section class="slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="27 Tokens talk across [SEP]">
           <div class="slide-header">
@@ -921,7 +918,7 @@
     }
           }
           </script>
-          <aside class="slide-notes">The cross-encoder forward pass, mounted and driven by the deck. Step zero: the joint input row, CLS, query, SEP, document, SEP. Step one: full attention connects query tokens to document tokens across the separator. Step two: the query-by-document attention heatmap — each query token, a row, spreads its attention over the document tokens, and each row sums to one. Step three: read the CLS vector through the linear head, w dot CLS plus b gives the logit two-point-four, and the sigmoid gives zero-point-nine-two. One logit per pair — a property of the pair, so it cannot be cached. Step four: the same head on a keyword-sharing distractor returns sigmoid of minus-one-point-one, zero-point-two-five — far below the relevant pair's zero-point-nine-two. The Judge discriminates where the Scout would blur.</aside>
+          
         </section>
         <section class="slide" data-type="formula" data-screen-label="28 [CLS] to logit to score">
           <div class="slide-header slide-header--flush">
@@ -937,7 +934,7 @@
             <div class="var-block"><div class="var-symbol">\(w,b\)</div><div class="var-desc"><strong><span lang="ru">голова</span><span lang="en">head</span></strong><br /><span lang="ru">\(w=[0{,}5,1{,}0],\ b=0{,}4\)</span><span lang="en">\(w=[0.5,1.0],\ b=0.4\)</span></div></div>
           </div>
           <p class="small muted center mt-2"><span lang="ru"><strong>Искусственный</strong> пример: судья <em>может</em> уловить взаимодействие слов (здесь &laquo;not&raquo;) и снизить оценку там, где разведчик бы его упустил. Дальше&nbsp;&mdash; что делают <em>реальные</em> модели.</span><span lang="en">A <strong>constructed</strong> example: the Judge <em>can</em> assign a low score to a term interaction (here the &ldquo;not&rdquo;) a Scout would miss. Next: what the <em>real</em> models do.</span></p>
-          <aside class="slide-notes">Read the head out by hand. With weights point-five and one and bias point-four, a relevant CLS vector of one and one-point-five gives a logit of two-point-four, and the sigmoid of that is zero-point-nine-two. A constructed negative CLS, one and minus-two, gives a logit of minus one-point-one and a sigmoid of zero-point-two-five. This is a constructed example to show the mechanism: a joint reader can penalise a term interaction that separate encoding would miss. The next slide shows what the real models actually do, which is sharper on a different case.</aside>
+          
         </section>
         <section class="slide" data-type="two-col" data-screen-label="29 Matching words is not meaning">
           <div class="slide-header">
@@ -959,7 +956,7 @@
             </div>
           </div>
           <p class="viz-caption"><span lang="ru">Разведчик ставит отвлекателю обманчиво высокие \(0{,}6875\) (общее слово&nbsp;&mdash; старый трюк Лексического Гремлина); судья, читая совместно, режет до \(0{,}1159\). Совместное чтение различает там, где раздельное размывает&nbsp;&mdash; и режет в <em>обе</em> стороны: оно не только давит не-ответы с общим словом, но и поднимает верные ответы, не делящие с запросом ни одного слова.</span><span lang="en">The Scout gives the distractor a deceptively high \(0.6875\) (shared word &mdash; the Lexical Gremlin&rsquo;s old trick); the Judge, reading jointly, cuts it to \(0.1159\). Joint reading discriminates where separate encoding blurs&nbsp;&mdash; and it cuts <em>both</em> ways: it not only suppresses keyword-sharing non-answers but also promotes true answers that share no word with the query.</span></p>
-          <aside class="slide-notes">What the real models actually do, the StatQuest BAM on real numbers. Query: what is the capital of Australia. The true answer, Canberra is the capital of Australia, and a tempting distractor, Australia is a large country with many cities, both contain the word Australia. The bi-encoder Scout rates them zero-point-eight-four versus zero-point-six-nine — a narrow gap, nearly fooled by the shared keyword. The cross-encoder Judge, reading query and document together, rates them zero-point-nine-nine-nine-eight versus zero-point-one-two — it sharply rejects the distractor that does not answer. Matching words is not matching meaning; joint reading discriminates where separate encoding blurs.</aside>
+          
         </section>
         <section class="slide" data-type="misconception" data-screen-label="30 Just precompute it too">
           <div class="slide-header">
@@ -974,7 +971,7 @@
               <p class="misc-anchor"><strong><span lang="ru">Урок.</span><span lang="en">Lesson.</span></strong> <span lang="ru">Поэтому кросс-энкодер только <em>переранжирует</em> короткий список, но не <em>извлекает</em> (об этом был слайд про одного судью на галактику дел).</span><span lang="en">So a cross-encoder only <em>reranks</em> a shortlist; it cannot <em>retrieve</em> (ties back to the one-judge-per-galaxy slide).</span></p>
             </div>
           </div>
-          <aside class="slide-notes">Close the loop on caching. The reason precompute worked for the Scout is that a bi-encoder vector belongs to the document alone — it is identical for every query, so you store it once. A cross-encoder score belongs to the pair: change the query and the score changes, so there is nothing query-independent to precompute. That is the deep reason you cannot retrieve with a cross-encoder, only rerank a shortlist that a Scout already retrieved. It ties straight back to the O of N wall from slide eight.</aside>
+          
         </section>
         <section class="slide" data-type="viz" data-max-step="2" data-current-step="0" data-screen-label="30a NCD · count the encoder boxes">
           <div class="slide-header">
@@ -1028,7 +1025,7 @@
 }
           </script>
           <p class="viz-caption"><span lang="ru">Предыдущий слайд <em>сказал</em>, что судье кэшировать нечего &mdash; схема это <strong>показывает</strong>: на шаге 1 серые предвычисленные векторы <em>исчезают</em> с карточек, остаётся пустой пунктирный слот. И компромисс становится <strong>счётным</strong>: посчитай прямоугольники кодировщика &mdash; у разведчика <strong>один</strong> (на запросе), у судьи <strong>N</strong>, по одному на каждый документ. Шаг 2 &mdash; анонс L12: стягивание можно <em>отложить</em>.</span><span lang="en">The previous slide <em>said</em> the Judge has nothing to cache &mdash; the circuit <strong>shows</strong> it: at step 1 the grey pre-computed vectors <em>vanish</em> from the cards, leaving an empty dashed slot. And the trade-off becomes <strong>countable</strong>: count the encoder boxes &mdash; <strong>one</strong> for the Scout (on the query), <strong>N</strong> for the Judge, one per document. Step 2 is L12&rsquo;s trailer: the contraction can be made <em>late</em>.</span></p>
-          <aside class="slide-notes">The notation from Lecture 7, put to work on the argument this whole act has been making. Three steps, one corpus of four documents, and the retrievers differ in exactly one thing: what runs per document. Step zero, the Scout. The encoder box fires once — on the query — and every document card carries a row of grey cells, the vectors we computed offline. Inside the corpus region, per document, there is only a cup: a cheap contraction, q dot d i. Count the encoder boxes: one. Step one, the Judge, and the lesson is what DISAPPEARS. The grey vectors are gone from every card; where the cached vector used to sit there is now an empty dashed slot. That absence is the whole of slide thirty: a cross-encoder reads the query and the document together, so the document half cannot be encoded before the query arrives, and there is nothing to precompute. In its place, a full encoder box on every row. Count them: N of them, one per document. The ranking is sharper — look at the gap between the gold documents and the borscht recipe — and that sharpness costs N BERT passes per query, which on a real corpus you simply cannot pay. That is the accuracy-versus-cost trade-off, and it is now a counting exercise, not a claim: the price of the accuracy is the number of orange boxes, and the price of those boxes is the empty slots. Step two is a trailer for Lecture 12, so do not dwell: the vectors come back, the encoder count drops to one again, and the contraction moves to the very end. That middle ground has a name — ColBERT — and it is where the next lecture starts. The ledger on the right prices all three against MS MARCO, and it is the same benchmark you have seen since Lecture 3.</aside>
+          
         </section>
         <section class="slide" data-type="table" data-screen-label="31 The reranker family">
           <div class="slide-header">
@@ -1050,7 +1047,7 @@
             </tbody>
           </table>
           <p class="small muted center mt-2"><span lang="ru">Двенадцать слоёв дают почти то же, что шесть (\(39{,}02\) против \(39{,}01\)) за <strong>~2×</strong> цены&nbsp;&mdash; <strong>шестислойная&nbsp;&mdash; прод-дефолт</strong>. Нужна сырая скорость&nbsp;&mdash; TinyBERT-L2 даёт 9000 док/с.</span><span lang="en">Twelve layers buy almost nothing over six (\(39.02\) vs \(39.01\)) for <strong>~2×</strong> the cost &mdash; <strong>the six-layer model is the production default</strong>. Need raw speed? TinyBERT-L2 does 9000 docs/sec.</span></p>
-          <aside class="slide-notes">The reranker lineage and the production sweet spot. monoBERT, Nogueira and Cho 2019, is the canonical cross-encoder: joint input to BERT, read CLS through a linear layer, binary cross-entropy. monoT5 reframes it as text-to-text. The practical workhorses are the sentence-transformers ms-marco-MiniLM cross-encoders, and they teach a deployment lesson: the twelve-layer model scores thirty-nine point oh-two MRR at ten, versus thirty-nine point oh-one for the six-layer — essentially identical for nearly double the cost. So the six-layer L-6 model is the default, and TinyBERT at nine thousand documents per second is there when latency dominates. BGE, Cohere, mxbai and Jina are the modern multilingual options.</aside>
+          
         </section>
         <section class="slide" data-type="definition" data-screen-label="32 Pointwise · pairwise · listwise">
           <div class="slide-header">
@@ -1069,7 +1066,7 @@
               <p class="small muted"><span lang="ru">RankNet \(\to\) LambdaRank \(\to\) <strong>LambdaMART</strong>&nbsp;&mdash; рабочая лошадка классического Learning-to-Rank. Это мост в <strong>L12</strong>.</span><span lang="en">RankNet \(\to\) LambdaRank \(\to\) <strong>LambdaMART</strong> is the workhorse of classic Learning-to-Rank. That is the bridge to <strong>L12</strong>.</span></p>
             </div>
           </div>
-          <aside class="slide-notes">Three ways to train a ranker, and the bridge to the next lecture. Pointwise scores each document independently and sorts — binary cross-entropy, which is precisely what a cross-encoder does. Pairwise learns the relative order of two documents with the RankNet logistic loss; duoT5 is the pairwise cross-encoder. Listwise optimizes the entire ordering toward the ranking metric directly — LambdaRank weights the RankNet gradients by the nDCG change from a swap, and LambdaMART puts those gradients inside gradient-boosted trees. That RankNet-to-LambdaMART line is the spine of classic Learning-to-Rank, which Lecture 12 takes up.</aside>
+          
         </section>
         <section class="slide" data-type="table" data-screen-label="33 LLM rerankers (listwise)">
           <div class="slide-header">
@@ -1091,7 +1088,7 @@
             </tbody>
           </table>
           <p class="small muted center mt-2"><span lang="ru"><strong>Мощь даётся не даром.</strong> Списочный LLM-реранкер читает окно пассажей и выдаёт перестановку \([2]\!>\![3]\!>\![1]\) (скользящее окно 20/10). GPT-3.5 <em>проигрывает</em> обученной 3B-модели; зато дистиллированный открытый 7B отстаёт от GPT-4 лишь на полтора пункта (74,2 против 75,6 на том же BM25 top-100). Баллы здесь — nDCG@10 &times;100 (шкала 0–100), та же метрика, что и цифры 0–1 в других местах.</span><span lang="en"><strong>Capability isn&rsquo;t free.</strong> A listwise LLM reads a window of passages and emits a permutation \([2]\!>\![3]\!>\![1]\) (sliding window 20/10). GPT-3.5 <em>loses</em> to a supervised 3B model; yet a distilled open 7B comes within a point and a half of GPT-4 (74.2 vs 75.6 on the same BM25 top-100). Scores here are nDCG@10 &times;100 (a 0–100 scale) — the same metric as the 0–1 figures elsewhere.</span></p>
-          <aside class="slide-notes">The newest branch of the Judge family. A listwise LLM reranker reads a numbered window of passages and outputs a full reordering, sliding a window of twenty with stride ten over the top hundred. The numbers are from the RankGPT paper. Two lessons. First, capability is not automatic: zero-shot GPT-3.5 scores below a supervised three-billion-parameter monoT5-3B, so a big model is not free quality. Second, distillation closes the gap cheaply — RankZephyr, an open seven-billion model distilled from GPT-4-reranked lists, comes within about a point and a half of GPT-4 on the same BM25 top-100 (its higher published ~78 uses a stronger SPLADE++ first stage, not comparable here). These are powerful but slow, so they sit at the very tip of the cascade.</aside>
+          
         </section>
         <section class="slide" data-type="divider" data-screen-label="34 Divider · How they're trained">
           <div class="divider-content">
@@ -1102,7 +1099,7 @@
           <div class="viz-frame fig-fit" style="--fig-max:64cqh; --fig-w:60%;">
             <img src="assets/img/L7/L7-10-the-forge.webp?v=1" alt="A forge and training ground where scout and judge figures are drilled and shaped — the training stage" />
           </div>
-          <aside class="slide-notes">The pivot from using models to making them. Everything so far assumed a trained encoder and a trained reranker. This section opens the forge: the contrastive objective that pulls a query toward its answer and away from everything else; the negatives that make or break it, from free in-batch ones to mined near-twins; the distillation that lets a fast Scout inherit a slow Judge's taste; and the multi-stage recipe behind E5, BGE and the rest. Every number here is sourced to a real paper.</aside>
+          
         </section>
         <section class="slide" data-type="definition" data-screen-label="35 The contrastive objective">
           <div class="slide-header">
@@ -1118,7 +1115,7 @@
               <p class="small muted"><span lang="ru">Размер батча&nbsp;&mdash; рычаг: больше батч &rarr; больше негативов &rarr; лучше. У DPR top-20 растёт от \(69{,}1\) с числом негативов в батче \(7\!\to\!127\); E5 учит при батче \(32\,768\). <em>Осторожно:</em> слишком маленькая \(\tau\) штрафует ложные негативы&nbsp;&mdash; неразмеченные парафразы позитива, попавшие в батч (та же ловушка двойников, что на слайде про трудные негативы), так что \(\tau\) и размер батча балансируют различение против коллапса на ложных негативах.</span><span lang="en">Batch size is a lever: bigger batch &rarr; more negatives &rarr; better. DPR&rsquo;s top-20 climbs from \(69.1\) as the in-batch negatives grow \(7\!\to\!127\); E5 trains at batch \(32{,}768\). <em>Caveat:</em> too small a \(\tau\) over-penalises false negatives&nbsp;&mdash; unlabeled paraphrases of the positive that land in the batch (the same &lsquo;twin trap&rsquo; as on the hard-negatives slide), so \(\tau\) and batch size trade discrimination against false-negative collapse.</span></p>
             </div>
           </div>
-          <aside class="slide-notes">The loss behind every modern retriever, and a callback to Lecture 7. InfoNCE is a softmax over similarities: the numerator is the positive pair, the denominator sums the positive and all the negatives, divided by a temperature. Minimizing it pulls the query toward its true document and pushes it away from the rest — exactly DPR's negative log-likelihood of the positive. Two knobs matter. Temperature sharpens the distribution; a small tau makes hard negatives dominate. And batch size is a lever, because the negatives are largely the other documents in the batch — DPR's accuracy climbs with batch size, and E5 trains at a batch of thirty-two thousand to drown the positive in negatives. The next slide makes the in-batch trick visual.</aside>
+          
         </section>
         <section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="36 In-batch negatives">
           <div class="slide-header">
@@ -1182,7 +1179,7 @@
           }
           </script>
           <p class="viz-caption"><span lang="ru">Один батч из \(B\) пар: <strong>диагональ</strong>&nbsp;&mdash; истинные соответствия (позитивы), вся остальная строка&nbsp;&mdash; <strong>негативы из батча</strong> (бесплатно). Софтмакс по строке&nbsp;&mdash; цель InfoNCE; больше батч &rarr; больше негативов &rarr; лучше Разведчик (callback L7). Но эти негативы в основном лёгкие/случайные&nbsp;&mdash; вот почему трудные негативы ещё и <em>добывают</em> — об этом дальше в лекции.</span><span lang="en">One batch of \(B\) pairs: the <strong>diagonal</strong> is the true matches (positives), the rest of each row are <strong>in-batch negatives</strong> (free). The row softmax is the InfoNCE target; bigger batch &rarr; more negatives &rarr; a better Scout (callback L7). But these are mostly easy/random negatives&nbsp;&mdash; which is why hard ones then have to be <em>mined</em> — later in this lecture.</span></p>
-          <aside class="slide-notes">The in-batch trick, made live. Step zero: a batch is B matched query-document pairs, the diagonal. Step one: score every query against every document in the batch, a B-by-B grid — and the off-diagonal cells are negatives you got for free, with no extra forward pass. Step two: the diagonal is the positives, the rest of each row are in-batch negatives, so a bigger batch gives more negatives — but they are mostly easy, random ones, which is exactly why hard negatives then have to be mined on top. Step three: a row softmax at temperature tau is the InfoNCE target, and training pushes each row's probability mass onto the diagonal positive. This is the picture behind the batch-size lever from the contrastive-objective slide.</aside>
+          
         </section>
         <section class="slide" data-type="viz" data-screen-label="37 Hard negatives">
           <div class="slide-header">
@@ -1192,24 +1189,24 @@
           <div class="viz-frame">
             <svg viewBox="0 0 1180 470" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="RocketQA ablation MRR@10: in-batch negatives 32.4, cross-batch 33.3, un-denoised hard negatives drop to 26.0, denoised hard negatives rise to 36.4">
               <g font-family="var(--font-sans)">
-                <!-- baseline -->
+                
                 <line x1="120" y1="372" x2="1100" y2="372" stroke="var(--rule-strong)" stroke-width="2"/>
                 <text x="92" y="378" font-size="18" fill="var(--ink-3)" text-anchor="end" font-family="var(--font-mono)">MRR@10</text>
-                <!-- bars: barH = (v-22)*16 ; baseline 372 -->
-                <!-- in-batch 32.4 -->
+                
+                
                 <rect x="170" y="206" width="170" height="166" rx="5" fill="var(--accent, #2A6FDB)"/>
                 <text x="255" y="196" font-size="24" font-weight="700" fill="var(--accent-ink)" text-anchor="middle" font-family="var(--font-mono)">32.4</text>
-                <!-- cross-batch 33.3 -->
+                
                 <rect x="410" y="190" width="170" height="182" rx="5" fill="var(--accent, #2A6FDB)"/>
                 <text x="495" y="180" font-size="24" font-weight="700" fill="var(--accent-ink)" text-anchor="middle" font-family="var(--font-mono)">33.3</text>
-                <!-- un-denoised hard 26.0 (regression) -->
+                
                 <rect x="650" y="308" width="170" height="64" rx="5" fill="var(--warm, #E8743B)"/>
                 <text x="735" y="298" font-size="24" font-weight="700" fill="var(--warm-ink, #B4521F)" text-anchor="middle" font-family="var(--font-mono)">26.0</text>
                 <text x="735" y="276" font-size="17" fill="var(--warm-ink, #B4521F)" text-anchor="middle">&#9888; &minus;6 regression</text>
-                <!-- denoised hard 36.4 -->
+                
                 <rect x="890" y="138" width="170" height="234" rx="5" fill="var(--accent, #2A6FDB)"/>
                 <text x="975" y="128" font-size="24" font-weight="700" fill="var(--accent-ink)" text-anchor="middle" font-family="var(--font-mono)">36.4</text>
-                <!-- category labels below baseline -->
+                
                 <g font-size="18" fill="var(--ink-2)" text-anchor="middle">
                   <text x="255" y="400">in-batch</text>
                   <text x="495" y="400">cross-batch</text>
@@ -1220,7 +1217,7 @@
             </svg>
           </div>
           <p class="viz-caption"><span lang="ru">Лучше негативы&nbsp;&mdash; лучше Разведчик: случайные → BM25-негативы (DPR) → глобальные из ANN-индекса (ANCE) → кросс-батч + <strong>денойзинг</strong> (RocketQA). Но «сырые» трудные негативы прячут <em>ложные</em> (на деле релевантные&nbsp;&mdash; Самозванец в маске врага) и <strong>роняют</strong> MRR с \(32{,}4\) до \(26{,}0\); кросс-энкодер их отсеивает &rarr; \(36{,}4\).</span><span lang="en">Better negatives, better Scout: random → BM25 negatives (DPR) → global ANN-index negatives (ANCE) → cross-batch + <strong>denoising</strong> (RocketQA). But raw hard negatives hide <em>false</em> ones (actually relevant &mdash; the Impostor in an enemy&rsquo;s mask) and <strong>drop</strong> MRR from \(32.4\) to \(26.0\); a cross-encoder filters them &rarr; \(36.4\).</span></p>
-          <aside class="slide-notes">The whole history of dense retrieval is a history of better negatives. Random and in-batch negatives are easy; DPR added one BM25 hard negative; ANCE mined global hard negatives from an asynchronously refreshed index of the entire corpus; RocketQA pushed cross-batch negatives and, crucially, denoised them. The bar chart is RocketQA's own ablation. Cross-batch lifts MRR slightly over in-batch. But naive hard negatives — the top retrieved documents — secretly contain false negatives that are actually relevant, and training on them regresses MRR by six points, from thirty-two four down to twenty-six. Using a cross-encoder to filter those out turns the same hard negatives into a gain, up to thirty-six four. The lesson: a hard negative that is really a twin of the answer poisons training.</aside>
+          
         </section>
         <section class="slide" data-type="definition" data-screen-label="38 Distillation — Judge → Scout">
           <div class="slide-header">
@@ -1236,7 +1233,7 @@
               <p class="small muted"><span lang="ru">TAS-B использует Margin-MSE. ColBERTv2 и RocketQAv2 используют другой рецепт: KL по распределению оценок учителя. Дистилляция&nbsp;&mdash; это и есть «научить Разведчика думать как Судья».</span><span lang="en">TAS-B uses Margin-MSE. ColBERTv2 and RocketQAv2 use a different recipe: KL over the teacher&rsquo;s score distribution. Distillation is literally &ldquo;teach the Scout to think like the Judge&rdquo;.</span></p>
             </div>
           </div>
-          <aside class="slide-notes">The second axis of modern training, after negatives. A cross-encoder sees query and document together and is far more accurate, but too slow to retrieve. So we use it as a teacher: it scores pairs, and the bi-encoder student learns to reproduce its judgments. Margin-MSE is the clean way to do it — the student matches the teacher's margin between a relevant and a non-relevant document, not the raw score, which cancels a shared additive offset but not a multiplicative scale mismatch. Soft teacher scores are a much richer signal than binary relevant-or-not labels. TAS-B uses Margin-MSE. ColBERTv2 and RocketQAv2 instead use KL divergence over candidate distributions; ColBERTv2 adds in-batch cross-entropy. Source: ColBERTv2 §3.2, https://arxiv.org/html/2112.01488#S3.SS2. It is, almost literally, teaching the Scout to think like the Judge.</aside>
+          
         </section>
         <section class="slide" data-type="definition" data-screen-label="39 The modern recipe">
           <div class="slide-header">
@@ -1255,7 +1252,7 @@
               <p class="small muted"><span lang="ru">E5 без обучения на размеченных данных (только предобучение) первым обошёл BM25 zero-shot на BEIR <em>без единой метки</em> (\(42{,}9\) против \(41{,}7\); это пул BEIR из статьи про E5 &mdash; иное усреднение, чем 0,43 в другом месте). Нет меток в домене? <strong>GPL</strong>: генерируем запросы + псевдометки кросс-энкодером &rarr; до \(+9{,}3\) nDCG.</span><span lang="en">The unsupervised (pretrain-only) E5 was the first model to beat BM25 zero-shot on BEIR <em>without any labeled data</em> (\(42.9\) vs \(41.7\); the E5 paper&rsquo;s own BEIR pool &mdash; a different averaging from the 0.43 used elsewhere). No in-domain labels? <strong>GPL</strong>: generate queries + cross-encoder pseudo-labels &rarr; up to \(+9.3\) nDCG.</span></p>
             </div>
           </div>
-          <aside class="slide-notes">How a state-of-the-art embedder is actually built — three stages. First, self-supervised pretraining with no labels: the Inverse Cloze Task treats a sentence as a query and its context as the answer; Contriever crops random spans and uses a momentum queue of negatives; RetroMAE is a masked-autoencoder objective. Second, weakly-supervised contrastive learning on hundreds of millions of mined pairs at enormous batch size — E5 uses about two hundred seventy million pairs at a batch of thirty-two thousand. Third, supervised fine-tuning on labeled data with the two tricks from the last slides: mined hard negatives and cross-encoder distillation. The payoff: the unsupervised, pretrain-only E5 was the first model to beat BM25 zero-shot on BEIR without using any labeled data. And when you have a new domain with no labels at all, GPL generates synthetic queries and pseudo-labels them with a cross-encoder, lifting nDCG by over nine points. PACING — skip-if-short: if the 90-minute slot is tight, compress this three-stage recipe to one line (pretrain → contrast → fine-tune with hard negatives + distillation); it overlaps slide 40 and the hard-negatives/distillation slides 37–38.</aside>
+          
         </section>
         <section class="slide" data-type="definition" data-screen-label="40 Training the Judge">
           <div class="slide-header">
@@ -1274,7 +1271,7 @@
               <p class="small muted"><span lang="ru">sentence-transformers v4 (<code>CrossEncoderTrainer</code>) превращает это в рутину: дообучи реранкер под свой домен за вечер.</span><span lang="en">sentence-transformers v4 (<code>CrossEncoderTrainer</code>) makes this routine: fine-tune a reranker for your domain in an evening.</span></p>
             </div>
           </div>
-          <aside class="slide-notes">Training the reranker is simpler than training the retriever, because a cross-encoder is just a pair classifier. The monoBERT recipe is pointwise binary cross-entropy on the CLS token over labeled query-document pairs, and it remains a very strong baseline. The one subtlety that matters: mine hard negatives with a fast bi-encoder first, because a reranker only learns to discriminate if it is trained on candidates that are genuinely confusable, not random easy ones. When you have richer signal you can move to pairwise RankNet or listwise KL distillation from a stronger teacher, as on slide thirty-two. And in practice the sentence-transformers version-four trainer makes fine-tuning a domain reranker an evening's work. PACING — skip-if-short: overlaps slide 39's recipe; if time is tight, state only "pointwise BCE on the CLS token + mine hard negatives first" and move on.</aside>
+          
         </section>
         <section class="slide" data-type="divider" data-screen-label="41 Divider · Building the index">
           <div class="divider-content">
@@ -1285,7 +1282,7 @@
           <div class="viz-frame fig-fit" style="--fig-max:64cqh; --fig-w:60%;">
             <img src="assets/img/L7/L7-11-the-archive.webp?v=1" alt="A vast pre-built archive of filed cards and shelves being assembled, no query present — the offline build-time stage" />
           </div>
-          <aside class="slide-notes">A turn from query-time to build-time. We have spent the lecture on what happens when a query arrives, but most of the work — and most of the cost — happens before any query exists. The offline stage prepares the corpus, runs the bi-encoder over every document, and stores the vectors in an approximate-nearest-neighbour index. It is expensive, but it is paid once and amortized over every future query. The next three slides walk it: data preparation, the index build, and the clean line between build-time and query-time.</aside>
+          
         </section>
         <section class="slide" data-type="definition" data-screen-label="42 Data prep — chunk &amp; expand">
           <div class="slide-header">
@@ -1303,7 +1300,7 @@
               </ul>
             </div>
           </div>
-          <aside class="slide-notes">The unglamorous step that decides everything downstream. First clean and deduplicate — near-duplicate documents waste the shortlist and crowd the top of the ranking. Then chunk: documents longer than the encoder's token limit must be split, typically into five-hundred-to-thousand-token pieces with ten-to-twenty-percent overlap so a key sentence is never severed at a boundary. Finally, document expansion: docTTTTTquery uses a T5 to generate the queries a passage would answer and appends them before indexing, which lifts MS MARCO MRR from eighteen-four to twenty-seven-seven by pushing the neural work to index time — note the eighteen-four baseline is the doc2query paper's own BM25 configuration, a slightly different setup from the tuned Anserini BM25 figure quoted on other slides, so the two baselines differ without contradiction. Retrieval quality is capped here — garbage in, garbage in the index.</aside>
+          
         </section>
         <section class="slide" data-type="definition" data-screen-label="43 Build the index (ANN)">
           <div class="slide-header">
@@ -1322,7 +1319,7 @@
               <p class="small muted"><span lang="ru">Полнота против задержки&nbsp;&mdash; ручка: на Sift1M полнота растёт от \(\sim\!80\%\) к \(\sim\!100\%\) с ростом \(efSearch\). Подробно&nbsp;&mdash; <strong>L13</strong>.</span><span lang="en">Recall vs latency is a dial: on Sift1M, recall climbs from \(\sim\!80\%\) toward \(\sim\!100\%\) as \(efSearch\) rises. The full story is <strong>L13</strong>.</span></p>
             </div>
           </div>
-          <aside class="slide-notes">The index build, and the bridge to the ANN lecture. Once the corpus is prepared, the bi-encoder embeds every document and the vectors go into an approximate-nearest-neighbour index. This is what fixes the Scout's one remaining weakness — the linear sweep. A brute-force scan is order N dot products per query; ANN brings it toward log N. The two families: HNSW builds a navigable small-world graph, with M controlling links and memory and efSearch tuning recall against latency at query time; IVF-PQ partitions space into cells you probe a few of, and product-quantizes vectors down to about eight bytes each for billion-scale corpora. Recall versus latency is a dial — on the standard Sift benchmark, eighty percent recall costs about a millisecond and full recall about fifty. Lecture 13 is the whole story.</aside>
+          
         </section>
         <section class="slide" data-type="two-col" data-screen-label="44 Offline vs online">
           <div class="slide-header">
@@ -1350,7 +1347,7 @@
             </div>
           </div>
           <p class="viz-caption"><span lang="ru">Знай, на каких часах считается каждая стоимость. Тяжёлое (эмбеддинг корпуса, обучение, ANN) &mdash; офлайн, один раз. Лёгкое (один эмбед запроса + поиск + реранк коротыша) &mdash; онлайн, на запрос. Офлайн меряем BEIR/MTEB, онлайн&nbsp;&mdash; A/B.</span><span lang="en">Know which clock each cost runs on. The heavy work (embedding the corpus, training, ANN) is offline, once. The light work (one query encode + search + rerank a shortlist) is online, per query. Offline you measure on BEIR/MTEB; online you A/B test.</span></p>
-          <aside class="slide-notes">The single most clarifying distinction in production retrieval: which clock a cost runs on. Build-time, offline, you ingest, clean, chunk, embed the whole corpus, build the ANN index, and train or fine-tune the models — expensive, but paid once and amortized over every query, and evaluated offline on BEIR and MTEB. Query-time, online, you embed the single query, retrieve with the Scouts, rerank with the Judges, and assemble — that is the cascade, and the latency budget lives entirely here, evaluated online by A/B testing clicks and conversions, the callback to Lecture 5. Confuse the two and you will either blow your latency budget or rebuild your index on every request.</aside>
+          
         </section>
         <section class="slide" data-type="formula" data-screen-label="44a Amortisation &middot; what actually divides">
           <div class="slide-header slide-header--flush">
@@ -1367,7 +1364,7 @@
             <div class="var-block"><div class="var-symbol">\(Q\)</div><div class="var-desc"><strong><span lang="ru">дрейф режет делитель</span><span lang="en">drift cuts the divisor</span></strong><br /><span lang="ru">пересборка не растит \(C_{\mathrm{build}}\), она уменьшает \(Q\): ночная переиндексация амортизируется дневным трафиком</span><span lang="en">a rebuild does not raise \(C_{\mathrm{build}}\), it lowers \(Q\): a nightly re-index amortises over one day</span></div></div>
           </div>
           <p class="small muted center mt-2"><span lang="ru">За черту уносится ровно то, что <em>не зависит от запроса</em>: вектор документа один на все запросы &mdash; считаем заранее; оценка пары своя на каждый запрос &mdash; её нельзя вычислить до прихода запроса. Оговорка: делится счёт, но не память &mdash; индекс занимает место всё время, пока лежит.</span><span lang="en">Only <em>query-independent</em> work crosses the line: a document vector is the same for every query &mdash; compute it in advance; a pair's score is fresh per query &mdash; nothing to precompute. Caveat: the bill divides, memory does not; the index holds space the whole time it sits.</span></p>
-          <aside class="slide-notes">The mechanism under this act's central promise — "done once, it pays off on every query" — which the act asserts three times and never derives. Average cost per query is the build bill divided by Q plus the per-query cost. Two consequences the act uses silently. First, only the build term has a divisor, so it vanishes as traffic grows, while the per-query term never does — that is the real reason the cross-encoder is confined to a shortlist and the corpus embedding is not. Second, and this is the part slide forty-four hides behind the phrase "re-index on drift": rebuilding does not increase the build bill, it shrinks Q. An index rebuilt nightly only amortises over a single day of traffic, so the same offline cost can be cheap or ruinous depending purely on how fast the corpus drifts. And the criterion for what may cross the line at all is query-independence — the same criterion slide thirty gave for why cross-encoder scores cannot be cached. Deliberately symbolic: the crossover is corpus- and traffic-specific, so no numbers here. Honest limit to state aloud: this divides cost, not memory — a resident index costs RAM every second regardless of Q.</aside>
+          
         </section>
         <section class="slide" data-type="divider" data-screen-label="45 Divider · Scouts retrieve, Judges rerank">
           <div class="divider-content">
@@ -1378,7 +1375,7 @@
           <div class="viz-frame fig-fit" style="--fig-max:64cqh; --fig-w:60%;">
             <img src="assets/img/L7/L7-06-hiring-funnel.webp?v=1" alt="A literal hiring funnel: a wide mouth crowded with many applicant-dots narrows through a middle band to a thin spout where a few face a judge's bench" />
           </div>
-          <aside class="slide-notes">The synthesis. We refuse to choose between fast and careful. Stage them: the Scouts sweep cheap and wide first, then the Judges deliberate dear and narrow last. This is exactly the retrieve-then-rerank funnel from Lecture 1, The Lost Record — only now both stages are neural. Cheap-and-wide protects recall; dear-and-narrow protects precision where the user looks. This one funnel is the architecture of modern neural search.</aside>
+          
         </section>
         <section class="slide" data-type="funnel" data-max-step="3" data-current-step="0" data-screen-label="46 The Neural Cascade">
           <div class="slide-header">
@@ -1435,7 +1432,7 @@
             }
           }
           </script>
-          <aside class="slide-notes">The payoff architecture, mounted live. Step zero: the whole corpus, about a million documents — no Judge can read them all. Step one: the Scouts, the bi-encoder, sweep the corpus and keep the top thousand — cheap and high-recall; the answer must survive this cut. Step two: the Judges, the cross-encoder, score the top hundred of that shortlist in GPU batches and hand back the top ten — slow and precise, optimising precision where the user looks. Cheap-and-wide first, dear-and-narrow last. Step three — what the cascade buys: quality climbs from zero-point-six-eight to zero-point-nine-six nDCG, while the per-query cost stays small — encode eight, ANN five, rerank one-hundred-twenty, one-hundred-thirty-three milliseconds total. Note the rerank price: a hundred pairs cost about a hundred and twenty milliseconds because they run in batches of around thirty-two on a GPU, not a hundred times twelve milliseconds sequentially. Each cut is safe because the answer survives the wide top-k. This is the L1 funnel made neural, and it is the same widget the Book uses.</aside>
+          
         </section>
         <section class="slide" data-type="viz" data-screen-label="47 Stage by stage">
           <div class="slide-header">
@@ -1446,28 +1443,28 @@
             <svg viewBox="0 0 1400 460" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="The cascade narrows from a million-document corpus, through a bi-encoder retrieve to a thousand, to a cross-encoder that scores the top hundred in GPU batches and returns ten; representative latencies add up to about 133 milliseconds total">
               <defs><marker id="s27a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-3)"/></marker></defs>
               <g font-family="var(--font-sans)">
-                <!-- corpus -->
+                
                 <rect x="60" y="150" width="320" height="150" rx="14" fill="var(--ink-3)"/>
                 <text x="220" y="215" text-anchor="middle" font-size="26" fill="#fff" font-weight="700">corpus</text>
                 <text x="220" y="255" text-anchor="middle" font-size="30" fill="#fff" font-family="var(--font-mono)">10⁶</text>
-                <!-- arrow + bi -->
+                
                 <line x1="380" y1="225" x2="500" y2="225" stroke="var(--ink-3)" stroke-width="3" marker-end="url(#s27a)"/>
                 <text x="440" y="200" text-anchor="middle" font-size="18" fill="var(--accent-ink)">bi-encoder</text>
                 <text x="440" y="255" text-anchor="middle" font-size="16" fill="var(--ink-3)">~13ms</text>
-                <!-- retrieve -->
+                
                 <rect x="510" y="170" width="280" height="110" rx="14" fill="var(--accent)"/>
                 <text x="650" y="215" text-anchor="middle" font-size="24" fill="#fff" font-weight="700">retrieve</text>
                 <text x="650" y="252" text-anchor="middle" font-size="28" fill="#fff" font-family="var(--font-mono)">10³</text>
-                <!-- arrow + cross -->
+                
                 <line x1="790" y1="225" x2="910" y2="225" stroke="var(--ink-3)" stroke-width="3" marker-end="url(#s27a)"/>
                 <text x="850" y="200" text-anchor="middle" font-size="18" fill="var(--warm-ink, #B4521F)">cross-encoder</text>
                 <text x="850" y="255" text-anchor="middle" font-size="16" fill="var(--ink-3)">~120ms</text>
                 <text x="850" y="278" text-anchor="middle" font-size="13" fill="var(--ink-3)">top-100 · GPU batch</text>
-                <!-- rerank -->
+                
                 <rect x="920" y="185" width="220" height="80" rx="14" fill="var(--warm, #E8743B)"/>
                 <text x="1030" y="218" text-anchor="middle" font-size="22" fill="#fff" font-weight="700">rerank</text>
                 <text x="1030" y="250" text-anchor="middle" font-size="24" fill="#fff" font-family="var(--font-mono)">10</text>
-                <!-- total -->
+                
                 <rect x="1180" y="185" width="170" height="80" rx="12" fill="none" stroke="var(--ink-2)" stroke-width="3"/>
                 <text x="1265" y="218" text-anchor="middle" font-size="20" fill="var(--ink-2)">total</text>
                 <text x="1265" y="250" text-anchor="middle" font-size="24" fill="var(--ink)" font-family="var(--font-mono)">~133ms</text>
@@ -1475,7 +1472,7 @@
             </svg>
           </div>
           <p class="viz-caption"><span lang="ru">\(10^6 \to\) (Разведчики, ~13&nbsp;мс) \(\to 10^3 \to\) (Судьи: оценка top-100, ~120&nbsp;мс) \(\to 10\). 100 пар &asymp; 120&nbsp;мс на GPU при батче ~32&nbsp;&mdash; <em>не</em> 100&times;12&nbsp;мс: пары считаются пачками; 12&nbsp;мс&nbsp;&mdash; цена одной пары последовательно на CPU. Задержки&nbsp;&mdash; типичные (из источников), зависят от железа; число на каждой стадии&nbsp;&mdash; точное.</span><span lang="en">\(10^6 \to\) (Scouts, ~13&nbsp;ms) \(\to 10^3 \to\) (Judges: score the top-100, ~120&nbsp;ms) \(\to 10\). 100 pairs &asymp; 120&nbsp;ms on a GPU at batch ~32&nbsp;&mdash; <em>not</em> 100&times;12&nbsp;ms: pairs are scored in batches; 12&nbsp;ms is the one-pair sequential CPU cost. Latencies are representative (cited), hardware-dependent; the per-stage counts are exact.</span></p>
-          <aside class="slide-notes">Walk the cascade with a latency budget. Start at a million-document corpus. The bi-encoder Scouts retrieve, in roughly thirteen milliseconds for a query encode plus an indexed search, down to a thousand. The cross-encoder Judges then score the top hundred of that shortlist — the same depth-100 the MS MARCO rerank numbers on the next slide are measured at — and hand back the top ten. Be careful with the arithmetic here: a hundred pairs cost about a hundred and twenty milliseconds on a GPU because they are scored in batches of around thirty-two, not one after another; sequentially on a CPU one pair alone costs about twelve milliseconds, so a sequential top-hundred would be over a second. The representative total is about a hundred and thirty milliseconds — these latencies are cited, hardware-dependent, never measured in our CI; the per-stage counts are the exact funnel shape.</aside>
+          
         </section>
         <section class="slide" data-type="table" data-screen-label="48 The cascade by the numbers">
           <div class="slide-header">
@@ -1490,7 +1487,7 @@
             </tbody>
           </table>
           <p class="small muted center mt-2"><span lang="ru">Реальный кросс-энкодер на тех же 8 документах L5 поднимает <strong>nDCG 0,6766 &rarr; 0,9558</strong>; на замороженном подмножестве открытого корпуса&nbsp;&mdash; реранк top-100, та же глубина, что в бюджете каскада,&nbsp;&mdash; <strong>MRR 0,4142 &rarr; 0,4963</strong>. Судьи окупают задержку, поднимая верные ответы.</span><span lang="en">The real cross-encoder on the same L5 8 documents lifts <strong>nDCG 0.6766 &rarr; 0.9558</strong>; on a frozen open-corpus subset&nbsp;&mdash; reranking the top-100, the same depth the cascade budget prices&nbsp;&mdash; <strong>MRR 0.4142 &rarr; 0.4963</strong>. The Judges earn their latency by moving right answers up.</span></p>
-          <aside class="slide-notes">Put real numbers on the lift. On Lecture 5's eight-document set, BM25 alone reaches nDCG at ten of zero-point-six-eight; running the real cross-encoder over the same eight and reranking by its score climbs to zero-point-nine-six, most of the way to the ideal one. On a frozen open-corpus subset, retrieval MRR at ten of zero-point-four-one rises to zero-point-five-zero after the cross-encoder reranks the top hundred retrieved candidates — the same depth-100 the previous slide's latency budget prices. Both numbers are real and reproducible from the data files. The Judges earn their latency by moving the right answers up.</aside>
+          
         </section>
         <section class="slide" data-type="viz" data-screen-label="49 The recall floor">
           <div class="slide-header">
@@ -1500,13 +1497,13 @@
           <div class="viz-frame">
             <svg viewBox="0 0 1200 480" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="On the L5 8-document set, recall climbs with depth k: recall at 1 is 0, at 3 is 0.25, at 5 is 0.5, at 8 is 1.0 — deeper retrieval raises the ceiling the reranker can reach">
               <g font-family="var(--font-sans)">
-                <!-- axes -->
+                
                 <line x1="160" y1="60" x2="160" y2="380" stroke="var(--ink-3)" stroke-width="2"/>
                 <line x1="160" y1="380" x2="1080" y2="380" stroke="var(--ink-3)" stroke-width="2"/>
                 <text x="80" y="70" font-size="20" fill="var(--ink-3)" font-family="var(--font-mono)">1.0</text>
                 <text x="80" y="230" font-size="20" fill="var(--ink-3)" font-family="var(--font-mono)">0.5</text>
                 <text x="60" y="386" font-size="20" fill="var(--ink-3)" font-family="var(--font-mono)">recall</text>
-                <!-- bars: k=1→0, k=3→0.25, k=5→0.5, k=8→1.0 (full height = 320px for 1.0) -->
+                
                 <g>
                   <rect x="230" y="380" width="120" height="0"   fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
                   <text x="290" y="408" text-anchor="middle" font-size="22" fill="var(--ink-2)" font-family="var(--font-mono)">k=1</text>
@@ -1525,7 +1522,7 @@
             </svg>
           </div>
           <p class="viz-caption"><span lang="ru">Судья выбирает только из короткого списка Разведчиков. На наборе L5 полнота растёт с глубиной: \(0 \to 0{,}25 \to 0{,}5 \to 1{,}0\). Извлечёшь слишком мелко&nbsp;&mdash; и ограничишь полноту всего пайплайна. Сначала полнота, потом точность. Каскад с предыдущего разбора переранжирует весь top-8 (recall@8 = 1,0), то есть стоит у самого потолка&nbsp;&mdash; ограничение проявляется, когда на стадии извлечения найдены не все релевантные документы.</span><span lang="en">A Judge picks only from the Scouts&rsquo; shortlist. On the L5 set recall climbs with depth: \(0 \to 0.25 \to 0.5 \to 1.0\). Retrieve too shallow and you cap the whole pipeline. Recall first, precision second. The cascade from the earlier walkthrough reranks the full top-8 (recall@8 = 1.0), so it sits at the ceiling&nbsp;&mdash; the floor only bites when you retrieve shallower than full recall.</span></p>
-          <aside class="slide-notes">The hard floor. A Judge can only rank a document the Scouts actually returned, so the whole pipeline is capped by the retriever's recall at k. On Lecture 5's eight-document set, recall climbs with depth: zero at one, a quarter at three, a half at five, and one at eight. Retrieve too shallow and you cap the Judges below their potential, no matter how good they are. Recall first, precision second — never the other way round. A strong dense retriever can saturate recall on an easy subset, but on web-scale corpora the depth genuinely matters, which sets up the depth dial.</aside>
+          
         </section>
         <section class="slide" data-type="divider" data-screen-label="50 Divider · In a real product">
           <div class="divider-content">
@@ -1536,7 +1533,7 @@
           <div class="viz-frame fig-fit" style="--fig-max:64cqh; --fig-w:60%;">
             <img src="assets/img/L7/L7-12-the-product.webp?v=1" alt="The scout-to-judge handoff feeding a single answer desk that hands a sourced answer to a user — the product" />
           </div>
-          <aside class="slide-notes">The last turn — from the cascade as an idea to the cascade as a product. Retrieve-then-rerank is the engine, but a real search or RAG system wraps it in a whole pipeline: ingest and chunk and embed and index offline, then retrieve and rerank and assemble and generate online. The next slides give the full pipeline as a live widget, the vector databases that store the index, the hybrid trick that makes retrieval robust, and a production checklist. This is where everything in the lecture lands in a shipping system.</aside>
+          
         </section>
         <section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="51 The full pipeline">
           <div class="slide-header">
@@ -1616,7 +1613,7 @@
           }
           </script>
           <p class="viz-caption"><span lang="ru">Один поток слева направо с границей <strong>офлайн / онлайн</strong>. Тяжёлая сборка индекса&nbsp;&mdash; один раз; на запросе&nbsp;&mdash; каскад (извлечение → переранжирование), затем LLM&nbsp;&mdash; тот самый Оракул RAGdoll&nbsp;&mdash; пишет ответ, <strong>обоснованный</strong> найденными отрывками, со ссылками. Качество поиска ограничивает качество ответа.</span><span lang="en">One left-to-right flow with an <strong>offline / online</strong> divide. The heavy index build runs once; per query the cascade (retrieve → rerank) feeds an LLM &mdash; RAGdoll the Oracle &mdash; that writes an answer <strong>grounded</strong> in the retrieved passages, with citations. Retrieval quality caps answer quality.</span></p>
-          <aside class="slide-notes">The whole lecture, in one stepped figure. Step zero is the offline build — ingest, chunk, embed the corpus, build the index — paid once. Step one is the online query path — embed the query, retrieve the top-k, rerank the shortlist, assemble the context — the per-request budget. Step two rings the retrieve-and-rerank pair, because that is exactly the neural cascade we built: Scouts sweep wide and cheap, Judges deliberate on the few. Step three is RAG: the language model reads the reranked context and writes an answer grounded in those passages, with citations back to the sources. And the governing law is the recall floor again — the generator can only ground in what retrieval brought back.</aside>
+          
         </section>
         <section class="slide" data-type="table" data-screen-label="52 Vector databases">
           <div class="slide-header">
@@ -1640,7 +1637,7 @@
             </tbody>
           </table>
           <p class="small muted center mt-2"><span lang="ru">Выбор по масштабу, фильтрам и тому, нужен ли <strong>гибрид</strong> «из коробки». FAISS&nbsp;&mdash; если хочется контроля; pgvector&nbsp;&mdash; если данные уже в Postgres; Vespa/Qdrant/Weaviate&nbsp;&mdash; родной гибрид и фильтры.</span><span lang="en">Pick by scale, filtering, and whether you need <strong>hybrid</strong> out of the box. FAISS for control; pgvector to keep vectors beside your relational data; Vespa/Qdrant/Weaviate for native hybrid and filters.</span></p>
-          <aside class="slide-notes">Where the index actually lives. FAISS is a library, not a server — HNSW and IVF-PQ with full control, the choice when you want to own the index and run at billion scale. Qdrant is a real-time Rust database with rich payload filtering, quantization, and server-side RRF hybrid. Weaviate and Vespa lead on native hybrid composition, and Vespa's multi-phase ranking is what powers Perplexity. Milvus is the GPU-accelerated large-scale option. pgvector keeps your vectors inside Postgres, ideal up to tens of millions when you want one database. Elasticsearch and OpenSearch add kNN to mature text search with RRF as the default hybrid. Choose by scale, by whether you need metadata filtering, and by whether you want hybrid built in.</aside>
+          
         </section>
         <section class="slide" data-type="definition" data-screen-label="53 Hybrid search (BM25 + dense)">
           <div class="slide-header">
@@ -1656,7 +1653,7 @@
               <p class="small muted"><span lang="ru">Зачем: zero-shot BM25 \(0{,}43\) часто бьёт одиночный плотный вектор \(0{,}23\) (DPR на BEIR, L3) &rarr; вместе надёжнее. Anthropic: контекстный гибрид срезал промахи поиска ~49%, а с реранкером ~67%.</span><span lang="en">Why: zero-shot BM25 \(0.43\) often beats a single dense vector \(0.23\) (DPR on BEIR, L3) &rarr; together they are more robust. Anthropic: contextual hybrid cut retrieval failures ~49%, and with a reranker ~67%.</span></p>
             </div>
           </div>
-          <aside class="slide-notes">Hybrid retrieval, and the callback to Lecture 3. A single dense vector is strong on meaning but blurs exact tokens — names, product codes, rare words, typos — which is exactly where lexical BM25 shines. So run both and fuse. You cannot add their scores, because the scales are incompatible, so Reciprocal Rank Fusion combines them by rank: sum one over k plus the rank in each list, with k conventionally sixty. It is the default hybrid in Elasticsearch, OpenSearch and Qdrant. The motivation is the honest twist from Lecture 3 — zero-shot, BM25's nDCG of 0.43 often beats DPR's 0.23 on BEIR — so keeping the lexical signal makes retrieval robust. Anthropic reports their contextual hybrid cut retrieval failures by about half, and adding a reranker pushed that to about two-thirds.</aside>
+          
         </section>
         <section class="slide" data-type="quiz" data-screen-label="54 How deep do you rerank">
           <div class="slide-header">
@@ -1678,7 +1675,7 @@
           <div class="viz-frame fig-fit" style="--fig-max:26cqh; --fig-w:30%;">
             <img src="assets/img/L7/L7-07-depth-dial.webp?v=1" alt="A dial trading an hourglass for a magnifying glass: turning it deeper tips toward thoroughness but drags the latency hourglass down" />
           </div>
-          <aside class="slide-notes">The depth dial. Raising k lets the Judges see more of the Scouts' output, so they can recover answers buried deeper — but each extra candidate is another cross-encoder pass, and latency rises roughly linearly with k; batching on a GPU shrinks the per-pair constant, as in the cascade budget, but the growth stays linear. The answer is B. There is no free k: pick the shallowest depth that still captures the recall your retriever provides, and trade the rest against your latency budget. When the retriever already saturates recall at a shallow depth, going deeper buys nothing but cost.</aside>
+          
         </section>
         <section class="slide" data-type="table" data-screen-label="55 Dense isn&#39;t a free lunch">
           <div class="slide-header">
@@ -1693,7 +1690,7 @@
             </tbody>
           </table>
           <p class="small muted center mt-2"><span lang="ru">Вне домена (zero-shot) <strong>BM25 0,43 &gt; DPR 0,23</strong>&nbsp;&mdash; это оригинальный DPR, обученный на QA-наборах; MS MARCO-модели держатся лучше, но в среднем всё ещё ниже BM25. Позднее взаимодействие (ColBERTv2 0,5) возвращается. В домене плотный бьёт BM25 (0,33 &gt; 0,187; 0,33&nbsp;&mdash; ANCE в RocketQA, Table 2; в строках сравниваются разные модели). Один вектор забывает много &rarr; <strong>гибрид</strong> (L12).</span><span lang="en">Out-of-domain (zero-shot) <strong>BM25 0.43 &gt; DPR 0.23</strong> &mdash; that 0.23 is the original QA-trained DPR; MS MARCO-trained models hold up better yet still trail BM25 on average. Late interaction (ColBERTv2 0.5) climbs back. In-domain dense beats BM25 (0.33 &gt; 0.187; the 0.33 is ANCE in RocketQA Table 2; the two rows compare different models). One vector forgets too much &rarr; <strong>hybrid</strong> (L12).</span></p>
-          <aside class="slide-notes">The honest twist before we leave. It is tempting to think a learned dense retriever always beats old BM25 — it does not. On the BEIR zero-shot benchmark, averaged over eighteen out-of-domain datasets, BM25 reaches nDCG at ten of zero-point-four-three while the original DPR checkpoint — trained on question-answering data, not MS MARCO — falls to zero-point-two-three: lexical search wins out of domain, while a late-interaction model like ColBERTv2 climbs back to zero-point-five, and MS MARCO-trained single-vector models sit in between, still below BM25 on average. In-domain the story flips — on MS MARCO, ANCE's MRR of zero-point-three-three beats BM25's zero-point-one-nine; the source is RocketQA Table 2. Different models are compared in the two rows. A single dense vector forgets too much; the fix is hybrid retrieval and richer late interaction, which is Lecture 12.</aside>
+          
         </section>
         <section class="slide" data-type="definition" data-screen-label="56 Production checklist">
           <div class="slide-header">
@@ -1713,7 +1710,7 @@
               </ul>
             </div>
           </div>
-          <aside class="slide-notes">The engineer's checklist, pulling the lecture's practice into one place. One: stage as a cascade — retrieve wide with the bi-encoder, rerank shallow with the cross-encoder, and pick the depth k from your latency budget rather than over-reranking. Two: go hybrid by default — BM25 plus dense fused with RRF survives out-of-domain shifts and rare-term queries that a single vector blurs. Three: shrink the index with Matryoshka truncation and int8 or binary quantization, rescoring the top-k at full precision. Four: match the model to your domain and language, evaluate on your own data, fine-tune or use GPL when it sags, normalize vectors, and respect the role prefixes and the token limit. Five: operate it — re-index when the corpus drifts, cache and warm-start, budget the cross-encoder's cost on long pairs, and A/B test online. That is the whole lecture, as a runbook.</aside>
+          
         </section>
         <section class="slide" data-type="final" data-screen-label="57 Final">
           <div class="final-body">
@@ -1727,7 +1724,7 @@
               <div class="qr-caption"><span lang="ru">Материалы лекции</span><span lang="en">Full lecture materials</span><span class="qr-url">levshaazz.github.io/deep-learning-for-search-summer-2026</span></div>
             </div>
           </div>
-          <aside class="slide-notes">The close, where the catchphrase opened. Scouts and Judges win the day together: a fast bi-encoder retriever feeds an accurate cross-encoder reranker, the neural cascade, the core architecture of modern neural search. But the Scouts still sweep linearly over the whole corpus — at a billion documents even cheap dot products add up. The next quests fix exactly that: approximate nearest-neighbour search makes the sweep sub-linear, jump-gates for the linear scan in Lecture 13, and ColBERT and hybrid retrieval give the Scout a richer, multi-vector read of each document in Lecture 12. Scouts and Judges — that is where we started, and that is the team that won the day.</aside>
+          
         </section>
         <section class="slide" data-type="refs" data-screen-label="58 References · Encoders">
           <div class="slide-header">
@@ -1742,7 +1739,7 @@
             <li data-paper-id="kusupati-2022-matryoshka"><span class="ref-body"><span class="ref-authors">Kusupati, A., Bhatt, G., Rege, A. <em>et al.</em></span> · <span class="ref-title"><a href="https://arxiv.org/abs/2205.13147" target="_blank" rel="noopener">Matryoshka Representation Learning</a></span> · <span class="ref-venue">NeurIPS</span></span><span class="ref-year">2022</span></li>
             <li data-paper-id="muennighoff-2022-mteb"><span class="ref-body"><span class="ref-authors">Muennighoff, N., Tazi, N., Magne, L. &amp; Reimers, N.</span> · <span class="ref-title"><a href="https://arxiv.org/abs/2210.07316" target="_blank" rel="noopener">MTEB: Massive Text Embedding Benchmark</a></span> · <span class="ref-venue">EACL</span></span><span class="ref-year">2023</span></li>
           </ol>
-          <aside class="slide-notes">Appendix, part one — the Scout lineage. Karpukhin and colleagues 2020 is DPR, dense passage retrieval with two encoders and in-batch negatives. Reimers and Gurevych 2019 is Sentence-BERT, the siamese mean-pooled encoder that made sentence embeddings practical. Xiong and colleagues 2021 is ANCE, which mines hard negatives from the index itself. Hofstätter and colleagues 2021 is TAS-B, topic-aware sampling with dual-teacher distillation — teaching a Scout to think like a Judge.</aside>
+          
         </section>
         <section class="slide" data-type="refs" data-screen-label="59 References · Reranking">
           <div class="slide-header">
@@ -1757,7 +1754,7 @@
             <li data-paper-id="sun-2023-rankgpt"><span class="ref-body"><span class="ref-authors">Sun, W., Yan, L., Ma, X. <em>et al.</em></span> · <span class="ref-title"><a href="https://arxiv.org/abs/2304.09542" target="_blank" rel="noopener">Is ChatGPT Good at Search? LLMs as Re-Ranking Agents (RankGPT)</a></span> · <span class="ref-venue">EMNLP</span></span><span class="ref-year">2023</span></li>
             <li data-paper-id="santhanam-2021-colbertv2"><span class="ref-body"><span class="ref-authors">Santhanam, K., Khattab, O., Saad-Falcon, J. <em>et al.</em></span> · <span class="ref-title"><a href="https://arxiv.org/abs/2112.01488" target="_blank" rel="noopener">ColBERTv2: Effective and Efficient Retrieval via Lightweight Late Interaction</a></span> · <span class="ref-venue">NAACL</span></span><span class="ref-year">2022</span></li>
           </ol>
-          <aside class="slide-notes">Appendix, part two — the Judge lineage. Nogueira and Cho 2019 is monoBERT, the canonical cross-encoder reranker. Nogueira and colleagues 2020 is monoT5, the sequence-to-sequence variant. Nguyen and colleagues 2016 is MS MARCO, the large real-query passage dataset our cascade numbers run on. Thakur and colleagues 2021 is BEIR, the zero-shot benchmark behind the honest twist that BM25 still beats single-vector dense out of domain. Distillation links them: a Judge teaches a Scout.</aside>
+          
         </section>
         <section class="slide" data-type="refs" data-screen-label="60 References · Training, indexing &amp; RAG">
           <div class="slide-header">
@@ -1772,15 +1769,15 @@
             <li data-paper-id="cormack-2009-rrf"><span class="ref-body"><span class="ref-authors">Cormack, G. V., Clarke, C. L. A. &amp; B&uuml;ttcher, S.</span> · <span class="ref-title"><a href="https://dl.acm.org/doi/10.1145/1571941.1572114" target="_blank" rel="noopener">Reciprocal Rank Fusion Outperforms Condorcet&hellip; (RRF)</a></span> · <span class="ref-venue">SIGIR</span></span><span class="ref-year">2009</span></li>
             <li data-paper-id="lewis-2020-rag"><span class="ref-body"><span class="ref-authors">Lewis, P., Perez, E., Piktus, A. <em>et al.</em></span> · <span class="ref-title"><a href="https://arxiv.org/abs/2005.11401" target="_blank" rel="noopener">Retrieval-Augmented Generation for Knowledge-Intensive NLP (RAG)</a></span> · <span class="ref-venue">NeurIPS</span></span><span class="ref-year">2020</span></li>
           </ol>
-          <aside class="slide-notes">Appendix, part three — training, indexing and RAG. van den Oord and colleagues 2018 is the InfoNCE objective behind every modern retriever. Hofstätter and colleagues 2020 is Margin-MSE, distilling a cross-encoder into a bi-encoder. Wang and colleagues 2022 is E5 and the weakly-supervised multi-stage recipe. Malkov and Yashunin is HNSW, the graph index behind sub-linear search, picked up in Lecture 13. Cormack and colleagues 2009 is Reciprocal Rank Fusion, the hybrid combiner. And Lewis and colleagues 2020 is the original Retrieval-Augmented Generation paper — the cascade feeding a generator.</aside>
+          
         </section>
 
 
-      </div><!-- /.slides -->
-    </div><!-- /.stage -->
-  </div><!-- /.deck -->
+      </div>
+    </div>
+  </div>
 
-  <!-- JS -->
+  
   <script src="js/deck.js"></script>
   <script src="js/tools.js"></script>
   <script src="js/pen.js"></script>
@@ -1796,16 +1793,14 @@
   <script src="js/budget.js"></script>
   <script src="js/preflight.js"></script>
 
-  <!-- L10 deck-mounted widgets: classic offline bundles register window.mount<Pascal>; the deck-adapter
-       (loaded after deck.js) drives them with the deck step engine. BUILD OUTPUT (scripts/build-deck-widgets.mjs). -->
+  
   <script src="js/biencoder.classic.js"></script>
   <script src="js/crossencoder.classic.js"></script>
   <script src="js/neural-cascade.classic.js"></script>
   <script src="js/in-batch-negatives.classic.js"></script>
   <script src="js/rag-pipeline.classic.js"></script>
   <script src="js/course-map.classic.js"></script>
-  <!-- ncd-retrieval: the neural-circuit-diagram notation taught in L7, used here to COUNT the
-       accuracy⇄cost trade-off (S30a: 1 encoder box for the Scout, N for the Judge). -->
+  
   <script src="js/ncd-retrieval.classic.js"></script>
   <script src="js/deck-adapter.js"></script>
 </body>

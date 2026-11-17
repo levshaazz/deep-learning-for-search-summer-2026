@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lecture 13 — Hyperspace Lanes · ANN (HNSW, IVF, PQ), FAISS, Vector DBs &amp; Production</title>
 
-  <!-- Apply saved theme/lang BEFORE first paint to avoid a flash of the
-       wrong theme. Mirrors tools.js prefs key. -->
+  
   <script>
     try {
       var __p = JSON.parse(localStorage.getItem('lecture.template.prefs.v1') || '{}');
@@ -19,7 +18,7 @@
     } catch (e) {}
   </script>
 
-  <!-- Asset-load failure banner. -->
+  
   <script>
     window.__assetFail = (function () {
       var failed = [];
@@ -48,11 +47,11 @@
     })();
   </script>
 
-  <!-- Fonts — vendored locally. -->
+  
   <link href="vendor/fonts/fonts.css" rel="stylesheet"
         onerror="window.__assetFail&&window.__assetFail('Шрифты/Fonts')" />
 
-  <!-- Styles -->
+  
   <link rel="stylesheet" href="css/template.css?v=6" />
   <link rel="stylesheet" href="css/slides.css?v=6" />
   <link rel="stylesheet" href="css/components.css?v=6" />
@@ -65,11 +64,10 @@
   <link rel="stylesheet" href="css/preflight.css?v=6" />
   <link rel="stylesheet" href="css/wbw-art.css?v=1" />
   <link rel="stylesheet" href="css/autofit.css?v=1" />
-  <!-- L13 deck-mounted widget styles (widgets/_base.css + course-map/hnsw-graph/ivf-cells/pq-quantize style.css).
-       BUILD OUTPUT (scripts/build-deck-widgets.mjs) — the deck doesn't load widgets/*/style.css like the Book. -->
+  
   <link rel="stylesheet" href="css/deck-widgets.css?v=1" />
 
-  <!-- KaTeX — vendored locally. -->
+  
   <link rel="stylesheet" href="vendor/katex/katex.min.css"
         onerror="window.__assetFail&&window.__assetFail('KaTeX')">
   <script defer src="vendor/katex/katex.min.js"
@@ -87,7 +85,7 @@
     });
     document.dispatchEvent(new CustomEvent('katex:done'));"></script>
 
-  <!-- Prism — vendored. -->
+  
   <script src="vendor/prism/prism-core.min.js"
         onerror="window.__assetFail&&window.__assetFail('Prism')"></script>
   <script src="vendor/prism/prism-python.min.js"></script>
@@ -95,18 +93,17 @@
   <script src="vendor/prism/prism-yaml.min.js"></script>
   <script src="vendor/prism/prism-json.min.js"></script>
 
-  <!-- QR code generator — vendored. -->
+  
   <script src="vendor/qrcode/qrcode.js"
         onerror="window.__assetFail&&window.__assetFail('QR')"></script>
 
-  <!-- R8 deck auto-layout primitives → window.DeckLayout (esbuild of widgets/_layout.js).
-       Synchronous + in <head> so it is defined before any slide IIFE runs on parse. Like L5/L7. -->
+  
   <script src="js/layout.js"
         onerror="window.__assetFail&&window.__assetFail('DeckLayout')"></script>
 </head>
 
 <body>
-  <!-- Bundler thumbnail -->
+  
   <template id="__bundler_thumbnail">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
       <defs>
@@ -128,12 +125,12 @@
     </svg>
   </template>
 
-  <!-- Logo template -->
+  
   <template id="tpl-logo">
     <div class="logo-mark">DLS</div>
   </template>
 
-  <!-- Deck -->
+  
   <div class="deck">
     <div class="stage">
       <div class="slides" data-course-ru="Deep Learning for Search · 2026" data-course-en="Deep Learning for Search · 2026">
@@ -151,7 +148,7 @@
     <div><div class="meta-label">Lecturer</div><div class="meta-value">Albert Nasybullin</div></div>
     <div><div class="meta-label">Date</div><div class="meta-value">03.11.2026</div></div>
   </div>
-  <aside class="slide-notes">Lecture 13 — "Hyperspace Lanes." ANN: HNSW / IVF / PQ, FAISS / vector DBs, production latency. Séréga takes the helm of the Ship's engine room. Bridges to L15 (RAG / The Oracle).</aside>
+  
 </section>
 <section class="slide" data-type="viz" data-max-step="0" data-current-step="0" data-screen-label="02 You are here">
   <div class="slide-header">
@@ -175,7 +172,7 @@
   }
   </script>
   <p class="viz-caption"><span lang="ru">Мы глубоко в <strong>Ранжировании</strong> — машинном отделении Мостика. Поиск уже корректен; теперь мы заставляем его выживать под миллиардом векторов в пределах бюджета задержки. (Генерация, этап RAG, придёт через лекцию — на L15.)</span><span lang="en">We are deep in <strong>Rank</strong> — the Bridge's engine room. Retrieval is already correct; now we make it survive a billion vectors under a latency budget. (Generate, the RAG leg, arrives one lecture later — at L15.)</span></p>
-  <aside class="slide-notes">Spine anchor: L13 lights Rank (serving / scale). The ANN lanes sit behind the L7/L8 cascade. Generate joins the map for good at L15 (RAG).</aside>
+  
 </section>
 <section class="slide" data-type="agenda" data-screen-label="03 Agenda">
   <div class="slide-header">
@@ -191,7 +188,7 @@
     <li><span lang="ru"><strong>Сравнение</strong> — flat / HNSW / IVF / IVF-PQ / HNSW-PQ бок о бок и дерево решений для выбора одного.</span><span lang="en"><strong>The comparison</strong> — flat / HNSW / IVF / IVF-PQ / HNSW-PQ side by side, and a decision tree for picking one.</span></li>
     <li><span lang="ru"><strong>Продакшн</strong> — FAISS против векторных БД, грамматика index-factory, бюджет задержки против SLA по \(p_{99}\), кэширование и Айсберг под демонстрацией.</span><span lang="en"><strong>Production</strong> — FAISS vs vector DBs, the index-factory grammar, the latency budget against a \(p_{99}\) SLA, caching, and the Iceberg below the demo.</span></li>
   </ol>
-  <aside class="slide-notes">Seven stops: linear-scan death → metrics → the three ANN lanes (HNSW / IVF / PQ) → the comparison → production. Each lane fronted by a light turn. Closes by bridging to L15 (find → answer).</aside>
+  
 </section>
 <section class="slide" data-type="objectives" data-screen-label="04 Objectives">
   <div class="slide-header">
@@ -216,7 +213,7 @@
       </ul>
     </div>
   </div>
-  <aside class="slide-notes">Eight objectives mapping to the seven stops. The TurboQuant frontier is a nod, not the baseline. Each verb is a thing the student can reproduce on paper from this deck.</aside>
+  
 </section>
 <section class="slide" data-type="divider" data-screen-label="05 Divider · The death of linear scan">
   <div class="divider-content">
@@ -227,7 +224,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:64cqh; --fig-w:58%;">
     <img src="assets/img/L9/L9-00-hyperspace-lanes.webp?v=1" alt="Séréga at a spaceship console pulls a lever opening glowing hyperspace lanes across a star-field of document-dots; a vector streaks along a lane." />
   </div>
-  <aside class="slide-notes">Cold open. Callback to L12 — the Scouts still scanned the corpus linearly. That is the O(N) problem L13 kills.</aside>
+  
 </section>
 <section class="slide" data-type="default" data-screen-label="06 Why exact search dies">
   <div class="slide-header">
@@ -245,7 +242,7 @@
     </div>
   </div>
   <p class="small muted center mt-3"><span lang="ru">Поэтому мы заключаем сделку: отдай крупицу полноты, которую не почувствуешь, купи гору скорости — <strong>приближённый</strong> поиск ближайших соседей. Следующие два слайда измеряют геометрическую половину проклятия; за стоимость счёт придёт в акте про продакшн.</span><span lang="en">So we strike a bargain: give up a sliver of recall you can't feel, buy a mountain of speed — <strong>approximate</strong> nearest-neighbour search. The next two slides quantify the geometric half of the curse; the cost half gets its number in the production act.</span></p>
-  <aside class="slide-notes">problem-exact-dies. Doomed twice: O(N·d) cost + high-d concentration (Wraith callback to L2). Motivates ANN. The following by-hand + histogram quantify the concentration.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="07 Distance concentration, by hand">
   <div class="slide-header">
@@ -258,7 +255,7 @@
     $$ d=1000:\ \mathrm{cv}=\tfrac{0.2410}{12.9023}=\mathbf{0.0187} \;\Longrightarrow\; \text{near}\approx\text{far} $$
   </div>
   <p class="small muted center mt-2"><span lang="ru">Разброс \(\sigma\) почти не меняется, среднее \(\mu\) растёт — <strong>коэффициент вариации схлопывается</strong> \(0{,}4784 \to 0{,}0187\). При \(d=1000\) «ближайший» перестаёт что-либо значить: точный поиск соседей и хрупок, и дорог — довод в пользу <em>приближённого</em> поиска (далее). Сменой метрики не спастись — косинус тоже концентрируется (\(\sim 1/\sqrt d\) к ортогональности). Ср. с относительным контрастом Beyer–Goldstein 1999 в Книге.</span><span lang="en">The spread \(\sigma\) barely moves; the mean \(\mu\) grows — so the <strong>coefficient of variation collapses</strong> \(0.4784 \to 0.0187\). At \(d=1000\) "the nearest" stops meaning anything: exact nearest-neighbour is fragile and expensive — the case for <em>approximate</em> search (next). Switching metric doesn't escape it — cosine concentrates too (\(\sim 1/\sqrt d\) toward orthogonality). Cf. Beyer–Goldstein 1999 relative contrast in the Book.</span></p>
-  <aside class="slide-notes">Distance-concentration by hand. 300 uniform-random points in [0,1]^d (seed 0). cv = std/mean of the pairwise Euclidean distances: 0.4784 (d=2) → 0.1932 (d=10) → 0.0602 (d=100) → 0.0187 (d=1000). All four μ/σ/cv triples are verbatim from data/l2-highd.json dims. The std stays ≈0.24 while μ grows from 0.52 to 12.90, so cv → 0. This is the geometric half of why exact NN dies; the next slide shows the histogram collapse.</aside>
+  
 </section>
 <section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="08 Viz · Distance concentration">
   <div class="slide-header">
@@ -282,7 +279,7 @@
     }}
   </script>
   <p class="viz-caption"><span lang="ru">По мере роста размерности гистограмма попарных расстояний сжимается в пик у среднего: \(\mathrm{cv}\) падает \(0{,}4784 \to 0{,}1932 \to 0{,}0602 \to 0{,}0187\). При \(d=1000\) близкое и далёкое неразличимы — Призрак во всей красе.</span><span lang="en">As the dimension climbs, the pairwise-distance histogram tightens into a spike at the mean: \(\mathrm{cv}\) falls \(0.4784 \to 0.1932 \to 0.0602 \to 0.0187\). By \(d=1000\) near and far are indistinguishable — the Wraith made flat.</span></p>
-  <aside class="slide-notes">highd-histogram widget (reused from L2 First Contact). maxStep 3: d=2 (cv 0.4784) → d=10 (0.1932) → d=100 (0.0602) → d=1000 (0.0187). Every bin height, mean, cv comes from data/l2-highd.json (seed 0, n=300). The visual proof behind the by-hand cv computation on the previous slide.</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="09 Definition · Three metrics">
   <div class="slide-header">
@@ -301,7 +298,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:42cqh; --fig-w:34%;">
     <img src="assets/img/L9/L9-10-three-metrics.webp?v=1" alt="Séréga at a navigation table measures the same two stars three ways at once — a straight L2 ruler, a protractor for the cosine angle, and a projection-shadow gauge for the inner product." />
   </div>
-  <aside class="slide-notes">three-metrics def-card. Sets up the metrics arc. The key production note: cosine ⇔ inner product on normalized vectors, and FAISS only ships METRIC_L2 / METRIC_INNER_PRODUCT — so cosine is a normalize-then-IP recipe. The index is built around a metric, hence we pick before building. The next two slides work all three on the same numbers.</aside>
+  
 </section>
 <section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="10 Viz · L2 vs cosine vs inner product">
   <div class="slide-header">
@@ -351,7 +348,7 @@
     }}
   </script>
   <p class="viz-caption"><span lang="ru">Та же пара \(a=[1,2,2,0]\), \(b=[2,0,1,1]\): L2 \(=2{,}6458\) (смещение), косинус \(=0{,}5443\) — скалярное произведение единичных векторов \(=0{,}5443\) (чистое направление) — и скалярное произведение \(=4\) (направление <em>и</em> величина). Одна пара — три разных оценки. Какая ранжирует правильно? Следующий слайд показывает, что они расходятся.</span><span lang="en">Same pair \(a=[1,2,2,0]\), \(b=[2,0,1,1]\): L2 \(=2.6458\) (displacement), cosine \(=0.5443\) — the unit-vector dot \(=0.5443\) (pure direction) — and inner product \(=4\) (direction <em>and</em> magnitude). One pair, three different scores. Which one ranks correctly? The next slide shows them disagree.</span></p>
-  <aside class="slide-notes">metric-compare widget. maxStep 3: pair+norms → L2 (2.6458) → cosine (0.5443 = normalizedDot) → inner product (4). Every number from data/l9-metrics.json pair: l2/dot/cosine, norms 3.0/2.4495. The ranking-disagreement (top-1 L2→d1, cosine→d2, IP→d3) is handed off to slide 11 (the walkthrough), so this slide stops at the three scores on the same pair — no dead reveal.</aside>
+  
 </section>
 <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="11 Walkthrough · Ranking disagreement">
   <div class="slide-header">
@@ -386,7 +383,7 @@
     <span class="step-counter">4/4</span>
     <button data-step-act="next" aria-label="Next step">&rarr;</button>
   </div>
-  <aside class="slide-notes">Ranking-disagreement walkthrough. Numbers verbatim from data/l9-metrics.json ranking block: L2 [1.0, 1.4142, 5.3852] → d1; cosine [0.9487, 1.0, 0.9648] → d2; dot [6, 12, 22] → d3. The lesson: the same three candidates produce three different top-1 under the three metrics. Production tie-in: FAISS's ANN indexes (IVF/HNSW/PQ) use METRIC_L2 / METRIC_INNER_PRODUCT; cosine = normalize then inner product. The metric is chosen before index construction because the index is built around it.</aside>
+  
 </section>
 <section class="slide" data-type="divider" data-screen-label="12 Divider · HNSW">
   <div class="divider-content">
@@ -394,7 +391,7 @@
     <h1>Trade a sliver of recall for a mountain of speed</h1>
     <p class="divider-sub"><span lang="ru"><em>Коридор, а не прямая линия.</em> Отдай крупицу полноты, которую даже не почувствуешь — изредка теряя истинного соседа — и купи гору скорости. Эта сделка и есть <strong>приближённый</strong> поиск ближайших соседей. Первый коридор: граф, по которому ты <strong>идёшь</strong>.</span><span lang="en"><em>The lane, not the straight line.</em> Give up a sliver of recall you can't even feel — occasionally missing a true neighbour — and buy a mountain of speed. That bargain is <strong>approximate</strong> nearest-neighbour search. First lane: a graph you <strong>walk</strong>.</span></p>
   </div>
-  <aside class="slide-notes">turn-ann / HNSW lane. The exact→approximate bargain. Three lanes ahead: navigable graph (HNSW), partitioned cells (IVF), compression (PQ).</aside>
+  
 </section>
 <section class="slide" data-type="viz" data-max-step="2" data-current-step="0" data-screen-label="12a NCD · the broadcast that shrank">
   <div class="slide-header">
@@ -466,7 +463,7 @@
 }
   </script>
   <p class="viz-caption"><span lang="ru">Разделительный слайд <em>обещал</em> сделку — схема (нотация из L9) её <strong>показывает и выставляет счёт</strong>. Точный поиск рассылает запрос по <strong>всем</strong> \(N\) документам: \(N\) чаш, \(N\cdot d\) умножений, полнота \(1.0\) по построению. Приближённый — по кандидатам \(C\ll N\), до которых <strong>доходит обход графа</strong>: чаш столько же, сколько кандидатов, и счёт следует за \(|C|\cdot d\). Цена нарисована там же: настоящий сосед за границей раскрытых вершин чаши не получает — а <strong>неоценённое невозможно вернуть</strong>.</span><span lang="en">The divider <em>promised</em> the bargain — the circuit (the L7 notation) <strong>draws it and bills it</strong>. Exact search broadcasts the query over <strong>every</strong> one of the \(N\) documents: \(N\) cups, \(N\cdot d\) multiplications, recall \(1.0\) by construction. Approximate search broadcasts over the candidates \(C\ll N\) that a <strong>graph walk</strong> reaches: one cup per candidate, and the bill follows \(|C|\cdot d\). The price is drawn on the same picture: a true neighbour behind the frontier never gets a cup — and <strong>what is never scored can never be returned</strong>.</span></p>
-  <aside class="slide-notes">ncd-ann, three steps — the hook of the HNSW lane, in the circuit notation we taught in L7. The divider just promised a bargain: a sliver of recall for a mountain of speed. This slide is that sentence turned into a checkable picture, and then it charges for it. Step zero, exact search: the query wire enters a dashed broadcast region, and that region encloses every single document in the index. Each one carries a contraction cup — one dot product, q dot d-i — so the ledger says N cups, N times d multiplications, recall one point zero. And note WHY recall is one: not because brute force is clever, but because the candidate set IS the corpus. C equals N. You looked at everything, so you cannot have missed anything. Step one, approximate search: nothing in the circuit changes. Same wire, same cup, same dot product. The only thing that changed is the SIZE of the axis you broadcast over — the region physically contracts onto a candidate set C, reached by an orange walk over a proximity graph from an entry point. Now make them look at which documents actually get a cup: not just the four the walk expanded. d5 and d6 get cups too and the walk never steps on them, because to decide where to hop next you must score every neighbour of every node you open. Scored is not the same as expanded. So the candidate set is the walk PLUS its frontier, the bill is roughly the size of C times d, with the size of C about hops times degree — still vanishingly small next to N. The documents left outside have no cup in front of them at all: the ABSENCE of the glyph is the saving. Step two is the price, and it is the whole reason this slide exists. The query has two true neighbours in the index. One, d4, the walk reached and scored. The other, d10, sits two hops from every node the search opened — behind the frontier, at a genuine local optimum, which is the only kind of miss a graph walk can actually make. Every route into it runs through a node that was scored but never expanded, so the two red dashed edges were never crossed. No cup ever forms in front of d10, and what is never scored can never be returned. Recall falls below one. That is the deal in one picture: you did not buy the speed with cleverness, you bought it by exchanging a guarantee for a budget. Everything left in this lecture — the layers, the ef knob, nprobe, the codebooks — is machinery for choosing how big that budget is. Symbolic on purpose: N, C much less than N, cost N·d versus roughly |C|·d, recall one versus under one. We have no grounded ANN recall measurement in data/, so we quote none.</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="13 Definition · HNSW">
   <div class="slide-header">
@@ -486,7 +483,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:42cqh; --fig-w:32%;">
     <img src="assets/img/L9/L9-11-skiplist-to-hnsw.webp?v=1" alt="Séréga climbs a tower of sparse express balconies (skip-list lanes) that descend onto a dense web of walkways below — the skip-list to NSW to HNSW lineage as one structure." />
   </div>
-  <aside class="slide-notes">HNSW definition def-card. The lineage: skip-list (layered express lanes, O(log N)) + NSW (near links + long-range links → short greedy paths) → HNSW (layer the small-world graph). Entry at the sparse top, descend to the dense base. Sets up the O(log N) theorem next and the two-layer climb after.</aside>
+  
 </section>
 <section class="slide" data-type="theorem" data-screen-label="14 Theorem · O(log N) search">
   <div class="slide-header">
@@ -510,7 +507,7 @@
   </div>
 
   <p class="small muted center mt-2">Malkov &amp; Yashunin (arXiv 2016; IEEE TPAMI 2018).</p>
-  <aside class="slide-notes">O(log N) theorem thm-card (statement + proof). Layers keep a 1/m fraction each → ≈log_m N layers; O(1) expected hops per layer (small-world property) → O(1) summed over log_m N layers = O(log N). M sets the per-node degree m: more edges → denser → higher recall, more memory. Cited Malkov & Yashunin TPAMI 2018 (arXiv:1603.09320), matching data/l9-bench.json hnsw.complexity 'O(log N) search'. No invented decimals — purely asymptotic.</aside>
+  
 </section>
 <section class="slide" data-type="archflow" data-max-step="3" data-current-step="0" data-screen-label="15 Climb · HNSW">
   <div class="slide-header">
@@ -757,7 +754,7 @@
 }
   </script>
   <p class="viz-caption"><span lang="ru">Жадный спуск: от входного узла прыгай к ближайшему соседу до локального минимума. Здесь он совпал с ближайшим соседом &mdash; гарантии этого нет, и через два слайда мы разберём случай, где спуск промахивается. Ручка ef расширяет список кандидатов; M задаёт связность.</span><span lang="en">Greedy descent: from the entry node, hop to the closest neighbour until a local minimum. Here it happens to be the nearest neighbour &mdash; there is no guarantee, and two slides on we walk the case where it is not. The ef knob widens the candidate list; M sets connectivity.</span></p>
-  <aside class="slide-notes">climb-hnsw widget. maxStep 3: graph+query → hop1 → hop2 (local min) → NN+recall. Mechanism, not speedup.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="16 HNSW, by hand">
   <div class="slide-header">
@@ -770,7 +767,7 @@
     $$ \text{path } n_0 \to n_1 \to n_2 = \mathbf{2}\text{ hops},\quad n_2 = \text{brute-force NN} \;\Longrightarrow\; \text{recall@1} = \mathbf{1.0} $$
   </div>
   <p class="small muted center mt-2"><span lang="ru">На шести узлах это <em>механизм</em>, а не ускорение — выигрыш \(O(\log N)\) асимптотический. Ручка <strong>ef</strong> расширяет список кандидатов, чтобы уйти из ловушки локального минимума; <strong>M</strong> задаёт связность.</span><span lang="en">On six nodes this is the <em>mechanism</em>, not a speed-up — the \(O(\log N)\) win is asymptotic. The <strong>ef</strong> knob widens the candidate list to escape a local-min trap; <strong>M</strong> sets connectivity.</span></p>
-  <aside class="slide-notes">HNSW by hand: greedy n0→n1→n2, 2 hops, recall@1 1.0. Distances 0.7071/2.55/4.30/1.58/2.92/4.53 gated vs data/l9-hnsw.json; recompute in provenance_l9.</aside>
+  
 </section>
 <section class="slide" data-type="archflow" data-max-step="5" data-current-step="0" data-screen-label="17 Archflow · Two-layer HNSW">
   <div class="slide-header">
@@ -848,7 +845,7 @@
     }}
   </script>
   <p class="viz-caption"><span lang="ru">Жадный поиск только по базе из b0 идёт b0→b1→b2→b4 и застревает — ни одно базовое ребро не пересекает разрыв (recall@1 = 0,0). Войдя в хаб b2, один дальнодействующий переход b2→b7 пересекает разрыв, затем b7→b9 по базе приводит к истинному соседу (recall@1 = 1,0). Слой хабов — это экспресс-полоса.</span><span lang="en">Base-only greedy from b0 walks b0→b1→b2→b4 and traps — no base edge crosses the gap (recall@1 = 0.0). Entering at hub b2, one long-range hop b2→b7 crosses the gap, then b7→b9 on the base lands the true neighbour (recall@1 = 1.0). The hub layer is the express lane.</span></p>
-  <aside class="slide-notes">hnsw-graph toy2 variant, maxStep 5. 12 nodes, 2 layers. Steps: graph → base-only trap at b4 (recall 0.0) → enter hub b2 → hub hop b2→b7 (2.0) → descend b7→b9 (1.4142) → recall 1.0 contrast. Every distance/recall from data/l9-hnsw.json toy2 (1.4142, 2.0, 13.0, 12.0). The teaching contrast: base-only 0.0 vs hub-entry 1.0 — the upper layers solve the local-minimum trap.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="18 Two-layer descent, by hand">
   <div class="slide-header">
@@ -861,7 +858,7 @@
     $$ \text{descend: } b_7 \to b_9,\quad d(b_9,q)=\mathbf{1.4142}=\text{brute-force NN} \;\Longrightarrow\; \text{recall@1}=\mathbf{1.0} $$
   </div>
   <p class="small muted center mt-2"><span lang="ru">Жадный поиск только по базе застревает в \(b_4\), потому что ни одно базовое ребро не достаёт до правого кластера — <strong>полнота 0,0</strong>. Войдя в разреженный хаб \(b_2\), один переход \(13{,}0\to 2{,}0\) перепрыгивает разрыв, затем плотная база уточняет до \(b_9\) на \(1{,}4142\) — <strong>полнота 1,0</strong>. Именно верхний слой заставляет жадный спуск работать на масштабе.</span><span lang="en">Base-only greedy traps at \(b_4\) because no base edge reaches the right-hand cluster — <strong>recall 0.0</strong>. Entering at the sparse hub \(b_2\), one \(13.0\to 2.0\) hop leaps the gap, then the dense base refines to \(b_9\) at \(1.4142\) — <strong>recall 1.0</strong>. The upper layer is what makes greedy descent work at scale.</span></p>
-  <aside class="slide-notes">Two-layer descent by hand. base-only path b0→b1→b2→b4, trapped at b4 (d=12.0), recall 0.0; hub hop b2→b7 (13.0→2.0); base descent b7→b9 (1.4142 = brute-force NN), recall 1.0. All distances/recall verbatim from data/l9-hnsw.json toy2 (12.0, 13.0, 2.0, 1.4142, 0.0, 1.0). The contrast 0.0 vs 1.0 is the whole point of the hierarchy.</aside>
+  
 </section>
 <section class="slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="19 Viz · Recall vs ef">
   <div class="slide-header">
@@ -893,7 +890,7 @@
     }}
   </script>
   <p class="viz-caption"><span lang="ru">На худшем случае из 30 узлов (старт дальше всего от \(q\)): \(\textrm{ef}=1\) держит одного кандидата и застревает на полноте \(\mathbf{0{,}0}\) (5 кандидатов вычислено); \(\textrm{ef}\ge 2\) держит более широкий список и достигает \(\mathbf{1{,}0}\). На одном запросе recall@1 бинарна (\(0\) или \(1\)), поэтому она ступенчата; гладкое колено полнота-против-ef появляется лишь при усреднении по набору запросов. За коленом полнота остаётся \(1{,}0\), но стоимость растёт (15 → 26) — чистые накладные расходы, вот настоящая кривая здесь.</span><span lang="en">On a 30-node worst case (start farthest from \(q\)): \(\textrm{ef}=1\) keeps one candidate and traps at recall \(\mathbf{0.0}\) (5 candidates evaluated); \(\textrm{ef}\ge 2\) keeps a wider list and reaches \(\mathbf{1.0}\). On one query recall@1 is binary (\(0\) or \(1\)), so it steps; the smooth recall-vs-ef knee appears only when averaged over a query set. Past the knee, recall stays \(1.0\) but cost climbs (15 → 26) — pure overhead, the real curve here.</span></p>
-  <aside class="slide-notes">recall-curve, series 'ef', maxStep 4. data/l9-hnsw.json efSweep: ef 1→0.0 (5 cands), ef 2/4/8→1.0 (15 cands), ef 16→1.0 (26 cands). The knee is at ef=2: the smallest ef that already gives full recall. ef is the recall↔work dial; read it to the knee and stop. The cost number under each point = candidates evaluated.</aside>
+  
 </section>
 <section class="slide" data-type="table" data-screen-label="20 Table · ef / M knobs">
   <div class="slide-header">
@@ -940,7 +937,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:30cqh; --fig-w:40%;">
     <img src="assets/img/L9/L9-12-ef-knob.webp?v=1" alt="Séréga turns a dial labelled ef; a widening fan of candidate-beams sweeps past a local-minimum pit and reaches the true star, while a small recall gauge climbs." />
   </div>
-  <aside class="slide-notes">ef/M cmp-table. M = per-node degree (build-time, sets graph density → recall & memory); efConstruction = build-time graph quality; efSearch = the query-time breadth dial (retunable, costs time not memory). The ef=1→0.0 / ef≥2→1.0 contrast references the recall-curve slide (gated l9-hnsw efSweep). Knobs list matches data/l9-bench.json hnsw.knobs [M, efConstruction, efSearch].</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="21 Definition · When HNSW">
   <div class="slide-header">
@@ -957,7 +954,7 @@
       <p class="small muted"><span lang="ru">Поэтому HNSW в одиночку прожорлив по RAM на миллиарде векторов. Именно поэтому в продакшне его сочетают с PQ (HNSW-PQ) — граф ради скорости, коды ради памяти. Следующие коридоры, IVF и PQ, атакуют стену памяти напрямую.</span><span lang="en">So HNSW alone is RAM-hungry at a billion vectors. That is exactly why production pairs it with PQ (HNSW-PQ) — the graph for speed, the codes for memory. The next lanes, IVF and PQ, attack the memory wall directly.</span></p>
     </div>
   </div>
-  <aside class="slide-notes">HNSW applicability def-card. Use when: lowest latency at high recall, fits RAM, incremental inserts. Costs: high build, memory = vectors + graph overhead (no compression). The billion-scale catch motivates IVF (partition) and PQ (compression), and HNSW-PQ as the combined production index. Bridges to the IVF lane.</aside>
+  
 </section>
 <section class="slide" data-type="divider" data-screen-label="22 Divider · IVF">
   <div class="divider-content">
@@ -968,7 +965,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:60cqh; --fig-w:50%;">
     <img src="assets/img/L9/L9-03-sectors-ivf.webp?v=1" alt="The galaxy carved into three glowing sectors (Voronoi cells); Séréga probes the two sectors nearest his query and ignores the rest." />
   </div>
-  <aside class="slide-notes">turn-partition. IVF = coarse quantizer + inverted lists. nprobe is the dial.</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="23 Definition · Coarse quantizer">
   <div class="slide-header">
@@ -985,7 +982,7 @@
       <p class="small muted"><span lang="ru">Больше ячеек (крупнее nlist) → меньше векторов на ячейку → быстрее, но истинный сосед вероятнее окажется в ячейке, которую ты не зондировал. nprobe меняет полноту на скорость.</span><span lang="en">More cells (larger nlist) → fewer vectors per cell → faster, but a true neighbour is likelier to fall in a cell you didn't probe. nprobe trades recall for speed.</span></p>
     </div>
   </div>
-  <aside class="slide-notes">Coarse-quantizer / IVF def-card. k-means → nlist centroids → Voronoi cells; coarse quantizer = nearest-centroid map; file vectors once. Query probes the nprobe nearest cells: cost O(nprobe·N/nlist·d) (matches l9-compare search-complexity row). Callback to L3 inverted file (term → postings; here centroid → list). nprobe is the dial. Sets up the climb + 20-pt sweep.</aside>
+  
 </section>
 <section class="slide" data-type="archflow" data-max-step="3" data-current-step="0" data-screen-label="24 Climb · IVF">
   <div class="slide-header">
@@ -1144,7 +1141,7 @@
 }
   </script>
   <p class="viz-caption"><span lang="ru">Зондируй только ячейки, ближайшие к запросу. nprobe=1 находит 2 из 3 истинных соседей (recall@3 = 0,6667); nprobe=2 зондирует ещё и вторую по близости ячейку и восстанавливает третьего (recall@3 = 1,0).</span><span lang="en">Probe only the cells nearest the query. nprobe=1 finds 2 of 3 true neighbours (recall@3 = 0.6667); nprobe=2 also probes the second-nearest cell and recovers the third (recall@3 = 1.0).</span></p>
-  <aside class="slide-notes">climb-ivf widget. maxStep 3: points+cells → query in c0 → nprobe1 (0.6667) → nprobe2 (1.0). Committed geometry.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="25 IVF, by hand">
   <div class="slide-header">
@@ -1156,7 +1153,7 @@
     $$ \text{nprobe}=2:\ \text{probe } c_0, c_1 \;\Longrightarrow\; \text{find } 3/3 \;\Longrightarrow\; \text{recall@3} = \mathbf{1.0} $$
   </div>
   <p class="small muted center mt-2"><span lang="ru">Третий истинный сосед лежит прямо за границей в \(c_1\), <strong>второй по близости</strong> ячейке — одно зондирование его упускает, два — восстанавливают. Опасность — <strong>граничный сосед</strong>; nprobe — это регулятор между скоростью и полнотой.</span><span lang="en">The third true neighbour sits just across the border in \(c_1\), the <strong>second-nearest</strong> cell — one probe alone misses it, two probes recover it. The danger is the <strong>boundary neighbour</strong>; nprobe is the dial between speed and recall.</span></p>
-  <aside class="slide-notes">IVF by hand: recall@3 0.6667 (nprobe 1) → 1.0 (nprobe 2). Committed geometry (2-in-c0/1-in-c1/c1 2nd-nearest) pinned in provenance_l9. 0.6667 gated vs data/l9-ivf.json.</aside>
+  
 </section>
 <section class="slide" data-type="archflow" data-max-step="6" data-current-step="0" data-screen-label="26 Archflow · IVF nprobe sweep">
   <div class="slide-header">
@@ -1210,7 +1207,7 @@
     }}
   </script>
   <p class="viz-caption"><span lang="ru">Запрос попадает в \(c_0\); его 5 истинных соседей разбросаны по 3 ближайшим ячейкам. \(\textrm{nprobe}=1\) сканирует 4 точки → recall@5 \(\mathbf{0{,}6}\); \(=2\) сканирует 8 → \(\mathbf{0{,}8}\); \(=3\) сканирует 13 → \(\mathbf{1{,}0}\). Дальше (просканировано 17, 20) полнота остаётся \(1{,}0\) — чистая лишняя работа.</span><span lang="en">Query lands in \(c_0\); its 5 true neighbours spread across the 3 nearest cells. \(\textrm{nprobe}=1\) scans 4 points → recall@5 \(\mathbf{0.6}\); \(=2\) scans 8 → \(\mathbf{0.8}\); \(=3\) scans 13 → \(\mathbf{1.0}\). Beyond that (17, 20 scanned) recall stays \(1.0\) — pure extra work.</span></p>
-  <aside class="slide-notes">ivf-cells toy2, maxStep 6. 20 points, 5 cells, k=5. nprobe sweep recall 0.6→0.8→1.0 (then flat) with pointsScanned 4→8→13→17→20, all verbatim from data/l9-ivf.json toy2.sweep. The true-NN spread across the 3 nearest cells (cellRankByDist [0,4,1,...]) is why 3 probes suffice; cells 4 and 5 are diminishing returns. nprobe is the recall↔work dial.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="27 nprobe sweep, by hand">
   <div class="slide-header">
@@ -1223,7 +1220,7 @@
     $$ \textrm{nprobe}=4:\ \text{scan } 17;\quad \textrm{nprobe}=5:\ \text{scan } 20 \;\Longrightarrow\; \text{recall stays } \mathbf{1.0} \text{ (diminishing returns)} $$
   </div>
   <p class="small muted center mt-2"><span lang="ru">5 истинных соседей лежат в трёх ближайших ячейках \(c_0, c_4, c_1\) — поэтому три зондирования уже дают полную полноту. Четвёртая и пятая ячейки лишь добавляют работы: <strong>число просканированных точек</strong> растёт \(4 \to 8 \to 13 \to 17 \to 20\), а полнота держится на \(1{,}0\). Колено — при \(\textrm{nprobe}=3\).</span><span lang="en">The 5 true neighbours sit in the three nearest cells \(c_0, c_4, c_1\) — so three probes already give full recall. Cells four and five only add work: <strong>points scanned</strong> climbs \(4 \to 8 \to 13 \to 17 \to 20\) while recall is flat at \(1.0\). The knee is at \(\textrm{nprobe}=3\).</span></p>
-  <aside class="slide-notes">nprobe by hand. recall 0.6 (nprobe 1, scan 4) → 0.8 (nprobe 2, scan 8) → 1.0 (nprobe 3, scan 13) → 1.0 (scan 17) → 1.0 (scan 20). All recall + pointsScanned verbatim from data/l9-ivf.json toy2.sweep. Probe order by centroid distance c0,c4,c1,c2,c3 (cellRankByDist). The knee is nprobe=3 — full recall at minimum work.</aside>
+  
 </section>
 <section class="slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="28 Viz · Recall vs nprobe">
   <div class="slide-header">
@@ -1255,7 +1252,7 @@
     }}
   </script>
   <p class="viz-caption"><span lang="ru">Прогон nprobe в IVF рисует <em>ту же форму</em>, что и ef в HNSW: полнота растёт \(0{,}6 \to 0{,}8 \to 1{,}0\), затем колено. Ручка другая (зондируемые ячейки против ширины списка кандидатов); компромисс полнота↔работа идентичен. Читай до колена — здесь \(\textrm{nprobe}=3\) — и останавливайся.</span><span lang="en">The IVF nprobe sweep traces the <em>same shape</em> as HNSW's ef: recall climbs \(0.6 \to 0.8 \to 1.0\), then a knee. The knob differs (cells probed vs candidate-list width); the recall↔work tradeoff is identical. Read it to the knee — here \(\textrm{nprobe}=3\) — and stop.</span></p>
-  <aside class="slide-notes">recall-curve, series 'nprobe', maxStep 4. Same generic plot as the ef curve, different data: data/l9-ivf.json toy2.sweep recall 0.6/0.8/1.0/1.0/1.0, cost (points scanned) 4/8/13/17/20. Teaching beat: one curve shape (recall vs a knob, rising cost) governs both lanes. Knee at nprobe=3.</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="29 Definition · When IVF">
   <div class="slide-header">
@@ -1271,7 +1268,7 @@
       <p class="small muted"><span lang="ru">IVF всё ещё хранит полные векторы, поэтому сам по себе он не решает стену <em>памяти</em> — вот почему в продакшне его сочетают с PQ как <code>IVF-PQ</code>: ячейки ради скорости, коды ради RAM. Это третий коридор.</span><span lang="en">IVF still stores full vectors, so it does not solve the <em>memory</em> wall on its own — which is why production stacks it with PQ as <code>IVF-PQ</code>: the cells for speed, the codes for RAM. That is the third lane.</span></p>
     </div>
   </div>
-  <aside class="slide-notes">IVF applicability def-card. Use when: large N, cheap training (k-means only), easy inserts, nprobe retunable. Catch: boundary neighbours stranded in unprobed cells. Still full vectors → no memory win alone → IVF-PQ in production. Bridges to the PQ lane.</aside>
+  
 </section>
 <section class="slide" data-type="divider" data-screen-label="30 Divider · PQ">
   <div class="divider-content">
@@ -1282,7 +1279,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:60cqh; --fig-w:52%;">
     <img src="assets/img/L9/L9-04-fold-the-maps-pq.webp?v=1" alt="Séréga folds a vast star-chart into a tiny pocket codebook of stamped tiles (PQ compression, 32 to 4)." />
   </div>
-  <aside class="slide-notes">turn-compress. PQ trades a little recall for a lot of memory.</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="31 Definition · Subquantizers">
   <div class="slide-header">
@@ -1301,7 +1298,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:34cqh; --fig-w:30%;">
     <img src="assets/img/L9/L9-14-adc-table.webp?v=1" alt="Séréga reads a 4x4 distance-table grid on the wall, tracing four code-arrows — one per subspace — down to four cells and summing them on a running tally (the ADC lookup)." />
   </div>
-  <aside class="slide-notes">Subquantizer decomposition def-card. PQ splits a vector into m subvectors, each quantized with its own k-centroid codebook; the code is the tuple = a point in the Cartesian product. Store m·k centroids (8·256=2048) but represent k^m reconstructions (256^8 ≈ 1.8e19). A flat codebook of k^m is infeasible — the product structure is the trick. Sets up the climb + memory math + ADC.</aside>
+  
 </section>
 <section class="slide" data-type="archflow" data-max-step="3" data-current-step="0" data-screen-label="32 Climb · PQ">
   <div class="slide-header">
@@ -1401,7 +1398,7 @@
 }
   </script>
   <p class="viz-caption"><span lang="ru">Вектор D=8 float32 (32 Б) делится на 4 подвектора; каждый отображается в ближайший из 256 центроидов — 1-байтовый индекс — сжимаясь до 4 Б. Сжатие 8×; немного полноты — вот цена.</span><span lang="en">A D=8 float32 vector (32 B) splits into 4 subvectors; each maps to the nearest of 256 centroids — a 1-byte index — shrinking to 4 B. Compression 8×; a little recall is the price.</span></p>
-  <aside class="slide-notes">climb-pq widget. maxStep 3: float vector → subvectors → codebook bytes → totals (32→4, 8×) + scale + ADC + representative recall.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="33 PQ, by hand">
   <div class="slide-header">
@@ -1414,7 +1411,7 @@
     $$ \text{ADC: an } m\times k = 4\times256 \text{ table}; \quad \text{representative recall@1 (PQ-m4)} \approx \mathbf{0.70} $$
   </div>
   <p class="small muted center mt-2"><span lang="ru">256 центроидов → 1-байтовый индекс на подвектор. Память сжимается \(8\times\); немного полноты — вот цена — регулятор память↔полнота. <strong>Фронтир:</strong> TurboQuant устраняет обучение кодовой книги (слайд про фронтир дальше в этом блоке PQ).</span><span lang="en">256 centroids → a 1-byte index per subvector. Memory shrinks \(8\times\); a little recall is the price — the memory↔recall dial. <strong>Frontier:</strong> TurboQuant removes codebook training (the frontier slide later in this PQ block).</span></p>
-  <aside class="slide-notes">PQ by hand: 32→4 (8×); scale 768→96 (32×), 128→8 (64×); representative recall ≈0.70 (cited, not derived). 0.70 gated vs data/l9-pq.json; bytes/compression pinned in provenance_l9.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="34 Codebook training, by hand">
   <div class="slide-header">
@@ -1430,7 +1427,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:30cqh; --fig-w:38%;">
     <img src="assets/img/L9/L9-13-codebook-training.webp?v=1" alt="Séréga stamps a sheet of tiles: scattered points are herded toward two centroid-stamps over two passes, the clusters tightening — Lloyd's k-means iterations." />
   </div>
-  <aside class="slide-notes">Codebook-training e2e. Lloyd's k-means on one PQ subspace: 6 frozen 2-D subvectors, k=2, init = first 2 points. Inertia sequence 284.0 → 20.6875 → 2.6667 (monotone non-increasing), centroids (1,1)/(2,1) → (1.0,1.5)/(6.75,6.5) → (1.3333,1.3333)/(8.3333,8.3333). All verbatim from data/l9-pq.json codebookTrain (iterations + final). This is done m times (once per subspace) offline — the training cost PQ pays.</aside>
+  
 </section>
 <section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="35 Viz · ADC worked">
   <div class="slide-header">
@@ -1468,7 +1465,7 @@
     }}
   </script>
   <p class="viz-caption"><span lang="ru">Раздели запрос на \(m=4\) подзапроса и предвычисли \(m\times k\) таблицу квадратов подрасстояний. Вектор базы, хранимый как коды \([2,0,3,1]\), стоит \(\hat d^2=\sum_j \textrm{table}[j][\textrm{code}_j]=2+0+20+13=\mathbf{35}\) — четыре обращения, никакой арифметики полного вектора. Точное расстояние — \(37\); разрыв в \(2\) — это ошибка квантования. ADC асимметрична и смещена: она измеряет расстояние до реконструкции по каждому подпространству, поэтому эти ошибки накапливаются по \(m\) подпространствам — в иллюстративной конфигурации ниже полнота около \(0{,}7\), но это не универсальный предел. OPQ снижает ошибку квантования (вращение в продакшн-строке фабрики).</span><span lang="en">Split the query into \(m=4\) subqueries and precompute an \(m\times k\) table of squared sub-distances. A database vector stored as codes \([2,0,3,1]\) costs \(\hat d^2=\sum_j \textrm{table}[j][\textrm{code}_j]=2+0+20+13=\mathbf{35}\) — four lookups, no full-vector math. The exact distance is \(37\); the gap of \(2\) is the quantization error. ADC is asymmetric and biased: it measures distance to the per-subspace reconstruction, so these errors accumulate across the \(m\) subspaces — that accumulation is exactly what caps recall near \(0.7\) and what OPQ (the rotation in the production factory string) reduces.</span></p>
-  <aside class="slide-notes">pq-quantize variant 'adc', maxStep 3 (one subspace row traced per step). ADC formula d̂²=Σ_j d(q_j, c_{j,code_j})². Codes [2,0,3,1] → table[0][2]=2, table[1][0]=0, table[2][3]=20, table[3][1]=13 → ADC=35 vs exactDistance=37, gap 2 = the quantization error. All numbers verbatim from data/l9-pq.json adcWorked. The point of PQ: near-exact distance computed cheaply from table lookups on the codes.</aside>
+  
 </section>
 <section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="36 Viz · PQ memory across configs">
   <div class="slide-header">
@@ -1502,7 +1499,7 @@
     }}
   </script>
   <p class="viz-caption"><span lang="ru">Вектор 768-мерный (3072 Б): \(m=96,k=256\) → 96 Б/вектор (\(\mathbf{32\times}\), 96 ГБ при \(10^9\)); удвой до \(m=192\) → 192 Б (\(\mathbf{16\times}\), тоньше коды, больше RAM); опусти до \(k=16\) (4 бита/код) → 48 Б (\(\mathbf{64\times}\), 48 ГБ). Вектор 128-мерный при \(m=8,k=256\) → 8 Б (\(\mathbf{64\times}\)). Больше подвекторов или больше бит = выше полнота и больше памяти; меньше = наоборот.</span><span lang="en">A 768-d vector (3072 B): \(m=96,k=256\) → 96 B/vec (\(\mathbf{32\times}\), 96 GB @ \(10^9\)); double to \(m=192\) → 192 B (\(\mathbf{16\times}\), finer codes, more RAM); drop to \(k=16\) (4 bits/code) → 48 B (\(\mathbf{64\times}\), 48 GB). A 128-d vector at \(m=8,k=256\) → 8 B (\(\mathbf{64\times}\)). More subvectors or more bits = higher recall and more memory; fewer = the opposite.</span></p>
-  <aside class="slide-notes">pq-quantize variant 'memory', maxStep 3 (one config card per step). Four configs verbatim from data/l9-pq.json memoryConfigs: 768-d m96 k256 → 96 B, 32×, 96 GB; m192 → 192 B, 16×, 192 GB; m96 k16 (4 bits) → 48 B, 64×, 48 GB; 128-d m8 k256 → 8 B, 64×, 8 GB. The dial: more m or more bits/code = higher recall, more RAM. compression sequence 32/16/64/64.</aside>
+  
 </section>
 <section class="slide" data-type="default" data-screen-label="37 Frontier · TurboQuant">
   <div class="slide-header">
@@ -1515,7 +1512,7 @@
     <li><span lang="ru">Сообщает о лучшей полноте при <strong>почти нулевом времени индексирования</strong>, превосходя существующие методы PQ.</span><span lang="en">Reports better recall with <strong>near-zero indexing time</strong>, outperforming existing PQ techniques.</span></li>
     <li><span lang="ru">Мы оставляем <strong>FAISS PQ</strong> как изучаемый базовый вариант; TurboQuant — то, куда движется область.</span><span lang="en">We keep <strong>FAISS PQ</strong> as the taught baseline; TurboQuant is where the field is going.</span></li>
   </ul>
-  <aside class="slide-notes">Frontier nod folded into the PQ climb. Verified claims: data-oblivious/online/no codebook; random-rotation → Beta → scalar quantizer; ≈2.7× from the bound; MSE + 1-bit QJL residual → unbiased inner product. NOT a FAISS-kernel head-to-head. arXiv:2504.19874.</aside>
+  
 </section>
 <section class="slide" data-type="default" data-screen-label="37a Problem · PQ has no guarantee">
   <div class="slide-header">
@@ -1557,7 +1554,7 @@
     <span lang="ru">Это не «PQ плохой». Двенадцать слайдов назад мы собрали его руками и увидели, что он работает. Утверждение точнее и неприятнее: <strong>ты не знаешь заранее, на каком корпусе он обвалится</strong>, потому что гарантии нет — есть только замер на тех данных, которые ты уже видел. Дальше — метод, который берёт гарантию ценой отказа от обучаемой кодовой книги.</span>
     <span lang="en">This is not «PQ is bad». Twelve slides ago we built it by hand and watched it work. The sharper, less comfortable claim: <strong>you cannot know in advance which corpus will break it</strong>, because there is no guarantee — only a measurement on data you have already seen. Next: a method that buys the guarantee by giving up the learned codebook.</span>
   </p>
-  <aside class="slide-notes">Мост от PQ к RaBitQ. Числа дословно из Gao &amp; Long, SIGMOD 2024 (arXiv:2405.12497), §1 и §5.2.3: на MSong PQ (быстрая SIMD-реализация PQx4fs) даёт более 50 % средней относительной ошибки оценки квадрата расстояния и не достигает 60 % полноты даже после переранжирования. Тезис слайда — не «PQ плох», а «у PQ нет теоретической границы, и провал нельзя предсказать по обучающим данным». Значения в data/l9-bench.json → rabitq. Дальше 37b даёт механизм, 37c — разбор руками, 37d — границы применимости.</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="37b Definition · RaBitQ">
   <div class="slide-header">
@@ -1580,7 +1577,7 @@
     <span lang="ru">Обрати внимание, что здесь <em>исчезло</em>: обучение k-средних, зависимость от корпуса, переобучение книги при дрейфе данных. Случайность взяли не из данных, а из поворота — поэтому обещание держится на любом корпусе, включая тот, который ты ещё не видел.</span>
     <span lang="en">Notice what <em>disappeared</em>: the k-means training, the dependence on your corpus, the re-training when data drifts. The randomness comes from the rotation, not from the data — which is why the promise holds on any corpus, including one you have not seen yet.</span>
   </p>
-  <aside class="slide-notes">Определение RaBitQ (Gao &amp; Long, SIGMOD 2024, §3.1). Ключевой контраст с PQ, который стоит проговорить вслух: у PQ кодовая книга ВЫУЧЕНА по данным (k-средних), у RaBitQ она ФИКСИРОВАНА — вершины гиперкуба ±1/√D, — и данные к ней приводит случайный поворот. Отсюда и граница ошибки: она следует из свойств JL-преобразования, а не из того, насколько повезло с корпусом. Формально: нормировка на единичную сферу (§3.1.1), кодовая книга как вершины куба (§3.1.2), случайное вращение P, код = ближайшая вершина = D бит. Оценщик несмещён (теорема 3.2), отклонение ~ε₀/√(D−1). Значения в data/l9-bench.json → rabitq.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="37c RaBitQ, by hand">
   <div class="slide-header" style="border:none; padding-bottom:0;">
@@ -1617,7 +1614,7 @@
     <span lang="ru">Вот честный итог сравнения, и он не в пользу RaBitQ по памяти: <strong>PQ жмёт в двенадцать раз сильнее</strong>. Зато у RaBitQ нет обучения, нет кодовой книги в памяти и есть граница ошибки, которая <em>улучшается</em> с ростом размерности — при \(D=8\) коридор \(0{,}378\), при \(D=768\) уже \(0{,}036\). Для эмбеддингов, где \(D\) исчисляется сотнями, это работает в нужную сторону.</span>
     <span lang="en">Here is the honest tally, and on memory it does not favour RaBitQ: <strong>PQ compresses twelve times harder</strong>. What RaBitQ gets instead is no training, no codebook in memory, and an error bound that <em>improves</em> with dimension — at \(D=8\) the corridor is \(0.378\), at \(D=768\) it is \(0.036\). For embeddings, where \(D\) runs into the hundreds, that slope points the right way.</span>
   </p>
-  <aside class="slide-notes">Разбор руками, все числа из data/l9-bench.json → rabitq.byHand (считает gen_l9.py, не набраны здесь): fp32 768·4 = 3072 Б; RaBitQ 768/8 = 96 Б, сжатие 32×; PQ при m=8 — 8 Б, сжатие 384×, то есть в 12 раз сильнее. Граница ~1/√(D−1): 0,378 при D=8 и 0,036 при D=768. Главное, что должно прозвучать: RaBitQ проигрывает PQ по памяти и выигрывает по предсказуемости — и этот размен зависит от D в его пользу. Не давать студенту вывод «RaBitQ лучше»; вывод — «дороже по памяти, дешевле по риску».</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="37d Definition · When RaBitQ">
   <div class="slide-header">
@@ -1661,7 +1658,7 @@
     <span lang="ru">Где это уже стоит в проде: RaBitQ въехал в NVIDIA cuVS как <strong>IVF-RaBitQ</strong>. На полноте около \(0{,}95\) он даёт втрое больше запросов в секунду, чем графовый CAGRA, и строит индекс в \(14{,}7\) раза быстрее; против IVF-PQ — вчетверо с лишним по пропускной способности, причём не обращаясь к исходным векторам ради переранжирования.</span>
     <span lang="en">Where it already runs in production: RaBitQ landed in NVIDIA cuVS as <strong>IVF-RaBitQ</strong>. At recall around \(0.95\) it serves three times the queries per second of the graph method CAGRA and builds indexes \(14.7\times\) faster; against IVF-PQ, better than four times the throughput — without touching raw vectors to re-rank.</span>
   </p>
-  <aside class="slide-notes">Границы применимости — обязательный слайд акта. Смысл: это НЕ «RaBitQ победил PQ», а размен. Строки таблицы разводят четыре ситуации, включая «ничего не трогай, если работает» — самый частый правильный ответ в проде. Числа GPU-строки из data/l9-bench.json → rabitq.gpu (Shi et al., arXiv:2602.23999, интеграция в NVIDIA cuVS): при recall ≈ 0,95 — 3,0× QPS против CAGRA, 14,7× по времени сборки индекса, 4,5× против IVF-PQ. Сравнение 8 Б против 96 Б — из byHand того же файла.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="37e RaBitQ на восьми измерениях, руками">
   <div class="slide-header" style="border:none; padding-bottom:0;">
@@ -1698,7 +1695,7 @@
     <span lang="ru">Восемь измерений уместились в <strong>один байт</strong>, и обрати внимание, чего в этой процедуре нет: обучения, поиска ближайшего центроида по таблице, самой таблицы. Есть знаки и одно произведение. Именно поэтому построение индекса упирается в скорость чтения векторов, а не в k-средних, — и именно поэтому граница ошибки выводится из размерности, а не измеряется на удачном корпусе.</span>
     <span lang="en">Eight dimensions fit into <strong>one byte</strong>, and notice what this procedure does not contain: training, a table lookup for the nearest centroid, the table itself. There are signs and one product. That is why index construction is bounded by how fast you can read vectors rather than by k-means — and why the error bound follows from the dimension instead of being measured on a lucky corpus.</span>
   </p>
-  <aside class="slide-notes">Игрушечный разбор к слайду 37b, все числа из data/l9-bench.json → rabitq.toy (считает gen_l9.py на D=8): нормированный вектор, код 10101010 по знакам координат, вершина ±1/√8 = ±0,3536, скалярное произведение 0,8734, один байт на вектор. Смысл слайда — снять мистику: студент видит, что «квантование» здесь это чтение знаков, а «разворот кода» — подстановка ±1/√D. Отсюда два следствия, которые стоит проговорить: сборка индекса ограничена скоростью чтения векторов (обучать нечего), а граница ошибки берётся из свойств поворота, а не из замера. Настоящая процедура добавляет ещё поворот случайной ортогональной матрицей до взятия знаков — здесь он опущен, чтобы арифметика умещалась в голове.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="37f Цена одной оценки: таблица против popcount">
   <div class="slide-header" style="border:none; padding-bottom:0;">
@@ -1735,7 +1732,7 @@
     <span lang="ru">Сравнивать эти числа лоб в лоб нельзя — они про разные вещи. Смысл в другом: у PQ стоимость размазана на подготовку и на случайные обращения, у RaBitQ она вся в последовательном чтении битов, которое процессор любит. Отсюда и разрыв в пропускной способности со слайда напротив: дело не только в том, сколько операций, а в том, куда за ними приходится ходить.</span>
     <span lang="en">These numbers cannot be compared head-on — they measure different things. The point is elsewhere: PQ spreads its cost between setup and random lookups, RaBitQ puts all of it into a sequential read of bits, which the processor likes. That is where the throughput gap on the facing slide comes from: not only how many operations, but where you must go to get them.</span>
   </p>
-  <aside class="slide-notes">Разбор к акту, числа из data/l9-bench.json → rabitq.estimateCost (считает gen_l9.py): PQ при m=8, k=256 строит 2048 расстояний на запрос и делает 8 обращений в таблицу на каждый вектор; RaBitQ на D=768 читает 12 машинных слов по 64 бита и берёт XOR+popcount. ОСТОРОЖНО на лекции: это не «12 лучше 8» — величины разной природы, и слайд прямо это оговаривает. Тезис в другом: у PQ доступ случайный (таблица), у RaBitQ последовательный (биты подряд), и разрыв по пропускной способности из слайда 37d объясняется в том числе этим. Пример нарочно не превращён в бенчмарк: измерять надо на своём железе.</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="38 Definition · When PQ">
   <div class="slide-header">
@@ -1751,7 +1748,7 @@
       <p class="small muted"><span lang="ru">PQ редко используют в одиночку: это слой сжатия <em>внутри</em> IVF-PQ или HNSW-PQ. Разбиение или граф дают скорость; PQ даёт RAM. Матрица сравнения далее выкладывает все пять вариантов бок о бок.</span><span lang="en">PQ is rarely used alone: it is the compression layer <em>inside</em> IVF-PQ or HNSW-PQ. The partition or graph gives speed; PQ gives the RAM. The comparison matrix next lays all five options side by side.</span></p>
     </div>
   </div>
-  <aside class="slide-notes">PQ applicability def-card. Use when: RAM-bound at billion scale; compression 32×–64× with ADC. Cost: approximate distances → recall drops (representative PQ-m4 recall@1 ≈ 0.70, gated l9-pq/l9-bench), plus offline codebook training + retrain on drift. PQ is a layer inside IVF-PQ / HNSW-PQ, not a standalone index. Bridges to the comparison matrix.</aside>
+  
 </section>
 <section class="slide" data-type="divider" data-screen-label="39 Divider · The comparison">
   <div class="divider-content">
@@ -1762,7 +1759,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:60cqh; --fig-w:50%;">
     <img src="assets/img/L9/L9-15-choose-a-lane.webp?v=1" alt="Séréga at a galactic junction signpost with five lane-arrows — Flat, HNSW, IVF, IVF-PQ, HNSW-PQ — choosing by reading dials for N, recall and RAM, while Victor the Vector waits to launch down the chosen lane." />
   </div>
-  <aside class="slide-notes">Comparison divider. The three primitives (graph / partition / compression) combine into five practical indexes: flat, HNSW, IVF, IVF-PQ, HNSW-PQ. The next slide is the matrix, then a decision tree.</aside>
+  
 </section>
 <section class="slide" data-type="table" data-screen-label="40 Table · Index family">
   <div class="slide-header">
@@ -1824,7 +1821,7 @@
     </tbody>
   </table>
   <p class="small muted center mt-3"><span lang="ru">Сжатие \(8\times\) — игрушечная цифра; на реальной 768-мерной конфигурации это \(32\times\). Полнота \(0{,}7\) здесь — иллюстративная величина для PQ-m4, а не число из Jégou et al. 2011. Ни один индекс не выигрывает каждый столбец — выбор — это компромисс.</span><span lang="en">Compression \(8\times\) is the toy figure; at a real 768-d config it is \(32\times\). Recall \(0.7\) here is an illustrative value for PQ-m4, not a number from Jégou et al. 2011 — their Table IV reports a different figure for m=4. No single index wins every column — the choice is a tradeoff.</span></p>
-  <aside class="slide-notes">Index-family cmp-table. Every cell verbatim from data/l9-compare.json rows: search complexity, build/update, memory (IVF-PQ/HNSW-PQ = 8× from l9-pq toy; note 32× at 768-d), representative recall (0.7 = PQ-m4 from l9-bench), best-for. cell-good/meh/bad mark the favorable/neutral/costly cell per row. The lesson: flat is exact but O(N·D); HNSW is fast in-RAM; IVF-PQ is the billion-scale default.</aside>
+  
 </section>
 <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="41 Walkthrough · Decision tree">
   <div class="slide-header">
@@ -1859,7 +1856,7 @@
     <span class="step-counter">4/4</span>
     <button data-step-act="next" aria-label="Next step">&rarr;</button>
   </div>
-  <aside class="slide-notes">Decision-tree walkthrough on three axes. (1) Fits RAM? No → PQ. (2) Lowest latency? → graph (HNSW), HNSW-PQ if also compressed. (3) Cheap training / easy updates? → partition (IVF), IVF-PQ for RAM. (4) Tiny / baseline → flat (exact ground truth). Maps the three primitives to the five indexes of the matrix; complexities reference l9-compare.</aside>
+  
 </section>
 <section class="slide" data-type="divider" data-screen-label="42 Divider · Production">
   <div class="divider-content">
@@ -1867,7 +1864,7 @@
     <h1>FAISS · vector DBs · the serving path</h1>
     <p class="divider-sub"><span lang="ru"><em>Эти структуры не парят в пустоте — они живут в софте.</em> Библиотека, которую ты вызываешь в процессе, или база данных, к которой обращаешься по сети. И запрос теперь — это <strong>запрос с бюджетом</strong>.</span><span lang="en"><em>These structures don't float in the void — they live in software.</em> A library you call in-process, or a database you query over the network. And a query is now a <strong>request with a budget</strong>.</span></p>
   </div>
-  <aside class="slide-notes">turn-production. FAISS (library) vs vector DB (service); the latency budget; the Iceberg of operations.</aside>
+  
 </section>
 <section class="slide" data-type="default" data-screen-label="43 FAISS vs vector DBs">
   <div class="slide-header">
@@ -1885,7 +1882,7 @@
     </div>
   </div>
   <p class="small muted center mt-3"><span lang="ru">Практическое правило: FAISS, когда помещается на одной машине, которой ты владеешь; векторная БД, когда её нужно эксплуатировать, фильтровать и делить.</span><span lang="en">Rule of thumb: FAISS when it fits one box you own; a vector DB when it must be operated, filtered, and shared.</span></p>
-  <aside class="slide-notes">turn-production detail. Library vs service. Both consume the same ANN structures.</aside>
+  
 </section>
 <section class="slide" data-type="code" data-screen-label="44 Code · index_factory">
   <div class="slide-header">
@@ -1914,7 +1911,7 @@ faiss.ParameterSpace().set_index_parameter(idx, "nprobe", 16)
 assert faiss.extract_index_ivf(idx).nprobe == 16</code></pre>
   </div>
   <p class="small muted mt-3"><span lang="ru">Читай слева направо: необязательное <span class="term">преобразование</span> (<code>OPQ64</code>), затем <span class="term">грубый квантователь</span> (<code>IVF4096</code> или <code>IVF16384_HNSW32</code> = квантователь, индексированный HNSW), затем <span class="term">кодирование</span> (<code>PQ96</code>, <code>Flat</code>, …). Весь индекс из одной строки.</span><span lang="en">Read it left to right: an optional <span class="term">transform</span> (<code>OPQ64</code>), then the <span class="term">coarse quantizer</span> (<code>IVF4096</code>, or <code>IVF16384_HNSW32</code> = an HNSW-indexed quantizer), then the <span class="term">encoding</span> (<code>PQ96</code>, <code>Flat</code>, …). The whole index from one string.</span></p>
-  <aside class="slide-notes">Index-factory code slide. The grammar: [transform,] quantizer, encoding. "IVF4096,PQ96" = 4096 cells, 96-byte PQ codes. "HNSW32" = HNSW graph, M=32, uncompressed. "OPQ64,IVF16384_HNSW32,PQ64" = OPQ rotation → IVF with an HNSW coarse quantizer (16384 cells) → PQ 64 bytes. train/add/nprobe are the lifecycle. OPQ wraps IVF in IndexPreTransform: use ParameterSpace or extract_index_ivf to set the inner nprobe, never an attribute on the wrapper. Source: https://github.com/facebookresearch/faiss/wiki/FAQ#how-can-i-set-nprobe-on-an-opaque-index. nprobe set at query time is the recall↔work dial. Code is illustrative API shape, not gated numbers.</aside>
+  
 </section>
 <section class="slide" data-type="table" data-screen-label="45 Table · Reading index strings">
   <div class="slide-header">
@@ -1956,7 +1953,7 @@ assert faiss.extract_index_ivf(idx).nprobe == 16</code></pre>
     </tbody>
   </table>
   <p class="small muted center mt-3"><span lang="ru">Третья строка — вся лекция в одну строку: <strong>OPQ</strong> предварительно поворачивает векторы, чтобы PQ сжимал лучше, <strong>IVF</strong> разбивает пространство, граф <strong>HNSW</strong> индексирует центроиды, так что даже поиск грубого квантователя — \(O(\log \textrm{nlist})\), а <strong>PQ</strong> сворачивает каждый вектор до 64 байт. Граф + разбиение + сжатие, скомпонованные.</span><span lang="en">The third string is the whole lecture in one line: <strong>OPQ</strong> pre-rotates so PQ compresses better, <strong>IVF</strong> partitions space, an <strong>HNSW</strong> graph indexes the centroids so even the coarse-quantizer lookup is \(O(\log \textrm{nlist})\), and <strong>PQ</strong> folds each vector to 64 bytes. Graph + partition + compression, composed.</span></p>
-  <aside class="slide-notes">Reading-index-strings cmp-table. HNSW32 = pure graph (M=32), uncompressed. IVF4096,PQ96 = 4096 cells + 96-byte PQ = IVF-PQ. OPQ64,IVF16384_HNSW32,PQ64 = OPQ rotation + IVF (16384 cells, HNSW coarse quantizer) + 64-byte PQ = the full production stack composing all three lanes. The closing note ties the grammar back to the three primitives. Strings are illustrative API recipes (same as the code slide), not gated decimals.</aside>
+  
 </section>
 <section class="slide" data-type="table" data-screen-label="45a Table · Vector DB landscape">
   <div class="slide-header">
@@ -1994,7 +1991,7 @@ assert faiss.extract_index_ivf(idx).nprobe == 16</code></pre>
     </tbody>
   </table>
   <p class="small muted center mt-3"><span lang="ru">Почти никто из них не изобретает новую математику соседства заново. Внутри (у закрытых проприетарных движков — по их же словам, проверить нельзя) &mdash; <strong>HNSW</strong>, <strong>IVF</strong> и <strong>PQ</strong>, разобранные в трёх предыдущих актах; строка index-factory с предыдущего слайда описывает ровно то же самое. Различаются они не структурами, а <strong>эксплуатацией</strong>: кто хранит, кто фильтрует, кто дежурит.</span><span lang="en">Almost none of them reinvents nearest-neighbour mathematics. Inside (for the closed proprietary ones — on their word; you cannot check) sit <strong>HNSW</strong>, <strong>IVF</strong> and <strong>PQ</strong> &mdash; the three lanes you just walked; the index-factory string on the previous slide describes the very same objects. They differ in <strong>operations</strong>, not in structures: who stores, who filters, who is on call.</span></p>
-  <aside class="slide-notes">Vector DB landscape, three families. (1) Dedicated engines — Qdrant, Milvus, Weaviate: filtering, sharding, replication and an API out of the box, at the cost of one more system to operate. (2) Extensions of a store you already run — pgvector inside PostgreSQL, kNN inside Elasticsearch/OpenSearch: vectors next to the data, one backup (and inside Postgres, one transaction), but the index competes with the primary workload and exposes fewer dials. (3) Managed service — Pinecone: you operate nothing, you pay a bill and give up control. The point of the slide: all of them are wrappers around the HNSW / IVF / PQ structures of the three previous acts. The choice is an operations question, not a mathematics question — which is exactly what the Catch slide at the end of this insert argues. No gated numbers here on purpose: any QPS or scale figure would be vendor- and hardware-specific.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="45b Filtered search · pre vs post">
   <div class="slide-header slide-header--flush">
@@ -2020,7 +2017,7 @@ assert faiss.extract_index_ivf(idx).nprobe == 16</code></pre>
     </div>
   </div>
   <p class="small muted center mt-3"><span lang="ru">Цена первой школы &mdash; <strong>связность</strong>: жёсткий \(P\) рвёт подграф \(G[D_P]\) на куски, и спуск утыкается в <em>ту самую</em> ловушку локального минимума из акта про HNSW &mdash; вырытую предикатом, а не геометрией, и <code>efSearch</code> из неё уже не вытаскивает. Поэтому движок знает селективность заранее и при жёстком \(P\) уходит в точный перебор. Исключение: pgvector фильтрует <em>после</em> обхода &mdash; постфильтрация из первой колонки, пока не построишь частичный индекс.</span><span lang="en">The first school pays in <strong>connectivity</strong>: a tight \(P\) shatters the subgraph \(G[D_P]\), and greedy descent dead-ends in <em>the same</em> local-minimum trap as in the HNSW act &mdash; dug by the predicate, not by geometry, and <code>efSearch</code> no longer digs you out. So the engine knows selectivity up front and goes exact once \(P\) is tight. The exception: pgvector filters <em>after</em> scanning the index by default &mdash; the post-filter of the first column, until you build a partial index.</span></p>
-  <aside class="slide-notes">The mechanism slide of this insert. Setup: corpus D, predicate P, filtered subset D_P, selectivity s = |D_P|/|D|. (1) Post-filter: ask for the top-k, then discard rows failing P — the expected number of survivors is about s·k, so a selective predicate returns almost nothing and recall collapses; you cannot top it up because the index already committed to its k. (2) Pre-filter: materialise D_P and scan it exactly — correct, but linear in |D_P|, i.e. the O(N·D) wall from the opening act. (3) What production engines actually do: traverse the HNSW graph but only admit nodes satisfying P, so no scan and no empty answer. The catch is connectivity: the traversal now lives in the induced subgraph G[D_P], and a harsh predicate can disconnect it, so greedy descent dead-ends — the same local-minimum trap as slides on the two-layer graph, only dug by the predicate instead of by geometry, and efSearch no longer reliably rescues it. That is why engines estimate selectivity and switch between subgraph traversal and exact scan. Deliberately symbolic — no vendor numbers, since the crossover point is index- and hardware-specific.</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="45c Updates and deletes">
   <div class="slide-header">
@@ -2039,7 +2036,7 @@ assert faiss.extract_index_ivf(idx).nprobe == 16</code></pre>
     </div>
   </div>
   <p class="small muted center mt-2"><span lang="ru">Вставка стоит миллисекунды &mdash; обязательство стоит расписания. Три коридора лекции стареют по-разному, а сходятся в одном пункте чек-листа: <strong>перестраивай и переобучай</strong>. Это часть айсберга под ватерлинией, не сноска к ней.</span><span lang="en">The insert costs milliseconds &mdash; the commitment costs a schedule. The three lanes age differently but land on one checklist line: <strong>rebuild and re-train</strong>. That is the iceberg below the waterline, not a footnote to it.</span></p>
-  <aside class="slide-notes">Updates and deletes — the operational bill behind "just add the vector". HNSW: a delete is a tombstone, the node stays wired into the graph and keeps routing traffic, so traversal quality decays until a rebuild (or a segment merge) restores it. IVF: the centroids were trained on an older distribution, fresh data drifts past the cells it was never partitioned for, lists skew and the tuned nprobe stops covering the right region — re-train the coarse quantizer. PQ: the codebook ages exactly the same way, quantization error on new vectors grows and ADC distances degrade — re-train the codebook and re-encode. Ties the three acts (HNSW, IVF, PQ) to the ops checklist and the Iceberg two slides on. No numbers: rebuild cadence is corpus-specific and would be a fabricated figure.</aside>
+  
 </section>
 <section class="slide" data-type="misconception" data-screen-label="45d Catch · Choose by ops, not QPS">
   <div class="slide-header">
@@ -2055,7 +2052,7 @@ assert faiss.extract_index_ivf(idx).nprobe == 16</code></pre>
     </div>
   </div>
   <p class="small muted center mt-2"><span lang="ru">Структуры одинаковы у всех &mdash; различает их то, что начинается после демо.</span><span lang="en">The structures are the same everywhere &mdash; what differs is everything that begins after the demo.</span></p>
-  <aside class="slide-notes">Catch slide closing the vector-DB insert. Misconception: pick the engine with the highest benchmark QPS. Truth: they all wrap the same HNSW/IVF/PQ, so a throughput gap reflects tuning (efSearch, nprobe, code length), hardware, implementation quality (SIMD, memory layout, threading, quantization) and who tuned it — a benchmark reports one point on someone else's recall-vs-cost curve. The real decision is operational: (a) is metadata filtering needed, and does the engine post-filter or traverse the induced subgraph (45b); (b) how often data is inserted, updated and deleted, and who owns rebuilds and quantizer re-training (45c); (c) is transactional consistency with the primary database required — then pgvector next to the data beats a faster standalone service because you avoid two sources of truth; (d) who is on call. Lesson: fix the recall target and the predicate first, compare cost second. Hands straight to the Iceberg and the ops checklist that follow. No numbers on purpose: any QPS figure would be vendor-, config- and hardware-specific.</aside>
+  
 </section>
 <section class="slide" data-type="sequence" data-max-step="6" data-current-step="0" data-budget="200" data-seq-skip-async data-screen-label="46 Sequence · Latency">
   <div class="slide-header">
@@ -2121,7 +2118,7 @@ assert faiss.extract_index_ivf(idx).nprobe == 16</code></pre>
     <button data-step-act="next" aria-label="Next step">→</button>
   </div>
 
-  <aside class="slide-notes">climb-latency (sequence slide-type reused from L1 §49). Illustrative single-request assumptions: all hops sum to 89ms; excluding async cache/log gives the 87ms critical path. The JS computes that running critical-path total. These sums are arithmetic checks, not measured quantiles or proof of the p99 SLA. Measure end-to-end latency under load; component p99 values do not add, and 113ms of headroom does not bound the tail. The 60ms rerank and L10's 120ms are separate illustrative assumptions, not a measured hardware comparison. exactScan ≈520ms and cache hit ≈5ms are assumptions too.</aside>
+  
 </section>
 <section class="slide" data-type="sequence" data-max-step="3" data-current-step="0" data-budget="200" data-screen-label="47 Sequence · Warm cache">
   <div class="slide-header">
@@ -2166,7 +2163,7 @@ assert faiss.extract_index_ivf(idx).nprobe == 16</code></pre>
     <button data-step-act="next" aria-label="Next step">→</button>
   </div>
 
-  <aside class="slide-notes">Warm-cache sequence. cacheHitBudget from data/l9-latency.json: assumed per-hop 3+1+1, the checked sum = cacheHitMs = 5ms (the JS computes the running total). No ANN, no rerank — the repeat query is served from cache. Contrast: cold critical path 87ms (prev sequence) vs warm 5ms (~17×); async work is excluded. These are illustrative requests, not measured quantiles. The legacy data tailNote p50=45 and p99=180 is also hypothetical, not a benchmark; it is not evidence for an SLA. Measure end-to-end p99 under the actual traffic and cache-hit/miss distribution.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="48 Exact vs ANN, an illustrative budget">
   <div class="slide-header">
@@ -2179,7 +2176,7 @@ assert faiss.extract_index_ivf(idx).nprobe == 16</code></pre>
     $$ \frac{520}{12} \approx 43\times \text{ faster on the hop that matters} $$
   </div>
   <p class="small muted center mt-2"><span lang="ru">В этом условном примере полный перебор миллиона 768-мерных векторов занимает \(\approx 520\) мс лишь на <em>переход поиска</em> — он взрывает бюджет \(200\) мс ещё до того, как запустятся энкодер или реранкер. ANN превращает эти \(520\) в \(\mathbf{12}\), квантование держит индекс в RAM, а кэширование делает повторы почти бесплатными. Числа не измерены: на другом оборудовании результат иной. Для SLA измерь p99 всего конвейера под нагрузкой.</span><span lang="en">In this illustrative scenario, exact search of a million 768-d vectors takes \(\approx 520\)ms for the <em>search hop alone</em> — it blows the \(200\)ms budget before the encoder or reranker even runs. ANN turns that \(520\) into \(\mathbf{12}\), quantization keeps the index in RAM, and caching makes repeats nearly free. These timings are assumptions; different hardware changes the result. Measure end-to-end p99 under load for an SLA.</span></p>
-  <aside class="slide-notes">Exact-vs-ANN illustrative budget. exactScanMs ≈ 520 (search hop of 10⁶×768-d brute force) vs ANN search hop = 12ms — both verbatim from data/l9-latency.json (exactScanMs=520, budget step 3 lat=12). Under these assumptions, 520 alone exceeds the 200ms budget; the critical ANN path is 87ms &lt; 200. 520/12 ≈ 43×. These are illustrative assumptions, not measured serving figures; 89ms sums all hops and 87ms excludes async work. Arithmetic does not establish end-to-end p99. These assumptions illustrate a possible bottleneck, not a universal limit on exact search.</aside>
+  
 </section>
 <section class="slide" data-type="misconception" data-screen-label="49 Catch · The Iceberg">
   <div class="slide-header">
@@ -2196,7 +2193,7 @@ assert faiss.extract_index_ivf(idx).nprobe == 16</code></pre>
     <div class="misc-truth"><span lang="ru">Ноутбук, который находит соседей на твоём лэптопе, — это лёгкие <strong>10%</strong> над ватерлинией. Оставшиеся <strong>90%</strong> под ней держат коридоры открытыми в продакшне: обслуживание под SLA, мониторинг полноты и задержки, <strong>перестройка индекса</strong> по мере изменения документов, переобучение центроидов IVF и кодовой книги PQ по мере <strong>дрейфа</strong> данных, и стоимость RAM, которая всё это держит. &laquo;Демо заработало, значит, мы закончили&raquo; — самая дорогая фраза в инфраструктуре поиска.</span><span lang="en">The notebook that finds neighbours on your laptop is the easy <strong>10%</strong> above the waterline. The <strong>90%</strong> below it keeps the lanes open in production: serving under the SLA, monitoring recall and latency, <strong>rebuilding the index</strong> as documents change, re-training the IVF centroids and PQ codebook as the data <strong>drifts</strong>, and the cost of the RAM that holds it all. &ldquo;The demo worked, so we&rsquo;re done&rdquo; is the most expensive sentence in search infrastructure.</span></div>
   </div>
   <p class="small muted center mt-2"><span lang="ru">ANN-структуры — лёгкая часть; операции — предостережение.</span><span lang="en">The ANN structures are the easy part; the operations are the warning.</span></p>
-  <aside class="slide-notes">catch-iceberg. Sculley's Iceberg (L1) returns: the 90% below water is ops. Sets up why eval/monitoring (and L16) matter.</aside>
+  
 </section>
 <section class="slide" data-type="default" data-screen-label="50 Ops checklist">
   <div class="slide-header">
@@ -2222,7 +2219,7 @@ assert faiss.extract_index_ivf(idx).nprobe == 16</code></pre>
     </div>
   </div>
   <p class="small muted center mt-2"><span lang="ru">Ноутбук, который находит соседей, — это лёгкие <strong>10%</strong>. Этот список — те самые <strong>90%</strong>, которые держат Серёгу на вахте, — и именно отсюда подхватывает L16 (оценивание и мониторинг).</span><span lang="en">The notebook that finds neighbours is the easy <strong>10%</strong>. This list is the <strong>90%</strong> that keep Séréga on watch — and it is where L16 (evaluation &amp; monitoring) picks up.</span></p>
-  <aside class="slide-notes">Ops-checklist — the 90% below the Iceberg. Serve under SLA (p99 180 < 200, from l9-latency tailNote); monitor recall+latency; rebuild index on doc changes; retrain IVF centroids + PQ codebooks on drift; cache hot tail (~5ms, l9-latency cacheHitMs); budget RAM (N × bytes/vector); filter + ANN as one path; keep a flat baseline. Bridges to L16 eval/monitoring.</aside>
+  
 </section>
 <section class="slide" data-type="quiz" data-screen-label="51 Quiz · HNSW">
   <div class="slide-header">
@@ -2257,7 +2254,7 @@ assert faiss.extract_index_ivf(idx).nprobe == 16</code></pre>
       </div>
     </details>
   </div>
-  <aside class="slide-notes">Quiz on the HNSW recall-curve (slide 19). Correct = B: efSearch is query-time candidate-list width, not edges (A) or M (C). Numbers ef=1→0.0, ef≥2→1.0, candidates 15→26 all from data/l9-hnsw.json efSweep, shown earlier. Distractors A/C confuse build-time structure with the query-time dial.</aside>
+  
 </section>
 <section class="slide" data-type="quiz" data-screen-label="52 Quiz · IVF">
   <div class="slide-header">
@@ -2292,7 +2289,7 @@ assert faiss.extract_index_ivf(idx).nprobe == 16</code></pre>
       </div>
     </details>
   </div>
-  <aside class="slide-notes">Quiz on the IVF nprobe sweep (slides 26-28). Correct = C: recall already 1.0 at nprobe=3, so 4/5 are diminishing returns (scan 17/20, recall flat). Numbers from data/l9-ivf.json toy2.sweep. A confuses the plateau; B inverts the cost direction. The knee at nprobe=3.</aside>
+  
 </section>
 <section class="slide" data-type="quiz" data-screen-label="53 Quiz · PQ">
   <div class="slide-header">
@@ -2327,7 +2324,7 @@ assert faiss.extract_index_ivf(idx).nprobe == 16</code></pre>
       </div>
     </details>
   </div>
-  <aside class="slide-notes">Quiz on the ADC worked slide (35). Correct = B: ADC = distance to the reconstruction (codes [2,0,3,1]) = 35; exact = 37; gap 2 = quantization error. Numbers from data/l9-pq.json adcWorked. A (rounding) and C (table cost) are distractors. Ties to the representative 0.70 recall — lossy by construction.</aside>
+  
 </section>
 <section class="slide" data-type="divider" data-screen-label="54 Payoff · The lanes are open">
   <div class="divider-content">
@@ -2338,7 +2335,7 @@ assert faiss.extract_index_ivf(idx).nprobe == 16</code></pre>
   <div class="viz-frame fig-fit" style="--fig-max:62cqh; --fig-w:56%;">
     <img src="assets/img/L9/L9-09-lanes-open.webp?v=1" alt="Lanes lit across the galaxy; Séréga points the Ship toward a distant glowing Oracle silhouette (hook to L15)." />
   </div>
-  <aside class="slide-notes">payoff-lanes-open. Catchphrase resolves (lanes open). Bridge to L15: find → answer; the spine's 4th leg Generate.</aside>
+  
 </section>
 <section class="slide" data-type="refs" data-screen-label="55 References">
   <div class="slide-header">
@@ -2379,15 +2376,15 @@ assert faiss.extract_index_ivf(idx).nprobe == 16</code></pre>
     </li>
   </ol>
   <p class="small muted mt-2"><span lang="ru">Почему пространство эмбеддингов кривое — и что с этим делать — в следующей лекции, <strong>L14 &laquo;Кривая карта&raquo;</strong>: анизотропия, хабность, CSLS.</span><span lang="en">Why the embedding space is a warped map — and what to do about it — in the next lecture, <strong>L14 &ldquo;The Curved Map&rdquo;</strong>: anisotropy, hubness, CSLS.</span></p>
-  <aside class="slide-notes">Primary sources for the four lanes + the frontier. All cited in data/l9-bench.json. Forward hook: L14 "The Curved Map", the next lecture, explains anisotropy/hubness — why cosine on this map sometimes lies.</aside>
+  
 </section>
 
 
-      </div><!-- /.slides -->
-    </div><!-- /.stage -->
-  </div><!-- /.deck -->
+      </div>
+    </div>
+  </div>
 
-  <!-- JS -->
+  
   <script src="js/deck.js"></script>
   <script src="js/tools.js"></script>
   <script src="js/pen.js"></script>
@@ -2403,8 +2400,7 @@ assert faiss.extract_index_ivf(idx).nprobe == 16</code></pre>
   <script src="js/budget.js"></script>
   <script src="js/preflight.js"></script>
 
-  <!-- L13 deck-mounted widgets: classic offline bundles register window.mount<Pascal>; the deck-adapter
-       (loaded after deck.js) drives them with the deck step engine. BUILD OUTPUT (scripts/build-deck-widgets.mjs). -->
+  
   <script src="js/course-map.classic.js"></script>
   <script src="js/hnsw-graph.classic.js"></script>
   <script src="js/ivf-cells.classic.js"></script>

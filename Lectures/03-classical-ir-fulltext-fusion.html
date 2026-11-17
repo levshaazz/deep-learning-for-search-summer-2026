@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lecture 03 — Classical IR · Full-text Ranking &amp; Rank Fusion</title>
 
-  <!-- Apply saved theme/lang BEFORE first paint to avoid a flash of the
-       wrong theme. Mirrors tools.js prefs key. -->
+  
   <script>
     try {
       var __p = JSON.parse(localStorage.getItem('lecture.template.prefs.v1') || '{}');
@@ -19,9 +18,7 @@
     } catch (e) {}
   </script>
 
-  <!-- Asset-load failure banner. If a vendored dependency fails to load
-       (e.g. the vendor/ folder was lost when copying the deck), tell the
-       lecturer in plain language instead of silently degrading. -->
+  
   <script>
     window.__assetFail = (function () {
       var failed = [];
@@ -50,11 +47,11 @@
     })();
   </script>
 
-  <!-- Fonts — vendored locally (run `node build-vendor.mjs` to refresh). -->
+  
   <link href="vendor/fonts/fonts.css" rel="stylesheet"
         onerror="window.__assetFail&&window.__assetFail('Шрифты/Fonts')" />
 
-  <!-- Styles -->
+  
   <link rel="stylesheet" href="css/template.css?v=6" />
   <link rel="stylesheet" href="css/slides.css?v=6" />
   <link rel="stylesheet" href="css/components.css?v=6" />
@@ -67,12 +64,10 @@
   <link rel="stylesheet" href="css/preflight.css?v=6" />
   <link rel="stylesheet" href="css/wbw-art.css?v=1" />
   <link rel="stylesheet" href="css/autofit.css?v=1" />
-  <!-- deck-mounted widget styles (widgets/_base.css + course-map style.css). BUILD OUTPUT
-       (scripts/build-deck-widgets.mjs) — the deck doesn't load widgets/*/style.css like the Book. -->
+  
   <link rel="stylesheet" href="css/deck-widgets.css?v=1" />
 
-  <!-- KaTeX — vendored locally (zero runtime CDN). 4× faster + lighter than
-       MathJax; handles 99% of CS/ML formulas. See README to swap to MathJax. -->
+  
   <link rel="stylesheet" href="vendor/katex/katex.min.css"
         onerror="window.__assetFail&&window.__assetFail('KaTeX')">
   <script defer src="vendor/katex/katex.min.js"
@@ -90,10 +85,7 @@
     });
     document.dispatchEvent(new CustomEvent('katex:done'));"></script>
 
-  <!-- Prism — vendored core + python/bash/yaml/json. The autoloader is
-       intentionally dropped: it fetches grammars from a CDN at runtime,
-       which defeats the zero-network goal. Long-tail languages won't
-       highlight; add their grammar files to vendor/prism/ if needed. -->
+  
   <script src="vendor/prism/prism-core.min.js"
         onerror="window.__assetFail&&window.__assetFail('Prism')"></script>
   <script src="vendor/prism/prism-python.min.js"></script>
@@ -101,13 +93,13 @@
   <script src="vendor/prism/prism-yaml.min.js"></script>
   <script src="vendor/prism/prism-json.min.js"></script>
 
-  <!-- QR code generator — vendored. -->
+  
   <script src="vendor/qrcode/qrcode.js"
         onerror="window.__assetFail&&window.__assetFail('QR')"></script>
 </head>
 
 <body>
-  <!-- Bundler thumbnail (shown while standalone-HTML unpacks; also no-JS fallback) -->
+  
   <template id="__bundler_thumbnail">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
       <defs>
@@ -129,17 +121,17 @@
     </svg>
   </template>
 
-  <!-- Logo template — edit once, reused on every slide -->
+  
   <template id="tpl-logo">
     <div class="logo-mark">DLS</div>
   </template>
 
-  <!-- Deck -->
+  
   <div class="deck">
     <div class="stage">
       <div class="slides" data-course-ru="Deep Learning for Search · 2026" data-course-en="Deep Learning for Search · 2026">
 
-<!-- ============================================ 01 · TITLE ============================================ -->
+
 <section class="slide" data-type="title" data-screen-label="01 Title">
           <div class="title-header">
             <div class="course-tag">DEEP LEARNING FOR SEARCH · 2026</div>
@@ -154,10 +146,10 @@
             <div><div class="meta-label">Lecturer</div><div class="meta-value">Albert Nasybullin</div></div>
             <div><div class="meta-label">Date</div><div class="meta-value">15.09.2026</div></div>
           </div>
-          <aside class="slide-notes">The Star Catalog. <strong>Serega</strong>, now a star-cartographer, faces a galaxy of records: one match hides among a billion. You cannot fly past every star to find one — you need a catalog. Today we build the first end-to-end, find-it-fast search engine: the inverted index that turns a query into a tiny candidate set, the BM25 scorer (tuned over three decades) that orders those candidates, PageRank's query-independent authority, and rank fusion that combines several rankers into one robust list. This is the classical baseline every neural method later in the course must beat.</aside>
+          
         </section>
 
-        <!-- ============================================ 02 · SPINE · you are here ============================================ -->
+        
         <section class="slide" data-type="viz" data-max-step="0" data-current-step="0" data-screen-label="02 You are here">
           <div class="slide-header">
             <h2><span lang="ru">Хребет курса — ты здесь</span><span lang="en">The spine of the course — you are here</span></h2>
@@ -180,10 +172,10 @@
           }
           </script>
           <p class="viz-caption"><span lang="ru">В прошлой лекции мы превратили текст в векторы и научились измерять близость. Сегодня обе подсвеченные остановки наши: <strong>мера</strong> релевантности (BM25) и механизм, чтобы быстро <strong>ранжировать</strong> миллиард документов.</span><span lang="en">Last lecture we turned text into vectors and learned to measure closeness. Today both lit stops are ours: a <strong>measure</strong> of relevance (BM25) and the machinery to <strong>rank</strong> a billion documents fast.</span></p>
-          <aside class="slide-notes">Anchor on the course spine — now the shared four-stop map (Get Data → Measure → Rank → Generate; Generate, the RAG leg, joins the map for good at L15). Lecture 2 handed us tokens and a way to measure similarity between vectors. Today we finish "Measure" with a relevance score built for retrieval — BM25 — and we deliver "Rank" with the index, fusion, and PageRank that order results at web scale. Everything neural in the rest of the term is judged against the baseline we build here.</aside>
+          
         </section>
 
-        <!-- ============================================ 03 · AGENDA ============================================ -->
+        
 <section class="slide" data-type="agenda" data-screen-label="03 Agenda">
           <div class="slide-header">
             <h2><span lang="ru">План лекции</span><span lang="en">Lecture Outline</span></h2>
@@ -223,10 +215,10 @@
               <span class="toc-text"><span class="toc-title"><span lang="ru">Гремлин и развязка</span><span lang="en">The Gremlin &amp; payoff</span></span><span class="toc-sub"><span lang="ru">словарный разрыв · базовый уровень, который нейросети должны превзойти</span><span lang="en">the lexical gap · the baseline neural must beat</span></span></span>
             </a>
           </div>
-          <aside class="slide-notes">Eight movements. Part 1: why we cannot score every document at query time. Part 2: the inverted index in depth — construction, compression, skip-merge, boolean and phrase queries. Part 3: Bag-of-Words and the vector space model, finally named. Part 4: TF-IDF with live applications. Part 5: the centrepiece — the full BM25 engineering saga from BM1 to BM25. Part 6: PageRank's query-independent authority. Part 7: the full rank-fusion family. Part 8: the lexical gap that motivates everything neural. Click any item to jump.</aside>
+          
         </section>
 
-        <!-- ============================================ 04 · OBJECTIVES ============================================ -->
+        
         <section class="slide" data-type="objectives" data-screen-label="04 Objectives · index &amp; score">
           <div class="slide-header">
             <h2><span lang="ru">Цели обучения</span><span lang="en">Learning objectives</span> <span style="font-weight:400;opacity:.6">(1 / 2)</span></h2>
@@ -237,10 +229,10 @@
             <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong><span lang="ru">Оценивать документы через TF-IDF и BM25</span><span lang="en">Score documents with TF-IDF and BM25</span></strong> <span lang="ru">вручную, на реальных числах, включая сглаживание idf, насыщение и нормировку по длине.</span><span lang="en">by hand, on real numbers, including idf smoothing, saturation, and length normalization.</span></span></li>
             <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong><span lang="ru">Объяснить, почему BM25 обходит TF-IDF</span><span lang="en">Explain why BM25 beats TF-IDF</span></strong> — <span lang="ru">насыщающийся tf и регулятор длины \(b\) — и проследить инженерную историю BM25 от BM1.</span><span lang="en">saturating tf and the \(b\) length-dial — and trace BM25's engineering history from BM1.</span></span></li>
           </ul>
-          <aside class="slide-notes">These are measurable outcomes — by the end you should be able to do each one on paper, not just recognise it. Part 1: build the index and score with TF-IDF and BM25, the two load-bearing skills of the day. The remaining objectives — authority, fusion, and the lexical gap — are on the next slide.</aside>
+          
         </section>
 
-        <!-- ============================================ 04b · OBJECTIVES (2/2) ============================================ -->
+        
         <section class="slide" data-type="objectives" data-screen-label="05 Objectives · authority, fusion, gap">
           <div class="slide-header">
             <h2><span lang="ru">Цели обучения</span><span lang="en">Learning objectives</span> <span style="font-weight:400;opacity:.6">(2 / 2)</span></h2>
@@ -251,21 +243,21 @@
             <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong><span lang="ru">Слить несколько ранкеров</span><span lang="en">Fuse several rankers</span></strong> <span lang="ru">в один устойчивый список через Reciprocal Rank Fusion и сказать, когда слияние помогает, а когда нет.</span><span lang="en">into one robust list with Reciprocal Rank Fusion, and say when fusion helps and when it does not.</span></span></li>
             <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><strong><span lang="ru">Назвать словарный разрыв</span><span lang="en">Name the lexical gap</span></strong> — <span lang="ru">почему сопоставление строк слепо к синонимам — слабость, которую каждый нейросетевой ретривер создан преодолеть.</span><span lang="en">why a string matcher is blind to synonyms — the weakness every neural retriever is built to beat.</span></span></li>
           </ul>
-          <aside class="slide-notes">Part 2 of the objectives: read PageRank as a query-independent authority signal, fuse rankers with RRF — the other load-bearing skill — and name the lexical gap that motivates every neural retriever to come. This list is distinct from the agenda, which is only the route through the lecture.</aside>
+          
         </section>
 
-        <!-- ============================================ 05 · QUOTE · HOOK (catchphrase) ============================================ -->
+        
         <section class="slide" data-type="quote" data-screen-label="06 Hook">
           <div>
             <div class="quote-mark">"</div>
             <blockquote><span lang="ru">Нельзя облететь каждую звезду, чтобы найти одну.<br />Нужен <em>каталог</em>.</span><span lang="en">You can't fly past every star to find one.<br />You need a <em>catalog</em>.</span></blockquote>
             <div class="quote-attr"><span lang="ru">Серёга, звёздный картограф · собери данные &rarr; измерь сходство &rarr; ранжируй</span><span lang="en">Serega, star-cartographer · get data &rarr; measure similarity &rarr; rank</span></div>
           </div>
-          <aside class="slide-notes">This is my catchphrase — it opens the lecture and it closes it. My galaxy of documents is too large to compare one by one at query time. The catalog — an inverted index plus a scorer — lets me jump straight to the few records that matter, then rank them. That, in one line, is classical information retrieval.</aside>
+          
         </section>
 
-        <!-- ============================================ PART 01 ============================================ -->
-        <!-- ============================================ 06 · DIVIDER · PART 01 ============================================ -->
+        
+        
         <section class="slide" data-type="divider" data-screen-label="07 Divider P1">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 01</span><span lang="en">Part 01</span></div>
@@ -276,10 +268,10 @@
             <img src="assets/img/L3/L3-00-star-catalog.webp?v=1" alt="Serega the star-cartographer plotting documents as a constellation catalog"
                  />
           </div>
-          <aside class="slide-notes">I'm a star-cartographer now. The sky is my corpus; each star is a document. A user asks me for one specific star out of a billion — and I cannot visit each one and check. My answer is the search engineer's answer: build a catalog indexed by what you are looking for, so a query lands you on the right page instantly.</aside>
+          
         </section>
 
-        <!-- ============================================ 06 · VIZ · the retrieval problem ============================================ -->
+        
         <section class="slide" data-type="viz" data-screen-label="08 Retrieval problem">
           <div class="slide-header">
             <h2><span lang="ru">Задача поиска</span><span lang="en">The retrieval problem</span></h2>
@@ -307,10 +299,10 @@
             </svg>
           </div>
           <p class="viz-caption"><span lang="ru">Поиск = по запросу вернуть небольшое релевантное подмножество из \(N\). Релевантных — горстка; корпус — миллиарды. Вся суть в том, чтобы найти эту горстку, <strong>не осматривая</strong> миллиарды.</span><span lang="en">Retrieval = given a query, return the small relevant subset out of \(N\). The relevant set is a handful; the corpus is billions. The whole game is finding the handful <strong>without inspecting</strong> the billions.</span></p>
-          <aside class="slide-notes">State the task cleanly. A query names a tiny relevant subset hidden in an enormous corpus. The naive approach scores every document and keeps the best — correct, but unaffordable. The art of classical IR is to reach the relevant handful while looking at as few documents as possible, which is exactly what an inverted index buys.</aside>
+          
         </section>
 
-        <!-- ============================================ 07 · VIZ · scale-as-awe (linear scan) ============================================ -->
+        
         <section class="slide" data-type="viz" data-screen-label="09 Linear scan">
           <div class="slide-header">
             <h2><span lang="ru">Сканировать каждый документ безнадёжно</span><span lang="en">Scanning every document is hopeless</span></h2>
@@ -339,10 +331,10 @@
             </figure>
           </div>
           <p class="viz-caption"><span lang="ru">Линейное сканирование стоит \(O(N)\) на запрос. При \(N\approx 10^{9}\) и ~1&nbsp;мкс на касание это ~1000&nbsp;с &mdash; около <strong>17 минут на запрос</strong> при бюджете ~100&nbsp;мс. Промах на четыре порядка.</span><span lang="en">A linear scan costs \(O(N)\) per query. At \(N\approx 10^{9}\) and ~1&nbsp;µs per touch that is ~1000&nbsp;s &mdash; about <strong>17 minutes per query</strong>, against a ~100&nbsp;ms budget. Off by four orders of magnitude.</span></p>
-          <aside class="slide-notes">The arithmetic kills brute force. A billion documents at a microsecond each — one µs is a realistic figure for a single in-cache comparison — is roughly a thousand seconds, about seventeen minutes, per query. The budget is about a hundred milliseconds. You are off by four orders of magnitude, and no faster CPU saves you, because the cost grows linearly with the corpus. The only way out is to not look at most documents at all, which is exactly what an index buys.</aside>
+          
         </section>
 
-        <!-- ============================================ 08 · VIZ · the latency budget ============================================ -->
+        
         <section class="slide" data-type="viz" data-screen-label="10 Latency budget">
           <div class="slide-header">
             <h2><span lang="ru">Откуда берётся бюджет ~100 мс</span><span lang="en">Where the ~100 ms budget comes from</span></h2>
@@ -367,10 +359,10 @@
               </div>
             </div>
           </div>
-          <aside class="slide-notes">The budget is not arbitrary. It is set by human perception (a sluggish UI loses users), by throughput (cost is paid tens of thousands of times per second), and by fan-out (a query is split across many shards and the slowest one wins). Within that hundred-millisecond wall, first-stage retrieval gets only a slice — so it has to be sublinear in N. That requirement is the whole motivation for the inverted index.</aside>
+          
         </section>
 
-        <!-- ============================================ 09 · DEFINITION · the move (precompute once) ============================================ -->
+        
         <section class="slide" data-type="definition" data-screen-label="11 The move">
           <div class="slide-header">
             <h2><span lang="ru">Ход</span><span lang="en">The move</span></h2>
@@ -384,11 +376,11 @@
               <p class="small muted"><span lang="ru">Эта структура — <strong>инвертированный индекс</strong>: для каждого терма список документов, которые его содержат. Терм запроса превращается в обращение к словарю; множество кандидатов сжимается с миллиарда до нескольких тысяч ещё до любой оценки.</span><span lang="en">The structure is the <strong>inverted index</strong>: for every term, the list of documents that contain it. A query term becomes a dictionary lookup; the candidate set shrinks from a billion to a few thousand before any scoring happens.</span></p>
             </div>
           </div>
-          <aside class="slide-notes">The conceptual pivot of Part 1. The corpus is mostly static; queries are endless. So move all the heavy work to build time and make query time trivial. The inverted index is precisely that trade: build it once, consult it forever. After this slide, every later idea — compression, skip pointers, BM25 scoring — is an optimisation on top of this structure.</aside>
+          
         </section>
 
-        <!-- ============================================ PART 02 ============================================ -->
-        <!-- ============================================ 10 · DIVIDER · PART 02 ============================================ -->
+        
+        
         <section class="slide" data-type="divider" data-screen-label="12 Divider P2">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 02</span><span lang="en">Part 02</span></div>
@@ -399,10 +391,10 @@
             <img src="assets/img/L3/L3-11-inverted-index-cards.webp?v=1" alt="The inverted index drawn as a wall of catalog cards, one per term, each listing the documents that mention it"
                  />
           </div>
-          <aside class="slide-notes">My reveal. A normal document maps doc to its words. My catalog flips it: for every term, I store the list of documents that contain it — a postings list, one catalogue card per word. Now a query term is a single lookup, not a scan. This is the inverted index, the foundation of every full-text search engine for fifty years. The image is my card-wall metaphor; the text stands alone if it 404s.</aside>
+          
         </section>
 
-        <!-- ============================================ 11 · DEFINITION · inverted index ============================================ -->
+        
         <section class="slide" data-type="definition" data-screen-label="13 Definition Index">
           <div class="slide-header">
             <h2><span lang="ru">Ключевой термин</span><span lang="en">Key term</span></h2>
@@ -416,10 +408,10 @@
               <p class="small muted"><span lang="ru">«Инвертированный», потому что он переворачивает естественное отображение документ &rarr; термы в отображение термы &rarr; документы. Терм запроса становится одним обращением к словарю; булевы запросы становятся слияниями списков вхождений. Это структура данных, лежащая в основе Lucene, Elasticsearch и любого классического движка.</span><span lang="en">"Inverted" because it reverses the natural document &rarr; terms map into a terms &rarr; documents map. A query term becomes a single dictionary lookup; boolean queries become merges of postings lists. This is the data structure behind Lucene, Elasticsearch, and every classical engine.</span></p>
             </div>
           </div>
-          <aside class="slide-notes">Emphasise the inversion. Documents naturally list their words; the index stores the opposite. The term dictionary gives you, in one step, every document containing a word — and only those. Postings often also store term frequency and positions, which BM25 and phrase queries need. Build it once offline; query it millions of times.</aside>
+          
         </section>
 
-        <!-- ============================================ 12 · WALKTHROUGH · build postings + AND-merge ============================================ -->
+        
         <section class="slide" data-type="viz" data-max-step="3" data-current-step="0" data-screen-label="13a Climb &middot; inverted-index">
   <div class="slide-header">
     <h2><span lang="ru">Инвертированный индекс в действии: от терма к документам</span><span lang="en">The inverted index in action: term &rarr; documents</span></h2>
@@ -550,7 +542,7 @@
 }
   </script>
   <p class="viz-caption"><span lang="ru">Определение с прошлого слайда &mdash; теперь пощупай его: терм указывает прямо на свои документы, никакого сканирования. У каждого терма &mdash; свой список вхождений, а булев AND &mdash; это пересечение двух списков. Заметь, каким хрупким выходит строгое пересечение &mdash; здесь оно пустое; этот излом мы будем чинить всю оставшуюся лекцию.</span><span lang="en">The definition from the previous slide &mdash; now touch it: a term points straight at its documents, no scanning anywhere. Every term owns a postings list, and boolean AND is the intersection of two of them. Notice how brittle the strict intersection turns out to be &mdash; here it comes back empty; the rest of this lecture is about repairing that fracture.</span></p>
-  <aside class="slide-notes">Act 2&rsquo;s climb, between the key-term slide and the build-the-postings-by-hand slide. The eight documents, both postings lists and the empty intersection are read from data/l3-index.json. Steps: (0) the documents and why scanning is hopeless (callback to act 1); (1) the first term&rsquo;s postings &mdash; the &ldquo;term points at documents&rdquo; inversion, DWELL here, it is the whole data structure; (2) the second term&rsquo;s postings; (3) the AND merge &mdash; the intersection is EMPTY, and that emptiness is the act&rsquo;s cliffhanger: strict boolean has no notion of &ldquo;almost&rdquo;. Students stumble on the direction of the inversion (document&rarr;terms vs term&rarr;documents) &mdash; step 1 is where to fix it. The by-hand build on the next slide then feels mechanical, which is the point.</aside>
+  
 </section>
 <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="14 Build postings">
           <div class="slide-header">
@@ -585,10 +577,10 @@
             <span class="step-counter">4/4</span>
             <button data-step-act="next" aria-label="Next step">&rarr;</button>
           </div>
-          <aside class="slide-notes">Walk it one row at a time. Postings come straight from the index JSON: space hits D0 to D3, team hits D4 to D7, each with document frequency four. The AND-merge intersects the two sorted lists with a single linear pass. Here the lists are disjoint — no document contains both words — so strict boolean AND returns the empty set. That is the brittleness of boolean retrieval, fixed later by ranking.</aside>
+          
         </section>
 
-        <!-- ============================================ 13 · TWO-COL · dictionary vs postings, anatomy of a posting ============================================ -->
+        
         <section class="slide" data-type="two-col" data-screen-label="15 Posting anatomy">
           <div class="slide-header">
             <h2><span lang="ru">Словарь против вхождений; анатомия вхождения</span><span lang="en">Dictionary vs postings; anatomy of a posting</span></h2>
@@ -614,10 +606,10 @@
               </div>
             </div>
           </div>
-          <aside class="slide-notes">Split the index into the small in-memory dictionary and the large on-disk postings. The dictionary maps a term to its document frequency and a file offset; the postings file holds the actual lists. A single posting is more than a docID — it carries the term frequency for scoring and, optionally, the positions for phrase and proximity matching. This anatomy drives the next two slides: how we build these lists, and how we compress them.</aside>
+          
         </section>
 
-        <!-- ============================================ 14 · TWO-COL · index construction BSBI / SPIMI ============================================ -->
+        
         <section class="slide" data-type="two-col" data-screen-label="16 Construction">
           <div class="slide-header">
             <h2><span lang="ru">Построение индекса в масштабе</span><span lang="en">Index construction at scale</span></h2>
@@ -644,10 +636,10 @@
               </div>
             </div>
           </div>
-          <aside class="slide-notes">Construction must be out-of-core because the pair list dwarfs RAM. BSBI sorts blocks of termID-docID pairs and external-merges them; SPIMI skips the global sort by accumulating postings per term and flushing when memory runs out — simpler and faster in practice. Real engines layer on segments: every flush is an immutable segment, and a background merge policy keeps the segment count bounded, which is what makes near-real-time indexing possible.</aside>
+          
         </section>
 
-        <!-- ============================================ 15 · E2E · postings compression ============================================ -->
+        
         <section class="slide" data-type="e2e" data-max-step="2" data-current-step="0" data-screen-label="17 Compression">
           <div class="slide-header">
             <h2><span lang="ru">Сжатие вхождений: разности + переменнобайтовое кодирование</span><span lang="en">Postings compression: gaps + variable-byte</span></h2>
@@ -680,10 +672,10 @@
             <span class="e2e-stage-name"><span lang="ru">обзор</span><span lang="en">overview</span></span>
             <button type="button" class="e2e-toggle"><span lang="ru">Только теория</span><span lang="en">Theory only</span></button>
           </div>
-          <aside class="slide-notes">Exact from the compression JSON. Storing four docIDs as 32-bit ints is 16 bytes. Because postings are sorted, we store gaps instead: 3, 5, 4, 18. Every gap is below 128, so variable-byte coding — seven data bits plus a continuation bit per byte — uses one byte each, four bytes total, a four-times reduction. Why bother: postings dominate index size, and a smaller index stays in cache and cuts IO, which is the real bottleneck at query time. Modern engines use fancier codecs (PForDelta, Simple-9, Roaring) but the gap-then-encode idea is the same.</aside>
+          
         </section>
 
-        <!-- ============================================ 16 · WALKTHROUGH · skip pointers + two-pointer merge ============================================ -->
+        
         <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="18 Skip merge">
           <div class="slide-header">
             <h2><span lang="ru">Указатели пропусков и слияние двумя указателями</span><span lang="en">Skip pointers &amp; two-pointer merge</span></h2>
@@ -717,10 +709,10 @@
             <span class="step-counter">4/4</span>
             <button data-step-act="next" aria-label="Next step">&rarr;</button>
           </div>
-          <aside class="slide-notes">The merge is the workhorse of boolean retrieval. Two cursors walk the sorted lists; whenever the two heads are equal you emit a match and advance both, otherwise you advance the smaller. The trick is skip pointers: sparse forward links (about every root-n entries) that let you leap over runs of postings that cannot match, turning the linear scan into roughly root-n work. This is why intersecting two long postings lists is cheap even when each has millions of entries.</aside>
+          
         </section>
 
-        <!-- ============================================ 17 · WALKTHROUGH · boolean model in full ============================================ -->
+        
         <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="19 Boolean model">
           <div class="slide-header">
             <h2><span lang="ru">Булева модель и оптимизация запросов</span><span lang="en">The boolean model &amp; query optimization</span></h2>
@@ -754,10 +746,10 @@
             <span class="step-counter">4/4</span>
             <button data-step-act="next" aria-label="Next step">&rarr;</button>
           </div>
-          <aside class="slide-notes">The three boolean operators map onto set operations on postings: AND is intersection, OR is union, NOT is difference. Unlike the disjoint space/team example, cat AND dog returns D1 and D2 — boolean works fine when terms co-occur. The key optimisation for a conjunctive query is ordering: start from the rarest term (smallest document frequency) because the intersection can only shrink, so every subsequent merge runs against a tiny list. Query planners in real engines do exactly this.</aside>
+          
         </section>
 
-        <!-- ============================================ 18 · WALKTHROUGH · positional index + phrase ============================================ -->
+        
         <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="20 Phrase merge">
           <div class="slide-header">
             <h2><span lang="ru">Позиционный индекс и фразовые запросы</span><span lang="en">Positional index &amp; phrase queries</span></h2>
@@ -791,21 +783,21 @@
             <span class="step-counter">4/4</span>
             <button data-step-act="next" aria-label="Next step">&rarr;</button>
           </div>
-          <aside class="slide-notes">Phrase queries need more than co-occurrence. The positional index stores, per posting, the list of token offsets. To match "new york" you first AND the documents, then walk the two position lists looking for offsets exactly one apart. In D5, new at 3 and york at 4 satisfy the phrase; new at 11 and york at 27 do not, so the document matches once. Generalising the gap to at most k gives proximity search. The cost is a larger index, paid because exact phrase matching is essential for names and quotations.</aside>
+          
         </section>
 
-        <!-- ============================================ 19 · QUOTE · boolean is brittle ============================================ -->
+        
 <section class="slide" data-type="quote" data-screen-label="21 Boolean brittle">
           <div>
             <div class="quote-mark">"</div>
             <blockquote><span lang="ru">Сопоставление бинарно. Релевантность — это <em>спектр</em>.</span><span lang="en">Matching is binary. Relevance is a <em>spectrum</em>.</span><br /><span lang="ru">Перестань спрашивать «содержит ли он слово?» Начни спрашивать «насколько хорошо он подходит?»</span><span lang="en">Stop asking "does it contain the word?" Start asking "how well does it fit?"</span></blockquote>
             <div class="quote-attr"><span lang="ru">Серёга · от булева поиска к ранжированному поиску</span><span lang="en">Serega · from boolean retrieval to ranked retrieval</span></div>
           </div>
-          <aside class="slide-notes">My pivot point. Boolean retrieval answers yes or no, and an empty result set is a real, common failure I keep hitting. Ranked retrieval scores every document that contains any query term and sorts them, so my best partial match still surfaces. That score is what TF-IDF and BM25 give me. The rest of the lecture is me learning to compute it well — starting with how I represent a document as something I can score.</aside>
+          
         </section>
 
-        <!-- ============================================ PART 03 ============================================ -->
-        <!-- ============================================ 20 · DIVIDER · PART 03 ============================================ -->
+        
+        
         <section class="slide" data-type="divider" data-screen-label="22 Divider P3">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 03</span><span lang="en">Part 03</span></div>
@@ -816,10 +808,10 @@
             <img src="assets/img/L3/L3-16-bag-of-words.webp?v=1" alt="A doodle of a document tipped into a bag, words tumbling out as loose counts with order discarded"
                  />
           </div>
-          <aside class="slide-notes">Before I can build any scorer I need a representation. The simplest one that works is the Bag-of-Words: I throw away order and keep counts. Stack those count vectors and I get the document-term matrix; treat each row as a point in term space and I have the vector space model. Naming these explicitly fixes a gap the old deck had — TF-IDF and BM25 are weightings on top of this representation.</aside>
+          
         </section>
 
-        <!-- ============================================ 21 · DEFINITION · Bag-of-Words ============================================ -->
+        
         <section class="slide" data-type="definition" data-screen-label="23 Bag-of-Words">
           <div class="slide-header">
             <h2><span lang="ru">Ключевой термин</span><span lang="en">Key term</span></h2>
@@ -833,10 +825,10 @@
               <p class="small muted"><span lang="ru">Документ становится вектором, индексированным словарём: элемент \(i\) — это счётчик терма \(i\). Сложи векторы всех документов в стопку — и получишь <strong>матрицу «документ–терм»</strong>. Это вход для TF-IDF, BM25 и классических текстовых классификаторов.</span><span lang="en">A document becomes a vector indexed by the vocabulary: entry \(i\) is the count of term \(i\). Stack the vectors for all documents and you get the <strong>document-term matrix</strong>. It is the input to TF-IDF, BM25, and classic text classifiers.</span></p>
             </div>
           </div>
-          <aside class="slide-notes">Name it. The Bag-of-Words model is the single most important representation in classical IR: a document is just a vector of word counts over a fixed vocabulary. The word "bag" is literal — order is thrown away, only multiplicity survives. Every weighting we study (raw counts, TF-IDF, BM25) is a transformation of this count vector. Its great virtue is simplicity; its great flaw, that it forgets word order, comes three slides on.</aside>
+          
         </section>
 
-        <!-- ============================================ 22 · TABLE · BoW document-term matrix ============================================ -->
+        
 <section class="slide" data-type="table" data-screen-label="24 BoW matrix">
           <div class="slide-header">
             <h2><span lang="ru">Матрица «документ–терм», разобранная</span><span lang="en">The document-term matrix, worked</span></h2>
@@ -854,10 +846,10 @@
             </tbody>
           </table>
           <p class="small muted center mt-2"><span lang="ru">Каждая строка — вектор счётчиков в \(\mathbb{R}^{11}\). Обрати внимание: </span><span lang="en">Each row is a count vector in \(\mathbb{R}^{11}\). Note </span><code>the</code><span lang="ru"> доминирует в S1/S2 со счётчиком 2, но не несёт тематического сигнала &mdash; мотивация для IDF.</span><span lang="en"> dominates S1/S2 with count 2 yet carries no topic signal &mdash; the motivation for IDF.</span></p>
-          <aside class="slide-notes">Exact from the BoW JSON. Three short sentences over an eleven-word vocabulary give a three-by-eleven count matrix. Read a row as a vector: S1 is the cat-mat sentence, S2 the dog-log sentence, S3 the plurals sentence. Two things to flag. First, the most frequent word in S1 and S2 is "the" with count two, and it tells you nothing about topic — that is exactly what IDF will down-weight. Second, "cat" and "cats" are different columns; without stemming the matrix treats them as unrelated, which is the lexical brittleness we keep circling back to.</aside>
+          
         </section>
 
-        <!-- ============================================ 23 · VIZ · live BoW: spam filter ============================================ -->
+        
         <section class="slide" data-type="viz" data-screen-label="25 Spam filter">
           <div class="slide-header">
             <h2><span lang="ru">BoW вживую: спам-фильтр</span><span lang="en">Live BoW: a spam filter</span></h2>
@@ -885,19 +877,19 @@
             </div>
             <figure class="split-art__fig">
               <svg viewBox="0 0 460 360" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;max-height:48vh" role="img" aria-label="An email envelope sorted by word counts into a spam bin and a ham bin">
-                <!-- envelope -->
+                
                 <rect x="150" y="30" width="160" height="104" rx="10" fill="var(--bg-card)" stroke="var(--ink-2)" stroke-width="3"/>
                 <path d="M150 40 L230 96 L310 40" fill="none" stroke="var(--ink-2)" stroke-width="3"/>
                 <text x="230" y="158" text-anchor="middle" font-family="var(--font-sans)" font-size="20" fill="var(--ink-3)">one email</text>
-                <!-- split arrows -->
+                
                 <line x1="200" y1="178" x2="120" y2="232" stroke="var(--ink-3)" stroke-width="3" marker-end="url(#spd)"/>
                 <line x1="260" y1="178" x2="340" y2="232" stroke="var(--ink-3)" stroke-width="3" marker-end="url(#spd)"/>
                 <defs><marker id="spd" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-3)"/></marker></defs>
-                <!-- spam bin -->
+                
                 <rect x="36" y="244" width="168" height="86" rx="10" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="3"/>
                 <text x="120" y="282" text-anchor="middle" font-family="var(--font-mono)" font-size="20" fill="var(--accent-ink)">free·money·win</text>
                 <text x="120" y="312" text-anchor="middle" font-family="var(--font-sans)" font-size="24" fill="var(--c-red)" font-weight="700">SPAM</text>
-                <!-- ham bin -->
+                
                 <rect x="256" y="244" width="168" height="86" rx="10" fill="none" stroke="var(--ink-3)" stroke-width="2"/>
                 <text x="340" y="282" text-anchor="middle" font-family="var(--font-mono)" font-size="20" fill="var(--ink-3)">meeting·report</text>
                 <text x="340" y="312" text-anchor="middle" font-family="var(--font-sans)" font-size="24" fill="var(--ink-2)" font-weight="700">HAM</text>
@@ -906,10 +898,10 @@
             </figure>
           </div>
           <p class="viz-caption"><span lang="ru">Классическое применение BoW: признаки — это счётчики слов, а Naïve Bayes перемножает пословные правдоподобия \(P(\text{word}\mid\text{class})\). «free», «money», «winner» толкают к спаму; порядок никогда не важен. То же представление, но задача иная, чем поиск.</span><span lang="en">A classic BoW application: features are word counts, and Naïve Bayes multiplies per-word likelihoods \(P(\text{word}\mid\text{class})\). "free", "money", "winner" push toward spam; order never matters. Same representation, different task than retrieval.</span></p>
-          <aside class="slide-notes">Concrete BoW in the wild. A spam filter ignores grammar entirely: it counts words and asks which class makes those counts more likely. Naïve Bayes assumes words are independent given the class and multiplies their likelihoods — crude, but famously effective on email. The point for us is that the very same Bag-of-Words vector that feeds a classifier here feeds a retrieval scorer in the rest of the lecture. The representation is shared; only the downstream model changes.</aside>
+          
         </section>
 
-        <!-- ============================================ 24 · TWO-COL · BoW limits ============================================ -->
+        
         <section class="slide" data-type="two-col" data-screen-label="26 BoW limits">
           <div class="slide-header">
             <h2><span lang="ru">Что мешок слов выбрасывает</span><span lang="en">What Bag-of-Words throws away</span></h2>
@@ -936,10 +928,10 @@
               </ul>
             </div>
           </div>
-          <aside class="slide-notes">Two structural limits. First, discarding order means "dog bites man" and "man bites dog" have identical representations — fatal for tasks where word order carries meaning, partially patched by n-gram features. Second, the vectors live in a space with one dimension per vocabulary word, so they are enormous and almost entirely zero; we never materialise them densely, we store the inverted index. And crucially, distinct strings are orthogonal axes, so synonyms get no credit — the lexical gap, which we name properly in Part 8.</aside>
+          
         </section>
 
-        <!-- ============================================ 25 · DEFINITION · Vector Space Model ============================================ -->
+        
 <section class="slide" data-type="definition" data-screen-label="27 Vector Space Model">
           <div class="slide-header">
             <h2><span lang="ru">Ключевой термин</span><span lang="en">Key term</span></h2>
@@ -953,10 +945,10 @@
               <p class="small muted"><span lang="ru">Запрос — это просто очень короткий документ. Релевантность становится расстоянием / углом, так что поиск сводится к «найти векторы документов, ближайшие к вектору запроса» — мост от счётчиков к настоящему ранжированию.</span><span lang="en">A query is just a very short document. Relevance becomes a distance / angle, so retrieval reduces to "find the document vectors nearest the query vector" — the bridge from counts to a real ranking.</span></p>
             </div>
           </div>
-          <aside class="slide-notes">Salton's vector space model is the conceptual leap that makes ranking possible. Once documents and the query live in the same term space, "relevant" becomes "close", and we can sort by similarity. The query is treated as a tiny document. This reframing is what lets us replace yes/no boolean matching with a continuous score — and it is exactly the geometry we measured with cosine in Lecture 2, now put to work for retrieval.</aside>
+          
         </section>
 
-        <!-- ============================================ 26 · VIZ · why raw counts fail ============================================ -->
+        
 <section class="slide" data-type="viz" data-screen-label="28 Raw counts fail">
           <div class="slide-header">
             <h2><span lang="ru">Почему сырые счётчики не работают &rarr; мотивируем TF и IDF</span><span lang="en">Why raw counts fail &rarr; motivate TF and IDF</span></h2>
@@ -980,11 +972,11 @@
             </svg>
           </div>
           <p class="viz-caption"><span lang="ru">Ранжируй по сырому счётчику — и каждый документ «о» </span><span lang="en">Rank by raw count and every document is "about" </span><code>the</code><span lang="ru">. Нужны две поправки: <strong>TF</strong> (сублинейный взгляд на внутридокументную частоту) и <strong>IDF</strong> (понизить вес термов, частых по всему корпусу). Это TF-IDF, дальше.</span><span lang="en">. We need two corrections: <strong>TF</strong> (a sublinear take on within-document frequency) and <strong>IDF</strong> (down-weight terms common across the corpus). That is TF-IDF, next.</span></p>
-          <aside class="slide-notes">Motivate the whole of Part 4. If you score documents by raw word counts, the winner is always dominated by stopwords like "the" and "of" — they are frequent everywhere and informative nowhere. Two fixes are needed and they are orthogonal: damp the within-document term frequency so repetition has diminishing value, and down-weight terms that appear in many documents because ubiquity means low specificity. Those are TF and IDF, and their product is the first real ranking weight.</aside>
+          
         </section>
 
-        <!-- ============================================ PART 04 ============================================ -->
-        <!-- ============================================ 27 · DIVIDER · PART 04 ============================================ -->
+        
+        
         <section class="slide" data-type="divider" data-screen-label="29 Divider P4">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 04</span><span lang="en">Part 04</span></div>
@@ -995,10 +987,10 @@
             <img src="assets/img/L3/L3-17-reweight.webp?v=1" alt="A doodle of word counts being re-weighted on a balance: common words shrink, rare words grow heavier"
                  />
           </div>
-          <aside class="slide-notes">TF-IDF is where my ranked retrieval truly begins. My plan: term-frequency variants and why they are sublinear; inverse document frequency and Spärck Jones's specificity argument; the smoothing fix; the boxed product and its SMART variants; a worked example where common words vanish; the cosine ranker I will later fuse; two live applications; and finally the flaws that push me to BM25. Every number is computed on real data.</aside>
+          
         </section>
 
-        <!-- ============================================ 28 · FORMULA · term frequency variants ============================================ -->
+        
         <section class="slide" data-type="formula" data-screen-label="30 TF variants">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">Частота терма &mdash; и почему сублинейная</span><span lang="en">Term Frequency &mdash; and why sublinear</span></h2>
@@ -1013,10 +1005,10 @@
             <div class="var-block"><div class="var-symbol">\(0.5+0.5\tfrac{f}{\max f}\)</div><div class="var-desc"><strong><span lang="ru">Расширенная</span><span lang="en">Augmented</span></strong><br /><span lang="ru">не даёт длинным документам доминировать</span><span lang="en">keeps long docs from dominating</span></div></div>
           </div>
           <p class="small muted center mt-3"><span lang="ru">Интуиция: слово, встретившееся 10&times;, <strong>более</strong> релевантно, чем однажды, но не в 10&times; раз. Поэтому всякая полезная TF <strong>сублинейна</strong> по \(f\) &mdash; зерно насыщения BM25.</span><span lang="en">Intuition: a word that appears 10&times; is <strong>more</strong> relevant than once, but not 10&times; more. So every useful TF is <strong>sublinear</strong> in \(f\) &mdash; the seed of BM25's saturation.</span></p>
-          <aside class="slide-notes">Term frequency comes in flavours, all sharing one principle: more is better, but with diminishing returns. Raw count is linear and over-rewards repetition. Log-tf, one plus log f, is the classic sublinear choice. Augmented tf normalises by the document's max frequency to stop long documents from dominating. The takeaway is that good TF is sublinear in the count — which is precisely the property BM25 formalises with its saturation function. Hold that thread; it returns in Part 5.</aside>
+          
         </section>
 
-        <!-- ============================================ 29 · FORMULA · IDF / specificity ============================================ -->
+        
         <section class="slide" data-type="formula" data-screen-label="31 IDF">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">Обратная документная частота</span><span lang="en">Inverse Document Frequency</span></h2>
@@ -1031,10 +1023,10 @@
             <div class="var-block"><div class="var-symbol">\(\log\tfrac{N}{df}\)</div><div class="var-desc"><strong><span lang="ru">Специфичность</span><span lang="en">Specificity</span></strong><br /><span lang="ru">редкий &rarr; высокая</span><span lang="en">rare &rarr; high</span></div></div>
           </div>
           <p class="small muted center mt-3"><span lang="ru">Прозрение Spärck Jones: ценность терма — это его <strong>редкость</strong>. Формула выше — современная учебниковая запись этой идеи; исходную форму 1972 года покажет лекция 4. Слово в каждом документе (\(df=N\)) получает \(\log 1 = 0\); слово в одном документе — \(\log N\): оно точно указывает.</span><span lang="en">Spärck Jones's insight: a term's value is its <strong>rarity</strong>. The formula above is the modern textbook form of that idea; Lecture 4 shows her original 1972 form. A word in every document (\(df=N\)) scores \(\log 1 = 0\); a word in one document scores \(\log N\): it pinpoints.</span></p>
-          <aside class="slide-notes">Karen Spärck Jones, 1972: the weight of a term should reflect how specific it is, and specificity is rarity. That is her idea; the formula on the slide is the modern textbook form of it (her 1972 original was an integer bucketed logarithm, shown in Lecture 4): inverse document frequency is the log of the corpus size over the document frequency. A term that appears everywhere has idf zero and contributes nothing; a term in a single document has the maximum idf and is a near-perfect locator. This single idea is why search ignores stopwords without ever maintaining a stopword list — they simply earn zero weight.</aside>
+          
         </section>
 
-        <!-- ============================================ 30 · WALKTHROUGH · IDF failure-then-fix (smoothing) ============================================ -->
+        
         <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="32 IDF smoothing">
           <div class="slide-header">
             <h2><span lang="ru">IDF: сбой, затем починка</span><span lang="en">IDF: failure, then fix</span></h2>
@@ -1067,10 +1059,10 @@
             <span class="step-counter">4/4</span>
             <button data-step-act="next" aria-label="Next step">&rarr;</button>
           </div>
-          <aside class="slide-notes">The build animation the old deck had. Plain log N over df divides by zero for an unseen term and bottoms out at zero when a term is everywhere. Adding a half to numerator and denominator — the Robertson–Spärck-Jones probabilistic form — keeps it finite. But that form can go negative when more than half the documents contain the term, so Lucene adds one inside the log to clamp it non-negative. The final smoothed idf gives cat 0.1335 and dog 0.4700 on the flagship collection, the exact values we use in the BM25 worked example later.</aside>
+          
         </section>
 
-        <!-- ============================================ 31 · FORMULA · TF-IDF boxed + SMART ============================================ -->
+        
 <section class="slide f-smart" data-type="formula" data-screen-label="33 TF-IDF boxed">
           <style>/* this slide stacks formula + a 4-row table + caption; use a flex column so the three
           blocks never overlap (the formula template's auto/1fr/auto grid clamped the table into the caption) */
@@ -1092,10 +1084,10 @@
             </tbody>
           </table>
           <p class="small muted center mt-2"><span lang="ru">Тройка SMART — это </span><span lang="en">The SMART triple is </span><code>ddd.qqq</code><span lang="ru"> &mdash; одно взвешивание для документов, другое для запросов. </span><span lang="en"> &mdash; one weighting for documents, one for queries. </span><code>lnc.ltc</code><span lang="ru"> (log-tf для документов, полный idf для запросов) — классический рецепт.</span><span lang="en"> (log-tf docs, full-idf queries) is the classic recipe.</span></p>
-          <aside class="slide-notes">The product is the whole point: a term scores high in a document only if it is both frequent there and rare in the corpus. The SMART notation, from Salton's system, is a three-letter code per side — term-frequency scheme, document-frequency scheme, normalisation — written as document-triple dot query-triple. The famous lnc.ltc recipe uses log-tf with cosine normalisation on documents and adds idf on the query side. You will see these codes in IR papers; they are just a compact way to name a weighting.</aside>
+          
         </section>
 
-        <!-- ============================================ 32 · TABLE · worked TF-IDF car/truck ============================================ -->
+        
         <section class="slide" data-type="table" data-screen-label="34 Car/truck TF-IDF · shared words">
           <div class="slide-header">
             <h2><span lang="ru">Разбор TF-IDF: общие слова исчезают</span><span lang="en">Worked TF-IDF: common words vanish</span></h2>
@@ -1112,10 +1104,10 @@
             </tbody>
           </table>
           <p class="small muted center mt-3"><span lang="ru">Четыре общих слова имеют \(df=2 \Rightarrow \operatorname{idf}=\log(2/2)=0\) и не вносят <strong>ничего</strong> в любую оценку. Дальше — слова, которые действительно отличают A от B.</span><span lang="en">The four shared words have \(df=2 \Rightarrow \operatorname{idf}=\log(2/2)=0\) and contribute <strong>nothing</strong> to any score. Next: the words that actually distinguish A from B.</span></p>
-          <aside class="slide-notes">Exact from the car/truck JSON, part 1 — the shared words. Both documents share "the", "is", "driven", "on" — they appear in every document, so their idf with log of two over two is exactly zero and they drop out of every score. This is half of why TF-IDF works: it automatically silences the words that cannot help you tell documents apart. The distinguishing words come next.</aside>
+          
         </section>
 
-        <!-- ============================================ 34b · TABLE · Car/truck distinguishing words ============================================ -->
+        
         <section class="slide" data-type="table" data-screen-label="35 Car/truck TF-IDF · distinguishing words">
           <div class="slide-header">
             <h2><span lang="ru">Разбор TF-IDF: различающие слова получают оценку</span><span lang="en">Worked TF-IDF: distinguishing words score</span></h2>
@@ -1132,10 +1124,10 @@
             </tbody>
           </table>
           <p class="small muted center mt-3"><span lang="ru">Только различающие слова (<code>car/road</code> против <code>truck/highway</code>) имеют \(df=1 \Rightarrow \operatorname{idf}=\log 2=0{,}6931\), поэтому <strong>они получают оценку</strong> — именно те слова, которые отличают A от B.</span><span lang="en">Only the distinguishing words (<code>car/road</code> vs <code>truck/highway</code>) have \(df=1 \Rightarrow \operatorname{idf}=\log 2=0.6931\), so <strong>they score</strong> — exactly the words that tell A and B apart.</span></p>
-          <aside class="slide-notes">Part 2 — the distinguishing words. What remains after the shared words vanish is precisely the words that distinguish the two documents: car and road for A, truck and highway for B, each with idf log 2 = 0.6931 and tfidf 0.099. This is the other half of why TF-IDF works: it amplifies the words that can tell documents apart. The cleanest possible demonstration — silence the shared words, score the distinguishing ones.</aside>
+          
         </section>
 
-        <!-- ============================================ 33 · FORMULA · cosine over TF-IDF ============================================ -->
+        
         <section class="slide" data-type="formula" data-screen-label="36 Cosine ranker">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">Косинус поверх TF-IDF: второй ранкер</span><span lang="en">Cosine over TF-IDF: the second ranker</span></h2>
@@ -1150,10 +1142,10 @@
             <div class="var-block"><div class="var-symbol">\(\cos\theta\)</div><div class="var-desc"><strong><span lang="ru">Угол</span><span lang="en">Angle</span></strong><br /><span lang="ru">\(1\) = одинаковое направление</span><span lang="en">\(1\) = identical direction</span></div></div>
           </div>
           <p class="small muted center mt-3"><span lang="ru">Деление на длины векторов убирает эффект размера документа, так что косинус сравнивает <strong>направление</strong>, а не величину. Это косинусный ранкер — тот самый, который RRF позже сольёт с BM25.</span><span lang="en">Dividing by the vector lengths removes the document-size effect, so cosine compares <strong>direction</strong>, not magnitude. This is the cosine ranker &mdash; the one RRF will later fuse with BM25.</span></p>
-          <aside class="slide-notes">Build the cosine ranker now, because rank fusion in Part 7 fuses it with BM25. Each document and the query become TF-IDF vectors; cosine similarity is their dot product divided by their lengths, which is the cosine of the angle between them. Normalising by length is what makes a short and a long document comparable — only direction in term space matters. This is the same cosine from Lecture 2, now applied to TF-IDF weighted vectors to produce a full ranking. Keep it in mind: it is the "cosine" list in the RRF example.</aside>
+          
         </section>
 
-        <!-- ============================================ 34 · TABLE · live TF-IDF keyword extraction ============================================ -->
+        
         <section class="slide" data-type="table" data-screen-label="37 Keyword extraction">
           <div class="slide-header">
             <h2><span lang="ru">TF-IDF в деле №1: извлечение ключевых слов</span><span lang="en">Live TF-IDF #1: keyword extraction</span></h2>
@@ -1171,10 +1163,10 @@
             </tbody>
           </table>
           <p class="small muted center mt-2"><span lang="ru">Топовые термы по TF-IDF — </span><span lang="en">The top TF-IDF terms &mdash; </span><code>shuttle, crew, lost</code><span lang="ru"> — резюмируют, о чём D2, без всякого обучения с учителем. Это извлечение ключевых фраз без учителя.</span><span lang="en"> &mdash; summarize what D2 is about, with zero supervision. This is unsupervised keyphrase extraction.</span></p>
-          <aside class="slide-notes">Exact from data/l3-keywords.json (generated by gen_l3.py from D2's term counts). The idf here is the BM25-smoothed form from the BM25-smoothing slide (not the bare log N/df introduced just before it), so these very numbers carry straight into the BM25 part — that is why shuttle reads 1.2809 rather than log(8/2)=1.386. Sort a single document's terms by TF-IDF and the top of the list reads like a human summary: shuttle, crew, lost. (The filler word "maybe" also lands at rank 4 — it appears in just one doc, so it earns a high idf — a reminder that raw TF-IDF has no notion of stopwords; a real keyphrase system would filter it out first.) Note how the weighting works — "shuttle" wins on frequency (three times) despite a lower idf, while "crew" and "lost" tie on a higher idf because they are rarer in the corpus even at lower frequency. No model, no training, no labels: the document's own statistics surface its topic. This is the standard baseline for keyphrase extraction and tag suggestion.</aside>
+          
         </section>
 
-        <!-- ============================================ 35 · TWO-COL · live TF-IDF document similarity ============================================ -->
+        
         <section class="slide" data-type="two-col" data-screen-label="38 Doc similarity">
           <div class="slide-header">
             <h2><span lang="ru">TF-IDF в деле №2: сходство и почти-дубликаты</span><span lang="en">Live TF-IDF #2: similarity &amp; near-duplicates</span></h2>
@@ -1201,10 +1193,10 @@
               </ul>
             </div>
           </div>
-          <aside class="slide-notes">The second live application closes the loop with the cosine ranker. TF-IDF plus cosine is a complete retrieval system: weight the query, weight every document, rank by angle. The same setup detects near-duplicates — two texts whose TF-IDF vectors point almost the same way are essentially the same document, which powers dedup and plagiarism detection. Its blind spot is the recurring one: synonyms occupy different axes, so cosine cannot see that "shuttle" and "spacecraft" mean nearly the same thing. That limitation is the whole reason embeddings exist.</aside>
+          
         </section>
 
-        <!-- ============================================ 36 · E2E · TF-IDF flaws &rarr; bridge to BM25 ============================================ -->
+        
 <section class="slide" data-type="e2e" data-max-step="2" data-current-step="0" data-screen-label="39 TF-IDF flaws">
           <div class="slide-header">
             <h2><span lang="ru">TF-IDF слишком груб &rarr; мост к BM25</span><span lang="en">TF-IDF is too crude &rarr; bridge to BM25</span></h2>
@@ -1237,11 +1229,11 @@
             <span class="e2e-stage-name"><span lang="ru">обзор</span><span lang="en">overview</span></span>
             <button type="button" class="e2e-toggle"><span lang="ru">Только теория</span><span lang="en">Theory only</span></button>
           </div>
-          <aside class="slide-notes">Numbers from the bm25 JSON. With idf of space at 0.6931, plain TF-IDF multiplies by raw term frequency: D0 with one occurrence scores 0.6931, D2 with two scores 1.39, D3 with three scores 2.08. The ranking puts D3 first purely because it repeats the word most. Two flaws are now visible: term frequency never saturates, so the tenth occurrence counts as much as the first, and there is no penalty for a long document that accumulates occurrences just by being long. BM25 fixes exactly these two things — that is the next part.</aside>
+          
         </section>
 
-        <!-- ============================================ PART 05 — THE BM25 SAGA ============================================ -->
-        <!-- ============================================ 37 · DIVIDER · PART 05 ============================================ -->
+        
+        
         <section class="slide" data-type="divider" data-screen-label="40 Divider P5">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 05</span><span lang="en">Part 05</span></div>
@@ -1252,10 +1244,10 @@
             <img src="assets/img/L3/L3-13-bm25-saga.webp?v=1" alt="BM25 drawn as a brass sextant being tuned by hand over a long timeline of expeditions"
                  />
           </div>
-          <aside class="slide-notes">BM25 is my brass sextant — the instrument I use to measure how well a document fits a query, refined over decades. This engineering arc is the crown jewel of the lecture: from the probabilistic relevance principle through BM1, the saturation and length-norm fixes, the BM11/BM15 extremes, and finally the b-dial that interpolates them into BM25. My "aha" is that BM25 is not handed down — every term was added, measured, and sometimes removed.</aside>
+          
         </section>
 
-        <!-- ============================================ 38 · TIMELINE · BM25 provenance ============================================ -->
+        
         <section class="slide" data-type="timeline" data-screen-label="41 BM25 timeline">
           <div class="slide-header">
             <h2><span lang="ru">Происхождение: как BM25 был заработан</span><span lang="en">Provenance: how BM25 was earned</span></h2>
@@ -1287,10 +1279,10 @@
               <div class="tl-card"><div class="tl-kicker">Robertson &amp; Zaragoza</div><h3 class="tl-what"><span lang="ru">BM25 и дальше</span><span lang="en">BM25 &amp; Beyond</span></h3><p class="tl-why"><span lang="ru">Каноническое изложение BM25 из вероятностного фреймворка релевантности.</span><span lang="en">The definitive derivation from the probabilistic relevance framework.</span></p></div>
             </li>
           </ol>
-          <aside class="slide-notes">The provenance the old deck lacked. Maron and Kuhns in 1960 propose ranking by probability of relevance. Robertson and Spärck Jones in 1976 formalise it as the Binary Independence Model, yielding the relevance weight we will call BM1. Robertson, van Rijsbergen and Porter's 1981 work applies the two-Poisson model (introduced by Harter in 1975) to explain why the optimal term-frequency weight should saturate. In 1994 Robertson and Walker's Okapi system at City University is among the top runs at TREC-3 and BM25 enters the world. Singhal's 1996 pivoted length normalisation is the parallel insight that the b parameter captures. Robertson and Zaragoza's 2009 monograph is the definitive treatment. Two pivots: 1994 birth, and the theory that explains it.</aside>
+          
         </section>
 
-        <!-- ============================================ 39 · FORMULA · Probabilistic Ranking Principle ============================================ -->
+        
 <section class="slide" data-type="formula" data-screen-label="42 PRP">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">Принцип вероятностного ранжирования (PRP)</span><span lang="en">The Probabilistic Ranking Principle</span></h2>
@@ -1305,10 +1297,10 @@
             <div class="var-block"><div class="var-symbol">odds</div><div class="var-desc"><strong>Monotone</strong><br />same order as \(P\)</div></div>
           </div>
           <p class="small muted center mt-3"><span lang="ru">PRP Робертсона: упорядочивание документов по вероятности релевантности <strong>оптимально</strong> для пользователя. Поскольку шансы — монотонное преобразование \(P\), можно ранжировать по шансам &mdash; которые удобно факторизуются.</span><span lang="en">Robertson's PRP: ordering documents by probability of relevance is <strong>optimal</strong> for the user. Because the odds are a monotone transform of \(P\), we may rank by the odds &mdash; which factorize nicely.</span></p>
-          <aside class="slide-notes">The theoretical foundation. The Probabilistic Ranking Principle states that if you order documents by their probability of relevance to the query, you maximise the expected usefulness to the user — it is provably optimal under reasonable assumptions. The practical move is to rank by the odds of relevance rather than the probability directly, because the odds factorise into per-term contributions once you apply Bayes' rule and an independence assumption. That factorisation is what produces a sum over query terms, the shape every scorer in this part shares.</aside>
+          
         </section>
 
-        <!-- ============================================ 40 · WALKTHROUGH · odds → Bayes → independence → Σ (scaffold) ============================================ -->
+        
         <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="43 Why a per-term sum">
           <div class="slide-header">
             <h2><span lang="ru">От шансов к сумме по термам запроса</span><span lang="en">From odds to a sum over query terms</span></h2>
@@ -1342,10 +1334,10 @@
             <span class="step-counter">4/4</span>
             <button data-step-act="next" aria-label="Next step">&rarr;</button>
           </div>
-          <aside class="slide-notes">The scaffold that makes the prerequisite cliff honest. Students should not have to take "the odds factorise into a sum over terms" on faith. Four short moves on a two-term query: (1) PRP hands us the odds of relevance; (2) Bayes rewrites the posterior odds as a likelihood ratio times a prior, and the prior is constant across documents so it drops out of the ranking; (3) the term-independence assumption — strong and admittedly false, but the working assumption of the Binary Independence Model — factorises the document likelihood into a product over terms; (4) taking logs turns that product into a sum of per-term log-likelihood-ratio weights. That sum is exactly the shape of BM1, BM25, and every scorer in this part. State plainly that this is motivation, not an examinable derivation — the boxed per-term weight on the next slide is all they need to carry forward.</aside>
+          
         </section>
 
-        <!-- ============================================ 41 · FORMULA · BIM &rarr; RSJ weight = BM1 ============================================ -->
+        
         <section class="slide" data-type="formula" data-screen-label="44 BM1">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">BIM &rarr; вес RSJ = BM1</span><span lang="en">BIM &rarr; the RSJ weight = BM1</span></h2>
@@ -1360,10 +1352,10 @@
             <div class="var-block"><div class="var-symbol">\(+0.5\)</div><div class="var-desc"><strong>Smoothing</strong><br />avoids degeneracy</div></div>
           </div>
           <p class="small muted center mt-3"><span lang="ru">Внутри Binary Independence Model, без обратной связи по релевантности, шансы сводятся к этой сумме пословных весов &mdash; <strong>весу Robertson&ndash;Sp&auml;rck-Jones</strong>, вероятностному двойнику idf. На практике мы <strong>ограничиваем его снизу через \(+1\)</strong> (форма \(\ln(1+\cdot)\) со слайда про сглаживание idf), чтобы он не стал отрицательным для частых термов &mdash; именно эта ограниченная форма и есть та idf, которую мы используем во всех числовых примерах. Изъян в любом случае: он учитывает <strong>только наличие</strong>; он игнорирует, как <em>часто</em> встречается \(t\).</span><span lang="en">Under the Binary Independence Model, with no relevance feedback, the odds collapse to this sum of per-term weights &mdash; the <strong>Robertson&ndash;Sp&auml;rck-Jones weight</strong>, idf's probabilistic twin. In practice we <strong>clamp it with \(+1\)</strong> (the \(\ln(1+\cdot)\) form from the idf-smoothing slide) so it can't turn negative for common terms &mdash; that clamped form is the idf every worked number here uses. The gap either way: it is <strong>presence-only</strong>; it ignores how <em>often</em> \(t\) occurs.</span></p>
-          <aside class="slide-notes">The Binary Independence Model represents a document as a set of present-or-absent terms and, under independence, the odds of relevance factorise into a sum of per-term weights. With no relevance judgments to estimate from, that weight reduces to the Robertson–Spärck-Jones form — the probabilistic relative of idf. Note the subtlety: the raw RSJ weight can go negative when a term sits in more than half the corpus (and on a tiny collection like cat/dog/mouse it would), so in practice — and in every worked example in this deck — we use the +1-clamped form from the idf-smoothing slide, ln(1 + (N−n+0.5)/(n+0.5)), which stays non-negative. This is BM1. Its limitation is glaring once stated: it only asks whether a term is present, never how many times — so it cannot tell a document that mentions "shuttle" once from one that is entirely about shuttles. Fixing that is the next step.</aside>
+          
         </section>
 
-        <!-- ============================================ 41 · VIZ · 2-Poisson & eliteness ============================================ -->
+        
 <section class="slide" data-type="viz" data-screen-label="45 2-Poisson">
           <div class="slide-header">
             <h2><span lang="ru">Почему насыщение: документ <em>о</em> t, а не просто <em>упоминает</em> t</span><span lang="en">Why saturation: <em>about</em> t vs merely <em>mentions</em> t</span></h2>
@@ -1389,10 +1381,10 @@
             </svg>
           </div>
           <p class="viz-caption"><span lang="ru">Документ либо <em>о</em> \(t\) (тема повторяется), либо просто <em>упоминает</em> его (мимоходом). Лучший вес, отличающий одно от другого, растёт с tf, но <strong>выходит на плато</strong> &mdash; принципиальный источник насыщения. </span><span lang="en">A document is either <em>about</em> \(t\) (the topic recurs) or merely <em>mentions</em> it (in passing). The best weight that tells the two apart rises with tf but <strong>flattens</strong> &mdash; the principled origin of saturation. </span><span class="muted"><span lang="ru">(Формально: моделируем tf как смесь 2-Poisson, по одной компоненте на режим &mdash; модель 2-Poisson — это Harter 1975; прочтение через элитность/насыщение — Robertson et al. 1981.)</span><span lang="en">(Formally: model tf as a 2-Poisson mixture, one component per regime &mdash; the 2-Poisson model is Harter 1975; the eliteness/saturation reading of it is Robertson et al. 1981.)</span></span></p>
-          <aside class="slide-notes">This is the theory the old deck never gave: why saturation. Robertson's eliteness idea says each document is either elite for a term — genuinely about that concept, so the term recurs — or not, where it appears only incidentally. Model the term count as a mixture of two Poisson distributions, one per class — the 2-Poisson model itself goes back to Harter 1975 — and the optimal weight from the likelihood ratio is an increasing but bounded function of tf. In other words, the saturating shape is not an engineering hack; it falls out of a principled probabilistic model. BM25's tf factor is a cheap, robust approximation to that curve.</aside>
+          
         </section>
 
-        <!-- ============================================ 42 · FORMULA · Step 1 saturating TF ============================================ -->
+        
         <section class="slide" data-type="formula" data-screen-label="46 Step1 saturating TF">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">Шаг 1 &mdash; насыщающийся TF-фактор</span><span lang="en">Step 1 &mdash; saturating TF factor</span></h2>
@@ -1401,7 +1393,7 @@
           <div class="formula-stage">
             <div style="display:flex; align-items:center; justify-content:center; gap:var(--sp-6); flex-wrap:wrap;">
               <div>$$ \mathcal{F} = S_1\,\frac{f}{K_1 + f}, \qquad S_1 = K_1 + 1 $$</div>
-              <!-- tiny saturation mini-curve, theme-safe -->
+              
               <svg viewBox="0 0 220 150" width="220" height="150" role="img" aria-label="Saturating tf curve: rises then flattens toward a ceiling" style="flex:none;">
                 <line x1="26" y1="124" x2="206" y2="124" stroke="var(--rule)" stroke-width="2"/>
                 <line x1="26" y1="124" x2="26" y2="14" stroke="var(--rule)" stroke-width="2"/>
@@ -1418,10 +1410,10 @@
             <div class="var-block"><div class="var-symbol">\(S_1\)</div><div class="var-desc"><strong>Scale</strong><br />\(=K_1+1\) (learned)</div></div>
           </div>
           <p class="small muted center mt-3"><span lang="ru">При \(f\to\infty\) имеем \(\mathcal{F}\to S_1\): потолок. Сырой tf чрезмерно вознаграждает повторы; эта дешёвая рациональная функция имитирует вес 2-Poisson одним регулятором, \(K_1\) &mdash; картинка рядом.</span><span lang="en">As \(f\to\infty\), \(\mathcal{F}\to S_1\): a ceiling. Raw tf over-rewards repetition; this cheap rational function mimics the 2-Poisson weight with one knob, \(K_1\) &mdash; the picture beside it.</span></p>
-          <aside class="slide-notes">The first engineering step. Rather than evaluate the full two-Poisson weight, approximate it with a simple rational function: f over K1 plus f, scaled by S1. As the count grows the factor approaches S1, giving the bounded, concave shape the theory demands, controlled by a single parameter K1 that sets how quickly it saturates. This replaces raw, linear term frequency and is the heart of why BM25 beats TF-IDF. The choice S1 equals K1 plus 1 is not arbitrary — it is one of the things the authors learned empirically, which we flag shortly.</aside>
+          
         </section>
 
-        <!-- ============================================ 43 · FORMULA · Step 2 length normalization ============================================ -->
+        
         <section class="slide" data-type="formula" data-screen-label="47 Step2 length norm">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">Шаг 2 &mdash; нормировка длины</span><span lang="en">Step 2 &mdash; length normalization</span></h2>
@@ -1430,7 +1422,7 @@
           <div class="formula-stage">
             <div style="display:flex; align-items:center; justify-content:center; gap:var(--sp-6); flex-wrap:wrap;">
               <div>$$ \mathcal{F}' = S_1\,\frac{f}{\dfrac{K_1\,\mathrm{len}}{\mathrm{avgdl}} + f} $$</div>
-              <!-- tiny length-dial mini-diagram: flat (no norm) vs sloped (full norm), pivoting at avgdl -->
+              
               <svg viewBox="0 0 220 150" width="220" height="150" role="img" aria-label="Length normalization dial: flat line ignores length, sloped line penalizes long documents, pivoting at average length" style="flex:none;">
                 <line x1="26" y1="124" x2="206" y2="124" stroke="var(--rule)" stroke-width="2"/>
                 <line x1="26" y1="124" x2="26" y2="14" stroke="var(--rule)" stroke-width="2"/>
@@ -1448,10 +1440,10 @@
             <div class="var-block"><div class="var-symbol">\(\tfrac{\mathrm{len}}{\mathrm{avgdl}}\)</div><div class="var-desc"><strong>Relative size</strong><br />\(>1\) penalizes long</div></div>
           </div>
           <p class="small muted center mt-3"><span lang="ru">Длинные документы набирают tf просто из-за длины. Масштабирование \(K_1\) на относительную длину штрафует их (наклонная линия, поворачивающаяся в точке \(\mathrm{avgdl}\)). Полная нормировка &rarr; <strong>BM11</strong>; убрать её (горизонтальная линия, сырой \(K_1\)) &rarr; <strong>BM15</strong>.</span><span lang="en">Long documents accrue tf just by being long. Scaling \(K_1\) by relative length penalizes them (the sloped line, pivoting at \(\mathrm{avgdl}\)). Full normalization &rarr; <strong>BM11</strong>; drop it (flat line, raw \(K_1\)) &rarr; <strong>BM15</strong>.</span></p>
-          <aside class="slide-notes">The second step addresses a bias in step one: a long document accumulates high term counts simply because it has more words, not because it is more relevant. The fix scales the saturation constant K1 by the document's length relative to the corpus average, so a document twice the average length needs twice the count to earn the same credit. Applying this normalisation fully gives the algorithm called BM11; omitting it entirely, using raw K1, gives BM15. These are the two extremes that BM25 will later interpolate between.</aside>
+          
         </section>
 
-        <!-- ============================================ 44 · FORMULA · Step 3 G length-correction ============================================ -->
+        
         <section class="slide" data-type="formula" data-screen-label="48 Step3 G factor">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">Шаг 3 &mdash; коррекция длины G</span><span lang="en">Step 3 &mdash; the G length-correction</span></h2>
@@ -1466,10 +1458,10 @@
             <div class="var-block"><div class="var-symbol">\(\tfrac{\mathrm{avgdl}-\mathrm{len}}{\mathrm{avgdl}+\mathrm{len}}\)</div><div class="var-desc"><strong>Short-doc bonus</strong><br /> &gt;0 if shorter than avg</div></div>
           </div>
           <p class="small muted center mt-3"><span lang="ru"><em>Единственное аддитивное слагаемое на документ</em> (вне \(\Sigma\) по термам запроса), благоволящее более коротким документам, масштабированное на длину запроса &mdash; поэтому установка \(K_2=0\) убирает его начисто, не затрагивая пословный фактор насыщение&middot;idf, который выживает как BM25. Пробовалось в экспериментах Okapi TREC &mdash; и, как мы увидим, в итоге <strong>отброшено</strong>.</span><span lang="en">A <em>single additive per-document term</em> (outside the \(\Sigma\) over query terms) favoring shorter documents, scaled by query length &mdash; so setting \(K_2=0\) removes it cleanly without touching the per-term saturating&middot;idf factor that survives as BM25. Tried during the Okapi TREC experiments &mdash; and, as we'll see, eventually <strong>dropped</strong>.</span></p>
-          <aside class="slide-notes">A piece of the history most modern accounts skip. During the Okapi TREC experiments, the authors added a separate additive term G that gives shorter documents a small bonus proportional to query length. It looked principled and was carried in the candidate formula. The reason to show it is the engineering lesson on the next slide: they tried it, measured it, and found its best setting was to switch it off. Keeping the dead branch visible makes the point that BM25 is the survivor of many experiments, not a clean derivation.</aside>
+          
         </section>
 
-        <!-- ============================================ 45 · FORMULA · Step 4 query-TF factor ============================================ -->
+        
         <section class="slide" data-type="formula" data-screen-label="49 Step4 query TF">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">Шаг 4 &mdash; фактор query-TF</span><span lang="en">Step 4 &mdash; query-TF factor</span></h2>
@@ -1484,10 +1476,10 @@
             <div class="var-block"><div class="var-symbol">\(S_3\)</div><div class="var-desc"><strong>Scale</strong><br />\(=K_3+1\)</div></div>
           </div>
           <p class="small muted center mt-3"><span lang="ru">Та же насыщающаяся форма, применённая к <strong>запросу</strong>: слово, повторённое в длинном запросе, весит больше, но с убывающей отдачей. Для коротких веб-запросов (\(f_q=1\)) эффекта нет.</span><span lang="en">Same saturating shape, applied to the <strong>query</strong>: a word repeated in a long query counts more, but with diminishing returns. For short web queries (\(f_q=1\)) it has no effect.</span></p>
-          <aside class="slide-notes">The fourth factor mirrors step one on the query side. When queries are long — think a paragraph-length description in a TREC topic — a term repeated in the query should count for more, but again with saturation, so the same rational form is reused with its own constant K3. For the short keyword queries typical of web search, where every query term appears once, this factor is exactly one and quietly disappears. It matters historically because Okapi was evaluated on long TREC queries where it helped.</aside>
+          
         </section>
 
-        <!-- ============================================ 46 · TABLE · assemble BM1 / BM15 / BM11 ============================================ -->
+        
         <section class="slide" data-type="table" data-screen-label="50 Assemble">
           <div class="slide-header">
             <h2><span lang="ru">Собираем: BM1 / BM15 / BM11 рядом</span><span lang="en">Assemble: BM1 / BM15 / BM11 side by side</span></h2>
@@ -1502,10 +1494,10 @@
             </tbody>
           </table>
           <p class="small muted center mt-2"><span lang="ru">Все три умножают один и тот же idf-вес BM1. Единственная меняющаяся ось — <strong>как обрабатываются частота терма и длина</strong> &mdash; от «только наличие» до «насыщение + полная нормировка длины».</span><span lang="en">All three multiply the same BM1 idf weight. The only axis that varies is <strong>how term frequency and length</strong> are handled &mdash; from "presence only" up to "saturating + fully length-normalized".</span></p>
-          <aside class="slide-notes">Lay the family out, as the old deck did. Every member multiplies the same BM1 idf weight; what differs is the term-frequency treatment. BM1 ignores tf entirely. BM15 adds the saturating tf factor but no length normalisation. BM11 adds full length normalisation on top. So the progression is monotone: each step keeps the previous idf and improves how it counts repetition and length. The obvious question — does a document collection want BM15 or BM11? — has the answer "it depends", which is exactly what motivates a dial between them.</aside>
+          
         </section>
 
-        <!-- ============================================ 47 · MISCONCEPTION-style · what the authors learned ============================================ -->
+        
         <section class="slide" data-type="two-col" data-screen-label="51 Authors learned">
           <div class="slide-header">
             <h2><span lang="ru">Чему научились авторы (инженерная нота)</span><span lang="en">What the authors learned (the engineering beat)</span></h2>
@@ -1530,10 +1522,10 @@
               </div>
             </div>
           </div>
-          <aside class="slide-notes">The engineering beat that gives BM25 its character. Across the Okapi TREC runs the authors learned three things. The G length-correction's best weight was zero, so they removed it — a model with fewer parameters that performs just as well is a strictly better model. The scale constants S1 and S3 are best set to K plus one, which makes the saturating factor equal one for a single occurrence at average document length, so one mention of a term yields the bare idf. The meta-lesson is the point: BM25's robustness comes from ruthless empirical pruning, not elegance. They tried more, measured, and kept only what earned its place.</aside>
+          
         </section>
 
-        <!-- ============================================ 48 · FORMULA · simplify to BM11 / BM15 extremes ============================================ -->
+        
         <section class="slide" data-type="formula" data-screen-label="52 Two extremes">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">Упрощаем &rarr; два крайних случая</span><span lang="en">Simplify &rarr; the two extremes</span></h2>
@@ -1543,10 +1535,10 @@
             $$ \text{BM15: } \frac{(K_1+1)f}{K_1 + f} \qquad\qquad \text{BM11: } \frac{(K_1+1)f}{K_1\,\frac{\mathrm{len}}{\mathrm{avgdl}} + f} $$
           </div>
           <p class="small muted center mt-3"><span lang="ru">После отбрасывания \(G\) и фиксации \(S_1=K_1+1\) остаётся лишь TF-фактор &mdash; в двух видах. <strong>BM15</strong> игнорирует длину; <strong>BM11</strong> полностью нормализует по ней. Реальным коллекциям обычно нужно что-то <em>среднее</em>.</span><span lang="en">After dropping \(G\) and fixing \(S_1=K_1+1\), only the TF factor remains &mdash; in two flavors. <strong>BM15</strong> ignores length; <strong>BM11</strong> normalizes by it fully. Real collections usually want something <em>in between</em>.</span></p>
-          <aside class="slide-notes">With G gone and the scale fixed, the per-term weight is just the idf times a tf factor, and that factor comes in two pure forms. BM15 uses K1 plus one times f over K1 plus f — no length term at all. BM11 divides instead by K1 times relative length plus f — full normalisation. Experiments showed neither extreme is universally best: some collections have meaningfully varied document lengths and want normalisation, others do not. That empirical "in between" is the gap the very next idea fills.</aside>
+          
         </section>
 
-        <!-- ============================================ 49 · FORMULA · BM25 = interpolate via b (the aha) ============================================ -->
+        
         <section class="slide" data-type="formula" data-screen-label="53 The b-dial">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">«Ага»: \(b\) переключает BM15 &harr; BM11</span><span lang="en">The "aha": \(b\) dials BM15 &harr; BM11</span></h2>
@@ -1561,10 +1553,10 @@
             <div class="var-block"><div class="var-symbol">\(0 \lt b \lt 1\)</div><div class="var-desc"><strong><span lang="ru">смесь</span><span lang="en">blend</span></strong><br /><span lang="ru">настрой под корпус</span><span lang="en">tune per corpus</span></div></div>
           </div>
           <p class="small muted center mt-3"><span lang="ru">Здесь \(k_1\) — это \(K_1\) из саги (обозначен строчной буквой; \(S_1{=}k_1{+}1\) свёрнут в числитель). Один регулятор \(b\) непрерывно скользит между двумя прежними алгоритмами &mdash; они концы одного континуума.</span><span lang="en">Here \(k_1\) is the saga's \(K_1\) (renamed lowercase; \(S_1{=}k_1{+}1\) folded into the numerator). One knob \(b\) slides continuously between the two earlier algorithms &mdash; they are the ends of one continuum.</span></p>
-          <aside class="slide-notes">This is the punchline of the saga. Put a single parameter b inside the length bracket as a convex combination: at b equals zero the bracket is one and you recover BM15, at b equals one it is full relative length and you recover BM11, and in between you get any blend. So BM25 is not a new algorithm — it is the realisation that BM11 and BM15 are two ends of one continuum, and that the right amount of length normalisation is a tunable dial. That insight, plus the saturating tf factor, is the entire idea. Everything else is choosing k1 and b.</aside>
+          
         </section>
 
-        <!-- ============================================ 50 · FORMULA · the BM25 formula + tuning ============================================ -->
+        
 <section class="slide" data-type="formula" data-screen-label="54 BM25 formula">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">Формула BM25 и её пределы</span><span lang="en">The BM25 formula &amp; its limits</span></h2>
@@ -1579,10 +1571,10 @@
             <div class="var-block"><div class="var-symbol">\(b\)</div><div class="var-desc"><strong><span lang="ru">регулятор длины</span><span lang="en">Length dial</span></strong><br />\(0\)..\(1\)</div></div>
           </div>
           <p class="small muted center mt-2"><span lang="ru">В наших примерах <strong>\(k_1=1{,}5\)</strong>, <strong>\(b=0{,}75\)</strong>. <strong>Обозначения:</strong> теперь пишем \(k_1\) вместо \(K_1\) из саги; масштаб \(S_1=k_1+1\) свёрнут в числитель \((k_1+1)f\). </span><span lang="en">Defaults <strong>\(k_1=1.5\)</strong>, <strong>\(b=0.75\)</strong>. <strong>Notation:</strong> we now write \(k_1\) for the saga's \(K_1\); the scale \(S_1=k_1+1\) is folded into the numerator \((k_1+1)f\). </span><span style="opacity:.72"><span lang="ru"><strong>Варианты:</strong> BM25F (объединение полей) · BM25+ (добавка \(\delta\)). В Lucene/Elasticsearch по умолчанию — BM25: \(k_1=1{,}2\), \(b=0{,}75\); idf положителен благодаря \(+1\) внутри логарифма.</span><span lang="en"><strong>Variants:</strong> BM25F (per-field \(b\), what engines run) · BM25+ (floor \(\delta\)) · Lucene/ATIRE (\(\max(0,\cdot)\) idf clamp).</span></span></p>
-          <aside class="slide-notes">The complete scorer: a sum over query terms of the saturating, length-aware tf factor times the smoothed idf. Read the parameters through their limits. At k1 zero the tf factor is constant, so BM25 collapses to BM1 — presence only. As k1 grows without bound the factor becomes linear in tf, recovering un-saturated term frequency. b at zero or one gives BM15 or BM11. The standard defaults, k1 around 1.5 and b around 0.75, sit deliberately between these poles. Those defaults are what every worked number in this deck uses. One notation point: the saga wrote the saturation constant as capital K1 and a separate scale S1; the standard modern form writes lowercase k1 and folds S1 = k1+1 into the numerator (k1+1)f — it is the same factor, just renamed. The variants footnote replaces a full encyclopedia slide: BM25F normalises each field by its own average length and is what Lucene/Elasticsearch run; BM25+ adds a small floor so a long document does not score essentially zero on a term it genuinely contains; the Lucene and ATIRE forms clamp idf non-negative. Knowing these exist explains why two libraries can give slightly different BM25 scores.</aside>
+          
         </section>
 
-        <!-- ============================================ 51 · E2E · flagship cat/dog/mouse BM25 ============================================ -->
+        
 <section class="slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="54a Climb &middot; bm25-calc">
   <div class="slide-header">
     <h2><span lang="ru">BM25 по кусочкам: редкость &times; насыщение &times; длина</span><span lang="en">BM25 in pieces: rarity &times; saturation &times; length</span></h2>
@@ -1892,7 +1884,7 @@
 }
   </script>
   <p class="viz-caption"><span lang="ru">Формула, которую ты только что собрал за четыре исторических шага, &mdash; теперь как машина с тремя рычагами. Дёргай их по очереди и смотри, как каждый множитель переставляет документы: редкость терма, насыщение повторов, поправка на длину. На следующем слайде тот же механизм будет проделан руками, цифра за цифрой, на другом наборе документов.</span><span lang="en">The formula you just assembled over four historical steps &mdash; now a machine with three levers. Pull them one at a time and watch each factor reorder the documents: term rarity, repetition saturation, the length correction. The next slide runs the same machinery by hand, digit by digit, on another document set.</span></p>
-  <aside class="slide-notes">Act 5&rsquo;s climb, straight after the boxed BM25 formula and before the cat/dog worked example. The query, documents and every score come from data/l3-bm25.json &mdash; the browser only replays them. Steps: (0) the candidates; (1) IDF &mdash; rare terms carry the signal; (2) saturation &mdash; connect back to the two-Poisson and saturating-TF slides: the second occurrence buys much, the eleventh almost nothing; (3) length normalization &mdash; students stumble on why it sits in the denominator, use the &ldquo;match buried in a long document&rdquo; framing and recall the b-dial slide; (4) the assembled score and the ranking it produces. Note the widget&rsquo;s example query differs from the next slide&rsquo;s cat/dog corpus &mdash; that is deliberate coverage, not drift: two examples, one formula.</aside>
+  
 </section>
 <section class="slide" data-type="e2e" data-max-step="9" data-current-step="0" data-screen-label="55 Cat/dog BM25">
           <div class="slide-header">
@@ -1942,10 +1934,10 @@
             <span class="e2e-stage-name">overview</span>
             <button type="button" class="e2e-toggle">Theory only</button>
           </div>
-          <aside class="slide-notes">The flagship worked example, exact from the catdog JSON, now fully substituted — every non-zero cell is derived, so a student can reproduce the whole table by hand. Three documents, query cat and dog, defaults k1 1.5 and b 0.75. avgdl is the mean length (3+4+2)/3 = 3.0. Smoothed idf gives cat 0.1335 and dog 0.4700 — dog is rarer so it carries more weight. The B factor is (k1+1)f over k1 times [(1−b)+b·len/avgdl] plus f. The five non-zero cells: D1 cat, tf 2, lenRatio 1, bracket 1, B = 5/3.5 = 1.4286, weight 0.1908; D2 dog, tf 2, lenRatio 1.3333, bracket 1.25, B = 5/3.875 = 1.2903, weight 0.6065; D2 cat, tf 1, same bracket 1.25, B = 2.5/2.875 = 0.8696, weight 0.1161; D3 cat, tf 1, len 2, lenRatio 0.6667, bracket 0.75, B = 2.5/2.125 = 1.1765, weight 0.1571; D1 dog, tf 1, len 3 equals avgdl so bracket 1 and B = 2.5/2.5 = 1.0 — the clean lesson that when B equals one the weight is just the bare idf, 0.4700. Per doc: D1 = 0.1908 + 0.4700 = 0.6608; D2 = 0.1161 + 0.6065 = 0.7226; D3 = 0.1571 + 0 = 0.1571. Ranking D2 > D1 > D3: the document repeating the rarer, heavier term wins. The closing step pulls apart cat's three different weights — 0.1908, 0.1161, 0.1571. Same term, same idf, but the clean length effect is the D2/D3 pair only: both have tf 1, so only length normalization differs — short D3 (len/avgdl 0.67) is boosted to 0.1571, long D2 (1.33) is damped to 0.1161. D1's 0.1908 is not a length effect: D1 sits at neutral length, and its weight is higher because cat occurs twice there (tf 2).</aside>
+          
         </section>
 
-        <!-- ============================================ 52 · TABLE · distinct-idf query (rare term dominates) ============================================ -->
+        
         <section class="slide" data-type="table" data-screen-label="56 Distinct-idf query">
           <div class="slide-header">
             <h2><span lang="ru">Запрос с разными idf: доминирует редкий терм</span><span lang="en">A distinct-idf query: the rare term dominates</span></h2>
@@ -1963,10 +1955,10 @@
             </tbody>
           </table>
           <p class="small muted center mt-3"><span lang="ru">D2 побеждает: </span><span lang="en">D2 wins: </span><code>shuttle</code><span lang="ru"> встречается 3&times; и это <em>более редкий</em> терм, поэтому его высокий idf-вклад (1,9842) доминирует &mdash; <strong>порядок задаёт редкость</strong>. У D3 больше </span><span lang="en"> appears 3&times; and is the <em>rarer</em> term, so its high-idf contribution (1.9842) dominates &mdash; <strong>rarity drives the order</strong>. D3 has more </span><code>nasa</code><span lang="ru">, но он проигрывает, потому что </span><span lang="en"> but loses because </span><code>nasa</code><span lang="ru"> — более дешёвый терм. Следующий слайд: каждая ячейка воспроизведена вручную.</span><span lang="en"> is the cheaper term. Next slide: every cell reproduced by hand.</span></p>
-          <aside class="slide-notes">Exact from the q2 JSON. This query fixes the degeneracy of the space/team example, where both terms had df four and idf was identical. With N = 8, nasa is in three documents giving idf = ln(1+(8−3+0.5)/(3+0.5)) = ln(2.5714) = 0.9445, and shuttle in only two giving idf = ln(1+(8−2+0.5)/(2+0.5)) = ln(3.6) = 1.2809 — so shuttle's idf beats nasa's. D2 takes the top rank with row sum 2.8151; D3 follows at 2.4733; D0 at 0.9249. D3 has more nasa but loses because nasa is the cheaper term. When terms differ in rarity, the rare term drives the ranking. The full per-cell derivation is on the next slide.</aside>
+          
         </section>
 
-        <!-- ============================================ 54b · TABLE · distinct-idf per-cell derivation ============================================ -->
+        
         <section class="slide" data-type="viz" data-screen-label="57 Distinct-idf derivation">
           <div class="slide-header">
             <h2><span lang="ru">Запрос с разными idf: каждая ячейка воспроизведена</span><span lang="en">Distinct-idf query: every cell reproduced</span></h2>
@@ -1981,10 +1973,10 @@
             <span>\(B_{\text{D0,nasa}}=\frac{2.5\cdot1}{1.5\cdot1.0352+1}=\frac{2.5}{2.5528}=0.9793\Rightarrow 0.9793\cdot0.9445=0.9249\)</span>
             <span><span lang="ru">Суммы строк: D2 \(=2{,}8151\) (верх), D3 \(=2{,}4733\), D0 \(=0{,}9249\) &mdash; порядок с предыдущего слайда, теперь полностью выведен.</span><span lang="en">Row sums: D2 \(=2.8151\) (top), D3 \(=2.4733\), D0 \(=0.9249\) &mdash; the order from the previous slide, now fully derived.</span></span>
           </div>
-          <aside class="slide-notes">The per-cell derivation, now fully substituted — every displayed sub-score is derived, so the whole table reproduces by hand. Corpus avgdl is 50.625. The three displayed docs have lengths 66 (D2), 59 (D3), 53 (D0), giving length brackets 1.2278, 1.1241, 1.0352. Each cell is B times idf: D2 nasa B = 2.5/2.8417 = 0.8798 → 0.8309, D2 shuttle B = 7.5/4.8417 = 1.5491 → 1.9842 (row sum 2.8151, top rank); D3 nasa B = 5.0/3.6861 = 1.3564 → 1.2811, D3 shuttle B = 2.5/2.6861 = 0.9307 → 1.1922 (row sum 2.4733); D0 nasa B = 2.5/2.5528 = 0.9793 → 0.9249.</aside>
+          
         </section>
 
-        <!-- ============================================ 53 · VIZ · saturation curve family ============================================ -->
+        
         <section class="slide" data-type="viz" data-screen-label="58 Saturation">
           <div class="slide-header">
             <h2><span lang="ru">Убывающая отдача от частоты терма</span><span lang="en">Diminishing returns on term frequency</span></h2>
@@ -2007,10 +1999,10 @@
             </svg>
           </div>
           <p class="viz-caption"><span lang="ru">От \(f=1\) к \(f=2\) добавляется много; от \(f=9\) к \(f=10\) — почти ничего. TF-IDF растёт линейно бесконечно; BM25 вогнут к \(k_1+1\). Меньший \(k_1\) насыщается раньше &mdash; целое семейство кривых. Нормировка длины сдвигает кривую вправо (нужно больше вхождений, чтобы подниматься), но асимптотический потолок остаётся \(k_1+1\) независимо от длины документа.</span><span lang="en">From \(f=1\) to \(f=2\) adds a lot; from \(f=9\) to \(f=10\) almost nothing. TF-IDF climbs linearly forever; BM25 is concave toward \(k_1+1\). Smaller \(k_1\) saturates sooner &mdash; a whole family of curves. Length normalization moves the curve right (more occurrences needed to climb), but the asymptotic ceiling stays \(k_1+1\) regardless of document length.</span></p>
-          <aside class="slide-notes">A picture of saturation. TF-IDF is a straight line through the origin — the hundredth occurrence is worth the same as the first. BM25 is concave and bounded, rising steeply for the first few occurrences then flattening toward a ceiling proportional to k1 plus one. The parameter k1 selects a curve from a family: smaller k1 saturates sooner, larger k1 stays linear longer. This matches intuition — once a document is clearly about a topic, more repetitions tell you little — and it is the single most important difference between the two scorers.</aside>
+          
         </section>
 
-        <!-- ============================================ 54 · VIZ · b / length-norm ============================================ -->
+        
         <section class="slide" data-type="viz" data-screen-label="59 Length norm b">
           <div class="slide-header">
             <h2><span lang="ru">Регулятор </span><span lang="en">The </span>\(b\)<span lang="ru">: длинные против коротких документов</span><span lang="en"> dial: long vs short documents</span></h2>
@@ -2033,12 +2025,12 @@
             </svg>
           </div>
           <p class="viz-caption"><span lang="ru">При \(b=0\) вклад терма не зависит от длины. При \(b\to1\) документ длиннее среднего штрафуется сильнее, а более короткий усиливается &mdash; всё поворачивается в точке \(\mathrm{len}=\mathrm{avgdl}\). Значение по умолчанию \(0{,}75\) — сильный, но не полный штраф.</span><span lang="en">At \(b=0\) a term's contribution is independent of length. As \(b\to1\), a document longer than average is penalized more and a shorter one boosted &mdash; all pivoting at \(\mathrm{len}=\mathrm{avgdl}\). The default \(0.75\) is a strong-but-not-total penalty.</span></p>
-          <aside class="slide-notes">The companion picture to saturation. Hold term frequency fixed and vary document length. At b zero the line is flat — length is irrelevant. As b rises toward one, documents longer than the average lose score and shorter ones gain, and all the lines pivot at exactly the average length, where the bracket equals one regardless of b. The default 0.75 is a deliberate three-quarters penalty: enough to stop long documents winning by sheer accumulation, not so much that a legitimately thorough long document is crushed.</aside>
+          
         </section>
 
-        <!-- (BM25 variants table demoted to a 2-line footnote on the BM25-formula slide.) -->
+        
 
-        <!-- ============================================ 55 · VIZ · WAND / BlockMax-WAND ============================================ -->
+        
         <section class="slide" data-type="viz" data-screen-label="60 WAND">
           <div class="slide-header">
             <h2><span lang="ru">WAND: почему мы не оцениваем каждое вхождение</span><span lang="en">WAND: why we don't score every posting</span></h2>
@@ -2065,10 +2057,10 @@
               </ul>
             </div>
           </div>
-          <aside class="slide-notes">The bridge back to the latency budget. We claimed the index lets us avoid scoring most documents; WAND is the algorithm that delivers it for ranked retrieval. Each term knows the maximum contribution it can ever make, so the algorithm maintains a threshold equal to the current k-th best score and refuses to fully evaluate any document whose optimistic upper-bound sum cannot beat that threshold. BlockMax-WAND tightens this with per-block maxima, skipping whole runs of postings. The result is that top-k retrieval is effectively sublinear, which is exactly why BM25 over an inverted index meets a hundred-millisecond budget on billions of documents.</aside>
+          
         </section>
 
-        <!-- ============================================ 57 · TABLE · empirical grounding (benchmarks) ============================================ -->
+        
 <section class="slide" data-type="table" data-screen-label="61 Benchmarks">
           <div class="slide-header">
             <h2><span lang="ru">BM25 — базовая планка, которую трудно обойти</span><span lang="en">BM25 is a strong, hard-to-beat baseline</span></h2>
@@ -2082,11 +2074,11 @@
             </tbody>
           </table>
           <p class="small muted center mt-2"><span lang="ru">На доменном MS MARCO плотные модели явно обходят BM25. Но <strong>zero-shot</strong> по BEIR простой BM25 (0,43) <strong>обходит DPR (0,23)</strong> &mdash; 30-летняя лексическая базовая планка всё ещё смущает некоторые нейросетевые модели вне домена. </span><span lang="en">On in-domain MS MARCO, dense models clearly beat BM25. But <strong>zero-shot</strong> across BEIR, plain BM25 (0.43) <strong>beats DPR (0.23)</strong> &mdash; a 30-year-old lexical baseline still embarrasses some neural models out of domain. </span><span class="muted"><span lang="ru"><sup>†</sup> ColBERTv2 (Santhanam 2022) в среднем даёт 0,50 по своим <strong>13</strong> заявленным наборам BEIR, а не по всем 18 &mdash; поэтому он не вполне сопоставим со средними по 18 наборам для BM25/DPR. Источники: MS MARCO / Anserini; BEIR avg Thakur et al. 2021 (DPR &asymp;0,23); MS MARCO: ANCE 0,330 из RocketQA (Qu et al. 2021), Table 2. В строках разные модели, а не проверка переноса одного ранкера.</span><span lang="en"><sup>†</sup> ColBERTv2 (Santhanam 2022) averages 0.50 over its <strong>13</strong> reported BEIR sets, not all 18 &mdash; so it is not strictly comparable to the BM25/DPR 18-set averages. Sources: MS MARCO / Anserini; BEIR avg Thakur et al. 2021 (DPR &asymp;0.23); MS MARCO: ANCE 0.330 from RocketQA (Qu et al. 2021), Table 2. Rows use different models, not an in/out-of-domain test of one ranker.</span></span></p>
-          <aside class="slide-notes">Numbers verbatim from the benchmarks JSON, all cited, none synthesised. On MS MARCO, a large in-domain training set, dense retrievers clearly win: BM25 at 0.187 MRR, ANCE 0.330 (RocketQA Table 2, https://aclanthology.org/2021.naacl-main.466.pdf; not DPR), ColBERT 0.360. But the headline is the BEIR row. Averaged zero-shot over eighteen diverse datasets, plain BM25 scores 0.43 nDCG and beats DPR at 0.23 — DPR generalizes worst of all models in the BEIR paper (−47.7% vs BM25), so a thirty-year-old lexical method outperforms a dense model that was not trained on the target domain. ColBERTv2 (Santhanam 2022), a late-interaction model, reaches 0.50 over its 13 reported BEIR sets. The lesson for the course: BM25 is the baseline every neural method must beat, and out of domain it is genuinely hard to beat. BM25 scores content; it has no notion of authority or popularity — that gap motivates PageRank next.</aside>
+          
         </section>
 
-        <!-- ============================================ PART 06 — PAGERANK ============================================ -->
-        <!-- ============================================ 58 · DIVIDER · PART 06 ============================================ -->
+        
+        
 <section class="slide" data-type="divider" data-screen-label="62 Divider P6">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 06</span><span lang="en">Part 06</span></div>
@@ -2097,10 +2089,10 @@
             <img src="assets/img/L3/L3-14-pagerank-stars-voting.webp?v=1" alt="A web of stars casting votes along their links, the most-pointed-to star glowing brightest"
                  />
           </div>
-          <aside class="slide-notes">My BM25 scores how well a document's text matches a query, but it says nothing about how trustworthy or important the document is. PageRank, Page, Brin, Motwani &amp; Winograd 1998, supplies the missing query-independent signal from the link graph: a page is important if important pages link to it. In my star metaphor, stars vote for each other along their links, and the most-endorsed star shines brightest regardless of any particular query.</aside>
+          
         </section>
 
-        <!-- ============================================ 59 · VIZ · link = vote ============================================ -->
+        
         <section class="slide" data-type="viz" data-screen-label="63 Link is a vote">
           <div class="slide-header">
             <h2><span lang="ru">Ссылка — это голос, взвешенный по голосующему</span><span lang="en">A link is a vote &mdash; weighted by the voter</span></h2>
@@ -2128,10 +2120,10 @@
             </svg>
           </div>
           <p class="viz-caption"><span lang="ru">Считай каждую входящую ссылку голосом за страницу-цель. Но голоса не равны: ссылка <em>с</em> авторитетной страницы весит больше. Поэтому авторитетность <strong>рекурсивна</strong> &mdash; ты важен, если на тебя ссылаются важные страницы.</span><span lang="en">Treat each inbound link as a vote for the target. But not all votes are equal: a link <em>from</em> an authoritative page is worth more. Authority is therefore <strong>recursive</strong> &mdash; you are important if important pages point to you.</span></p>
-          <aside class="slide-notes">The core intuition. The web's link structure encodes human judgment: linking to a page is an implicit endorsement. A naive count of inbound links is gameable and crude, so PageRank weights each vote by the importance of the voter — a single link from a highly authoritative site outweighs many links from obscure pages. That makes the definition recursive: your rank depends on the ranks of the pages linking to you, which depend on theirs. Resolving that recursion is what the power iteration does, two slides on.</aside>
+          
         </section>
 
-        <!-- ============================================ 60 · FORMULA · random surfer + damping ============================================ -->
+        
         <section class="slide" data-type="formula" data-screen-label="64 Random surfer">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">Случайный сёрфер и демпфирование</span><span lang="en">The random surfer &amp; damping</span></h2>
@@ -2146,10 +2138,10 @@
             <div class="var-block"><div class="var-symbol">\(\mathrm{outdeg}(j)\)</div><div class="var-desc"><strong>Out-degree</strong><br />\(j\) splits its vote</div></div>
           </div>
           <p class="small muted center mt-3"><span lang="ru">Сёрфер следует по случайной ссылке с вероятностью \(d\), иначе <strong>телепортируется</strong> на случайную страницу. Телепорт делает блуждание <em>эргодическим</em> — оно вырывается из циклов и гарантирует единственный стационарный ранг. Настоящий <em>сток</em> (висячая страница без исходящих ссылок) требует ещё одной поправки: перераспределять его массу на каждом шаге или считать, что он ссылается на все страницы.</span><span lang="en">A surfer follows a random link with prob \(d\), else <strong>teleports</strong> to a random page. Teleport makes the walk <em>ergodic</em> — it breaks out of cycles and guarantees one unique stationary rank. A true <em>sink</em> (a dangling page with no out-links) needs one more fix: redistribute its mass each step, or treat it as linking to all pages.</span></p>
-          <aside class="slide-notes">PageRank is the stationary distribution of a random surfer. With probability d, here 0.85, the surfer follows one of the current page's out-links uniformly; with probability one minus d it teleports to a uniformly random page. The teleport term is not cosmetic — without it a small cycle acts as a rank sink that absorbs all probability mass and never gives it back, so the iteration never converges to anything useful. Teleport guarantees the chain is ergodic, so a unique stationary distribution exists. A true dangling page with no out-links is a separate issue: damping alone does not conserve mass when one exists — its mass has to be reinjected each step (treat it as linking to every page, or renormalise). Our toy graph has no dangling node, so it sidesteps that. That stationary distribution is the rank.</aside>
+          
         </section>
 
-        <!-- ============================================ 61 · E2E · power iteration worked ============================================ -->
+        
 <section class="slide" data-type="viz" data-max-step="5" data-current-step="0" data-screen-label="64a Climb &middot; pagerank-power">
   <div class="slide-header">
     <h2><span lang="ru">Степенной метод: голоса сходятся</span><span lang="en">Power iteration: the votes converge</span></h2>
@@ -2431,7 +2423,7 @@
 }
   </script>
   <p class="viz-caption"><span lang="ru">Случайный сёрфер с прошлого слайда превращается в вычисление: гоняй вектор рангов по ссылкам, пока он не перестанет меняться. Страница выигрывает не своим текстом, а тем, кто на неё ссылается, &mdash; и итоговый порядок вообще не зависит от запроса. Такой сигнал считают один раз и потом просто подставляют признаком в ранкер.</span><span lang="en">The random surfer from the previous slide becomes a computation: push the rank vector along the links until it stops moving. A page wins not by its text but by who links to it &mdash; and the final order does not depend on the query at all. A signal like that is computed once and then simply plugged into the ranker as a feature.</span></p>
-  <aside class="slide-notes">Act 6&rsquo;s climb, between the random-surfer slide and the by-hand power-iteration walkthrough. The graph, every iterate and the limit vector are read from data/l3-pagerank.json. Steps: (0) three pages, four links, the uniform start; (1&ndash;2) ONE update, for one node, in full &mdash; DWELL: this is the only arithmetic in the whole method, everything after is repetition; (3) the oscillation dying down; (4) the converged vector; (5) the final order &mdash; the page with two in-links wins. Students stumble on the teleport/damping term (why the update is not just the link sum) &mdash; handle it at step 1 with the &ldquo;bored surfer&rdquo; callback. The next slide repeats the full iteration by hand; after this climb it reads as confirmation, not as new material.</aside>
+  
 </section>
 <section class="slide" data-type="e2e" data-max-step="5" data-current-step="0" data-screen-label="65 Power iteration">
           <div class="slide-header">
@@ -2460,18 +2452,18 @@
             </div>
             <div class="e2e-panel e2e-example-panel">
               <div class="panel-head"><span lang="ru">Веб из 3 страниц</span><span lang="en">The 3-page web</span></div>
-              <!-- persistent 3-node graph: A→B, B→C, C→A, C→B; B is the authority (2 in-links) -->
+              
               <svg viewBox="0 0 420 150" width="100%" height="124" role="img" aria-label="Three-node link graph: A points to B, B points to C, C points to A and to B, so B has two in-links and is the authority" style="display:block; margin:0 auto var(--sp-2);">
                 <defs>
                   <marker id="prg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-3)"/></marker>
                   <marker id="prgA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker>
                 </defs>
-                <!-- edges (drawn first, under the nodes) -->
+                
                 <line x1="92" y1="40" x2="210" y2="58" stroke="var(--accent)" stroke-width="3.5" marker-end="url(#prgA)"/>
                 <line x1="235" y1="92" x2="235" y2="40" stroke="var(--ink-3)" stroke-width="3" marker-end="url(#prg)"/>
                 <line x1="330" y1="116" x2="92" y2="64" stroke="var(--ink-3)" stroke-width="3" marker-end="url(#prg)"/>
                 <line x1="328" y1="112" x2="262" y2="78" stroke="var(--accent)" stroke-width="3.5" marker-end="url(#prgA)"/>
-                <!-- nodes -->
+                
                 <circle cx="62" cy="50" r="28" fill="var(--bg-card)" stroke="var(--ink-3)" stroke-width="3"/>
                 <text x="62" y="59" text-anchor="middle" font-family="var(--font-mono)" font-size="26" fill="var(--ink)">A</text>
                 <circle cx="238" cy="32" r="32" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="4"/>
@@ -2493,10 +2485,10 @@
             <span class="e2e-stage-name">overview</span>
             <button type="button" class="e2e-toggle">Theory only</button>
           </div>
-          <aside class="slide-notes">Exact from the pagerank JSON, edges A to B, B to C, C to A, C to B, damping 0.85. Out-degrees: A 1, B 1, C 2, so C splits its vote in half between A and B. Power iteration repeatedly applies the update to the rank vector. Start uniform at one third each. One node worked in full for iteration 1: PR1(B) = (1−0.85)/3 + 0.85·(PR0(A)/1 + PR0(C)/2) = 0.05 + 0.85·(0.3333 + 0.1667) = 0.05 + 0.425 = 0.475, because B's in-links are A's whole vote plus half of C's. Iterations 2–3 are omitted — the same update repeated. By iteration four the components converge toward their limits, over- and under-shooting by less each step, and after twenty-five iterations the vector settles to A 0.2148, B 0.3974, C 0.3878. B wins because it has two in-links, from A and from C, while A and C have one each. The result depends entirely on the edge set; these are the exact numbers for these edges, not the plan's old hint. One operational caveat: every column of M sums to one here only because this toy graph has no dead-end page; on a real graph with a dangling node you must reinject its mass each iteration (or treat it as linking to all pages), or the rank vector stops summing to one.</aside>
+          
         </section>
 
-        <!-- ============================================ 62 · VIZ · PageRank as a feature ============================================ -->
+        
 <section class="slide" data-type="viz" data-screen-label="66 PageRank as feature">
           <div class="slide-header">
             <h2><span lang="ru">PageRank — один признак, а не всё ранжирование</span><span lang="en">PageRank is one feature, not the ranking</span></h2>
@@ -2519,11 +2511,11 @@
             </svg>
           </div>
           <p class="viz-caption"><span lang="ru">Современные движки никогда не ранжируют по одному PageRank. Это <strong>один признак</strong> из сотен &mdash; его комбинируют с BM25, свежестью, кликами и прочим в обучаемом ранкере. Это learning-to-rank, тема более поздней лекции.</span><span lang="en">Modern engines never rank by PageRank alone. It is <strong>one feature</strong> among hundreds &mdash; combined with BM25, freshness, clicks, and more by a learned ranker. That is learning-to-rank, a later lecture.</span></p>
-          <aside class="slide-notes">Set expectations honestly. PageRank was historically important and is conceptually beautiful, but no serious engine ranks by it alone — it would surface authoritative but irrelevant pages. Instead it becomes one query-independent feature fed, alongside BM25, freshness, click signals and hundreds of others, into a learned ranking model. That supervised combination is learning-to-rank, which we cover later in the course. The point here is to understand the signal and how it is computed; the machinery that weights it comes later.</aside>
+          
         </section>
 
-        <!-- ============================================ PART 07 — RANK FUSION ============================================ -->
-        <!-- ============================================ 63 · DIVIDER · PART 07 ============================================ -->
+        
+        
         <section class="slide" data-type="divider" data-screen-label="67 Divider P7">
           <div class="divider-content">
             <div class="divider-num"><span lang="ru">Часть 07</span><span lang="en">Part 07</span></div>
@@ -2534,10 +2526,10 @@
             <img src="assets/img/L3/L3-15-fusion-navigators-council.webp?v=1" alt="A council of navigators each presenting a ranked star-chart, fused into a single agreed chart"
                  />
           </div>
-          <aside class="slide-notes">My rankers see different things — BM25 reads exact terms, a cosine ranker reads direction in vector space, PageRank reads authority. Each produces its own ranked list on its own incomparable scale. Rather than trust one navigator, I convene a council: a document several navigators rank highly should rise. The robust, parameter-light way I fuse them is Reciprocal Rank Fusion, which I build up to through the whole fusion family.</aside>
+          
         </section>
 
-        <!-- ============================================ 64 · TWO-COL · why fuse ============================================ -->
+        
         <section class="slide" data-type="two-col" data-screen-label="68 Why fuse">
           <div class="slide-header">
             <h2><span lang="ru">Зачем вообще сливать ранкеры</span><span lang="en">Why fuse rankers at all</span></h2>
@@ -2562,10 +2554,10 @@
               </div>
             </div>
           </div>
-          <aside class="slide-notes">Fusion exists because rankers are complementary and their scores are not. BM25 nails exact and rare terms but misses synonyms; a dense cosine ranker does the opposite; PageRank adds authority but ignores the query. So a document that one system misses, another often catches — fusing improves recall and robustness. The catch is that the scores live on wildly different scales: BM25 is unbounded, cosine sits in minus one to one, PageRank is a tiny probability. Naively summing them lets whichever has the biggest numbers win. The fusion family is a set of answers to that scale problem.</aside>
+          
         </section>
 
-        <!-- ============================================ 65 · FORMULA · score normalization ============================================ -->
+        
         <section class="slide" data-type="formula" data-screen-label="69 Score norm">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">Нормализация оценок &mdash; и её опасность</span><span lang="en">Score normalization &mdash; and its danger</span></h2>
@@ -2580,10 +2572,10 @@
             <div class="var-block"><div class="var-symbol"><span lang="ru">затем</span><span lang="en">then</span></div><div class="var-desc"><strong>CombSUM</strong><br /><span lang="ru">сложить нормализованные</span><span lang="en">add normalized</span></div></div>
           </div>
           <p class="small muted center mt-3"><span lang="ru"><em>Можно</em> перешкалировать оценки в общий диапазон и сложить их &mdash; но это хрупко: один аномальный результат запроса искажает min-max, а нормализацию приходится переоценивать для каждого запроса. Эта хрупкость — довод <strong>в пользу</strong> слияния на основе рангов.</span><span lang="en">You <em>can</em> rescale scores to a common range and add them &mdash; but it is fragile: one outlier query result distorts min-max, and the normalization must be re-estimated per query. This fragility is the case <strong>for</strong> rank-based fusion.</span></p>
-          <aside class="slide-notes">The first family of answers normalises the scores onto a common scale and then combines them. Min-max rescales each ranker's scores into zero-to-one; z-score centres them to mean zero, standard deviation one. With scores comparable you can add them. The danger is that score distributions vary per query and are easily distorted: a single outlier blows up the min-max range, and z-score assumes a roughly stable spread that retrieval scores rarely have. So score normalisation works but is brittle and needs per-query re-estimation. That fragility is the argument for throwing scores away entirely and fusing on rank.</aside>
+          
         </section>
 
-        <!-- ============================================ 66 · FORMULA · CombSUM / CombMNZ ============================================ -->
+        
         <section class="slide" data-type="formula" data-screen-label="70 CombSUM CombMNZ">
           <div class="slide-header slide-header--flush">
             <h2>CombSUM &amp; CombMNZ</h2>
@@ -2598,10 +2590,10 @@
             <div class="var-block"><div class="var-symbol">CombMNZ</div><div class="var-desc"><strong><span lang="ru">&times; число попаданий</span><span lang="en">&times; hit count</span></strong><br /><span lang="ru">вознаграждает консенсус</span><span lang="en">rewards consensus</span></div></div>
           </div>
           <p class="small muted center mt-3"><span lang="ru">Классика Fox &amp; Shaw. CombSUM складывает (нормализованные) оценки; CombMNZ умножает сумму на то, сколько ранкеров вообще извлекли \(d\) &mdash; документ, найденный <em>большим</em> числом систем, получает буст. Оба по-прежнему зависят от нормализации оценок.</span><span lang="en">Fox &amp; Shaw's classics. CombSUM adds the (normalized) scores; CombMNZ multiplies the sum by how many rankers retrieved \(d\) at all &mdash; a document found by <em>more</em> systems is boosted. Both still depend on score normalization.</span></p>
-          <aside class="slide-notes">Fox and Shaw's combination methods, the classic score-based fusion. CombSUM simply adds the normalised scores across rankers. CombMNZ multiplies that sum by the number of rankers that retrieved the document at all, so consensus is explicitly rewarded — a document found by three systems beats one found by one even if their summed scores match. CombMNZ often edges out CombSUM in practice precisely because of that agreement bonus. But both inherit the normalisation fragility from the previous slide, which is why the field largely moved to rank-based methods.</aside>
+          
         </section>
 
-        <!-- ============================================ 67 · FORMULA · Borda count ============================================ -->
+        
         <section class="slide" data-type="formula" data-screen-label="71 Borda">
           <div class="slide-header slide-header--flush">
             <h2><span lang="ru">Счёт Борда: слияние по позиции</span><span lang="en">Borda count: fuse by position</span></h2>
@@ -2617,12 +2609,12 @@
           </div>
           <p class="small muted center mt-3"><span lang="ru">Каждый ранкер присваивает \(m-1\) очков своему верхнему элементу, \(m-2\) следующему, и так далее. Суммируем по ранкерам. <strong>Ни оценок, ни нормализации</strong> &mdash; только позиции. Но очки падают <em>линейно</em>, поэтому глубокие ранги всё ещё значат немало.</span><span lang="en">Each ranker awards \(m-1\) points to its top item, \(m-2\) to the next, and so on. Sum across rankers. <strong>No scores, no normalization</strong> &mdash; only positions. But points fall <em>linearly</em>, so deep ranks still matter a lot.</span></p>
           <p class="small muted center mt-2" style="opacity:.75"><span lang="ru">Есть и принципиальный вероятностный родственник &mdash; <strong>CPMF / Plackett&ndash;Luce</strong>, который моделирует каждый список как выборку из распределения над порядками &mdash; но на практике однострочная эвристика RRF (далее) обычно не уступает ему при куда меньшей стоимости.</span><span lang="en">There is also a principled probabilistic cousin &mdash; <strong>CPMF / Plackett&ndash;Luce</strong>, which models each list as a draw from a distribution over orderings &mdash; but in practice the one-line RRF heuristic (next) usually matches it for far less cost.</span></p>
-          <aside class="slide-notes">Borda count borrows from voting theory: treat each ranker as a voter that awards points by position — top item gets m minus one, next gets m minus two, down to zero. Sum the points across rankers and re-sort. The key advantage over CombSUM is that it uses only positions, so no score normalisation is needed. The weakness is that points decay linearly with rank, so the difference between ranks one and two is the same as between ranks ninety-nine and one hundred — which does not match how users care overwhelmingly about the top. RRF fixes exactly that with a non-linear discount.</aside>
+          
         </section>
 
-        <!-- (CPMF / Plackett–Luce demoted to a one-line mention on the Borda slide above.) -->
+        
 
-        <!-- ============================================ 68 · WALKTHROUGH · RRF + k-sensitivity ============================================ -->
+        
         <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="72 RRF fusion">
           <div class="slide-header">
             <h2><span lang="ru">Слияние по обратным рангам (RRF)</span><span lang="en">Reciprocal Rank Fusion</span></h2>
@@ -2656,10 +2648,10 @@
             <span class="step-counter">4/4</span>
             <button data-step-act="next" aria-label="Next step">&rarr;</button>
           </div>
-          <aside class="slide-notes">Cormack, Clarke and B&uuml;ttcher 2009; numbers exact from the RRF JSON. Throw away raw scores, keep only positions. A document at rank one contributes one over sixty-one, about 0.016393. D6 is rank one in both lists, summing to 0.032787, the maximum. D3 is rank two in both, summing to 0.032258. The instructive case is D2 versus D7: the two rankers swap them at ranks three and four. D2 is rank four in BM25 and three in cosine, contributing 1/64 + 1/63 = 0.015625 + 0.015873 = 0.031498; D7 is rank three then four, contributing 1/63 + 1/64 — the same two reciprocals in the other order, so both fuse to exactly 0.031498. Fusion gracefully averages the disagreement. The constant k, conventionally sixty, tunes the discount: larger k is more democratic, smaller k rewards the very top harder. Weighted RRF scales each ranker's contribution by trust.</aside>
+          
         </section>
 
-        <!-- ============================================ 70 · TWO-COL · hybrid dense+sparse, when fusion fails ============================================ -->
+        
         <section class="slide" data-type="viz" data-max-step="4" data-current-step="0" data-screen-label="72a Climb &middot; rrf-fusion">
   <div class="slide-header">
     <h2><span lang="ru">RRF руками: ранги вместо очков</span><span lang="en">RRF by hand: ranks, not scores</span></h2>
@@ -2837,7 +2829,7 @@
 }
   </script>
   <p class="viz-caption"><span lang="ru">Формула с прошлого слайда &mdash; на живых списках. Два ранкера с несовместимыми шкалами очков голосуют одними рангами: согласие обоих поднимает документ наверх, любимчик одного списка проседает. Досмотри до последнего шага &mdash; полная таблица покажет и честную ничью, и цену компромисса.</span><span lang="en">The formula from the previous slide &mdash; on live lists. Two rankers with incompatible score scales vote with ranks alone: agreement lifts a document to the top, a single list&rsquo;s favourite sinks. Stay for the last step &mdash; the full table shows an honest tie and the price of compromise.</span></p>
-  <aside class="slide-notes">Act 7&rsquo;s climb, right after the RRF slide and before hybrid search gives it its modern job. Lists, votes and the fused table come from data/l3-rrf.json. Steps: (0) the two disagreeing rankings &mdash; recall the score-normalization danger slide: their raw scores cannot be added; (1) the reciprocal-rank vote &mdash; DWELL on why rank, not score, is the thing being trusted; (2) summing the votes; (3) the fused order &mdash; the consensus document rises; (4) the full table with a tie and a compromise &mdash; read it aloud, it preempts the &ldquo;fusion is magic&rdquo; misconception two slides ahead. Students stumble on the constant in the denominator (it softens the top ranks&rsquo; dominance); wave at it qualitatively, the widget shows its value.</aside>
+  
 </section>
 <section class="slide" data-type="two-col" data-screen-label="73 Hybrid fusion">
           <div class="slide-header">
@@ -2865,11 +2857,11 @@
               </ul>
             </div>
           </div>
-          <aside class="slide-notes">The reason RRF is everywhere today is hybrid search. The standard production retriever runs BM25 and a dense embedding model in parallel and fuses with RRF, getting lexical exactness and semantic recall in one list without ever calibrating the two score scales — which is why it ships as the default in Elasticsearch, OpenSearch, Weaviate, and most RAG pipelines. But fusion is not magic. If every ranker shares the same blind spot, fusing them just reproduces it. If one ranker dominates, the weak ones inject noise and should be down-weighted or dropped. Fusion pays off only when the rankers are genuinely diverse — they must disagree usefully.</aside>
+          
         </section>
 
-        <!-- ============================================ PART 08 — THE GREMLIN & PAYOFF ============================================ -->
-        <!-- ============================================ 71 · MISCONCEPTION · the Lexical Gremlin ============================================ -->
+        
+        
         <section class="slide" data-type="misconception" data-screen-label="74 Lexical Gremlin">
           <div class="slide-header">
             <h2><span lang="ru">Распространённое заблуждение</span><span lang="en">Common misconception</span></h2>
@@ -2889,20 +2881,20 @@
             <img src="assets/img/L3/L3-04-lexical-gremlin-wall.webp?v=1" alt="The Lexical Gremlin building a wall between the words couch and sofa"
                  />
           </div>
-          <aside class="slide-notes">My catch beat. I over-trusted BM25 too, because it works so well on exact terms. But it is a string matcher with clever weighting — it has no notion of meaning. Couch and sofa share no characters, so they share no postings, so my BM25 scores the match at zero. The Lexical Gremlin is the cartoon villain who keeps the two words walled apart in my catalog. Classical patches — stemming, synonym dictionaries, query expansion — help at the margins but do not generalize. The real fix is dense embeddings, where semantically close words have close vectors regardless of spelling. That is precisely why I move to embeddings next, and it is the headline weakness every neural retriever is designed to beat.</aside>
+          
         </section>
 
-        <!-- ============================================ 72 · QUOTE · payoff / bridge ============================================ -->
+        
         <section class="slide" data-type="quote" data-screen-label="75 Payoff">
           <div>
             <div class="quote-mark">"</div>
             <blockquote><span lang="ru">Мой каталог построен &mdash; он находит <em>быстро</em>.<br />Но <em>хорош</em> ли он и почему слеп к синонимам?</span><span lang="en">My catalog is built &mdash; it finds <em>fast</em>.<br />But is it any <em>good</em>, and why is it synonym-blind?</span></blockquote>
             <div class="quote-attr"><span lang="ru">Серёга · база, которую нейросети должны превзойти</span><span lang="en">Serega · the baseline neural must beat</span> &middot; &rarr; <span lang="ru">метрики</span><span lang="en">metrics</span> (L5) &middot; &rarr; <span lang="ru">эмбеддинги</span><span lang="en">embeddings</span> (L6)</div>
           </div>
-          <aside class="slide-notes">I close the loop. I built a fast catalog: inverted index plus BM25 plus PageRank plus RRF — the classical baseline. Two open questions keep me up at night. First, how do I measure whether a ranking is actually good? That is ranking metrics — precision at k, nDCG, MAP — Lecture 5. Second, how do I fix the synonym blindness the Gremlin exposed? That is learned embeddings, Lecture 6. (The next session today is Lecture 4, Shannon entropy.) My baseline is the bar everything that follows must clear, and out of domain (BEIR) it clears most neural models.</aside>
+          
         </section>
 
-        <!-- ============================================ 73 · FINAL / Q&A  (payoff → callback-final, uninterrupted; refs moved to appendix below) ============================================ -->
+        
         <section class="slide" data-type="final" data-screen-label="76 Final">
           <div class="final-body">
             <h1 style="font-size:104px; line-height:1.04; margin-bottom:var(--sp-4);"><span lang="ru">Каталог построен &mdash; он находит <em>быстро</em>.<br />Но <em>хорош</em> ли он?</span><span lang="en">The catalog is built &mdash; it finds <em>fast</em>.<br />But is it any <em>good</em>?</span></h1>
@@ -2917,10 +2909,10 @@
             </div>
           </div>
 
-          <aside class="slide-notes">Q&amp;A. My catalog is built and finds fast. The callback: you can't fly past every star to find one — you need a catalog, and now I have one. The bridge forward is two questions: is it any good? — ranking metrics in L5 will tell us how to measure a ranking. And why is it synonym-blind? — embeddings in L6 give words meaning so couch and sofa finally match. Inverted index plus BM25 plus PageRank plus RRF is the classical baseline; everything neural in this course is judged against it. QR points to the course hub. References follow as an appendix.</aside>
+          
         </section>
 
-        <!-- ============================================ 74 · APPENDIX · REFERENCES (1/2) ============================================ -->
+        
         <section class="slide" data-type="refs" data-screen-label="77 References · the probabilistic lineage">
           <div class="slide-header">
             <h2><span lang="ru">Источники и дополнительное чтение</span><span lang="en">References &amp; further reading</span> <span style="font-weight:400;opacity:.6">(1 / 3)</span></h2>
@@ -2932,10 +2924,10 @@
             <li data-paper-id="robertson-sparck-jones-1976-bim"><span class="ref-body"><span class="ref-authors">Robertson, S. &amp; Spärck Jones, K.</span> · <span class="ref-title"><a href="https://doi.org/10.1002/asi.4630270302" target="_blank" rel="noopener">Relevance Weighting of Search Terms (BIM / RSJ weight)</a></span> · <span class="ref-venue">JASIS</span></span><span class="ref-year">1976</span></li>
             <li data-paper-id="robertson-1981-2poisson"><span class="ref-body"><span class="ref-authors">Robertson, van Rijsbergen &amp; Porter</span> · <span class="ref-title"><a href="https://dblp.org/rec/conf/sigir/RobertsonRP80.html" target="_blank" rel="noopener">Probabilistic Models of Indexing and Searching</a></span> · <span class="ref-venue">Information Retrieval Research (eds. Oddy et al.), Butterworths, ch.4</span></span><span class="ref-year">1981</span></li>
           </ol>
-          <aside class="slide-notes">Appendix after the payoff, part 1 — the early probabilistic-relevance lineage behind BM25. Maron and Kuhns 1960 seed probabilistic IR; Spärck Jones 1972 is the origin of idf; Robertson and Spärck Jones 1976 give the BIM and the RSJ weight (BM1); Robertson et al. 1981 is the two-Poisson eliteness model that justifies saturation.</aside>
+          
         </section>
 
-        <!-- ============================================ 74b · APPENDIX · REFERENCES (2/3) ============================================ -->
+        
         <section class="slide" data-type="refs" data-screen-label="78 References · BM25 &amp; the framework">
           <div class="slide-header">
             <h2><span lang="ru">Источники и дополнительное чтение</span><span lang="en">References &amp; further reading</span> <span style="font-weight:400;opacity:.6">(2 / 3)</span></h2>
@@ -2946,10 +2938,10 @@
             <li data-paper-id="singhal-1996-pivoted"><span class="ref-body"><span class="ref-authors">Singhal, A., Buckley, C. &amp; Mitra, M.</span> · <span class="ref-title"><a href="https://doi.org/10.1145/243199.243206" target="_blank" rel="noopener">Pivoted Document Length Normalization</a></span> · <span class="ref-venue">SIGIR</span></span><span class="ref-year">1996</span></li>
             <li data-paper-id="robertson-zaragoza-2009-prf"><span class="ref-body"><span class="ref-authors">Robertson, S. &amp; Zaragoza, H.</span> · <span class="ref-title"><a href="https://doi.org/10.1561/1500000019" target="_blank" rel="noopener">The Probabilistic Relevance Framework: BM25 and Beyond</a></span> · <span class="ref-venue">Foundations and Trends in Information Retrieval &middot; Found. &amp; Trends IR</span></span><span class="ref-year">2009</span></li>
           </ol>
-          <aside class="slide-notes">Appendix, part 2 — BM25 itself and the framework around it. Robertson and Walker 1994 is Okapi BM25 at TREC; Singhal 1996 is pivoted length normalisation; Robertson and Zaragoza 2009 is the definitive BM25 derivation.</aside>
+          
         </section>
 
-        <!-- ============================================ 74c · APPENDIX · REFERENCES (3/3) ============================================ -->
+        
         <section class="slide" data-type="refs" data-screen-label="79 References · authority, fusion, textbook">
           <div class="slide-header">
             <h2><span lang="ru">Источники и дополнительное чтение</span><span lang="en">References &amp; further reading</span> <span style="font-weight:400;opacity:.6">(3 / 3)</span></h2>
@@ -2961,15 +2953,15 @@
             <li data-paper-id="thakur-2021-beir"><span class="ref-body"><span class="ref-authors">Thakur, N. et al.</span> · <span class="ref-title"><a href="https://arxiv.org/abs/2104.08663" target="_blank" rel="noopener">BEIR: A Heterogeneous Benchmark for Zero-shot IR</a></span> · <span class="ref-venue">NeurIPS D&amp;B</span></span><span class="ref-year">2021</span></li>
             <li data-paper-id="manning-2008-iir"><span class="ref-body"><span class="ref-authors">Manning, C., Raghavan, P. &amp; Schütze, H.</span> · <span class="ref-title"><a href="https://nlp.stanford.edu/IR-book/" target="_blank" rel="noopener">Introduction to Information Retrieval</a></span> · <span class="ref-venue">CUP · ch. 1, 2, 6, 7, 8</span></span><span class="ref-year">2008</span></li>
           </ol>
-          <aside class="slide-notes">Appendix, part 3 — authority, fusion, benchmark, and the textbook. Page, Brin, Motwani &amp; Winograd 1998 is PageRank; Cormack et al. 2009 introduces RRF; Thakur et al. 2021 is BEIR, the source of our zero-shot benchmark numbers; Manning et al. chapters 1, 2, 6, 7, 8 cover the index, boolean retrieval, weighting, scoring, and evaluation in textbook form.</aside>
+          
         </section>
 
 
-      </div><!-- /.slides -->
-    </div><!-- /.stage -->
-  </div><!-- /.deck -->
+      </div>
+    </div>
+  </div>
 
-  <!-- JS -->
+  
   <script src="js/deck.js"></script>
   <script src="js/tools.js"></script>
   <script src="js/pen.js"></script>
@@ -2984,8 +2976,7 @@
   <script src="js/sequence.js"></script>
   <script src="js/budget.js"></script>
   <script src="js/preflight.js"></script>
-  <!-- deck-mounted spine widget: the classic offline bundle registers window.mountCourseMap; the
-       deck-adapter (after deck.js) drives it with the deck step engine. BUILD OUTPUT (scripts/build-deck-widgets.mjs). -->
+  
   <script src="js/course-map.classic.js"></script>
   <script src="js/inverted-index.classic.js"></script>
   <script src="js/bm25-calc.classic.js"></script>

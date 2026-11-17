@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lecture 20 — The Deep Field · Advanced RAG, Multimodal &amp; Ethics</title>
 
-  <!-- Apply saved theme/lang BEFORE first paint to avoid a flash of the
-       wrong theme. Mirrors tools.js prefs key. -->
+  
   <script>
     try {
       var __p = JSON.parse(localStorage.getItem('lecture.template.prefs.v1') || '{}');
@@ -19,7 +18,7 @@
     } catch (e) {}
   </script>
 
-  <!-- Asset-load failure banner. -->
+  
   <script>
     window.__assetFail = (function () {
       var failed = [];
@@ -48,11 +47,11 @@
     })();
   </script>
 
-  <!-- Fonts — vendored locally. -->
+  
   <link href="vendor/fonts/fonts.css" rel="stylesheet"
         onerror="window.__assetFail&&window.__assetFail('Шрифты/Fonts')" />
 
-  <!-- Styles -->
+  
   <link rel="stylesheet" href="css/template.css?v=6" />
   <link rel="stylesheet" href="css/slides.css?v=6" />
   <link rel="stylesheet" href="css/components.css?v=6" />
@@ -65,11 +64,10 @@
   <link rel="stylesheet" href="css/preflight.css?v=6" />
   <link rel="stylesheet" href="css/wbw-art.css?v=1" />
   <link rel="stylesheet" href="css/autofit.css?v=1" />
-  <!-- L20 deck-mounted widget styles (widgets/_base.css + course-map/graphrag/clip-matrix style.css).
-       BUILD OUTPUT (scripts/build-deck-widgets.mjs) — the deck doesn't load widgets/*/style.css like the Book. -->
+  
   <link rel="stylesheet" href="css/deck-widgets.css?v=1" />
 
-  <!-- KaTeX — vendored locally. -->
+  
   <link rel="stylesheet" href="vendor/katex/katex.min.css"
         onerror="window.__assetFail&&window.__assetFail('KaTeX')">
   <script defer src="vendor/katex/katex.min.js"
@@ -87,7 +85,7 @@
     });
     document.dispatchEvent(new CustomEvent('katex:done'));"></script>
 
-  <!-- Prism — vendored. -->
+  
   <script src="vendor/prism/prism-core.min.js"
         onerror="window.__assetFail&&window.__assetFail('Prism')"></script>
   <script src="vendor/prism/prism-python.min.js"></script>
@@ -95,17 +93,17 @@
   <script src="vendor/prism/prism-yaml.min.js"></script>
   <script src="vendor/prism/prism-json.min.js"></script>
 
-  <!-- QR code generator — vendored. -->
+  
   <script src="vendor/qrcode/qrcode.js"
         onerror="window.__assetFail&&window.__assetFail('QR')"></script>
 
-  <!-- R8 deck auto-layout primitives → window.DeckLayout (esbuild of widgets/_layout.js). -->
+  
   <script src="js/layout.js"
         onerror="window.__assetFail&&window.__assetFail('DeckLayout')"></script>
 </head>
 
 <body>
-  <!-- Bundler thumbnail -->
+  
   <template id="__bundler_thumbnail">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
       <defs>
@@ -127,12 +125,12 @@
     </svg>
   </template>
 
-  <!-- Logo template -->
+  
   <template id="tpl-logo">
     <div class="logo-mark">DLS</div>
   </template>
 
-  <!-- Deck -->
+  
   <div class="deck">
     <div class="stage">
       <div class="slides" data-course-ru="Deep Learning for Search · 2026" data-course-en="Deep Learning for Search · 2026">
@@ -150,7 +148,7 @@
     <div><div class="meta-label">Lecturer</div><div class="meta-value">Albert Nasybullin</div></div>
     <div><div class="meta-label">Date</div><div class="meta-value">08.12.2026</div></div>
   </div>
-  <aside class="slide-notes">Lecture 20 — "The Deep Field." The FINAL territory lecture: advanced RAG (multi-hop, GraphRAG), multimodal (CLIP, ColPali), ethics &amp; safety. Sir Cosine rules the shared CLIP space; the bestiary takes a closing bow. Payoff is arc-level — Séréga readies the helm handoff → the Defense ("You Take the Helm").</aside>
+  
 </section>
 <section class="slide" data-type="viz" data-max-step="0" data-current-step="0" data-screen-label="02 You are here">
   <div class="slide-header">
@@ -174,7 +172,7 @@
   }
   </script>
   <p class="viz-caption"><span lang="ru">Мы стоим у самого края <strong>Rank &rarr; Generate</strong>. Сегодня Корабль рассуждает <em>сразу по</em> многим записям, ищет <em>за пределами</em> текста и отвечает <em>ответственно</em>. Это последняя территория, которую мы наносим на карту вместе &mdash; после неё штурвал твой.</span><span lang="en">We stand at the far edge of <strong>Rank &rarr; Generate</strong>. Today the Ship reasons <em>across</em> records, searches <em>beyond</em> text, and answers <em>responsibly</em>. This is the last territory we map together &mdash; after it, you take the helm.</span></p>
-  <aside class="slide-notes">Spine anchor: L20 lights Rank AND Generate, standing at their frontier (multi-hop reasoning, multimodal retrieval, the captain's responsibility). This is the final TERRITORY lecture; the next session is the Defense — the student commands.</aside>
+  
 </section>
 <section class="slide" data-type="agenda" data-screen-label="03 Agenda">
   <div class="slide-header">
@@ -203,7 +201,7 @@
       <span class="toc-text"><span class="toc-title"><span lang="ru">Вся арка</span><span lang="en">The whole arc</span></span><span class="toc-sub"><span lang="ru">бестиарий кланяется &middot; хребет от края до края &middot; передача штурвала (&rarr; Защита)</span><span lang="en">the bestiary bows &middot; the spine end to end &middot; the helm handoff (&rarr; the Defense)</span></span></span>
     </a>
   </div>
-  <aside class="slide-notes">Five acts. Act 1 sets the deep field (hook + problem); Act 2 is multi-hop/GraphRAG (the constellation, climb at slide 11); Act 3 is multimodal/CLIP (the shared space, climb at slide 21); Act 4 is ethics &amp; safety (the captain's framework, real Quasar-9 demo); Act 5 is the arc-level payoff (bestiary bow, full spine, helm handoff → the Defense). Anchors point to each act's divider.</aside>
+  
 </section>
 <section class="slide" data-type="objectives" data-screen-label="04 Objectives · reason &amp; see">
   <div class="slide-header">
@@ -216,7 +214,7 @@
     <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru"><strong>Прочитать косинусную матрицу CLIP вручную</strong> &mdash; взять argmax каждой строки-изображения к её подписи, увидеть победу диагонали <strong>3/3</strong> и измерить контрастный разрыв (совпадающие <strong>0,9944</strong> против несовпадающих <strong>0,3791</strong>).</span><span lang="en"><strong>Read a CLIP cosine matrix by hand</strong> &mdash; argmax each image row to its caption, see the diagonal win <strong>3/3</strong>, and quantify the contrastive gap (matched <strong>0.9944</strong> vs mismatched <strong>0.3791</strong>).</span></span></li>
     <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru"><strong>Разместить мультимодальный поиск</strong> &mdash; объяснить CLIP как контрастный косинус из L7 между модальностями (Сэр Косинус) и где ColPali ищет по <em>изображениям</em> документов с помощью визуально-языковой модели.</span><span lang="en"><strong>Place multimodal retrieval</strong> &mdash; explain CLIP as L7 contrastive cosine across modalities (Sir Cosine), and where ColPali retrieves over document <em>images</em> with a vision-language model.</span></span></li>
   </ul>
-  <aside class="slide-notes">Objectives 1–4: multi-hop recall 0→1, build/traverse an entity graph, read the CLIP matrix (3/3, gap 0.6153), place multimodal retrieval. Four more on the next slide.</aside>
+  
 </section>
 <section class="slide" data-type="objectives" data-screen-label="05 Objectives · answer responsibly">
   <div class="slide-header">
@@ -229,7 +227,7 @@
     <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru"><strong>Применить рамку ответственности</strong> &mdash; «капитан отвечает за Корабль»: заземли ответ, сошлись на источник и позволь сказать <em>«я не знаю».</em></span><span lang="en"><strong>Apply the responsibility framework</strong> &mdash; "the captain answers for the Ship": ground it, cite it, and let it say <em>"I don't know."</em></span></span></li>
     <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru"><strong>Проследить всю арку</strong> &mdash; разместить GraphRAG, CLIP и предохранители безопасности на хребте с четырьмя остановками (Get Data &rarr; Measure &rarr; Rank &rarr; Generate) и знать, за каким рубежом тянуться и когда.</span><span lang="en"><strong>Trace the whole arc</strong> &mdash; place GraphRAG, CLIP and the safety controls on the four-stop spine (Get Data &rarr; Measure &rarr; Rank &rarr; Generate), and know which frontier to reach for when.</span></span></li>
   </ul>
-  <aside class="slide-notes">Objectives 5–8: the real confabulate-vs-abstain demo, name the four risks + mitigations, apply the captain-answers-for-the-Ship framework, trace the whole arc. Eight verbs across the four acts. This is the last territory before the Defense.</aside>
+  
 </section>
 <section class="slide" data-type="divider" data-screen-label="06 Divider · The Deep Field">
   <div class="divider-content">
@@ -240,7 +238,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:64cqh; --fig-w:54%;">
     <img src="assets/img/L12/L12-00-the-deep-field.webp?v=1" alt="Séréga, in his green tübetey, peering through a telescope at a deep-field sky where faint records resolve into a constellation of linked galaxies — the last territory before the helm." />
   </div>
-  <aside class="slide-notes">Cold open. Callback to L10/L11 (the Oracle answers, and we learned to judge it) → but the deepest questions need MANY records, in MANY modalities. The deep-field metaphor: stare long enough at the dark and structure resolves. Sets up multi-hop, multimodal, ethics — the last territory before the Defense.</aside>
+  
 </section>
 <section class="slide" data-type="default" data-screen-label="07 Hook · No single record">
   <div class="slide-header">
@@ -261,7 +259,7 @@
       <p><span lang="ru">Нужный факт &mdash; <strong>computer&nbsp;science</strong> &mdash; существует только в <em>связи</em> d1&nbsp;&rarr;&nbsp;d2, соединённой общей сущностью Dana&nbsp;Reyes. Схвати один лучший чанк &mdash; и промахнёшься. Чтобы ответить, Корабль должен <strong>рассуждать сразу по</strong> записям, а не просто найти одну. Это глубокое поле в миниатюре.</span><span lang="en">The fact we want &mdash; <strong>computer&nbsp;science</strong> &mdash; exists only in the <em>link</em> d1&nbsp;&rarr;&nbsp;d2, joined by the shared entity Dana&nbsp;Reyes. Grab one best chunk and you miss it. To answer, the Ship must <strong>reason across</strong> records, not merely find one. That is the deep field in miniature.</span></p>
     </div>
   </div>
-  <aside class="slide-notes">Hook. Anchor question for the GraphRAG act, verbatim from data/l12-graphrag.json (question, docs d1/d2, shared entity Dana Reyes, answerNode "computer science"). The answer is split across two docs — flat retrieval cannot assemble it. Sets up the single-hop-fails problem slide next.</aside>
+  
 </section>
 <section class="slide" data-type="default" data-screen-label="08 Problem · Flat retrieval">
   <div class="slide-header">
@@ -290,7 +288,7 @@
   <img src="assets/img/L12/L12-09-single-hop-trap.webp?v=1" alt="" aria-hidden="true"
        class="cameo br" style="width:200px; border-radius:14px;" />
 
-  <aside class="slide-notes">Problem. Naive top-k RAG is a flat bag of chunks — no structure, no edges. Single-hop recall 0 on the anchor question (data/l12-graphrag.json recallSingleHop). Frames the three acts: GraphRAG (reason across), multimodal (search beyond text), ethics (answer responsibly).</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="08a Why top-k cannot chain">
   <div class="slide-header slide-header--flush">
@@ -307,7 +305,7 @@
     <div class="var-block"><div class="var-symbol">\(k\uparrow\)</div><div class="var-desc"><strong><span lang="ru">глубина не лечит</span><span lang="en">depth is no cure</span></strong><br /><span lang="ru">расти \(k\) &mdash; \(d_2\) всплывёт вместе со всем похожим на \(q\), без гарантии.</span><span lang="en">grow \(k\) and \(d_2\) surfaces alongside everything \(q\)-like, with no guarantee.</span></div></div>
   </div>
   <p class="small muted center mt-2"><span lang="ru">Лечит только то, что делает \(e\) видимой: спроси дважды, подставив \(e\) во второй запрос (агентный цикл, L16), или заранее положи ребро \(d_1\!-\!e\!-\!d_2\) в индекс &mdash; это следующий акт.</span><span lang="en">The only cure is making \(e\) visible: ask twice, putting \(e\) into the second query (the agentic loop, L16), or store the edge \(d_1\!-\!e\!-\!d_2\) in the index up front — the next act.</span></p>
-  <aside class="slide-notes">The mechanism behind the act's claim that flat retrieval "cannot assemble the chain" and that single-hop recall is zero on the anchor question. The problem slide states the failure; this shows why it is structural rather than a matter of tuning. Top-k scores every document independently of every other, so the returned set is the k best singletons. What the multi-hop question needs is the best SET: neither d1 nor d2 answers it alone, but together they do, so usefulness is superadditive and no ranking by solo score can express that. Worse, d2's score is computed against a query that does not contain the bridging entity — the very fact that links them is latent at query time, so d2 competes on accidental similarity only. This is also the answer to the obvious objection: yes, raising k eventually sweeps d2 in, but only alongside everything else that resembles the query, and with no guarantee at any particular depth — you pay in precision for a chance, not a mechanism. Two escapes, and they are the shape of the rest of the course: make the entity explicit by querying twice (the agentic loop of L16), or precompute the edge so the link is stored rather than rediscovered — the entity graph the next act builds. Deliberately symbolic: d1, d2 and the anchor question are the ones already on the previous slide.</aside>
+  
 </section>
 <section class="slide" data-type="divider" data-screen-label="09 Divider · Multi-hop &amp; GraphRAG">
   <div class="divider-content">
@@ -318,7 +316,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:62cqh; --fig-w:52%;">
     <img src="assets/img/L12/L12-01-constellation.webp?v=1" alt="Séréga tracing glowing lines between scattered record-stars until they snap into a labelled constellation — entities as stars, relations as edges — the GraphRAG map of the deep field." />
   </div>
-  <aside class="slide-notes">Divider · GraphRAG. The constellation metaphor: flat documents → a navigable graph of entities + relations. Edge (Edge et al., Microsoft, arXiv:2404.16130) for GraphRAG; HotpotQA (arXiv:1809.09600) for multi-hop QA. Walk the graph to reach answers no one document holds.</aside>
+  
 </section>
 <section class="slide" data-type="two-col" data-screen-label="10 Multi-hop, formally">
   <div class="slide-header">
@@ -345,7 +343,7 @@
       </div>
     </div>
   </div>
-  <aside class="slide-notes">Multi-hop-formally. answer = walk over graph G=(E,R); h hops. h=2 on the anchor: Acme Corp → Dana Reyes → computer science (data/l12-graphrag.json hops, path). Graph adds edges on top of L15's flat R_k. This equation defines our fixed graph-walk toy, not Microsoft's full GraphRAG query pipeline. GraphRAG source: Edge et al. arXiv:2404.16130. Two-col def|image for fit.</aside>
+  
 </section>
 <section class="slide" data-type="archflow" data-max-step="5" data-current-step="0" data-screen-label="11 Climb · GraphRAG">
   <div class="slide-header">
@@ -457,7 +455,7 @@
 }
   </script>
   <p class="viz-caption"><span lang="ru">Одношаговый останавливается на лучшем документе &mdash; полнота <strong>0</strong>. Пройди граф Acme&nbsp;Corp&nbsp;&rarr;&nbsp;Dana&nbsp;Reyes&nbsp;&rarr;&nbsp;computer&nbsp;science (2 перехода) &mdash; полнота <strong>1</strong>. Настоящая llama3.1:8b прошла тот же путь.</span><span lang="en">Single-hop stops at the best document &mdash; recall <strong>0</strong>. Walk the graph Acme&nbsp;Corp&nbsp;&rarr;&nbsp;Dana&nbsp;Reyes&nbsp;&rarr;&nbsp;computer&nbsp;science (2 hops) &mdash; recall <strong>1</strong>. A real llama3.1:8b walked the same path.</span></p>
-  <aside class="slide-notes">climb-graphrag master figure (graphrag widget on l12-graphrag). Steps: question → single-hop recall 0 → build graph → 2-hop walk recall 1 → real llama3.1:8b (7 triples, same traversal). Numbers from data/l12-graphrag.json; the by-hand recall slide is next, the real extraction walkthrough two slides on.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="12 Multi-hop recall, by hand">
   <div class="slide-header">
@@ -470,7 +468,7 @@
     $$ \text{2-hop walk } (d_1 \to d_2):\ \text{Acme Corp} \xrightarrow{\text{founded\_by}} \text{Dana Reyes} \xrightarrow{\text{studied}} \textbf{computer science} \;\Longrightarrow\; \text{recall} = \mathbf{1} $$
   </div>
   <p class="small muted center mt-2"><span lang="ru">Одношаговый останавливается на \(d_1\) и вовсе не видит область &mdash; полнота <strong>0</strong>. Двухшаговый обход пересекает два документа (\(d_1 \to d_2\)) вдоль общей сущности Dana&nbsp;Reyes и попадает на узел ответа &mdash; полнота <strong>1</strong>. Весь выигрыш целиком дают <em>рёбра</em>: те же документы, теперь проходимые. Это <strong>бинарный индикатор попадания в ответ</strong> на единственном узле ответа &mdash; не Recall@k из L5 (<em>доля</em> релевантных найденных элементов); мы переиспользуем слово для случая одного узла.</span><span lang="en">Single-hop stops at \(d_1\) and never sees the field &mdash; recall <strong>0</strong>. The 2-hop walk crosses two documents (\(d_1 \to d_2\)) along the shared entity Dana&nbsp;Reyes and lands on the answer node &mdash; recall <strong>1</strong>. The lift comes entirely from the <em>edges</em>: the same documents, now navigable. This is a <strong>binary answer-hit indicator</strong> on the single answer node &mdash; not L5's Recall@k (the <em>fraction</em> of relevant items retrieved); we reuse the word for the one-node case here.</span></p>
-  <aside class="slide-notes">multi-hop recall by-hand. Binary answer-containment from data/l12-graphrag.json: recallSingleHop 0 (d1 holds founder/Portland, not "computer science"), recallMultiHop 1 (2-hop path d1→d2 reaches answerNode). hops=2, docsTouched [d1,d2], path verbatim. The edges do the work — same docs, now navigable.</aside>
+  
 </section>
 <section class="slide" data-type="walkthrough" data-max-step="4" data-current-step="0" data-screen-label="13 Walkthrough · Real extraction">
   <div class="slide-header">
@@ -505,7 +503,7 @@
     <span class="step-counter">4/4</span>
     <button data-step-act="next" aria-label="Next step">&rarr;</button>
   </div>
-  <aside class="slide-notes">Real extraction walkthrough. Verbatim from data/l12-graphrag.json real block: llama3.1:8b, nTriplesExtracted 7, extractedTriples (2 from d1, 3 from d2, 2 from d3), traversalPath [Acme Corp→Dana Reyes, Dana Reyes→computer science], derivedAnswer "computer science". The model named entities/relations; the graph chained two docs. Not a toy.</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="14 Building the graph">
   <div class="slide-header">
@@ -523,7 +521,7 @@
       </ul>
     </div>
   </div>
-  <aside class="slide-notes">GraphRAG build pipeline (offline, like L15's offline/online split). Steps: extract triples (LLM, our llama3.1:8b → 7 triples), entity resolution / co-reference merge, build + community detection + pre-summarise. Index-time cost (the boundaries slide's warning), amortised. Query-time local search embeds the query, matches entities, ranks graph context and text units, then generates an answer. Global search runs LLM map/reduce over community reports. Our fixed two-hop graph walk is only a toy illustration. Sources: https://microsoft.github.io/graphrag/query/local_search/ and https://microsoft.github.io/graphrag/query/global_search/. Mirrors the offline/online framing from L15's rag-pipeline.</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="15 HotpotQA">
   <div class="slide-header">
@@ -541,7 +539,7 @@
       </ul>
     </div>
   </div>
-  <aside class="slide-notes">HotpotQA. data/l12-bench.json: Yang et al., "HotpotQA", EMNLP 2018, arXiv:1809.09600. Diverse, explainable multi-hop QA — questions need 2+ docs, supporting facts annotated. Bridge questions = our anchor shape. The empirical motivation for multi-hop / GraphRAG.</aside>
+  
 </section>
 <section class="slide" data-type="two-col" data-screen-label="16 Global vs local search">
   <div class="slide-header">
@@ -568,7 +566,7 @@
       </div>
     </div>
   </div>
-  <aside class="slide-notes">Community summaries / global-vs-local. data/l12-graphrag.json communitySummaryNote: GraphRAG clusters into communities, pre-summarises (global search); local search combines query/entity matching, context selection and generation; the fixed 2-hop walk is only a toy. Edge et al. "From Local to Global" (arXiv:2404.16130). Two-col def|image for fit.</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="17 GraphRAG boundaries">
   <div class="slide-header">
@@ -587,7 +585,7 @@
       </ul>
     </div>
   </div>
-  <aside class="slide-notes">GraphRAG boundaries. Reach for it on relational/multi-hop and global theme questions; skip when the answer is single-passage (naive RAG cheaper). Costs: corpus-wide extraction at index time, graph storage, staleness on updates. Don't over-engineer — diagnose first (echoes L15's applicability lesson).</aside>
+  
 </section>
 <section class="slide" data-type="divider" data-screen-label="18 Divider · Search beyond text">
   <div class="divider-content">
@@ -598,7 +596,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:62cqh; --fig-w:52%;">
     <img src="assets/img/L12/L12-02-shared-space.webp?v=1" alt="Sir Cosine — Séréga in his knight's surcoat and green tübetey — measuring the small angle between a photograph and its caption that have landed almost on top of each other in one glowing shared space." />
   </div>
-  <aside class="slide-notes">Divider · multimodal. Sir Cosine (Séréga-in-knight-costume, green cap) rules the shared CLIP space — callback to L2/L6 cosine + contrastive. Embed images and text into ONE space; cross-modal retrieval is argmax cosine. CLIP (Radford et al., arXiv:2103.00020); ColPali (Faysse et al., arXiv:2407.01449).</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="19 CLIP, formally">
   <div class="slide-header">
@@ -617,7 +615,7 @@
       </ul>
     </div>
   </div>
-  <aside class="slide-notes">CLIP-formally. Two encoders into ONE shared space; cross-modal retrieval = argmax cosine over captions. Same NN search as L13, now cross-modal. Sets up the cosine-matrix climb (diagonal should win each row). CLIP = Radford et al., ICML 2021, arXiv:2103.00020.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="20 Contrastive objective">
   <div class="slide-header">
@@ -630,7 +628,7 @@
   </div>
   <p class="small muted center mt-2"><span lang="ru">Для батча из \(N\) пар изображение&ndash;подпись потеря &mdash; это софтмакс по <strong>строке косинусной матрицы</strong>: верная подпись (диагональная ячейка) должна победить. Это то же семейство, что и in-batch контрастная потеря из L10 &mdash; внедиагональные пары суть негативы. CLIP вдобавок <strong>симметризует</strong>, усредняя эту построчную (image&rarr;text) потерю с сопоставленной постолбцовой (text&rarr;image) &mdash; симметричный InfoNCE. Разрыв <strong>0,6153</strong> в нашем примере вычислен из вручную заданных векторов: он иллюстрирует желаемую геометрию, а не результат запуска обучения.</span><span lang="en">For a batch of \(N\) image&ndash;caption pairs, the loss is a softmax over the <strong>row of the cosine matrix</strong>: the correct caption (the diagonal cell) should win. This is the same family as L10's in-batch contrastive loss &mdash; the off-diagonal pairs are the negatives. CLIP additionally <strong>symmetrises</strong>, averaging this row-wise (image&rarr;text) loss with the matching column-wise (text&rarr;image) loss &mdash; the symmetric InfoNCE. Our <strong>0.6153</strong> gap is computed from hand-set vectors: it illustrates the intended geometry, not a measured training outcome.</span></p>
   <p class="small muted center mt-1"><span lang="ru">\(\tau\) &mdash; это <strong>температура</strong>: малая \(\tau\) заостряет софтмакс, так что совпадающая пара обязана доминировать &mdash; что также делает in-batch <strong>ложные негативы</strong> (например, две почти дублирующие подписи к одному изображению) дорогими &mdash; тогда как большая \(\tau\) сглаживает распределение. CLIP <em>учит</em> \(\tau\), а не фиксирует её (обучаемый logit-scale, зажатый потолком). Меньшая \(\tau\) усиливает различия логитов; больший разрыв косинусов из этого не следует.</span><span lang="en">\(\tau\) is the <strong>temperature</strong>: a small \(\tau\) sharpens the softmax so the matched pair must dominate &mdash; which also makes in-batch <strong>false negatives</strong> (e.g. two near-duplicate captions of the same image) costly &mdash; while a large \(\tau\) flattens the distribution. CLIP <em>learns</em> \(\tau\) rather than fixing it (a learnable logit-scale, clamped to a ceiling). Lower \(\tau\) sharpens logits; it does not guarantee a wider cosine gap.</span></p>
-  <aside class="slide-notes">Contrastive objective. CLIP InfoNCE over the batch cosine matrix: softmax per row, diagonal = positive, off-diagonal = in-batch negatives. Identical to L10 in-batch contrastive loss. Temperature τ. The matrix gap (0.9944/0.3791/0.6153) comes from manually constructed vectors, not a CLIP forward or training run. Temperature rescales logits, not fixed cosines; for binary p=sigmoid(gap/tau), a fixed p requires gap proportional to tau. No NEW gated number here — the gap is the same one from data/l12-clip.json.</aside>
+  
 </section>
 <section class="slide" data-type="viz" data-max-step="5" data-current-step="0" data-screen-label="21 Climb · CLIP matrix">
   <div class="slide-header">
@@ -728,7 +726,7 @@
 }
   </script>
   <p class="viz-caption"><span lang="ru">Вручную заданные векторы: диагональ &mdash; каждое изображение против своей подписи &mdash; побеждает в каждой строке, <strong>3/3</strong>. Совпадающий косинус в среднем <strong>0,9944</strong> против <strong>0,3791</strong> вне диагонали: разрыв <strong>0,6153</strong>. Настоящая llava:7b: <strong>5/5</strong> &mdash; генеративная VLM заземляет ответ в пикселях, а не в косинусном совпадении.</span><span lang="en">Hand-set vectors: the diagonal &mdash; each image vs its own caption &mdash; wins every row, <strong>3/3</strong>. Matched cosine averages <strong>0.9944</strong> vs <strong>0.3791</strong> off-diagonal: a <strong>0.6153</strong> gap. Real llava:7b: <strong>5/5</strong> &mdash; a generative VLM grounding its answer in the pixels, not a cosine match.</span></p>
-  <aside class="slide-notes">climb-clip master figure (clip-matrix widget on l12-clip). Steps: empty grid → fill cosines → argmax diagonal (3/3) → contrastive gap (matched 0.9944 vs mismatched 0.3791 = 0.6153) → real llava:7b 5/5. Numbers from data/l12-clip.json. The by-hand matrix slide is next; the L7 contrastive callback two slides on.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="22 CLIP matrix, by hand">
   <div class="slide-header">
@@ -741,7 +739,7 @@
     $$ \text{contrastive gap} = 0.9944 - 0.3791 = \mathbf{0.6153} $$
   </div>
   <p class="small muted center mt-2"><span lang="ru">В учебной матрице из вручную заданных векторов лучшее совпадение каждого изображения &mdash; <strong>диагональная</strong> ячейка &mdash; его собственная подпись, так что кросс-модальный поиск верен <strong>3 из 3</strong>. Совпадающие пары стоят около 1,0, а всё остальное &mdash; около 0,38; разрыв <strong>0,6153</strong> между ними ровно и заставляет диагональ побеждать так чисто. Это контрастный косинус, теперь между модальностями.</span><span lang="en">In this toy matrix of hand-set vectors, each image's top match is the <strong>diagonal</strong> cell &mdash; its own caption &mdash; so cross-modal retrieval is right <strong>3 of 3</strong>. Matched pairs sit near 1.0 while everything else sits near 0.38; the <strong>0.6153</strong> gap between them is precisely what makes the diagonal win so cleanly. This is contrastive cosine, now across modalities.</span></p>
-  <aside class="slide-notes">CLIP matrix by-hand. cosineMatrix verbatim from data/l12-clip.json; diagonalCorrect 3/3; matchedMeanCos 0.9944 (mean of 0.9974/0.991/0.9949); mismatchedMeanCos 0.3791 (sum of 6 off-diagonals 2.2745 /6); contrastiveGap 0.6153. Argmax per row = diagonal = its own caption. The summary values are recomputed from the cells; the underlying vectors were hand-set, not learned in this experiment.</aside>
+  
 </section>
 <section class="slide" data-type="two-col" data-screen-label="23 Callback · Sir Cosine, cross-modal">
   <div class="slide-header">
@@ -768,7 +766,7 @@
       </div>
     </div>
   </div>
-  <aside class="slide-notes">Contrastive callback. data/l12-clip.json callbackNote: same cosine-in-a-shared-space idea as L10 contrastive learning (Sir Cosine), now across modalities — image and caption trained to be neighbours, everything else pushed apart. The matched/mismatched gap (0.9944 / 0.3791 / 0.6153) is a calculation from hand-set vectors illustrating the objective, not a training result. Sir Cosine (green-cap knight) returns from L2/L6.</aside>
+  
 </section>
 <section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="24 Real · llava 5/5">
   <div class="slide-header">
@@ -808,7 +806,7 @@
     <span class="e2e-stage-name">overview</span>
     <button type="button" class="e2e-toggle">Theory only</button>
   </div>
-  <aside class="slide-notes">Real llava run. data/l12-clip.json real block: llava:7b, top1Accuracy 1.0, top1Correct 5, n 5, on TEXT-FREE shapes (so it's vision, not OCR). IMPORTANT mechanism: this is NOT cosine retrieval. llava:7b is a generative VLM — for each image it was shown the five candidate captions and prompted "Which ONE caption best describes it? Reply with only the number" (see _research/exp_l12_ollama.py, run_clip), then we parsed the digit. So it GENERATES a forced multiple-choice answer grounded in the pixels; it does not produce a CLIP-style image embedding or an argmax over cosine. Reserve the cosine/argmax-diagonal framing for the toy CLIP matrix (slides 21–22) and CLIP proper. The takeaway that survives: a real vision model genuinely grounds its answer in the picture (5/5 on text-free shapes), which is why the toy diagonal was not just hand-picked vectors. n=5 is an illustrative existence-proof, not a benchmark.</aside>
+  
 </section>
 <section class="slide" data-type="two-col" data-screen-label="25 Frontier · ColPali">
   <div class="slide-header">
@@ -836,7 +834,7 @@
       </div>
     </div>
   </div>
-  <aside class="slide-notes">ColPali frontier. arXiv:2407.01449 (Faysse et al.). Render the page as an image; embed patch-level with a VLM; retrieve with late interaction (ColBERT MaxSim, L12) over patches. Skips the brittle OCR→parse→chunk pipeline. Fuses L12 late-interaction with L20 shared image-text space.</aside>
+  
 </section>
 <section class="slide" data-type="table" data-screen-label="26 Multimodal menu">
   <div class="slide-header">
@@ -857,7 +855,7 @@
     </tbody>
   </table>
   <p class="small muted center mt-2"><span lang="ru">Каждый меняет точность на цену. Подпись&rarr;текст переиспользует твой текстовый конвейер, но теряет всё, что подпись опустила. <strong>CLIP</strong> держит в индексе саму картинку. <strong>ColPali</strong> держит целую <em>страницу</em> &mdash; самый точный, самый дорогой. Подбирай подход под запись.</span><span lang="en">Each trades fidelity for cost. Caption-then-text reuses your text pipeline but loses everything the caption omits. <strong>CLIP</strong> keeps the picture itself in the index. <strong>ColPali</strong> keeps the whole <em>page</em> &mdash; the most faithful, the most expensive. Match the approach to the record.</span></p>
-  <aside class="slide-notes">Multimodal menu. Three approaches: caption-then-text (cheap, lossy, reuses L15 text search), CLIP shared-space (argmax cosine cross-modal, the act's centerpiece), ColPali page-as-image (patch VLM + late interaction MaxSim from L12). Qualitative (no gated numbers). Match to the record; fidelity-vs-cost ladder.</aside>
+  
 </section>
 <section class="slide" data-type="two-col" data-screen-label="27 Multimodal boundaries">
   <div class="slide-header">
@@ -885,7 +883,7 @@
       </div>
     </div>
   </div>
-  <aside class="slide-notes">Multimodal boundaries. Reach for CLIP on visual corpora / text↔image search; ColPali for layout. Limits: fine-grained detail weak; real matrices noisier than the toy 3/3. Bridges to ethics: power → responsibility; training-pair bias foreshadows the bias risk. Two-col def|image for fit.</aside>
+  
 </section>
 <section class="slide" data-type="divider" data-screen-label="28 Divider · With power, responsibility">
   <div class="divider-content">
@@ -896,7 +894,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:62cqh; --fig-w:52%;">
     <img src="assets/img/L12/L12-05-the-helm.webp?v=1" alt="Séréga at the Ship's wheel under a deep-field sky, one hand steady on the helm — calm and accountable — as the recurring creatures look on; the captain answers for the Ship." />
   </div>
-  <aside class="slide-notes">Divider · ethics &amp; safety. data/l12-ethics.json captainNote: with the power to answer comes responsibility for the answer; the captain answers for the Ship. Ground it, cite it, let it say "I don't know." Four risks (bias, hallucination harm, privacy, attribution), each with a mitigation. The real confabulate-vs-abstain demo anchors it.</aside>
+  
 </section>
 <section class="slide" data-type="default" data-screen-label="29 Hallucination harm">
   <div class="slide-header">
@@ -921,7 +919,7 @@
       </ul>
     </div>
   </div>
-  <aside class="slide-notes">Hallucination harm overview. data/l12-ethics.json real block: question about fictional "Quasar-9 vector database"; closedBookAbstained false (CONFABULATED: "collection of 9000 vectors... large-scale dataset"); groundedAbstained true (ABSTAINED: "I cannot answer... context does not provide..."). Hallucination is the harm; grounding + abstention is the safety control. The by-hand e2e is next.</aside>
+  
 </section>
 <section class="slide" data-type="e2e" data-max-step="4" data-current-step="0" data-screen-label="30 Real · Confabulate vs abstain">
   <div class="slide-header">
@@ -961,7 +959,7 @@
     <span class="e2e-stage-name">overview</span>
     <button type="button" class="e2e-toggle">Theory only</button>
   </div>
-  <aside class="slide-notes">Safety demo by-hand. Verbatim from data/l12-ethics.json real block: llama3.1:8b on fictional "Quasar-9". closedBookAbstained false → confabulated ("a collection of 9000 vectors... large-scale dataset"); groundedAbstained true → abstained ("I cannot answer... context does not provide any information"). Hallucination is the harm; grounding + abstention is the control. Excerpts are the real model output.</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="31 Risk · Bias">
   <div class="slide-header">
@@ -983,7 +981,7 @@
   <img src="assets/img/L12/L12-12-ethics-bias.webp?v=1" alt="" aria-hidden="true"
        class="cameo br" style="width:190px; border-radius:14px;" />
 
-  <aside class="slide-notes">Risk · Bias. data/l12-ethics.json framework[0]: what = "Retrieval + generation inherit corpus and model biases"; mitigation = "Audit corpora; measure subgroup performance; diversify sources." Two-stage (retrieval + generation). Multimodal sharpens it (CLIP training-pair bias).</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="32 Risk · Privacy / PII">
   <div class="slide-header">
@@ -1001,7 +999,7 @@
       </ul>
     </div>
   </div>
-  <aside class="slide-notes">Risk · Privacy/PII. data/l12-ethics.json framework[2]: what = "Indexed documents may leak personal or secret data"; mitigation = "PII scrubbing; access control on the index; per-tenant isolation." The index is an attack surface; grounding makes a leaky index dangerous. Multi-tenant cross-leak.</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="33 Risk · Attribution">
   <div class="slide-header">
@@ -1023,7 +1021,7 @@
   <img src="assets/img/L12/L12-13-attribution.webp?v=1" alt="" aria-hidden="true"
        class="cameo br" style="width:190px; border-radius:14px;" />
 
-  <aside class="slide-notes">Risk · Attribution. data/l12-ethics.json framework[3]: what = "Answers without sources cannot be verified or contested"; mitigation = "Cite the retrieved passages; show provenance; let users inspect." Callback to L15's grounded-prompt-with-citations discipline — attribution is why it matters.</aside>
+  
 </section>
         <section class="slide" data-type="definition" data-screen-label="33a Risk · Indirect prompt injection">
           <div class="slide-header">
@@ -1041,7 +1039,7 @@
               </ul>
             </div>
           </div>
-          <aside class="slide-notes">Attack 1 — the security turn of the ethics act. Indirect prompt injection (Greshake et al. 2023, arXiv:2302.12173; OWASP LLM Top-10 #1): RAG's defining feature — bringing third-party text into the prompt — is exactly the attack channel. The model has no type system separating data from instructions, so a retrieved passage containing imperative text can be executed. Indirect because the attacker rides the retrieval channel: poison a page, wait for it to rank. Dangerous because assistants hold tools and user context. First-line mitigation is instruction isolation (marked data blocks, spotlighting); the defence stack slide completes it.</aside>
+          
         </section>
         <section class="slide" data-type="definition" data-screen-label="33b Risk · Corpus poisoning">
           <div class="slide-header">
@@ -1059,7 +1057,7 @@
               </ul>
             </div>
           </div>
-          <aside class="slide-notes">Attack 2 — poisoning the retrieval supply chain (PoisonedRAG, Zou et al. 2024, arXiv:2402.07867: a few adversarial passages per target question suffice against million-document corpora). The asymmetry: retrieval is argmax, not vote — you only need to win the top-k for the queries you target, so niche queries are cheapest. Every ingestion channel (UGC, crawls, plugins) is a write path; a poisoned passage often doubles as the injection carrier from the previous slide. Mitigations are supply-chain practice transplanted: gate the writes, tier the sources by trust, scan at ingestion, and show provenance so a poisoned answer is at least attributable.</aside>
+          
         </section>
         <section class="slide" data-type="definition" data-screen-label="33c Risk · Exfiltration via rendering">
           <div class="slide-header">
@@ -1077,7 +1075,7 @@
               </ul>
             </div>
           </div>
-          <aside class="slide-notes">Attack 3 — the exfiltration channel that makes injection profitable. The classic zero-click leak (documented against multiple production assistants, 2023-2024): an injection instructs the model to emit a Markdown image whose URL query-string carries the conversation's secrets; the client auto-loads the image and the attacker's server logs the GET. It composes the whole act: poisoning plants the passage, injection issues the command, rendering ships the data. Outbound tool calls and webhooks are the same class of egress. Defence is output-side and network-side, not model-side: render only allow-listed hosts, never auto-fetch external resources, sanitize the emitted Markdown, and pin a Content-Security-Policy so the browser refuses the outbound request.</aside>
+          
         </section>
         <section class="slide" data-type="table" data-screen-label="33d The RAG-security defence stack">
           <div class="slide-header">
@@ -1099,7 +1097,7 @@
             </tbody>
           </table>
           <p class="small muted center mt-2"><span lang="ru"><strong>Границы применимости.</strong> Ни один слой не абсолютен&nbsp;&mdash; это <em>защита в глубину</em>: считай найденный контент недоверенным, а ассистента&nbsp;&mdash; уязвимым, и клади слои так, чтобы пробой одного не давал ни исполнения, ни эксфильтрации. Общего решения prompt injection пока нет.</span><span lang="en"><strong>Boundaries.</strong> No layer is absolute &mdash; this is <em>defence in depth</em>: treat retrieved content as untrusted and the assistant as fallible, and stack layers so one breach yields neither execution nor exfiltration. There is no general solution to prompt injection yet.</span></p>
-          <aside class="slide-notes">The defence stack — the centerpiece of the security turn, deliberately paired with each layer's limit so students learn defence in depth, not a silver bullet. Five layers map to the three risks: instruction isolation + input sanitization blunt injection; the rendering allow-list + CSP close the exfiltration channel; least-privilege tools cap the blast radius; corpus write control raises the poisoning cost. Every row carries a boundary because each defence is evadable alone — markers spoofable, keyword filters paraphrasable, read-only leaks survive tool scoping. The honest frame: no general solution to prompt injection exists (OWASP LLM Top-10, Simon Willison's ongoing writeups) — assume the assistant is fallible and layer accordingly.</aside>
+          
         </section>
 <section class="slide" data-type="table" data-screen-label="34 The responsibility framework">
   <div class="slide-header">
@@ -1121,7 +1119,7 @@
   </table>
   <p class="small muted center mt-2"><span lang="ru">Каждая мера &mdash; это предохранитель, который ты <em>строишь</em>, а не надежда, которую держишь. У них один хребет: <strong>заземли</strong> ответ, <strong>сошлись</strong> на источники и позволь <strong>воздержаться</strong>. Верность контексту &mdash; подтверждено ли каждое утверждение &mdash; это метрика из L16, обращённая в этическую обязанность.</span><span lang="en">Every mitigation is a control you <em>build</em>, not a hope you hold. They share one spine: <strong>ground</strong> the answer, <strong>cite</strong> its sources, and let it <strong>abstain</strong>. Faithfulness &mdash; whether each claim is supported &mdash; is the metric from L16 turned into an ethical obligation.</span></p>
   <p class="small muted center mt-1"><span lang="ru">Это риски <em>содержания</em> ответа. Три атаки на саму цепочку&nbsp;&mdash; внедрение через найденный текст, отравление корпуса, эксфильтрация через разметку&nbsp;&mdash; закрываются не мерой в строке, а стеком защит из предыдущего акта: там у каждого слоя выписана его граница.</span><span lang="en">These are risks of what the answer <em>says</em>. The three attacks on the pipeline itself&nbsp;&mdash; injection through retrieved text, corpus poisoning, exfiltration through markup&nbsp;&mdash; are not closed by a row here but by the defence stack of the previous act, where every layer carries its own limit.</span></p>
-  <aside class="slide-notes">Responsibility framework — THE CENTERPIECE. The 4-row framework verbatim from data/l12-ethics.json framework[]: bias / hallucination harm / privacy-PII / attribution × (what, mitigation). All qualitative (no gated numbers). Mitigations highlighted (cell-good). Shared spine: ground, cite, abstain. Faithfulness check ties back to L16.</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="35 Faithfulness, ethically">
   <div class="slide-header">
@@ -1140,7 +1138,7 @@
       </ul>
     </div>
   </div>
-  <aside class="slide-notes">Faithfulness bridge. data/l12-ethics.json framework[1] mitigation cites "faithfulness checks (L16)". Faithfulness = fraction of claims supported by context (L16 metric); relevance = right passages retrieved. The Quasar-9 confabulation is unfaithfulness. Wire a faithfulness gate (LLM-judge / NLI) before display; abstain below threshold. L16 measured it, L20 obliges it.</aside>
+  
 </section>
 <section class="slide" data-type="misconception" data-screen-label="36 Catch · The captain answers">
   <div class="slide-header">
@@ -1157,7 +1155,7 @@
     <div class="misc-truth"><span lang="ru">Ты выбираешь корпус, ретривер, промпт и то, <em>позволено ли системе сказать «я не знаю».</em> Каждый вред в рамке &mdash; это <strong>проектное решение</strong>, а не воля судьбы: дырявый индекс, неаудированный корпус, ответ без ссылки, модель, которой так и не дали разрешения воздержаться. <strong>Капитан отвечает за Корабль.</strong> Заземли, сошлись и позволь отказаться &mdash; а когда он ошибётся, ответственность твоя, ведь предохранители было строить тебе.</span><span lang="en">You chose the corpus, the retriever, the prompt, and whether the system is <em>allowed to say &ldquo;I don't know.&rdquo;</em> Every harm in the framework is a <strong>design decision</strong>, not an act of God: a leaky index, an unaudited corpus, an answer with no citation, a model never given permission to abstain. <strong>The captain answers for the Ship.</strong> Ground it, cite it, and let it refuse &mdash; and when it errs, the responsibility is yours, because the controls were yours to build.</span></div>
   </div>
   <p class="small muted center mt-2"><span lang="ru">Это принцип, к которому сводится весь акт &mdash; и стандарт, который ты несёшь, когда берёшь штурвал.</span><span lang="en">This is the principle the whole act reduces to &mdash; and the standard you carry when you take the helm.</span></p>
-  <aside class="slide-notes">Catch (misconception). data/l12-ethics.json captainNote: with the power to answer comes responsibility for the answer — the captain answers for the Ship. Ground it, cite it, let it say "I don't know." Every harm is a design decision (corpus, retriever, prompt, abstention permission), not the model's fault. Confabulous (L10/L11 villain) returns. Sets the standard for the Defense.</aside>
+  
 </section>
 <section class="slide" data-type="quiz" data-screen-label="37 Quiz · safety control">
   <div class="slide-header">
@@ -1176,7 +1174,7 @@
       <div class="ha-content"><strong>B</strong>. <span lang="ru">Масштабирование модели не чинит выдумывание &mdash; модель побольше так же складно изобретает признаки (а сущность вымышлена, так что никакой объём обучающих данных её не содержит). Температура меняет <em>стиль</em>, а не заземление. Настоящее демо это показало: <em>та же</em> llama3.1:8b выдумывала без источника, но <strong>воздержалась</strong>, будучи заземлённой в контексте, где сказано, что базы не существует. Заземление + свобода сказать «я не знаю» и есть предохранитель &mdash; не масштаб.</span><span lang="en">Scaling the model does not fix confabulation &mdash; a bigger model is just as fluent inventing features (and the entity is fictional, so no amount of training data contains it). Temperature changes <em>style</em>, not grounding. The real demo showed it: the <em>same</em> llama3.1:8b confabulated closed-book but <strong>abstained</strong> once grounded in a context that said the database does not exist. Grounding + the freedom to say &ldquo;I don't know&rdquo; is the control &mdash; not scale.</span></div>
     </details>
   </div>
-  <aside class="slide-notes">Quiz: confabulation on a fictional entity → grounding + abstention is the control, not scale or temperature. Answer B. Mirrors the real Quasar-9 demo (data/l12-ethics.json): same model confabulated closed-book, abstained grounded. Reinforces "grounding, not scale" (callback to L15) and the captain's framework.</aside>
+  
 </section>
 <section class="slide" data-type="divider" data-screen-label="38 Divider · The whole arc">
   <div class="divider-content">
@@ -1187,7 +1185,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:62cqh; --fig-w:54%;">
     <img src="assets/img/L12/L12-07-mapped.webp?v=1" alt="Séréga, green tübetey on, standing before a fully-drawn star map of the deep field — the whole course rendered as charted constellations — about to step aside from the helm." />
   </div>
-  <aside class="slide-notes">Divider · the whole arc (arc-level). The three frontiers mapped: GraphRAG constellation, CLIP shared space, the captain's standard. Sets up the bestiary bow, the full course-map recap, the frontier guide, and the arc-level payoff (helm handoff → Defense).</aside>
+  
 </section>
 <section class="slide" data-type="default" data-screen-label="39 The bestiary takes a bow">
   <div class="slide-header">
@@ -1218,7 +1216,7 @@
   <img src="assets/img/L12/L12-14-bestiary-bow.webp?v=1" alt="" aria-hidden="true"
        class="cameo br" style="width:210px; border-radius:14px;" />
 
-  <aside class="slide-notes">Bestiary bow (arc-level callback). L20 cast: Joey Multi-Hop (GraphRAG), Clippy (CLIP), Sir Cosine (cosine across modalities), RAGdoll + Confabulous. Wider menagerie: Lexical Gremlin, Victor the Vector, First-Contact Alien, Curse Wraith, Goodhart, Tokenosaurus, Chunk Norris, the Re-Actor. Names locked in _research/mascots.py. Each creature = a failure mode or fix.</aside>
+  
 </section>
 <section class="slide" data-type="table" data-screen-label="40 The three frontiers, side by side">
   <div class="slide-header">
@@ -1239,7 +1237,7 @@
     </tbody>
   </table>
   <p class="small muted center mt-2"><span lang="ru">Три рубежа, один узор: <em>назови предел, найди идею, докажи на настоящем прогоне.</em> Рассуждать по записям, видеть за пределами текста и владеть ответом &mdash; вместе это глубокое поле, нанесённое на карту.</span><span lang="en">Three frontiers, one pattern: <em>name the limit, find the idea, prove it on a real run.</em> Reasoning across records, seeing beyond text, and owning the answer &mdash; together they are the deep field, mapped.</span></p>
-  <aside class="slide-notes">Three frontiers recap (cmp-table). multi-hop/GraphRAG (split answers → walk graph → recall 0→1, 7 triples), multimodal/CLIP (non-text → shared space → 3/3 diagonal, llava 5/5), ethics (misleading fluency → ground/cite/abstain → confabulate vs abstain). All numbers from data/l12-*.json. The arc in one table.</aside>
+  
 </section>
 <section class="slide" data-type="viz" data-max-step="0" data-current-step="0" data-screen-label="41 The whole spine">
   <div class="slide-header">
@@ -1263,7 +1261,7 @@
   }
   </script>
   <p class="viz-caption"><span lang="ru"><strong>Get Data</strong> построил корпус и токены; <strong>Measure</strong> дал нам метрики и судью; <strong>Rank</strong> вырос от BM25 к би/кросс-энкодерам и ANN-полосам; <strong>Generate</strong> научился заземлять, рассуждать по записям, видеть и отвечать ответственно. Один хребет, двадцать одна лекция &mdash; теперь освещён от края до края.</span><span lang="en"><strong>Get Data</strong> built the corpus and tokens; <strong>Measure</strong> gave us metrics and the judge; <strong>Rank</strong> grew from BM25 to bi/cross-encoders to ANN lanes; <strong>Generate</strong> learned to ground, reason across records, see, and answer responsibly. One spine, twenty-one lectures &mdash; now lit end to end.</span></p>
-  <aside class="slide-notes">Full spine recap (arc-level). All four legs active. Get Data (corpus/tokens, L0–L2), Measure (metrics/judge, L5/L16), Rank (BM25→bi/cross→ANN, L3–L13), Generate (RAG→reason→see→responsible, L15–L20). The complete journey before the helm handoff.</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="42 The RAG frontier, in one view">
   <div class="slide-header">
@@ -1281,7 +1279,7 @@
       </ul>
     </div>
   </div>
-  <aside class="slide-notes">RAG frontier recap. Cites from data/l12-bench.json: GraphRAG (2404.16130), RAPTOR (2401.18059, ICLR 2024), Self-RAG (2310.11511, ICLR 2024), CLIP (2103.00020), ColPali (2407.01449). Organizes the frontier by failure addressed: structure (GraphRAG, RAPTOR), self-correction (Self-RAG), modalities (CLIP, ColPali). RAPTOR/Self-RAG also touched in L15/L16.</aside>
+  
 </section>
 <section class="slide" data-type="table" data-screen-label="43 When to reach for what">
   <div class="slide-header">
@@ -1305,7 +1303,7 @@
     </tbody>
   </table>
   <p class="small muted center mt-2"><span lang="ru">Нет единственной лучшей архитектуры &mdash; лишь карта от симптома к рубежу. Начни наивно, измеряй и добавляй <em>тот</em> рубеж, которого требует твой режим отказа. Что бы ты ни строил, последняя строка всё ещё в силе: заземли, сошлись, дай воздержаться.</span><span lang="en">No single best architecture &mdash; only the symptom-to-frontier map. Start naive, measure, add the <em>one</em> frontier your failure mode calls for. Whatever you build, the last row still applies: ground it, cite it, let it abstain.</span></p>
-  <aside class="slide-notes">Frontier guide (cmp-table). Symptom → cause → frontier, spanning all three acts + the ethics controls. GraphRAG (multi-hop / global), CLIP (wrong modality), ColPali (document-as-image), grounding+abstention (hallucination), scrub/access-control (privacy), naive RAG (don't over-engineer). Mirrors L15's when-to-reach map at the frontier scale.</aside>
+  
 </section>
 <section class="slide" data-type="default" data-screen-label="44 What you can now build">
   <div class="slide-header">
@@ -1332,7 +1330,7 @@
       </ul>
     </div>
   </div>
-  <aside class="slide-notes">Capstone — what you can now build (arc-level). Full stack: ingest/tokenize/embed/index (L2–L13), retrieve+generate grounded+cited (L10/L15), judge (L16), reason-across/see/own (L20). Plus the judgement: diagnose failure → one fix, don't over-engineer, captain answers for the Ship. Sets up the bridge to the Defense.</aside>
+  
 </section>
 <section class="slide" data-type="divider" data-screen-label="45 Payoff · The helm is yours">
   <div class="divider-content">
@@ -1343,7 +1341,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:62cqh; --fig-w:54%;">
     <img src="assets/img/L12/L12-08-helm-handoff.webp?v=1" alt="Séréga, green tübetey on, lifting his hand from the Ship's wheel and offering it forward to the viewer under the fully-mapped deep-field sky — the helm handed over." />
   </div>
-  <aside class="slide-notes">Arc-level payoff. Catchphrase opens (hook) and closes here: "this is the deep field." The three frontiers resolve (constellation, shared space, captain's standard). Séréga readies the helm handoff → the Defense ("You Take the Helm"), which resolves the L0 send-off. The galaxy is mapped.</aside>
+  
 </section>
 <section class="slide" data-type="quote" data-screen-label="46 Bridge · You take the helm">
   <div>
@@ -1359,7 +1357,7 @@
       <span lang="ru">Серёга · мост &rarr; Защита · Ты берёшь штурвал</span><span lang="en">Séréga · bridge &rarr; the Defense · You Take the Helm</span>
     </div>
   </div>
-  <aside class="slide-notes">Bridge to the Defense (arc-level). The whole spine resolves: find (L3–L13), answer (L15), judge (L16), reason/see/own (L20). Hands command to the student for "You Take the Helm" — the Defense that resolves the L0 send-off. Catchphrase context: the deep field is mapped.</aside>
+  
 </section>
 <section class="slide" data-type="refs" data-screen-label="47 References · multi-hop &amp; GraphRAG">
   <div class="slide-header">
@@ -1391,7 +1389,7 @@
       <span class="ref-year">2024</span>
     </li>
   </ol>
-  <aside class="slide-notes">References 1/3: GraphRAG (Edge et al., arXiv:2404.16130), HotpotQA (Yang et al., EMNLP 2018, arXiv:1809.09600), RAPTOR (Sarthi et al., ICLR 2024, arXiv:2401.18059). All ids/years from data/l12-bench.json, hand-verified.</aside>
+  
 </section>
 <section class="slide" data-type="refs" data-screen-label="48 References · multimodal retrieval">
   <div class="slide-header">
@@ -1415,7 +1413,7 @@
       <span class="ref-year">2024</span>
     </li>
   </ol>
-  <aside class="slide-notes">References 2/3: CLIP (Radford et al., OpenAI, ICML 2021, arXiv:2103.00020), ColPali (Faysse et al., arXiv:2407.01449). From data/l12-bench.json, hand-verified.</aside>
+  
 </section>
 <section class="slide" data-type="refs" data-screen-label="49 References · self-correction &amp; safety">
   <div class="slide-header">
@@ -1433,7 +1431,7 @@
     </li>
   </ol>
   <p class="small muted mt-4"><span lang="ru">Этическая рамка здесь строга, но не численна &mdash; вреды (предвзятость, галлюцинации, приватность, атрибуция) и их меры суть проектная практика, а не единый цитируемый результат. <em>Метрика</em> верности контексту за предохранителем от галлюцинаций была введена и процитирована в <strong>Лекции 16</strong>. Настоящие демо GraphRAG, CLIP и безопасности запускались локально с <code>llama3.1:8b</code> и <code>llava:7b</code> (см. <code>data/l12-*.json</code>).</span><span lang="en">The ethics framework here is rigorous but non-numeric &mdash; the harms (bias, hallucination, privacy, attribution) and their mitigations are design practice, not a single citeable result. The faithfulness <em>metric</em> behind the hallucination control was introduced and cited in <strong>Lecture 16</strong>. The real GraphRAG, CLIP and safety demos were run locally with <code>llama3.1:8b</code> and <code>llava:7b</code> (see <code>data/l12-*.json</code>).</span></p>
-  <aside class="slide-notes">References 3/3: Self-RAG (Asai et al., ICLR 2024, arXiv:2310.11511). The ethics framework is rigorous/non-numeric (design practice). Faithfulness metric cited in L16. Real demos: llama3.1:8b (GraphRAG extraction, Quasar-9 safety) and llava:7b (CLIP image→caption), reproducible from data/l12-*.json.</aside>
+  
 </section>
 <section class="slide" data-type="final" data-screen-label="50 Final">
   <div class="final-body">
@@ -1455,14 +1453,14 @@
   <img src="assets/img/L12/L12-15-defense-doorway.webp?v=1" alt="" aria-hidden="true"
        class="cameo br" style="width:240px; border-radius:14px;" />
 
-  <aside class="slide-notes">Q&amp;A. Sign-off: the deep field is mapped — the Ship reasons across records (GraphRAG), sees beyond text (CLIP/ColPali), and answers responsibly (the captain answers for the Ship). This is the last territory; next is the Defense — You Take the Helm. Séréga's hero+final plate (helm handoff) closes the lecture. QR points to the course hub.</aside>
+  
 </section>
 
-      </div><!-- /.slides -->
-    </div><!-- /.stage -->
-  </div><!-- /.deck -->
+      </div>
+    </div>
+  </div>
 
-  <!-- JS -->
+  
   <script src="js/deck.js"></script>
   <script src="js/tools.js"></script>
   <script src="js/pen.js"></script>
@@ -1478,8 +1476,7 @@
   <script src="js/budget.js"></script>
   <script src="js/preflight.js"></script>
 
-  <!-- L20 deck-mounted widgets: classic offline bundles register window.mount<Pascal>; the deck-adapter
-       (loaded after deck.js) drives them with the deck step engine. BUILD OUTPUT (scripts/build-deck-widgets.mjs). -->
+  
   <script src="js/course-map.classic.js"></script>
   <script src="js/graphrag.classic.js"></script>
   <script src="js/clip-matrix.classic.js"></script>

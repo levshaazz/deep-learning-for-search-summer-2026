@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lecture 16 — Judging the Oracle · RAG Evaluation &amp; Agentic RAG</title>
 
-  <!-- Apply saved theme/lang BEFORE first paint to avoid a flash of the
-       wrong theme. Mirrors tools.js prefs key. -->
+  
   <script>
     try {
       var __p = JSON.parse(localStorage.getItem('lecture.template.prefs.v1') || '{}');
@@ -19,7 +18,7 @@
     } catch (e) {}
   </script>
 
-  <!-- Asset-load failure banner. -->
+  
   <script>
     window.__assetFail = (function () {
       var failed = [];
@@ -48,11 +47,11 @@
     })();
   </script>
 
-  <!-- Fonts — vendored locally. -->
+  
   <link href="vendor/fonts/fonts.css" rel="stylesheet"
         onerror="window.__assetFail&&window.__assetFail('Шрифты/Fonts')" />
 
-  <!-- Styles -->
+  
   <link rel="stylesheet" href="css/template.css?v=6" />
   <link rel="stylesheet" href="css/slides.css?v=6" />
   <link rel="stylesheet" href="css/components.css?v=6" />
@@ -65,11 +64,10 @@
   <link rel="stylesheet" href="css/preflight.css?v=6" />
   <link rel="stylesheet" href="css/wbw-art.css?v=1" />
   <link rel="stylesheet" href="css/autofit.css?v=1" />
-  <!-- L16 deck-mounted widget styles (widgets/_base.css + course-map/ragas-metrics/llm-judge/agentic-loop/rag-control-flow style.css).
-       BUILD OUTPUT (scripts/build-deck-widgets.mjs) — the deck doesn't load widgets/*/style.css like the Book. -->
+  
   <link rel="stylesheet" href="css/deck-widgets.css?v=1" />
 
-  <!-- KaTeX — vendored locally. -->
+  
   <link rel="stylesheet" href="vendor/katex/katex.min.css"
         onerror="window.__assetFail&&window.__assetFail('KaTeX')">
   <script defer src="vendor/katex/katex.min.js"
@@ -87,7 +85,7 @@
     });
     document.dispatchEvent(new CustomEvent('katex:done'));"></script>
 
-  <!-- Prism — vendored. -->
+  
   <script src="vendor/prism/prism-core.min.js"
         onerror="window.__assetFail&&window.__assetFail('Prism')"></script>
   <script src="vendor/prism/prism-python.min.js"></script>
@@ -95,17 +93,17 @@
   <script src="vendor/prism/prism-yaml.min.js"></script>
   <script src="vendor/prism/prism-json.min.js"></script>
 
-  <!-- QR code generator — vendored. -->
+  
   <script src="vendor/qrcode/qrcode.js"
         onerror="window.__assetFail&&window.__assetFail('QR')"></script>
 
-  <!-- R8 deck auto-layout primitives → window.DeckLayout (esbuild of widgets/_layout.js). -->
+  
   <script src="js/layout.js"
         onerror="window.__assetFail&&window.__assetFail('DeckLayout')"></script>
 </head>
 
 <body>
-  <!-- Bundler thumbnail -->
+  
   <template id="__bundler_thumbnail">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
       <defs>
@@ -127,12 +125,12 @@
     </svg>
   </template>
 
-  <!-- Logo template -->
+  
   <template id="tpl-logo">
     <div class="logo-mark">DLS</div>
   </template>
 
-  <!-- Deck -->
+  
   <div class="deck">
     <div class="stage">
       <div class="slides" data-course-ru="Deep Learning for Search · 2026" data-course-en="Deep Learning for Search · 2026">
@@ -150,7 +148,7 @@
     <div><div class="meta-label">Lecturer</div><div class="meta-value">Albert Nasybullin</div></div>
     <div><div class="meta-label">Date</div><div class="meta-value">17.11.2026</div></div>
   </div>
-  <aside class="slide-notes">Lecture 16 — "Judging the Oracle." RAG evaluation (RAGAS, LLM-as-judge) + agentic RAG (ReAct / Self-RAG / CRAG). Séréga is the protagonist; Goodhart the Trickster gets his definitive scene (the Measure-villain arc resolves). Returns to the Measure leg for the generative era, then adds agency. Bridges to L20 (the Deep Field).</aside>
+  
 </section>
 <section class="slide" data-type="viz" data-max-step="0" data-current-step="0" data-screen-label="02 You are here">
   <div class="slide-header">
@@ -174,7 +172,7 @@
   }
   </script>
   <p class="viz-caption"><span lang="ru">L15 зажгла <strong>Generate</strong> — Оракул заговорил. Но заземлённый ответ — не значит верный. Поэтому сегодня мы возвращаемся к <strong>Measure</strong>, остановке, где живёт Гудхарт, и задаём вопрос труднее: как <em>оценить</em> сгенерированный ответ, когда нет золотого ключа для проверки?</span><span lang="en">L15 lit <strong>Generate</strong> — the Oracle now speaks. But a grounded answer is not a true one. So today we return to <strong>Measure</strong>, the stop where Goodhart lives, and ask the harder question: how do you <em>grade</em> a generated answer when there is no gold key to check it against?</span></p>
-  <aside class="slide-notes">Spine anchor: L16 re-lights Measure (evaluation) for the generative era while keeping Generate lit — the Ship both answers AND grades itself. Goodhart is the Measure-territory villain; his arc culminates here.</aside>
+  
 </section>
 <section class="slide" data-type="agenda" data-screen-label="03 Agenda">
   <div class="slide-header">
@@ -207,7 +205,7 @@
       <span class="toc-text"><span class="toc-title"><span lang="ru">Развязка</span><span lang="en">The payoff</span></span><span class="toc-sub"><span lang="ru">Корабль оценивает и исправляет себя &middot; мост &rarr; Глубокое поле (L20)</span><span lang="en">the Ship grades + corrects itself &middot; bridge &rarr; the Deep Field (L20)</span></span></span>
     </a>
   </div>
-  <aside class="slide-notes">Six acts. Act 1 RAGAS (reference-free metrics, each worked by hand); Act 2 LLM-as-judge (rubric, pointwise/pairwise); Act 3 Goodhart's climax (position/verbosity bias measured on a real model, then the law); Act 4 agentic RAG (ReAct/Self-RAG/CRAG, the self-correcting loop); Act 5 puts it together; Act 6 the payoff + bridge to L20. The three climbs are RAGAS, judge, agentic.</aside>
+  
 </section>
 <section class="slide" data-type="objectives" data-screen-label="04 Objectives · compute by hand">
   <div class="slide-header">
@@ -220,7 +218,7 @@
     <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru"><strong>Вычислить точность и полноту контекста</strong> — точность с учётом ранжирования ((1 + 2/3)/2 = 0,8333) и покрытие эталона (2/3 = 0,6667) — две стороны извлечения.</span><span lang="en"><strong>Compute context precision &amp; recall</strong> — ranking-aware precision ((1 + 2/3)/2 = 0.8333) and ground-truth coverage (2/3 = 0.6667) — the two sides of retrieval.</span></span></li>
     <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru"><strong>Оценить по рубрике как LLM-судья</strong> — усреднить оценки по критериям (A = 4,0 против B = 2,6667) и назвать поточечного победителя.</span><span lang="en"><strong>Score a rubric like an LLM judge</strong> — average per-criterion scores (A = 4.0 vs B = 2.6667) and call the pointwise winner.</span></span></li>
   </ul>
-  <aside class="slide-notes">Objectives 1–4: the by-hand scoring skills — the four RAGAS metrics and a rubric average. All numbers come from data/l11-ragas.json and l11-judge.json. Five more on the next slide.</aside>
+  
 </section>
 <section class="slide" data-type="objectives" data-screen-label="05 Objectives · reason about">
   <div class="slide-header">
@@ -234,7 +232,7 @@
     <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru"><strong>Проследить агентный цикл</strong> — цикл Мысль / Действие / Наблюдение из ReAct, решающий двухпрыжковый вопрос, и описать Self-RAG и CRAG как его структурированных родичей.</span><span lang="en"><strong>Trace the agentic loop</strong> — ReAct's Thought / Action / Observation cycle solving a two-hop question, and place Self-RAG &amp; CRAG as its structured cousins.</span></span></li>
     <li class="obj-item"><span class="obj-check" aria-hidden="true">&check;</span><span class="obj-text"><span lang="ru"><strong>Сформулировать закон Гудхарта</strong> — когда мера становится целью, она перестаёт быть хорошей мерой (отсылка L1 &rarr; L5) — и проверять судью, прежде чем ему довериться.</span><span lang="en"><strong>State Goodhart's law</strong> — when a measure becomes a target it ceases to be a good measure (callback L1 &rarr; L5) — and audit a judge before you trust it.</span></span></li>
   </ul>
-  <aside class="slide-notes">Objectives 5–9: judge design choices, the named biases + the Goodhart flip, the measured real-model biases, the agentic loop trace, and Goodhart's law as the climax callback. Nine verbs across six acts.</aside>
+  
 </section>
 <section class="slide" data-type="divider" data-screen-label="06 Divider · Judging the Oracle">
   <div class="divider-content">
@@ -245,7 +243,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:64cqh; --fig-w:54%;">
     <img src="assets/img/L11/L11-00-judging-the-oracle.webp?v=1" alt="Séréga, in his green tübetey, leads RAGdoll the Oracle into a small courtroom to stand trial; Goodhart the Trickster grins from the gallery, a fishing-hook already dangling toward the verdict board." />
   </div>
-  <aside class="slide-notes">Cold open / hero plate (features Séréga). Catchphrase opens: "How do you grade an Oracle that sounds confident whether it's right or wrong?" Goodhart the Trickster appears in the gallery — foreshadowing his climax. The Oracle (from L15) is now on trial.</aside>
+  
 </section>
 <section class="slide" data-type="default" data-screen-label="07 Confident either way">
   <div class="slide-header">
@@ -269,7 +267,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:30cqh; --fig-w:34%;">
     <img src="assets/img/L11/L11-01-fluent-but-wrong.webp?v=1" alt="RAGdoll the Oracle, a patchwork rag-doll, delivers two equally fluent answers side by side — one true, one with a fabricated line — and from the outside they look identical; Séréga, in his green tübetey, holds up two scorecards unable to tell them apart." />
   </div>
-  <aside class="slide-notes">Hook payoff. A fluent answer reveals nothing about truth — A (true) and B (one hallucinated sentence) are indistinguishable from the outside. Sets up the need for measurement, not vibes. Confabulous (L15's phantom) is the unseen cause; here we name the symptom.</aside>
+  
 </section>
 <section class="slide" data-type="default" data-screen-label="08 Why classic metrics don't fit">
   <div class="slide-header">
@@ -290,7 +288,7 @@
       <p><span lang="ru">Метрики, что оценивают сгенерированный ответ <strong>против извлечённого контекста и вопроса</strong> — а не против эталонного ключа. Именно этот пробел закрывает <strong>RAGAS</strong>: метрики, в том числе без эталона, раскладывающие качество RAG на верность, релевантность и обе стороны извлечения.</span><span lang="en">Metrics that grade a generated answer <strong>against the retrieved context and the question</strong> — not against a reference key. That is exactly the gap <strong>RAGAS</strong> fills: reference-free scores that decompose RAG quality into faithfulness, relevance, and both sides of retrieval.</span></p>
     </div>
   </div>
-  <aside class="slide-notes">problem-no-gold. Classic IR metrics (recall@k, MRR — L1/L5) graded a ranked list against a known relevant set. Generation has no gold answer, many valid phrasings, and two simultaneous failure modes — so exact-match/BLEU don't fit. Motivates reference-free metrics (RAGAS) next.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="08a Grading with no key">
   <div class="slide-header slide-header--flush">
@@ -307,7 +305,7 @@
     <div class="var-block"><div class="var-symbol">\(\tfrac{1}{n}\sum\)</div><div class="var-desc"><strong><span lang="ru">доля, а не расстояние</span><span lang="en">a fraction, not a distance</span></strong><br /><span lang="ru">считается руками и называет провалившееся утверждение.</span><span lang="en">countable by hand, and it names the claim that failed.</span></div></div>
   </div>
   <p class="small muted center mt-2"><span lang="ru">Меняй то, что стоит по сторонам \(\models\), &mdash; и та же дробь даёт остальные оси следующего акта. Заодно видно, куда воткнётся Гудхарт: \(\models\) проверяет модель.</span><span lang="en">Swap what stands on the two sides of \(\models\) and the same fraction yields the other axes of the next act. It also shows where Goodhart gets in: a model checks \(\models\).</span></p>
-  <aside class="slide-notes">The mechanism behind the act's promise. The act says a fluent answer reveals nothing, that there is no gold answer, and that RAGAS grades "against the retrieved context" — but never shows what makes reference-free grading possible at all. Here is the shape. A classic metric needs two arguments, the answer and a key, and the key is missing. Two moves rescue it. First, decompose the answer into atomic claims: a whole paragraph has no truth value you can count, a single claim does, and phrasing varies while the claim does not — which is precisely the "many valid phrasings" objection from the previous slide, answered. Second, replace string comparison with a relation check: ask whether the retrieved context entails each claim. Nothing external is needed, because the question and the context are themselves a partial key — they do not say what the answer is, but they do say what it may assert and what it must address. The score is then a counting fraction, hand-checkable and diagnostic: it names which claim failed rather than returning a distance. Every metric of the next act is this same shape with different texts plugged into the two sides of the entailment. Say the caveat out loud now, because act 3 is built on it: the entailment check is performed by a model, so the score is a proxy from its very first line.</aside>
+  
 </section>
 <section class="slide" data-type="divider" data-screen-label="09 Divider · RAGAS">
   <div class="divider-content">
@@ -315,7 +313,7 @@
     <h1>RAGAS — four metrics, three of them reference-free</h1>
     <p class="divider-sub"><span lang="ru"><em>Нет золотого ответа для сравнения — сравни с тем, что извлёк.</em> RAGAS оценивает ответ RAG четырьмя числами, и три из них эталона не требуют (полнота контекста — требует): <strong>верность</strong> (заземлён ли он?), <strong>релевантность ответа</strong> (отвечает ли он на вопрос?), <strong>точность контекста</strong> и <strong>полнота контекста</strong> (справилось ли извлечение?). Каждое — дробь, которую можно проверить вручную.</span><span lang="en"><em>If you can't compare to a gold answer, compare to what you retrieved.</em> RAGAS scores a RAG answer with four numbers, three of which need no reference (context recall does): <strong>faithfulness</strong> (is it grounded?), <strong>answer relevance</strong> (does it address the question?), <strong>context precision</strong> and <strong>context recall</strong> (did retrieval do its job?). Each is a fraction we can check by hand.</span></p>
   </div>
-  <aside class="slide-notes">turn-ragas. RAGAS (Es et al., 2023, arXiv:2309.15217): four reference-free metrics. The trick is to grade against the question + retrieved context rather than a gold answer. Each metric is a hand-checkable fraction in data/l11-ragas.json.</aside>
+  
 </section>
 <section class="slide" data-type="two-col" data-screen-label="10 The RAGAS scorecard">
   <div class="slide-header">
@@ -343,7 +341,7 @@
       </div>
     </div>
   </div>
-  <aside class="slide-notes">ragas-overview. Name the four metrics and split them: two grade generation (faithfulness, answer relevance), two grade retrieval (context precision, recall). The running example "How does the heart pump blood?" carries through the climb + four by-hand slides. Answer relevance averages raw cosines, whose natural range is [-1,1], not guaranteed [0,1]. Source: https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/answer_relevance/. Each metric is diagnostic — a low score localises the failure.</aside>
+  
 </section>
 <section class="slide" data-type="archflow" data-max-step="4" data-current-step="0" data-screen-label="11 Climb · RAGAS metrics">
   <div class="slide-header">
@@ -435,7 +433,7 @@
 }
   </script>
   <p class="viz-caption"><span lang="ru">Один ответ, четыре датчика: верность 0,75, релевантность ответа 0,7033, точность контекста 0,8333, полнота контекста 0,6667. Галлюцинированное утверждение «Уильям Гарвей, 1628» и тянет верность и релевантность вниз. Следующие четыре слайда пересчитывают каждое вручную.</span><span lang="en">One answer, four gauges: faithfulness 0.75, answer relevance 0.7033, context precision 0.8333, context recall 0.6667. The hallucinated &ldquo;William Harvey, 1628&rdquo; claim is what pulls faithfulness and relevance down. The next four slides recompute each by hand.</span></p>
-  <aside class="slide-notes">climb-ragas master figure (ragas-metrics on l11-ragas). Steps reveal the four gauges in order. Every number is from data/l11-ragas.json. The running example "How does the heart pump blood?" feeds the four by-hand slides that follow.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="12 Faithfulness, by hand">
   <div class="slide-header">
@@ -458,7 +456,7 @@
     <img src="assets/img/L11/L11-03-faithfulness-claims.webp?v=1" alt="RAGdoll the Oracle's answer split into four claim-cards; three carry a checkmark traced by a thread back to a retrieved passage, while the fourth — the William Harvey 1628 claim — floats with a red cross and no thread; Séréga, in his green tübetey, tallies three of four." />
   </div>
   <p class="small muted center mt-2"><span lang="ru">Разбей ответ на атомарные утверждения и спроси о каждом: следует ли оно из извлечённого отрывка? Три из четырёх — да; беглое «Уильям Гарвей, 1628» — нет, ничто извлечённое этого не говорит. <strong>Одно неподтверждённое предложение стоит 1/N &mdash; здесь четверти.</strong></span><span lang="en">Break the answer into atomic claims, then ask of each: is it entailed by a retrieved passage? Three of four are; the fluent &ldquo;William Harvey, 1628&rdquo; is not — nothing we retrieved says it. <strong>One unsupported sentence costs 1/N &mdash; here, a quarter.</strong></span></p>
-  <aside class="slide-notes">faithfulness by-hand. l11-ragas: supportedClaims 3 / answerClaimCount 4 = 0.75 (gated). The Harvey claim is the planted hallucination. Lesson: faithfulness = grounding; it is the direct hallucination detector.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="13 Answer relevance, by hand">
   <div class="slide-header">
@@ -472,7 +470,7 @@
   </div>
   <p class="def-where"><span lang="ru">где <b>q</b> = исходный вопрос, <b>q&#771;<sub>i</sub></b> = i-й обратный вопрос, <b>n</b> = их число, <b>cos</b> = косинус.</span><span lang="en">where <b>q</b> = original question, <b>q&#771;<sub>i</sub></b> = i-th reverse-question, <b>n</b> = their count, <b>cos</b> = cosine.</span></p>
   <p class="small muted center mt-2"><span lang="ru">Два перефраза держатся темы (0,92, 0,88); галлюцинированный третий уплывает к 0,31 — <strong>релевантность оценивает тематичность, а не истину</strong>.</span><span lang="en">Two paraphrases stay on-topic (0.92, 0.88); the hallucinated third drifts to 0.31 — <strong>relevance grades topicality, not truth</strong>.</span></p>
-  <aside class="slide-notes">answer-relevance by-hand. l11-ragas.reverseQuestionCos [0.92,0.88,0.31]; mean = 0.7033 (gated answerRelevance). The drifting third reverse-question is caused by the hallucinated claim. Relevance ≠ faithfulness: an answer can be on-topic but unfaithful, or faithful but off-topic.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="14 Context precision, by hand">
   <div class="slide-header">
@@ -486,7 +484,7 @@
   </div>
   <p class="def-where"><span lang="ru">где <b>k</b> = ранг, <b>rel<sub>k</sub></b> = ранг <b>k</b> релевантен, <b>precision@k</b> = доля релевантных в топ-<b>k</b>, <b>#relevant</b> = число релевантных.</span><span lang="en">where <b>k</b> = rank, <b>rel<sub>k</sub></b> = rank <b>k</b> relevant, <b>precision@k</b> = fraction of top-<b>k</b>, <b>#relevant</b> = relevant count.</span></p>
   <p class="small muted center mt-2"><span lang="ru">Ранг 1 релевантен; следующий релевантный зарыт на ранге 3 (2/3 чисто) — <strong>низкие ранги стоят точности</strong> (<em>#relevant = 2</em>).</span><span lang="en">Rank 1 relevant; next relevant buried at rank 3 (2/3 clean) — <strong>low ranks cost precision</strong> (<em>#relevant = 2</em>).</span></p>
-  <aside class="slide-notes">context-precision by-hand. l11-ragas.precisionAtK: relevant at ranks 1 (p@1=1) and 3 (p@3=0.6667), 2 relevant total → (1 + 2/3)/2 = 0.8333 (gated contextPrecision). Noise at rank 2 between the relevants is what costs precision. Ranking-aware, like MAP from L1.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="15 Context recall, by hand">
   <div class="slide-header">
@@ -499,7 +497,7 @@
     $$ \text{context recall} = \frac{2}{3} = \mathbf{0.6667} $$
   </div>
   <p class="small muted center mt-2"><span lang="ru">Зеркало точности: возьми каждое эталонное утверждение и проверь, поддерживает ли его <em>хоть один</em> извлечённый фрагмент. Два из трёх покрыты; «диастола вновь наполняет сердце» так и не извлекли, поэтому генератор, отвечающий строго по контексту, не мог им воспользоваться. <strong>Пропущенный факт ограничивает ответ по контексту</strong> — то же ограничение полноты извлечения из L5/L15, теперь на уровне контекста.</span><span lang="en">The mirror of precision: take each ground-truth claim and check whether <em>any</em> retrieved chunk supports it. Two of three are covered; &ldquo;diastole refills the heart&rdquo; was never retrieved, so the generator could not have used it. <strong>A missing fact caps the best possible answer</strong> — the recall floor from L1/L10, now at the context level.</span></p>
-  <aside class="slide-notes">context-recall by-hand. l11-ragas: groundTruthInContext 2 / groundTruthCount 3 = 0.6667 (gated contextRecall). The un-retrieved "diastole" truth is the recall floor: retrieval caps generation. Precision (ranking) and recall (coverage) are the two sides of retrieval quality.</aside>
+  
 </section>
 <section class="slide" data-type="table" data-screen-label="16 The RAGAS quad together">
   <div class="slide-header">
@@ -522,7 +520,7 @@
     </tbody>
   </table>
   <p class="small muted center mt-2"><span lang="ru">Четыре диагностируемые оси, а не одно непрозрачное число. Здесь самая низкая оценка — <strong>полнота контекста</strong> (0,6667) — узкое место в покрытии извлечения, а не в генераторе. RAGAS превращает «ответ показался не тем» в <em>«какую стадию чинить?»</em>.</span><span lang="en">Four diagnosable axes, not one opaque number. Here the lowest score is <strong>context recall</strong> (0.6667) — the bottleneck is retrieval coverage, not the generator. RAGAS turns &ldquo;the answer felt off&rdquo; into <em>which stage to fix</em>.</span></p>
-  <aside class="slide-notes">ragas-quad summary table (cmp-table). All four scores from l11-ragas (gated). The teaching point: the metrics are diagnostic — the lowest one (context recall 0.6667 here) tells you where to intervene. faithfulness highlighted as the headline metric (the hallucination detector).</aside>
+  
 </section>
 <section class="slide" data-type="misconception" data-screen-label="17 RAGAS boundaries">
   <div class="slide-header">
@@ -536,7 +534,7 @@
     <div class="misc-truth"><span lang="ru">Каждая метрика RAGAS вычисляется <em>с помощью LLM</em>: модель решает, какие утверждения «подтверждены», генерирует обратно восстановленные вопросы и судит о релевантности. Дроби чёткие, но суждения за ними наследуют ошибки и смещения модели. RAGAS — быстрый, дешёвый, <strong>воспроизводимый прокси</strong> — отлично подходит для отслеживания регрессий и сравнения систем — но это <em>не</em> эталон. Оценка зависит и от разбиения: другая модель-судья (или температура) разбивает ответ на другие утверждения, поэтому верность несравнима между разными судьями — зафиксируй модель судьи и версию, прежде чем отслеживать её во времени. Калибруй по человеческим меткам на выборке и никогда не сообщай единственный десятичный знак так, будто его измерили линейкой. Настоящий дар — разбиение; абсолютное число — прокси.</span><span lang="en">Every RAGAS metric is computed <em>by an LLM</em>: a model decides which claims are &ldquo;supported,&rdquo; generates the reverse-engineered questions, and judges relevance. The fractions are crisp, but the judgments behind them inherit the model's mistakes and biases. RAGAS is a fast, cheap, <strong>repeatable proxy</strong> — excellent for tracking regressions and comparing systems — but it is <em>not</em> a reference. The score also depends on the decomposition: a different judge model (or temperature) splits the answer into different claims, so faithfulness is not comparable across judge backends — fix the judge model and version before tracking it over time. Calibrate it against human labels on a sample, and never report a single decimal as if it were measured with a ruler. The decomposition is the real gift; the absolute number is a proxy.</span></div>
   </div>
   <p class="small muted center mt-2"><span lang="ru">Без эталона не значит без суждения. Та же оговорка укусит куда сильнее, когда мы позволим модели оценивать целые ответы лицом к лицу.</span><span lang="en">Reference-free does not mean judgment-free. The same caveat is about to bite much harder when we let a model grade whole answers head-to-head.</span></p>
-  <aside class="slide-notes">ragas-boundaries misconception. RAGAS metrics are LLM-computed (claim entailment, reverse-question generation, relevance scoring) — fast/cheap/repeatable proxy, not ground truth; calibrate vs human labels. Foreshadows the LLM-as-judge biases (and Goodhart) in Act 2/3.</aside>
+  
 </section>
 <section class="slide" data-type="divider" data-screen-label="18 Divider · LLM-as-judge">
   <div class="divider-content">
@@ -544,7 +542,7 @@
     <h1>LLM-as-a-judge</h1>
     <p class="divider-sub"><span lang="ru"><em>Если оценка свободного текста требует суждения — возьми модель, у которой оно есть.</em> Дай сильной LLM рубрику и попроси оценить ответы — или выбрать лучший из двух. Это быстро, дёшево и на удивление хорошо коррелирует с людьми-оценщиками (Zheng и др., NeurIPS 2023). И это же миг, когда мы вручаем Гудхарту перо вердикта: судья — это метрика, а метрики можно обыграть.</span><span lang="en"><em>If grading free text needs judgment, use a model that has it.</em> Hand a strong LLM a rubric and ask it to score answers — or to pick the better of two. It is fast, cheap, and correlates surprisingly well with human raters (Zheng et al., NeurIPS 2023). It is also the moment we hand Goodhart the verdict pen: the judge is a metric, and metrics can be gamed.</span></p>
   </div>
-  <aside class="slide-notes">turn-llm-judge. LLM-as-judge (Zheng et al., MT-Bench / Chatbot Arena, arXiv:2306.05685): a model scores or compares answers via a rubric. Strong human correlation — but it is itself a metric, which sets up Goodhart in Act 3.</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="19 The judge's rubric">
   <div class="slide-header">
@@ -562,7 +560,7 @@
       </ul>
     </div>
   </div>
-  <aside class="slide-notes">judge-rubric setup. l11-judge.rubric: criteria relevance/grounding/completeness, scale 1..5. Mirrors RAGAS axes but model-assigned. A clear rubric → reproducible, explainable scoring. Feeds the llm-judge climb.</aside>
+  
 </section>
 <section class="slide" data-type="archflow" data-max-step="4" data-current-step="0" data-screen-label="20 Climb · LLM-as-judge">
   <div class="slide-header">
@@ -682,7 +680,7 @@
 }
   </script>
   <p class="viz-caption"><span lang="ru">Поточечно (ответы A/B): A = 4,0 обходит B = 2,6667. Попарно: побеждает A. Затем переворот на отдельной паре честный/многословный — переоцени длину, и многословный ответ (4,25) обходит честный (4,0 при судье со смещением к длине). Последний шаг показывает смещения, <em>измеренные</em> на настоящем замороженном судье.</span><span lang="en">Pointwise (answers A/B): A = 4.0 beats B = 2.6667. Pairwise: A wins. Then the flip on a separate honest/verbose pair — over-weight length and the verbose answer (4.25) beats the honest answer (4.0 under the length-biased judge). The last step shows the biases <em>measured</em> on a real frozen judge.</span></p>
-  <aside class="slide-notes">climb-judge master figure (llm-judge on l11-judge). Steps 0–2 = rubric → pointwise means (A 4.0, B 2.6667) → pairwise (A). Step 3 = the Goodhart flip (length-biased winner C 4.25 > A 4.0). Step 4 = real llama3.1:8b biases. All numbers from data/l11-judge.json. The flip is the villain's setup; Act 3 names it.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="21 Pointwise rubric, by hand">
   <div class="slide-header">
@@ -696,7 +694,7 @@
   </div>
   <p class="def-where"><span lang="ru">где <b>x</b> = один оцениваемый ответ, <b>score(x)</b> = его поточечная оценка, среднее трёх критериев рубрики по шкале 1&ndash;5 (<b>relevance</b> — релевантность, <b>grounding</b> — заземление, <b>completeness</b> — полнота); <b>A</b>, <b>B</b> = два ответа-кандидата.</span><span lang="en">where <b>x</b> = one answer being scored, <b>score(x)</b> = its pointwise score, the mean of the three 1&ndash;5 rubric criteria (<b>relevance</b>, <b>grounding</b>, <b>completeness</b>); <b>A</b>, <b>B</b> = the two candidate answers.</span></p>
   <p class="small muted center mt-2"><span lang="ru">Каждый ответ судят <em>в одиночку</em>, критерий за критерием, затем усредняют. A силён по всем фронтам (5/4/3); B отстаёт по заземлению и полноте (4/2/2). Поточечный разрыв (4,0 против 2,6667) и <strong>попарный</strong> вердикт бок о бок согласны: побеждает A. Чисто и решительно — ровно поэтому мы вот-вот перестанем этому доверять.</span><span lang="en">Each answer is judged <em>alone</em>, criterion by criterion, then averaged. A is strong across the board (5/4/3); B trails on grounding and completeness (4/2/2). The pointwise gap (4.0 vs 2.6667) and the side-by-side <strong>pairwise</strong> verdict agree: A wins. Clean and decisive — which is exactly why we are about to distrust it.</span></p>
-  <aside class="slide-notes">pointwise by-hand. l11-judge.answers: A mean[5,4,3]=4.0, B mean[4,2,2]=2.6667; pairwiseWinner A (all gated). Pointwise = judge each alone; pairwise = side-by-side. They agree here. The "too clean" feeling is the setup for the bias slides.</aside>
+  
 </section>
 <section class="slide" data-type="table" data-screen-label="22 Judge modes — which to use">
   <div class="slide-header">
@@ -719,7 +717,7 @@
     </tbody>
   </table>
   <p class="small muted center mt-2"><span lang="ru"><strong>Попарно</strong> — обычно более безопасный выбор по умолчанию: у относительного вердикта нет абсолютной шкалы, чтобы блуждать. А если золотые ответы есть, оценка <strong>с эталоном</strong> даёт более надёжную опору; если нет (случай RAG в проде), <strong>без эталона</strong> — это то, что у тебя есть. Выбор — о том, какую истину ты можешь себе позволить.</span><span lang="en"><strong>Pairwise</strong> is usually the safer default — a relative verdict has no absolute scale to wander. And if you have gold answers, <strong>reference-based</strong> judging is stronger; if you don't (the RAG-in-production case), <strong>reference-free</strong> is what you've got. The choice is about what ground truth you can afford.</span></p>
-  <aside class="slide-notes">judge-modes table (cmp-table). Two orthogonal choices: pointwise vs pairwise (pairwise highlighted as safer default — no scale drift), and reference-free vs reference-based (have gold answers or not). Qualitative, no gated numbers. Reinforces why pairwise is robust before showing position bias breaks even pairwise.</aside>
+  
 </section>
 <section class="slide" data-type="default" data-screen-label="23 Judge prompt anatomy">
   <div class="slide-header">
@@ -741,7 +739,7 @@
       <p><span lang="ru">Сделай шкалу <em>конкретной</em> (снабди каждый балл описанием, а не только цифрой). Требуй доказательство — «процитируй подтверждающий фрагмент». Заставь вынести вердикт (никаких «оба хороши»). И держи модель-судью <strong>отдельно</strong> от оцениваемой модели, чтобы обойти самопредпочтение. Каждое из этих правил — защита от смещений на следующих трёх слайдах.</span><span lang="en">Make the scale <em>concrete</em> (anchor each point with a description, not just a digit). Demand evidence — &ldquo;quote the supporting span.&rdquo; Force a verdict (no &ldquo;both are good&rdquo;). And keep the judge model <strong>separate</strong> from the model being judged, to dodge self-enhancement. Every one of these is a defence against the biases on the next three slides.</span></p>
     </div>
   </div>
-  <aside class="slide-notes">judge-prompt anatomy. Four parts: role+rubric, inputs (q/context/answer), reason-before-score (CoT lifts agreement, Zheng et al.), structured JSON output. Design rules: anchored scale, demand evidence/quote, force a verdict, separate judge from judged (self-enhancement). Each defends against the upcoming biases.</aside>
+  
 </section>
 <section class="slide" data-type="divider" data-screen-label="24 Divider · Goodhart returns">
   <div class="divider-content">
@@ -752,7 +750,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:60cqh; --fig-w:50%;">
     <img src="assets/img/L11/L11-04-goodhart-returns.webp?v=1" alt="Goodhart the Trickster, bare-headed and grinning, yanks the judge's score-line up with a clickbait fishing-hook by padding a thin answer into a fat one; Séréga, in his green tübetey, frowns and points at the unchanged quality underneath." />
   </div>
-  <aside class="slide-notes">turn-goodhart — THE VILLAIN'S CLIMAX. Goodhart (L1→L5→here) takes the verdict pen. The metric (judge score) becomes a target → models optimise for the judge (longer/confident/padded), score climbs while quality doesn't. Plate features Goodhart AND Séréga.</aside>
+  
 </section>
 <section class="slide" data-type="misconception" data-screen-label="25 Catch · optimising the judge">
   <div class="slide-header">
@@ -769,7 +767,7 @@
     <div class="misc-truth"><span lang="ru">Рост оценки и есть симптом. Возьми свежую пару кандидатов &mdash; честный ответ и раздутый &mdash; и переоцени &laquo;полноту&raquo; (заменитель длины): побеждает <em>худший</em>, многословный. Арифметику этого переворота ты пересчитаешь руками на следующем слайде. Ничто в C не стало вернее; мы просто наградили длину, и система научилась раздувать. В тот миг, когда мера становится целью, она перестаёт измерять качество. <strong>Гудхарт</strong> — не гипотеза, а то, чем рискует стать всякий подъём по таблице лидеров.</span><span lang="en">The rising score is the symptom. Take a fresh pair of candidates &mdash; an honest answer and a padded one &mdash; and over-weight &ldquo;completeness&rdquo; (a stand-in for length): the <em>worse</em>, verbose one wins. You will redo the arithmetic of that flip by hand on the next slide. Nothing about C got truer; we just rewarded length, and the system learned to pad. The moment a measure becomes a target, it stops measuring quality. <strong>Goodhart</strong> isn't a hypothetical &mdash; he is what every leaderboard climb risks becoming.</span></div>
   </div>
   <p class="small muted center mt-2"><span lang="ru">Растущая оценка необходима, но не достаточна. Прежде чем довериться подъёму, докажи, что оптимизировал не самого судью.</span><span lang="en">A rising score is necessary, not sufficient. Before you trust the climb, prove the judge wasn't the thing you optimised.</span></p>
-  <aside class="slide-notes">catch-goodhart misconception — THE CLIMAX. l11-judge.goodhart: honest A 4.3333 > gamed C 4.0; length-biased C 4.25 > A 4.0 (the flip, both gated). The metric became a target. Goodhart illustration. This resolves the Measure-villain arc opened in L1.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="26 Goodhart flip, by hand">
   <div class="slide-header">
@@ -782,7 +780,7 @@
     $$ A = \frac{5 + 5 + 2\cdot 3}{4} = \mathbf{4.0} \;<\; C = \frac{4 + 3 + 2\cdot 5}{4} = \mathbf{4.25} \;\Rightarrow\; \text{winner } C $$
   </div>
   <p class="small muted center mt-2"><span lang="ru">Здесь свежая пара кандидатов (не A/B со слайда рубрики): честный ответ A и раздутый ответ C. Честная оценка выбирает A (4,3333 &gt; 4,0). Теперь считай «полноту» вдвое важнее — заменитель награды за длину — и C, раздутый ответ, побеждает (<strong>4,25 &gt; 4,0</strong>). <strong>Ничто в C не стало вернее; мы лишь изменили то, что оценка вознаграждает.</strong> Метрика стала целью — Гудхарт в три строки арифметики.</span><span lang="en">A fresh pair of candidates here (not the A/B from the rubric slide): an honest answer A and a padded answer C. Honest judging picks A (4.3333 &gt; 4.0). Now treat &ldquo;completeness&rdquo; as twice as important — a stand-in for rewarding length — and C, the padded answer, wins (<strong>4.25 &gt; 4.0</strong>). <strong>Nothing about C got truer; we just changed what the score rewards.</strong> The metric became a target — Goodhart in three lines of arithmetic.</span></p>
-  <aside class="slide-notes">goodhart-flip by-hand. l11-judge.goodhart: goodScores [5,5,3]→honest A 4.3333, gamedScores [4,3,5]→C 4.0; length-biased (completeness ×2) A 4.0 < C 4.25 (all gated). The flip is the metric becoming a target. Three-line arithmetic version of the catch slide.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="27 Position bias, measured">
   <div class="slide-header">
@@ -797,7 +795,7 @@
     <img src="assets/img/L11/L11-09-position-bias.webp?v=1" alt="Two identically good answers sit in slots 1 and 2 on the judge's verdict board; Goodhart the Trickster, bare-headed and grinning, tilts the scale toward slot 1 with his fishing-hook while Séréga, in his green tübetey, points out the two answers are tied." />
   </div>
   <p class="small muted center mt-2"><span lang="ru">Мы заморозили настоящего судью (llama3.1:8b, температура 0, seed 42) и скормили ему подлинные ничьи. Он якорился на том ответе, что стоял в <strong>слоте 1</strong>, два раза из трёх (0,6667) — монета, которая падает орлом из-за того, <em>где</em> напечатан ответ, а не что он сказал. Тот же судья <strong>идеален (1,0)</strong>, когда один ответ явно лучше. Смещение прячется ровно там, где важнее всего: в близких раскладах. Смещения позиции, многословия и самопредпочтения назвали и измерили <strong>Zheng и др. (MT-Bench, 2023)</strong>; здесь мы перемеряем их на маленьком открытом судье.</span><span lang="en">We froze a real judge (llama3.1:8b, temp 0, seed 42) and fed it genuine ties. It anchored to whichever answer sat in <strong>slot 1</strong> two times out of three (0.6667) — a coin that lands heads because of <em>where</em> the answer was printed, not what it said. The same judge is <strong>perfect (1.0)</strong> when one answer is clearly better. The bias hides exactly where it matters most: the close calls. Position, verbosity and self-enhancement bias were named and measured by <strong>Zheng et al. (MT-Bench, 2023)</strong>; we re-measure them here on a small open judge.</span></p>
-  <aside class="slide-notes">position-bias, measured. l11-judge.real: positionFollowRateTie 0.6667 (4/6 ties anchored to slot 1), accuracyClear 1.0 (6/6) — both gated. Real frozen llama3.1:8b. The bias only bites on ties (the close calls); when quality is clear it's accurate. Mitigation (swap order) on the mitigations slide.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="28 Verbosity bias, measured">
   <div class="slide-header">
@@ -809,7 +807,7 @@
     $$ \text{across } 5 \text{ paired prompts} \times 2 \text{ orderings} = 10 \text{ trials},\ \text{the longer answer won } \textbf{every} \text{ time} $$
   </div>
   <p class="small muted center mt-2"><span lang="ru">Держали качество содержания фиксированным и варьировали лишь длину: при перемере на маленьком открытом судье тот предпочёл <strong>длинный</strong> ответ в <strong>10 из 10</strong> испытаний (5 промптов &times; 2 порядка) — идеальная <strong>1,0</strong> на этом зонде. Смещение многословия — сильная тенденция, не буквально всегда; но здесь это Гудхарт, ставший измеримым: оптимизируй против этого судьи — и модель усвоит один урок: <em>пиши больше</em>. Раздувание — бесплатная победа. Это опаснейшее смещение, ведь оно награждает ровно то поведение, которое разрушает хороший поисковый ответ.</span><span lang="en">Held content quality fixed and only varied length: re-measured on a small open judge, it preferred the <strong>longer</strong> answer in <strong>10 of 10</strong> trials (5 prompts &times; 2 orderings) — a perfect <strong>1.0</strong> on this probe. Verbosity bias is a strong tendency, not literally always; but here it is Goodhart made measurable: optimise against this judge and your model learns one lesson — <em>write more</em>. Padding is a free win. It is the single most dangerous bias because it rewards exactly the behaviour that erodes a good search answer.</span></p>
-  <aside class="slide-notes">verbosity-bias, measured — THE killer finding (Saito et al. 2023, arXiv:2310.10076 names it). l11-judge.real: verbosityPreferenceRate 1.0, verbosityLongerWins 10 (5 prompts × 2 orderings), gated. Longer wins EVERY time → optimising the judge teaches the model to pad. This is the concrete Goodhart mechanism.</aside>
+  
 </section>
 <section class="slide" data-type="default" data-screen-label="29 The judge's other biases">
   <div class="slide-header">
@@ -830,7 +828,7 @@
       <p><span lang="ru">Не всё плохо. На нашей подсаженной <strong>галлюцинации</strong> — ответе с одним выдуманным фактом — тот же замороженный судья <em>поймал её</em> и снизил оценку по заземлению. Значит судья — настоящий сигнал верности; просто у него палец на весах ради длины, позиции и себя. Знай, что есть что: доверяй вердикту по заземлению, остальное проверяй.</span><span lang="en">It is not all bad news. On our planted <strong>hallucination</strong> — an answer with one invented fact — the same frozen judge <em>caught it</em> and marked the answer down on grounding. So the judge is a real faithfulness signal; it just has thumbs on the scale for length, position, and self. Know which is which: trust the grounding verdict, audit the rest.</span></p>
     </div>
   </div>
-  <aside class="slide-notes">other-biases. Self-enhancement (judge favours own family — never self-grade), authority/formatting, sycophancy. But l11-judge.real.faithfulnessCaughtPlanted=true: the same judge DID catch the planted hallucination on grounding. So the judge has real signal (grounding) + thumbs on the scale (length/position/self). Nuanced, not nihilistic.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="30 Order-swap fix, by hand">
   <div class="slide-header">
@@ -842,7 +840,7 @@
     $$ \text{judge }(A,B)\text{ and }(B,A);\ \ \text{verdict} = \begin{cases} \text{the agreed winner} & \text{if both agree} \\ \text{tie / abstain} & \text{if they disagree} \end{cases} $$
   </div>
   <p class="small muted center mt-2"><span lang="ru">Запусти судью дважды с ответами в <em>обоих</em> порядках. Когда решило бы смещение позиции, два прогона <strong>расходятся</strong> — и мы объявляем ничью вместо коронации слота 1. Смещённые 0,6667 на ничьих схлопываются к честному броску монеты ценой одного лишнего вызова судьи. <strong>Самая дешёвая защита — симметрия.</strong></span><span lang="en">Run the judge twice with the answers in <em>both</em> orders. When position bias would have decided it, the two runs <strong>disagree</strong> — so we call it a tie instead of crowning slot 1. The biased 0.6667 on ties collapses toward an honest coin flip, at the cost of one extra judge call. <strong>The cheapest defence is symmetry.</strong></span></p>
-  <aside class="slide-notes">order-swap mitigation by-hand. l11-judge.real.positionFollowRateTie 0.6667 (gated). Judge (A,B) and (B,A); keep agreements, treat disagreements as ties — symmetrising cancels position bias for the price of one extra call. Concrete version of the mitigations table's top row.</aside>
+  
 </section>
 <section class="slide" data-type="table" data-screen-label="31 Judge mitigations">
   <div class="slide-header">
@@ -864,7 +862,7 @@
     </tbody>
   </table>
   <p class="small muted center mt-2"><span lang="ru">Судья остаётся полезным — если относиться к нему как к инструменту, что требует калибровки, а не как к оракулу. <strong>Меняй порядок, нормируй длину, смешивай панель и якори к людям.</strong> Числа реальны (0,6667, 1,0), значит и защиты должны быть реальными.</span><span lang="en">The judge stays useful — if you treat it like an instrument that needs calibration, not an oracle. <strong>Swap the order, normalise length, mix the panel, and anchor to humans.</strong> The numbers are real (0.6667, 1.0), so the defences must be too.</span></p>
-  <aside class="slide-notes">judge-mitigations table (cmp-table). Maps each measured bias to a defence: position (0.6667) → swap orderings (highlighted); verbosity (1.0) → length-normalise; self-enhancement → cross-family judge; noise → panel; drift → human calibration. The measured numbers (gated) tie the row to the real finding. "Audit the instrument."</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="32 Goodhart's law, formally">
   <div class="slide-header">
@@ -882,7 +880,7 @@
       </ul>
     </div>
   </div>
-  <aside class="slide-notes">goodhart-law formalised — the climax callback (NOT a re-intro). Strathern's formulation. Trace L1 (CTR/ranking metrics) → L5 (proxy loss drift) → L16 (judge score as proxy; optimising it → padding). Defence is structural: held-out human labels, rotated judges, no single-decimal-as-truth. All metrics are proxies, not the territory. Resolves the Measure-villain arc.</aside>
+  
 </section>
 <section class="slide" data-type="divider" data-screen-label="33 Divider · Agentic RAG">
   <div class="divider-content">
@@ -890,7 +888,7 @@
     <h1>Agentic RAG</h1>
     <p class="divider-sub"><span lang="ru"><em>Если мы можем оценить ответ, Корабль может оценить свой собственный &mdash; на лету.</em> Хватит относиться к извлечению как к одному выстрелу. Пусть модель <strong>зациклится</strong>: рассуждай о том, чего не хватает, действуй, чтобы это извлечь, наблюдай и повторяй, пока вопрос не решён. ReAct импровизирует цикл; Self-RAG и CRAG превращают его в дисциплину. Судья переезжает <em>внутрь</em> конвейера.</span><span lang="en"><em>If we can grade an answer, the Ship can grade its own &mdash; mid-flight.</em> Stop treating retrieval as a single shot. Let the model <strong>loop</strong>: reason about what's missing, act to retrieve it, observe, and repeat until the question is answered. ReAct improvises the loop; Self-RAG and CRAG make it a discipline. The judge moves <em>inside</em> the pipeline.</span></p>
   </div>
-  <aside class="slide-notes">turn-agentic. The evaluation machinery from Acts 1–3 moves inside the loop: the model grades its own retrieval/output and corrects. ReAct (free-form), Self-RAG (reflection tokens), CRAG (retrieval grader). This is the L15 self-correcting loop, now driven by the agent.</aside>
+  
 </section>
 <section class="slide" data-type="default" data-screen-label="34 Why a loop, not a shot">
   <div class="slide-header">
@@ -911,7 +909,7 @@
       <p><span lang="ru">Итерируй: <strong>рассуждай</strong> о том, чего не хватает &rarr; <strong>действуй</strong> (извлеки следующий факт) &rarr; <strong>наблюдай</strong> &rarr; повторяй, и <strong>оценивай</strong> каждый результат, прежде чем ему довериться. Цикл превращает плоский извлекатель в машину, которая умеет планировать, проверять свою работу и чинить плохие извлечения &mdash; та же самокоррекция, которую мы построили в L15, теперь ведомая самой моделью.</span><span lang="en">Iterate: <strong>reason</strong> about what's missing &rarr; <strong>act</strong> (retrieve the next fact) &rarr; <strong>observe</strong> &rarr; repeat, and <strong>grade</strong> each result before trusting it. The loop turns a flat retriever into something that plans, checks its own work, and repairs bad retrievals &mdash; the same self-correction we built in L15, now driven by the model itself.</span></p>
     </div>
   </div>
-  <aside class="slide-notes">self-correcting-overview. The single-shot wall: multi-hop questions need an intermediate fact the first query can't name; more chunks don't help. The fix is the reason→act→observe loop with grading — the agent plans + self-corrects. Motivates the agentic-loop climb (the two-hop "founder of Acme Corp" example).</aside>
+  
 </section>
 <section class="slide" data-type="archflow" data-max-step="4" data-current-step="0" data-screen-label="35 Climb · The agentic loop">
   <div class="slide-header">
@@ -1013,7 +1011,7 @@
 }
   </script>
   <p class="viz-caption"><span lang="ru">Два прыжка, три шага: найди основателя (recall@1 = 0), верни его обратно, чтобы узнать, что он изучал (recall@1 &rarr; 1), затем finish. Настоящий замороженный llama3.1:8b прогнал тот же цикл и решил другой двухпрыжковый вопрос за 3 шага.</span><span lang="en">Two hops, three steps: lookup the founder (recall@1 = 0), feed it back to find what they studied (recall@1 &rarr; 1), then finish. A real frozen llama3.1:8b ran the same loop and solved a different 2-hop question in 3 steps.</span></p>
-  <aside class="slide-notes">climb-agentic master figure (agentic-loop on l11-agentic). Steps 0–3 = the toy ReAct loop (recall@1 0→0→1, hops 2, solved); step 4 = Self-RAG/CRAG as structured cousins. The real badge shows the frozen llama3.1:8b run (3 steps → "Pragmatic Bookshelf"). All numbers/strings from data/l11-agentic.json.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="36 ReAct recall, by hand">
   <div class="slide-header">
@@ -1025,7 +1023,7 @@
     $$ \text{step 0 (lookup founder): } 0 \quad\to\quad \text{step 1 (lookup study): } \mathbf{1} \quad\to\quad \text{step 2 (finish): } 1 $$
   </div>
   <p class="small muted center mt-2"><span lang="ru">Отслеживай, держит ли топ-1 извлечение ответ на каждом шаге. Первый lookup возвращает <em>имя основателя</em> — полезно, но не то, о чём спрашивали, поэтому recall@1 остаётся <strong>0</strong>. Лишь после подачи этого имени во второй lookup появляется ответ: recall@1 прыгает к <strong>1</strong>. <strong>Один выстрел останавливается на шаге 0 (recall@1 = 0); цикл замыкает цепь.</strong> Но цикл может и провалиться: неверный первый lookup отравляет каждый следующий прыжок, а без самооценки ReAct может зациклиться навсегда или галлюцинировать Наблюдение — ровно тот режим отказа, для ловли которого Self-RAG/CRAG добавляют оценщика.</span><span lang="en">Track whether the top-1 retrieval holds the answer at each step. The first lookup returns the <em>founder's name</em> — useful, but not what was asked, so recall@1 stays <strong>0</strong>. Only after feeding that name into the second lookup does the answer appear: recall@1 jumps to <strong>1</strong>. <strong>A single shot stops at step 0 (recall 0); the loop closes the chain.</strong> But the loop can also fail: a wrong first lookup poisons every later hop, and with no self-grading ReAct can loop forever or hallucinate an Observation — exactly the failure mode Self-RAG/CRAG add a grader to catch.</span></p>
-  <aside class="slide-notes">react-recall by-hand. l11-agentic.react.recallByStep [0,1,1] (gated), hops 2, solved true. recall@1 is 0 for the first lookup (founder name), then jumps to 1 on hop 2 (step 1) when the study fact lands — a single-shot retriever would stop at recall 0. The arithmetic behind the agentic-loop climb.</aside>
+  
 </section>
 <section class="slide" data-type="two-col" data-screen-label="37 ReAct, formally">
   <div class="slide-header">
@@ -1052,7 +1050,7 @@
       </div>
     </div>
   </div>
-  <aside class="slide-notes">react-formally. Cite Yao et al., "ReAct", ICLR 2023 (arXiv:2210.03629). Thought→Action→Observation loop until finish[]. Reasoning guides acting; retrieval is a tool the model calls. Free-form: works on any LLM but no built-in self-grading → motivates the structured cousins (Self-RAG, CRAG).</aside>
+  
 </section>
 <section class="slide" data-type="e2e" data-max-step="3" data-current-step="0" data-screen-label="38 Real ReAct trace, step by step">
   <div class="slide-header">
@@ -1088,7 +1086,7 @@
     <span class="e2e-stage-name">2-hop ReAct</span>
     <button type="button" class="e2e-toggle">Loop only</button>
   </div>
-  <aside class="slide-notes">real-ReAct-trace e2e. l11-agentic.real (frozen llama3.1:8b, temp 0, seed 42): question = "publishing company an author of The Pragmatic Programmer co-founded"; 3-step trace book→author→publisher→finish; finalAnswer "Pragmatic Bookshelf"; solved true. The lesson: structure (a lookup tool over an entity list) turns a small model into a capable agent. All strings/numbers from the data file.</aside>
+  
 </section>
 <section class="slide" data-type="two-col" data-screen-label="39 Self-RAG">
   <div class="slide-header">
@@ -1115,7 +1113,7 @@
       </div>
     </div>
   </div>
-  <aside class="slide-notes">self-rag definition (callback L15). Cite Asai et al., "Self-RAG", ICLR 2024 (arXiv:2310.11511). Reflection tokens Retrieve/IsRel/IsSup/IsUse. IsSup = faithfulness as a token; IsUse = the judge inside the decoder. Contrast with CRAG on the next slide (bolt-on vs baked-in).</aside>
+  
 </section>
 <section class="slide" data-type="archflow" data-max-step="4" data-current-step="0" data-screen-label="40 CRAG & self-RAG · the loop">
   <div class="slide-header">
@@ -1209,7 +1207,7 @@
 }
   </script>
   <p class="viz-caption"><span lang="ru">CRAG оценивает каждое извлечение как верное / неоднозначное / неверное и ветвится &mdash; уточни и используй, дополни вебом или отбрось и перепиши. Тот же цикл, что мы построили в L15 (rag-control-flow), теперь — шаг самокоррекции агента. Оценивание из Актов 1&ndash;3 стало потоком управления.</span><span lang="en">CRAG grades each retrieval correct / ambiguous / wrong and branches &mdash; refine &amp; use, web-augment, or discard &amp; rewrite. The same loop we built in L15 (rag-control-flow), now the agent's self-correction step. The judging from Acts 1&ndash;3 became control flow.</span></p>
-  <aside class="slide-notes">CRAG callback (REUSES rag-control-flow + l10-selfrag, mounted exactly as L15's 46-crag). Steps 0–2 = CRAG (cite arXiv:2401.15884); steps 3–4 = self-RAG (cite arXiv:2310.11511). The L15 self-correcting loop returns as the agent's grading step — evaluation moved inside the pipeline. Thresholds 0.7/0.3 are single-decimal + in widget-data → coverage-safe.</aside>
+  
 </section>
 <section class="slide" data-type="two-col" data-screen-label="41 Adaptive-RAG">
   <div class="slide-header">
@@ -1237,7 +1235,7 @@
     </div>
   </div>
   <p class="viz-caption"><span lang="ru">Рисунок повторяет <em>структурированных родичей</em> &mdash; Self-RAG и CRAG (два предыдущих слайда) &mdash; над самокоррекцией которых Adaptive-RAG стоит <em>выше</em>: здесь новая идея — <strong>маршрутизатор сложности</strong>, что решает, <em>сколько</em> этой машинерии запускать (без извлечения / одношаговый / многошаговый).</span><span lang="en">Figure recaps the <em>structured cousins</em> &mdash; Self-RAG &amp; CRAG (the two previous slides) &mdash; whose self-correction Adaptive-RAG sits <em>above</em>: here the new idea is the <strong>complexity router</strong> that decides <em>how much</em> of that machinery to run (no-retrieval / single-step / multi-step).</span></p>
-  <aside class="slide-notes">adaptive-RAG definition. Cite Jeong et al., "Adaptive-RAG", NAACL 2024 (arXiv:2403.14403). Complexity classifier → no-retrieval / single-step / multi-step(agentic). The meta-lesson: match loop effort to question complexity — don't run a multi-step agent on a one-hop fact. Pairs with the don't-over-engineer boundary slide.</aside>
+  
 </section>
 <section class="slide" data-type="table" data-screen-label="42 The agentic menu">
   <div class="slide-header">
@@ -1260,7 +1258,7 @@
     </tbody>
   </table>
   <p class="small muted center mt-2"><span lang="ru"><strong>ReAct</strong> — универсальный вариант по умолчанию: без обучения, работает на любой модели. Self-RAG <em>вшивает</em> критику в веса; CRAG <em>накладывает</em> оценщика сверху; Adaptive-RAG <em>выбирает</em>, что запускать. Все четыре — одна идея: перестань доверять одному извлечению &mdash; зацикливай, оценивай, чини.</span><span lang="en"><strong>ReAct</strong> is the universal default &mdash; no training, works on any model. Self-RAG <em>bakes</em> the critique into the weights; CRAG <em>bolts</em> a grader on after; Adaptive-RAG <em>chooses</em> which to run. All four are the same idea: stop trusting one retrieval &mdash; loop, grade, repair.</span></p>
-  <aside class="slide-notes">agentic-menu (cmp-table). ReAct (free-form, no training, highlighted as default) / Self-RAG (baked-in, trained) / CRAG (fine-tuned T5-large retrieval grader; fixed generator allowed, §4.2 of https://arxiv.org/html/2401.15884v3) / Adaptive-RAG (router). Columns: how it loops, self-grades?, needs training?, when. Qualitative, no gated numbers. Unifying idea: loop, grade, repair.</aside>
+  
 </section>
 <section class="slide" data-type="quiz" data-screen-label="43 Quiz · agentic">
   <div class="slide-header">
@@ -1279,7 +1277,7 @@
       <div class="ha-content"><span lang="ru"><strong>B</strong>. Ответ живёт <em>за</em> промежуточным фактом: нельзя искать «что изучал основатель», пока не знаешь, кто основатель <em>такой</em>. Набивать больше фрагментов (A) не помогает &mdash; связующий факт сформулирован не как вопрос, поэтому не ранжируется. Модель побольше (C) вовсе бросает заземление. Цикл побеждает, потому что каждое Наблюдение <em>обновляет следующий запрос</em>: найди основателя &rarr; recall@1 всё ещё 0 &rarr; верни имя обратно &rarr; recall@1 прыгает к 1 &rarr; finish.</span><span lang="en"><strong>B</strong>. The answer lives <em>behind</em> an intermediate fact: you can't search for &ldquo;what the founder studied&rdquo; until you know who the founder <em>is</em>. Stuffing more chunks (A) doesn't help &mdash; the bridging fact isn't phrased like the question, so it never ranks. A bigger model (C) abandons grounding entirely. The loop wins because each Observation <em>updates the next query</em>: lookup the founder &rarr; recall@1 still 0 &rarr; feed the name back &rarr; recall@1 jumps to 1 &rarr; finish.</span></div>
     </details>
   </div>
-  <aside class="slide-notes">Quiz: multi-hop needs the loop because the answer is behind a bridging fact the first query can't express. Answer B. Drives home that the loop's value is feeding each Observation into the next Action (recall@1 0→1 from the climb), not more chunks (A) or a bigger model (C).</aside>
+  
 </section>
 <section class="slide" data-type="divider" data-screen-label="44 Divider · Putting it together">
   <div class="divider-content">
@@ -1290,7 +1288,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:60cqh; --fig-w:50%;">
     <img src="assets/img/L11/L11-10-eval-matrix.webp?v=1" alt="A comparison matrix pinned to the courtroom wall — RAGAS, LLM-as-judge, and human raters down the rows, cost, speed, and trust across the columns; Séréga, in his green tübetey, weighs the three methods as a ladder while RAGdoll the Oracle waits to be graded." />
   </div>
-  <aside class="slide-notes">turn-together. Synthesises Acts 1–4: three eval methods (RAGAS / judge / human), the two axes (faithfulness vs relevance), and the proxy caveat. Sets up the comparison table, the two-axes slide, the boundaries, and the decision map.</aside>
+  
 </section>
 <section class="slide" data-type="table" data-screen-label="45 RAGAS vs judge vs human">
   <div class="slide-header">
@@ -1312,7 +1310,7 @@
     </tbody>
   </table>
   <p class="small muted center mt-2"><span lang="ru">Используй их как <strong>лестницу</strong>: RAGAS — для дешёвой непрерывной диагностики; LLM-судья — для быстрых сравнений (с проверкой на измеренные смещения); люди — на маленькой отложенной выборке, чтобы <em>откалибровать</em> два дешёвых прокси. Дорогой метод — не повседневный, а якорь, который держит дешёвые честными.</span><span lang="en">Use them as a <strong>ladder</strong>: RAGAS for cheap, continuous diagnosis; the LLM judge for fast comparisons (audited for the measured biases); humans on a small held-out sample to <em>calibrate</em> the two cheap proxies. The expensive method isn't the everyday one &mdash; it's the anchor that keeps the cheap ones honest.</span></p>
-  <aside class="slide-notes">eval-comparison (cmp-table). RAGAS (low/fast/diagnostic proxy) vs LLM-judge (medium/fast/biased proxy — audit) vs human (high/slow/closest to truth — highlighted as the anchor). The ladder: cheap proxies daily, humans to calibrate. Qualitative, no gated numbers. Directly counters the Goodhart trap from Act 3.</aside>
+  
 </section>
 <section class="slide" data-type="formula" data-screen-label="45a What the human sample buys">
   <div class="slide-header slide-header--flush">
@@ -1329,7 +1327,7 @@
     <div class="var-block"><div class="var-symbol">\(\hat{s}\uparrow\)</div><div class="var-desc"><strong><span lang="ru">Гудхарт в этой записи</span><span lang="en">Goodhart, in this notation</span></strong><br /><span lang="ru">оптимизируй \(\hat{s}\) &mdash; система поедет туда, где больше \(b\); \(s\) стоит.</span><span lang="en">optimise \(\hat{s}\) and the system drifts to where \(b\) is larger; \(s\) stands still.</span></div></div>
   </div>
   <p class="small muted center mt-2"><span lang="ru">Выборка с людскими метками не делает прокси истиной &mdash; она оценивает \(b\), и только поэтому прокси можно пользоваться. Отсюда правила: держи её неизменной, сравнивай одним судьёй, сообщай разницу, а не абсолют.</span><span lang="en">A human-labelled sample does not turn the proxy into truth — it estimates \(b\), which is what makes the proxy usable. Hence the rules: keep it frozen, compare under one judge, report the difference, not the absolute.</span></p>
-  <aside class="slide-notes">The mechanism behind this act's ladder. The comparison table asserts that humans "calibrate the cheap proxies" and act as "the anchor that keeps them honest" — but never shows what calibration mechanically does. Model any proxy score as true quality plus a systematic offset plus run-to-run noise. Three consequences follow, and each is a rule the act already states without justification. (1) The absolute proxy number is uninterpretable on its own, because it carries an unknown offset; averaging more runs shrinks the noise and does nothing at all to the offset, so a bigger evaluation set never fixes a biased judge. (2) A difference between two systems under the same judge cancels the shared part of the offset — which is exactly why pairwise comparison is more trustworthy than absolute scoring, and exactly why verbosity bias is the dangerous one: it makes the offset depend on the answer, so it no longer cancels. (3) Goodhart, in the same notation: optimising the observed score pushes the system toward whatever the offset rewards, so the number climbs while true quality stands still — the flip we computed by hand in act 3. What the human sample buys is an estimate of the offset, not the truth. Keep it small, held out, and frozen; re-use it to check the proxies rather than to train against them.</aside>
+  
 </section>
 <section class="slide" data-type="definition" data-screen-label="46 Faithfulness vs relevance">
   <div class="slide-header">
@@ -1347,7 +1345,7 @@
       </ul>
     </div>
   </div>
-  <aside class="slide-notes">faithfulness-vs-relevance (callback L15's deferred axes — now measured). Two independent axes: faithfulness (supported by context, RAGAS 0.75 / IsSup) vs relevance (answers the question, answer-relevance 0.7033 / IsUse). Don't collapse them — one number hides which way it failed. The 0.75 ties back to the by-hand slide (gated number reused).</aside>
+  
 </section>
 <section class="slide" data-type="misconception" data-screen-label="47 Misconception · more loops always help">
   <div class="slide-header">
@@ -1361,7 +1359,7 @@
     <div class="misc-truth"><span lang="ru">Каждая итерация цикла — ещё один вызов LLM: больше задержки, больше цены и ещё одно место для сбоя &mdash; оценщик может оценить неверно, токен рефлексии — сработать не так, а цикл — заблудиться. Для простого однопрыжкового факта агентный цикл — чистые накладные расходы; <strong>Adaptive-RAG</strong> существует именно чтобы его <em>не</em> запускать. Сперва диагностируй сбой &mdash; это заземление, ранжирование, покрытие или многопрыжковость? &mdash; затем добавь <em>тот один</em> механизм, который устраняет именно этот сбой. И помни Гудхарта: больше самооценки против смещённого судьи лишь учит модель быстрее обыгрывать этого судью. Начинай просто; заслуживай каждый цикл измеренной, привязанной к человеку победой.</span><span lang="en">Each loop iteration is another LLM call: more latency, more cost, and another place to fail &mdash; a grader can mis-grade, a reflection token can mis-fire, and a loop can wander. For a simple one-hop fact, an agentic loop is pure overhead; <strong>Adaptive-RAG</strong> exists precisely to <em>not</em> run it. Diagnose the failure first &mdash; is it grounding, ranking, coverage, or multi-hop? &mdash; then add the <em>one</em> mechanism whose lift matches. And remember Goodhart: more self-grading against a biased judge just teaches the model to game that judge faster. Start simple; earn each loop with a measured, human-anchored win.</span></div>
   </div>
   <p class="small muted center mt-2"><span lang="ru">Агентный инструментарий — набор скальпелей, а не молоток. Подгоняй цикл под вопрос; пусть побеждает самый дешёвый путь, что на него отвечает.</span><span lang="en">The agentic toolkit is a set of scalpels, not a hammer. Match the loop to the question; let the cheapest path that answers it win.</span></p>
-  <aside class="slide-notes">applicability-boundaries misconception (don't over-agent). Each loop = an LLM call (latency/cost/failure point); a one-hop fact needs no agent (Adaptive-RAG). Diagnose first, add the one mechanism. Goodhart callback: more self-grading vs a biased judge → faster gaming. Start simple, human-anchor each win. Pairs with the agentic menu + decision map.</aside>
+  
 </section>
 <section class="slide" data-type="quiz" data-screen-label="48 Quiz · evaluation">
   <div class="slide-header">
@@ -1380,7 +1378,7 @@
       <div class="ha-content"><span lang="ru"><strong>C</strong>. Растущая оценка судьи при более длинных ответах — точная подпись смещения многословия, что мы измерили (длинный побеждал в 10/10 испытаний). Число не объективно (A) &mdash; это прокси, против которого ты только что оптимизировал, а это Гудхарт. Но судья и не бесполезен (B) &mdash; он поймал подсаженную галлюцинацию по заземлению. Дисциплинированный ход — контролировать смещение (нормировать длину, менять порядок) и якорить к человеческой выборке, прежде чем делать выводы.</span><span lang="en"><strong>C</strong>. A rising judge score with longer answers is the exact signature of the verbosity bias we measured (longer won 10/10 trials). The number isn't objective (A) &mdash; it's a proxy you just optimised against, which is Goodhart. But the judge isn't worthless (B) either &mdash; it caught the planted hallucination on grounding. The disciplined move is to control for the bias (length-normalise, swap order) and anchor to a human-labelled sample before concluding anything.</span></div>
     </details>
   </div>
-  <aside class="slide-notes">Quiz: a judge-score rise with longer answers = verbosity-bias signature (10/10 finding) = Goodhart. Answer C. Not objective (A); not worthless (B — it caught the hallucination). Control for the bias + human-anchor. Synthesises Acts 2–3.</aside>
+  
 </section>
 <section class="slide" data-type="table" data-screen-label="49 When to reach for what">
   <div class="slide-header">
@@ -1404,7 +1402,7 @@
     </tbody>
   </table>
   <p class="small muted center mt-2"><span lang="ru">Лучшего оценщика нет &mdash; есть карта «симптом → починка». Диагностируй, <em>какая</em> ось или стадия отказала, тянись за метрикой или циклом, якори прокси к человеческой выборке. Карта — вся лекция на одном слайде.</span><span lang="en">No single best evaluator &mdash; only the symptom-to-fix map. Diagnose <em>which</em> axis or stage failed, reach for the matching metric or loop, anchor proxies to a human sample. The map is the whole lecture on one slide.</span></p>
-  <aside class="slide-notes">when-to-reach-for-what decision map (cmp-table). Symptom → cause → fix, spanning all of L16 (+ L15 callbacks for re-rank/retrieval fixes). Faithfulness row highlighted. Diagnose the axis/stage, reach for the matching tool, human-anchor the proxies. The lecture-on-one-slide synthesis.</aside>
+  
 </section>
 <section class="slide" data-type="misconception" data-screen-label="50 Catch · the judge is not ground truth">
   <div class="slide-header">
@@ -1418,7 +1416,7 @@
     <div class="misc-truth"><span lang="ru">Каждое число, которое мы посчитали сегодня &mdash; верность 0,75, релевантность 0,7033, судейские 4,0 &mdash; это <strong>прокси</strong>, произведённый моделью, а модели смещены (позиция 0,6667 на ничьих, многословие 1,0). Метрики незаменимы: они дают дёшево ловить регрессии, диагностировать, <em>какая</em> стадия отказала, и позволяют Кораблю оценивать себя в цикле. Но это инструменты, а не территория. Держи маленький набор с людскими метками как якорь, сообщай оси отдельно и проверяй любую оценку, против которой оптимизируешь. Так ты получаешь скорость автоматизации <em>и</em> доверие человеческого суждения &mdash; а Гудхарт уходит домой ни с чем.</span><span lang="en">Every number we computed today &mdash; the 0.75 faithfulness, the 0.7033 relevance, the judge's 4.0 &mdash; is a <strong>proxy</strong> produced by a model, and models are biased (position 0.6667 on ties, verbosity 1.0). The metrics are indispensable: they let you catch regressions cheaply, diagnose <em>which</em> stage failed, and let the Ship grade itself in the loop. But they are instruments, not the territory. Keep a small human-labelled set as the anchor, report axes separately, and audit any score you optimise against. Used that way, you get the speed of automation <em>and</em> the trust of human judgment &mdash; and Goodhart goes home empty-handed.</span></div>
   </div>
   <p class="small muted center mt-2"><span lang="ru">Измерение сделало Оракула подотчётным &mdash; но лишь если помнить, что карта — не территория. Эта скромность и есть инженерная дисциплина.</span><span lang="en">Measurement made the Oracle accountable &mdash; but only if we remember the map is not the territory. That humility is the engineering discipline.</span></p>
-  <aside class="slide-notes">catch — the judge is not ground truth (the lecture's final guard). Every score (0.75 / 0.7033 / 4.0) is a model-made proxy; models are biased (0.6667 / 1.0). Indispensable but instruments, not truth. Keep a human anchor, report axes separately, audit optimised metrics. Resolves the Goodhart arc into a discipline.</aside>
+  
 </section>
 <section class="slide" data-type="divider" data-screen-label="51 Payoff · It grades itself">
   <div class="divider-content">
@@ -1429,7 +1427,7 @@
   <div class="viz-frame fig-fit" style="--fig-max:62cqh; --fig-w:54%;">
     <img src="assets/img/L11/L11-08-grades-itself.webp?v=1" alt="RAGdoll the Oracle holds up its own answer beside a self-stamped scorecard and crosses out a hallucinated line; Séréga, in his green tübetey, gives an approving nod while Goodhart the Trickster slinks out the courtroom door, hook empty." />
   </div>
-  <aside class="slide-notes">payoff-self-correct (features Séréga; Goodhart defeated/leaving). Catchphrase resolves: the Ship grades + corrects itself. Recap of the three climbs + the named villain. Bridge to L20 (the Deep Field) on the next slide. The Measure-villain arc closes.</aside>
+  
 </section>
 <section class="slide" data-type="quote" data-screen-label="52 Bridge · The Deep Field">
   <div>
@@ -1445,7 +1443,7 @@
       <span lang="ru">мост &rarr; Лекция 17 &middot; Перо Артефактора</span><span lang="en">bridge &rarr; Lecture 17 &middot; The Artificer's Quill</span>
     </div>
   </div>
-  <aside class="slide-notes">bridge quote. ИСПРАВЛЕНО: слайд вёл в L20 «Глубокое поле» — остаток старой нумерации, где акт оценки соседствовал с фронтиром. По data/course.json следующая лекция — L17 «Перо Артефактора» (переписывание и декомпозиция запроса), а Глубокое поле теперь L20, через три лекции. The Ship can now answer, grade, and self-correct. L20 (the Deep Field): the longest quests — multi-hop reasoning, GraphRAG's constellation map, learning to SEE not only read (multimodal: CLIP/ColPali), and the captain's responsibility (ethics/safety). Closes the catchphrase loop and opens the frontier.</aside>
+  
 </section>
 <section class="slide" data-type="refs" data-screen-label="53 References · evaluation">
   <div class="slide-header">
@@ -1476,7 +1474,7 @@
       <span class="ref-year">2023</span>
     </li>
   </ol>
-  <aside class="slide-notes">Evaluation sources: RAGAS (Es et al., 2023, arXiv:2309.15217), LLM-as-judge / MT-Bench (Zheng et al., NeurIPS 2023, arXiv:2306.05685), Verbosity Bias (Saito et al., 2023, arXiv:2310.10076 — names the verbosity effect; the 1.0 share is OUR own llama3.1:8b run, not theirs). arXiv ids/years coverage-free. From data/l11-bench.json.</aside>
+  
 </section>
 <section class="slide" data-type="refs" data-screen-label="54 References · agentic RAG">
   <div class="slide-header">
@@ -1516,7 +1514,7 @@
       <span class="ref-year">2024</span>
     </li>
   </ol>
-  <aside class="slide-notes">Agentic sources: ReAct (Yao et al., ICLR 2023, arXiv:2210.03629), Self-RAG (Asai et al., ICLR 2024, arXiv:2310.11511), CRAG (Yan et al., 2024, arXiv:2401.15884), Adaptive-RAG (Jeong et al., NAACL 2024, arXiv:2403.14403). arXiv ids/years coverage-free. From data/l11-bench.json.</aside>
+  
 </section>
 <section class="slide" data-type="final" data-screen-label="55 Final">
   <div class="final-body">
@@ -1535,14 +1533,14 @@
   <img src="assets/img/L11/L11-12-the-verdict.webp?v=1" alt="" aria-hidden="true"
        class="cameo bl" style="width:300px; border-radius:14px;" />
 
-  <aside class="slide-notes">Q&amp;A. Sign-off (features Séréga): the Ship now grades and corrects itself — RAGAS + LLM-judge measure it, ReAct/Self-RAG/CRAG let it self-correct, and Goodhart is named and disarmed. Next lecture (L20): the Deep Field — multi-hop, GraphRAG, multimodal (CLIP/ColPali), ethics & safety. QR points to the course hub.</aside>
+  
 </section>
 
-      </div><!-- /.slides -->
-    </div><!-- /.stage -->
-  </div><!-- /.deck -->
+      </div>
+    </div>
+  </div>
 
-  <!-- JS -->
+  
   <script src="js/deck.js"></script>
   <script src="js/tools.js"></script>
   <script src="js/pen.js"></script>
@@ -1558,8 +1556,7 @@
   <script src="js/budget.js"></script>
   <script src="js/preflight.js"></script>
 
-  <!-- L16 deck-mounted widgets: classic offline bundles register window.mount<Pascal>; the deck-adapter
-       (loaded after deck.js) drives them with the deck step engine. BUILD OUTPUT (scripts/build-deck-widgets.mjs). -->
+  
   <script src="js/course-map.classic.js"></script>
   <script src="js/ragas-metrics.classic.js"></script>
   <script src="js/llm-judge.classic.js"></script>
